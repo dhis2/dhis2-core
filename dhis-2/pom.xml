@@ -15,7 +15,7 @@
   </prerequisites>
 
   <description>
-    The District Health Information System 2 deals with 
+    The District Health Information System 2 deals with
     aggregating and reporting statistical health data. The goal is to allow users to analyze
     and use this data to guide local action. The system is based around an goals of empowering
     users, by allowing them to decide what to register and report data for.
@@ -684,7 +684,7 @@
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>2.9.7</version>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>com.cronutils</groupId>
         <artifactId>cron-utils</artifactId>
@@ -1143,8 +1143,8 @@
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>4.3.14.RELEASE</spring.version>
-    <spring-security.version>4.2.4.RELEASE</spring-security.version>
-    <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
+    <spring-security.version>4.2.6.RELEASE</spring-security.version>
+    <spring-security-oauth2.version>2.3.3.RELEASE</spring-security-oauth2.version>
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
