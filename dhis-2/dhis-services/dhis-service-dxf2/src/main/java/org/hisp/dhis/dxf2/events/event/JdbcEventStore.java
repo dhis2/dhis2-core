@@ -217,33 +217,6 @@ public class JdbcEventStore
                     log.error( "Unable to read geometry for event '" + event.getUid() + "': ", e );
                 }
 
-                Double longitude = rowSet.getDouble( "psi_longitude" );
-                Double latitude = rowSet.getDouble( "psi_latitude" );
-
-                if ( longitude != null && latitude != null )
-                {
-                    Coordinate coordinate = new Coordinate( longitude, latitude );
-
-                    try
-                    {
-                        List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
-                            new TypeReference<List<Double>>()
-                            {
-                            } );
-
-                        coordinate.setLongitude( list.get( 0 ) );
-                        coordinate.setLatitude( list.get( 1 ) );
-                    }
-                    catch ( IOException ignored )
-                    {
-                    }
-
-                    if ( coordinate.isValid() )
-                    {
-                        event.setCoordinate( coordinate );
-                    }
-                }
-
                 events.add( event );
             }
             else
@@ -487,8 +460,8 @@ public class JdbcEventStore
             + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
             + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
             + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
-            + "psi.status as " + EVENT_STATUS_ID + ", " + "psi.longitude as " + EVENT_LONGITUDE_ID + ", "
-            + "psi.latitude as " + EVENT_LATITUDE_ID + ", " + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
+            + "psi.status as " + EVENT_STATUS_ID + ", "
+            + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
             + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as " + EVENT_DELETED + ", "
             + "psi.geometry as " + EVENT_GEOMETRY + ", ";
 
@@ -577,8 +550,8 @@ public class JdbcEventStore
         SqlHelper hlp = new SqlHelper();
 
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
-            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
-            + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
+            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
+            + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, "
             + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
             + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
