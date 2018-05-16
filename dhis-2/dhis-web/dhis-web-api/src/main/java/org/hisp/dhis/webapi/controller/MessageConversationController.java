@@ -43,6 +43,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -70,6 +71,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +141,7 @@ public class MessageConversationController
     {
         List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
+        System.out.println("entityClass: " + getEntityClass());
         if ( options.getOptions().containsKey( "query" ) )
         {
             messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
@@ -148,12 +151,36 @@ public class MessageConversationController
             messageConversations = new ArrayList<>( messageService.getMessageConversations() );
         }
 
+        messageConversations.forEach( messageConversation -> {
+            if(messageConversation.getSubject().equals( "dsf" )){
+                messageConversation.getUserMessages().forEach( userMessage -> System.out.println("User: " + userMessage.getUser().getDisplayName()) );
+            }
+        } );
+
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
 
-        return (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
+        messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
+
+        if ( options.get( "queryString" ) != null )
+        {
+            String queryOperator = "token";
+            if ( options.get( "queryOperator" ) != null )
+            {
+                queryOperator = options.get( "queryOperator" );
+            }
+
+            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ), "messages.text:" + queryOperator + ":" + options.get( "queryString" ), "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
+            Query subQuery = queryService.getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList( ), Junction.Type.OR );
+            subQuery.setObjects( messageConversations );
+            messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
+        }
+
+
+
+        return messageConversations;
     }
 
     //--------------------------------------------------------------------------

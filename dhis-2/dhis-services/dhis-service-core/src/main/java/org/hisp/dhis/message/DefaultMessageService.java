@@ -174,6 +174,7 @@ public class DefaultMessageService
         // Initial message of the conversation
         conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
 
+        System.out.println("recipients: " + params.getRecipients() + "\n\n, sender: " + params.getSender());
         // Add UserMessages
         params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
@@ -182,6 +183,8 @@ public class DefaultMessageService
         {
             conversation.addUserMessage( new UserMessage( params.getSender(), true ) );
         }
+
+        conversation.getUserMessages().forEach( userMessage -> System.out.println("User: " + userMessage.getUser().getDisplayName()) );
 
         // Get footer for other messageSenders
         String footer = getMessageFooter( conversation );
