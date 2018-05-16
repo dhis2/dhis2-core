@@ -880,12 +880,9 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
 
-        if ( attributeOptionCombo != null )
-        {
-            if ( !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
-            {
-                throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-            }
+        if ( attributeOptionCombo != null && !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
+        {            
+            throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
         if ( events != null && filters != null )
