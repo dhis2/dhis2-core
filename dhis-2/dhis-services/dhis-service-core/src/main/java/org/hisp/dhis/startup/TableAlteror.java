@@ -1097,6 +1097,14 @@ public class TableAlteror
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
         
+        // Update leaderOnlyJob flag in jobconfiguration
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='File resource clean up';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Dataset notification';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Data statistics';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Validation result notification';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
+        
         log.info( "Tables updated" );
 
     }

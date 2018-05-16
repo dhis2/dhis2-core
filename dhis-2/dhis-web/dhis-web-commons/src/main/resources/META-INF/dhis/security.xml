@@ -21,7 +21,7 @@
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
-    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
+    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
     <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
     <sec:csrf disabled="true" />
   </sec:http>
@@ -29,13 +29,12 @@
   <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
     create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
-    <sec:http-basic authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
+    <sec:http-basic />
     <sec:anonymous />
 
     <sec:form-login authentication-failure-url="/dhis-web-commons/security/login.action?failed=true"
       username-parameter="j_username" password-parameter="j_password"
       login-page="/dhis-web-commons/security/login.action"
-      authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"
       login-processing-url="/dhis-web-commons-security/login.action" />
     <sec:csrf disabled="true" />
   </sec:http>
@@ -124,7 +123,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
+    <sec:http-basic authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -138,6 +137,9 @@
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
+    <sec:intercept-url request-matcher-ref="analyticPluginResources"
+      access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
+      'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard,M_dhis-web-mapping')" />
 
     <!-- Apps -->
 
@@ -162,6 +164,11 @@
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
   </sec:http>
+
+  <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
+        <constructor-arg name="pattern" value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)"/>
+        <constructor-arg name="httpMethod" value="GET"/>
+  </bean>
 
   <bean id="securityExceptionTranslationHandler"
     class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">

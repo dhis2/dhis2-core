@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,73 +28,52 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Configures leaderManager that takes care of node leader elections. 
+ * 
+ * @author Ameen Mohamed
+ *
  */
-public class SharingUserGroupAccess
+@Configuration
+public class LeaderElectionConfiguration
 {
-    private String id;
+    @Autowired( required = false )
+    private RedisTemplate<String, ?> redisTemplate;
 
-    private String name;
-
-    private String displayName;
-
-    private String access;
-
-    public SharingUserGroupAccess()
+    @Bean
+    @Qualifier( "leaderTimeToLive" )
+    public ConfigurationPropertyFactoryBean leaderTimeToLive()
     {
+        return new ConfigurationPropertyFactoryBean( ConfigurationKey.LEADER_TIME_TO_LIVE );
     }
 
-    @JsonProperty
-    public String getId()
+    @Bean
+    @Qualifier( "leaderManager" )
+    @Conditional( RedisEnabledCondition.class )
+    public LeaderManager redisLeaderManager()
+        throws NumberFormatException,
+        Exception
     {
-        return id;
+        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
     }
 
-    public void setId( String id )
+    @Bean
+    @Qualifier( "leaderManager" )
+    @Conditional( RedisDisabledCondition.class )
+    public LeaderManager noOpLeaderManager()
     {
-        this.id = id;
+        return new NoOpLeaderManager();
     }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
-    }
 }
