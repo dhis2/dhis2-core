@@ -170,13 +170,13 @@ public class DefaultProgramStageInstanceService
     {
         Calendar today = Calendar.getInstance();
         PeriodType.clearTimeOfDay( today );
-        Date date = today.getTime();
+        Date todayDate = today.getTime();
 
         programStageInstance.setStatus( EventStatus.COMPLETED );
         
-        if(completedDate == null)
+        if ( completedDate == null )
         {
-            programStageInstance.setCompletedDate( date );
+            programStageInstance.setCompletedDate( todayDate );
         }
         else
         {
