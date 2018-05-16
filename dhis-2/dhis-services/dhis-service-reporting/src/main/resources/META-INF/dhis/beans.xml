@@ -4,6 +4,15 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
+
+  <!-- SchedulerUpgrade -->
+
+  <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
+    <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="runlevel" value="5" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
   <!-- PushAnalysis -->
 
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

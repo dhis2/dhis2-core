@@ -65,7 +65,7 @@ public interface EventService
         OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
         Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeDeleted );
+        Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
@@ -107,7 +107,7 @@ public interface EventService
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
 
-    ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession );
 
     void updateEventForNote( Event event );
 

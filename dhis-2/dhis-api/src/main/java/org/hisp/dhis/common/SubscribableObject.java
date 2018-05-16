@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,81 +28,18 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import java.util.Set;
 
-import java.util.Date;
+import org.hisp.dhis.user.User;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class DeserializeTest
+public interface SubscribableObject
+    extends IdentifiableObject
 {
-    private String a;
+  Set<String> getSubscribers();
 
-    private String b;
+  boolean isSubscribed();
 
-    private String c;
+  boolean subscribe( User user );
 
-    private Date d;
-
-    public DeserializeTest()
-    {
-    }
-
-    @JsonProperty
-    public String getA()
-    {
-        return a;
-    }
-
-    public void setA( String a )
-    {
-        this.a = a;
-    }
-
-    @JsonProperty
-    public String getB()
-    {
-        return b;
-    }
-
-    public void setB( String b )
-    {
-        this.b = b;
-    }
-
-    @JsonProperty
-    public String getC()
-    {
-        return c;
-    }
-
-    public void setC( String c )
-    {
-        this.c = c;
-    }
-
-    @JsonProperty
-    public Date getD()
-    {
-        return d;
-    }
-
-    public void setD( Date d )
-    {
-        this.d = d;
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "a", a )
-            .add( "b", b )
-            .add( "c", c )
-            .add( "d", d )
-            .toString();
-    }
+  boolean unsubscribe( User user );
 }

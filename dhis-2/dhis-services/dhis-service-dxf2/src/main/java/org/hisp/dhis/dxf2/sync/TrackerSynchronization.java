@@ -81,6 +81,7 @@ public class TrackerSynchronization
 
         final Date startTime = new Date();
         final Date lastSuccess = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
+        log.info( "Tracker data synchronization was last successfully done on: " + lastSuccess );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setLastUpdatedStartDate( lastSuccess );
@@ -99,10 +100,11 @@ public class TrackerSynchronization
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final int trackerSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
-        final int pages = (int) Math.ceil( objectsToSync / trackerSyncPageSize );
+        final int pages = (objectsToSync / trackerSyncPageSize) + ((objectsToSync % trackerSyncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
         final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TEIS_ENDPOINT.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
 
         log.info( "Remote server URL for Tracker POST sync: " + syncUrl );
+        log.info( "Tracker sync job has " + pages + " pages to sync. With page size: " + trackerSyncPageSize );
 
         //TODO: Add functionality (to the query/queryParams) to order by timestamp? (Then I can always start by the oldest one and move to the newest ones.)
 
