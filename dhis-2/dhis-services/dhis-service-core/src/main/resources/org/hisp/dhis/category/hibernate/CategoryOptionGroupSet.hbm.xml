@@ -55,6 +55,14 @@
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="categoryoptiongroupsetattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupsetid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
   </class>
 
 </hibernate-mapping>
