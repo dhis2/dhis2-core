@@ -857,23 +857,17 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
         
-        if ( attributeOptionCombo != null && !userCredentials.isSuper() )
-        {
-            List<String> errors = trackerAccessManager.canRead( user, attributeOptionCombo );
-            
-            if ( !errors.isEmpty() )
-            {
-                throw new IllegalQueryException( errors.toString() );
-            }            
+        if ( attributeOptionCombo != null && !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
+        {            
+            throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
         if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
         {
-            throw new IllegalQueryException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
-        }
+            throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
+        }        
 
         if ( events != null && filters != null )
         {
