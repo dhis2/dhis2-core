@@ -28,54 +28,18 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import java.util.Set;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.User;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-/**
-* @author Lars Helge Overland
-*/
-public interface AnalyticalObject
-    extends IdentifiableObject, InterpretableObject, SubscribableObject
+public interface SubscribableObject
+    extends IdentifiableObject
 {
-    void populateAnalyticalProperties();
-    
-    List<DimensionalObject> getColumns();
-    
-    List<DimensionalObject> getRows();
-    
-    List<DimensionalObject> getFilters();
-    
-    Map<String, String> getParentGraphMap();
-    
-    Date getRelativePeriodDate();
-    
-    OrganisationUnit getRelativeOrganisationUnit();
-    
-    List<Period> getPeriods();
-    
-    List<OrganisationUnit> getOrganisationUnits();
-    
-    boolean addDataDimensionItem( DimensionalItemObject object );
-    
-    boolean removeDataDimensionItem( DimensionalItemObject object );
-    
-    void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension );
-    
-    void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
-    
-    void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
-    
-    String getTitle();
-    
-    boolean hasUserOrgUnit();
+  Set<String> getSubscribers();
 
-    void clearTransientState();
+  boolean isSubscribed();
+
+  boolean subscribe( User user );
+
+  boolean unsubscribe( User user );
 }
