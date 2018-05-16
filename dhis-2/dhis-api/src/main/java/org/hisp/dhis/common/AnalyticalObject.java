@@ -43,7 +43,7 @@ import java.util.Map;
 * @author Lars Helge Overland
 */
 public interface AnalyticalObject
-    extends IdentifiableObject, InterpretableObject
+    extends IdentifiableObject, InterpretableObject, SubscribableObject
 {
     void populateAnalyticalProperties();
     
