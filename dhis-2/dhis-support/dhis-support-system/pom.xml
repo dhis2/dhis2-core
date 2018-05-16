@@ -2,21 +2,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
     <version>2.29</version>
   </parent>
-  
+
   <artifactId>dhis-support-system</artifactId>
   <packaging>jar</packaging>
   <name>DHIS System Support</name>
-  
+
   <dependencies>
-    
+
     <!-- DHIS -->
-        
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -79,7 +79,7 @@
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
     </dependency>
-    
+
     <!-- JasperReports -->
 
     <dependency>
@@ -129,8 +129,8 @@
       <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -139,7 +139,7 @@
     <dependency>
       <groupId>commons-validator</groupId>
       <artifactId>commons-validator</artifactId>
-    </dependency> 
+    </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -196,9 +196,9 @@
       <groupId>net.sourceforge.javacsv</groupId>
       <artifactId>javacsv</artifactId>
     </dependency>
-    
+
     <!-- Test -->
-    
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

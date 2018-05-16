@@ -1141,7 +1141,8 @@ public class ObjectBundleServiceTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        ObjectBundleValidationReport objectBundleValidationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( objectBundleValidationReport.getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementA = dataElementMap.get( "deabcdefghA" );
