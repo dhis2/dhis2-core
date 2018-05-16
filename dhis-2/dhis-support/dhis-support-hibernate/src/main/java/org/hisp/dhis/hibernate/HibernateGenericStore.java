@@ -324,6 +324,11 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
+        if ( parameters.isCachable() != null )
+        {
+            typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
+        }
+
         return typedQuery;
     }
 

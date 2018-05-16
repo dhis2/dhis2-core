@@ -28,9 +28,7 @@ package org.hisp.dhis.period.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -112,7 +110,7 @@ public class HibernatePeriodStore
     @Override
     public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
     {
-        String query = "from Period p where p.startDate <=:startDate and p.endDate >=:endDate and p.periodType.id =:periodType";
+        String query = "from Period p where p.startDate <=:endDate and p.endDate >=:startDate and p.periodType.id =:periodType";
 
         Query<Period> typedQuery = getQuery( query )
             .setParameter( "startDate", startDate )
@@ -122,35 +120,36 @@ public class HibernatePeriodStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getIntersectingPeriods( Date startDate, Date endDate )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.ge( "endDate", startDate ) );
-        criteria.add( Restrictions.le( "startDate", endDate ) );
-        
-        return criteria.list();
+        String query = "from Period p where p.startDate <=:endDate and p.endDate >=:startDate";
+
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate );
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getPeriodsByPeriodType( PeriodType periodType )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "periodType", reloadPeriodType( periodType ) ) );
+        String query = "from Period p where p.periodType.id =:periodType";
 
-        return criteria.list();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
+        return getList( typedQuery );
     }
 
     @Override
     public Period getPeriodFromDates( Date startDate, Date endDate, PeriodType periodType )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "startDate", startDate ) );
-        criteria.add( Restrictions.eq( "endDate", endDate ) );
-        criteria.add( Restrictions.eq( "periodType", periodType ) );
+        String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType.id =:periodType";
 
-        return (Period) criteria.uniqueResult();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate )
+            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
+        return getSingleResult( typedQuery );
     }
 
     @Override

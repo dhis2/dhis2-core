@@ -57,7 +57,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     private boolean useDistinct = false;
 
-    private boolean cachable = false;
+    private Boolean cachable;
 
     // select attributes
     private List<Attribute<?,?>> attributes = new ArrayList<>();
@@ -242,7 +242,7 @@ public class JpaQueryParameters<T> implements Serializable
         this.orders = orders;
     }
 
-    public boolean isCachable()
+    public Boolean isCachable()
     {
         return this.cachable;
     }
