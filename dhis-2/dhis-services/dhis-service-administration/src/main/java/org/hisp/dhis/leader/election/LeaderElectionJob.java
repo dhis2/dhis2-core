@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,73 +28,48 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Job that attempts to elect the current instance as the leader of the cluster.
+ * 
+ * @author Ameen Mohamed
  */
-public class SharingUserGroupAccess
+public class LeaderElectionJob extends AbstractJob
 {
-    private String id;
+    @Autowired
+    private LeaderManager leaderManager;
 
-    private String name;
+    @Autowired
+    private Notifier notifier;
 
-    private String displayName;
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    private String access;
-
-    public SharingUserGroupAccess()
+    @Override
+    public JobType getJobType()
     {
+        return JobType.LEADER_ELECTION;
     }
 
-    @JsonProperty
-    public String getId()
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
     {
-        return id;
-    }
+        try
+        {
+            leaderManager.electLeader();
+        }
+        catch ( Exception e )
+        {
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Leader election failed:" + e.getMessage() );
+        }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
+        notifier.notify( jobConfiguration, NotificationLevel.INFO, "Leader election completed", true );
     }
 }

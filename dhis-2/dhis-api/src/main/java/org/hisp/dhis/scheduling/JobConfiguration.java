@@ -87,6 +87,8 @@ public class JobConfiguration
     private boolean inMemoryJob = false;
 
     private String userUid;
+    
+    private boolean leaderOnlyJob = false;
 
     public JobConfiguration()
     {
@@ -112,6 +114,12 @@ public class JobConfiguration
     {
         this.inMemoryJob = inMemoryJob;
         constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+    }
+    
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean leaderOnlyJob)
+    {
+        this.leaderOnlyJob = leaderOnlyJob;
+        constructor( name, jobType, cronExpression, jobParameters, false, true );
     }
 
     private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
@@ -198,6 +206,11 @@ public class JobConfiguration
     public void setEnabled( boolean enabled )
     {
         this.enabled = enabled;
+    }
+    
+    public void setLeaderOnlyJob( boolean leaderOnlyJob )
+    {
+        this.leaderOnlyJob = leaderOnlyJob;
     }
 
     public void setInMemoryJob( boolean inMemoryJob )
@@ -286,6 +299,13 @@ public class JobConfiguration
     public boolean isEnabled()
     {
         return enabled;
+    }
+    
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isLeaderOnlyJob()
+    {
+        return leaderOnlyJob;
     }
 
     public boolean isInMemoryJob()

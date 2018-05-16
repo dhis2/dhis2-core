@@ -1400,7 +1400,13 @@
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="runlevel" value="14" />
     <property name="skipInTests" value="true" />
+    <property name="redisEnabled" ref="redisEnabled" />
+    <property name="leaderElectionTime" ref="leaderElectionTime" />
   </bean>
+  
+  <bean id="redisEnabled" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="REDIS_ENABLED" /></bean>
+  
+  <bean id="leaderElectionTime" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="LEADER_TIME_TO_LIVE" /></bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
     class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">

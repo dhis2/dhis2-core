@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,73 +28,38 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Manages cluster leader node elections , renewals , revocations and to check
+ * whether the current instance is the leader in the cluster.
+ * 
+ * @author Ameen Mohamed
  */
-public class SharingUserGroupAccess
+public interface LeaderManager
 {
-    private String id;
+    /**
+     * Extend the expiry time of leadership if this node is the current leader
+     */
+    void renewLeader();
 
-    private String name;
+    /**
+     * Attempt to become the leader
+     */
+    void electLeader();
 
-    private String displayName;
+    /**
+     * Check if the current instance is the leader
+     * 
+     * @return true if this instance is the leader, false otherwise
+     */
+    boolean isLeader();
 
-    private String access;
+    /**
+     * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
+     * 
+     * @param schedulingManager The instantiated scheduling manager
+     */
+    void setSchedulingManager( SchedulingManager schedulingManager );
 
-    public SharingUserGroupAccess()
-    {
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
-    }
 }
