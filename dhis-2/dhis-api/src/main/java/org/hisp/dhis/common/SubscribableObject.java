@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,73 +28,18 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import java.util.Set;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class SharingUserGroupAccess
+import org.hisp.dhis.user.User;
+
+public interface SubscribableObject
+    extends IdentifiableObject
 {
-    private String id;
+  Set<String> getSubscribers();
 
-    private String name;
+  boolean isSubscribed();
 
-    private String displayName;
+  boolean subscribe( User user );
 
-    private String access;
-
-    public SharingUserGroupAccess()
-    {
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
-    }
+  boolean unsubscribe( User user );
 }

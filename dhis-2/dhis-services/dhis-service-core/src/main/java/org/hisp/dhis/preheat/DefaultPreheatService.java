@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -45,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
@@ -565,13 +565,13 @@ public class DefaultPreheatService implements PreheatService
                         {
                             addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
                         }
-                        
+
                         if ( dataDimensionItem.getProgramDataElement() != null )
                         {
                             addIdentifiers( map, dataDimensionItem.getProgramDataElement().getDataElement() );
                             addIdentifiers( map, dataDimensionItem.getProgramDataElement().getProgram() );
                         }
-                        
+
                         if ( dataDimensionItem.getProgramAttribute() != null )
                         {
                             addIdentifiers( map, dataDimensionItem.getProgramAttribute().getAttribute() );
