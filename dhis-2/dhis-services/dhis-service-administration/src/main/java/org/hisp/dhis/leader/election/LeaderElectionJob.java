@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,48 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a job configuration.
- *
- * @author Henning Håkonsen
+ * Job that attempts to elect the current instance as the leader of the cluster.
+ * 
+ * @author Ameen Mohamed
  */
-public interface JobInstance
+public class LeaderElectionJob extends AbstractJob
 {
-    /**
-     * This method will try to execute the actual job.
-     * It will verify a set of parameters, such as no other jobs of the same JobType is running.
-     * <p>
-     * If the JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration  the configuration of the job
-     * @param schedulingManager manager of scheduling
-     */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager  )
-        throws Exception;
+    @Autowired
+    private LeaderManager leaderManager;
+
+    @Autowired
+    private Notifier notifier;
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.LEADER_ELECTION;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        try
+        {
+            leaderManager.electLeader();
+        }
+        catch ( Exception e )
+        {
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Leader election failed:" + e.getMessage() );
+        }
+
+        notifier.notify( jobConfiguration, NotificationLevel.INFO, "Leader election completed", true );
+    }
 }
