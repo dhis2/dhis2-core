@@ -62,6 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -128,10 +129,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // InternalHibernateGenericStore implementation
     // -------------------------------------------------------------------------
 
-    public final Criteria getDataSharingCriteria()
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-    }
+//    public final Criteria getDataSharingCriteria()
+//    {
+//        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+//    }
 
     public final Criteria getDataSharingCriteria( String access )
     {
@@ -983,6 +984,18 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
     }
 
+    @Override
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user )
+    {
+        return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
+    }
+
+    @Override
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
+    {
+        return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+    }
+
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
@@ -990,7 +1003,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), access );
+        return  getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
 
     /**
@@ -1002,12 +1015,24 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user )
+    {
+        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
+    }
+
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
+    {
+        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
+    }
+
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
     }
 
-    protected List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
@@ -1057,8 +1082,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return predicates;
     }
 
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
+    {
+        return getSharingPredicates( builder, UserInfo.fromUser( user ), access );
+    }
 
-    protected List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
