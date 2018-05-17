@@ -96,7 +96,6 @@ public class PeriodResourceTable
         {
             if ( period != null && period.isValid() )
             {
-                final PeriodType rowType = period.getPeriodType();
                 final String isoDate = period.getIsoDate();
 
                 if ( !uniqueIsoDates.add( isoDate ) )
@@ -112,19 +111,10 @@ public class PeriodResourceTable
                 values.add( period.getDaysInPeriod() );
                 values.add( period.getStartDate() );
                 values.add( period.getEndDate() );
-
-                for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+                
+                for ( Period pe : PeriodType.getPeriodTypePeriods( period, calendar ) )
                 {
-                    if ( rowType.getFrequencyOrder() < periodType.getFrequencyOrder() || rowType.equals( periodType ) )
-                    {
-                        Period targetPeriod = IdentifiableObjectUtils.getPeriodByPeriodType( period, periodType, calendar );
-                                                
-                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( targetPeriod, calendar ) );
-                    }
-                    else
-                    {
-                        values.add( null );
-                    }
+                    values.add( pe != null ? IdentifiableObjectUtils.getLocalPeriodIdentifier( pe, calendar ) : null );
                 }
 
                 batchArgs.add( values.toArray() );
