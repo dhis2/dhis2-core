@@ -422,30 +422,6 @@ public class HibernateGenericStore<T>
         return query;
     }
 
-    /**
-     * Retrieves an object based on the given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return an object of the implementation Class type.
-     */
-    @SuppressWarnings( "unchecked" )
-    protected final T getObject( Criterion... expressions )
-    {
-        return (T) getCriteria( expressions ).uniqueResult();
-    }
-
-    /**
-     * Retrieves a List based on the given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return a List with objects of the implementation Class type.
-     */
-    @SuppressWarnings( "unchecked" )
-    protected final List<T> getList( Criterion... expressions )
-    {
-        return getCriteria( expressions ).list();
-    }
-
     // -------------------------------------------------------------------------
     // GenericIdentifiableObjectStore implementation
     // -------------------------------------------------------------------------
@@ -509,9 +485,9 @@ public class HibernateGenericStore<T>
     @Override
     public int getCount()
     {
-        return ((Number) getCriteria()
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return count( builder, newJpaParameters().count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
     @Override

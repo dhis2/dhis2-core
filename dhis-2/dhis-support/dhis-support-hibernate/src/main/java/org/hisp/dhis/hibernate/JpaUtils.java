@@ -30,20 +30,13 @@ package org.hisp.dhis.hibernate;
  *
  */
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.SingularAttribute;
-import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -58,24 +51,6 @@ public class JpaUtils
         Function<Root<?>, Order> order = root -> builder.asc( root.get( field ) );
 
         return order;
-    }
-
-
-    public static Predicate andPredicate( CriteriaBuilder buidler, Predicate... predicates )
-    {
-        List<Predicate> predicateList = Lists.newArrayList( predicates );
-
-        if ( predicateList == null || predicateList.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( predicateList.size() == 0 )
-        {
-            return predicateList.get( 0 );
-        }
-
-        return buidler.and( Iterables.toArray( predicateList, Predicate.class ) );
     }
 
     /**
@@ -110,17 +85,6 @@ public class JpaUtils
             default:
                 throw new IllegalStateException( "expecting a search mode!" );
         }
-    }
-
-    public static <T> Path getIdAttribute( Root<T> root, String attributeName ) throws NoSuchFieldException
-    {
-        EntityType entity = root.getModel();
-
-        Set<SingularAttribute<? super T, ?>> attributes = entity.getIdClassAttributes();
-
-        SingularAttribute<? super T, ?> attr = attributes.stream().filter( a -> a.getName().equals( attributeName ) ).findFirst().orElse( null );
-
-        return attr != null ? root.get( attr ) : null;
     }
 
     public enum StringSearchMode
