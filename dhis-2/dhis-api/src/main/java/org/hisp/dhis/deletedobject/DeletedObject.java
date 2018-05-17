@@ -39,12 +39,26 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Entity
+@Table( name = "deletedobject",
+uniqueConstraints = {
+    @UniqueConstraint(name = "key_deleted_object_klass_uid",columnNames={"klass", "uid"}),
+    @UniqueConstraint( name="key_deleted_object_klass_code",columnNames={"klass", "code"} ) })
 @JacksonXmlRootElement( localName = "deletedObject", namespace = DxfNamespaces.DXF_2_0 )
 public class DeletedObject
     implements Serializable
@@ -52,31 +66,40 @@ public class DeletedObject
     /**
      * The database internal identifier for this Object.
      */
+    @Id
+    @Column( name = "deletedobjectid")
+    @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
 
     /**
      * Class of object that was deleted.
      */
+    @Column( nullable = false )
     private String klass;
 
     /**
      * The Unique Identifier for this Object.
      */
+    @Column( nullable =  false )
     private String uid;
 
     /**
      * The unique code for this Object.
      */
+    @Column
     private String code;
 
     /**
      * Date this object was deleted.
      */
+    @Column( nullable = false )
+    @Temporal( TemporalType.TIMESTAMP )
     private Date deletedAt = new Date();
 
     /**
      * User who deleted this object (if available)
      */
+    @Column
     private String deletedBy;
 
     protected DeletedObject()

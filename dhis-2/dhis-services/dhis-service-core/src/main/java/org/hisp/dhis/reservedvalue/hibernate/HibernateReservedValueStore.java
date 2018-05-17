@@ -28,7 +28,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
@@ -93,12 +93,15 @@ public class HibernateReservedValueStore
     public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
         List<String> values )
     {
-        return (List<ReservedValue>) getCriteria()
-            .add( Restrictions.eq( "ownerObject", reservedValue.getOwnerObject() ) )
-            .add( Restrictions.eq( "ownerUid", reservedValue.getOwnerUid() ) )
-            .add( Restrictions.eq( "key", reservedValue.getKey() ) )
-            .add( Restrictions.in( "value", values ) )
-            .list();
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.key =:key and rv.value in :values";
+
+        Query<ReservedValue> query = getQuery( hql )
+            .setParameter( "ownerObject", reservedValue.getOwnerObject() )
+            .setParameter( "ownerUid", reservedValue.getOwnerUid() )
+            .setParameter( "key", reservedValue.getKey() )
+            .setParameter( "values", values );
+        return getList( query );
     }
 
     @Override
@@ -154,11 +157,15 @@ public class HibernateReservedValueStore
     @Override
     public boolean isReserved( String ownerObject, String ownerUID, String value )
     {
-        return !getCriteria()
-            .add( Restrictions.eq( "ownerObject", ownerObject ) )
-            .add( Restrictions.eq( "ownerUid", ownerUID ) )
-            .add( Restrictions.eq( "value", value ) )
-            .list().isEmpty();
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.value =:value";
+
+        Query<ReservedValue> query = getQuery( hql )
+            .setParameter( "ownerObject", ownerObject )
+            .setParameter( "ownerUid", ownerUID )
+            .setParameter( "value", value );
+
+        return !getList( query ).isEmpty();
     }
 
     // Helper methods:

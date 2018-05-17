@@ -472,6 +472,7 @@
   <bean id="org.hisp.dhis.sms.hibernate.IncomingSmsStore"
     class="org.hisp.dhis.sms.hibernate.HibernateIncomingSmsStore">
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.sms.incoming.IncomingSms" />
   </bean>
 
   <bean id="org.hisp.dhis.sms.hibernate.OutboundSmsStore"

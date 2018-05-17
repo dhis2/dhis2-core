@@ -78,6 +78,15 @@ public class JpaUtils
         return buidler.and( Iterables.toArray( predicateList, Predicate.class ) );
     }
 
+    /**
+     *
+     * @param builder CriteriaBuilder
+     * @param path Property Path for query
+     * @param attrValue Value to check
+     * @param searchMode JpaUtils.StringSearchMode
+     * @param caseSesnitive is case sensitive
+     * @return
+     */
     public static Predicate stringPredicate( CriteriaBuilder builder, Expression<String> path, Object attrValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
         if ( !caseSesnitive )
@@ -127,8 +136,6 @@ public class JpaUtils
 
         // User provides the wildcard.
         LIKE( "li" ),
-
-        ILIKE( "ili" ),
 
         // LIKE search and add a '%' suffix before searching.
         ENDING_LIKE( "el" );
