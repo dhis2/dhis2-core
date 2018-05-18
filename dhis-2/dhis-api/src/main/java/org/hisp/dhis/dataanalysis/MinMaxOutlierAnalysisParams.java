@@ -28,19 +28,68 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
 import java.util.List;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FollowupAnalysisService
+public class MinMaxOutlierAnalysisParams
 {
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
+    private String startDate;
 
-    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId,
-        int limit, Date startDate, Date endDate );
+    private String endDate;
+
+    private List<String> dataSetIds;
+
+    private String organisationUnitId;
+
+    public MinMaxOutlierAnalysisParams()
+    {
+    }
+
+    public MinMaxOutlierAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
+        String organisationUnitId )
+    {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.dataSetIds = dataSetIds;
+        this.organisationUnitId = organisationUnitId;
+    }
+
+    public String getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( String startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( String endDate )
+    {
+        this.endDate = endDate;
+    }
+
+    public List<String> getDataSetIds()
+    {
+        return dataSetIds;
+    }
+
+    public void setDataSetIds( List<String> dataSetIds )
+    {
+        this.dataSetIds = dataSetIds;
+    }
+
+    public String getOrganisationUnitId()
+    {
+        return organisationUnitId;
+    }
+
+    public void setOrganisationUnitId( String organisationUnitId )
+    {
+        this.organisationUnitId = organisationUnitId;
+    }
 }
