@@ -1,4 +1,4 @@
-package org.hisp.dhis.analysis;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

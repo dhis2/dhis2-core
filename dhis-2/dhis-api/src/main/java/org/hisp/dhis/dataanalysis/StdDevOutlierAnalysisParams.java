@@ -1,4 +1,4 @@
-package org.hisp.dhis.analysis;
+package org.hisp.dhis.dataanalysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,92 +28,81 @@ package org.hisp.dhis.analysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class FollowupParams
+import java.util.List;
+
+public class StdDevOutlierAnalysisParams
 {
-    private int dataElementId;
+    private String startDate;
 
-    private int periodId;
+    private String endDate;
 
-    private int organisationUnitId;
+    private List<String> dataSetIds;
 
-    private int categoryOptionComboId;
+    private Double standardDeviation;
 
-    private int attributeOptionComboId;
+    private String organisationUnitId;
 
-    private boolean followup;
-
-    public FollowupParams()
+    public StdDevOutlierAnalysisParams()
     {
     }
 
-    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId,
-        int attributeOptionComboId, boolean followup )
+    public StdDevOutlierAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
+        Double standardDeviation, String organisationUnitId )
     {
-        this.dataElementId = dataElementId;
-        this.periodId = periodId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.dataSetIds = dataSetIds;
+        this.standardDeviation = standardDeviation;
         this.organisationUnitId = organisationUnitId;
-        this.categoryOptionComboId = categoryOptionComboId;
-        this.attributeOptionComboId = attributeOptionComboId;
-        this.followup = followup;
     }
 
-    public int getDataElementId()
+    public String getStartDate()
     {
-        return dataElementId;
+        return startDate;
     }
 
-    public void setDataElementId( int dataElementId )
+    public void setStartDate( String startDate )
     {
-        this.dataElementId = dataElementId;
+        this.startDate = startDate;
     }
 
-    public int getPeriodId()
+    public String getEndDate()
     {
-        return periodId;
+        return endDate;
     }
 
-    public void setPeriodId( int periodId )
+    public void setEndDate( String endDate )
     {
-        this.periodId = periodId;
+        this.endDate = endDate;
     }
 
-    public int getOrganisationUnitId()
+    public List<String> getDataSetIds()
+    {
+        return dataSetIds;
+    }
+
+    public void setDataSetIds( List<String> dataSetIds )
+    {
+        this.dataSetIds = dataSetIds;
+    }
+
+    public Double getStandardDeviation()
+    {
+        return standardDeviation;
+    }
+
+    public void setStandardDeviation( Double standardDeviation )
+    {
+        this.standardDeviation = standardDeviation;
+    }
+
+    public String getOrganisationUnitId()
     {
         return organisationUnitId;
     }
 
-    public void setOrganisationUnitId( int organisationUnitId )
+    public void setOrganisationUnitId( String organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
-    }
-
-    public int getCategoryOptionComboId()
-    {
-        return categoryOptionComboId;
-    }
-
-    public void setCategoryOptionComboId( int categoryOptionComboId )
-    {
-        this.categoryOptionComboId = categoryOptionComboId;
-    }
-
-    public int getAttributeOptionComboId()
-    {
-        return attributeOptionComboId;
-    }
-
-    public void setAttributeOptionComboId( int attributeOptionComboId )
-    {
-        this.attributeOptionComboId = attributeOptionComboId;
-    }
-
-    public boolean isFollowup()
-    {
-        return followup;
-    }
-
-    public void setFollowup( boolean followup )
-    {
-        this.followup = followup;
     }
 }

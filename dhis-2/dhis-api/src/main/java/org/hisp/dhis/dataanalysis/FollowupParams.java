@@ -1,4 +1,4 @@
-package org.hisp.dhis.analysis;
+package org.hisp.dhis.dataanalysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,92 +28,92 @@ package org.hisp.dhis.analysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class ValidationRulesAnalysisParams
+public class FollowupParams
 {
-    private String validationRuleGroupId;
+    private int dataElementId;
 
-    private String organisationUnitId;
+    private int periodId;
 
-    private String startDate;
+    private int organisationUnitId;
 
-    private String endDate;
+    private int categoryOptionComboId;
 
-    private boolean persist;
+    private int attributeOptionComboId;
 
-    private boolean notification;
+    private boolean followup;
 
-    public ValidationRulesAnalysisParams()
+    public FollowupParams()
     {
     }
 
-    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate,
-        String endDate, boolean persist, boolean notification )
+    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId,
+        int attributeOptionComboId, boolean followup )
     {
-        this.validationRuleGroupId = validationRuleGroupId;
+        this.dataElementId = dataElementId;
+        this.periodId = periodId;
         this.organisationUnitId = organisationUnitId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.persist = persist;
-        this.notification = notification;
+        this.categoryOptionComboId = categoryOptionComboId;
+        this.attributeOptionComboId = attributeOptionComboId;
+        this.followup = followup;
     }
 
-    public String getValidationRuleGroupId()
+    public int getDataElementId()
     {
-        return validationRuleGroupId;
+        return dataElementId;
     }
 
-    public void setValidationRuleGroupId( String validationRuleGroupId )
+    public void setDataElementId( int dataElementId )
     {
-        this.validationRuleGroupId = validationRuleGroupId;
+        this.dataElementId = dataElementId;
     }
 
-    public String getOrganisationUnitId()
+    public int getPeriodId()
+    {
+        return periodId;
+    }
+
+    public void setPeriodId( int periodId )
+    {
+        this.periodId = periodId;
+    }
+
+    public int getOrganisationUnitId()
     {
         return organisationUnitId;
     }
 
-    public void setOrganisationUnitId( String organisationUnitId )
+    public void setOrganisationUnitId( int organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
     }
 
-    public String getStartDate()
+    public int getCategoryOptionComboId()
     {
-        return startDate;
+        return categoryOptionComboId;
     }
 
-    public void setStartDate( String startDate )
+    public void setCategoryOptionComboId( int categoryOptionComboId )
     {
-        this.startDate = startDate;
+        this.categoryOptionComboId = categoryOptionComboId;
     }
 
-    public String getEndDate()
+    public int getAttributeOptionComboId()
     {
-        return endDate;
+        return attributeOptionComboId;
     }
 
-    public void setEndDate( String endDate )
+    public void setAttributeOptionComboId( int attributeOptionComboId )
     {
-        this.endDate = endDate;
+        this.attributeOptionComboId = attributeOptionComboId;
     }
 
-    public boolean isPersist()
+    public boolean isFollowup()
     {
-        return persist;
+        return followup;
     }
 
-    public void setPersist( boolean persist )
+    public void setFollowup( boolean followup )
     {
-        this.persist = persist;
-    }
-
-    public boolean isNotification()
-    {
-        return notification;
-    }
-
-    public void setNotification( boolean notification )
-    {
-        this.notification = notification;
+        this.followup = followup;
     }
 }

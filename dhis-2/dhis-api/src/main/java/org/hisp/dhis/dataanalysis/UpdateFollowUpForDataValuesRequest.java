@@ -1,4 +1,4 @@
-package org.hisp.dhis.analysis;
+package org.hisp.dhis.dataanalysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,65 +28,28 @@ package org.hisp.dhis.analysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class FollowupAnalysisParams
+import java.util.List;
+
+public class UpdateFollowUpForDataValuesRequest
 {
-    private String startDate;
+    private List<FollowupParams> followups;
 
-    private String endDate;
-
-    private String organisationUnitId;
-
-    private String dataSetId;
-
-    public FollowupAnalysisParams()
+    public UpdateFollowUpForDataValuesRequest()
     {
     }
 
-    public FollowupAnalysisParams( String startDate, String endDate, String organisationUnitId, String dataSetId )
+    public UpdateFollowUpForDataValuesRequest( List<FollowupParams> followups )
     {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.organisationUnitId = organisationUnitId;
-        this.dataSetId = dataSetId;
+        this.followups = followups;
     }
 
-    public String getStartDate()
+    public List<FollowupParams> getFollowups()
     {
-        return startDate;
+        return followups;
     }
 
-    public void setStartDate( String startDate )
+    public void setFollowups( List<FollowupParams> followups )
     {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( String endDate )
-    {
-        this.endDate = endDate;
-    }
-
-    public String getOrganisationUnitId()
-    {
-        return organisationUnitId;
-    }
-
-    public void setOrganisationUnitId( String organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
-    }
-
-    public String getDataSetId()
-    {
-        return dataSetId;
-    }
-
-    public void setDataSetId( String dataSetId )
-    {
-        this.dataSetId = dataSetId;
+        this.followups = followups;
     }
 }

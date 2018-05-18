@@ -1,4 +1,4 @@
-package org.hisp.dhis.analysis;
+package org.hisp.dhis.dataanalysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,31 +28,52 @@ package org.hisp.dhis.analysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-public class StdDevOutlierAnalysisParams
+public class ValidationRulesAnalysisParams
 {
+    private String validationRuleGroupId;
+
+    private String organisationUnitId;
+
     private String startDate;
 
     private String endDate;
 
-    private List<String> dataSetIds;
+    private boolean persist;
 
-    private Double standardDeviation;
+    private boolean notification;
 
-    private String organisationUnitId;
-
-    public StdDevOutlierAnalysisParams()
+    public ValidationRulesAnalysisParams()
     {
     }
 
-    public StdDevOutlierAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
-        Double standardDeviation, String organisationUnitId )
+    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate,
+        String endDate, boolean persist, boolean notification )
     {
+        this.validationRuleGroupId = validationRuleGroupId;
+        this.organisationUnitId = organisationUnitId;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.dataSetIds = dataSetIds;
-        this.standardDeviation = standardDeviation;
+        this.persist = persist;
+        this.notification = notification;
+    }
+
+    public String getValidationRuleGroupId()
+    {
+        return validationRuleGroupId;
+    }
+
+    public void setValidationRuleGroupId( String validationRuleGroupId )
+    {
+        this.validationRuleGroupId = validationRuleGroupId;
+    }
+
+    public String getOrganisationUnitId()
+    {
+        return organisationUnitId;
+    }
+
+    public void setOrganisationUnitId( String organisationUnitId )
+    {
         this.organisationUnitId = organisationUnitId;
     }
 
@@ -76,33 +97,23 @@ public class StdDevOutlierAnalysisParams
         this.endDate = endDate;
     }
 
-    public List<String> getDataSetIds()
+    public boolean isPersist()
     {
-        return dataSetIds;
+        return persist;
     }
 
-    public void setDataSetIds( List<String> dataSetIds )
+    public void setPersist( boolean persist )
     {
-        this.dataSetIds = dataSetIds;
+        this.persist = persist;
     }
 
-    public Double getStandardDeviation()
+    public boolean isNotification()
     {
-        return standardDeviation;
+        return notification;
     }
 
-    public void setStandardDeviation( Double standardDeviation )
+    public void setNotification( boolean notification )
     {
-        this.standardDeviation = standardDeviation;
-    }
-
-    public String getOrganisationUnitId()
-    {
-        return organisationUnitId;
-    }
-
-    public void setOrganisationUnitId( String organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
+        this.notification = notification;
     }
 }

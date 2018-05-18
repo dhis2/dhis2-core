@@ -31,14 +31,14 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analysis.FollowupAnalysisParams;
-import org.hisp.dhis.analysis.FollowupParams;
-import org.hisp.dhis.analysis.MinMaxOutlierAnalysisParams;
-import org.hisp.dhis.analysis.StdDevOutlierAnalysisParams;
-import org.hisp.dhis.analysis.UpdateFollowUpForDataValuesRequest;
-import org.hisp.dhis.analysis.ValidationResultView;
-import org.hisp.dhis.analysis.ValidationRuleExpressionDetails;
-import org.hisp.dhis.analysis.ValidationRulesAnalysisParams;
+import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
+import org.hisp.dhis.dataanalysis.FollowupParams;
+import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisParams;
+import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisParams;
+import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
+import org.hisp.dhis.webapi.webdomain.ValidationResultView;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
+import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -108,14 +108,14 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
  * @author Joao Antunes
  */
 @Controller
-@RequestMapping( value = AnalysisController.RESOURCE_PATH )
+@RequestMapping( value = DataAnalysisController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-public class AnalysisController
+public class DataAnalysisController
 {
     public static final String RESOURCE_PATH = "/analysis";
 
-    private static final Log log = LogFactory.getLog( AnalysisController.class );
+    private static final Log log = LogFactory.getLog( DataAnalysisController.class );
 
     private static final String KEY_ANALYSIS_DATA_VALUES = "analysisDataValues";
 
