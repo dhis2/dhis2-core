@@ -231,6 +231,7 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private void checkLeaderElectionJobConfiguration( List<JobConfiguration> jobConfigurations )
     {
+        /*
         JobConfiguration leaderElectionJobConfiguration = jobConfigurations.stream()
             .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst()
             .get();
@@ -246,6 +247,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         }
 
         jobConfigurationService.updateJobConfiguration( leaderElectionJobConfiguration );
+        */
     }
 
     private boolean verifyNoJobExist( String name, List<JobConfiguration> jobConfigurations )
