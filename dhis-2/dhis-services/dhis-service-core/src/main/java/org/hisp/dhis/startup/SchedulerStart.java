@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
@@ -231,23 +232,23 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private void checkLeaderElectionJobConfiguration( List<JobConfiguration> jobConfigurations )
     {
-        /*
-        JobConfiguration leaderElectionJobConfiguration = jobConfigurations.stream()
-            .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst()
-            .get();
-        leaderElectionJobConfiguration.setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
-
-        if ( "true".equalsIgnoreCase( redisEnabled ) )
+        Optional<JobConfiguration> leaderElectionJobConfigurationOptional = jobConfigurations.stream()
+            .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst();
+        if ( leaderElectionJobConfigurationOptional.isPresent() )
         {
-            leaderElectionJobConfiguration.setEnabled( true );
+            JobConfiguration leaderElectionJobConfiguration = leaderElectionJobConfigurationOptional.get();
+            leaderElectionJobConfiguration
+                .setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
+            if ( "true".equalsIgnoreCase( redisEnabled ) )
+            {
+                leaderElectionJobConfiguration.setEnabled( true );
+            }
+            else
+            {
+                leaderElectionJobConfiguration.setEnabled( false );
+            }
+            jobConfigurationService.updateJobConfiguration( leaderElectionJobConfiguration );
         }
-        else
-        {
-            leaderElectionJobConfiguration.setEnabled( false  );
-        }
-
-        jobConfigurationService.updateJobConfiguration( leaderElectionJobConfiguration );
-        */
     }
 
     private boolean verifyNoJobExist( String name, List<JobConfiguration> jobConfigurations )
