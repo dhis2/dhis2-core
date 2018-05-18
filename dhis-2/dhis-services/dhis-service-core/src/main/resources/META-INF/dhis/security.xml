@@ -108,8 +108,8 @@
     <sec:authentication-provider user-service-ref="userDetailsService">
       <sec:password-encoder ref="bCryptPasswordEncoder" />
     </sec:authentication-provider>
-    <sec:authentication-provider ref="twoFactorAuthenticationProvider" />
-    <sec:authentication-provider ref="ldapAuthenticationProvider" />
     <sec:authentication-provider user-service-ref="clientDetailsUserService" />
+    <sec:authentication-provider ref="ldapAuthenticationProvider" />
+    <sec:authentication-provider ref="twoFactorAuthenticationProvider" />
   </sec:authentication-manager>
 </beans>

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,73 +28,50 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * No operation leader election implementation which will be used when redis is not configured.
+ * 
+ * @author Ameen Mohamed
  */
-public class SharingUserGroupAccess
+public class NoOpLeaderManager implements LeaderManager
 {
-    private String id;
 
-    private String name;
+    private static final Log log = LogFactory.getLog( NoOpLeaderManager.class );
 
-    private String displayName;
-
-    private String access;
-
-    public SharingUserGroupAccess()
+    public NoOpLeaderManager()
     {
+        String nodeId = UUID.randomUUID().toString();
+        log.info( "Setting up noop leader manager using dummy NodeId:" + nodeId );
     }
 
-    @JsonProperty
-    public String getId()
+    @Override
+    public void renewLeader()
     {
-        return id;
+        //No operation
     }
 
-    public void setId( String id )
+    @Override
+    public void electLeader()
     {
-        this.id = id;
+      //No operation
     }
 
-    @JsonProperty
-    public String getName()
+    @Override
+    public boolean isLeader()
     {
-        return name;
+        return true;
     }
 
-    public void setName( String name )
+    @Override
+    public void setSchedulingManager( SchedulingManager schedulingManager )
     {
-        this.name = name;
+      //No operation
     }
 
-    @JsonProperty
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonProperty
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
-    }
 }
