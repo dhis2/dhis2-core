@@ -404,7 +404,7 @@ public class DefaultTrackedEntityInstanceService
 
         User user = currentUserService.getCurrentUser();
 
-        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
+        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE ) || params.isOrganisationUnitMode( CAPTURE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
@@ -412,6 +412,11 @@ public class DefaultTrackedEntityInstanceService
         if ( params.isOrganisationUnitMode( ACCESSIBLE ) && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
         {
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+        }
+        
+        if ( params.isOrganisationUnitMode( CAPTURE ) && (user == null || !user.hasOrganisationUnit()) )
+        {
+            violation = "Current user must be associated with at least one organisation unit with write access when selection mode is CAPTURE";
         }
 
         if ( params.hasProgram() && params.hasTrackedEntityType() )
@@ -645,6 +650,11 @@ public class DefaultTrackedEntityInstanceService
         if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
+        }
+        
+        if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null)
+        {
+            params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
         }
 
         params.setQuery( queryFilter )
