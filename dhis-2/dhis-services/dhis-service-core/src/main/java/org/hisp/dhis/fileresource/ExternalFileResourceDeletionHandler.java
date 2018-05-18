@@ -1,4 +1,4 @@
-package org.hisp.dhis.document;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,15 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Kristian Wærstad <kristian@dhis2.org>
  */
-public class DocumentDeletionHandler extends DeletionHandler
+public class ExternalFileResourceDeletionHandler
+    extends DeletionHandler
 {
-    @Autowired
-    private DocumentService documentService;
-
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -50,26 +44,16 @@ public class DocumentDeletionHandler extends DeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public String getClassName()
     {
-        return Document.class.getSimpleName();
-    }
-
-    public String allowDeleteUser( User user )
-    {
-        return documentService.getCountDocumentByUser( user ) > 0 ? ERROR : null;
+        return ExternalFileResource.class.getSimpleName();
     }
 
     @Override
     public String allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
+        String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 
         int result = jdbcTemplate.queryForObject( sql, Integer.class );
 
@@ -79,7 +63,7 @@ public class DocumentDeletionHandler extends DeletionHandler
     @Override
     public void deleteFileResource( FileResource fileResource )
     {
-        String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
+        String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 
         jdbcTemplate.execute( sql );
     }
