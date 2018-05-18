@@ -38,7 +38,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,7 +64,9 @@ public class RedisNotifier implements Notifier
 
     private static final String SUMMARIES_KEY_PREFIX = "summaries:";
 
-    private static final String SUMMARY_TYPE_PREFIX = "summaryType:";
+    private static final String SUMMARIES_KEY_ORDER_PREFIX = "summary:order:";
+
+    private static final String SUMMARY_TYPE_PREFIX = "summary:type:";
 
     private static final String COLON = ":";
 
@@ -78,7 +79,6 @@ public class RedisNotifier implements Notifier
         this.redisTemplate = redisTemplate;
         objectMapper = new ObjectMapper();
         objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        objectMapper.configure( SerializationFeature.WRITE_NULL_MAP_VALUES, false );
         objectMapper.setSerializationInclusion( Include.NON_NULL );
     }
 
@@ -257,7 +257,8 @@ public class RedisNotifier implements Notifier
                     .get();
                 if ( existingSummaryTypeStr == null )
                 {
-                    redisTemplate.boundValueOps( generateSummaryTypeKey( id.getJobType()) ).set( jobSummaryType.getName() );
+                    redisTemplate.boundValueOps( generateSummaryTypeKey( id.getJobType() ) )
+                        .set( jobSummaryType.getName() );
                 }
                 else
                 {
@@ -270,14 +271,16 @@ public class RedisNotifier implements Notifier
 
                 redisTemplate.boundHashOps( summaryKey ).put( id.getUid(),
                     objectMapper.writeValueAsString( jobSummary ) );
-                if ( redisTemplate.boundHashOps( summaryKey ).size() >= MAX_POOL_TYPE_SIZE )
-                {
-                    Set<Object> summaryKeys = redisTemplate.boundHashOps( summaryKey ).keys();
-                    if ( summaryKeys.iterator().hasNext() )
-                    {
-                        redisTemplate.boundHashOps( summaryKey ).delete( summaryKeys.iterator().next() );
-                    }
+                Date now = new Date();
 
+                String summaryOrderKey = generateSummaryOrderKey( id.getJobType() );
+                redisTemplate.boundZSetOps( summaryOrderKey ).add( id.getUid(), now.getTime() );
+
+                if ( redisTemplate.boundZSetOps( summaryOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
+                {
+                    Set<String> summaryKeyToBeDeleted = redisTemplate.boundZSetOps( summaryOrderKey ).range( 0, 0 );
+                    redisTemplate.boundZSetOps( summaryOrderKey ).removeRange( 0, 0 );
+                    summaryKeyToBeDeleted.forEach( d -> redisTemplate.boundHashOps( summaryKey ).delete( d ) );
                 }
 
             }
@@ -399,6 +402,14 @@ public class RedisNotifier implements Notifier
     {
         StringBuilder builder = new StringBuilder();
         builder.append( SUMMARIES_KEY_PREFIX );
+        builder.append( jobType.toString() );
+        return builder.toString();
+    }
+
+    private static String generateSummaryOrderKey( JobType jobType )
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append( SUMMARIES_KEY_ORDER_PREFIX );
         builder.append( jobType.toString() );
         return builder.toString();
     }
