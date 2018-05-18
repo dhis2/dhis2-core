@@ -179,7 +179,7 @@ public class StreamingJsonCompleteDataSetRegistration
 
             generator.writeStartObject();
 
-            generator.writeObjectField( "id", user.getId() );
+            generator.writeObjectField( "id", user.getUid());
             generator.writeObjectField( "name", user.getDisplayName() );
 
             generator.writeEndObject();

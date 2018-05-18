@@ -124,4 +124,6 @@ public interface CompleteDataSetRegistrationStore
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
+
+    int getCompleteDataSetCountLastUpdatedBetween(Date date);
 }

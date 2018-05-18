@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -179,5 +180,27 @@ public class HibernateCompleteDataSetRegistrationStore
 
         sessionFactory.getCurrentSession().createQuery( hql ).
             setEntity( "source", unit ).executeUpdate();
+    }
+
+    @Override
+    public int getCompleteDataSetCountLastUpdatedBetween(Date date) {
+
+        if ( date == null )
+        {
+            throw new IllegalArgumentException( "date must be specified" );
+        }
+
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria( CompleteDataSetRegistration.class )
+                .setProjection( Projections.rowCount() );
+
+        if ( date != null )
+        {
+            criteria.add( Restrictions.ge( "lastUpdated", date ) );
+        }
+
+        Number rs = (Number) criteria.uniqueResult();
+
+        return rs != null ? rs.intValue() : 0;
     }
 }

@@ -524,7 +524,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 if (lastUpdatedBy == null) {
                     lastUpdatedBy = currentUserService.getCurrentUser();
                 } else {
-                    lastUpdatedBy = userService.getUser(Integer.parseInt(cdsr.getLastUpdatedBy().getUid()));
+                    lastUpdatedBy = userService.getUser(cdsr.getLastUpdatedBy().getUid());
                 }
 
                 cdsr.setLastUpdatedBy(lastUpdatedBy);

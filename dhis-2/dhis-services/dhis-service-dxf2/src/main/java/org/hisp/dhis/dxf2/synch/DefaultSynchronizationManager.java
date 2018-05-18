@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.synch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
 import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
@@ -89,6 +90,9 @@ public class DefaultSynchronizationManager
     private DataValueService dataValueService;
 
     @Autowired
+    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    @Autowired
     private MetadataImportService importService;
 
     @Autowired
@@ -132,7 +136,7 @@ public class DefaultSynchronizationManager
             return null;
         }
 
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "/api/completeDataSetRegistrations";
+        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "api/completeDataSetRegistrations";
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
@@ -142,8 +146,26 @@ public class DefaultSynchronizationManager
     }
 
     private ImportSummary executeDataSetCompletenessPush(SystemInstance instance)  throws WebMessageParseException {
+
         final Date startTime = new Date();
+
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
+
+        final int lastUpdatedCount = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter(lastSuccessTime );
+
+        log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
+
+        if ( lastUpdatedCount == 0 )
+        {
+            setLastDataSynchSuccess( startTime );
+            log.debug( "Skipping completeness synch, no new or updated data values" );
+            return null;
+        }
+
+        log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
+
+        log.info( "Remote server POST URL: " + instance.getUrl() );
+
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );

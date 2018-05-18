@@ -85,6 +85,19 @@ public class DataSynchronizationJob
 
         try
         {
+            synchronizationManager.executeDataSetCompletenessPush();
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( jobConfiguration, "completeness synch failed: " + ex.getMessage() );
+        }
+        catch ( WebMessageParseException e )
+        {
+            log.error("Error while executing data completeness task. "+ e.getMessage(), e );
+        }
+
+        try
+        {
             synchronizationManager.executeEventPush();
         }
         catch ( RuntimeException ex )

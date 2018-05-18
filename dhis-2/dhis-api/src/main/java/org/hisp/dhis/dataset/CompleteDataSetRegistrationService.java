@@ -33,6 +33,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -117,4 +118,13 @@ public interface CompleteDataSetRegistrationService
     
     List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Gets the number of Complete Datasets count which have been updated after the given
+     * date time.
+     *
+     * @param date the date time.
+     * @return the number of completedatasets.
+     */
+    int getCompleteDataSetCountLastUpdatedAfter(Date date);
 }
