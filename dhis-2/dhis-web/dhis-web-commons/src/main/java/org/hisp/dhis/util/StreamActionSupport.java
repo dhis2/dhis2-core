@@ -32,7 +32,6 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.ServletActionContext;
@@ -55,9 +54,7 @@ public abstract class StreamActionSupport
     @Override
     public String execute()
         throws Exception
-    {
-        OutputStream out = null;
-        
+    {        
         HttpServletResponse response = ServletActionContext.getResponse();
         
         String contentType = getContentType();
@@ -70,15 +67,9 @@ public abstract class StreamActionSupport
         log.debug( "Content type: " + contentType + ", disallow cache: " + 
             disallowCache + ", filename: " + filename + ", attachment: " + attachment );
         
-        try
-        {
-            out = response.getOutputStream();
-            
+        try ( OutputStream out = response.getOutputStream() )
+        {            
             return execute( response, out );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( out );
         }
     }
 

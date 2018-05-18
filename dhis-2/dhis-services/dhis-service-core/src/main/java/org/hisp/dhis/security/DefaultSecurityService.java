@@ -38,6 +38,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
@@ -78,6 +80,7 @@ public class DefaultSecurityService
 
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
+    private static final String TBD_NAME = "(TBD)";
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
@@ -223,8 +226,8 @@ public class DefaultSecurityService
 
         String rawPassword = CodeGenerator.generateCode( INVITED_USER_PASSWORD_LENGTH );
 
-        user.setSurname( "(TBD)" );
-        user.setFirstName( "(TBD)" );
+        user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
+        user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
         user.getUserCredentials().setInvitation( true );
         userService.encodeAndSetPassword( user, rawPassword );
 

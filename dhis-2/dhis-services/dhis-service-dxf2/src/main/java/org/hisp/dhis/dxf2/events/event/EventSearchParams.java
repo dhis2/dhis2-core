@@ -122,6 +122,8 @@ public class EventSearchParams
     private List<String> gridOrders;
 
     private boolean includeAttributes;
+    
+    private boolean includeAllDataElements;
 
     private Set<String> events = new HashSet<>();
 
@@ -133,7 +135,7 @@ public class EventSearchParams
     /**
      * DataElements to be included in the response. Can be used to filter response.
      */
-    private List<QueryItem> dataElements = new ArrayList<>();
+    private Set<QueryItem> dataElements = new HashSet<>();
 
     private boolean includeDeleted;
 
@@ -431,6 +433,16 @@ public class EventSearchParams
         this.includeAttributes = includeAttributes;
     }
 
+    public boolean isIncludeAllDataElements()
+    {
+        return includeAllDataElements;
+    }
+
+    public void setIncludeAllDataElements( boolean includeAllDataElements )
+    {
+        this.includeAllDataElements = includeAllDataElements;
+    }
+
     public List<Order> getOrders()
     {
         return this.orders;
@@ -491,12 +503,12 @@ public class EventSearchParams
         return this.includeDeleted;
     }
 
-    public List<QueryItem> getDataElements()
+    public Set<QueryItem> getDataElements()
     {
         return dataElements;
     }
 
-    public void setDataElements( List<QueryItem> dataElements )
+    public void setDataElements( Set<QueryItem> dataElements )
     {
         this.dataElements = dataElements;
     }
