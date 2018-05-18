@@ -92,14 +92,14 @@ public class DeletedObject
     /**
      * Date this object was deleted.
      */
-    @Column( nullable = false )
+    @Column( nullable = false, name = "deleted_at" )
     @Temporal( TemporalType.TIMESTAMP )
     private Date deletedAt = new Date();
 
     /**
      * User who deleted this object (if available)
      */
-    @Column
+    @Column( name = "deleted_by" )
     private String deletedBy;
 
     protected DeletedObject()
