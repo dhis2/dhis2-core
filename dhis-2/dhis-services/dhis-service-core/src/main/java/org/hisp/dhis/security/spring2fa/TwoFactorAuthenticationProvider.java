@@ -78,34 +78,7 @@ public class TwoFactorAuthenticationProvider
     {
         log.info( String.format( "Login attempt: %s", auth.getName() ) );
 
-        TwoFactorWebAuthenticationDetails authDetails =
-            (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
-        // -------------------------------------------------------------------------
-        // Check whether account is locked due to multiple failed login attempts
-        // -------------------------------------------------------------------------
-
         String username = auth.getName();
-        if ( authDetails == null )
-        {
-            log.info( "Missing authentication details in authentication request." );
-            throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
-        }
-
-        String ip = authDetails.getIp();
-
-        if ( securityService.isLocked( ip ) )
-        {
-            log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
-
-            throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
-        }
-
-        // -------------------------------------------------------------------------
-        // Check two-factor authentication
-        // -------------------------------------------------------------------------
-
-        String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
 
@@ -114,8 +87,36 @@ public class TwoFactorAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
+        // -------------------------------------------------------------------------
+        // Check two-factor authentication
+        // -------------------------------------------------------------------------
+
         if ( userCredentials.isTwoFA() )
         {
+            TwoFactorWebAuthenticationDetails authDetails =
+                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+
+            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
+
+            // -------------------------------------------------------------------------
+            // Check whether account is locked due to multiple failed login attempts
+            // -------------------------------------------------------------------------
+
+            if ( authDetails == null )
+            {
+                log.info( "Missing authentication details in authentication request." );
+                throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
+            }
+
+            String ip = authDetails.getIp();
+
+            if ( securityService.isLocked( ip ) )
+            {
+                log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
+
+                throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
+            }
+
             if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
             {
                 log.info( String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );

@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -75,9 +77,10 @@ import java.util.regex.Pattern;
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
-
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
+    private static final Log log = LogFactory.getLog( AppController.class );
+    
     @Autowired
     private AppManager appManager;
 
@@ -175,14 +178,18 @@ public class AppController
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
+        
+        log.debug( String.format( "App page name: '%s'", pageName ) );
 
-        // Special handling for manifest.webapp
+        // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( pageName ) )
         {
             // If request was for manifest.webapp, check for * and replace with host
             if ( "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
+                
+                log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
 
                 application.getActivities().getDhis().setHref( contextPath );
             }
@@ -190,11 +197,9 @@ public class AppController
             DefaultRenderService.getJsonMapper()
                 .writeValue( response.getOutputStream(), application );
         }
-
         // Any other page
         else
         {
-
             // Retrieve file
             Resource resource = appManager.getAppResource( application, pageName );
 
@@ -204,13 +209,16 @@ public class AppController
                 return;
             }
 
+            String filename = resource.getFilename();            
+            log.debug( String.format( "App filename: '%s'", filename ) );
+            
             if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
                 return;
             }
 
-            String mimeType = request.getSession().getServletContext().getMimeType( resource.getFilename() );
+            String mimeType = request.getSession().getServletContext().getMimeType( filename );
 
             if ( mimeType != null )
             {

@@ -462,7 +462,7 @@ public class JdbcEventStore
 
         sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
 
-        sql = sql.replaceFirst( "order .*? desc", "" );
+        sql = sql.replaceFirst( "order .*? (desc|asc)", "" );
 
         sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
 

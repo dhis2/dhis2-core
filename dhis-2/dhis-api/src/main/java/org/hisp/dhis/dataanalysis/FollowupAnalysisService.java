@@ -31,6 +31,7 @@ package org.hisp.dhis.dataanalysis;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -39,4 +40,7 @@ import java.util.List;
 public interface FollowupAnalysisService
 {
     List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
+
+    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId,
+        int limit, Date startDate, Date endDate );
 }

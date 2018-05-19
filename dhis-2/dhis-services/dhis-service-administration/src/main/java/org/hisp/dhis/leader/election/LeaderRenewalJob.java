@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,50 +28,48 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
 
 /**
- * @author Henning Håkonsen
+ * Job that attempts to elect the current instance as the leader of the cluster.
+ * 
+ * @author Ameen Mohamed
  */
-@Component
-public class AuthenticationListener2FA
+public class LeaderRenewalJob extends AbstractJob
 {
-    private static final Logger log = LoggerFactory.getLogger( AuthenticationListener.class );
+    @Autowired
+    private LeaderManager leaderManager;
 
     @Autowired
-    private SecurityService securityService;
+    private Notifier notifier;
 
-    @EventListener
-    public void handleAuthenticationFailure( AuthenticationFailureBadCredentialsEvent event )
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
     {
-        Authentication auth = event.getAuthentication();
-
-        TwoFactorWebAuthenticationDetails authDetails =
-            (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
-        log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
-
-        securityService.registerFailedLogin( authDetails.getIp() );
+        return JobType.LEADER_RENEWAL;
     }
 
-    @EventListener
-    public void handleAuthenticationSuccess( AuthenticationSuccessEvent event )
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
     {
-        Authentication auth = event.getAuthentication();
+        try
+        {
+            leaderManager.renewLeader();
+        }
+        catch ( Exception e )
+        {
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Leader renewal failed:" + e.getMessage() );
+        }
 
-        TwoFactorWebAuthenticationDetails authDetails =
-            (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
-        log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
-
-        securityService.registerSuccessfulLogin( authDetails.getIp() );
+        notifier.notify( jobConfiguration, NotificationLevel.INFO, "Leader renewal completed", true );
     }
 }
