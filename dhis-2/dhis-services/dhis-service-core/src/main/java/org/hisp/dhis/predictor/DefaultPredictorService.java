@@ -28,6 +28,7 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -44,8 +45,15 @@ public class DefaultPredictorService
     @Autowired
     private PredictorStore predictorStore;
 
+    private IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
+
+    public void setPredictorGroupStore( IdentifiableObjectStore<PredictorGroup> predictorGroupStore )
+    {
+        this.predictorGroupStore = predictorGroupStore;
+    }
+
     // -------------------------------------------------------------------------
-    // Predictor business logic
+    // Predictor
     // -------------------------------------------------------------------------
 
     @Override
@@ -85,21 +93,44 @@ public class DefaultPredictorService
         return predictorStore.getAll();
     }
 
-    @Override
-    public List<Predictor> getPredictorsByUid( Collection<String> uids )
+    // -------------------------------------------------------------------------
+    // Predictor group
+    // -------------------------------------------------------------------------
+
+    public int addPredictorGroup( PredictorGroup predictorGroup )
     {
-        return predictorStore.getByUid( uids );
+        predictorGroupStore.save( predictorGroup );
+
+        return predictorGroup.getId();
     }
 
     @Override
-    public List<Predictor> getPredictorsByName( String name )
+    public void deletePredictorGroup( PredictorGroup predictorGroup )
     {
-        return new ArrayList<>( predictorStore.getAllEqName( name ) );
+        predictorGroupStore.delete( predictorGroup );
     }
 
     @Override
-    public int getPredictorCount()
+    public void updatePredictorGroup( PredictorGroup predictorGroup )
     {
-        return predictorStore.getCount();
+        predictorGroupStore.update( predictorGroup );
+    }
+
+    @Override
+    public PredictorGroup getPredictorGroup( int id )
+    {
+        return predictorGroupStore.get( id );
+    }
+
+    @Override
+    public PredictorGroup getPredictorGroup( String uid )
+    {
+        return predictorGroupStore.getByUid( uid );
+    }
+
+    @Override
+    public List<PredictorGroup> getAllPredictorGroups()
+    {
+        return predictorGroupStore.getAll();
     }
 }

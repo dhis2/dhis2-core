@@ -81,6 +81,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
@@ -367,6 +369,24 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteRelativePeriods( RelativePeriods relativePeriods )
+    {
+        return null;
+    }
+
+    public void deletePredictor( Predictor predictor )
+    {
+    }
+
+    public String allowDeletePredictor( Predictor predictor )
+    {
+        return null;
+    }
+
+    public void deletePredictorGroup( PredictorGroup predictorGroup )
+    {
+    }
+
+    public String allowDeletePredictorGroup( PredictorGroup predictorGroup )
     {
         return null;
     }

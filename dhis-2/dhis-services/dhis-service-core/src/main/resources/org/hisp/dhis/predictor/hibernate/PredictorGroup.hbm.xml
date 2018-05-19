@@ -6,11 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.validation.ValidationRuleGroup" table="validationrulegroup">
+  <class name="org.hisp.dhis.predictor.PredictorGroup" table="predictorgroup">
 
     <cache usage="read-write" />
 
-    <id name="id" column="validationrulegroupid">
+    <id name="id" column="predictorgroupid">
       <generator class="native" />
     </id>
     &identifiableProperties;
@@ -19,34 +19,34 @@
 
     <property name="description" type="text" />
 
-    <set name="members" table="validationrulegroupmembers">
+    <set name="members" table="predictorgroupmembers">
       <cache usage="read-write" />
-      <key column="validationgroupid" foreign-key="fk_validationrulegroupmembers_validationrulegroupid" />
-      <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
-                    foreign-key="fk_validationrulegroup_validationruleid" />
+      <key column="predictorgroupid" foreign-key="fk_predictorgroupmembers_predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.predictor.Predictor" column="predictorid"
+                    foreign-key="fk_predictorgroup_predictorid" />
     </set>
 
     <!-- Access properties -->
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrulegroup_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="validationrulegroupusergroupaccesses" cascade="all-delete-orphan">
+    <set name="userGroupAccesses" table="predictorgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="validationrulegroupid" />
+      <key column="predictorgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="validationrulegroupuseraccesses" cascade="all-delete-orphan">
+    <set name="userAccesses" table="predictorgroupuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="validationrulegroupid" />
+      <key column="predictorgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="validationrulegrouptranslations" cascade="all-delete-orphan">
+    <set name="translations" table="predictorgrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="validationrulegroupid" foreign-key="fk_objecttranslation_validationrulegroupid" />
+      <key column="predictorgroupid" foreign-key="fk_objecttranslation_predictorgroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
