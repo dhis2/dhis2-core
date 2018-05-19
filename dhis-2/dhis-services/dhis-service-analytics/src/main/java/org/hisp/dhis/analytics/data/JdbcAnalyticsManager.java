@@ -419,9 +419,9 @@ public class JdbcAnalyticsManager
         // ---------------------------------------------------------------------
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
-        {            
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "year" ) + " in (" + 
-                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+        {
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" +
+                TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
         // ---------------------------------------------------------------------
