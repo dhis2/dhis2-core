@@ -228,6 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
         trackedEntityInstance.setFeatureType( daoTrackedEntityInstance.getFeatureType() );
         trackedEntityInstance.setCoordinates( daoTrackedEntityInstance.getCoordinates() );
+        trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
 
         if ( params.isIncludeRelationships() )
         {

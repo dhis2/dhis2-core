@@ -28,9 +28,12 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -39,6 +42,14 @@ public class DocumentDeletionHandler extends DeletionHandler
 {
     @Autowired
     private DocumentService documentService;
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -53,5 +64,23 @@ public class DocumentDeletionHandler extends DeletionHandler
     public String allowDeleteUser( User user )
     {
         return documentService.getCountDocumentByUser( user ) > 0 ? ERROR : null;
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,43 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 /**
- * Defines the selection of organisation units.
- * 
- * <ul>
- * <li>SELECTED: specified units only.</li>
- * <li>CHILDREN: immediate children of specified units, including specified units.</li>
- * <li>DESCENDANTS: all units in sub-hierarchy of specified units, including specified units.</li>
- * <li>ALL: all units in system.</li>
- * </ul>
- * 
- * @author Lars Helge Overland
+ * @author Kristian Wærstad <kristian@dhis2.org>
  */
-public enum OrganisationUnitSelectionMode
+public class ExternalFileResourceDeletionHandler
+    extends DeletionHandler
 {
-    SELECTED, CHILDREN, DESCENDANTS, ACCESSIBLE, CAPTURE,  ALL
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public String getClassName()
+    {
+        return ExternalFileResource.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
+    }
 }
