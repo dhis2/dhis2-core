@@ -53,8 +53,7 @@ public class PredictorGroupSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2002 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTORGROUP_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.UPDATE, Lists.newArrayList( "F_PREDICTORGROUP_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTORGROUP_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTORGROUP_DELETE" ) ) );
 
         return schema;
