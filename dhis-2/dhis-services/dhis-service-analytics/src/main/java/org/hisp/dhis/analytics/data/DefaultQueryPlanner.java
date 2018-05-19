@@ -433,6 +433,8 @@ public class DefaultQueryPlanner
             
             AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM );
 
+            PeriodType dataPeriodType = null;
+
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
                 PeriodType periodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
@@ -441,10 +443,16 @@ public class DefaultQueryPlanner
                 aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType );
                 aggregationType = QueryPlannerUtils.getAggregationType( aggregationType,
                     deg.getValueType(), periodType, deg.getPeriodType() );
+
+                if ( aggregationType.isDisaggregation() )
+                {
+                    dataPeriodType = deg.getPeriodType();
+                }
             }
-            
+
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withAggregationType( aggregationType ).build();
+                    .withAggregationType( aggregationType )
+                    .withDataPeriodType( dataPeriodType ).build();
 
             queries.add( query );
         }
@@ -518,26 +526,31 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getDataElements().isEmpty() || !params.isDisaggregation() )
+        if ( !params.isDisaggregation() )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
-            
-            return queries;
         }
-
-        ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap = 
-            QueryPlannerUtils.getPeriodTypeDataElementMap( params.getDataElements() );
-
-        for ( PeriodType periodType : periodTypeDataElementMap.keySet() )
+        else if ( !params.getDataElements().isEmpty() )
         {
-            DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withDataElements( periodTypeDataElementMap.get( periodType ) )
-                .withDataPeriodType( periodType ).build();
-            
-            queries.add( query );
+            ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap =
+                QueryPlannerUtils.getPeriodTypeDataElementMap( params.getDataElements() );
+
+            for ( PeriodType periodType : periodTypeDataElementMap.keySet() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withDataElements( periodTypeDataElementMap.get( periodType ) )
+                    .withDataPeriodType( periodType ).build();
+
+                queries.add( query );
+            }
+
+            logQuerySplit( queries, "data period type" );
         }
-        
-        logQuerySplit( queries, "data period type" );
+        else
+        {
+            queries.add( DataQueryParams.newBuilder( params )
+                .withDataPeriodType( params.getDataPeriodType() ).build() );
+        }
 
         return queries;
     }
