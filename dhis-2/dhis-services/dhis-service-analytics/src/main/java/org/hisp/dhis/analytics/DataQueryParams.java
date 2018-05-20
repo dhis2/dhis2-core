@@ -2368,6 +2368,12 @@ public class DataQueryParams
             return this;
         }
         
+        public Builder withDataElementGroupSet( DataElementGroupSet groupSet )
+        {
+            this.params.setDimensionOptions( groupSet.getUid(), DimensionType.DATA_ELEMENT_GROUP_SET, null, new ArrayList<>( groupSet.getItems() ) );
+            return this;
+        }
+        
         public Builder withPeriods( List<? extends DimensionalItemObject> periods )
         {
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );

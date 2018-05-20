@@ -137,6 +137,9 @@ public class QueryPlannerTest
     private DataElement deF;
     private DataElement deG;
     private DataElement deH;
+    private DataElement deI;
+    private DataElement deJ;
+    private DataElement deK;
     
     private ReportingRate rrA;
     private ReportingRate rrB;
@@ -153,8 +156,11 @@ public class QueryPlannerTest
     private OrganisationUnit ouE;
     
     private DataElementGroup degA;
+    private DataElementGroup degB;
+    private DataElementGroup degC;
     
     private DataElementGroupSet dgsA;
+    private DataElementGroupSet dgsB;
 
     @Override
     public void setUpTest()
@@ -181,6 +187,9 @@ public class QueryPlannerTest
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
         deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
+        deI = createDataElement( 'I', ValueType.INTEGER, AggregationType.SUM );
+        deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.SUM );
+        deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.SUM );
         
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
@@ -190,14 +199,18 @@ public class QueryPlannerTest
         dataElementService.addDataElement( deF );
         dataElementService.addDataElement( deG );
         dataElementService.addDataElement( deH );
+        dataElementService.addDataElement( deI );
+        dataElementService.addDataElement( deJ );
+        dataElementService.addDataElement( deK );
 
         DataSet dsA = createDataSet( 'A', monthly );
         DataSet dsB = createDataSet( 'B', monthly );
         DataSet dsC = createDataSet( 'C', yearly );
         DataSet dsD = createDataSet( 'D', yearly );
         
-        dsC.addDataSetElement( deG, cc );
-        dsC.addDataSetElement( deH, cc );
+        dsC.addDataSetElement( deI, cc );
+        dsC.addDataSetElement( deJ, cc );
+        dsC.addDataSetElement( deK, cc );
         
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
@@ -228,12 +241,25 @@ public class QueryPlannerTest
         degA.addDataElement( deA );
         degA.addDataElement( deB );
         
+        degB = createDataElementGroup( 'B' );
+        degB.addDataElement( deI );
+        degB.addDataElement( deJ );
+        
+        degC = createDataElementGroup( 'C' );
+        degC.addDataElement( deK );
+        
         dataElementService.addDataElementGroup( degA );
+        dataElementService.addDataElementGroup( degB );
         
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
         
+        dgsB = createDataElementGroupSet( 'B' );
+        dgsB.getMembers().add( degB );
+        dgsB.getMembers().add( degC );
+
         dataElementService.addDataElementGroupSet( dgsA );
+        dataElementService.addDataElementGroupSet( dgsB );
     }
 
     // -------------------------------------------------------------------------
@@ -1028,14 +1054,14 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query is type "disaggregation" as aggregation period type for periods is monthly
+     * Query is type disaggregation as aggregation period type for periods is monthly
      * and data elements period type is yearly. Split on two data elements.
      */
     @Test
-    public void planQueryDisaggregation()
+    public void planQueryDataElementDisaggregation()
     {   
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( getList( deG, deH ) )
+            .withDataElements( getList( deI, deJ ) )
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
@@ -1058,6 +1084,37 @@ public class QueryPlannerTest
         }
     }
 
+    /**
+     * Query is type disaggregation as aggregation period type for periods is monthly
+     * and data element groups period type is yearly. Split on two org units.
+     */
+    @Test
+    public void planQueryDataElementGroupSetDisaggregation()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElementGroupSet( dgsB )
+            .withOrganisationUnits( getList( ouA, ouB ) )
+            .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
+
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        
+        assertEquals( 2, queryGroups.getAllQueries().size() );
+        assertEquals( 1, queryGroups.getSequentialQueries().size() );
+        assertEquals( 2, queryGroups.getLargestGroupSize() );
+
+        for ( DataQueryParams query : queryGroups.getAllQueries() )
+        {
+            assertTrue( samePeriodType( query.getPeriods() ) );
+            assertDimensionNameNotNull( query );
+            assertNotNull( query.getDataPeriodType() );
+            assertEquals( yearly, query.getDataPeriodType() );
+            assertTrue( query.isDisaggregation() );
+        }
+    }
+    
     @Test
     public void testWithTableNameAndPartition()
     {
