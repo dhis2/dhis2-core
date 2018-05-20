@@ -449,9 +449,9 @@ public class DataQueryParams
         
     /**
      * Returns a key representing a group of queries which should be run in 
-     * sequence. Currently queries with different aggregation type are run in
-     * sequence. It is not allowed for the implementation to differentiate on
-     * dimensional objects.
+     * sequence. Currently queries with different {@link AnalyticsAggregationType} 
+     * are run in sequence. It is not allowed for the implementation to differentiate 
+     * on dimensional objects.
      */
     public String getSequentialQueryGroupKey()
     {
@@ -1194,13 +1194,30 @@ public class DataQueryParams
      * Indicates whether one of the dimensions or filters is a program indicator.
      * @return true if one or more of the dimensions is of type program indicator.
      */
-    public boolean hasProgramIndicatorDimension(  )
+    public boolean hasProgramIndicatorDimension()
     {
        DimensionalObject dimension = getDimensionOrFilter( DATA_X_DIM_ID );
         
        List<DimensionalItemObject> items = AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
        
        return items.size() > 0;
+    }
+    
+    /**
+     * Returns the first data element group in this query, meaning the first group
+     * item within the first data element group set dimension, if any. Returns null
+     * if no dimension or item exists.
+     */
+    public DataElementGroup getFirstDataElementGroup()
+    {
+        if ( !getDataElementGroupSets().isEmpty() )
+        {
+            DimensionalObject degs = getDataElementGroupSets().get( 0 );
+            DimensionalItemObject deg = degs.hasItems() ? degs.getItems().get( 0 ) : null;
+            return (DataElementGroup) deg;
+        }
+        
+        return null;
     }
     
     // -------------------------------------------------------------------------
@@ -2345,6 +2362,12 @@ public class DataQueryParams
         public Builder withCategory( DataElementCategory category )
         {
             this.params.setDimensionOptions( category.getUid(), DimensionType.CATEGORY, null, new ArrayList<>( category.getItems() ) );
+            return this;
+        }
+        
+        public Builder withDataElementGroupSet( DataElementGroupSet groupSet )
+        {
+            this.params.setDimensionOptions( groupSet.getUid(), DimensionType.DATA_ELEMENT_GROUP_SET, null, new ArrayList<>( groupSet.getItems() ) );
             return this;
         }
         
