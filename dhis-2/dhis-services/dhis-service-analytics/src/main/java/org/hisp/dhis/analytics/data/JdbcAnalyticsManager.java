@@ -193,11 +193,11 @@ public class JdbcAnalyticsManager
                 
                 String periodKey = keyArray[periodIndex];
 
-                Assert.notNull( periodKey, "Period key cannot be null" );
+                Assert.notNull( periodKey, String.format( "Period key cannot be null, key: '%s'", key ) );
 
                 List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( periodKey ) );
 
-                Assert.notNull( periods, dataPeriodAggregationPeriodMap.toString() );
+                Assert.notNull( periods, String.format( "Period list cannot be null, key: '%s', map: '%s'", key, dataPeriodAggregationPeriodMap.toString() ) );
 
                 Object value = dataValueMap.get( key );
 

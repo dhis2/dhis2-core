@@ -148,10 +148,10 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Puts the given element into the map according to the value type, aggregation
-     * operator, aggregation period type and data period type.
+     * Returns the {@link AnalyticsAggregationType} according to the given value type, 
+     * aggregation type, value type aggregation period type and data period type.
      * 
-     * @param aggregationType the aggregation operator.
+     * @param aggregationType the aggregation type.
      * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
