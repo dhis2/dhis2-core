@@ -1197,13 +1197,30 @@ public class DataQueryParams
      * Indicates whether one of the dimensions or filters is a program indicator.
      * @return true if one or more of the dimensions is of type program indicator.
      */
-    public boolean hasProgramIndicatorDimension(  )
+    public boolean hasProgramIndicatorDimension()
     {
        DimensionalObject dimension = getDimensionOrFilter( DATA_X_DIM_ID );
         
        List<DimensionalItemObject> items = AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
        
        return items.size() > 0;
+    }
+    
+    /**
+     * Returns the first data element group in this query, meaning the first group
+     * item within the first data element group set dimension, if any. Returns null
+     * if no dimension or item exists.
+     */
+    public DataElementGroup getFirstDataElementGroup()
+    {
+        if ( !getDataElementGroupSets().isEmpty() )
+        {
+            DimensionalObject degs = getDataElementGroupSets().get( 0 );
+            DimensionalItemObject deg = degs.hasItems() ? degs.getItems().get( 0 ) : null;
+            return (DataElementGroup) deg;
+        }
+        
+        return null;
     }
     
     // -------------------------------------------------------------------------
