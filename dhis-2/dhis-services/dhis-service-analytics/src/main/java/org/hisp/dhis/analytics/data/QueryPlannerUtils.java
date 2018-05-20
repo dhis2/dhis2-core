@@ -197,30 +197,23 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the period type and the data element for the
-     * given data elements.
+     * Creates a mapping between the period type and matching data elements for the
+     * given list of data elements.
      * 
-     * @param dataElements list of data elements.
+     * @param dataElements the list of data elements.
      */
     public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap( 
         Collection<DimensionalItemObject> dataElements )
     {
         ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
-
-        for ( DimensionalItemObject element : dataElements )
-        {
-            DataElement dataElement = (DataElement) element;
-            
-            map.putValue( dataElement.getPeriodType(), element );
-        }
-
+        dataElements.forEach( de -> map.putValue( ((DataElement) de).getPeriodType(), de ) );
         return map;
     }
 
     /**
      * Converts a list of data query parameters to a list of event query parameters.
      * 
-     * @param params list of data query parameters.
+     * @param params the list of data query parameters.
      */
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {
