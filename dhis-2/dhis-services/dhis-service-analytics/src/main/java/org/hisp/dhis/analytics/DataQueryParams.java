@@ -452,9 +452,9 @@ public class DataQueryParams
         
     /**
      * Returns a key representing a group of queries which should be run in 
-     * sequence. Currently queries with different aggregation type are run in
-     * sequence. It is not allowed for the implementation to differentiate on
-     * dimensional objects.
+     * sequence. Currently queries with different {@link AnalyticsAggregationType} 
+     * are run in sequence. It is not allowed for the implementation to differentiate 
+     * on dimensional objects.
      */
     public String getSequentialQueryGroupKey()
     {

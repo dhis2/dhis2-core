@@ -544,29 +544,8 @@ public class DefaultQueryPlanner
             queries.add( DataQueryParams.newBuilder( params ).build() );
         }
         
-        /*
-        if ( params.getDataElements().isEmpty() || !params.isDisaggregation() )
-        {
-            queries.add( DataQueryParams.newBuilder( params ).build() );
-            
-            return queries;
-        }
-
-        ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap = 
-            QueryPlannerUtils.getPeriodTypeDataElementMap( params.getDataElements() );
-
-        for ( PeriodType periodType : periodTypeDataElementMap.keySet() )
-        {
-            DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withDataElements( periodTypeDataElementMap.get( periodType ) )
-                .withDataPeriodType( periodType ).build();
-            
-            queries.add( query );
-        }
-        
         logQuerySplit( queries, "data period type" );
-        */
-
+        
         return queries;
     }
 

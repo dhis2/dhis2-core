@@ -49,6 +49,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -119,6 +120,9 @@ public class QueryPlannerTest
     // Fixture
     // -------------------------------------------------------------------------
 
+    private PeriodType monthly = new MonthlyPeriodType();
+    private PeriodType yearly = new YearlyPeriodType();
+    
     private IndicatorType itA;
     private Indicator inA;
     private Indicator inB;
@@ -139,6 +143,7 @@ public class QueryPlannerTest
     private ReportingRate rrC;
     private ReportingRate rrD;
 
+    private CategoryCombo cc;
     private CategoryOptionCombo coc;
 
     private OrganisationUnit ouA;
@@ -154,8 +159,6 @@ public class QueryPlannerTest
     @Override
     public void setUpTest()
     {
-        PeriodType pt = new MonthlyPeriodType();
-
         itA = createIndicatorType( 'A' );
 
         idObjectManager.save( itA );
@@ -188,21 +191,25 @@ public class QueryPlannerTest
         dataElementService.addDataElement( deG );
         dataElementService.addDataElement( deH );
 
-        DataSet dsA = createDataSet( 'A', pt );
-        DataSet dsB = createDataSet( 'B', pt );
-        DataSet dsC = createDataSet( 'C', pt );
-        DataSet dsD = createDataSet( 'D', pt );
+        DataSet dsA = createDataSet( 'A', monthly );
+        DataSet dsB = createDataSet( 'B', monthly );
+        DataSet dsC = createDataSet( 'C', yearly );
+        DataSet dsD = createDataSet( 'D', yearly );
+        
+        dsC.addDataSetElement( deG, cc );
+        dsC.addDataSetElement( deH, cc );
         
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
         dataSetService.addDataSet( dsC );
         dataSetService.addDataSet( dsD );
-        
+
         rrA = new ReportingRate( dsA );
         rrB = new ReportingRate( dsB );
         rrC = new ReportingRate( dsC );
         rrD = new ReportingRate( dsD );
 
+        cc = categoryService.getDefaultCategoryCombo();
         coc = categoryService.getDefaultCategoryOptionCombo();
 
         ouA = createOrganisationUnit( 'A' );
@@ -1019,7 +1026,38 @@ public class QueryPlannerTest
             assertEquals( DataType.BOOLEAN, query.getAggregationType().getDataType() );
         }
     }
-    
+
+    /**
+     * Query is type "disaggregation" as aggregation period type for periods is monthly
+     * and data elements period type is yearly. Split on two data elements.
+     */
+    @Test
+    public void planQueryDisaggregation()
+    {   
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( deG, deH ) )
+            .withOrganisationUnits( getList( ouA ) )
+            .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
+
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        
+        assertEquals( 2, queryGroups.getAllQueries().size() );
+        assertEquals( 1, queryGroups.getSequentialQueries().size() );
+        assertEquals( 2, queryGroups.getLargestGroupSize() );
+
+        for ( DataQueryParams query : queryGroups.getAllQueries() )
+        {
+            assertTrue( samePeriodType( query.getPeriods() ) );
+            assertDimensionNameNotNull( query );
+            assertNotNull( query.getDataPeriodType() );
+            assertEquals( yearly, query.getDataPeriodType() );
+            assertTrue( query.isDisaggregation() );
+        }
+    }
+
     @Test
     public void testWithTableNameAndPartition()
     {
