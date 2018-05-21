@@ -29,32 +29,65 @@ package org.hisp.dhis.security;
  */
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Henning Håkonsen
  */
-public class AuthenticationListener implements ApplicationListener<AuthenticationSuccessEvent>
+@Component
+public class AuthenticationListener
 {
+    private static final Logger log = LoggerFactory.getLogger( AuthenticationListener.class );
+
+    @Autowired
+    private SecurityService securityService;
+
     @Autowired
     private UserService userService;
 
     @Autowired
     private DhisConfigurationProvider config;
 
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public void onApplicationEvent( final AuthenticationSuccessEvent authenticationSuccessEvent )
+    @EventListener
+    public void handleAuthenticationFailure( AuthenticationFailureBadCredentialsEvent event )
     {
-        final String username = authenticationSuccessEvent.getAuthentication().getName();
+        Authentication auth = event.getAuthentication();
+
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        {
+            TwoFactorWebAuthenticationDetails authDetails =
+                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+
+            log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
+        }
+    }
+
+    @EventListener
+    public void handleAuthenticationSuccess( AuthenticationSuccessEvent event )
+    {
+        Authentication auth = event.getAuthentication();
+
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        {
+            TwoFactorWebAuthenticationDetails authDetails =
+                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+
+            log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
+        }
+
+        final String username = event.getAuthentication().getName();
 
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
@@ -66,9 +99,6 @@ public class AuthenticationListener implements ApplicationListener<Authenticatio
             userService.updateUserCredentials( credentials );
         }
 
-        if ( credentials != null )
-        {
-            securityService.registerSuccessfulLogin( username );
-        }
+        securityService.registerSuccessfulLogin( username );
     }
 }

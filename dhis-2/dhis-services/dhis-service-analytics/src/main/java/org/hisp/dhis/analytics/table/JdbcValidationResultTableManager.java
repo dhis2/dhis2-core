@@ -89,14 +89,14 @@ public class JdbcValidationResultTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
+        return Lists.newArrayList(
+            "year = " + partition.getYear() + "",
+            "yearly = '" + partition.getYear() + "'" );
     }
     
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
 
         String insert = "insert into " + partition.getTempTableName() + " (";
@@ -132,8 +132,7 @@ public class JdbcValidationResultTableManager
                 "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "where pe.startdate >= '" + start + "' " +
-            "and pe.startdate < '" + end + "' " +
+            "where ps.year = " + partition.getYear() + " " +
             "and vrs.created is not null";
 
         final String sql = insert + select;
@@ -195,6 +194,7 @@ public class JdbcValidationResultTableManager
         }
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
 
         return filterDimensionColumns( columns );
     }

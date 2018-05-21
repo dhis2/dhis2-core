@@ -45,7 +45,8 @@ public interface QueryPlanner
      * the following criteria: 1) partition / year 2) organisation unit level
      * 3) period type 4) aggregation type. The DataQueryGroups contains groups of 
      * queries. The query groups should be run in sequence while the queries within
-     * each group should be run in parallel for optimal performance.
+     * each group should be run in parallel for optimal performance. Currently 
+     * queries with different {@link AnalyticsAggregationType} are run in sequence.
      * 
      * If the number of queries produced by this grouping is equal or
      * larger than the number of optimal queries, those queries are returned. If

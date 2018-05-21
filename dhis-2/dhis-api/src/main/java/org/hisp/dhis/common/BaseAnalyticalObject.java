@@ -55,7 +55,6 @@ import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -143,6 +142,9 @@ public abstract class BaseAnalyticalObject
     protected boolean hideSubtitle;
 
     protected Set<Interpretation> interpretations = new HashSet<>();
+
+    protected Set<String> subscribers = new HashSet<>();
+
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -533,8 +535,6 @@ public abstract class BaseAnalyticalObject
                     periodList.add( new ConfigurablePeriod( periodEnum.toString() ) );
                 }
             }
-
-            Collections.sort( periodList, new AscendingPeriodComparator() );
 
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
         }
@@ -1213,5 +1213,51 @@ public abstract class BaseAnalyticalObject
     public void setParentGraphMap( Map<String, String> parentGraphMap )
     {
         this.parentGraphMap = parentGraphMap;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "subscribers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "subscriber", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getSubscribers()
+    {
+        return subscribers;
+    }
+
+    public void setSubscribers( Set<String> subscribers )
+    {
+        this.subscribers = subscribers;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribed()
+    {
+        User user = UserContext.getUser();
+
+        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean subscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.add( user.getUid() );
+    }
+
+    @Override
+    public boolean unsubscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.remove( user.getUid() );
     }
 }

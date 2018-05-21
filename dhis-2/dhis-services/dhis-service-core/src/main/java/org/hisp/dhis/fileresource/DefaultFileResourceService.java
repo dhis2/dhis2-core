@@ -29,11 +29,13 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.io.ByteSource;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -60,6 +62,9 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
 
     private IdentifiableObjectStore<FileResource> fileResourceStore;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
     {
@@ -114,12 +119,14 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
@@ -136,6 +143,13 @@ public class DefaultFileResourceService
 
         FileResource fileResource = fileResourceStore.getByUid( uid );
 
+        deleteFileResource( fileResource );
+    }
+
+    @Override
+    @Transactional
+    public void deleteFileResource( FileResource fileResource )
+    {
         if ( fileResource == null )
         {
             return;
@@ -186,11 +200,11 @@ public class DefaultFileResourceService
     {
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
-        updateFileResource( fileResource );
-
-        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
+        sessionFactory.getCurrentSession().flush();
 
         final String uid = fileResource.getUid();
+
+        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
 
         saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
 

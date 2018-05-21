@@ -629,6 +629,14 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
+    
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceAuditService" />
+    
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">    
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
@@ -1386,19 +1394,19 @@
     <property name="skipInTests" value="true" />
   </bean>
 
-  <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
-    <property name="jobConfigurationService" ref="jobConfigurationService" />
-    <property name="runlevel" value="5" />
-    <property name="skipInTests" value="true" />
-  </bean>
-
   <bean id="schedulerStart" class="org.hisp.dhis.startup.SchedulerStart">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="runlevel" value="14" />
     <property name="skipInTests" value="true" />
+    <property name="redisEnabled" ref="redisEnabled" />
+    <property name="leaderElectionTime" ref="leaderElectionTime" />
   </bean>
+  
+  <bean id="redisEnabled" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="REDIS_ENABLED" /></bean>
+  
+  <bean id="leaderElectionTime" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="LEADER_TIME_TO_LIVE" /></bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
     class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">
@@ -1740,6 +1748,11 @@
     <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler"
+        class="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <!-- AOP definitions -->
 
   <aop:config>
@@ -1780,6 +1793,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )" method="intercept" />
     </aop:aspect>
   </aop:config>
 

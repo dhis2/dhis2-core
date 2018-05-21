@@ -53,6 +53,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -68,6 +69,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -80,6 +82,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -122,6 +125,9 @@ public class DefaultPushAnalysisService
     private I18nManager i18nManager;
 
     @Autowired
+    private SchedulingManager schedulingManager;
+
+    @Autowired
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
@@ -140,6 +146,12 @@ public class DefaultPushAnalysisService
     public PushAnalysis getByUid( String uid )
     {
         return pushAnalysisStore.getByUid( uid );
+    }
+
+    @Override
+    public List<PushAnalysis> getAll()
+    {
+        return pushAnalysisStore.getAll();
     }
 
     @Override
@@ -437,14 +449,7 @@ public class DefaultPushAnalysisService
             FileResourceDomain.PUSH_ANALYSIS
         );
 
-        fileResourceService.saveFileResource( fileResource, bytes );
-
-        ExternalFileResource externalFileResource = new ExternalFileResource();
-
-        externalFileResource.setFileResource( fileResource );
-        externalFileResource.setExpires( null );
-
-        String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
+        String accessToken = saveFileResource( fileResource, bytes );
 
         return systemSettingManager.getInstanceBaseUrl() + "/api/externalFileResources/" + accessToken;
 
@@ -480,5 +485,26 @@ public class DefaultPushAnalysisService
             default:
                 break;
         }
+    }
+
+    /**
+     * Helper method for asynchronous file resource saving. Done to force a new session for each file resource.
+     * Adding all the file resources in the same session caused problems with the upload callback.
+     * @param fileResource  file resource to save
+     * @param bytes         file data
+     * @return              access token of the external file resource
+     */
+    private String saveFileResource( FileResource fileResource, byte[] bytes )
+    {
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setFileResource( fileResource );
+        externalFileResource.setExpires( null );
+
+        fileResource.setAssigned( true );
+        ListenableFuture<String> uid = schedulingManager.executeJob( () -> fileResourceService.saveFileResource( fileResource, bytes ) );
+
+        return externalFileResourceService.saveExternalFileResource( externalFileResource );
+
     }
 }

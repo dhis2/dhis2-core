@@ -848,9 +848,14 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET constantattribute=false WHERE constantattribute IS NULL" );
         executeSql( "UPDATE attribute SET legendsetattribute=false WHERE legendsetattribute IS NULL" );
         executeSql( "UPDATE attribute SET programindicatorattribute=false WHERE programindicatorattribute IS NULL" );
-        executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
-        executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET sqlviewattribute=false WHERE sqlViewattribute IS NULL" );
+        executeSql( "UPDATE attribute SET sectionattribute=false WHERE sectionattribute IS NULL" );
         executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
+        executeSql( "UPDATE attribute SET trackedentitytypeattribute=false WHERE trackedentitytypeattribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryOptionGroupSetAttribute=false WHERE categoryOptionGroupSetAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET dataElementGroupSetAttribute=false WHERE dataElementGroupSetAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET validationRuleAttribute=false WHERE validationRuleAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET validationRuleGroupAttribute=false WHERE validationRuleGroupAttribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
@@ -1091,6 +1096,14 @@ public class TableAlteror
         executeSql( "alter table program_userroles drop constraint fkd6350dd7a3100c9f;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
+        
+        // Update leaderOnlyJob flag in jobconfiguration
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='File resource clean up';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Dataset notification';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Data statistics';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Validation result notification';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
+        executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
         
         log.info( "Tables updated" );
 
