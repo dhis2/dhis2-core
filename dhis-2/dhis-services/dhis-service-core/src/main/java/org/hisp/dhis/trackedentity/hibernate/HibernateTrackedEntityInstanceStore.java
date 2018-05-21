@@ -98,7 +98,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         String hql = buildTrackedEntityInstanceCountHql( params );
         Query query = getQuery( hql );
-
+        
         return ((Number) query.iterate().next()).intValue();
     }
 
@@ -108,8 +108,6 @@ public class HibernateTrackedEntityInstanceStore
     {
         String hql = buildTrackedEntityInstanceHql( params );
         Query query = getQuery( hql );
-        
-        query.setHint( QueryHints.HINT_PASS_DISTINCT_THROUGH, false );      
 
         if ( params.isPaging() )
         {
@@ -123,18 +121,56 @@ public class HibernateTrackedEntityInstanceStore
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
         return buildTrackedEntityInstanceHql( params )
-            .replaceFirst( "select distinct tei from", "select count(distinct tei) from" )
-            .replaceFirst( "left join fetch tei.programInstances as en", " " )
-            .replaceFirst( "order by case en.status when 'ACTIVE' THEN 1 WHEN 'COMPLETED' THEN 2 ELSE 3 END, tei.lastUpdated desc ", "" )
+            .replaceFirst( "select tei from", "select count(distinct tei) from" )
+            .replaceFirst( "left join fetch tei.programInstances", "left join tei.programInstances" )
+            .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
             .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
 
     private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params )
     {
-        String hql = "select distinct tei from TrackedEntityInstance tei "
-            + "left join fetch tei.programInstances as en ";
-        
         SqlHelper hlp = new SqlHelper( true );
+        
+        String hql = "select tei from TrackedEntityInstance tei ";        
+        
+        if ( params.hasProgram() )
+        {
+            hql += "left join fetch tei.programInstances as pi ";
+            
+            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
+
+            if ( params.hasProgramStatus() )
+            {
+                hql += hlp.whereAnd() + "pi.status = " + params.getProgramStatus();
+            }
+
+            if ( params.hasFollowUp() )
+            {
+                hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
+            }
+
+            if ( params.hasProgramEnrollmentStartDate() )
+            {
+                hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "'";
+            }
+
+            if ( params.hasProgramEnrollmentEndDate() )
+            {
+                hql += hlp.whereAnd() + "pi.enrollmentDate < '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "'";
+            }
+
+            if ( params.hasProgramIncidentStartDate() )
+            {
+                hql += hlp.whereAnd() + "pi.incidentDate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "'";
+            }
+
+            if ( params.hasProgramIncidentEndDate() )
+            {
+                hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
+            }
+
+            hql += " and pi.deleted is false";
+        }
 
         if ( params.hasTrackedEntityType() )
         {
@@ -211,54 +247,11 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasProgram() )
-        {
-            hql += hlp.whereAnd() + "exists (from ProgramInstance pi where pi.entityInstance=tei";
-            
-            hql += " and pi.program.uid = '" + params.getProgram().getUid() + "'";
-            
-            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
-
-            if ( params.hasProgramStatus() )
-            {
-                hql += hlp.whereAnd() + "pi.status = " + params.getProgramStatus();
-            }
-
-            if ( params.hasFollowUp() )
-            {
-                hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
-            }
-
-            if ( params.hasProgramEnrollmentStartDate() )
-            {
-                hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "'";
-            }
-
-            if ( params.hasProgramEnrollmentEndDate() )
-            {
-                hql += hlp.whereAnd() + "pi.enrollmentDate < '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "'";
-            }
-
-            if ( params.hasProgramIncidentStartDate() )
-            {
-                hql += hlp.whereAnd() + "pi.incidentDate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "'";
-            }
-
-            if ( params.hasProgramIncidentEndDate() )
-            {
-                hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
-            }
-
-            hql += " and pi.deleted is false";
-
-            hql += ")";
-        }
-
         hql += hlp.whereAnd() + " tei.deleted is false ";
         
         if ( params.hasProgram() )
         {
-            hql += " order by case en.status when 'ACTIVE' THEN 1 WHEN 'COMPLETED' THEN 2 ELSE 3 END, tei.lastUpdated desc ";
+            hql += " order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ";
         }        
         else 
         {
@@ -330,8 +323,6 @@ public class HibernateTrackedEntityInstanceStore
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Tracked entity instance query SQL: " + sql );
-        
-        System.out.println( "Tracked entity instance query SQL: " + sql );
 
         List<Map<String, String>> list = new ArrayList<>();
 
@@ -388,8 +379,6 @@ public class HibernateTrackedEntityInstanceStore
 
         log.debug( "Tracked entity instance count SQL: " + sql );
         
-        System.out.println( "Tracked entity instance count SQL: " + sql );
-
         return count;
     }
 
