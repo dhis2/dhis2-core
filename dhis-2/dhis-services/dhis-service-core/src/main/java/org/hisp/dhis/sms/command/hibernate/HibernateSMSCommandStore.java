@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.command.hibernate;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.hibernate.JpaUtils;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
 
@@ -57,7 +57,7 @@ public class HibernateSMSCommandStore
 
         List<SMSCommand> list = getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "parserType" ), parserType ) )
-            .addPredicate( root -> JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + commandName + "%", JpaUtils.StringSearchMode.LIKE, false ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "name" ), "%" + commandName + "%", JpaQueryUtils.StringSearchMode.LIKE, false ) ) );
 
         if ( list != null && !list.isEmpty() )
         {

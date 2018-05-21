@@ -67,6 +67,8 @@ public class HibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
+    public static final String HIBERNATE_CACHEABLE_HINT = "org.hibernate.cacheable";
+
     protected SessionFactory sessionFactory;
 
     @Required
@@ -194,7 +196,7 @@ public class HibernateGenericStore<T>
         return getSession().createCriteria( getClazz() );
     }
 
-    protected CriteriaBuilder getCriteriaBuilder()
+    public CriteriaBuilder getCriteriaBuilder()
     {
         return sessionFactory.getCriteriaBuilder();
     }
@@ -234,7 +236,7 @@ public class HibernateGenericStore<T>
     {
         return getSession()
             .createQuery( criteriaQuery )
-            .setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+            .setHint( HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
     /**
@@ -325,7 +327,7 @@ public class HibernateGenericStore<T>
 
         if ( parameters.isCachable() != null )
         {
-            typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
+            typedQuery.setHint( HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
         }
 
         return typedQuery;
@@ -417,7 +419,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery getSqlQuery( String sql )
     {
         NativeQuery query = getSession().createNativeQuery( sql );
-        query.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+        query.setHint( HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
 

@@ -70,7 +70,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     protected Class clazz;
 
-    private JpaUtils.StringSearchMode searchMode;
+    private Enum searchMode;
 
     private boolean withSharing = false;
 
@@ -202,12 +202,12 @@ public class JpaQueryParameters<T> implements Serializable
         this.attributes = attributes;
     }
 
-    public JpaUtils.StringSearchMode getSearchMode()
+    public Enum getSearchMode()
     {
         return this.searchMode;
     }
 
-    public void setSearchMode( JpaUtils.StringSearchMode searchMode )
+    public void setSearchMode( Enum searchMode )
     {
         this.searchMode = searchMode;
     }

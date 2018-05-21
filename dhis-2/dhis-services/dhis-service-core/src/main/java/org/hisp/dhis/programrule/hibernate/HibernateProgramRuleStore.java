@@ -29,10 +29,10 @@ package org.hisp.dhis.programrule.hibernate;
  */
 
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.JpaUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleStore;
+import org.hisp.dhis.query.JpaQueryUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -70,7 +70,7 @@ public class HibernateProgramRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaQueryUtils.StringSearchMode.LIKE, false ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 }

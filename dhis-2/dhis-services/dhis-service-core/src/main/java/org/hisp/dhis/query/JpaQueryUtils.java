@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.query;
 
 /*
  *
@@ -30,19 +30,22 @@ package org.hisp.dhis.hibernate;
  *
  */
 
+import org.hisp.dhis.schema.Property;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.Collection;
 import java.util.function.Function;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class JpaUtils
+public class JpaQueryUtils
 {
     public static final String HIBERNATE_CACHEABLE_HINT = "org.hibernate.cacheable";
 
@@ -53,12 +56,14 @@ public class JpaUtils
         return order;
     }
 
+
+
     /**
      *
      * @param builder CriteriaBuilder
      * @param path Property Path for query
      * @param attrValue Value to check
-     * @param searchMode JpaUtils.StringSearchMode
+     * @param searchMode JpaQueryUtils.StringSearchMode
      * @param caseSesnitive is case sensitive
      * @return
      */
@@ -129,4 +134,19 @@ public class JpaUtils
             return EQUALS;
         }
     }
+
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property,  Path path, String operator, String value )
+    {
+        switch ( operator )
+        {
+            case "in" :
+                return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            case "eq" :
+                return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
+
+            default: throw new QueryParserException( "Query operator is not supported : " + operator );
+        }
+    }
+
+
 }

@@ -50,11 +50,11 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.hibernate.JpaUtils;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,7 +62,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
-import org.hisp.dhis.user.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -666,7 +665,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         typedQuery.setMaxResults( 1 );
 
-        typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, true );
+        typedQuery.setHint( JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true );
 
         return getSingleResult( typedQuery );
     }

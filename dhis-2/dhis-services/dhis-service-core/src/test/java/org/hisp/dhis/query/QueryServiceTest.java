@@ -43,6 +43,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,6 +66,9 @@ public class QueryServiceTest
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Before
     public void createDataElements()
@@ -143,7 +149,9 @@ public class QueryServiceTest
     public void getEqQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+//        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        query.add( root -> builder.equal( root.get( "id" ), "deabcdefghA" ));
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );

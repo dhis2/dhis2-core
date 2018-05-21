@@ -37,9 +37,9 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -197,7 +197,7 @@ public class HibernateMinMaxDataElementStore
 
                 Property property = queryParser.getProperty( schema, split[0] );
 
-                Predicate predicate = getPredicate( builder, property, queryPath, split[1], split[2] );
+                Predicate predicate = JpaQueryUtils.getPredicate( builder, property, queryPath, split[1], split[2] );
 
                 if ( predicate != null )
                 {
@@ -207,18 +207,5 @@ public class HibernateMinMaxDataElementStore
         }
 
         return conjunction;
-    }
-
-    private Predicate getPredicate( CriteriaBuilder builder, Property property,  Path path, String operator, String value )
-    {
-        switch ( operator )
-        {
-            case "in" :
-                    return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
-            case "eq" :
-                    return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
-
-            default: throw new QueryParserException( "Query operator is not supported : " + operator );
-        }
     }
 }
