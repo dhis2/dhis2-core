@@ -154,12 +154,6 @@ public class MessageConversationController
             messageConversations = new ArrayList<>( messageService.getMessageConversations() );
         }
 
-        messageConversations.forEach( messageConversation -> {
-            if(messageConversation.getSubject().equals( "dsf" )){
-                messageConversation.getUserMessages().forEach( userMessage -> System.out.println("User: " + userMessage.getUser().getDisplayName()) );
-            }
-        } );
-
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
