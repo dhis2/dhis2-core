@@ -34,11 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.hql.internal.ast.ASTQueryTranslatorFactory;
-import org.hibernate.hql.spi.QueryTranslator;
-import org.hibernate.hql.spi.QueryTranslatorFactory;
-import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -56,7 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -141,7 +135,7 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( params.hasProgramStatus() )
             {
-                hql += hlp.whereAnd() + "pi.status = " + params.getProgramStatus();
+                hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
             }
 
             if ( params.hasFollowUp() )
@@ -316,9 +310,7 @@ public class HibernateTrackedEntityInstanceStore
 
         // ---------------------------------------------------------------------
         // Query
-        // ---------------------------------------------------------------------
-
-        log.info( "Query: " + sql );
+        // ---------------------------------------------------------------------        
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -405,7 +397,7 @@ public class HibernateTrackedEntityInstanceStore
                 
             if ( params.hasProgramStatus() )
             {
-                sql += "and pi.status = " + params.getProgramStatus().getValue() + " ";
+                sql += "and status = '" + params.getProgramStatus() + "' ";
             }
 
             if ( params.hasFollowUp() )
