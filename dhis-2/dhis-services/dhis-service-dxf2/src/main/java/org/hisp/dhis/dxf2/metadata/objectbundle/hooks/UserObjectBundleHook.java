@@ -28,17 +28,23 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,6 +69,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         User user = (User) object;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
         user.setUserCredentials( null );
+
+        Collection<UserGroup> groups = userGroupService.getUserGroupsByUid( user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() ) );
+        bundle.putExtras( user, "ug", groups );
     }
 
     @Override
@@ -84,7 +93,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         sessionFactory.getCurrentSession().update( user );
         bundle.removeExtras( persistedObject, "uc" );
 
-        updateUserGroups( user, bundle.getUser() );
+        userGroupService.updateUserGroups( user, user.getGroups(), bundle.getUser() );
     }
 
     @Override
@@ -118,7 +127,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         sessionFactory.getCurrentSession().update( user.getUserCredentials() );
         bundle.removeExtras( persistedObject, "uc" );
 
-        updateUserGroups( user, bundle.getUser() );
+        userGroupService.updateUserGroups( user, user.getGroups(), bundle.getUser() );
     }
 
     @Override
@@ -174,10 +183,35 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         }
     }
 
-    private void updateUserGroups( User user, User currentUser )
-    {
-        Set<String> groups = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
-        userGroupService.updateUserGroups( user, groups, currentUser  );
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( User.class ) )
+        {
+            return new ArrayList<>();
+        }
+
+        List<ErrorReport> errors = new ArrayList<>();
+
+        User user = ( User ) object;
+
+        Collection<UserGroup> existedGroups = userGroupService.getUserGroupsByUid( user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() ) );
+
+        List<String> groupUids = existedGroups.stream().map( g -> g.getUid() ).collect( Collectors.toList() );
+
+        user.getGroups().forEach( ug -> {
+            if ( !groupUids.contains( ug.getUid() ) )
+            {
+                errors.add( new ErrorReport( User.class, ErrorCode.E4015, ug ) );
+            }
+        } );
+
+        if (  errors.isEmpty() )
+        {
+            user.setGroups( Sets.newHashSet( existedGroups ) );
+        }
+
+        return errors;
     }
 }

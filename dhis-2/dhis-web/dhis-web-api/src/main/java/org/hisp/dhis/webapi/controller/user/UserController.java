@@ -452,7 +452,7 @@ public class UserController
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
             User user = userService.getUser( pvUid );
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
+            userGroupService.updateUserGroupsByUids( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
 
         renderService.toXml( response.getOutputStream(), importReport );
@@ -496,7 +496,7 @@ public class UserController
         {
             User user = userService.getUser( pvUid );
 
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
+            userGroupService.updateUserGroupsByUids( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
 
         renderService.toJson( response.getOutputStream(), importReport );
