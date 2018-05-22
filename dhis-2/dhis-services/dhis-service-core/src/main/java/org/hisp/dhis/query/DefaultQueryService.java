@@ -152,11 +152,17 @@ public class DefaultQueryService
 
         InternalHibernateGenericStore<? extends IdentifiableObject> store = getStore( clazz );
 
-//        objects = criteriaQueryEngine.query( pQuery );
+        if ( !pQuery.getCriterions().isEmpty() )
+        {
+            objects = criteriaQueryEngine.query( pQuery );
+        }
+        else
+        {
+            System.out.println( "store.getClazz().getName() = " + store.getClazz().getName() );
 
-        System.out.println( "store.getClazz().getName() = " + store.getClazz().getName() );
+            objects = jpaQuery( queryPlanner, store, currentUserService.getCurrentUser(), pQuery );
+        }
 
-        objects = jpaQuery( queryPlanner, store, currentUserService.getCurrentUser(), pQuery );
 
         if ( !npQuery.isEmpty() )
         {

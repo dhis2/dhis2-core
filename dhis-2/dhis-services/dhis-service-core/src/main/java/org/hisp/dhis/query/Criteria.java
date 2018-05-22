@@ -107,9 +107,4 @@ public abstract class Criteria
     {
         return this.predicates;
     }
-
-    public void setPredicates( List<Function<Root, Predicate>> predicates )
-    {
-        this.predicates = predicates;
-    }
 }
