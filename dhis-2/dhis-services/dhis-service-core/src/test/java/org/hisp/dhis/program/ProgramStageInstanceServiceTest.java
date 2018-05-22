@@ -354,7 +354,7 @@ public class ProgramStageInstanceServiceTest
     {
         int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
-        programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat );
+        programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
 
         assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
     }

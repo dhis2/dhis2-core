@@ -74,10 +74,6 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, TrackedEntityInstance trackedEntityInstance );
-
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
@@ -88,11 +84,13 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, TrackedEntityInstance daoTrackedEntityInstance );
+
     ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 

@@ -52,6 +52,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -172,8 +173,7 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-            if ( rowSet.getString( "psi_uid" ) == null ||
-                (params.getCategoryOptionCombo() == null && !isSuperUser && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null) )
+            if ( rowSet.getString( "psi_uid" ) == null || ( params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet ) ) )
             {
                 continue;
             }
@@ -462,7 +462,7 @@ public class JdbcEventStore
 
         sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
 
-        sql = sql.replaceFirst( "order .*? desc", "" );
+        sql = sql.replaceFirst( "order .*? (desc|asc)", "" );
 
         sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
 
@@ -982,4 +982,19 @@ public class JdbcEventStore
     {
         return user == null || user.isSuper();
     }
+    
+    private boolean userHasAccess ( SqlRowSet rowSet )
+    {
+        if ( rowSet.wasNull() )
+        {
+            return true;
+        }
+        
+        if ( rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null && rowSet.getString( "deco_publicaccess" ) == null )
+        {
+            return false;            
+        }
+        
+        return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ), AccessStringHelper.Permission.DATA_READ );
+    }    
 }
