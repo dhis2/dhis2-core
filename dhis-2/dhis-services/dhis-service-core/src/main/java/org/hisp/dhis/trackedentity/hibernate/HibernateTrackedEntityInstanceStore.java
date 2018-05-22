@@ -58,9 +58,21 @@ import java.util.Map;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -92,7 +104,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         String hql = buildTrackedEntityInstanceCountHql( params );
         Query query = getQuery( hql );
-
+        
         return ((Number) query.iterate().next()).intValue();
     }
 
@@ -114,13 +126,61 @@ public class HibernateTrackedEntityInstanceStore
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
-        return buildTrackedEntityInstanceHql( params ).replaceFirst( "select distinct tei from", "select count(distinct tei) from" );
+        return buildTrackedEntityInstanceHql( params )
+            .replaceFirst( "select tei from", "select count(distinct tei) from" )
+            .replaceFirst( "left join fetch tei.programInstances", "left join tei.programInstances" )
+            .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
+            .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
 
     private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params )
     {
-        String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
         SqlHelper hlp = new SqlHelper( true );
+        
+        String hql = "select tei from TrackedEntityInstance tei ";        
+        
+        if ( params.hasProgram() )
+        {
+            hql += "left join fetch tei.programInstances as pi ";
+            
+            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
+
+            if ( params.hasProgramStatus() )
+            {
+                hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+            }
+
+            if ( params.hasFollowUp() )
+            {
+                hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
+            }
+
+            if ( params.hasProgramEnrollmentStartDate() )
+            {
+                hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "'";
+            }
+
+            if ( params.hasProgramEnrollmentEndDate() )
+            {
+                hql += hlp.whereAnd() + "pi.enrollmentDate < '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "'";
+            }
+
+            if ( params.hasProgramIncidentStartDate() )
+            {
+                hql += hlp.whereAnd() + "pi.incidentDate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "'";
+            }
+
+            if ( params.hasProgramIncidentEndDate() )
+            {
+                hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
+            }
+            
+            if ( !params.isIncludeDeleted() )
+            {
+                hql += hlp.whereAnd() + "pi.deleted is false";
+            }
+            
+        }
 
         if ( params.hasTrackedEntityType() )
         {
@@ -197,50 +257,19 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
+        hql += hlp.whereAnd() + " tei.deleted is false ";
+        
         if ( params.hasProgram() )
         {
-            hql += hlp.whereAnd() + "exists (from ProgramInstance pi where pi.entityInstance=tei";
-
-            hql += " and pi.program.uid = '" + params.getProgram().getUid() + "'";
-
-            if ( params.hasProgramStatus() )
-            {
-                hql += hlp.whereAnd() + "pi.status = " + params.getProgramStatus();
-            }
-
-            if ( params.hasFollowUp() )
-            {
-                hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
-            }
-
-            if ( params.hasProgramEnrollmentStartDate() )
-            {
-                hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "'";
-            }
-
-            if ( params.hasProgramEnrollmentEndDate() )
-            {
-                hql += hlp.whereAnd() + "pi.enrollmentDate < '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "'";
-            }
-
-            if ( params.hasProgramIncidentStartDate() )
-            {
-                hql += hlp.whereAnd() + "pi.incidentDate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "'";
-            }
-
-            if ( params.hasProgramIncidentEndDate() )
-            {
-                hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
-            }
-
-            hql += " and pi.deleted is false";
-
-            hql += ")";
+            hql += " order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ";
+        }        
+        else 
+        {
+            hql += " order by tei.lastUpdated desc ";
         }
 
-        hql += hlp.whereAnd() + " tei.deleted is false ";
-
         return hql;
+
     }
 
     @Override
@@ -259,6 +288,7 @@ public class HibernateTrackedEntityInstanceStore
                 "ou.uid as " + ORG_UNIT_ID + ", " +
                 "ou.name as " + ORG_UNIT_NAME + ", " +
                 "te.uid as " + TRACKED_ENTITY_ID + ", " +
+                (params.hasProgram() ? "en.status as enrollment_status, " : "") +                
                 (params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "") +
                 "tei.inactive as " + INACTIVE_ID + ", ";
 
@@ -296,9 +326,7 @@ public class HibernateTrackedEntityInstanceStore
 
         // ---------------------------------------------------------------------
         // Query
-        // ---------------------------------------------------------------------
-
-        log.info( "Query: " + sql );
+        // ---------------------------------------------------------------------        
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -358,7 +386,7 @@ public class HibernateTrackedEntityInstanceStore
         Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
 
         log.debug( "Tracked entity instance count SQL: " + sql );
-
+        
         return count;
     }
 
@@ -374,8 +402,61 @@ public class HibernateTrackedEntityInstanceStore
         final String anyChar = "\\.*?";
 
         String sql = "from trackedentityinstance tei "
-            + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid "
-            + "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
+            + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid ";
+        
+        if ( params.hasProgram() )
+        {
+            sql += "inner join ("
+                + "select distinct( select min( case when status=\'ACTIVE\' then 0 when status=\'COMPLETED\' then 1 else 2 end ) "
+                + "from programinstance pii where pi.trackedentityinstanceid = pii.trackedentityinstanceid ) as status, trackedentityinstanceid "
+                + "from programinstance pi where pi.programid= " + params.getProgram().getId() + " ";
+                
+            if ( params.hasProgramStatus() )
+            {
+                sql += "and status = '" + params.getProgramStatus() + "' ";
+            }
+
+            if ( params.hasFollowUp() )
+            {
+                sql += "and pi.followup = " + params.getFollowUp() + " ";
+            }
+
+            if ( params.hasProgramEnrollmentStartDate() )
+            {
+                sql += "and pi.enrollmentdate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "' ";
+            }
+
+            if ( params.hasProgramEnrollmentEndDate() )
+            {
+                sql += "and pi.enrollmentdate <= '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "' ";
+            }
+
+            if ( params.hasProgramIncidentStartDate() )
+            {
+                sql += "and pi.incidentdate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "' ";
+            }
+
+            if ( params.hasProgramIncidentEndDate() )
+            {
+                sql += "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' ";
+            }
+
+            if ( params.hasEventStatus() )
+            {
+                sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid and psi.deleted is false ";
+                
+                sql += getEventStatusWhereClause( params );
+            }
+
+            if ( !params.isIncludeDeleted() )
+            {
+                sql += " and pi.deleted is false ";
+            }
+            
+            sql += ") as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
+        }
+        
+        sql += "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
 
         for ( QueryItem item : params.getAttributesAndFilters() )
         {
@@ -431,60 +512,6 @@ public class HibernateTrackedEntityInstanceStore
         {
             sql += hlp.whereAnd() + " tei.organisationunitid in ("
                 + getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) + ") ";
-        }
-
-        if ( params.hasProgram() )
-        {
-            sql += hlp.whereAnd() + " exists (" + "select pi.trackedentityinstanceid " + "from programinstance pi ";
-
-            if ( params.hasEventStatus() )
-            {
-                sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid and psi.deleted is false ";
-            }
-
-            sql += "where pi.trackedentityinstanceid = tei.trackedentityinstanceid " + "and pi.programid = " + params.getProgram().getId() + " ";
-
-            if ( params.hasProgramStatus() )
-            {
-                sql += "and pi.status = '" + params.getProgramStatus() + "' ";
-            }
-
-            if ( params.hasFollowUp() )
-            {
-                sql += "and pi.followup = " + params.getFollowUp() + " ";
-            }
-
-            if ( params.hasProgramEnrollmentStartDate() )
-            {
-                sql += "and pi.enrollmentdate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "' ";
-            }
-
-            if ( params.hasProgramEnrollmentEndDate() )
-            {
-                sql += "and pi.enrollmentdate <= '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "' ";
-            }
-
-            if ( params.hasProgramIncidentStartDate() )
-            {
-                sql += "and pi.incidentdate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "' ";
-            }
-
-            if ( params.hasProgramIncidentEndDate() )
-            {
-                sql += "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' ";
-            }
-
-            if ( params.hasEventStatus() )
-            {
-                sql += getEventStatusWhereClause( params );
-            }
-
-            if ( !params.isIncludeDeleted() )
-            {
-                sql += " and pi.deleted is false ";
-            }
-
-            sql += ") ";
         }
 
         if ( params.isOrQuery() && params.hasAttributesOrFilters() )
@@ -565,6 +592,11 @@ public class HibernateTrackedEntityInstanceStore
             {
                 return "order by " + StringUtils.join( orderFields, ',' );
             }
+        }
+        
+        if ( params.hasProgram() )
+        {
+            return "order by en.status asc, lastUpdated desc ";
         }
 
         return "order by lastUpdated desc ";
