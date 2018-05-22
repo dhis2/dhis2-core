@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -38,6 +39,8 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -75,6 +78,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -141,7 +145,6 @@ public class MessageConversationController
     {
         List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
-        System.out.println("entityClass: " + getEntityClass());
         if ( options.getOptions().containsKey( "query" ) )
         {
             messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
@@ -177,8 +180,6 @@ public class MessageConversationController
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
         }
-
-
 
         return messageConversations;
     }
@@ -274,8 +275,8 @@ public class MessageConversationController
     @RequestMapping( value = "/{uid}", method = RequestMethod.POST )
     public void postMessageConversationReply(
         @PathVariable( "uid" ) String uid,
+        @RequestBody MessageConversation messageConversation,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
-        @RequestBody String body,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -293,7 +294,57 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, body, metaData, internal );
+        Set<User> additionalUsers = Sets.newHashSet();
+        for ( User u : messageConversation.getUsers() )
+        {
+            User user = userService.getUser( u.getUid() );
+
+            if ( user == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + u ) );
+            }
+
+            additionalUsers.add( user );
+        }
+
+        for ( OrganisationUnit ou : messageConversation.getOrganisationUnits())
+        {
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou.getUid() );
+
+            if ( organisationUnit == null )
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Organisation Unit does not exist: " + ou ) );
+            }
+
+            additionalUsers.addAll( organisationUnit.getUsers() );
+        }
+
+
+        for ( UserGroup ug : messageConversation.getUserGroups() )
+        {
+            UserGroup userGroup = userGroupService.getUserGroup( ug.getUid() );
+
+            if ( userGroup == null )
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( "User Group does not exist: " + ug ) );
+            }
+
+            additionalUsers.addAll( userGroup.getMembers() );
+        }
+
+
+        additionalUsers.forEach( user -> {
+            if ( !conversation.getUsers().contains( user ) )
+            {
+                conversation.addUserMessage( new UserMessage( user, false ) );
+            }
+        } );
+
+        conversation.getUsers().forEach( user -> System.out.println("user: " + user.getDisplayName()) );
+
+        messageService.sendReply( conversation, messageConversation.getText(), metaData, internal );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
@@ -441,7 +492,7 @@ public class MessageConversationController
             return responseNode;
         }
 
-        if ( !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
+        if ( messageConversation.getMessageType() == MessageType.TICKET && !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
         {
             response.setStatus( HttpServletResponse.SC_CONFLICT );
             responseNode.addChild( new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );
@@ -450,7 +501,7 @@ public class MessageConversationController
 
         messageConversation.setAssignee( userToAssign );
         messageService.updateMessageConversation( messageConversation );
-        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned to ticket" ) );
+        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned successfully" ) );
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
