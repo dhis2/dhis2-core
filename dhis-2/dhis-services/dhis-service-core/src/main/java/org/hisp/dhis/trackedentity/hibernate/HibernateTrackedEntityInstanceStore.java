@@ -162,8 +162,12 @@ public class HibernateTrackedEntityInstanceStore
             {
                 hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
             }
-
-            hql += " and pi.deleted is false";
+            
+            if ( !params.isIncludeDeleted() )
+            {
+                hql += hlp.whereAnd() + "pi.deleted is false";
+            }
+            
         }
 
         if ( params.hasTrackedEntityType() )
