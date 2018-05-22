@@ -70,7 +70,7 @@ public class RedisNotifier implements Notifier
 
     private static final String COLON = ":";
 
-    private final static int MAX_POOL_TYPE_SIZE = 100;
+    private final static int MAX_POOL_TYPE_SIZE = 4;
 
     private ObjectMapper objectMapper;
 
@@ -116,7 +116,10 @@ public class RedisNotifier implements Notifier
                 if ( redisTemplate.boundZSetOps( notificationKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
                     redisTemplate.boundZSetOps( notificationKey ).removeRange( 0, 0 );
-                    redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( 0, 0 );
+                    if ( redisTemplate.boundZSetOps( notificationKey ).range( 0, 0 ).isEmpty() )
+                    {
+                        redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( 0, 0 );
+                    }
                 }
             }
             catch ( JsonProcessingException e )
@@ -282,7 +285,6 @@ public class RedisNotifier implements Notifier
                     redisTemplate.boundZSetOps( summaryOrderKey ).removeRange( 0, 0 );
                     summaryKeyToBeDeleted.forEach( d -> redisTemplate.boundHashOps( summaryKey ).delete( d ) );
                 }
-
             }
             catch ( JsonProcessingException | ClassNotFoundException e )
             {
