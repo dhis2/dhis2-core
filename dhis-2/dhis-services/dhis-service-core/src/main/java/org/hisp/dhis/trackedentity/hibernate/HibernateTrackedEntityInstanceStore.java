@@ -58,9 +58,21 @@ import java.util.Map;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 
 /**
  * @author Abyot Asalefew Gizaw
