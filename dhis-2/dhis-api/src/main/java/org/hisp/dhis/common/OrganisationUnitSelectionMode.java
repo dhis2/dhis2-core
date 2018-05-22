@@ -42,5 +42,5 @@ package org.hisp.dhis.common;
  */
 public enum OrganisationUnitSelectionMode
 {
-    SELECTED, CHILDREN, DESCENDANTS, ACCESSIBLE, ALL
+    SELECTED, CHILDREN, DESCENDANTS, ACCESSIBLE, CAPTURE, ALL
 }
