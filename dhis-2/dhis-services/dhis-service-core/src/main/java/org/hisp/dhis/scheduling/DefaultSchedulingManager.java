@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -112,7 +113,7 @@ public class DefaultSchedulingManager
     // Queue
     // -------------------------------------------------------------------------
 
-    private List<JobConfiguration> runningJobConfigurations = new ArrayList<>();
+    private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>( );
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
