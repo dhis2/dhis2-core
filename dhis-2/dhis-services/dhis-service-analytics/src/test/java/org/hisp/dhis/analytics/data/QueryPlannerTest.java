@@ -187,9 +187,9 @@ public class QueryPlannerTest
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
         deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
-        deI = createDataElement( 'I', ValueType.INTEGER, AggregationType.SUM );
-        deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.SUM );
-        deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.SUM );
+        deI = createDataElement( 'I', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
+        deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
+        deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
         
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
