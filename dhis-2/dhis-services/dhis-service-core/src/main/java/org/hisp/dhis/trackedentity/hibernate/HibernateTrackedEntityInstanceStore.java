@@ -407,8 +407,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasProgram() )
         {
             sql += "inner join ("
-                + "select distinct( select min( case when status=\'ACTIVE\' then 0 when status=\'COMPLETED\' then 1 else 2 end ) "
-                + "from programinstance pii where pi.trackedentityinstanceid = pii.trackedentityinstanceid ) as status, trackedentityinstanceid "
+                + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
                 + "from programinstance pi where pi.programid= " + params.getProgram().getId() + " ";
                 
             if ( params.hasProgramStatus() )
@@ -453,7 +452,7 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " and pi.deleted is false ";
             }
             
-            sql += ") as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
+            sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
         }
         
         sql += "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
