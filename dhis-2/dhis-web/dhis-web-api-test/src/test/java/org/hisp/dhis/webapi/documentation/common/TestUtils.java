@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.documentation.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.codehaus.jackson.JsonNode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.http.MediaType;
@@ -129,7 +129,7 @@ public class TestUtils
 
     public static String getCreatedUid( String responseJson ) throws IOException
     {
-        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( responseJson );
         return node.get( "response" ).get( "uid" ).asText();
     }

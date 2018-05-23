@@ -130,8 +130,9 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance.
      * @param skipNotifications    whether to send prgram stage notifications or not.
      * @param format               the I18nFormat for the notification messages.
+     * @param completedDate        the completedDate for the event. If null, the current date is set as the completed date.
      */
-    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
+    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format, Date completedDate );
 
     /**
      * Creates a program stage instance.

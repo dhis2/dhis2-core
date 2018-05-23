@@ -136,7 +136,7 @@ public class DefaultJobConfigurationService
             Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
-                propertyMap.put( jobType.name(), null );
+                propertyMap.put( jobType.name(), new LinkedHashMap<>( ) );
                 continue;
             }
 

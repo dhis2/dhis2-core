@@ -50,6 +50,14 @@
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="validationrulegroupattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="validationrulegroupid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
   </class>
 
 </hibernate-mapping>

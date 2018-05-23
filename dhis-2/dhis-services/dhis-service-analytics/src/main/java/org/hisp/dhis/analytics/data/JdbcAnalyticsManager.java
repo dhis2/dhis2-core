@@ -193,11 +193,11 @@ public class JdbcAnalyticsManager
                 
                 String periodKey = keyArray[periodIndex];
 
-                Assert.notNull( periodKey, "Period key cannot be null" );
+                Assert.notNull( periodKey, String.format( "Period key cannot be null, key: '%s'", key ) );
 
                 List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( periodKey ) );
 
-                Assert.notNull( periods, dataPeriodAggregationPeriodMap.toString() );
+                Assert.notNull( periods, String.format( "Period list cannot be null, key: '%s', map: '%s'", key, dataPeriodAggregationPeriodMap.toString() ) );
 
                 Object value = dataValueMap.get( key );
 
@@ -420,8 +420,8 @@ public class JdbcAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {            
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
-                TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "year" ) + " in (" + 
+                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
         // ---------------------------------------------------------------------
