@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class StdDevOutlierAnalysisParams
@@ -56,6 +58,7 @@ public class StdDevOutlierAnalysisParams
         this.organisationUnitId = organisationUnitId;
     }
 
+    @JsonProperty
     public String getStartDate()
     {
         return startDate;
@@ -66,6 +69,7 @@ public class StdDevOutlierAnalysisParams
         this.startDate = startDate;
     }
 
+    @JsonProperty
     public String getEndDate()
     {
         return endDate;
@@ -76,6 +80,7 @@ public class StdDevOutlierAnalysisParams
         this.endDate = endDate;
     }
 
+    @JsonProperty
     public List<String> getDataSetIds()
     {
         return dataSetIds;
@@ -86,6 +91,7 @@ public class StdDevOutlierAnalysisParams
         this.dataSetIds = dataSetIds;
     }
 
+    @JsonProperty
     public Double getStandardDeviation()
     {
         return standardDeviation;
@@ -96,6 +102,7 @@ public class StdDevOutlierAnalysisParams
         this.standardDeviation = standardDeviation;
     }
 
+    @JsonProperty
     public String getOrganisationUnitId()
     {
         return organisationUnitId;
@@ -104,5 +111,17 @@ public class StdDevOutlierAnalysisParams
     public void setOrganisationUnitId( String organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "StdDevOutlierAnalysisParams{" +
+            "startDate='" + startDate + '\'' +
+            ", endDate='" + endDate + '\'' +
+            ", dataSetIds=" + dataSetIds +
+            ", standardDeviation=" + standardDeviation +
+            ", organisationUnitId='" + organisationUnitId + '\'' +
+            '}';
     }
 }
