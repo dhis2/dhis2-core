@@ -78,6 +78,14 @@ public class AnalyticsAggregationType
         this.dataType = dataType;
         this.disaggregation = disaggregation;
     }
+    
+    /**
+     * Returns a new instance of this aggregation type.
+     */
+    public AnalyticsAggregationType instance()
+    {
+        return new AnalyticsAggregationType( this.aggregationType, this.periodAggregationType, this.dataType, this.disaggregation );
+    }
 
     // -------------------------------------------------------------------------
     // Logic methods
