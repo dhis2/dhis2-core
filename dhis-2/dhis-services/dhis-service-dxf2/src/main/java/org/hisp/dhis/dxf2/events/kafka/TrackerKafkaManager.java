@@ -32,6 +32,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -78,9 +79,9 @@ public interface TrackerKafkaManager
 
     void dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities );
 
-    void consumeEvents();
+    void consumeEvents( JobConfiguration jobConfiguration );
 
-    void consumeEnrollments();
+    void consumeEnrollments( JobConfiguration jobConfiguration );
 
-    void consumeTrackedEntities();
+    void consumeTrackedEntities( JobConfiguration jobConfiguration );
 }

@@ -46,6 +46,9 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.InitializingBean;
@@ -80,6 +83,7 @@ public class DefaultTrackerKafkaManager
     private final TrackedEntityInstanceService trackedEntityInstanceService;
     private final KafkaManager kafkaManager;
     private final UserService userService;
+    private final Notifier notifier;
 
     private ConsumerFactory<String, KafkaEvent> cfEvent;
     private ConsumerFactory<String, KafkaEnrollment> cfEnrollment;
@@ -98,13 +102,14 @@ public class DefaultTrackerKafkaManager
     private Consumer<String, KafkaTrackedEntity> cTrackedEntity;
 
     public DefaultTrackerKafkaManager( EventService eventService, EnrollmentService enrollmentService,
-        TrackedEntityInstanceService trackedEntityInstanceService, KafkaManager kafkaManager, UserService userService )
+        TrackedEntityInstanceService trackedEntityInstanceService, KafkaManager kafkaManager, UserService userService, Notifier notifier )
     {
         this.eventService = eventService;
         this.enrollmentService = enrollmentService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.kafkaManager = kafkaManager;
         this.userService = userService;
+        this.notifier = notifier;
     }
 
     @Override
@@ -259,7 +264,7 @@ public class DefaultTrackerKafkaManager
     }
 
     @Override
-    public void consumeEvents()
+    public void consumeEvents( JobConfiguration jobConfiguration )
     {
         ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 1000 );
 
@@ -275,21 +280,36 @@ public class DefaultTrackerKafkaManager
                     return;
                 }
 
+                JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER,
+                    user.getUid(), true );
+                job.setUid( kafkaEvent.getJobId() );
+
+                ImportSummaries importSummaries = (ImportSummaries) notifier.getJobSummaryByJobId( JobType.KAFKA_TRACKER, job.getUid() );
+
+                if ( importSummaries == null )
+                {
+                    importSummaries = new ImportSummaries();
+                }
+
                 ImportOptions importOptions = kafkaEvent.getImportOptions().setUser( user );
 
                 List<Event> events = records.stream().map( x -> x.value().getPayload() )
                     .collect( Collectors.toList() );
 
-                log.info( "Importing " + events.size() + " events for user " + user.getUsername() );
-                ImportSummaries importSummaries = eventService.addEvents( events, importOptions, true );
-                System.err.println( importSummaries );
+                String msg = "Importing " + events.size() + " events for user " + user.getUsername();
+
+                log.info( msg );
+                notifier.notify( job, msg );
+
+                importSummaries.addImportSummaries( eventService.addEvents( events, importOptions, true ) );
+                notifier.addJobSummary( job, importSummaries );
             } );
 
         cEvent.commitSync();
     }
 
     @Override
-    public void consumeEnrollments()
+    public void consumeEnrollments( JobConfiguration jobConfiguration )
     {
         ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 1000 );
 
@@ -305,21 +325,36 @@ public class DefaultTrackerKafkaManager
                     return;
                 }
 
+                JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER,
+                    user.getUid(), true );
+                job.setUid( kafkaEnrollment.getJobId() );
+
+                ImportSummaries importSummaries = (ImportSummaries) notifier.getJobSummaryByJobId( JobType.KAFKA_TRACKER, job.getUid() );
+
+                if ( importSummaries == null )
+                {
+                    importSummaries = new ImportSummaries();
+                }
+
                 ImportOptions importOptions = kafkaEnrollment.getImportOptions().setUser( user );
 
                 List<Enrollment> enrollments = records.stream().map( x -> x.value().getPayload() )
                     .collect( Collectors.toList() );
 
-                log.info( "Importing " + enrollments.size() + " enrollments for user " + user.getUsername() );
-                ImportSummaries importSummaries = enrollmentService.addEnrollments( enrollments, importOptions, false );
-                System.err.println( importSummaries );
+                String msg = "Importing " + enrollments.size() + " enrollments for user " + user.getUsername();
+
+                log.info( msg );
+                notifier.notify( job, msg );
+
+                importSummaries.addImportSummaries( enrollmentService.addEnrollments( enrollments, importOptions, false ) );
+                notifier.addJobSummary( job, importSummaries );
             } );
 
         cEnrollment.commitSync();
     }
 
     @Override
-    public void consumeTrackedEntities()
+    public void consumeTrackedEntities( JobConfiguration jobConfiguration )
     {
         ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 1000 );
 
@@ -335,14 +370,29 @@ public class DefaultTrackerKafkaManager
                     return;
                 }
 
+                JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER,
+                    user.getUid(), true );
+                job.setUid( kafkaTrackedEntity.getJobId() );
+
+                ImportSummaries importSummaries = (ImportSummaries) notifier.getJobSummaryByJobId( JobType.KAFKA_TRACKER, job.getUid() );
+
+                if ( importSummaries == null )
+                {
+                    importSummaries = new ImportSummaries();
+                }
+
                 ImportOptions importOptions = kafkaTrackedEntity.getImportOptions().setUser( user );
 
                 List<TrackedEntityInstance> trackedEntityInstances = records.stream().map( x -> x.value().getPayload() )
                     .collect( Collectors.toList() );
 
-                log.info( "Importing " + trackedEntityInstances.size() + " tracked entities for user " + user.getUsername() );
-                ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions );
-                System.err.println( importSummaries );
+                String msg = "Importing " + trackedEntityInstances.size() + " tracked entities for user " + user.getUsername();
+
+                log.info( msg );
+                notifier.notify( job, msg );
+
+                importSummaries.addImportSummaries( trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions ) );
+                notifier.addJobSummary( job, importSummaries );
             } );
 
         cTrackedEntity.commitSync();

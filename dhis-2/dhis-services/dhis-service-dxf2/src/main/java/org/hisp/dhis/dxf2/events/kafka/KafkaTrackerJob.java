@@ -68,8 +68,8 @@ public class KafkaTrackerJob
             return;
         }
 
-        trackerKafkaManager.consumeTrackedEntities();
-        trackerKafkaManager.consumeEnrollments();
-        trackerKafkaManager.consumeEvents();
+        trackerKafkaManager.consumeTrackedEntities( jobConfiguration );
+        trackerKafkaManager.consumeEnrollments( jobConfiguration );
+        trackerKafkaManager.consumeEvents( jobConfiguration );
     }
 }
