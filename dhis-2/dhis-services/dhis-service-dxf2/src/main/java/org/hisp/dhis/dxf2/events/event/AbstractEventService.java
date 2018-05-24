@@ -1304,6 +1304,7 @@ public abstract class AbstractEventService
         }
         else
         {
+            //If I am here, it means that the item is either already deleted or it is not present in the system at all.
             return new ImportSummary( ImportStatus.SUCCESS, "Event with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." ).incrementIgnored();
         }
     }
