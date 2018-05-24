@@ -899,7 +899,7 @@ public abstract class AbstractEventService
         }
 
         if ( attributeOptionCombo != null && !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
-        {            
+        {
             throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
@@ -1288,8 +1288,6 @@ public abstract class AbstractEventService
         // as for update? Currently, no check is present at all.
 
         boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
-        boolean existsEventIncludingDeleted = programStageInstanceService
-            .programStageInstanceExistsIncludingDeleted( uid );
 
         if ( existsEvent )
         {
@@ -1301,14 +1299,13 @@ public abstract class AbstractEventService
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
-        }
 
-        if ( existsEvent || existsEventIncludingDeleted )
-        {
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" ).incrementDeleted();
         }
-
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
+        else
+        {
+            return new ImportSummary( ImportStatus.SUCCESS, "Event with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." ).incrementIgnored();
+        }
     }
 
     @Override
