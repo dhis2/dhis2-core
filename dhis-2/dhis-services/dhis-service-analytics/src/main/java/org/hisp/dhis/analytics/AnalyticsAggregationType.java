@@ -65,15 +65,10 @@ public class AnalyticsAggregationType
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-
-    public AnalyticsAggregationType( AggregationType aggregationType )
-    {
-        this.aggregationType = aggregationType;
-    }
     
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType )
     {
-        this( aggregationType );
+        this.aggregationType = aggregationType;
         this.periodAggregationType = periodAggregationType;
     }
     
@@ -82,6 +77,14 @@ public class AnalyticsAggregationType
         this( aggregationType, periodAggregationType );
         this.dataType = dataType;
         this.disaggregation = disaggregation;
+    }
+    
+    /**
+     * Returns a new instance of this aggregation type.
+     */
+    public AnalyticsAggregationType instance()
+    {
+        return new AnalyticsAggregationType( this.aggregationType, this.periodAggregationType, this.dataType, this.disaggregation );
     }
 
     // -------------------------------------------------------------------------

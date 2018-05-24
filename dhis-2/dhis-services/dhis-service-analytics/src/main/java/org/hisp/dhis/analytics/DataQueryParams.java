@@ -400,7 +400,7 @@ public class DataQueryParams
     {        
         params.dimensions = DimensionalObjectUtils.getCopies( this.dimensions );
         params.filters = DimensionalObjectUtils.getCopies( this.filters );
-        params.aggregationType = this.aggregationType;
+        params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
         params.measureCriteria = this.measureCriteria;
         params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
         params.startDate = this.startDate;
