@@ -417,6 +417,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         Criteria criteria = getSharingCriteria();
+        criteria.add( Restrictions.eq( "id", attribute.getId() ) );
         criteria.createAlias( "attributeValues", "av" );
         criteria.add( Restrictions.eq( "av.value", value ) );
 
