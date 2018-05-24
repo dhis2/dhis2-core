@@ -32,16 +32,13 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hisp.dhis.scheduling.JobType.*;
 import static org.junit.Assert.assertEquals;
@@ -56,9 +53,6 @@ public class NotifierTest extends DhisSpringTest
     @Autowired
     private Notifier notifier;
 
-    @Autowired( required = false )
-    private RedisTemplate<String, ?> redisTemplate;
-
     private User user = createUser( 'A' );
 
     private JobConfiguration dataValueImportJobConfig = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(),
@@ -72,26 +66,6 @@ public class NotifierTest extends DhisSpringTest
 
     private JobConfiguration dataValueImportSecondJobConfig = new JobConfiguration( null, DATAVALUE_IMPORT,
         user.getUid(), true );
-
-    @Before
-    public void flushRedis()
-    {
-        String NOTIFICATIONS_KEY_PREFIX = "notifications:*";
-        String LAST_NOTIFICATION_KEY_PREFIX = "last:notification:*";
-        String SUMMARIES_KEY_PREFIX = "summaries:*";
-        String SUMMARIES_KEY_ORDER_PREFIX = "summary:*";
-        if ( redisTemplate != null )
-        {
-            Set<String> keys = redisTemplate.keys( NOTIFICATIONS_KEY_PREFIX );
-            redisTemplate.delete( keys );
-            keys = redisTemplate.keys( LAST_NOTIFICATION_KEY_PREFIX );
-            redisTemplate.delete( keys );
-            keys = redisTemplate.keys( SUMMARIES_KEY_PREFIX );
-            redisTemplate.delete( keys );
-            keys = redisTemplate.keys( SUMMARIES_KEY_ORDER_PREFIX );
-            redisTemplate.delete( keys );
-        }
-    }
 
     @Test
     public void testNotifiy()
@@ -169,7 +143,7 @@ public class NotifierTest extends DhisSpringTest
         Map<String, Object> jobSummariesForType = (Map<String, Object>) notifier
             .getJobSummariesForJobType( DATAVALUE_IMPORT );
         assertNotNull( jobSummariesForType );
-        assertEquals( 2, jobSummariesForType.size() );
+        assertEquals( 3, jobSummariesForType.size() );
     }
 
     @Test
@@ -184,7 +158,7 @@ public class NotifierTest extends DhisSpringTest
         List<Notification> notifications = notifier.getLastNotificationsByJobType( DATAVALUE_IMPORT,
             dataValueImportJobConfig.getUid() );
         assertNotNull(notifications);
-        assertEquals( 3, notifications.size() );
+        assertEquals( 4, notifications.size() );
         
     }
 }

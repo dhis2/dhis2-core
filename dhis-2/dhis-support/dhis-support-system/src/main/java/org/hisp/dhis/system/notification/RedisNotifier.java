@@ -70,7 +70,7 @@ public class RedisNotifier implements Notifier
 
     private static final String COLON = ":";
 
-    private final static int MAX_POOL_TYPE_SIZE = 4;
+    private final static int MAX_POOL_TYPE_SIZE = 100;
 
     private ObjectMapper objectMapper;
 
@@ -113,13 +113,11 @@ public class RedisNotifier implements Notifier
                     now.getTime() );
                 redisTemplate.boundZSetOps( lastNotificationKey ).add( id.getUid(), now.getTime() );
 
-                if ( redisTemplate.boundZSetOps( notificationKey ).zCard() >= MAX_POOL_TYPE_SIZE )
+                if ( redisTemplate.boundZSetOps( lastNotificationKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
-                    redisTemplate.boundZSetOps( notificationKey ).removeRange( 0, 0 );
-                    if ( redisTemplate.boundZSetOps( notificationKey ).range( 0, 0 ).isEmpty() )
-                    {
-                        redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( 0, 0 );
-                    }
+                    Set<String> deleteKeys = redisTemplate.boundZSetOps( lastNotificationKey ).range( 0, 0 );
+                    redisTemplate.delete( deleteKeys );
+                    redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( 0, 0 );
                 }
             }
             catch ( JsonProcessingException e )
@@ -212,11 +210,11 @@ public class RedisNotifier implements Notifier
     @Override
     public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
     {
-        String jobTypeKeyPrefix = NOTIFICATIONS_KEY_PREFIX + jobType.toString() + COLON;
+        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateLastNotificationKey( jobType ) ).range( 0,
+            -1 );
         LinkedHashMap<String, LinkedList<Notification>> uidNotificationMap = new LinkedHashMap<>();
-        Set<String> jobUids = redisTemplate.keys( jobTypeKeyPrefix + "*" );
-        jobUids.forEach( j -> uidNotificationMap.put( j.substring( jobTypeKeyPrefix.length() ),
-            new LinkedList<>( getNotificationsByJobId( jobType, j ) ) ) );
+        notificationKeys
+            .forEach( j -> uidNotificationMap.put( j, new LinkedList<>( getNotificationsByJobId( jobType, j ) ) ) );
         return uidNotificationMap;
     }
 
@@ -227,16 +225,8 @@ public class RedisNotifier implements Notifier
         {
             redisTemplate.delete( generateNotificationKey( id.getJobType(), id.getUid() ) );
             redisTemplate.boundHashOps( generateSummaryKey( id.getJobType() ) ).delete( id.getUid() );
-            String lastNotificationKey = generateLastNotificationKey( id.getJobType() );
-            Set<String> lastJobUidSet = redisTemplate.boundZSetOps( lastNotificationKey ).range( -1, -1 );
-            if ( lastJobUidSet.iterator().hasNext() )
-            {
-                String lastJobUid = (String) lastJobUidSet.iterator().next();
-                if ( lastJobUid.equals( id.getUid() ) )
-                {
-                    redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( -1, -1 );
-                }
-            }
+            redisTemplate.boundZSetOps( generateLastNotificationKey( id.getJobType() ) ).remove( id.getUid() );
+            redisTemplate.boundZSetOps( generateSummaryOrderKey( id.getJobType() ) ).remove( id.getUid() );
         }
         return this;
     }
@@ -329,8 +319,6 @@ public class RedisNotifier implements Notifier
     @Override
     public Object getJobSummary( JobType jobType )
     {
-        Map<Object, Object> summaries = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).entries();
-        Object serializedSummary;
 
         String existingSummaryTypeStr = redisTemplate.boundValueOps( generateSummaryTypeKey( jobType ) ).get();
         if ( existingSummaryTypeStr == null )
@@ -341,13 +329,19 @@ public class RedisNotifier implements Notifier
         {
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
 
-            if ( summaries.size() == 0 )
+            Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateSummaryOrderKey( jobType ) ).range( -1,
+                -1 );
+            if ( !lastJobUidSet.iterator().hasNext() )
             {
                 return null;
             }
-            else
+
+            String lastJobUid = (String) lastJobUidSet.iterator().next();
+
+            Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( lastJobUid );
+            if ( serializedSummary == null )
             {
-                serializedSummary = summaries.values().toArray()[summaries.size() - 1];
+                return null;
             }
 
             return objectMapper.readValue( (String) serializedSummary, existingSummaryType );
