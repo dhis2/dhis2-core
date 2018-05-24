@@ -557,7 +557,7 @@ public class AnalyticsServiceTest
         // Max value - org unit B and C - data element A - 2017 Feb
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
             .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).withDataElements( Lists.newArrayList( deA ) )
-            .withAggregationType( new AnalyticsAggregationType( AggregationType.MAX ) )
+            .withAggregationType( new AnalyticsAggregationType( AggregationType.MAX, AggregationType.MAX ) )
             .withPeriod( peFeb )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
