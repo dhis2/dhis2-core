@@ -1062,7 +1062,7 @@ public class QueryPlannerTest
     {   
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deI, deJ ) )
-            .withOrganisationUnits( getList( ouA ) )
+            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
@@ -1070,9 +1070,9 @@ public class QueryPlannerTest
         
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         
-        assertEquals( 2, queryGroups.getAllQueries().size() );
+        assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
-        assertEquals( 2, queryGroups.getLargestGroupSize() );
+        assertEquals( 4, queryGroups.getLargestGroupSize() );
 
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
