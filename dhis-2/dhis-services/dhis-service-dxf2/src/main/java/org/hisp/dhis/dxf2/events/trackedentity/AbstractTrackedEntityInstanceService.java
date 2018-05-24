@@ -587,6 +587,8 @@ public abstract class AbstractTrackedEntityInstanceService
             counter++;
         }
 
+        clearSession();
+
         return importSummaries;
     }
 
