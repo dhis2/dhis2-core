@@ -74,7 +74,6 @@ public enum JobType
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
-
     KAFKA_TRACKER( "kafkaTrackerJob", true, KafkaJobParameters.class, null ),
 
     // For tests
