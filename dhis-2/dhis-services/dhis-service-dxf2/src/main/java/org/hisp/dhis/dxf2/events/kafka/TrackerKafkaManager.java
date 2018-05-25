@@ -73,11 +73,11 @@ public interface TrackerKafkaManager
 
     KafkaTemplate<String, KafkaTrackedEntity> getKtTrackedEntity();
 
-    String dispatchEvents( User user, ImportOptions importOptions, List<Event> events );
+    JobConfiguration dispatchEvents( User user, ImportOptions importOptions, List<Event> events );
 
-    String dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments );
+    JobConfiguration dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments );
 
-    String dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities );
+    JobConfiguration dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities );
 
     void consumeEvents( JobConfiguration jobConfiguration );
 

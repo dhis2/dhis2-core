@@ -53,6 +53,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -81,7 +82,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.scheduling.JobType.KAFKA_TRACKER;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -354,8 +355,8 @@ public class EnrollmentController
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        String jobId = trackerKafkaManager.dispatchEnrollments( currentUserService.getCurrentUser(), importOptions, enrollments );
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + KAFKA_TRACKER + "/" + jobId );
+        JobConfiguration job = trackerKafkaManager.dispatchEnrollments( currentUserService.getCurrentUser(), importOptions, enrollments );
+        webMessageService.send( jobConfigurationReport( job ), response, request );
     }
 
     // -------------------------------------------------------------------------

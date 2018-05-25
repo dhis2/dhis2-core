@@ -210,7 +210,7 @@ public class DefaultTrackerKafkaManager
     }
 
     @Override
-    public String dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
+    public JobConfiguration dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -233,11 +233,11 @@ public class DefaultTrackerKafkaManager
         notifier.notify( job, "Kafka Event job was queued." );
         notifier.addJobSummary( job, new ImportSummaries() );
 
-        return jobId;
+        return job;
     }
 
     @Override
-    public String dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
+    public JobConfiguration dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -260,11 +260,11 @@ public class DefaultTrackerKafkaManager
         notifier.notify( job, "Kafka Enrollment job was queued." );
         notifier.addJobSummary( job, new ImportSummaries() );
 
-        return jobId;
+        return job;
     }
 
     @Override
-    public String dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
+    public JobConfiguration dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -287,7 +287,7 @@ public class DefaultTrackerKafkaManager
         notifier.notify( job, "Kafka Tracked Entity job was queued." );
         notifier.addJobSummary( job, new ImportSummaries() );
 
-        return jobId;
+        return job;
     }
 
     @Override

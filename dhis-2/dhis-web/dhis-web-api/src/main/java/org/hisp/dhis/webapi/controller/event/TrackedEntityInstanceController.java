@@ -68,6 +68,7 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -105,7 +106,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.scheduling.JobType.KAFKA_TRACKER;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 /**
  * The following statements are added not to cause api break.
@@ -756,8 +757,8 @@ public class TrackedEntityInstanceController
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        String jobId = trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + KAFKA_TRACKER + "/" + jobId );
+        JobConfiguration job = trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
+        webMessageService.send( jobConfigurationReport( job ), response, request );
     }
 
     // -------------------------------------------------------------------------

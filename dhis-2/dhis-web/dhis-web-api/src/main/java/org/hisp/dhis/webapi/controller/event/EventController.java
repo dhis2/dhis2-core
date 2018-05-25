@@ -86,7 +86,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -120,7 +119,6 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
-import static org.hisp.dhis.scheduling.JobType.KAFKA_TRACKER;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1016,8 +1014,8 @@ public class EventController
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        String jobId = trackerKafkaManager.dispatchEvents( currentUserService.getCurrentUser(), importOptions, events );
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + KAFKA_TRACKER + "/" + jobId );
+        JobConfiguration job = trackerKafkaManager.dispatchEvents( currentUserService.getCurrentUser(), importOptions, events );
+        webMessageService.send( jobConfigurationReport( job ), response, request );
     }
 
     // -------------------------------------------------------------------------
