@@ -187,9 +187,9 @@ public class QueryPlannerTest
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
         deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
-        deI = createDataElement( 'I', ValueType.INTEGER, AggregationType.SUM );
-        deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.SUM );
-        deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.SUM );
+        deI = createDataElement( 'I', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
+        deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
+        deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
         
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
@@ -1062,7 +1062,7 @@ public class QueryPlannerTest
     {   
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deI, deJ ) )
-            .withOrganisationUnits( getList( ouA ) )
+            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
@@ -1070,9 +1070,9 @@ public class QueryPlannerTest
         
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         
-        assertEquals( 2, queryGroups.getAllQueries().size() );
+        assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
-        assertEquals( 2, queryGroups.getLargestGroupSize() );
+        assertEquals( 4, queryGroups.getLargestGroupSize() );
 
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {

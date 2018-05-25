@@ -522,12 +522,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
     private ImportSummary deleteTrackedEntityInstance( String uid, TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
     {
-        String descMsg = "Deletion of tracked entity instance " + uid + " was successful";
-        ImportSummary importSummary = null;
+        ImportSummary importSummary = new ImportSummary();
         importOptions = updateImportOptions( importOptions );
 
         boolean existsTei = teiService.trackedEntityInstanceExists( uid );
-        boolean existsTeiIncludingDeleted = teiService.trackedEntityInstanceExistsIncludingDeleted( uid );
 
         if ( existsTei )
         {
@@ -535,7 +533,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( dtoEntityInstance != null )
             {
-                importSummary = new ImportSummary( uid );
+                importSummary.setReference( uid );
                 importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
             }
 
@@ -546,24 +544,27 @@ public abstract class AbstractTrackedEntityInstanceService
             if ( !notDeletedProgramInstances.isEmpty() && importOptions.getUser() != null &&
                 !importOptions.getUser().isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
-                descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
-                return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setReference( uid );
+                String descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                importSummary.setDescription( descMsg );
+
+                return importSummary.incrementIgnored();
             }
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
-        }
 
-        if ( existsTei || existsTeiIncludingDeleted )
-        {
-            if ( importSummary == null )
-            {
-                importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
-            }
-
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.setDescription( "Deletion of tracked entity instance " + uid + " was successful" );
             return importSummary.incrementDeleted();
         }
-
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
+        else
+        {
+            //If I am here, it means that the item is either already deleted or it is not present in the system at all.
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.setDescription( "Tracked entity instance with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." );
+            return importSummary.incrementIgnored();
+        }
     }
 
     @Override
@@ -585,6 +586,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
             counter++;
         }
+
+        clearSession();
 
         return importSummaries;
     }
