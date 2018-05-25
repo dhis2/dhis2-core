@@ -65,6 +65,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.indicator.Indicator;
@@ -1690,6 +1691,11 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
+    /**
+     * @param uniqueChar A unique character to identify the object.
+     * @param content The content of the file
+     * @return a fileResource object
+     */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
     {
         String filename = "filename" + uniqueChar;
@@ -1702,6 +1708,22 @@ public abstract class DhisConvenienceTest
         fileResource.setAutoFields();
 
         return fileResource;
+    }
+
+    /**
+     * @param uniqueChar A unique character to identify the object.
+     * @param content The content of the file
+     * @return an externalFileResource object
+     */
+    public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
+    {
+        FileResource fileResource = createFileResource( uniqueChar, content );
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setFileResource( fileResource );
+        fileResource.setAssigned( true );
+        externalFileResource.setAccessToken( String.valueOf( uniqueChar ) );
+        return externalFileResource;
     }
 
     /**

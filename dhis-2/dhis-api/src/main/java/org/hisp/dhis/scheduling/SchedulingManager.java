@@ -28,11 +28,11 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.concurrent.ListenableFuture;
-
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * Interface for scheduling jobs.
@@ -113,6 +113,14 @@ public interface SchedulingManager
      * @param job The job to be executed
      */
     void executeJob( Runnable job );
+    
+    /**
+     * Schedule a job with a start time.
+     * 
+     * @param jobConfiguration The jobConfiguration with job details to be scheduled
+     * @param startTime The time at which the job should start
+     */
+    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
 
     /**
      * Execute the given job immediately and return a ListenableFuture.

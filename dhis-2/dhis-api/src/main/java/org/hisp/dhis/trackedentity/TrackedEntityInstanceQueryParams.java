@@ -301,6 +301,11 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
+        else if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.CAPTURE ) )
+        {
+            setOrganisationUnits( user.getOrganisationUnits() );
+            setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        }
         else if ( isOrganisationUnitMode( CHILDREN ) )
         {
             Set<OrganisationUnit> organisationUnits = new HashSet<>( getOrganisationUnits() );

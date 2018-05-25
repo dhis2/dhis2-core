@@ -112,9 +112,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return getSelectColumns( params, false );
     }
     
-    
-    
-    
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.

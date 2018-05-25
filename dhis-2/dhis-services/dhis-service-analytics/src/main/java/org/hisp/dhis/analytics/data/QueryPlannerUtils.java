@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
+import org.hisp.dhis.analytics.AggregationType;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -148,10 +150,10 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Puts the given element into the map according to the value type, aggregation
-     * operator, aggregation period type and data period type.
+     * Returns the {@link AnalyticsAggregationType} according to the given value type, 
+     * aggregation type, value type aggregation period type and data period type.
      * 
-     * @param aggregationType the aggregation operator.
+     * @param aggregationType the aggregation type.
      * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
@@ -160,9 +162,8 @@ public class QueryPlannerUtils
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         DataType dataType = DataType.fromValueType( valueType );
-
-        boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
-
+        boolean disaggregation = isDisaggregation( aggregationType, aggregationPeriodType, dataPeriodType );
+        
         return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
             aggregationType.getPeriodAggregationType(), dataType, disaggregation );
     }
@@ -175,9 +176,14 @@ public class QueryPlannerUtils
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static boolean isDisaggregation( PeriodType aggregationPeriodType, PeriodType dataPeriodType )
+    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         if ( dataPeriodType == null || aggregationPeriodType == null )
+        {
+            return false;
+        }
+        
+        if ( aggregationType == null || AggregationType.AVERAGE != aggregationType.getPeriodAggregationType() )
         {
             return false;
         }
@@ -197,30 +203,23 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the period type and the data element for the
-     * given data elements.
+     * Creates a mapping between the period type and matching data elements for the
+     * given list of data elements.
      * 
-     * @param dataElements list of data elements.
+     * @param dataElements the list of data elements.
      */
     public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap( 
         Collection<DimensionalItemObject> dataElements )
     {
         ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
-
-        for ( DimensionalItemObject element : dataElements )
-        {
-            DataElement dataElement = (DataElement) element;
-            
-            map.putValue( dataElement.getPeriodType(), element );
-        }
-
+        dataElements.forEach( de -> map.putValue( ((DataElement) de).getPeriodType(), de ) );
         return map;
     }
 
     /**
      * Converts a list of data query parameters to a list of event query parameters.
      * 
-     * @param params list of data query parameters.
+     * @param params the list of data query parameters.
      */
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {

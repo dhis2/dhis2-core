@@ -30,11 +30,11 @@ package org.hisp.dhis.datavalue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -53,7 +53,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 /**
  * Data value service implementation. Note that data values are softly deleted,
  * which implies having the deleted property set to true and updated.
- * 
+ *
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
@@ -150,12 +150,12 @@ public class DefaultDataValueService
         // ---------------------------------------------------------------------
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
-        
+
         if ( softDelete != null )
         {
             softDelete.mergeWith( dataValue );
             softDelete.setDeleted( false );
-            
+
             dataValueStore.updateDataValue( softDelete );
         }
         else
@@ -170,15 +170,17 @@ public class DefaultDataValueService
     @Transactional
     public void updateDataValue( DataValue dataValue )
     {
-        if ( dataValue.isNullValue() || dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
+        if ( dataValue.isNullValue() ||
+            dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
         {
             deleteDataValue( dataValue );
         }
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
             dataValue.setLastUpdated( new Date() );
-            
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
+
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
             dataValueStore.updateDataValue( dataValue );
@@ -187,18 +189,32 @@ public class DefaultDataValueService
 
     @Override
     @Transactional
+    public void updateDataValues( List<DataValue> dataValues )
+    {
+        if ( dataValues != null && !dataValues.isEmpty() )
+        {
+            for ( DataValue dataValue : dataValues )
+            {
+                updateDataValue( dataValue );
+            }
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteDataValue( DataValue dataValue )
     {
-        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
+        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+            currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         dataValueAuditService.addDataValueAudit( dataValueAudit );
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
-        
+
         dataValueStore.updateDataValue( dataValue );
     }
-    
+
     @Override
     @Transactional
     public void deleteDataValues( OrganisationUnit organisationUnit )
@@ -213,7 +229,8 @@ public class DefaultDataValueService
     }
 
     @Override
-    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo )
+    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo )
     {
         CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -235,7 +252,7 @@ public class DefaultDataValueService
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
-        
+
         return dataValueStore.getDataValues( params );
     }
 
@@ -249,7 +266,8 @@ public class DefaultDataValueService
             throw new IllegalArgumentException( "Params cannot be null" );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() &&
+            params.getDataElementGroups().isEmpty() )
         {
             violation = "At least one valid data set or data element group must be specified";
         }
@@ -297,7 +315,7 @@ public class DefaultDataValueService
     {
         return dataValueStore.getAllDataValues();
     }
-    
+
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
