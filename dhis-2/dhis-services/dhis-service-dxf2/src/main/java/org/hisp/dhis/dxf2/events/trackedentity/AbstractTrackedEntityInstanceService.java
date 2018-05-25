@@ -395,7 +395,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() )
+                .incrementIgnored();
         }
 
         teiService.addTrackedEntityInstance( daoEntityInstance );
@@ -464,6 +465,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
+
             String errorMsg = "";
 
             if ( daoEntityInstance == null )
@@ -484,6 +486,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
 
             importSummary.setConflicts( importConflicts );
+
             return importSummary;
         }
 
@@ -546,7 +549,8 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setReference( uid );
-                String descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                String descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE
+                    .getAuthority() );
                 importSummary.setDescription( descMsg );
 
                 return importSummary.incrementIgnored();
