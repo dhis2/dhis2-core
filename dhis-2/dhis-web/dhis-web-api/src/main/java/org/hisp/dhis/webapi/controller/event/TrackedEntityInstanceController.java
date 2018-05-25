@@ -105,6 +105,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.scheduling.JobType.KAFKA_TRACKER;
+
 /**
  * The following statements are added not to cause api break.
  * They need to be remove say in 2.26 or so once users are aware of the changes.
@@ -754,7 +756,8 @@ public class TrackedEntityInstanceController
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
+        String jobId = trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + KAFKA_TRACKER + "/" + jobId );
     }
 
     // -------------------------------------------------------------------------
