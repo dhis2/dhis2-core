@@ -693,13 +693,10 @@ public abstract class AbstractEnrollmentService
 
     private ImportSummary deleteEnrollment( String uid, Enrollment enrollment, ImportOptions importOptions )
     {
+        ImportSummary importSummary = new ImportSummary();
         importOptions = updateImportOptions( importOptions );
 
-        String descMsg = "Deletion of enrollment " + uid + " was successful";
-        ImportSummary importSummary = null;
-
         boolean existsEnrollment = programInstanceService.programInstanceExists( uid );
-        boolean existsEnrollmentIncludingDeleted = programInstanceService.programInstanceExistsIncludingDeleted( uid );
 
         if ( existsEnrollment )
         {
@@ -707,7 +704,7 @@ public abstract class AbstractEnrollmentService
 
             if ( enrollment != null )
             {
-                importSummary = new ImportSummary( uid );
+                importSummary.setReference( uid );
                 importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
             }
 
@@ -718,25 +715,29 @@ public abstract class AbstractEnrollmentService
             if ( !notDeletedProgramStageInstances.isEmpty() && importOptions.getUser() != null &&
                 !importOptions.getUser().isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
             {
-                descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
-                return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setReference( uid );
+                String descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                importSummary.setDescription( descMsg );
+
+                return importSummary.incrementIgnored();
             }
 
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
-        }
 
-        if ( existsEnrollment || existsEnrollmentIncludingDeleted )
-        {
-            if ( importSummary == null )
-            {
-                importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
-            }
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.setDescription( "Deletion of enrollment " + uid + " was successful" );
 
             return importSummary.incrementDeleted();
         }
-
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid enrollment" ).incrementIgnored();
+        else
+        {
+            //If I am here, it means that the item is either already deleted or it is not present in the system at all.
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.setDescription( "Enrollment with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." );
+            return importSummary.incrementIgnored();
+        }
     }
 
     @Override
