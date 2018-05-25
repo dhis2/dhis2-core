@@ -189,9 +189,6 @@ public class EventController
     @Autowired
     private TrackerKafkaManager trackerKafkaManager;
 
-    @Autowired
-    private Notifier notifier;
-
     private Schema schema;
 
     protected Schema getSchema()

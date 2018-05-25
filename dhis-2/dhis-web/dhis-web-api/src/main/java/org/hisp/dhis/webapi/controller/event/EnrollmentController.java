@@ -53,7 +53,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -114,9 +113,6 @@ public class EnrollmentController
 
     @Autowired
     private TrackerKafkaManager trackerKafkaManager;
-
-    @Autowired
-    private Notifier notifier;
 
     // -------------------------------------------------------------------------
     // READ
