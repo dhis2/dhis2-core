@@ -226,6 +226,13 @@ public class DefaultTrackerKafkaManager
                 new KafkaEvent( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, event ) );
         }
 
+        JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER,
+            user.getUid(), true );
+        job.setUid( jobId );
+
+        notifier.notify( job, "Kafka Event job was queued." );
+        notifier.addJobSummary( job, new ImportSummaries() );
+
         return jobId;
     }
 
@@ -246,6 +253,13 @@ public class DefaultTrackerKafkaManager
                 new KafkaEnrollment( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, enrollment ) );
         }
 
+        JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER,
+            user.getUid(), true );
+        job.setUid( jobId );
+
+        notifier.notify( job, "Kafka Enrollment job was queued." );
+        notifier.addJobSummary( job, new ImportSummaries() );
+
         return jobId;
     }
 
@@ -265,6 +279,13 @@ public class DefaultTrackerKafkaManager
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES,
                 new KafkaTrackedEntity( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, trackedEntity ) );
         }
+
+        JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER,
+            user.getUid(), true );
+        job.setUid( jobId );
+
+        notifier.notify( job, "Kafka Tracked Entity job was queued." );
+        notifier.addJobSummary( job, new ImportSummaries() );
 
         return jobId;
     }
