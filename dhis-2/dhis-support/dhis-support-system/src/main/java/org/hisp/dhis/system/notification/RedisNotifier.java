@@ -116,16 +116,16 @@ public class RedisNotifier implements Notifier
             Date now = new Date();
             try
             {
-                redisTemplate.boundZSetOps( notificationKey ).add( objectMapper.writeValueAsString( notification ),
-                    now.getTime() );
-                redisTemplate.boundZSetOps( notificationOrderKey ).add( id.getUid(), now.getTime() );
-
                 if ( redisTemplate.boundZSetOps( notificationOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
                     Set<String> deleteKeys = redisTemplate.boundZSetOps( notificationOrderKey ).range( 0, 0 );
                     redisTemplate.delete( deleteKeys );
                     redisTemplate.boundZSetOps( notificationOrderKey ).removeRange( 0, 0 );
                 }
+
+                redisTemplate.boundZSetOps( notificationKey ).add( objectMapper.writeValueAsString( notification ),
+                    now.getTime() );
+                redisTemplate.boundZSetOps( notificationOrderKey ).add( id.getUid(), now.getTime() );
             }
             catch ( JsonProcessingException e )
             {
@@ -268,20 +268,20 @@ public class RedisNotifier implements Notifier
                         return this;
                     }
                 }
-
-                redisTemplate.boundHashOps( summaryKey ).put( id.getUid(),
-                    objectMapper.writeValueAsString( jobSummary ) );
-                Date now = new Date();
-
+                
                 String summaryOrderKey = generateSummaryOrderKey( id.getJobType() );
-                redisTemplate.boundZSetOps( summaryOrderKey ).add( id.getUid(), now.getTime() );
-
                 if ( redisTemplate.boundZSetOps( summaryOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
                     Set<String> summaryKeyToBeDeleted = redisTemplate.boundZSetOps( summaryOrderKey ).range( 0, 0 );
                     redisTemplate.boundZSetOps( summaryOrderKey ).removeRange( 0, 0 );
                     summaryKeyToBeDeleted.forEach( d -> redisTemplate.boundHashOps( summaryKey ).delete( d ) );
                 }
+                redisTemplate.boundHashOps( summaryKey ).put( id.getUid(),
+                    objectMapper.writeValueAsString( jobSummary ) );
+                Date now = new Date();
+
+                redisTemplate.boundZSetOps( summaryOrderKey ).add( id.getUid(), now.getTime() );
+
             }
             catch ( JsonProcessingException | ClassNotFoundException e )
             {
