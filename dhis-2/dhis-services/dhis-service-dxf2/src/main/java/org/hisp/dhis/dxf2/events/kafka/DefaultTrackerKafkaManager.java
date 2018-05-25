@@ -210,7 +210,7 @@ public class DefaultTrackerKafkaManager
     }
 
     @Override
-    public void dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
+    public String dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -225,10 +225,12 @@ public class DefaultTrackerKafkaManager
             ktEvent.send( TOPIC_BULK_EVENTS,
                 new KafkaEvent( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, event ) );
         }
+
+        return jobId;
     }
 
     @Override
-    public void dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
+    public String dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -243,10 +245,12 @@ public class DefaultTrackerKafkaManager
             ktEnrollment.send( TOPIC_BULK_ENROLLMENTS,
                 new KafkaEnrollment( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, enrollment ) );
         }
+
+        return jobId;
     }
 
     @Override
-    public void dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
+    public String dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
         // generate a common job id for this entire job (useful for grouping when consuming topics)
         String jobId = CodeGenerator.generateUid();
@@ -261,6 +265,8 @@ public class DefaultTrackerKafkaManager
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES,
                 new KafkaTrackedEntity( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, trackedEntity ) );
         }
+
+        return jobId;
     }
 
     @Override
