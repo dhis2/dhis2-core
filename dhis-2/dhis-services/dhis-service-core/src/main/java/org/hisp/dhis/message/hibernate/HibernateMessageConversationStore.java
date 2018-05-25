@@ -37,11 +37,10 @@ import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageConversationStore;
 import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.user.User;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,6 +67,23 @@ public class HibernateMessageConversationStore
     // Implementation methods
     // -------------------------------------------------------------------------
 
+    private List<Integer> getUserMessagesForUser( User user )
+    {
+        String userMessagesSql = "select distinct mc.messageconversationid " +
+            "from messageconversation mc INNER JOIN messageconversation_usermessages as mcu " +
+            "on mc.messageconversationid = mcu.messageconversationid " +
+            "INNER JOIN usermessage as um on mcu.usermessageid = um.usermessageid  where um.userid = " + user.getId();
+
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( userMessagesSql );
+
+        List<Integer> userMessages = new ArrayList<>( );
+        while (sqlRowSet.next()) {
+            userMessages.add( Integer.parseInt( sqlRowSet.getString( 1 ) ) );
+        }
+
+        return userMessages;
+    }
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
@@ -76,16 +92,22 @@ public class HibernateMessageConversationStore
     {
         Assert.notNull( user, "User must be specified" );
 
-        getSession().enableFilter( "userMessageUser" ).setParameter( "userid", user.getId() );
+        List<Integer> userMessages = getUserMessagesForUser( user );
+        if ( userMessages.size() == 0 )
+        {
+            return new ArrayList<>( );
+        }
 
-        String hql = "from MessageConversation mc " +
+        String hql = "select distinct mc " +
+            "from MessageConversation mc " +
             "inner join mc.userMessages as um " +
             "left join mc.user as ui " +
-            "left join mc.lastSender as ls ";
+            "left join mc.lastSender as ls " +
+            "where mc.id in (" + userMessages.toString().replace("[", "").replace("]", "") + ") ";
 
         if ( status != null )
         {
-            hql += "where status = :status ";
+            hql += "and where status = :status ";
         }
 
         if ( followUpOnly )
@@ -115,7 +137,7 @@ public class HibernateMessageConversationStore
 
         return (List<MessageConversation>) query.list()
             .stream()
-            .map( o -> mapRowToMessageConversations( (Object[]) o ) )
+            .map( o -> mapRowToMessageConversations( (MessageConversation) o, user ) )
             .collect( Collectors.toList() );
     }
 
@@ -155,12 +177,13 @@ public class HibernateMessageConversationStore
     {
         Assert.notNull( user, "User must be specified" );
 
-        String hql = "select count(*) from MessageConversation m join m.userMessages u where u.user = :user and u.read = false";
+        String sql = "select count(*) from usermessage where userid = " + user.getId() + " and isread=false;";
 
-        Query query = getQuery( hql );
-        query.setEntity( "user", user );
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( sql );
 
-        return (Long) query.uniqueResult();
+        sqlRowSet.next();
+
+        return Long.parseLong( sqlRowSet.getString( 1 ));
     }
 
     @Override
@@ -227,46 +250,51 @@ public class HibernateMessageConversationStore
             sql += " " + statementBuilder.limitRecord( first, max );
         }
 
-        final List<UserMessage> recipients = jdbcTemplate.query( sql, new RowMapper<UserMessage>()
-        {
-            @Override
-            public UserMessage mapRow( ResultSet resultSet, int count )
-                throws SQLException
-            {
-                UserMessage recipient = new UserMessage();
+        return jdbcTemplate.query( sql, ( resultSet, count ) -> {
+            UserMessage recipient = new UserMessage();
 
-                recipient.setId( resultSet.getInt( 1 ) );
-                recipient.setLastRecipientSurname( resultSet.getString( 2 ) );
-                recipient.setLastRecipientFirstname( resultSet.getString( 3 ) );
+            recipient.setId( resultSet.getInt( 1 ) );
+            recipient.setLastRecipientSurname( resultSet.getString( 2 ) );
+            recipient.setLastRecipientFirstname( resultSet.getString( 3 ) );
 
-                return recipient;
-            }
+            return recipient;
         } );
-
-        return recipients;
     }
 
-    private MessageConversation mapRowToMessageConversations( Object[] row )
+    private MessageConversation mapRowToMessageConversations( MessageConversation mc, User user )
     {
-        MessageConversation mc = (MessageConversation) row[0];
+        Boolean isRead = false;
+        Boolean isFollowUp = false;
 
-        UserMessage um = (UserMessage) row[1];
-        User ui = (User) row[2];
-        User ls = (User) row[3];
-
-        mc.setRead( um.isRead() );
-        mc.setFollowUp( um.isFollowUp() );
-
-        if ( ui != null )
+        for ( UserMessage userMessage : mc.getUserMessages() )
         {
-            mc.setUserFirstname( ui.getFirstName() );
-            mc.setUserSurname( ui.getSurname() );
+            if ( userMessage.getUser().getUid().equals( user.getUid() ) )
+            {
+                if ( userMessage.isRead() )
+                {
+                    isRead = true;
+                }
+
+                if ( userMessage.isFollowUp() )
+                {
+                    isFollowUp = true;
+                }
+            }
         }
 
-        if ( ls != null )
+        mc.setRead( isRead );
+        mc.setFollowUp( isFollowUp );
+
+        if ( mc.getUser() != null )
         {
-            mc.setLastSenderFirstname( ls.getFirstName() );
-            mc.setLastSenderSurname( ls.getSurname() );
+            mc.setUserFirstname( mc.getUser().getFirstName() );
+            mc.setUserSurname( mc.getUser().getSurname() );
+        }
+
+        if ( mc.getLastSender() != null )
+        {
+            mc.setLastSenderFirstname( mc.getLastSender().getFirstName() );
+            mc.setLastSenderSurname( mc.getLastSender().getSurname() );
         }
 
         return mc;

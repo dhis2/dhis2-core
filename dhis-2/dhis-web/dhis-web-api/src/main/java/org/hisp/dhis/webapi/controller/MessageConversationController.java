@@ -169,7 +169,7 @@ public class MessageConversationController
                 queryOperator = options.get( "queryOperator" );
             }
 
-            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ), "messages.text:" + queryOperator + ":" + options.get( "queryString" ), "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
+            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ), "messages.text:" + queryOperator + ":" + options.get( "queryString" ), "userMessages.user.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
             Query subQuery = queryService.getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList( ), Junction.Type.OR );
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
@@ -269,7 +269,7 @@ public class MessageConversationController
     @RequestMapping( value = "/{uid}", method = RequestMethod.POST )
     public void postMessageConversationReply(
         @PathVariable( "uid" ) String uid,
-        @RequestBody MessageConversation messageConversation,
+        @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -286,6 +286,28 @@ public class MessageConversationController
         if ( internal && !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
         {
             throw new AccessDeniedException( "Not authorized to send internal messages" );
+        }
+
+        messageService.sendReply( conversation, message, metaData, internal );
+
+        response
+            .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
+        webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
+    }
+
+    //
+
+
+    @RequestMapping( value = "/{uid}/addRecipients", method = RequestMethod.POST )
+    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid, @RequestBody MessageConversation messageConversation,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( uid );
+
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
         }
 
         Set<User> additionalUsers = Sets.newHashSet();
@@ -328,7 +350,6 @@ public class MessageConversationController
             additionalUsers.addAll( userGroup.getMembers() );
         }
 
-
         additionalUsers.forEach( user -> {
             if ( !conversation.getUsers().contains( user ) )
             {
@@ -336,13 +357,7 @@ public class MessageConversationController
             }
         } );
 
-        conversation.getUsers().forEach( user -> System.out.println("user: " + user.getDisplayName()) );
-
-        messageService.sendReply( conversation, messageConversation.getText(), metaData, internal );
-
-        response
-            .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
+        messageService.updateMessageConversation( conversation );
     }
 
     //--------------------------------------------------------------------------

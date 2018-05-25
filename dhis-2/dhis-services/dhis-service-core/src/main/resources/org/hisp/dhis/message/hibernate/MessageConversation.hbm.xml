@@ -53,7 +53,6 @@
         foreign-key="fk_messageconversation_usermessages_messageconversationid" />
       <many-to-many class="org.hisp.dhis.message.UserMessage" column="usermessageid"
         unique="true" foreign-key="fk_messageconversation_usermessages_usermessageid">
-        <filter name="userMessageUser" condition="userid = :userid" />
       </many-to-many>
     </set>
 
@@ -71,11 +70,5 @@
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
       foreign-key="fk_messageconversation_user_userid" />
-
   </class>
-
-  <filter-def name="userMessageUser">
-    <filter-param name="userid" type="int" />
-  </filter-def>
-
 </hibernate-mapping>
