@@ -125,7 +125,7 @@ public class NotifierTest extends DhisSpringTest
     @Test
     public void testTaskSummaryById()
     {
-        notifier.addJobSummary( dataValueImportJobConfig, new String( "something" ), String.class );
+        notifier.addJobSummary( dataValueImportJobConfig, "something", String.class );
         Object summary = notifier.getJobSummaryByJobId( dataValueImportJobConfig.getJobType(),
             dataValueImportJobConfig.getUid() );
         assertNotNull( summary );
@@ -157,8 +157,8 @@ public class NotifierTest extends DhisSpringTest
         notifier.notify( analyticsTableJobConfig, "Process done" );
         List<Notification> notifications = notifier.getLastNotificationsByJobType( DATAVALUE_IMPORT,
             dataValueImportJobConfig.getUid() );
-        assertNotNull(notifications);
+        assertNotNull( notifications );
         assertEquals( 4, notifications.size() );
-        
+
     }
 }
