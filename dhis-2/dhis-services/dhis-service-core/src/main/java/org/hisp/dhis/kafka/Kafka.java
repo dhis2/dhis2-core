@@ -44,14 +44,17 @@ public class Kafka
 
     private int retries;
 
+    private int pollRecords;
+
     public Kafka()
     {
     }
 
-    public Kafka( String bootstrapServers, int retries )
+    public Kafka( String bootstrapServers, int retries, int pollRecords )
     {
         this.bootstrapServers = bootstrapServers;
         this.retries = retries;
+        this.pollRecords = pollRecords;
     }
 
     @JsonProperty( "bootstrap-servers" )
@@ -78,6 +81,18 @@ public class Kafka
     {
         this.retries = retries;
         return this;
+    }
+
+    @JsonProperty( "poll-records" )
+    @JacksonXmlProperty( localName = "poll-records", namespace = DxfNamespaces.DXF_2_0 )
+    public int getPollRecords()
+    {
+        return pollRecords;
+    }
+
+    public void setPollRecords( int pollRecords )
+    {
+        this.pollRecords = pollRecords;
     }
 
     public boolean isValid()

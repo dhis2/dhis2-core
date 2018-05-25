@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.KafkaJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -74,7 +75,7 @@ public enum JobType
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
 
-    KAFKA_TRACKER( "kafkaTrackerJob", true, null, null ),
+    KAFKA_TRACKER( "kafkaTrackerJob", true, KafkaJobParameters.class, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),
