@@ -42,6 +42,8 @@ public class Kafka
 {
     private String bootstrapServers;
 
+    private String clientId;
+
     private int retries;
 
     private int pollRecords;
@@ -50,9 +52,10 @@ public class Kafka
     {
     }
 
-    public Kafka( String bootstrapServers, int retries, int pollRecords )
+    public Kafka( String bootstrapServers, String clientId, int retries, int pollRecords )
     {
         this.bootstrapServers = bootstrapServers;
+        this.clientId = clientId;
         this.retries = retries;
         this.pollRecords = pollRecords;
     }
@@ -68,6 +71,18 @@ public class Kafka
     {
         this.bootstrapServers = bootstrapServers;
         return this;
+    }
+
+    @JsonProperty( "client-id" )
+    @JacksonXmlProperty( localName = "client-id", namespace = DxfNamespaces.DXF_2_0 )
+    public String getClientId()
+    {
+        return clientId;
+    }
+
+    public void setClientId( String clientId )
+    {
+        this.clientId = clientId;
     }
 
     @JsonProperty

@@ -78,6 +78,7 @@ public enum ConfigurationKey
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
     RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
     KAFKA_BOOTSTRAP_SERVERS( "kafka.bootstrap-servers", null, false ),
+    KAFKA_CLIENT_ID( "kafka.client-id", "dhis2", false ),
     KAFKA_RETRIES( "kafka.retries", "10", false ),
     KAFKA_POLL_RECORDS( "kafka.poll-records", "100", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
