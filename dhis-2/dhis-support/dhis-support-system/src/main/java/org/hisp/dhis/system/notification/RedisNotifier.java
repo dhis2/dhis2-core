@@ -50,6 +50,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Notifier implementation backed by redis. It holds 2 types of data.
+ * Notifications and Summaries. Since order of the Notifications and Summaries
+ * are important, (to limit the maximum number of objects held), we use a
+ * combination of "Sorted Sets" , "HashMaps" and "Values" (data structures in
+ * redis) to have a similar behaviour as InMemoryNotifier.
+ * 
+ * 
  * @author Ameen Mohamed
  */
 public class RedisNotifier implements Notifier
@@ -60,7 +67,7 @@ public class RedisNotifier implements Notifier
 
     private static final String NOTIFICATIONS_KEY_PREFIX = "notifications:";
 
-    private static final String LAST_NOTIFICATION_KEY_PREFIX = "last:notification:";
+    private static final String NOTIFICATION_ORDER_KEY_PREFIX = "notification:order:";
 
     private static final String SUMMARIES_KEY_PREFIX = "summaries:";
 
@@ -105,19 +112,19 @@ public class RedisNotifier implements Notifier
         {
             Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
             String notificationKey = generateNotificationKey( id.getJobType(), id.getUid() );
-            String lastNotificationKey = generateLastNotificationKey( id.getJobType() );
+            String notificationOrderKey = generateNotificationOrderKey( id.getJobType() );
             Date now = new Date();
             try
             {
                 redisTemplate.boundZSetOps( notificationKey ).add( objectMapper.writeValueAsString( notification ),
                     now.getTime() );
-                redisTemplate.boundZSetOps( lastNotificationKey ).add( id.getUid(), now.getTime() );
+                redisTemplate.boundZSetOps( notificationOrderKey ).add( id.getUid(), now.getTime() );
 
-                if ( redisTemplate.boundZSetOps( lastNotificationKey ).zCard() >= MAX_POOL_TYPE_SIZE )
+                if ( redisTemplate.boundZSetOps( notificationOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
-                    Set<String> deleteKeys = redisTemplate.boundZSetOps( lastNotificationKey ).range( 0, 0 );
+                    Set<String> deleteKeys = redisTemplate.boundZSetOps( notificationOrderKey ).range( 0, 0 );
                     redisTemplate.delete( deleteKeys );
-                    redisTemplate.boundZSetOps( lastNotificationKey ).removeRange( 0, 0 );
+                    redisTemplate.boundZSetOps( notificationOrderKey ).removeRange( 0, 0 );
                 }
             }
             catch ( JsonProcessingException e )
@@ -157,7 +164,7 @@ public class RedisNotifier implements Notifier
     {
         List<Notification> list = new ArrayList<>();
 
-        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateLastNotificationKey( jobType ) ).range( -1,
+        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1,
             -1 );
         if ( !lastJobUidSet.iterator().hasNext() )
         {
@@ -210,7 +217,7 @@ public class RedisNotifier implements Notifier
     @Override
     public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
     {
-        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateLastNotificationKey( jobType ) ).range( 0,
+        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0,
             -1 );
         LinkedHashMap<String, LinkedList<Notification>> uidNotificationMap = new LinkedHashMap<>();
         notificationKeys
@@ -225,7 +232,7 @@ public class RedisNotifier implements Notifier
         {
             redisTemplate.delete( generateNotificationKey( id.getJobType(), id.getUid() ) );
             redisTemplate.boundHashOps( generateSummaryKey( id.getJobType() ) ).delete( id.getUid() );
-            redisTemplate.boundZSetOps( generateLastNotificationKey( id.getJobType() ) ).remove( id.getUid() );
+            redisTemplate.boundZSetOps( generateNotificationOrderKey( id.getJobType() ) ).remove( id.getUid() );
             redisTemplate.boundZSetOps( generateSummaryOrderKey( id.getJobType() ) ).remove( id.getUid() );
         }
         return this;
@@ -386,10 +393,10 @@ public class RedisNotifier implements Notifier
         return builder.toString();
     }
 
-    private static String generateLastNotificationKey( JobType jobType )
+    private static String generateNotificationOrderKey( JobType jobType )
     {
         StringBuilder builder = new StringBuilder();
-        builder.append( LAST_NOTIFICATION_KEY_PREFIX );
+        builder.append( NOTIFICATION_ORDER_KEY_PREFIX );
         builder.append( jobType.toString() );
         return builder.toString();
     }
