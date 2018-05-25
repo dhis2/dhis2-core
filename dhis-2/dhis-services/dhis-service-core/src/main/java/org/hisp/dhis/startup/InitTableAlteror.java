@@ -149,10 +149,8 @@ public class InitTableAlteror
         executeSql( "UPDATE programstageinstance " +
             "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
             "WHERE longitude IS NOT NULL " +
-            "AND latitude IS NOT NULL" );
-
-        executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude" );
-        executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude" );
+            "AND latitude IS NOT NULL" +
+            "AND geometry IS NULL");
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
