@@ -309,6 +309,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
+        
         if ( params.hasNonDefaultBoundaries() )
         {
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )

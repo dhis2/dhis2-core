@@ -416,7 +416,7 @@ public class DefaultQueryPlanner
         {
             ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = 
                 QueryPlannerUtils.getAggregationTypeDataElementMap( params );
-
+            
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
                 DataQueryParams query = DataQueryParams.newBuilder( params )

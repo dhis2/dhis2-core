@@ -600,6 +600,15 @@ public class DefaultTrackedEntityInstanceService
         Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        
+        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
+        
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+        }
 
         QueryFilter queryFilter = getQueryFilter( query );
 
@@ -632,6 +641,11 @@ public class DefaultTrackedEntityInstanceService
                 if ( organisationUnit == null )
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
+                }
+                
+                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+                {
+                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
                 }
 
                 params.getOrganisationUnits().add( organisationUnit );
