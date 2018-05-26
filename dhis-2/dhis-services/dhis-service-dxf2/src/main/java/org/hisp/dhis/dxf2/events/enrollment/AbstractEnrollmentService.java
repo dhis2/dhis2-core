@@ -375,7 +375,7 @@ public abstract class AbstractEnrollmentService
         if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
-                "Enrollment ID " + enrollment.getEnrollment() + " was already used. The ID is unique and cannot be used more than once" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
+                "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
         }
 
         if ( daoTrackedEntityInstance == null )
@@ -437,7 +437,7 @@ public abstract class AbstractEnrollmentService
         if ( programInstance == null )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "Could not enroll TrackedEntityInstance "
+            importSummary.setDescription( "Could not enroll tracked entity instance "
                 + enrollment.getTrackedEntityInstance() + " into program " + enrollment.getProgram() );
             importSummary.incrementIgnored();
 
@@ -482,7 +482,7 @@ public abstract class AbstractEnrollmentService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
-                + " already have an active enrollment in program " + program.getUid() );
+                + " already has an active enrollment in program " + program.getUid() );
             importSummary.incrementIgnored();
 
             return importSummary;
@@ -498,8 +498,8 @@ public abstract class AbstractEnrollmentService
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
-                    + " already have a completed enrollment in program " + program.getUid() + ", and this program is" +
-                    " configured to only allow enrolling one time." );
+                    + " already has a completed enrollment in program " + program.getUid() + 
+                    ", and this program only allows enrolling one time" );
                 importSummary.incrementIgnored();
 
                 return importSummary;
@@ -563,7 +563,7 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment." ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment" ).incrementIgnored();
         }
 
         if ( !errors.isEmpty() )
@@ -711,8 +711,7 @@ public abstract class AbstractEnrollmentService
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setReference( uid );
-                String descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
-                importSummary.setDescription( descMsg );
+                importSummary.setDescription( "Enrollment " + uid + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
                 return importSummary.incrementIgnored();
             }
@@ -729,7 +728,7 @@ public abstract class AbstractEnrollmentService
         {
             //If I am here, it means that the item is either already deleted or it is not present in the system at all.
             importSummary.setStatus( ImportStatus.SUCCESS );
-            importSummary.setDescription( "Enrollment with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." );
+            importSummary.setDescription( "Enrollment " + uid + " cannot be deleted as it is not present in the system" );
             return importSummary.incrementIgnored();
         }
     }
