@@ -304,6 +304,7 @@ public class TrackedEntityInstance
             ", relationships=" + relationships +
             ", attributes=" + attributes +
             ", inactive=" + inactive +
+            ", deleted=" + deleted +
             '}';
     }
 }

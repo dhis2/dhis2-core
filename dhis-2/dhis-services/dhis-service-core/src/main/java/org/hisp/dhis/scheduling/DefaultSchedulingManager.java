@@ -28,9 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -40,13 +43,16 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
@@ -78,14 +84,17 @@ public class DefaultSchedulingManager
 
     @Autowired
     private MessageService messageService;
-
+    
+    @Autowired
+    private LeaderManager leaderManager;
+    
     private TaskScheduler jobScheduler;
 
     public void setTaskScheduler( TaskScheduler JobScheduler )
     {
         this.jobScheduler = JobScheduler;
     }
-
+    
     private AsyncListenableTaskExecutor jobExecutor;
 
     public void setTaskExecutor( AsyncListenableTaskExecutor jobExecutor )
@@ -93,11 +102,18 @@ public class DefaultSchedulingManager
         this.jobExecutor = jobExecutor;
     }
 
+    @PostConstruct
+    public void init()
+    {
+        leaderManager.setSchedulingManager( this );
+    }
+    
+    
     // -------------------------------------------------------------------------
     // Queue
     // -------------------------------------------------------------------------
 
-    private List<JobConfiguration> runningJobConfigurations = new ArrayList<>();
+    private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>( );
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
@@ -156,7 +172,7 @@ public class DefaultSchedulingManager
                     .schedule( () -> {
                         try
                         {
-                            jobInstance.execute( jobConfiguration, this, messageService );
+                            jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
                         }
                         catch ( Exception e )
                         {
@@ -204,6 +220,34 @@ public class DefaultSchedulingManager
     }
 
     @Override
+    public void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime )
+    {
+        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
+        {
+            JobInstance jobInstance = new DefaultJobInstance();
+
+            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
+            {
+                ScheduledFuture<?> future = jobScheduler
+                    .schedule( () -> {
+                        try
+                        {
+                            jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                        }
+                        catch ( Exception e )
+                        {
+                            log.error( DebugUtils.getStackTrace( e ) );
+                        }
+                    }, startTime  );
+
+                futures.put( jobConfiguration.getUid(), future );
+
+                log.info( "Scheduled job: " + jobConfiguration );
+            }
+        }
+    }
+    
+    @Override
     public Map<String, ScheduledFuture<?>> getAllFutureJobs()
     {
         return futures;
@@ -235,7 +279,7 @@ public class DefaultSchedulingManager
         ListenableFuture<?> future = jobExecutor.submitListenable( () -> {
             try
             {
-                jobInstance.execute( jobConfiguration, this, messageService );
+                jobInstance.execute( jobConfiguration, this, messageService, leaderManager  );
             }
             catch ( Exception e )
             {
@@ -282,4 +326,5 @@ public class DefaultSchedulingManager
     {
         return futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null;
     }
+
 }

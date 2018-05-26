@@ -40,6 +40,7 @@ import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.calendar.PeriodTypeParser;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import java.io.Serializable;
 import java.time.DayOfWeek;
@@ -205,6 +206,35 @@ public abstract class PeriodType
         }
 
         return PERIOD_TYPES.get( index );
+    }
+    
+    /**
+     * Returns a list of periods for each of the available period types defined by
+     * {@link PeriodType#PERIOD_TYPES} in matching order relative to the given period.
+     * 
+     * @param period the period.
+     * @param calendar the calendar.
+     * @return a list of periods.
+     */
+    public static List<Period> getPeriodTypePeriods( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    {
+        List<Period> periods = new ArrayList<>();
+        
+        PeriodType periodType = period.getPeriodType();
+        
+        for ( PeriodType type : PeriodType.PERIOD_TYPES )
+        {
+            if ( periodType.getFrequencyOrder() < type.getFrequencyOrder() || periodType.equals( type ) )
+            {
+                periods.add( IdentifiableObjectUtils.getPeriodByPeriodType( period, type, calendar ) );
+            }
+            else
+            {
+                periods.add( null );
+            }
+        }
+
+        return periods;
     }
 
     // -------------------------------------------------------------------------

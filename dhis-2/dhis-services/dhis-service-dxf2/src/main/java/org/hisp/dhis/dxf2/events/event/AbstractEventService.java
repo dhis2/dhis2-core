@@ -129,7 +129,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -534,7 +551,7 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "Program stage can not be null." );
         }
-        
+
         if ( params.getProgramStage().getProgramStageDataElements() == null )
         {
             throw new IllegalQueryException( "Program stage should have data element(s)." );
@@ -572,7 +589,7 @@ public abstract class AbstractEventService
                     }
                 }
             }
-            
+
         }
 
         // ---------------------------------------------------------------------
@@ -718,6 +735,7 @@ public abstract class AbstractEventService
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
+        event.setDeleted( programStageInstance.isDeleted() );
 
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
@@ -880,12 +898,9 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
 
-        if ( attributeOptionCombo != null )
+        if ( attributeOptionCombo != null && !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
         {
-            if ( !userCredentials.isSuper() && !aclService.canDataRead( user, attributeOptionCombo ) )
-            {
-                throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-            }
+            throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
         if ( events != null && filters != null )
@@ -1067,20 +1082,20 @@ public abstract class AbstractEventService
         }
         else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == EventStatus.COMPLETED )
         {
-            programStageInstance.setStatus( EventStatus.COMPLETED );
             programStageInstance.setCompletedBy( completedBy );
-            programStageInstance.setCompletedDate( executionDate );
 
-            if ( programStageInstance.isCompleted() )
+            Date completedDate = null;
+            if ( event.getCompletedDate() != null )
             {
-                programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                    importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
 
-                if ( !importOptions.isSkipNotifications() )
-                {
-                    programRuleEngineService.evaluate( programStageInstance );
-                }
+            programStageInstanceService.completeProgramStageInstance( programStageInstance,
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
 
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1273,8 +1288,6 @@ public abstract class AbstractEventService
         // as for update? Currently, no check is present at all.
 
         boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
-        boolean existsEventIncludingDeleted = programStageInstanceService
-            .programStageInstanceExistsIncludingDeleted( uid );
 
         if ( existsEvent )
         {
@@ -1286,14 +1299,14 @@ public abstract class AbstractEventService
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
-        }
 
-        if ( existsEvent || existsEventIncludingDeleted )
-        {
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" ).incrementDeleted();
         }
-
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
+        else
+        {
+            //If I am here, it means that the item is either already deleted or it is not present in the system at all.
+            return new ImportSummary( ImportStatus.SUCCESS, "Event with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." ).incrementIgnored();
+        }
     }
 
     @Override
@@ -1684,12 +1697,15 @@ public abstract class AbstractEventService
 
         if ( programStageInstance.isCompleted() )
         {
-            programStageInstance.setStatus( EventStatus.COMPLETED );
-            programStageInstance.setCompletedDate( new Date() );
+            Date completedDate = null;
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
             programStageInstance.setCompletedBy( completedBy );
 
             programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
         }
     }
 

@@ -95,21 +95,28 @@ public class DataValidationTask
     private AnalyticsService analyticsService;
 
     private List<OrganisationUnit> orgUnits;
+
     private ValidationRunContext context;
 
     private Set<ValidationResult> validationResults;
 
     private PeriodTypeExtended periodTypeX; // Current period type extended.
+
     private Period period;                  // Current period.
+
     private OrganisationUnit orgUnit;       // Current organisation unit.
+
     private int orgUnitId;                  // Current organisation unit id.
+
     private ValidationRuleExtended ruleX;   // Current rule extended.
 
     private Map<Integer, String> attributeOptionComboMap = new HashMap<>();
 
     // Data for current period and all rules being evaluated:
     private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
+
     private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
+
     private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
@@ -150,8 +157,7 @@ public class DataValidationTask
             return;
         }
 
-        validationResults = new HashSet<>();
-
+        loop:
         for ( PeriodTypeExtended ptx : context.getPeriodTypeXs() )
         {
             periodTypeX = ptx;
@@ -171,13 +177,17 @@ public class DataValidationTask
                     {
                         ruleX = r;
 
+                        if ( context.isAnalysisComplete() )
+                        {
+                            break loop;
+                        }
+                        validationResults = new HashSet<>();
                         validateRule();
+                        addValidationResultsToContext();
                     }
                 }
             }
         }
-
-        addValidationResultsToContext();
     }
 
     /**
@@ -193,13 +203,21 @@ public class DataValidationTask
             return;
         }
 
-        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(), ruleX.getLeftSlidingWindow() );
-        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(), ruleX.getRightSlidingWindow() );
+        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(),
+            ruleX.getLeftSlidingWindow() );
+        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(),
+            ruleX.getRightSlidingWindow() );
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
+        loop:
         for ( String optionCombo : attributeOptionCombos )
         {
+            if ( context.isAnalysisComplete() )
+            {
+                break loop;
+            }
+
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
             {
                 continue;
@@ -215,8 +233,8 @@ public class DataValidationTask
      * Validates one rule / period / attribute option combo.
      *
      * @param optionCombo the attribute option combo.
-     * @param leftSide left side value.
-     * @param rightSide right side value.
+     * @param leftSide    left side value.
+     * @param rightSide   right side value.
      */
     private void validateOptionCombo( String optionCombo, Double leftSide, Double rightSide )
     {
@@ -231,7 +249,7 @@ public class DataValidationTask
 
         boolean violation = isViolation( leftSide, rightSide );
 
-        if ( violation )
+        if ( violation && !context.isAnalysisComplete() )
         {
             validationResults.add( new ValidationResult(
                 ruleX.getRule(), period, orgUnit,
@@ -245,7 +263,7 @@ public class DataValidationTask
     /**
      * Determines if left and right side values violate a rule.
      *
-     * @param leftSide the left side value.
+     * @param leftSide  the left side value.
      * @param rightSide the right side value.
      * @return true if violation, otherwise false.
      */
@@ -253,12 +271,12 @@ public class DataValidationTask
     {
         if ( Operator.compulsory_pair.equals( ruleX.getRule().getOperator() ) )
         {
-            return ( leftSide == null ) != ( rightSide == null );
+            return (leftSide == null) != (rightSide == null);
         }
 
         if ( Operator.exclusive_pair.equals( ruleX.getRule().getOperator() ) )
         {
-            return ( leftSide != null ) && ( rightSide != null );
+            return (leftSide != null) && (rightSide != null);
         }
 
         if ( leftSide == null )
@@ -296,12 +314,13 @@ public class DataValidationTask
         getDataMap();
 
         slidingWindowEventMap = getEventMapForSlidingWindow( true, periodTypeX.getEventItems() );
-        slidingWindowEventMap.putMap ( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
+        slidingWindowEventMap
+            .putMap( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         slidingWindowEventMap.putMap( dataMap );
 
         eventMap = getEventMap( true, periodTypeX.getEventItems() );
-        eventMap.putMap ( getEventMap( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
+        eventMap.putMap( getEventMap( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         dataMap.putMap( eventMap );
     }
@@ -310,7 +329,7 @@ public class DataValidationTask
      * For an expression (left side or right side), finds the values
      * (grouped by attribute option combo).
      *
-     * @param expression left or right side expression.
+     * @param expression    left or right side expression.
      * @param slidingWindow whether to use sliding window.
      * @return the values grouped by attribute option combo.
      */
@@ -482,9 +501,12 @@ public class DataValidationTask
             String valueString = dv.getValue();
             Double value;
 
-            try {
+            try
+            {
                 value = Double.parseDouble( valueString );
-            } catch ( NumberFormatException e ) {
+            }
+            catch ( NumberFormatException e )
+            {
                 continue;
             }
 
@@ -495,7 +517,8 @@ public class DataValidationTask
 
             if ( dataElementOperand != null )
             {
-                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p, checkForDuplicates );
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p,
+                    checkForDuplicates );
             }
         }
     }
@@ -521,7 +544,7 @@ public class DataValidationTask
             }
         }
 
-        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value + existingValue);
+        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value + existingValue );
 
         checkForDuplicates.putEntry( orgUnitId, aocUid, dimItemObject, periodInterval );
     }
@@ -604,7 +627,7 @@ public class DataValidationTask
     /**
      * Gets event data.
      *
-     * @param params event data query parameters.
+     * @param params              event data query parameters.
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
@@ -620,8 +643,10 @@ public class DataValidationTask
         int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
-        Map<String, OrganisationUnit> ouLookup = orgUnits.stream().collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
-        Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+        Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
+            .collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
+        Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
+            .collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
 
         for ( List<Object> row : grid.getRows() )
         {

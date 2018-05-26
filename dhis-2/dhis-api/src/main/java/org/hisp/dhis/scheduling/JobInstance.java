@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 
 /**
@@ -46,6 +47,6 @@ public interface JobInstance
      * @param jobConfiguration  the configuration of the job
      * @param schedulingManager manager of scheduling
      */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
+    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager  )
         throws Exception;
 }

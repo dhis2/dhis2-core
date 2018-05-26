@@ -660,6 +660,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -841,6 +842,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
