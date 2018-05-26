@@ -295,7 +295,7 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         if ( StringUtils.isEmpty( dtoEntityInstance.getOrgUnit() ) )
         {
-            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "No org unit ID in tracked entity instance object." ) );
+            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "No org unit ID in tracked entity instance object" ) );
             return null;
         }
 
@@ -731,7 +731,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( daoTrackedEntityAttribute == null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute." ) );
+            importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute" ) );
             return importConflicts;
         }
 
@@ -785,7 +785,7 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
             && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
         {
-            importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
+            importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern" ) );
         }
 
         return importConflicts;
