@@ -875,9 +875,8 @@ public abstract class AbstractEventService
 
         if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
         {
-            throw new IllegalQueryException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
-        }
+            throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
+        }        
 
         if ( events != null && filters != null )
         {

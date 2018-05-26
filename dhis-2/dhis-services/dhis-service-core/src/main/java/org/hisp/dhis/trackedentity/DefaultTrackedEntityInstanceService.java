@@ -78,6 +78,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
@@ -361,7 +362,7 @@ public class DefaultTrackedEntityInstanceService
 
         User user = currentUserService.getCurrentUser();
 
-        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
+        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE ) || params.isOrganisationUnitMode( CAPTURE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
@@ -369,6 +370,11 @@ public class DefaultTrackedEntityInstanceService
         if ( params.isOrganisationUnitMode( ACCESSIBLE ) && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
         {
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+        }
+       
+        if ( params.isOrganisationUnitMode( CAPTURE ) && (user == null || !user.hasOrganisationUnit()) )
+        {
+            violation = "Current user must be associated with at least one organisation unit with write access when selection mode is CAPTURE";
         }
 
         if ( params.hasProgram() && params.hasTrackedEntityType() )
@@ -552,6 +558,15 @@ public class DefaultTrackedEntityInstanceService
         Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        
+        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
+        
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+        }
 
         QueryFilter queryFilter = getQueryFilter( query );
 
@@ -585,6 +600,11 @@ public class DefaultTrackedEntityInstanceService
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
                 }
+                
+                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+                {
+                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
+                }
 
                 params.getOrganisationUnits().add( organisationUnit );
             }
@@ -602,6 +622,11 @@ public class DefaultTrackedEntityInstanceService
         if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
+        }
+        
+        if ( ouMode == CAPTURE && currentUserService.getCurrentUser() != null )
+        {
+            params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
         }
 
         params.setQuery( queryFilter )

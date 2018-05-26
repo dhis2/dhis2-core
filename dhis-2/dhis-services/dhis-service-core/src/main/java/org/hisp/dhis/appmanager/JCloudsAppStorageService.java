@@ -199,7 +199,7 @@ public class JCloudsAppStorageService
 
         apps.clear();
 
-        log.info( " Starting JCloud discovery..." );
+        log.info( "Starting JClouds discovery" );
 
         for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
@@ -249,9 +249,8 @@ public class JCloudsAppStorageService
 
         if ( appList.isEmpty() )
         {
-            log.info( " No apps found during JClouds discovery." );
+            log.info( "No apps found during JClouds discovery." );
         }
-
     }
 
     @Override
@@ -270,6 +269,7 @@ public class JCloudsAppStorageService
     public AppStatus installApp( File file, String filename )
     {
         log.info( "Installing new app: " + filename );
+        
         try
         {
             // -----------------------------------------------------------------

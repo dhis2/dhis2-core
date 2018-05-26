@@ -64,12 +64,12 @@ public class PeriodResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = 
-            "CREATE TABLE " + getTempTableName() + 
-            " (periodid INTEGER NOT NULL PRIMARY KEY, iso VARCHAR(15) NOT NULL, daysno INTEGER NOT NULL, startdate DATE NOT NULL, enddate DATE NOT NULL";
+            "create table " + getTempTableName() + 
+            " (periodid integer not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql += ", " + columnQuote + periodType.getName().toLowerCase() + columnQuote + " VARCHAR(15)";
+            sql += ", " + columnQuote + periodType.getName().toLowerCase() + columnQuote + " varchar(15)";
         }
         
         sql += ")";
@@ -96,11 +96,12 @@ public class PeriodResourceTable
         {
             if ( period != null && period.isValid() )
             {
-                final PeriodType rowType = period.getPeriodType();
                 final String isoDate = period.getIsoDate();
+                final int year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
 
                 if ( !uniqueIsoDates.add( isoDate ) )
                 {
+                    // Protect against duplicates produced by calendar implementations
                     log.warn( "Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate );
                     continue;
                 }
@@ -112,19 +113,11 @@ public class PeriodResourceTable
                 values.add( period.getDaysInPeriod() );
                 values.add( period.getStartDate() );
                 values.add( period.getEndDate() );
-
-                for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+                values.add( year );
+                
+                for ( Period pe : PeriodType.getPeriodTypePeriods( period, calendar ) )
                 {
-                    if ( rowType.getFrequencyOrder() < periodType.getFrequencyOrder() || rowType.equals( periodType ) )
-                    {
-                        Period targetPeriod = IdentifiableObjectUtils.getPeriodByPeriodType( period, periodType, calendar );
-                                                
-                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( targetPeriod, calendar ) );
-                    }
-                    else
-                    {
-                        values.add( null );
-                    }
+                    values.add( pe != null ? IdentifiableObjectUtils.getLocalPeriodIdentifier( pe, calendar ) : null );
                 }
 
                 batchArgs.add( values.toArray() );

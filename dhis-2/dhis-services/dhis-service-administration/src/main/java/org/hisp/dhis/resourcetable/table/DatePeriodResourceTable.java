@@ -64,7 +64,7 @@ public class DatePeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key";
+        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
@@ -100,7 +100,10 @@ public class DatePeriodResourceTable
         {
             List<Object> values = new ArrayList<>();
 
+            final int year = PeriodType.getCalendar().fromIso( day.getStartDate() ).getYear();
+            
             values.add( day.getStartDate() );
+            values.add( year );
 
             for ( PeriodType periodType : periodTypes )
             {
