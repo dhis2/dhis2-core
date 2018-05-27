@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FollowupAnalysisParams
 {
     private String startDate;
@@ -50,6 +52,7 @@ public class FollowupAnalysisParams
         this.dataSetId = dataSetId;
     }
 
+    @JsonProperty
     public String getStartDate()
     {
         return startDate;
@@ -60,6 +63,7 @@ public class FollowupAnalysisParams
         this.startDate = startDate;
     }
 
+    @JsonProperty
     public String getEndDate()
     {
         return endDate;
@@ -70,6 +74,7 @@ public class FollowupAnalysisParams
         this.endDate = endDate;
     }
 
+    @JsonProperty
     public String getOrganisationUnitId()
     {
         return organisationUnitId;
@@ -80,6 +85,7 @@ public class FollowupAnalysisParams
         this.organisationUnitId = organisationUnitId;
     }
 
+    @JsonProperty
     public String getDataSetId()
     {
         return dataSetId;
@@ -88,5 +94,16 @@ public class FollowupAnalysisParams
     public void setDataSetId( String dataSetId )
     {
         this.dataSetId = dataSetId;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "FollowupAnalysisParams{" +
+            "startDate='" + startDate + '\'' +
+            ", endDate='" + endDate + '\'' +
+            ", organisationUnitId='" + organisationUnitId + '\'' +
+            ", dataSetId='" + dataSetId + '\'' +
+            '}';
     }
 }

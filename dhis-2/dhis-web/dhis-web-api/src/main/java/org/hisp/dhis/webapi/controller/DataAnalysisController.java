@@ -172,6 +172,9 @@ public class DataAnalysisController
         @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
         throws WebMessageException
     {
+
+        log.info( "performValidationRulesAnalysis from DataAnalysisController input " + validationRulesAnalysisParams );
+
         I18nFormat format = i18nManager.getI18nFormat();
 
         ValidationRuleGroup group = null;
@@ -251,6 +254,8 @@ public class DataAnalysisController
         @RequestBody StdDevOutlierAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
+        log.info( "performStdDevOutlierAnalysis from DataAnalysisController input " + stdDevOutlierAnalysisParams );
+
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
@@ -298,6 +303,8 @@ public class DataAnalysisController
         @RequestBody MinMaxOutlierAnalysisParams minMaxOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
+        log.info( "performMinMaxOutlierAnalysis from DataAnalysisController input " + minMaxOutlierAnalysisParams );
+
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
@@ -346,6 +353,8 @@ public class DataAnalysisController
         HttpSession session )
         throws WebMessageException
     {
+        log.info( "performFollowupAnalysis from DataAnalysisController input " + followupAnalysisParams );
+
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
@@ -379,6 +388,8 @@ public class DataAnalysisController
     public @ResponseBody
     void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest updateFollowUpForDataValuesRequest )
     {
+        log.info( "markDataValues from DataAnalysisController input " + updateFollowUpForDataValuesRequest );
+
         List<DataValue> dataValues = new ArrayList<>();
         for ( FollowupParams followup : updateFollowUpForDataValuesRequest.getFollowups() )
         {
