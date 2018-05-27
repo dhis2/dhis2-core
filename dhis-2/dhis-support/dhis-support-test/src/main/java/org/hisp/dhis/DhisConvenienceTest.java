@@ -84,6 +84,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
@@ -1182,6 +1183,24 @@ public abstract class DhisConvenienceTest
 
         return predictor;
     }
+
+    /**
+     * Creates a Predictor Group
+     *
+     * @param uniqueCharacter A unique character to identify the object.
+     * @return PredictorGroup
+     */
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    {
+        PredictorGroup group = new PredictorGroup();
+        group.setAutoFields();
+
+        group.setName( "PredictorGroup" + uniqueCharacter );
+        group.setDescription( "Description" + uniqueCharacter );
+
+        return group;
+    }
+
 
     public static Legend createLegend( char uniqueCharacter, Double startValue, Double endValue )
     {
