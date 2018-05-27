@@ -31,8 +31,6 @@ package org.hisp.dhis.predictor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

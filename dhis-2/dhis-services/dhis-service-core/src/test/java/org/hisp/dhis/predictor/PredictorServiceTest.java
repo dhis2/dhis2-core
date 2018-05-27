@@ -77,18 +77,15 @@ public class PredictorServiceTest
     private OrganisationUnitLevel orgUnitLevel1;
     
     private DataElement dataElementA;
-    private DataElement dataElementB;
-    private DataElement dataElementC;
-    private DataElement dataElementD;
     private DataElement dataElementX;
 
     private CategoryOptionCombo defaultCombo;
 
     private CategoryOptionCombo altCombo;
 
-    CategoryOption altCategoryOption;
-    Category altCategory;
-    CategoryCombo altCategoryCombo;
+    private CategoryOption altCategoryOption;
+    private Category altCategory;
+    private CategoryCombo altCategoryCombo;
 
     private Set<DataElement> dataElements;
 
@@ -103,14 +100,14 @@ public class PredictorServiceTest
     private Predictor predictorA;
     private Predictor predictorB;
 
-    int predictorIdA;
-    int predictorIdB;
+    private int predictorIdA;
+    private int predictorIdB;
 
     private PredictorGroup predictorGroupA;
     private PredictorGroup predictorGroupB;
 
-    int predictorGroupIdA;
-    int predictorGroupIdB;
+    private int predictorGroupIdA;
+    private int predictorGroupIdB;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -125,10 +122,11 @@ public class PredictorServiceTest
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
         
         dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementC = createDataElement( 'C' );
-        dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
+
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -321,7 +319,7 @@ public class PredictorServiceTest
 
         List<Predictor> predictors = predictorService.getAllPredictors();
 
-        assertTrue( predictors.size() == 2 );
+        assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
     }
@@ -340,7 +338,7 @@ public class PredictorServiceTest
 
         Set<Predictor> predictors = predictorGroupA.getMembers();
 
-        assertTrue( predictors.size() == 2 );
+        assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
     }
@@ -383,7 +381,7 @@ public class PredictorServiceTest
         assertNull( predictorService.getPredictorGroup( predictorGroupIdB ) );
 
         assertEquals( 0, predictorA.getGroups().size() );
-        }
+    }
 
     @Test
     public void testDeletePredictorGroupMember()
@@ -392,7 +390,7 @@ public class PredictorServiceTest
 
         Set<Predictor> predictors = predictorGroupA.getMembers();
 
-        assertTrue( predictors.size() == 2 );
+        assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
 
@@ -400,14 +398,14 @@ public class PredictorServiceTest
 
         predictors = predictorGroupA.getMembers();
 
-        assertTrue( predictors.size() == 1 );
+        assertEquals( 1, predictors.size() );
         assertTrue( predictors.contains( predictorB ) );
 
         predictorService.deletePredictor( predictorB );
 
         predictors = predictorGroupA.getMembers();
 
-        assertTrue( predictors.size() == 0 );
+        assertEquals( 0, predictors.size() );
     }
 
     @Test

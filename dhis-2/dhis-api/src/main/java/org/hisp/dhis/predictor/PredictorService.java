@@ -28,7 +28,6 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 /**
