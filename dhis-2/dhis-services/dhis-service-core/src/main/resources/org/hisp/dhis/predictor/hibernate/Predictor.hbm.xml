@@ -44,6 +44,11 @@
 
     <property name="sequentialSkipCount" column="sequentialskipcount" />
 
+    <set name="groups" table="predictorgroupmembers" inverse="true">
+      <key column="predictorid" />
+      <many-to-many class="org.hisp.dhis.predictor.PredictorGroup" column="predictorgroupid" />
+    </set>
+
   </class>
 
 </hibernate-mapping>

@@ -36,7 +36,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,8 +60,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Autowired
     private List<RuleActionImplementer> ruleActionImplementers;
 
+    @Autowired
+    private ProgramRuleService programRuleService;
+
     @Override
-    public List<RuleAction> evaluate( ProgramInstance programInstance )
+    public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
         if ( !containsImplementableActions( programInstance ) )
         {
@@ -82,23 +85,21 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
-        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
-
-        for ( RuleAction action : ruleActions )
+        for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
                 log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( action, programInstance );
+                i.implement( effect, programInstance );
             } );
         }
 
-        return ruleActions;
+        return ruleEffects;
     }
 
     @Override
-    public List<RuleAction> evaluate( ProgramStageInstance programStageInstance )
+    public List<RuleEffect> evaluate( ProgramStageInstance programStageInstance )
     {
         if ( !containsImplementableActions( programStageInstance.getProgramInstance() ) )
         {
@@ -119,19 +120,17 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
-        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
-
-        for ( RuleAction action : ruleActions )
+        for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
                 log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( action, programStageInstance );
+                i.implement( effect, programStageInstance );
             } );
         }
 
-        return ruleActions;
+        return ruleEffects;
     }
 
     private boolean containsImplementableActions( ProgramInstance programInstance )
@@ -141,9 +140,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return false;
         }
 
-        Program program = programInstance.getProgram();
-
-        Set<ProgramRule> programRules = program.getProgramRules();
+        List<ProgramRule> programRules = programRuleService.getProgramRule( programInstance.getProgram() );
 
         List<ProgramRuleAction> programRuleActions = programRules.stream().map( ProgramRule::getProgramRuleActions )
             .flatMap( Collection::stream )

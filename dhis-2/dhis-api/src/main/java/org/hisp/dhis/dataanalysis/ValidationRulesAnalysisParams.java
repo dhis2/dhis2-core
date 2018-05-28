@@ -29,8 +29,6 @@ package org.hisp.dhis.dataanalysis;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
 
 public class ValidationRulesAnalysisParams
 {
