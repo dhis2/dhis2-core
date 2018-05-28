@@ -296,7 +296,7 @@ public abstract class AbstractEventService
 
             if ( jobId != null )
             {
-                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId, importSummaries );
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId, importSummaries, ImportSummaries.class );
             }
 
             return importSummaries;

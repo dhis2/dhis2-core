@@ -230,7 +230,7 @@ public class DefaultTrackerKafkaManager
         job.setUid( jobId );
 
         notifier.notify( job, "Kafka Event job was queued." );
-        notifier.addJobSummary( job, new ImportSummaries() );
+        notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
 
         return job;
     }
@@ -256,7 +256,7 @@ public class DefaultTrackerKafkaManager
         job.setUid( jobId );
 
         notifier.notify( job, "Kafka Enrollment job was queued." );
-        notifier.addJobSummary( job, new ImportSummaries() );
+        notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
 
         return job;
     }
@@ -282,7 +282,7 @@ public class DefaultTrackerKafkaManager
         job.setUid( jobId );
 
         notifier.notify( job, "Kafka Tracked Entity job was queued." );
-        notifier.addJobSummary( job, new ImportSummaries() );
+        notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
 
         return job;
     }
@@ -326,7 +326,7 @@ public class DefaultTrackerKafkaManager
                 notifier.notify( job, msg );
 
                 importSummaries.addImportSummaries( eventService.addEvents( events, importOptions, true ) );
-                notifier.addJobSummary( job, importSummaries );
+                notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
             } );
 
         cEvent.commitSync();
@@ -371,7 +371,7 @@ public class DefaultTrackerKafkaManager
                 notifier.notify( job, msg );
 
                 importSummaries.addImportSummaries( enrollmentService.addEnrollments( enrollments, importOptions, false ) );
-                notifier.addJobSummary( job, importSummaries );
+                notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
             } );
 
         cEnrollment.commitSync();
@@ -416,7 +416,7 @@ public class DefaultTrackerKafkaManager
                 notifier.notify( job, msg );
 
                 importSummaries.addImportSummaries( trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions ) );
-                notifier.addJobSummary( job, importSummaries );
+                notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
             } );
 
         cTrackedEntity.commitSync();
