@@ -38,6 +38,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -123,23 +124,14 @@ public class ExternalFileResourceController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ).openStream() )
         {
-            inputStream = fileResourceService.getFileResourceContent( fileResource ).openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
-        catch ( IOException e )
+        catch ( IOException ex )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. " +
-                    "Depending on the provider the root cause could be network or file system related." ) );
+            throw new WebMessageException( WebMessageUtils.error( "Failed fetching file from storage",
+                "Exception when trying to fetch file from the storage backend: " + DebugUtils.getStackTrace( ex ) ) );
         }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
-        }
-
     }
 }

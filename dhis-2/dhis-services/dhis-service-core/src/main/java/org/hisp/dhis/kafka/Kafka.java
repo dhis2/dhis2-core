@@ -31,6 +31,7 @@ package org.hisp.dhis.kafka;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -39,11 +40,24 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "kafka", namespace = DxfNamespaces.DXF_2_0 )
 public class Kafka
 {
-    private final String bootstrapServers;
+    private String bootstrapServers;
 
-    public Kafka( String bootstrapServers )
+    private String clientId;
+
+    private int retries;
+
+    private int pollRecords;
+
+    public Kafka()
+    {
+    }
+
+    public Kafka( String bootstrapServers, String clientId, int retries, int pollRecords )
     {
         this.bootstrapServers = bootstrapServers;
+        this.clientId = clientId;
+        this.retries = retries;
+        this.pollRecords = pollRecords;
     }
 
     @JsonProperty( "bootstrap-servers" )
@@ -53,8 +67,60 @@ public class Kafka
         return bootstrapServers;
     }
 
+    public Kafka setBootstrapServers( String bootstrapServers )
+    {
+        this.bootstrapServers = bootstrapServers;
+        return this;
+    }
+
+    @JsonProperty( "client-id" )
+    @JacksonXmlProperty( localName = "client-id", namespace = DxfNamespaces.DXF_2_0 )
+    public String getClientId()
+    {
+        return clientId;
+    }
+
+    public void setClientId( String clientId )
+    {
+        this.clientId = clientId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getRetries()
+    {
+        return retries;
+    }
+
+    public Kafka setRetries( int retries )
+    {
+        this.retries = retries;
+        return this;
+    }
+
+    @JsonProperty( "poll-records" )
+    @JacksonXmlProperty( localName = "poll-records", namespace = DxfNamespaces.DXF_2_0 )
+    public int getPollRecords()
+    {
+        return pollRecords;
+    }
+
+    public void setPollRecords( int pollRecords )
+    {
+        this.pollRecords = pollRecords;
+    }
+
     public boolean isValid()
     {
         return bootstrapServers != null;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "bootstrapServers", bootstrapServers )
+            .add( "retries", retries )
+            .toString();
     }
 }

@@ -42,8 +42,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -125,6 +123,26 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
+
+    @Override
+    public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        try
+        {
+            Enrollments fromJson = fromJson( input, Enrollments.class );
+            enrollments.addAll( fromJson.getEnrollments() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            Enrollment fromJson = fromJson( input, Enrollment.class );
+            enrollments.add( fromJson );
+        }
+
+        return enrollments;
+    }
 
     @Override
     public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException

@@ -112,6 +112,7 @@ public class DefaultSchemaService
         add( new OrganisationUnitLevelSchemaDescriptor() ).
         add( new OrganisationUnitSchemaDescriptor() ).
         add( new PredictorSchemaDescriptor() ).
+        add( new PredictorGroupSchemaDescriptor() ).
         add( new ProgramDataElementDimensionItemSchemaDescriptor() ).
         add( new ProgramIndicatorSchemaDescriptor() ).
         add( new AnalyticsPeriodBoundarySchemaDescriptor() ).

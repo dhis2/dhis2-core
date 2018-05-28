@@ -23,7 +23,7 @@
       <cache usage="read-write" />
       <key column="validationgroupid" foreign-key="fk_validationrulegroupmembers_validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
-        foreign-key="fk_validationrulegroup_validationruleid" />
+                    foreign-key="fk_validationrulegroup_validationruleid" />
     </set>
 
     <!-- Access properties -->
