@@ -183,7 +183,7 @@ public class NotifierTest extends DhisSpringTest
         assertEquals( 2, jobSummariesForAnalyticsType.size() );
 
         Map<String, Object> jobSummariesForMetadataImportType = (Map<String, Object>) notifier
-            .getJobSummariesForJobType( JobType.METADATA_IMPORT );
+            .getJobSummariesForJobType( METADATA_IMPORT );
         assertNotNull( jobSummariesForMetadataImportType );
         assertEquals( 1, jobSummariesForMetadataImportType.size() );
         assertTrue( "somethingid3"
