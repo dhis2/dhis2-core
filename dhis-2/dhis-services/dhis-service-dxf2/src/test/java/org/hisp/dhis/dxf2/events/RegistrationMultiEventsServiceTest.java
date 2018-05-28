@@ -54,7 +54,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -95,9 +94,6 @@ public class RegistrationMultiEventsServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;

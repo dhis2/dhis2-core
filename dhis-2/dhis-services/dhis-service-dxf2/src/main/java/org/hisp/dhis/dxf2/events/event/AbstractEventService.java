@@ -1010,7 +1010,7 @@ public abstract class AbstractEventService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
-            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
+            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
 
             return importSummary.incrementIgnored();
         }

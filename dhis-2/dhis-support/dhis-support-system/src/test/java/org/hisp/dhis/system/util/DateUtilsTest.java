@@ -29,7 +29,6 @@ package org.hisp.dhis.system.util;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
 import org.junit.Test;

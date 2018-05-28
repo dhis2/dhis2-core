@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -347,12 +346,9 @@ public class TrackedEntityInstanceController
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         URI uri = fileResourceService.getSignedGetFileResourceContentUri( value.getValue() );
-        InputStream inputStream = null;
 
-        try
+        try ( InputStream inputStream = ( uri == null ) ? content.openStream() : uri.toURL().openStream() )
         {
-
-            inputStream = uri == null ? content.openStream() : uri.toURL().openStream();
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;
             width = width == null ? img.getWidth() : width;
@@ -363,15 +359,10 @@ public class TrackedEntityInstanceController
             canvas.dispose();
             ImageIO.write( resizedImg, fileResource.getFormat(), response.getOutputStream() );
         }
-        catch ( IOException e )
+        catch ( IOException ex )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. " +
-                    "Depending on the provider the root cause could be network or file system related." ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
+                "There was an exception when trying to fetch the file from the storage backend." ) );
         }
     }
 

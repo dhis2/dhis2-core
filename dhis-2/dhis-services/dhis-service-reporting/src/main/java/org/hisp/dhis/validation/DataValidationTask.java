@@ -110,8 +110,6 @@ public class DataValidationTask
 
     private ValidationRuleExtended ruleX;   // Current rule extended.
 
-    private Map<Integer, String> attributeOptionComboMap = new HashMap<>();
-
     // Data for current period and all rules being evaluated:
     private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
 
