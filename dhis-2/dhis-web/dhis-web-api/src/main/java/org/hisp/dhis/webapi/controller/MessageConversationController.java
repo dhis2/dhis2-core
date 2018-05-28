@@ -298,7 +298,7 @@ public class MessageConversationController
     //
 
 
-    @RequestMapping( value = "/{uid}/addRecipients", method = RequestMethod.POST )
+    @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
     public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid, @RequestBody MessageConversation messageConversation,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception

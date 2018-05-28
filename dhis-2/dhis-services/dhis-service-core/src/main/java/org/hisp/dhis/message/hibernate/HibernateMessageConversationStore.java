@@ -70,14 +70,17 @@ public class HibernateMessageConversationStore
     private List<Integer> getUserMessagesForUser( User user )
     {
         String userMessagesSql = "select distinct mc.messageconversationid " +
-            "from messageconversation mc INNER JOIN messageconversation_usermessages as mcu " +
+            "from messageconversation mc " +
+            "inner join messageconversation_usermessages as mcu " +
             "on mc.messageconversationid = mcu.messageconversationid " +
-            "INNER JOIN usermessage as um on mcu.usermessageid = um.usermessageid  where um.userid = " + user.getId();
+            "inner join usermessage as um on mcu.usermessageid = um.usermessageid " +
+            "where um.userid = " + user.getId();
 
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( userMessagesSql );
 
-        List<Integer> userMessages = new ArrayList<>( );
-        while (sqlRowSet.next()) {
+        List<Integer> userMessages = new ArrayList<>();
+        while ( sqlRowSet.next() )
+        {
             userMessages.add( Integer.parseInt( sqlRowSet.getString( 1 ) ) );
         }
 
@@ -95,7 +98,7 @@ public class HibernateMessageConversationStore
         List<Integer> userMessages = getUserMessagesForUser( user );
         if ( userMessages.size() == 0 )
         {
-            return new ArrayList<>( );
+            return new ArrayList<>();
         }
 
         String hql = "select distinct mc " +
@@ -103,7 +106,7 @@ public class HibernateMessageConversationStore
             "inner join mc.userMessages as um " +
             "left join mc.user as ui " +
             "left join mc.lastSender as ls " +
-            "where mc.id in (" + userMessages.toString().replace("[", "").replace("]", "") + ") ";
+            "where mc.id in (" + userMessages.toString().replace( "[", "" ).replace( "]", "" ) + ") ";
 
         if ( status != null )
         {
@@ -183,7 +186,7 @@ public class HibernateMessageConversationStore
 
         sqlRowSet.next();
 
-        return Long.parseLong( sqlRowSet.getString( 1 ));
+        return Long.parseLong( sqlRowSet.getString( 1 ) );
     }
 
     @Override
@@ -261,16 +264,42 @@ public class HibernateMessageConversationStore
         } );
     }
 
+    private UserMessage getUserMessage( MessageConversation mc, String userUid )
+    {
+        for ( UserMessage userMessage : mc.getUserMessages() )
+        {
+            if ( userMessage.getUser().getUid().equals( userUid ) )
+            {
+                return userMessage;
+            }
+        }
+
+        return null;
+    }
+
     private MessageConversation mapRowToMessageConversations( MessageConversation mc, User user )
     {
-        String hql = "select um " +
-            "from MessageConversation mc INNER JOIN " +
-            "mc.userMessages as um " +
-            "where um.user.id = " + user.getId() +
-            " and mc.id = " + mc.getId();
+        UserMessage um;
+        if ( mc.getUserMessages().size() < 50 )
+        {
+            um = getUserMessage( mc, user.getUid() );
+        }
+        else
+        {
+            String hql = "select um " +
+                "from MessageConversation mc INNER JOIN " +
+                "mc.userMessages as um " +
+                "where um.user.id = " + user.getId() +
+                " and mc.id = " + mc.getId();
 
-        Query query = getQuery( hql );
-        UserMessage um = (UserMessage) query.getResultList().get( 0 );
+            Query query = getQuery( hql );
+            um = (UserMessage) query.getResultList().get( 0 );
+
+            if ( um == null )
+            {
+                um = getUserMessage( mc, user.getUid() );
+            }
+        }
 
         mc.setRead( um.isRead() );
         mc.setFollowUp( um.isFollowUp() );
