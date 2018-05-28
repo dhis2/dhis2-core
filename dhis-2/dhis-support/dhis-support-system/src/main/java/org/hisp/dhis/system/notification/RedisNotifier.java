@@ -337,6 +337,7 @@ public class RedisNotifier implements Notifier
         {
             return null;
         }
+        
         try
         {
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
@@ -349,14 +350,9 @@ public class RedisNotifier implements Notifier
             }
 
             String lastJobUid = (String) lastJobUidSet.iterator().next();
-
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( lastJobUid );
-            if ( serializedSummary == null )
-            {
-                return null;
-            }
 
-            return objectMapper.readValue( (String) serializedSummary, existingSummaryType );
+            return serializedSummary != null ? objectMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {
@@ -377,11 +373,8 @@ public class RedisNotifier implements Notifier
         {
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( jobId );
-            if ( serializedSummary == null )
-            {
-                return null;
-            }
-            return objectMapper.readValue( (String) serializedSummary, existingSummaryType );
+
+            return serializedSummary != null ? objectMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {
