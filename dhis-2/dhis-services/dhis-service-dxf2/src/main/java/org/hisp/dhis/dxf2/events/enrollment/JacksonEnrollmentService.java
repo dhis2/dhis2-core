@@ -125,6 +125,26 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        try
+        {
+            Enrollments fromJson = fromJson( input, Enrollments.class );
+            enrollments.addAll( fromJson.getEnrollments() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            Enrollment fromJson = fromJson( input, Enrollment.class );
+            enrollments.add( fromJson );
+        }
+
+        return enrollments;
+    }
+
+    @Override
     public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );

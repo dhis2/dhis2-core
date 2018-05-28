@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.dxf2.events.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,24 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface KafkaManager
+public class KafkaEnrollment extends AbstractKafkaMessage<Enrollment>
 {
-    boolean isEnabled();
-
-    KafkaAdmin getAdmin();
-
-    //--------------------------------------------------------------------------
-    // String based kafka serializer/deserializer
-    //--------------------------------------------------------------------------
-
-    KafkaTemplate<String, String> getTemplate();
-
-    ConsumerFactory<String, String> getConsumerFactory( String group );
-
-    ProducerFactory<String, String> getProducerFactory();
-
-    //--------------------------------------------------------------------------
-    // Generic implementations, requires serializer/deserializer instances
-    //--------------------------------------------------------------------------
-
-    <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory );
-
-    <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
-
-    <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
-
-    <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
+    @JsonCreator
+    public KafkaEnrollment(
+        @JsonProperty( "id" ) String id,
+        @JsonProperty( "jobId" ) String jobId,
+        @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions,
+        @JsonProperty( "payload" ) Enrollment payload )
+    {
+        super( id, jobId, user, importOptions, payload );
+    }
 }

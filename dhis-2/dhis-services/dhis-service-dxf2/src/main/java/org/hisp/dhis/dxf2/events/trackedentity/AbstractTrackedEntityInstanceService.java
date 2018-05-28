@@ -391,7 +391,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() )
+                .incrementIgnored();
         }
 
         teiService.addTrackedEntityInstance( daoEntityInstance );
@@ -477,6 +478,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
 
             importSummary.setConflicts( importConflicts );
+
             return importSummary;
         }
 
@@ -539,7 +541,8 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setReference( uid );
-                importSummary.setDescription( "Tracked entity instance " + uid + " cannot be deleted as it has associated enrollments and user does not have authority " + Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                importSummary.setDescription( "Tracked entity instance " + uid + " cannot be deleted as it has associated enrollments and user does not have authority "
+                    + Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
 
                 return importSummary.incrementIgnored();
             }

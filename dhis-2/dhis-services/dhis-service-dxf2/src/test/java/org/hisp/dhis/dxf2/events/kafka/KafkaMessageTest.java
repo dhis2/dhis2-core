@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.dxf2.events.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,47 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.render.DefaultRenderService;
+import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface KafkaManager
+public class KafkaMessageTest
 {
-    boolean isEnabled();
+    @Test
+    public void testSerialize() throws IOException
+    {
+        ObjectMapper mapper = DefaultRenderService.getJsonMapper();
 
-    KafkaAdmin getAdmin();
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        event.setOrgUnit( CodeGenerator.generateUid() );
+        event.setStatus( EventStatus.COMPLETED );
 
-    //--------------------------------------------------------------------------
-    // String based kafka serializer/deserializer
-    //--------------------------------------------------------------------------
+        KafkaEvent kafkaEvent = new KafkaEvent(
+            CodeGenerator.generateUid(),
+            CodeGenerator.generateUid(),
+            CodeGenerator.generateUid(),
+            ImportOptions.getDefaultImportOptions(),
+            event
+        );
 
-    KafkaTemplate<String, String> getTemplate();
+        String eventString = mapper.writeValueAsString( kafkaEvent );
 
-    ConsumerFactory<String, String> getConsumerFactory( String group );
+        KafkaEvent value = mapper.readValue( eventString, KafkaEvent.class );
 
-    ProducerFactory<String, String> getProducerFactory();
-
-    //--------------------------------------------------------------------------
-    // Generic implementations, requires serializer/deserializer instances
-    //--------------------------------------------------------------------------
-
-    <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory );
-
-    <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
-
-    <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
-
-    <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
+        assertNotNull( value );
+        assertNotNull( value.getImportOptions() );
+        assertNotNull( value.getPayload() );
+    }
 }

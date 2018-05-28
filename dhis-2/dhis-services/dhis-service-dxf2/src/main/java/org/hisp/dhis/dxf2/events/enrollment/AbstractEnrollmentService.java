@@ -333,6 +333,12 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
+    {
+        return addEnrollments( enrollments, importOptions, null, clearSession );
+    }
+
+    @Override
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         importOptions = updateImportOptions( importOptions );
@@ -399,7 +405,8 @@ public abstract class AbstractEnrollmentService
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() )
+                .incrementIgnored();
         }
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( daoTrackedEntityInstance, program,
@@ -498,7 +505,7 @@ public abstract class AbstractEnrollmentService
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
-                    + " already has a completed enrollment in program " + program.getUid() + 
+                    + " already has a completed enrollment in program " + program.getUid() +
                     ", and this program only allows enrolling one time" );
                 importSummary.incrementIgnored();
 
@@ -563,12 +570,14 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment" ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment." )
+                .incrementIgnored();
         }
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() )
+                .incrementIgnored();
         }
 
         Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );

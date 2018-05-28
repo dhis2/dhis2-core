@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.dxf2.events.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,48 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface KafkaManager
+public class KafkaTrackerJob
+    extends AbstractJob
 {
-    boolean isEnabled();
+    private static final Log log = LogFactory.getLog( KafkaTrackerJob.class );
 
-    KafkaAdmin getAdmin();
+    @Autowired
+    private SystemService systemService;
 
-    //--------------------------------------------------------------------------
-    // String based kafka serializer/deserializer
-    //--------------------------------------------------------------------------
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
 
-    KafkaTemplate<String, String> getTemplate();
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.KAFKA_TRACKER;
+    }
 
-    ConsumerFactory<String, String> getConsumerFactory( String group );
+    @Override
+    public void execute( JobConfiguration jobConfiguration ) throws Exception
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
 
-    ProducerFactory<String, String> getProducerFactory();
+        if ( !systemInfo.isKafka() )
+        {
+            log.info( "Kafka integration is not enabled, skipping scheduled kafka job." );
+            return;
+        }
 
-    //--------------------------------------------------------------------------
-    // Generic implementations, requires serializer/deserializer instances
-    //--------------------------------------------------------------------------
-
-    <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory );
-
-    <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
-
-    <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
-
-    <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
+        trackerKafkaManager.consumeTrackedEntities( jobConfiguration );
+        trackerKafkaManager.consumeEnrollments( jobConfiguration );
+        trackerKafkaManager.consumeEvents( jobConfiguration );
+    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.dxf2.events.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,97 +30,74 @@ package org.hisp.dhis.kafka;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "kafka", namespace = DxfNamespaces.DXF_2_0 )
-public class Kafka
+public abstract class AbstractKafkaMessage<T>
 {
-    private String bootstrapServers;
+    private final String id;
+    private final String jobId;
+    private final String user;
+    private final ImportOptions importOptions;
+    private final T payload;
 
-    private String clientId;
-
-    private int retries;
-
-    private int pollRecords;
-
-    public Kafka()
+    public AbstractKafkaMessage( String id, String jobId, String user, ImportOptions importOptions, T payload )
     {
-    }
-
-    public Kafka( String bootstrapServers, String clientId, int retries, int pollRecords )
-    {
-        this.bootstrapServers = bootstrapServers;
-        this.clientId = clientId;
-        this.retries = retries;
-        this.pollRecords = pollRecords;
-    }
-
-    @JsonProperty( "bootstrap-servers" )
-    @JacksonXmlProperty( localName = "bootstrap-servers", namespace = DxfNamespaces.DXF_2_0 )
-    public String getBootstrapServers()
-    {
-        return bootstrapServers;
-    }
-
-    public Kafka setBootstrapServers( String bootstrapServers )
-    {
-        this.bootstrapServers = bootstrapServers;
-        return this;
-    }
-
-    @JsonProperty( "client-id" )
-    @JacksonXmlProperty( localName = "client-id", namespace = DxfNamespaces.DXF_2_0 )
-    public String getClientId()
-    {
-        return clientId;
-    }
-
-    public void setClientId( String clientId )
-    {
-        this.clientId = clientId;
+        this.id = id;
+        this.jobId = jobId;
+        this.user = user;
+        this.importOptions = importOptions;
+        this.payload = payload;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getRetries()
+    public String getId()
     {
-        return retries;
+        return id;
     }
 
-    public Kafka setRetries( int retries )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getJobId()
     {
-        this.retries = retries;
-        return this;
+        return jobId;
     }
 
-    @JsonProperty( "poll-records" )
-    @JacksonXmlProperty( localName = "poll-records", namespace = DxfNamespaces.DXF_2_0 )
-    public int getPollRecords()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUser()
     {
-        return pollRecords;
+        return user;
     }
 
-    public void setPollRecords( int pollRecords )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public T getPayload()
     {
-        this.pollRecords = pollRecords;
+        return payload;
     }
 
-    public boolean isValid()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportOptions getImportOptions()
     {
-        return bootstrapServers != null;
+        return importOptions;
     }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "bootstrapServers", bootstrapServers )
-            .add( "retries", retries )
+            .add( "id", id )
+            .add( "jobId", jobId )
+            .add( "user", user )
+            .add( "importOptions", importOptions )
+            .add( "payload", payload )
             .toString();
     }
 }

@@ -129,24 +129,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -500,7 +483,10 @@ public abstract class AbstractEventService
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
         }
 
         return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, importOptions );
@@ -658,7 +644,7 @@ public abstract class AbstractEventService
 
     //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
     //TODO: Do changes from the comment above
-    
+
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
@@ -1024,7 +1010,7 @@ public abstract class AbstractEventService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
-            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
+            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
 
             return importSummary.incrementIgnored();
         }
@@ -1167,7 +1153,7 @@ public abstract class AbstractEventService
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
             newDataElements, importSummary, importOptions );
-        
+
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
             return validationResult;
@@ -1176,7 +1162,7 @@ public abstract class AbstractEventService
         for ( DataValue dataValue : event.getDataValues() )
         {
             DataElement dataElement;
-            
+
             // The element was already saved so make an update
             if ( dataElementToValueMap.containsKey( dataValue.getDataElement() ) )
             {
@@ -1445,8 +1431,8 @@ public abstract class AbstractEventService
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
-            importSummary.incrementIgnored();
             importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
 
             return false;
         }
