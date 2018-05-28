@@ -644,7 +644,7 @@ public abstract class AbstractEventService
 
     //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
     //TODO: Do changes from the comment above
-    
+
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
@@ -1010,12 +1010,7 @@ public abstract class AbstractEventService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
-<<<<<<< HEAD
             importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
-            importSummary.incrementIgnored();
-=======
-            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
->>>>>>> origin/master
 
             return importSummary.incrementIgnored();
         }
@@ -1158,7 +1153,7 @@ public abstract class AbstractEventService
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
             newDataElements, importSummary, importOptions );
-        
+
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
             return validationResult;
@@ -1167,7 +1162,7 @@ public abstract class AbstractEventService
         for ( DataValue dataValue : event.getDataValues() )
         {
             DataElement dataElement;
-            
+
             // The element was already saved so make an update
             if ( dataElementToValueMap.containsKey( dataValue.getDataElement() ) )
             {
