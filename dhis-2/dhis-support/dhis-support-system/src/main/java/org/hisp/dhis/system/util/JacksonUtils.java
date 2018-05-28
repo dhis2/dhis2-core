@@ -51,7 +51,6 @@ public class JacksonUtils
     static
     {
         jsonMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        jsonMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
         jsonMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
         jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
