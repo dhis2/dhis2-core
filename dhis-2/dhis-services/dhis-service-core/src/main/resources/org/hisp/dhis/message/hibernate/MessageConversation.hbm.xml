@@ -50,9 +50,10 @@
 
     <set name="userMessages" table="messageconversation_usermessages" cascade="all,delete-orphan">
       <key column="messageconversationid"
-        foreign-key="fk_messageconversation_usermessages_messageconversationid" />
+           foreign-key="fk_messageconversation_usermessages_messageconversationid" />
       <many-to-many class="org.hisp.dhis.message.UserMessage" column="usermessageid"
-        unique="true" foreign-key="fk_messageconversation_usermessages_usermessageid">
+                    unique="true" foreign-key="fk_messageconversation_usermessages_usermessageid">
+        <filter name="userMessageUser" condition="userid = :userid" />
       </many-to-many>
     </set>
 
@@ -60,7 +61,8 @@
       <key column="messageconversationid" foreign-key="fk_messageconversation_messages_messageconversationid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.Message" column="messageid"
-        unique="true" foreign-key="fk_messageconversation_messages_messageid" />
+        unique="true" foreign-key="fk_messageconversation_messages_messageid" >
+      </many-to-many>
     </list>
 
     <many-to-one name="lastSender" class="org.hisp.dhis.user.User" column="lastsenderid"
@@ -71,4 +73,8 @@
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
       foreign-key="fk_messageconversation_user_userid" />
   </class>
+
+  <filter-def name="userMessageUser">
+    <filter-param name="userid" type="int" />
+  </filter-def>
 </hibernate-mapping>

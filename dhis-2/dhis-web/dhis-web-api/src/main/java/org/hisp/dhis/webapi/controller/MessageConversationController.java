@@ -79,6 +79,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -139,6 +140,18 @@ public class MessageConversationController
     }
 
     @Override
+    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity )
+        throws Exception
+    {
+        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
+        {
+            entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
+                Collectors.toList() ) );
+        }
+        super.postProcessEntity( entity );
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     protected List<org.hisp.dhis.message.MessageConversation> getEntityList( WebMetadata metadata, WebOptions options,
         List<String> filters, List<Order> orders ) throws QueryParserException
@@ -147,11 +160,12 @@ public class MessageConversationController
 
         if ( options.getOptions().containsKey( "query" ) )
         {
-            messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            messageConversations = Lists
+                .newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
         }
         else
         {
-            messageConversations = new ArrayList<>( messageService.getMessageConversations() );
+            messageConversations = new ArrayList<>( messageService.getMessageConversations( ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
@@ -200,13 +214,10 @@ public class MessageConversationController
         postObject( response, request, messageConversation );
     }
 
-    private void postObject( HttpServletResponse response, HttpServletRequest request,
-        MessageConversation messageConversation )
+    private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
         throws WebMessageException
     {
-        List<User> users = new ArrayList<>( messageConversation.getUsers() );
-        messageConversation.getUsers().clear();
-
+        Set<User> usersToMessageConversation = Sets.newHashSet();
         for ( OrganisationUnit ou : messageConversation.getOrganisationUnits() )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou.getUid() );
@@ -217,7 +228,7 @@ public class MessageConversationController
                     WebMessageUtils.conflict( "Organisation Unit does not exist: " + ou.getUid() ) );
             }
 
-            messageConversation.getUsers().addAll( organisationUnit.getUsers() );
+            usersToMessageConversation.addAll( organisationUnit.getUsers() );
         }
 
         for ( User u : users )
@@ -229,7 +240,7 @@ public class MessageConversationController
                 throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + u.getUid() ) );
             }
 
-            messageConversation.getUsers().add( user );
+            usersToMessageConversation.add( user );
         }
 
         for ( UserGroup ug : messageConversation.getUserGroups() )
@@ -242,8 +253,20 @@ public class MessageConversationController
                     WebMessageUtils.notFound( "User Group does not exist: " + ug.getUid() ) );
             }
 
-            messageConversation.getUsers().addAll( userGroup.getMembers() );
+            usersToMessageConversation.addAll( userGroup.getMembers() );
         }
+
+        return usersToMessageConversation;
+    }
+
+    private void postObject( HttpServletResponse response, HttpServletRequest request,
+        MessageConversation messageConversation )
+        throws WebMessageException
+    {
+        Set<User> users = Sets.newHashSet( messageConversation.getUsers() );
+        messageConversation.getUsers().clear();
+
+        messageConversation.getUsers().addAll( getUsersToMessageConversation( messageConversation, users ) );
 
         if ( messageConversation.getUsers().isEmpty() )
         {
@@ -310,45 +333,7 @@ public class MessageConversationController
             throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
         }
 
-        Set<User> additionalUsers = Sets.newHashSet();
-        for ( User u : messageConversation.getUsers() )
-        {
-            User user = userService.getUser( u.getUid() );
-
-            if ( user == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + u ) );
-            }
-
-            additionalUsers.add( user );
-        }
-
-        for ( OrganisationUnit ou : messageConversation.getOrganisationUnits())
-        {
-            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou.getUid() );
-
-            if ( organisationUnit == null )
-            {
-                throw new WebMessageException(
-                    WebMessageUtils.conflict( "Organisation Unit does not exist: " + ou ) );
-            }
-
-            additionalUsers.addAll( organisationUnit.getUsers() );
-        }
-
-
-        for ( UserGroup ug : messageConversation.getUserGroups() )
-        {
-            UserGroup userGroup = userGroupService.getUserGroup( ug.getUid() );
-
-            if ( userGroup == null )
-            {
-                throw new WebMessageException(
-                    WebMessageUtils.notFound( "User Group does not exist: " + ug ) );
-            }
-
-            additionalUsers.addAll( userGroup.getMembers() );
-        }
+        Set<User> additionalUsers = getUsersToMessageConversation( messageConversation, messageConversation.getUsers() );
 
         additionalUsers.forEach( user -> {
             if ( !conversation.getUsers().contains( user ) )
