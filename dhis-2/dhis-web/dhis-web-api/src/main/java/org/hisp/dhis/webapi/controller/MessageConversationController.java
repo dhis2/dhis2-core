@@ -318,12 +318,9 @@ public class MessageConversationController
         webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
     }
 
-    //
-
 
     @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
-    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid, @RequestBody MessageConversation messageConversation,
-        HttpServletRequest request, HttpServletResponse response )
+    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid, @RequestBody MessageConversation messageConversation )
         throws Exception
     {
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( uid );

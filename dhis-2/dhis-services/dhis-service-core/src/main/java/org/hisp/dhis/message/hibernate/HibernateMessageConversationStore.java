@@ -35,10 +35,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageConversationStore;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -63,8 +61,6 @@ public class HibernateMessageConversationStore
         this.statementBuilder = statementBuilder;
     }
 
-    @Autowired
-    private MessageService messageService;
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -258,8 +254,8 @@ public class HibernateMessageConversationStore
 
         if ( ls != null )
         {
-            mc.setLastSenderFirstname( mc.getLastSender().getFirstName() );
-            mc.setLastSenderSurname( mc.getLastSender().getSurname() );
+            mc.setLastSenderFirstname( ls.getFirstName() );
+            mc.setLastSenderSurname( ls.getSurname() );
         }
 
         return mc;

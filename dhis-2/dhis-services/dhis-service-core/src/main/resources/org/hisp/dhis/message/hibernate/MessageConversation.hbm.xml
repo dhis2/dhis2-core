@@ -61,8 +61,7 @@
       <key column="messageconversationid" foreign-key="fk_messageconversation_messages_messageconversationid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.Message" column="messageid"
-        unique="true" foreign-key="fk_messageconversation_messages_messageid" >
-      </many-to-many>
+        unique="true" foreign-key="fk_messageconversation_messages_messageid" />
     </list>
 
     <many-to-one name="lastSender" class="org.hisp.dhis.user.User" column="lastsenderid"
