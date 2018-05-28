@@ -747,7 +747,7 @@ public class TrackedEntityInstanceController
 
     @PostMapping( value = "/queue", consumes = "application/json" )
     public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
     {
         if ( !trackerKafkaManager.isEnabled() )
         {
