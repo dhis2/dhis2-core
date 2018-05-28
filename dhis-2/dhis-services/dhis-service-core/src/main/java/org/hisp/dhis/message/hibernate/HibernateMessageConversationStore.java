@@ -263,27 +263,17 @@ public class HibernateMessageConversationStore
 
     private MessageConversation mapRowToMessageConversations( MessageConversation mc, User user )
     {
-        Boolean isRead = false;
-        Boolean isFollowUp = false;
+        String hql = "select um " +
+            "from MessageConversation mc INNER JOIN " +
+            "mc.userMessages as um " +
+            "where um.user.id = " + user.getId() +
+            " and mc.id = " + mc.getId();
 
-        for ( UserMessage userMessage : mc.getUserMessages() )
-        {
-            if ( userMessage.getUser().getUid().equals( user.getUid() ) )
-            {
-                if ( userMessage.isRead() )
-                {
-                    isRead = true;
-                }
+        Query query = getQuery( hql );
+        UserMessage um = (UserMessage) query.getResultList().get( 0 );
 
-                if ( userMessage.isFollowUp() )
-                {
-                    isFollowUp = true;
-                }
-            }
-        }
-
-        mc.setRead( isRead );
-        mc.setFollowUp( isFollowUp );
+        mc.setRead( um.isRead() );
+        mc.setFollowUp( um.isFollowUp() );
 
         if ( mc.getUser() != null )
         {
