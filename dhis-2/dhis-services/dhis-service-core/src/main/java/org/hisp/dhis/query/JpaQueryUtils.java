@@ -56,8 +56,6 @@ public class JpaQueryUtils
         return order;
     }
 
-
-
     /**
      *
      * @param builder CriteriaBuilder

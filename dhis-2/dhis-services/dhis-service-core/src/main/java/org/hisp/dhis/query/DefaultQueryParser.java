@@ -33,14 +33,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,9 +44,6 @@ public class DefaultQueryParser implements QueryParser
     private static final String IDENTIFIABLE = "identifiable";
 
     private final SchemaService schemaService;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     public DefaultQueryParser( SchemaService schemaService )
     {
@@ -68,7 +59,6 @@ public class DefaultQueryParser implements QueryParser
     @Override
     public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException
     {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
 
@@ -92,12 +82,12 @@ public class DefaultQueryParser implements QueryParser
                 }
                 else
                 {
-                    query.add( getPredicate( builder, schema, split[0], split[1], filter.substring( index ) ) );
+                    query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
                 }
             }
             else
             {
-                query.add( getPredicate( builder, schema, split[0], split[1], null ) );
+                query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
 
@@ -109,33 +99,6 @@ public class DefaultQueryParser implements QueryParser
         query.add( getRestriction( schema, "displayName", operator, arg ) );
         query.add( getRestriction( schema, "id", operator, arg ) );
         query.add( getRestriction( schema, "code", operator, arg ) );
-    }
-
-    public Function<Root, Predicate> getPredicate( CriteriaBuilder builder, Schema schema, String path, String operator, Object arg ) throws QueryParserException
-    {
-        Property property = getProperty( schema, path );
-
-        if ( property == null )
-        {
-            throw new QueryParserException( "Unknown path property: " + path );
-        }
-
-        switch ( operator )
-        {
-            case "eq":
-            {
-                return root -> builder.equal( root.get( path ),  QueryUtils.parseValue( property.getKlass(), arg ) );
-//                return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-            }
-            case "!eq":
-            {
-                return root -> builder.notEqual( root.get( path ), QueryUtils.parseValue( property.getKlass(), arg ) );
-            }
-            default:
-            {
-                throw new QueryParserException( "`" + operator + "` is not a valid operator." );
-            }
-        }
     }
 
     @Override

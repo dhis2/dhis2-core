@@ -492,4 +492,16 @@ public class DataElementStoreTest
 
         assertNotEquals( lastUpdated, dataElementStore.getLastUpdated() );
     }
+
+    @Test
+    public void testCountByJpaQueryParameters()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+
+        assertEquals( 2, dataElementStore.getCount() );
+    }
 }

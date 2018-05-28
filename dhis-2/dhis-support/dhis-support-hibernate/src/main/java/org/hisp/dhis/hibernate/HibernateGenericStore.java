@@ -266,20 +266,31 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Get List result from JPA CriteriaQuery
+     * Get List objects returned by JPA CriteriaQuery
      * @param criteriaQuery
-     * @return list result
+     * @return list objects
      */
     protected List<T> getList( CriteriaQuery<T> criteriaQuery )
     {
         return getSession().createQuery( criteriaQuery ).getResultList();
     }
 
+    /**
+     * Get List objects returned by executable TypedQuery
+     * @param typedQuery
+     * @return list result
+     */
     protected final List<T> getList( TypedQuery<T> typedQuery )
     {
         return typedQuery.getResultList();
     }
 
+    /**
+     * Get List objects return by querying given JpaQueryParameters
+     * @param builder
+     * @param parameters JpaQueryParameters
+     * @return list objects
+     */
     protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         return getTypedQuery( builder, parameters ).getResultList();
@@ -333,26 +344,12 @@ public class HibernateGenericStore<T>
         return typedQuery;
     }
 
-
-    protected  final Long count( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, Function<Root<T>, Expression<Long>> countExpression )
-    {
-        CriteriaQuery<Long> query = builder.createQuery( Long.class );
-        Root<T> root = query.from( getClazz() );
-
-        if ( countExpression != null )
-        {
-            query.select( countExpression.apply( root ) );
-        }
-
-        if ( predicateProviders != null && !predicateProviders.isEmpty() )
-        {
-            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
-            query.where( predicates.toArray( new Predicate[0] ) );
-        }
-
-        return getSession().createQuery( query ).getSingleResult();
-    }
-
+    /**
+     * Count number of objects based on given parameters
+     * @param builder
+     * @param parameters JpaQueryParameters
+     * @return number of objects
+     */
     protected  final Long count( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
     {
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
@@ -536,6 +533,10 @@ public class HibernateGenericStore<T>
         return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
     }
 
+    /**
+     * Create new instance of JpaQueryParameters
+     * @return
+     */
     protected JpaQueryParameters<T> newJpaParameters()
     {
         return new JpaQueryParameters<>();

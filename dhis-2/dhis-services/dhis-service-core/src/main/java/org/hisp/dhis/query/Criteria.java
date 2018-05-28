@@ -30,14 +30,11 @@ package org.hisp.dhis.query;
 
 import org.hisp.dhis.schema.Schema;
 
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,8 +42,6 @@ import java.util.function.Function;
 public abstract class Criteria
 {
     protected List<Criterion> criterions = new ArrayList<>();
-
-    protected List<Function<Root, Predicate>> predicates = new ArrayList<>();
 
     protected Set<String> aliases = new HashSet<>();
 
@@ -67,11 +62,6 @@ public abstract class Criteria
         return aliases;
     }
 
-    public Criteria add( Function<Root, Predicate> predicate )
-    {
-        predicates.add( predicate );
-        return this;
-    }
     public Criteria add( Criterion criterion )
     {
         if ( !Restriction.class.isInstance( criterion ) )
@@ -101,10 +91,5 @@ public abstract class Criteria
     {
         criterions.forEach( this::add );
         return this;
-    }
-
-    public List<Function<Root, Predicate>> getPredicates()
-    {
-        return this.predicates;
     }
 }

@@ -32,17 +32,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -62,28 +57,18 @@ public class DefaultQueryService
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
-    private final List<InternalHibernateGenericStore<?>> hibernateGenericStores;
-
-    private final CurrentUserService currentUserService;
-
-    private Map<Class<?>, InternalHibernateGenericStore<?>> stores = new HashMap<>();
-
     @Autowired
     public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
         CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
-        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine,
-        List<InternalHibernateGenericStore<?>> hibernateGenericStores,
-        CurrentUserService currentUserService
-         )
+        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
     {
         this.queryParser = queryParser;
         this.queryPlanner = queryPlanner;
         this.criteriaQueryEngine = criteriaQueryEngine;
         this.inMemoryQueryEngine = inMemoryQueryEngine;
-        this.hibernateGenericStores = hibernateGenericStores;
-        this.currentUserService = currentUserService;
     }
 
+    @Override
     public List<? extends IdentifiableObject> query( Query query )
     {
         return queryObjects( query );
@@ -148,21 +133,7 @@ public class DefaultQueryService
         Query pQuery = queryPlan.getPersistedQuery();
         Query npQuery = queryPlan.getNonPersistedQuery();
 
-        Class<? extends IdentifiableObject> clazz = (Class<? extends IdentifiableObject>) query.getSchema().getKlass();
-
-        InternalHibernateGenericStore<? extends IdentifiableObject> store = getStore( clazz );
-
-        if ( !pQuery.getCriterions().isEmpty() )
-        {
-            objects = criteriaQueryEngine.query( pQuery );
-        }
-        else
-        {
-            System.out.println( "store.getClazz().getName() = " + store.getClazz().getName() );
-
-            objects = jpaQuery( queryPlanner, store, currentUserService.getCurrentUser(), pQuery );
-        }
-
+        objects = criteriaQueryEngine.query( pQuery );
 
         if ( !npQuery.isEmpty() )
         {
@@ -191,41 +162,4 @@ public class DefaultQueryService
 
         objects.removeIf( object -> "default".equals( object.getName() ) );
     }
-
-    private void initStoreMap()
-    {
-        if ( !stores.isEmpty() )
-        {
-            return;
-        }
-
-        for ( InternalHibernateGenericStore<?> store : hibernateGenericStores )
-        {
-            stores.put( store.getClazz(), store );
-        }
-    }
-
-    private <T extends IdentifiableObject> InternalHibernateGenericStore<T> getStoreHelper( Class<T> klass )
-    {
-        initStoreMap();
-        return ( InternalHibernateGenericStore<T> ) stores.get( klass );
-    }
-
-    private InternalHibernateGenericStore<? extends IdentifiableObject> getStore( Class<? extends IdentifiableObject> klass )
-    {
-        return getStoreHelper( klass );
-    }
-
-    private <T extends IdentifiableObject> List<T>  jpaQueryHelper( QueryPlanner queryPlanner, InternalHibernateGenericStore<T> store, User currentUser, Query pQuery )
-    {
-        JpaQueryEngine<T> engine = new JpaQueryEngine<T>( queryPlanner, store, currentUser );
-        return engine.query( pQuery );
-    }
-
-    private List<? extends IdentifiableObject> jpaQuery( QueryPlanner queryPlanner, InternalHibernateGenericStore<? extends IdentifiableObject> store, User currentUser, Query pQuery )
-    {
-       return jpaQueryHelper( queryPlanner, store, currentUser, pQuery );
-    }
-
-
 }

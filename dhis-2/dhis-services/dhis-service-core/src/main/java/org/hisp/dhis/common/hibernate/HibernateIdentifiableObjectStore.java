@@ -983,13 +983,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
     }
 
-    @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user )
     {
         return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
     }
 
-    @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
     {
         return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
@@ -1005,32 +1003,51 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return  getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
 
-    /**
-     * Creates a criteria with sharing restrictions relative to the given
-     * user and access string.
-     */
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
-    @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user )
     {
         return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
     }
 
     @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
+    {
+        return getSharingPredicates( builder, UserInfo.fromUser( user ), access );
+    }
+
+    /**
+     * Get sharing predicates based on given user and AclService.LIKE_READ_METADATA
+     * @param builder CriteriaBuilder
+     * @param user User
+     * @return List of Function<Root<T>, Predicate>
+     */
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
     {
         return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
     }
 
+    /**
+     * Get sharing predicates based on Access string and current user
+     * @param builder CriteriaBuilder
+     * @param access Access String
+     * @return List of Function<Root<T>, Predicate>
+     */
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
     }
 
+    /**
+     * Get sharing predicates based on given UserInfo and Access String
+     * @param builder CriteriaBuilder
+     * @param user UserInfo
+     * @param access Access String
+     * @return List of Function<Root<T>, Predicate>
+     */
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
@@ -1079,12 +1096,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             builder.exists( userPredicate.apply( root ) ) ) );
 
         return predicates;
-    }
-
-    @Override
-    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
-    {
-        return getSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
 
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
