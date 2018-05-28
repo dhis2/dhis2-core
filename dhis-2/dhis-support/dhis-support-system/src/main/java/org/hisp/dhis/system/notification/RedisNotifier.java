@@ -129,9 +129,9 @@ public class RedisNotifier implements Notifier
                     now.getTime() );
                 redisTemplate.boundZSetOps( notificationOrderKey ).add( id.getUid(), now.getTime() );
             }
-            catch ( JsonProcessingException e )
+            catch ( JsonProcessingException ex )
             {
-                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
+                log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
 
             log.info( notification );
@@ -167,8 +167,7 @@ public class RedisNotifier implements Notifier
     {
         List<Notification> list = new ArrayList<>();
 
-        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1,
-            -1 );
+        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1, -1 );
         if ( !lastJobUidSet.iterator().hasNext() )
         {
             return list;
@@ -210,9 +209,9 @@ public class RedisNotifier implements Notifier
             {
                 notifications.add( objectMapper.readValue( x, Notification.class ) );
             }
-            catch ( IOException e )
+            catch ( IOException ex )
             {
-                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
+                log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
         } );
         return notifications;
@@ -287,9 +286,9 @@ public class RedisNotifier implements Notifier
                 redisTemplate.boundZSetOps( summaryOrderKey ).add( id.getUid(), now.getTime() );
 
             }
-            catch ( JsonProcessingException | ClassNotFoundException e )
+            catch ( JsonProcessingException | ClassNotFoundException ex )
             {
-                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
+                log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
         }
         return this;
@@ -322,9 +321,9 @@ public class RedisNotifier implements Notifier
                 }
             } );
         }
-        catch ( ClassNotFoundException e1 )
+        catch ( ClassNotFoundException ex )
         {
-            log.warn( String.format( NOTIFIER_ERROR, e1.getMessage() ) );
+            log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
         }
 
         return jobSummariesForType;
@@ -333,7 +332,6 @@ public class RedisNotifier implements Notifier
     @Override
     public Object getJobSummary( JobType jobType )
     {
-
         String existingSummaryTypeStr = redisTemplate.boundValueOps( generateSummaryTypeKey( jobType ) ).get();
         if ( existingSummaryTypeStr == null )
         {
@@ -360,9 +358,9 @@ public class RedisNotifier implements Notifier
 
             return objectMapper.readValue( (String) serializedSummary, existingSummaryType );
         }
-        catch ( IOException | ClassNotFoundException e )
+        catch ( IOException | ClassNotFoundException ex )
         {
-            log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
+            log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
         }
         return null;
     }
@@ -385,53 +383,47 @@ public class RedisNotifier implements Notifier
             }
             return objectMapper.readValue( (String) serializedSummary, existingSummaryType );
         }
-        catch ( IOException | ClassNotFoundException e )
+        catch ( IOException | ClassNotFoundException ex )
         {
-            log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
+            log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
         }
         return null;
     }
 
     private static String generateNotificationKey( JobType jobType, String jobUid )
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( NOTIFICATIONS_KEY_PREFIX );
-        builder.append( jobType.toString() );
-        builder.append( COLON );
-        builder.append( jobUid );
-        return builder.toString();
+        return new StringBuilder()
+            .append( NOTIFICATIONS_KEY_PREFIX )
+            .append( jobType.toString() )
+            .append( COLON )
+            .append( jobUid ).toString();
     }
 
     private static String generateNotificationOrderKey( JobType jobType )
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( NOTIFICATION_ORDER_KEY_PREFIX );
-        builder.append( jobType.toString() );
-        return builder.toString();
+        return new StringBuilder()
+            .append( NOTIFICATION_ORDER_KEY_PREFIX )
+            .append( jobType.toString() ).toString();
     }
 
     private static String generateSummaryKey( JobType jobType )
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( SUMMARIES_KEY_PREFIX );
-        builder.append( jobType.toString() );
-        return builder.toString();
+        return new StringBuilder()
+            .append( SUMMARIES_KEY_PREFIX )
+            .append( jobType.toString() ).toString();
     }
 
     private static String generateSummaryOrderKey( JobType jobType )
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( SUMMARIES_KEY_ORDER_PREFIX );
-        builder.append( jobType.toString() );
-        return builder.toString();
+        return new StringBuilder()
+            .append( SUMMARIES_KEY_ORDER_PREFIX )
+            .append( jobType.toString() ).toString();
     }
 
     private static String generateSummaryTypeKey( JobType jobType )
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( SUMMARY_TYPE_PREFIX );
-        builder.append( jobType.toString() );
-        return builder.toString();
+        return new StringBuilder()
+            .append( SUMMARY_TYPE_PREFIX )
+            .append( jobType.toString() ).toString();
     }
-
 }
