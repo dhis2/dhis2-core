@@ -334,7 +334,7 @@ public abstract class AbstractEventService
 
         if ( programStage == null && program.isRegistration() )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage, and program is multi stage: " + event.getProgramStage() )
+            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage, and program is multi-stage: " + event.getProgramStage() )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
         else if ( programStage == null )
@@ -373,7 +373,7 @@ public abstract class AbstractEventService
             else if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                    + " have multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+                    + " has multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             programInstance = programInstances.get( 0 );
@@ -535,12 +535,12 @@ public abstract class AbstractEventService
 
         if ( params.getProgramStage() == null )
         {
-            throw new IllegalQueryException( "Program stage can not be null." );
+            throw new IllegalQueryException( "Program stage can not be null" );
         }
 
         if ( params.getProgramStage().getProgramStageDataElements() == null )
         {
-            throw new IllegalQueryException( "Program stage should have data element(s)." );
+            throw new IllegalQueryException( "Program stage should have at least one data element" );
         }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
@@ -644,6 +644,7 @@ public abstract class AbstractEventService
 
     //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
     //TODO: Do changes from the comment above
+    
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
@@ -1009,8 +1010,12 @@ public abstract class AbstractEventService
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
+<<<<<<< HEAD
             importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
             importSummary.incrementIgnored();
+=======
+            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
+>>>>>>> origin/master
 
             return importSummary.incrementIgnored();
         }
@@ -1055,7 +1060,7 @@ public abstract class AbstractEventService
             if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "User is not authorized to uncomplete events." );
+                importSummary.setDescription( "User is not authorized to uncomplete events" );
 
                 return importSummary;
             }
@@ -1153,6 +1158,7 @@ public abstract class AbstractEventService
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
             newDataElements, importSummary, importOptions );
+        
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
             return validationResult;
@@ -1161,7 +1167,8 @@ public abstract class AbstractEventService
         for ( DataValue dataValue : event.getDataValues() )
         {
             DataElement dataElement;
-            // The element was already saved. So make an update
+            
+            // The element was already saved so make an update
             if ( dataElementToValueMap.containsKey( dataValue.getDataElement() ) )
             {
 
@@ -1178,14 +1185,12 @@ public abstract class AbstractEventService
                 teiDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 dataValueService.updateTrackedEntityDataValue( teiDataValue );
 
-                // Marking that this dataValue was a part of an update, so it
-                // shouldn't be removed at the end.
+                // Marking that this data value was a part of an update so it should not be removed
                 dataValues.remove( teiDataValue );
             }
-            // This element - value wasn't present before. It is a new one. Save it.
+            // Value is not present so consider it a new and save
             else
             {
-                // In validation of data values I made sure that the value is present
                 dataElement = newDataElements.get( dataValue.getDataElement() );
 
                 saveDataValue( programStageInstance, event.getStoredBy(), dataElement, dataValue.getValue(),
@@ -1271,8 +1276,7 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        // TODO: Shouldn't access rights be checked for delete in the same way
-        // as for update? Currently, no check is present at all.
+        //TODO: Should access rights be checked for delete in the same way as for update?
 
         boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
 
@@ -1291,8 +1295,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            //If I am here, it means that the item is either already deleted or it is not present in the system at all.
-            return new ImportSummary( ImportStatus.SUCCESS, "Event with UID " + uid + " is not present in the system. Therefore, there is nothing to delete." ).incrementIgnored();
+            return new ImportSummary( ImportStatus.SUCCESS, "Event " + uid + " cannot be deleted as it is not present in the system" ).incrementIgnored();
         }
     }
 
@@ -1377,8 +1380,7 @@ public abstract class AbstractEventService
         Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements,
         ImportSummary importSummary, ImportOptions importOptions )
     {
-        // Loop through values. If only one validation problem occurs -> FAIL
-        // (Either everything has to be OK or no change)
+        // Loop through values, if only one validation problem occurs -> FAIL
         for ( DataValue dataValue : event.getDataValues() )
         {
             DataElement dataElement;
@@ -1390,7 +1392,7 @@ public abstract class AbstractEventService
             {
                 dataElement = getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(), dataValue.getDataElement() );
 
-                // This can happen if a wrong dataElement UID is provided in payload
+                // This can happen if a wrong data element identifier is provided
                 if ( dataElement == null )
                 {
                     String descMsg = "Data element " + dataValue.getDataElement() + " doesn't exist in the system. Please, provide correct data element";
@@ -1404,8 +1406,7 @@ public abstract class AbstractEventService
                 newDataElements.put( dataValue.getDataElement(), dataElement );
             }
 
-            // To keep it simple the fail fast approach is chosen: 1 error is
-            // enough. Return back an error.
+            // Return error if one or more values fail validation
             if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary ) )
             {
                 return importSummary;
@@ -1458,7 +1459,7 @@ public abstract class AbstractEventService
         boolean existingEvent = programStageInstance != null;
         boolean dryRun = importOptions.isDryRun();
 
-        Date executionDate = null; // = new Date();
+        Date executionDate = null;
 
         if ( event.getEventDate() != null )
         {
@@ -1499,7 +1500,7 @@ public abstract class AbstractEventService
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo." ) );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo" ) );
         }
 
         if ( !dryRun )
@@ -1816,13 +1817,13 @@ public abstract class AbstractEventService
 
         if ( params == null )
         {
-            throw new IllegalQueryException( "Query parameters can not be empty." );
+            throw new IllegalQueryException( "Query parameters can not be empty" );
         }
 
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
             && params.getEvents().isEmpty() )
         {
-            violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event.";
+            violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event";
         }
 
         if ( violation != null )
@@ -1860,7 +1861,7 @@ public abstract class AbstractEventService
 
                     if ( referenceDate == null )
                     {
-                        throw new IllegalQueryException( "Event needs to have completed date." );
+                        throw new IllegalQueryException( "Event needs to have completed date" );
                     }
 
                     if ( (new Date()).after(
@@ -1882,14 +1883,14 @@ public abstract class AbstractEventService
 
                     if ( programStageInstance.getExecutionDate() == null )
                     {
-                        throw new IllegalQueryException( "Event needs to have event date." );
+                        throw new IllegalQueryException( "Event needs to have event date" );
                     }
 
                     Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
 
                     if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
                     {
-                        throw new IllegalQueryException( "The program's expiry date has passed. It is not possible to make changes to this event." );
+                        throw new IllegalQueryException( "The program's expiry date has passed. It is not possible to make changes to this event" );
                     }
                 }
                 else
@@ -1899,14 +1900,14 @@ public abstract class AbstractEventService
 
                     if ( referenceDate == null )
                     {
-                        throw new IllegalQueryException( "Event needs to have at least one (event or schedule) date. " );
+                        throw new IllegalQueryException( "Event needs to have at least one (event or schedule) date" );
                     }
 
                     Period period = periodType.createPeriod( new Date() );
 
                     if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
                     {
-                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possble to create such event." );
+                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possble to create such event" );
                     }
                 }
             }

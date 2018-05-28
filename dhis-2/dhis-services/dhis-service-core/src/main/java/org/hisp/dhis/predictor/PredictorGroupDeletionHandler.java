@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.predictor;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,36 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Jim Grace
  */
-public enum Authorities
+public class PredictorGroupDeletionHandler
+    extends DeletionHandler
 {
-    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
-    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
-    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" );
-    
-    private String authority;
-    
-    Authorities( String authority )
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
     {
-        this.authority = authority;
+        return PredictorGroup.class.getSimpleName();
     }
-    
-    public String getAuthority()
+
+    @Override
+    public void deletePredictor( Predictor predictor )
     {
-        return authority;
+        for ( PredictorGroup group : predictor.getGroups() )
+        {
+            group.getMembers().remove( predictor );
+            idObjectManager.updateNoAcl( group );
+        }
     }
 }

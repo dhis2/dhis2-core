@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,17 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.schema.descriptors.PredictorGroupSchemaDescriptor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Jim Grace
  */
-public enum Authorities
+@Controller
+@RequestMapping( value = PredictorGroupSchemaDescriptor.API_ENDPOINT )
+public class PredictorGroupController
+    extends AbstractCrudController<PredictorGroup>
 {
-    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
-    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
-    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" );
-    
-    private String authority;
-    
-    Authorities( String authority )
-    {
-        this.authority = authority;
-    }
-    
-    public String getAuthority()
-    {
-        return authority;
-    }
 }

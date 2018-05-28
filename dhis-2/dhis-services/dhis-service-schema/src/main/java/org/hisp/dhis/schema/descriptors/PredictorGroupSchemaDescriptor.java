@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,34 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Jim Grace
  */
-public enum Authorities
+public class PredictorGroupSchemaDescriptor implements SchemaDescriptor
 {
-    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
-    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
-    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" );
-    
-    private String authority;
-    
-    Authorities( String authority )
+    public static final String SINGULAR = "predictorGroup";
+
+    public static final String PLURAL = "predictorGroups";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        this.authority = authority;
-    }
-    
-    public String getAuthority()
-    {
-        return authority;
+        Schema schema = new Schema( PredictorGroup.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2002 );
+
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTORGROUP_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTORGROUP_DELETE" ) ) );
+
+        return schema;
     }
 }

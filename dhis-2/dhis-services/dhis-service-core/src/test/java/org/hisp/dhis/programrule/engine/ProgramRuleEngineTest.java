@@ -36,6 +36,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -71,6 +73,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Program programC;
 
+    private Program programS;
+
     private ProgramStage programStageA;
 
     private ProgramStage programStageB1;
@@ -105,6 +109,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRuleAction programRuleActionForSendMessage;
 
+    private ProgramRuleAction programRuleActionForScheduleMessage;
+
+    private ProgramRuleAction programRuleActionForScheduleMessageForDuplicate;
+
     private ProgramRuleAction programRuleActionForDisplayTextForEnrollment;
 
     private ProgramRuleVariable programRuleVariableA;
@@ -119,6 +127,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRuleVariable programRuleVariableF;
 
+    private ProgramRuleVariable programRuleVariableS;
+
     private ProgramRule programRuleB;
 
     private ProgramRule programRuleC;
@@ -126,6 +136,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramRule programRuleD;
 
     private ProgramRule programRuleE;
+
+    private ProgramRule programRuleS;
 
     private OrganisationUnit organisationUnitA;
 
@@ -136,6 +148,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramInstance programInstanceB;
 
     private ProgramInstance programInstanceC;
+
+    private ProgramInstance programInstanceS;
 
     private ProgramStageInstance programStageInstanceA;
 
@@ -148,6 +162,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private TrackedEntityInstance entityInstanceA;
 
     private TrackedEntityInstance entityInstanceB;
+
+    private TrackedEntityInstance entityInstanceS;
 
     private DataElement dataElementA;
 
@@ -185,6 +201,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date enrollmentDate;
 
+    private String scheduledDate;
+
     private String expressionA = "#{ProgramRuleVariableA}=='malaria' && V{event_status}=='ACTIVE'";
 
     private String expressionB = "#{ProgramRuleVariableB}=='bcgdoze'";
@@ -195,12 +213,22 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String expressionF = "A{ProgramRuleVariableF}=='xmen'";
 
+    private String expressionS = "A{ProgramRuleVariableS}=='xmen'";
+
+    private String dataExpression = "d2:addDays('2018-04-15', '2')";
+
     private String location = "feedback";
 
     private String programRuleActionCData = "#{ProgramRuleVariableC} + #{ProgramRuleVariableD}";
 
     @Autowired
     ProgramRuleEngine programRuleEngine;
+
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    private List<RuleActionImplementer> ruleActionImplementers;
 
     @Autowired
     private ProgramRuleService programRuleService;
@@ -253,6 +281,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
+    @Autowired
+    private NotificationLoggingService notificationLoggingService;
+
     @Override
     public void setUpTest()
     {
@@ -304,6 +335,44 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
 
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+    }
+
+    @Test
+    public void testSchedulingByProgramRule() throws Exception
+    {
+        setUpScheduleMessage();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
+
+        List<RuleEffect> ruleEffects = programRuleEngineService.evaluate( programInstance );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionScheduleMessage );
+
+        RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
+
+        assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
+        assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
+
+        // For duplication detection
+
+        List<RuleEffect> ruleEffects2 = programRuleEngineService.evaluate( programInstance );
+
+        assertNotNull( ruleEffects2.get( 0 ) );
+
+        RuleActionImplementer ruleActionImplementer = ruleActionImplementers.stream()
+            .filter( r -> r.accept( ruleEffects2.get( 0 ).ruleAction() ) ).findFirst().get();
+
+        RuleActionScheduleMessageImplementer messageImplementer2 = (RuleActionScheduleMessageImplementer) ruleActionImplementer;
+
+        RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 ).ruleAction();
+
+        assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
+        // duplicate enrollment/events will be ignored and validation will be failed.
+        assertFalse( messageImplementer2.validate( ruleEffects2.get( 0 ), programInstance ) );
     }
 
     @Test
@@ -475,10 +544,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
         programC = createProgram( 'C', new HashSet<>(), organisationUnitB );
+        programS = createProgram( 'S', new HashSet<>(), organisationUnitB );
 
         programService.addProgram( programA );
         programService.addProgram( programB );
         programService.addProgram( programC );
+        programService.addProgram( programS );
 
         ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( 'A' );
         attribute.setUid( "ATTR-UID" );
@@ -486,16 +557,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         attribute.setProgram( programA );
         attribute.setProgram( programB );
         attribute.setProgram( programC );
+        attribute.setProgram( programS );
 
         programTrackedEntityAttributeStore.save( attribute );
 
         programA.setProgramAttributes( Arrays.asList( attribute ) );
         programB.setProgramAttributes( Arrays.asList( attribute ) );
         programC.setProgramAttributes( Arrays.asList( attribute ) );
+        programS.setProgramAttributes( Arrays.asList( attribute ) );
 
         programService.updateProgram( programA );
         programService.updateProgram( programB );
         programService.updateProgram( programC );
+        programService.updateProgram( programS );
 
         programStageA = createProgramStage( 'A', programA );
         programStageB = createProgramStage( 'B', programA );
@@ -554,17 +628,26 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
+        entityInstanceS = createTrackedEntityInstance( 'S', organisationUnitB );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceS );
+
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeB, entityInstanceA, "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
 
         TrackedEntityAttributeValue attributeValueB = new TrackedEntityAttributeValue( attributeB, entityInstanceB, "xmen" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueB );
 
+        TrackedEntityAttributeValue attributeValueS = new TrackedEntityAttributeValue( attributeB, entityInstanceS, "xmen" );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
+
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
 
         entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
+
+        entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
+        entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
 
 
         DateTime testDate1 = DateTime.now();
@@ -587,6 +670,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programInstanceC = programInstanceService.enrollTrackedEntityInstance( entityInstanceB, programC, enrollmentDate, incidenDate, organisationUnitB );
         programInstanceC.setUid("UID-P3");
         programInstanceService.updateProgramInstance( programInstanceC );
+
+        programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS, programS, enrollmentDate, incidenDate, organisationUnitB );
+        programInstanceS.setUid("UID-PS");
+        programInstanceService.updateProgramInstance( programInstanceS );
 
         programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
         programStageInstanceA.setDueDate( enrollmentDate );
@@ -670,6 +757,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleE.setCondition( expressionF );
         programRuleService.addProgramRule( programRuleE );
 
+        programRuleS = createProgramRule( 'S', programS );
+        programRuleS.setCondition( expressionS );
+        programRuleService.addProgramRule( programRuleS );
+
         programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableA.setDataElement( dataElementA );
@@ -699,6 +790,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableF.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableF.setAttribute( attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableF );
+
+        programRuleVariableS = createProgramRuleVariable( 'S', programS );
+        programRuleVariableS.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableS.setAttribute( attributeB );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
     }
 
     private void setUpEnrollmentTest()
@@ -861,5 +957,31 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
+    }
+
+    private void setUpScheduleMessage()
+    {
+        scheduledDate = "2018-04-17";
+
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT-Schedule" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1-SCH" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        programRuleActionForScheduleMessage = createProgramRuleAction( 'S', programRuleS );
+        programRuleActionForScheduleMessage.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
+        programRuleActionForScheduleMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForScheduleMessage.setContent( "STATIC-TEXT-SCHEDULE" );
+        programRuleActionForScheduleMessage.setData( dataExpression );
+        programRuleActionService.addProgramRuleAction( programRuleActionForScheduleMessage );
+
+        programRuleS.setProgramRuleActions( Sets.newHashSet( programRuleActionForScheduleMessage ) );
+        programRuleService.updateProgramRule( programRuleS );
     }
 }
