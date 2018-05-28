@@ -61,6 +61,8 @@ import java.util.Set;
  */
 public class RedisNotifier implements Notifier
 {
+    private static final String NOTIFIER_ERROR = "Redis Notifier error:%s";
+
     private static final Log log = LogFactory.getLog( RedisNotifier.class );
 
     private RedisTemplate<String, String> redisTemplate;
@@ -129,6 +131,7 @@ public class RedisNotifier implements Notifier
             }
             catch ( JsonProcessingException e )
             {
+                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
             }
 
             log.info( notification );
@@ -209,6 +212,7 @@ public class RedisNotifier implements Notifier
             }
             catch ( IOException e )
             {
+                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
             }
         } );
         return notifications;
@@ -268,7 +272,7 @@ public class RedisNotifier implements Notifier
                         return this;
                     }
                 }
-                
+
                 String summaryOrderKey = generateSummaryOrderKey( id.getJobType() );
                 if ( redisTemplate.boundZSetOps( summaryOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
                 {
@@ -285,6 +289,7 @@ public class RedisNotifier implements Notifier
             }
             catch ( JsonProcessingException | ClassNotFoundException e )
             {
+                log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
             }
         }
         return this;
@@ -313,11 +318,13 @@ public class RedisNotifier implements Notifier
                 }
                 catch ( IOException e )
                 {
+                    log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
                 }
             } );
         }
         catch ( ClassNotFoundException e1 )
         {
+            log.warn( String.format( NOTIFIER_ERROR, e1.getMessage() ) );
         }
 
         return jobSummariesForType;
@@ -355,6 +362,7 @@ public class RedisNotifier implements Notifier
         }
         catch ( IOException | ClassNotFoundException e )
         {
+            log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
         }
         return null;
     }
@@ -379,6 +387,7 @@ public class RedisNotifier implements Notifier
         }
         catch ( IOException | ClassNotFoundException e )
         {
+            log.warn( String.format( NOTIFIER_ERROR, e.getMessage() ) );
         }
         return null;
     }
