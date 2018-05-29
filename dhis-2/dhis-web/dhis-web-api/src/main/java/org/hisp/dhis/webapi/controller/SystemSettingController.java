@@ -185,7 +185,8 @@ public class SystemSettingController
 
         for ( String key : settings.keySet() )
         {
-            systemSettingManager.saveSystemSetting( key, (Serializable) settings.get( key ) );
+            Serializable valueObject = SettingKey.getAsRealClass( key, settings.get( key ).toString() );
+            systemSettingManager.saveSystemSetting( key, valueObject );
         }
 
         webMessageService.send( WebMessageUtils.ok( "System settings imported" ), response, request );
