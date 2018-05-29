@@ -28,15 +28,14 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
-
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * Identifier schemes used to map meta data. The general identifier
  * scheme can be overridden by id schemes specific to individual
  * object types. The default id scheme is UID.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdSchemes
@@ -46,7 +45,7 @@ public class IdSchemes
     private IdScheme dataElementIdScheme;
 
     private IdScheme categoryOptionComboIdScheme;
-    
+
     private IdScheme categoryOptionIdScheme;
 
     private IdScheme orgUnitIdScheme;

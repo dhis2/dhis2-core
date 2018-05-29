@@ -101,4 +101,13 @@ public class ValidationRuleExpressionDetails
     {
         this.rightSide = rightSide;
     }
+
+    @Override
+    public String toString()
+    {
+        return "ValidationRuleExpressionDetails{" +
+            "leftSide=" + leftSide +
+            ", rightSide=" + rightSide +
+            '}';
+    }
 }

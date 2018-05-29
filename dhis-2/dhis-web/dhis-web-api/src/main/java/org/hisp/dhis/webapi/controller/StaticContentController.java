@@ -120,11 +120,8 @@ public class StaticContentController
         }
         else // Serve custom
         {
-            InputStream in = null;
-
-            try
+            try ( InputStream in = locationManager.getInputStream( key + ".png", "static" ) )
             {
-                in = locationManager.getInputStream( key + ".png", "static" );
                 response.setContentType( "image/png" );
                 IOUtils.copy( in, response.getOutputStream() );
             }
@@ -138,10 +135,6 @@ public class StaticContentController
                 throw new WebMessageException(
                     WebMessageUtils.error( "Error occurred trying to serve file.",
                         "An IOException was thrown, indicating a file I/O or networking error." ) );
-            }
-            finally
-            {
-                IOUtils.closeQuietly( in );
             }
         }
     }

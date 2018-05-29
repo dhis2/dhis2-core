@@ -37,6 +37,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -57,6 +58,7 @@ public class DataIntegrityJob
 
     private Notifier notifier;
 
+    @Autowired
     public void setNotifier( Notifier notifier )
     {
         this.notifier = notifier;
@@ -90,7 +92,7 @@ public class DataIntegrityJob
             notifier.notify(
                 jobConfiguration, NotificationLevel.INFO,
                 "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addJobSummary( jobConfiguration, report );
+                .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
         }
     }
 

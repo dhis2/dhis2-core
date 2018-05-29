@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
+import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -97,6 +98,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -182,6 +184,9 @@ public class EventController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
 
     private Schema schema;
 
@@ -501,8 +506,8 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
-        }        
-        
+        }
+
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -759,11 +764,8 @@ public class EventController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = content.openStream() )
         {
-            inputStream = content.openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
@@ -772,11 +774,6 @@ public class EventController
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
         }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
-        }
-
     }
 
     // -------------------------------------------------------------------------
@@ -994,6 +991,27 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
+    // QUEUED IMPORT
+    // -------------------------------------------------------------------------
+
+    @PostMapping( value = "/queue", consumes = "application/json" )
+    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
+    {
+        if ( !trackerKafkaManager.isEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration is not enabled." ) );
+        }
+
+        importOptions.setImportStrategy( strategy );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+
+        List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
+        JobConfiguration job = trackerKafkaManager.dispatchEvents( currentUserService.getCurrentUser(), importOptions, events );
+        webMessageService.send( jobConfigurationReport( job ), response, request );
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -1099,5 +1117,4 @@ public class EventController
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
-
 }

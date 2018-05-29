@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.predictor.PredictorGroup" table="predictorgroup">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="predictorgroupid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+    <set name="members" table="predictorgroupmembers">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" foreign-key="fk_predictorgroupmembers_predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.predictor.Predictor" column="predictorid"
+                    foreign-key="fk_predictorgroup_predictorid" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="predictorgroupusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="predictorgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="predictorgrouptranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" foreign-key="fk_objecttranslation_predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>

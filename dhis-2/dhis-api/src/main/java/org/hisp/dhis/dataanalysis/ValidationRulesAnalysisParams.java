@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ValidationRulesAnalysisParams
 {
     private String validationRuleGroupId;
@@ -57,6 +59,7 @@ public class ValidationRulesAnalysisParams
         this.notification = notification;
     }
 
+    @JsonProperty
     public String getValidationRuleGroupId()
     {
         return validationRuleGroupId;
@@ -67,6 +70,7 @@ public class ValidationRulesAnalysisParams
         this.validationRuleGroupId = validationRuleGroupId;
     }
 
+    @JsonProperty
     public String getOrganisationUnitId()
     {
         return organisationUnitId;
@@ -77,6 +81,7 @@ public class ValidationRulesAnalysisParams
         this.organisationUnitId = organisationUnitId;
     }
 
+    @JsonProperty
     public String getStartDate()
     {
         return startDate;
@@ -87,6 +92,7 @@ public class ValidationRulesAnalysisParams
         this.startDate = startDate;
     }
 
+    @JsonProperty
     public String getEndDate()
     {
         return endDate;
@@ -97,6 +103,7 @@ public class ValidationRulesAnalysisParams
         this.endDate = endDate;
     }
 
+    @JsonProperty
     public boolean isPersist()
     {
         return persist;
@@ -107,6 +114,7 @@ public class ValidationRulesAnalysisParams
         this.persist = persist;
     }
 
+    @JsonProperty
     public boolean isNotification()
     {
         return notification;
@@ -115,5 +123,18 @@ public class ValidationRulesAnalysisParams
     public void setNotification( boolean notification )
     {
         this.notification = notification;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ValidationRulesAnalysisParams{" +
+            "validationRuleGroupId='" + validationRuleGroupId + '\'' +
+            ", organisationUnitId='" + organisationUnitId + '\'' +
+            ", startDate='" + startDate + '\'' +
+            ", endDate='" + endDate + '\'' +
+            ", persist=" + persist +
+            ", notification=" + notification +
+            '}';
     }
 }

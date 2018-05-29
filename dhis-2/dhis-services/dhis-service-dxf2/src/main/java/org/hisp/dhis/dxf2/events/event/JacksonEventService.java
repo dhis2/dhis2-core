@@ -259,7 +259,7 @@ public class JacksonEventService extends AbstractEventService
         if ( jobId != null )
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addJobSummary( jobId, importSummaries );
+                addJobSummary( jobId, importSummaries, ImportSummaries.class );
         }
         else
         {
