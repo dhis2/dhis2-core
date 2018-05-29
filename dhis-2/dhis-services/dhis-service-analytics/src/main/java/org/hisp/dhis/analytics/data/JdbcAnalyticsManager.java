@@ -259,6 +259,14 @@ public class JdbcAnalyticsManager
         {
             sql = "sum(daysxvalue) / sum(daysno) * 100";
         }
+        else if ( aggType.isAggregationType( LAST ) )
+        {
+            sql = "last(value)";
+        }
+        else if ( aggType.isAggregationType( LAST_AVERAGE_ORG_UNIT ) )
+        {
+            sql = "last_avg_org_unit(value)";
+        }
         else if ( aggType.isAggregationType( COUNT ) )
         {
             sql = "count(value)";
@@ -494,7 +502,7 @@ public class JdbcAnalyticsManager
     {
         Period period = params.getLatestPeriod();
         
-        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
+        List<String> cols = Lists.newArrayList( "yearly", "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
         cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
 
