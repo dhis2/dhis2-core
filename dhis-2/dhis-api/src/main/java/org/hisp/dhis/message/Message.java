@@ -142,6 +142,8 @@ public class Message
         return "[" + text + "]";
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public boolean isInternal()
     {
         return internal;
