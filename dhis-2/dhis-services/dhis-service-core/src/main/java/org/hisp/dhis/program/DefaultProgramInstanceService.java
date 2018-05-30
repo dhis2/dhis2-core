@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -96,6 +97,9 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
+    
+    @Autowired
+    private ProgramInstanceAuditService programInstanceAuditService;    
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -134,11 +138,31 @@ public class DefaultProgramInstanceService
     {
         return programInstanceStore.get( id );
     }
+    
+    @Override
+    public ProgramInstance getProgramInstance( int id, String auditMessage )
+    {
+        ProgramInstance programInstance = programInstanceStore.get( id );
+        
+        addProgramInstanceAudit( programInstance, auditMessage );
+        
+        return programInstance;
+    }
 
     @Override
-    public ProgramInstance getProgramInstance( String id )
+    public ProgramInstance getProgramInstance( String uid )
     {
-        return programInstanceStore.getByUid( id );
+        return programInstanceStore.getByUid( uid );
+    }
+    
+    @Override
+    public ProgramInstance getProgramInstance( String uid, String auditMessage )
+    {
+        ProgramInstance programInstance = programInstanceStore.getByUid( uid );
+        
+        addProgramInstanceAudit( programInstance, auditMessage );
+        
+        return programInstance;
     }
 
     @Override
@@ -161,7 +185,8 @@ public class DefaultProgramInstanceService
 
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted )
+        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, 
+        boolean totalPages, boolean skipPaging, boolean includeDeleted, String auditMessage )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
@@ -215,6 +240,7 @@ public class DefaultProgramInstanceService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeDeleted( includeDeleted );
+        params.setAuditMessage( auditMessage );
 
         return params;
     }
@@ -250,8 +276,12 @@ public class DefaultProgramInstanceService
         {
             params.setDefaultPaging();
         }
+        
+        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
+        
+        addProrgamInstanceAudits( programInstances, params.getAuditMessage() );
 
-        return programInstanceStore.getProgramInstances( params );
+        return programInstances;
     }
 
     @Override
@@ -532,5 +562,55 @@ public class DefaultProgramInstanceService
         programInstance.setStatus( ProgramStatus.ACTIVE );
 
         updateProgramInstance( programInstance );
+    }
+    
+    private void addProgramInstanceAudit( ProgramInstance programInstance, String comment )
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        if ( programInstance != null && user != null && programInstance.getOrganisationUnit() != null )
+        {
+            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, user.getUsername(), AuditType.READ );
+            
+            if ( comment != null )
+            {
+                programInstanceAudit.setComment( comment );                
+            }
+            
+            if ( comment == null && !programInstance.getOrganisationUnit().isDescendant( user.getOrganisationUnits() ) )
+            {
+                throw new IllegalQueryException( "REASON_FOR_ACCESS_REQUIRED" );
+            }
+                
+            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
+        }
+    }
+    
+    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String comment )
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user != null )
+        {
+            for( ProgramInstance programInstance : programInstances )
+            {
+                if ( programInstance != null && programInstance.getOrganisationUnit() != null )
+                {
+                    ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, user.getUsername(), AuditType.READ );
+                    
+                    if ( comment != null )
+                    {
+                        programInstanceAudit.setComment( comment );                
+                    }
+                    
+                    if ( comment == null && !programInstance.getOrganisationUnit().isDescendant( user.getOrganisationUnits() ) )
+                    {
+                        throw new IllegalQueryException( "REASON_FOR_ACCESS_REQUIRED" );
+                    }
+                        
+                    programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
+                }
+            }
+        }
     }
 }

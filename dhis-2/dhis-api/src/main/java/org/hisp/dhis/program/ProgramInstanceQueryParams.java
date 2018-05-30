@@ -121,6 +121,11 @@ public class ProgramInstanceQueryParams
      * Indicates whether to include soft-deleted enrollments
      */
     private boolean includeDeleted;
+    
+    /*
+     * Audit message
+     */
+    private String auditMessage;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -433,4 +438,15 @@ public class ProgramInstanceQueryParams
         this.includeDeleted = includeDeleted;
         return this;
     }
+
+    public String getAuditMessage()
+    {
+        return auditMessage;
+    }
+
+    public ProgramInstanceQueryParams setAuditMessage( String auditMessage )
+    {
+        this.auditMessage = auditMessage;
+        return this;
+    }    
 }

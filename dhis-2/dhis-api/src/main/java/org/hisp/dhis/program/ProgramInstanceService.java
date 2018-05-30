@@ -83,6 +83,15 @@ public interface ProgramInstanceService
      * @return the ProgramInstance with the given id
      */
     ProgramInstance getProgramInstance( int id );
+    
+    /**
+     * Returns a {@link ProgramInstance}.
+     *
+     * @param id the id of the ProgramInstance to return.
+     * @param auditMessage reason to access the ProgramInstnace
+     * @return the ProgramInstance with the given id
+     */
+    ProgramInstance getProgramInstance( int id, String auditMessage );
 
     /**
      * Returns the {@link ProgramInstance} with the given UID.
@@ -91,6 +100,15 @@ public interface ProgramInstanceService
      * @return the ProgramInstance with the given UID, or null if no match.
      */
     ProgramInstance getProgramInstance( String uid );
+    
+    /**
+     * Returns the {@link ProgramInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @param auditMessage reason to access the ProgramInstnace
+     * @return the ProgramInstance with the given UID, or null if no match.
+     */
+    ProgramInstance getProgramInstance( String uid, String auditMessage );
 
     /**
      * Checks for the existence of a PI by UID. Deleted values are not taken into account.
@@ -131,7 +149,7 @@ public interface ProgramInstanceService
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
         ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
+        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, String auditMessage );
 
     /**
      * Returns a list with program instance values based on the given
