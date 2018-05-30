@@ -282,8 +282,7 @@ public class SystemController
         setNoStore( response );
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -311,6 +310,10 @@ public class SystemController
             renderService.toJson( response.getOutputStream(), summary );
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Various
+    // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
