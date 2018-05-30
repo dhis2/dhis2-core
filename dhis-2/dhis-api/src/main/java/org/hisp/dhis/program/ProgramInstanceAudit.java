@@ -44,31 +44,31 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  *
  */
 @JacksonXmlRootElement( localName = "programInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramInstanceAudit implements Serializable
+public class ProgramInstanceAudit
+    implements Serializable
 {
     private static final long serialVersionUID = 6713155272099925278L;
-    
+
     private int id;
 
     private ProgramInstance programInstance;
 
     private String comment;
-    
+
     private Date created;
 
-    private String accessedBy;   
+    private String accessedBy;
 
     private AuditType auditType;
-    
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-    
+
     public ProgramInstanceAudit()
     {
     }
-    
+
     public ProgramInstanceAudit( ProgramInstance programInstance, String accessedBy, AuditType auditType )
     {
         this.programInstance = programInstance;
@@ -76,8 +76,9 @@ public class ProgramInstanceAudit implements Serializable
         this.created = new Date();
         this.auditType = auditType;
     }
-    
-    public ProgramInstanceAudit( ProgramInstance programInstance, String comment, String accessedBy, AuditType auditType )
+
+    public ProgramInstanceAudit( ProgramInstance programInstance, String comment, String accessedBy,
+        AuditType auditType )
     {
         this.programInstance = programInstance;
         this.comment = comment;
@@ -85,13 +86,13 @@ public class ProgramInstanceAudit implements Serializable
         this.created = new Date();
         this.auditType = auditType;
     }
-    
+
     @Override
     public int hashCode()
     {
         return Objects.hash( programInstance, comment, created, accessedBy, auditType );
     }
-    
+
     @Override
     public boolean equals( Object obj )
     {
@@ -99,21 +100,19 @@ public class ProgramInstanceAudit implements Serializable
         {
             return true;
         }
-        
+
         if ( obj == null || getClass() != obj.getClass() )
         {
             return false;
         }
-        
+
         final ProgramInstanceAudit other = (ProgramInstanceAudit) obj;
-        
-        return Objects.equals( this.programInstance,  other.programInstance )
-            && Objects.equals( this.comment, other.comment )
-            && Objects.equals( this.created, other.created )
-            && Objects.equals( this.accessedBy, other.accessedBy )
-            && Objects.equals( this.auditType, other.auditType );
+
+        return Objects.equals( this.programInstance, other.programInstance )
+            && Objects.equals( this.comment, other.comment ) && Objects.equals( this.created, other.created )
+            && Objects.equals( this.accessedBy, other.accessedBy ) && Objects.equals( this.auditType, other.auditType );
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
