@@ -40,8 +40,6 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +53,6 @@ import static org.junit.Assert.*;
 /**
  * @author sultanm
  */
-
 public class DefaultMetadataVersionServiceTest
     extends DhisSpringTest
 {
@@ -310,14 +307,5 @@ public class DefaultMetadataVersionServiceTest
         {
             e.printStackTrace();
         }
-    }
-
-    private ComplexNode[] getVersionFromNodeTree( RootNode root )
-    {
-        List<?> versionList = (List<?>) root.getChildren().get( 0 ).getChildren();
-        ComplexNode[] versions = new ComplexNode[versionList.size()];
-        for ( int i = 0, numberOfVersions = versionList.size(); i < numberOfVersions; i++ )
-            versions[i] = (ComplexNode) versionList.get( i );
-        return versions;
     }
 }

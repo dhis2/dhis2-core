@@ -89,8 +89,7 @@ public class RedisCache<V> implements Cache<V>
         {
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
-        return Optional
-            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+        return Optional.ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override
@@ -102,10 +101,12 @@ public class RedisCache<V> implements Cache<V>
         }
         
         String redisKey = generateActualKey( key );
+        
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
+        
         V value = redisTemplate.boundValueOps( redisKey ).get();
 
         if ( null == value )
@@ -141,6 +142,7 @@ public class RedisCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
+        
         String redisKey = generateActualKey( key );
 
         if ( expiryEnabled )

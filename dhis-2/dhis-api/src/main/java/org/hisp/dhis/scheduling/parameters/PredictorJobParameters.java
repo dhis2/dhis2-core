@@ -28,9 +28,9 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.List;
 
@@ -42,13 +42,13 @@ public class PredictorJobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
-    @Property
+    @JsonProperty
     private int relativeStart;
 
-    @Property
+    @JsonProperty
     private int relativeEnd;
 
-    @Property
+    @JsonProperty
     private List<String> predictors;
 
     public PredictorJobParameters()

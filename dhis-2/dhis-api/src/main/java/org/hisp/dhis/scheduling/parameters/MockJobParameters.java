@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * @author Henning Håkonsen
@@ -42,7 +41,7 @@ public class MockJobParameters
 {
     private static final long serialVersionUID = 3600315605964091689L;
 
-    @Property
+    @JsonProperty
     private String message;
 
     public MockJobParameters()

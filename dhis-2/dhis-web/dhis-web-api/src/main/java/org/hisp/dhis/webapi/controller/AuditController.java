@@ -67,6 +67,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -112,6 +115,9 @@ public class AuditController
 
     @Autowired
     private DataApprovalAuditService dataApprovalAuditService;
+    
+    @Autowired
+    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     @Autowired
     private FieldFilterService fieldFilterService;
@@ -185,22 +191,14 @@ public class AuditController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = content.openStream() )
         {
-            inputStream = content.openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                            "Depending on the provider the root cause could be network or file system related." ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
+                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
     }
 
@@ -420,6 +418,65 @@ public class AuditController
             new FieldFilterParams( audits, fields ) ).getChildren() );
 
         return rootNode;
+    }
+    
+    @RequestMapping( value = "trackedEntityInstance", method = RequestMethod.GET )
+    public @ResponseBody RootNode getTrackedEnityInstanceAudit(
+        @RequestParam( required = false, defaultValue = "" ) List<String> tei,
+        @RequestParam( required = false, defaultValue = "" ) List<String> user,
+        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page
+    ) throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams();
+
+        params.setTrackedEntityInstances( new HashSet<>( tei ) );
+        params.setUsers( new HashSet<>(  user ) );
+        params.setAuditType( auditType );
+        params.setStartDate( startDate );
+        params.setEndDate( endDate );
+        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
+        
+        List<TrackedEntityInstanceAudit> teiAudits;
+        Pager pager = null;
+
+        if ( !params.isSkipPaging() )
+        {                    
+            int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+
+            pager = new Pager( page, total, pageSize );
+            
+            params.setFirst( pager.getOffset() );
+            params.setMax( pager.getPageSize() );            
+        }
+        
+        teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+    
+        CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
+            new FieldFilterParams( teiAudits, fields ) ).getChildren() );
+
+        return rootNode;
+        
     }
 
     //-----------------------------------------------------------------------------------------------------------------

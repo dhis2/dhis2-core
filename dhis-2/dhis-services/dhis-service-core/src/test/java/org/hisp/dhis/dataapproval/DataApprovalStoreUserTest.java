@@ -34,10 +34,13 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
@@ -64,6 +67,12 @@ public class DataApprovalStoreUserTest
     private DataApprovalLevelService dataApprovalLevelService;
 
     @Autowired
+    protected PeriodService periodService;
+
+    @Autowired
+    protected DataSetService dataSetService;
+
+    @Autowired
     protected CurrentUserService currentUserService;
 
     @Autowired
@@ -73,11 +82,6 @@ public class DataApprovalStoreUserTest
     // Supporting data
     // -------------------------------------------------------------------------
 
-    private OrganisationUnit orgUnitA;
-    private OrganisationUnit orgUnitB;
-    private OrganisationUnit orgUnitC;
-    private OrganisationUnit orgUnitD;
-
     private Period periodA;
 
     private DataApprovalLevel level1;
@@ -85,6 +89,11 @@ public class DataApprovalStoreUserTest
     private DataApprovalLevel level3;
 
     private DataApprovalWorkflow workflowA;
+
+    private OrganisationUnit orgUnitA;
+    private OrganisationUnit orgUnitB;
+    private OrganisationUnit orgUnitC;
+    private OrganisationUnit orgUnitD;
 
     // -------------------------------------------------------------------------
     // Set up/tear down
@@ -94,17 +103,8 @@ public class DataApprovalStoreUserTest
     public void setUpTest()
         throws Exception
     {
-        orgUnitA = createOrganisationUnit( 'A' );
-        orgUnitB = createOrganisationUnit( 'B', orgUnitA );
-        orgUnitC = createOrganisationUnit( 'C', orgUnitB );
-        orgUnitD = createOrganisationUnit( 'D', orgUnitA );
-
-        organisationUnitService.addOrganisationUnit( orgUnitA );
-        organisationUnitService.addOrganisationUnit( orgUnitB );
-        organisationUnitService.addOrganisationUnit( orgUnitC );
-        organisationUnitService.addOrganisationUnit( orgUnitD );
-
         periodA = createPeriod( "201801" );
+        periodService.addPeriod( periodA );
 
         level1 = new DataApprovalLevel( "Level1", 1, null );
         level2 = new DataApprovalLevel( "Level2", 2, null );
@@ -118,6 +118,30 @@ public class DataApprovalStoreUserTest
 
         workflowA = new DataApprovalWorkflow( "workflowA", periodType, newHashSet( level1, level2, level3 ) );
         dataApprovalService.addWorkflow( workflowA );
+
+        DataSet dataSetA = createDataSet( 'A' );
+        dataSetA.setWorkflow( workflowA );
+        dataSetService.addDataSet( dataSetA );
+
+        orgUnitA = createOrganisationUnit( 'A' );
+        orgUnitB = createOrganisationUnit( 'B', orgUnitA );
+        orgUnitC = createOrganisationUnit( 'C', orgUnitB );
+        orgUnitD = createOrganisationUnit( 'D', orgUnitA );
+
+        organisationUnitService.addOrganisationUnit( orgUnitA );
+        organisationUnitService.addOrganisationUnit( orgUnitB );
+        organisationUnitService.addOrganisationUnit( orgUnitC );
+        organisationUnitService.addOrganisationUnit( orgUnitD );
+
+        orgUnitA.addDataSet( dataSetA );
+        orgUnitB.addDataSet( dataSetA );
+        orgUnitC.addDataSet( dataSetA );
+        orgUnitD.addDataSet( dataSetA );
+
+        organisationUnitService.updateOrganisationUnit( orgUnitA );
+        organisationUnitService.updateOrganisationUnit( orgUnitB );
+        organisationUnitService.updateOrganisationUnit( orgUnitC );
+        organisationUnitService.updateOrganisationUnit( orgUnitD );
 
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
 

@@ -246,6 +246,12 @@ public class DefaultMessageService
 
         User sender = currentUserService.getCurrentUser();
 
+        // data set completed through sms
+        if ( sender == null )
+        {
+            return 0;
+        }
+
         Set<User> recipients = new HashSet<>();
 
         if ( userGroup != null )
@@ -354,12 +360,10 @@ public class DefaultMessageService
 
     @Override
     public List<MessageConversation> getMessageConversations( MessageConversationStatus status, boolean followUpOnly,
-        boolean unreadOnly, int first,
-        int max )
+        boolean unreadOnly, int first, int max )
     {
         return messageConversationStore
-            .getMessageConversations( currentUserService.getCurrentUser(), status, followUpOnly,
-                unreadOnly, first, max );
+            .getMessageConversations( currentUserService.getCurrentUser(), status, followUpOnly, unreadOnly, first, max );
     }
 
     @Override

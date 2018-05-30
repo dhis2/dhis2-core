@@ -69,11 +69,15 @@
   <bean id="sendScheduledMessageJob" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageJob" >
     <property name="outboundSmsService" ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
 	<property name="smsSender" ref="smsMessageSender" />
-	<property name="notifier" ref="notifier" />
   </bean>
 
   <bean id="dataIntegrityJob" class="org.hisp.dhis.dataintegrity.jobs.DataIntegrityJob" >
     <property name="dataIntegrityService" ref="org.hisp.dhis.dataintegrity.DataIntegrityService" />
-    <property name="notifier" ref="notifier" />
+  </bean>
+
+  <bean id="leaderElectionJob" class="org.hisp.dhis.leader.election.LeaderElectionJob">
+  </bean>
+  
+  <bean id="leaderRenewalJob" class="org.hisp.dhis.leader.election.LeaderRenewalJob">
   </bean>
 </beans>

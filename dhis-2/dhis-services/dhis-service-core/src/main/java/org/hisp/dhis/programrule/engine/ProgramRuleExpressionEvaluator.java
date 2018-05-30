@@ -35,8 +35,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.rules.RuleExpressionEvaluator;
 
-import javax.annotation.Nonnull;
-
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */

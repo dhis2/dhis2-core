@@ -427,7 +427,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary, ImportSummary.class );
 
         ImportCount count = importSummary.getImportCount();
 
@@ -521,7 +521,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
-                mdProps.orgUnit, mdProps.attrOptCombo, false );
+                mdProps.orgUnit, mdProps.attrOptCombo );
 
             if( !missingDataElementOperands.isEmpty() )
             {

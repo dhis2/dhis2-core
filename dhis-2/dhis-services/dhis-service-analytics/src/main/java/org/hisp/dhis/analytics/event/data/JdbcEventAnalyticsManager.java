@@ -309,6 +309,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
+        
         if ( params.hasNonDefaultBoundaries() )
         {
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
@@ -464,7 +465,7 @@ public class JdbcEventAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( !params.isSkipPartitioning() && params.hasPartitions() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
         {
             sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";

@@ -63,7 +63,8 @@ public class SyncUtils
 
     private static final Log log = LogFactory.getLog( SyncUtils.class );
 
-    public static final String HEADER_AUTHORIZATION = "Authorization";
+    static final String HEADER_AUTHORIZATION = "Authorization";
+    static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";
 
     private SyncUtils()
@@ -71,27 +72,44 @@ public class SyncUtils
     }
 
     /**
+     * Sends a synchronization request to the {@code syncUrl}
+     *
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param restTemplate         Spring Rest Template instance
+     * @param requestCallback      Request callback
+     * @param endpoint             Endpoint against which the sync request is run
+     * @return True if sync was successful, false otherwise
+     */
+    static boolean sendSyncRequest( SystemSettingManager systemSettingManager, RestTemplate restTemplate, RequestCallback requestCallback, SyncEndpoint endpoint )
+    {
+        final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
+        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + endpoint.getPath() + IMPORT_STRATEGY_SYNC_SUFFIX;
+
+        return runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, syncUrl, endpoint, maxSyncAttempts );
+    }
+
+    /**
      * Run a synchronization request against the syncUrl and analyzes the response for errors.
      * If the network problems occur during the sync, the sync is retried the maxSyncAttempts times until give up.
      *
-     * @param restTemplate
-     * @param requestCallback
+     * @param restTemplate    Spring Rest Template instance
+     * @param requestCallback Request callback
      * @param syncUrl         Url against which the sync request is run
      * @param endpoint        Endpoint against which the sync request is run
      * @param maxSyncAttempts Specifies how many times the sync should be retried if it fails due to network problems
      * @return True if sync was successful, false otherwise
      */
-    public static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint, int maxSyncAttempts )
+    private static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint, int maxSyncAttempts )
     {
-        boolean retrySyncDueToNetworkError = false;
+        boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
         ImportSummaries summaries = null;
 
-        while ( !retrySyncDueToNetworkError )
+        while ( networkErrorOccurred )
         {
-            retrySyncDueToNetworkError = false;
+            networkErrorOccurred = false;
             syncAttemptsDone++;
             try
             {
@@ -117,7 +135,7 @@ public class SyncUtils
 
                 if ( syncAttemptsDone <= maxSyncAttempts )
                 {
-                    retrySyncDueToNetworkError = true;
+                    networkErrorOccurred = true;
                 }
                 else
                 {
@@ -151,7 +169,7 @@ public class SyncUtils
         {
             for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                if ( !checkSummaryStatus( summary, originalTopSummaries, endpoint ) )
+                if ( !checkSummaryStatus( summary, summaries, originalTopSummaries, endpoint ) )
                 {
                     return false;
                 }
@@ -184,18 +202,38 @@ public class SyncUtils
      *
      * @param summary      ImportSummary that are checked for error/warning
      * @param topSummaries References to the ImportSummaries from top level of the graph (Used to create proper log message)
+     * @param summaries    References to the ImportSummaries 1 level above (Used to create proper log message)
      * @param endpoint     Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
-    private static boolean checkSummaryStatus( ImportSummary summary, ImportSummaries topSummaries, SyncEndpoint endpoint )
+    private static boolean checkSummaryStatus( ImportSummary summary, ImportSummaries summaries, ImportSummaries topSummaries, SyncEndpoint endpoint )
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
-            log.error( "Sync against endpoint: " + endpoint.name() + " failed: " + topSummaries );
+            log.error( "Sync against endpoint: " + endpoint.name() + " failed: ImportSummaries: " + summaries + " |########| Top ImportSummaries: " + topSummaries );
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Checks the availability of remote server.
+     *
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param restTemplate         Reference to RestTemplate
+     * @return AvailabilityStatus that says whether the server is available or not
+     */
+    static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate )
+    {
+        final int maxAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+        final int delayBetweenAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+
+        return SyncUtils.testServerAvailabilityWithRetries(
+            systemSettingManager,
+            restTemplate,
+            maxAttempts,
+            delayBetweenAttempts );
     }
 
     /**
@@ -208,9 +246,9 @@ public class SyncUtils
      * @param delayBetweenAttempts Specifies delay between retries
      * @return AvailabilityStatus that says whether the server is available or not
      */
-    public static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
+    private static AvailabilityStatus testServerAvailabilityWithRetries( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
     {
-        AvailabilityStatus serverStatus = SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
+        AvailabilityStatus serverStatus = isRemoteServerAvailable( systemSettingManager, restTemplate );
 
         for ( int i = 1; i < maxAttempts; i++ )
         {
@@ -348,7 +386,7 @@ public class SyncUtils
      * @param settingKey           SettingKey used for keeping info about last sync success
      * @param time                 Date of last sync success
      */
-    public static void setSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
+    static void setSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
     {
         systemSettingManager.saveSystemSetting( settingKey, time );
     }
@@ -360,7 +398,7 @@ public class SyncUtils
      * @param settingKey           SettingKey used for keeping info about last sync success
      * @return The Date of last sync success
      */
-    public static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
+    static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
     {
         return (Date) systemSettingManager.getSystemSetting( settingKey );
     }

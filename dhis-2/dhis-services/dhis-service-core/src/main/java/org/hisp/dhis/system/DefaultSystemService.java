@@ -42,6 +42,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.kafka.Kafka;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -49,9 +50,8 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
@@ -66,7 +66,7 @@ import java.util.Properties;
  * @author Lars Helge Overland
  */
 public class DefaultSystemService
-    implements SystemService
+    implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
@@ -96,8 +96,8 @@ public class DefaultSystemService
      */
     private SystemInfo systemInfo = null;
 
-    @EventListener
-    public void initFixedInfo( ContextRefreshedEvent event )
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
         systemInfo = getFixedSystemInfo();
 
@@ -120,7 +120,7 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
-        SystemInfo info = systemInfo.instance();
+        SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
 
         if ( info == null )
         {
@@ -149,6 +149,22 @@ public class DefaultSystemService
         info.setInstanceBaseUrl( instanceBaseUrl );
 
         setSystemMetadataVersionInfo( info );
+
+        // ---------------------------------------------------------------------
+        // Kafka
+        // ---------------------------------------------------------------------
+
+        Kafka kafka = new Kafka(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_POLL_RECORDS ) )
+        );
+
+        if ( kafka.isValid() )
+        {
+            info.setKafka( kafka );
+        }
 
         return info;
     }

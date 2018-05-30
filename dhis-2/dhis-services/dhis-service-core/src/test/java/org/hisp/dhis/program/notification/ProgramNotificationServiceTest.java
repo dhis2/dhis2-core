@@ -130,8 +130,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private DataElement dataElement;
     private DataElement dataElementEmail;
-    private ProgramStageDataElement programStageDataElement;
-    private ProgramStageDataElement programStageDataElementEmail;
     private TrackedEntityDataValue dataValue;
     private TrackedEntityDataValue dataValueEmail;
 
@@ -143,9 +141,14 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private TrackedEntityAttributeValue attributeValueEmail;
 
     private NotificationMessage notificationMessage;
+
     private ProgramNotificationTemplate programNotificationTemplate;
+    private ProgramNotificationTemplate programNotificationTemplateForToday;
+    private ProgramNotificationInstance programNotificationInstaceForToday;
+    private ProgramNotificationTemplate programNotificationTemplateForYesterday;
 
     @Before
+    @SuppressWarnings("unchecked")
     public void initTest()
     {
         programNotificationService.setProgramStageNotificationRenderer( programStageNotificationMessageRenderer );
@@ -158,14 +161,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
             .thenAnswer( invocation -> {
                 sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
                 return status;
-            });
+            } );
 
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
-
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 40;
-            });
+            } );
 
         when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
             .thenReturn( Lists.newArrayList( programInstances ) );
@@ -179,7 +181,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
             .thenReturn( notificationMessage );
 
         when( programStageNotificationMessageRenderer.render( any(), any() ) )
-                .thenReturn( notificationMessage );
+            .thenReturn( notificationMessage );
     }
 
     // -------------------------------------------------------------------------
@@ -433,6 +435,32 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         assertTrue( users.contains( userLvlTwoLeftLeft ) );
         assertTrue( users.contains( userLvlTwoLeftRight ) );
     }
+
+    @Test
+    public void testScheduledNotifications()
+    {
+        sentProgramMessages.clear();
+
+        when( manager.getAll( ProgramNotificationInstance.class ) )
+            .thenReturn( Collections.singletonList( programNotificationInstaceForToday ) );
+
+        programNotificationService.sendScheduledNotifications();
+
+        assertEquals( 1, sentProgramMessages.size() );
+    }
+
+    @Test
+    public void testScheduledNotificationsWithDateInPast()
+    {
+        sentInternalMessages.clear();
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplateForYesterday ) );
+
+        programNotificationService.sendScheduledNotifications();
+
+        assertEquals( 0, sentProgramMessages.size() );
+    }
     
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -441,6 +469,21 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private void setUpInstances()
     {
         programNotificationTemplate = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.COMPLETION, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
+
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+
+        Date today = cal.getTime();
+        cal.add( java.util.Calendar.DATE, -1 );
+        Date yesterday = cal.getTime();
+
+        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
+        programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday );
+
+        programNotificationInstaceForToday = new ProgramNotificationInstance();
+        programNotificationInstaceForToday.setProgramNotificationTemplate( programNotificationTemplateForToday );
+        programNotificationInstaceForToday.setName( programNotificationTemplateForToday.getName() );
+        programNotificationInstaceForToday.setAutoFields();
+        programNotificationInstaceForToday.setScheduledAt( today );
 
         root = createOrganisationUnit( 'R' );
         lvlOneLeft = createOrganisationUnit( '1' );
@@ -492,7 +535,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         Program programA = createProgram( 'A' );
         programA.setAutoFields();
         programA.setOrganisationUnits( Sets.newHashSet( lvlTwoLeftLeft,lvlTwoLeftRight ) );
-        programA.setNotificationTemplates( Sets.newHashSet( programNotificationTemplate ) );
+        programA.setNotificationTemplates( Sets.newHashSet( programNotificationTemplate, programNotificationTemplateForToday ) );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'T' );
@@ -511,9 +554,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataElementEmail = createDataElement( 'E' );
         dataElement.setValueType( ValueType.PHONE_NUMBER );
         dataElementEmail.setValueType( ValueType.EMAIL );
-        programStageDataElement = createProgramStageDataElement( programStage, dataElement, 1 );
-        programStageDataElementEmail = createProgramStageDataElement( programStage, dataElementEmail, 2 );
-
 
         // ProgramInstance & TEI
         tei = new TrackedEntityInstance();
@@ -554,6 +594,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         // lists returned by stubs
         programStageInstances.add( programStageInstance );
         programInstances.add( programInstance );
+
+        programNotificationInstaceForToday.setProgramInstance( programInstance );
 
         notificationMessage = new NotificationMessage( SUBJECT, MESSAGE );
     }

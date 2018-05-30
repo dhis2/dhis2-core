@@ -61,6 +61,7 @@ public class RedisConfiguration
         connectionFactory.setHostName( (String) redisHost().getObject() );
         connectionFactory.setPassword( (String) redisPassword().getObject() );
         connectionFactory.setPort( Integer.parseInt( (String) redisPort().getObject() ) );
+        connectionFactory.setUseSsl( Boolean.parseBoolean( (String) redisSslEnabled().getObject() ) );
         return connectionFactory;
     }
 
@@ -82,6 +83,12 @@ public class RedisConfiguration
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_PASSWORD );
     }
 
+    @Bean
+    public ConfigurationPropertyFactoryBean redisSslEnabled()
+    {
+        return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_USE_SSL );
+    }
+    
     @Bean
     public RedisTemplate<?, ?> redisTemplate()
         throws Exception

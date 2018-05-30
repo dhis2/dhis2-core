@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
@@ -242,7 +241,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        
+
         getSession().save( object );
 
         if ( MetadataObject.class.isInstance( object ) )
@@ -420,6 +419,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         Criteria criteria = getSharingCriteria();
         criteria.createAlias( "attributeValues", "av" );
         criteria.add( Restrictions.eq( "av.value", value ) );
+        criteria.createAlias( "av.attribute", "att" );
+        criteria.add( Restrictions.eq( "att.id", attribute.getId() ) );
 
         return (T) criteria.uniqueResult();
     }
@@ -938,5 +939,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         return true;
+    }
+
+    public void flush()
+    {
+        getSession().flush();
     }
 }

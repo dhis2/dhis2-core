@@ -46,8 +46,6 @@ public abstract class ResourceTable<T>
         
     protected List<T> objects;
     
-    protected String columnQuote;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -56,10 +54,9 @@ public abstract class ResourceTable<T>
     {
     }
     
-    protected ResourceTable( List<T> objects, String columnQuote )
+    protected ResourceTable( List<T> objects )
     {
         this.objects = objects;
-        this.columnQuote = columnQuote;
     }
 
     // -------------------------------------------------------------------------

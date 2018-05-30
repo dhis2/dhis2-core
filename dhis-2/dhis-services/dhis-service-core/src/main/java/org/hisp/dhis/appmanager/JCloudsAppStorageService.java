@@ -196,7 +196,7 @@ public class JCloudsAppStorageService
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
-        log.info( " Starting JCloud discovery..." );
+        log.info( "Starting JClouds discovery" );
 
         for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
@@ -246,9 +246,8 @@ public class JCloudsAppStorageService
 
         if ( appList.isEmpty() )
         {
-            log.info( " No apps found during JClouds discovery." );
+            log.info( "No apps found during JClouds discovery." );
         }
-
         return appMap;
     }
 
@@ -263,6 +262,7 @@ public class JCloudsAppStorageService
     {
         App app = new App();
         log.info( "Installing new app: " + filename );
+        
         try
         {
             // -----------------------------------------------------------------

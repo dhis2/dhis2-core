@@ -125,6 +125,26 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+        try
+        {
+            TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
+            trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
+            trackedEntityInstances.add( fromJson );
+        }
+
+        return trackedEntityInstances;
+    }
+
+    @Override
     public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
@@ -141,7 +161,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             trackedEntityInstances.add( fromXml );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -161,12 +181,13 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             trackedEntityInstances.add( fromJson );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
     private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
@@ -247,7 +268,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -256,6 +277,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
     }
 }

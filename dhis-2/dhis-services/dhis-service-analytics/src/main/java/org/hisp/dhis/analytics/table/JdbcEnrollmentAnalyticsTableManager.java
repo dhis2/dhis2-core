@@ -102,7 +102,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         final Program program = partition.getMasterTable().getProgram();
         final String tableName = partition.getTempTableName();
-        final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
@@ -130,7 +129,8 @@ public class JdbcEnrollmentAnalyticsTableManager
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-            "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
+                "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
             "where pr.programid=" + program.getId() + " " + 
             "and pi.organisationunitid is not null " +
             "and pi.incidentdate is not null " +

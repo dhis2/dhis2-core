@@ -40,6 +40,7 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
@@ -68,6 +69,7 @@ public class SendScheduledMessageJob
 
     private Notifier notifier;
 
+    @Autowired
     public void setNotifier( Notifier notifier )
     {
         this.notifier = notifier;

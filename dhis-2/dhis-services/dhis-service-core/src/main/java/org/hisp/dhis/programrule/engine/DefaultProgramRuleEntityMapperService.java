@@ -71,7 +71,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .put( ProgramRuleActionType.SETMANDATORYFIELD, pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ) ) )
         .put( ProgramRuleActionType.WARNINGONCOMPLETE, pra -> RuleActionWarningOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
         .put( ProgramRuleActionType.ERRORONCOMPLETE, pra -> RuleActionErrorOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-        .put( ProgramRuleActionType.SENDMESSAGE, pra -> RuleActionSendMessage.create( pra.getProgramNotificationTemplate().getUid() ) )
+        .put( ProgramRuleActionType.SENDMESSAGE, pra -> RuleActionSendMessage.create( pra.getProgramNotificationTemplate().getUid(), pra.getData() ) )
+        .put( ProgramRuleActionType.SCHEDULEMESSAGE, pra -> RuleActionScheduleMessage.create( pra.getProgramNotificationTemplate().getUid(), pra.getData() ) )
         .build();
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER_MAPPER =
@@ -81,7 +82,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> RuleVariableNewestStageEvent.create( prv.getName(),
-            prv.getDataElement().getUid(), prv.getProgramStage().getUid() ,RuleValueType.TEXT ) )
+            prv.getDataElement().getUid(), prv.getProgramStage().getUid() , toMappedValueType( prv ) ) )
         .build();
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new
@@ -152,9 +153,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
-            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getOrganisationUnit() != null ? enrollment.getOrganisationUnit().getUid() : "",
+            enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
             .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), attr.getValue() ) )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toList() ), enrollment.getProgram().getName() );
     }
 
     @Override
@@ -163,19 +165,19 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return programStageInstances.stream()
             .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
-             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getDataValues().stream()
-                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-                .collect( Collectors.toList() ) ) )
-                .collect( Collectors.toList() );
+             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
+                ps.getDataValues().stream()
+                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
     @Override
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
-        return RuleEvent.create( psi.getProgramInstance().getUid(), psi.getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate(),
-         psi.getDueDate(), psi.getDataValues().stream()
+        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate(),
+         psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
             .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toList() ), psi.getProgramStage().getName() );
     }
 
     @Override
@@ -183,10 +185,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     {
         return programStageInstances.stream()
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
-            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getDataValues().stream()
+            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
+                ps.getDataValues().stream()
                 .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-                .collect( Collectors.toList() ) ) )
-                .collect( Collectors.toList() );
+                .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------

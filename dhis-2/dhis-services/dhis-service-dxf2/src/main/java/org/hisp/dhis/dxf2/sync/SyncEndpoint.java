@@ -1,4 +1,6 @@
-package org.hisp.dhis.dxf2.sync;/*
+package org.hisp.dhis.dxf2.sync;
+
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -26,6 +28,9 @@ package org.hisp.dhis.dxf2.sync;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @author David Katuscak
+ */
 public enum SyncEndpoint
 {
     TEIS_ENDPOINT( "/api/trackedEntityInstances" ),

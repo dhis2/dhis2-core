@@ -30,7 +30,7 @@ package org.hisp.dhis.programrule.engine;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleEffect;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public interface ProgramRuleEngineService
 {
-    List<RuleAction> evaluate( ProgramInstance enrollment );
+    List<RuleEffect> evaluate( ProgramInstance enrollment );
 
-    List<RuleAction> evaluate( ProgramStageInstance event );
+    List<RuleEffect> evaluate( ProgramStageInstance event );
 }

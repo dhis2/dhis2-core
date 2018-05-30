@@ -340,6 +340,7 @@ public class SMSCommand extends BaseIdentifiableObject
     {
         return MoreObjects.toStringHelper( this )
                 .add( "uid", uid )
+                .add( "name", name )
                 .add( "smscodes", codes )
                 .add( "program", program )
                 .add( "parsertype", parserType )

@@ -31,6 +31,7 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.poi.util.SuppressForbidden;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
@@ -245,7 +246,7 @@ public class HibernateProgramInstanceStore
             .setDate( "targetDate", targetDate ).list();
     }
 
-    private String toDateProperty( NotificationTrigger trigger )
+    private String toDateProperty(NotificationTrigger trigger )
     {
         if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
         {

@@ -44,15 +44,17 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
 public class DatePeriodResourceTable
     extends ResourceTable<Period>
 {
-    public DatePeriodResourceTable( List<Period> objects, String columnQuote )
+    public DatePeriodResourceTable( List<Period> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override
@@ -64,11 +66,11 @@ public class DatePeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key";
+        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql += ", " + columnQuote + periodType.getName().toLowerCase() + columnQuote + " varchar(15)";
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
         
         sql += ")";
@@ -100,7 +102,10 @@ public class DatePeriodResourceTable
         {
             List<Object> values = new ArrayList<>();
 
+            final int year = PeriodType.getCalendar().fromIso( day.getStartDate() ).getYear();
+            
             values.add( day.getStartDate() );
+            values.add( year );
 
             for ( PeriodType periodType : periodTypes )
             {

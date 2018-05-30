@@ -88,6 +88,10 @@
 
   <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
 
+  <bean class="org.hisp.dhis.dxf2.events.kafka.DefaultTrackerKafkaManager" />
+
+  <bean id="kafkaTrackerJob" class="org.hisp.dhis.dxf2.events.kafka.KafkaTrackerJob" />
+
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
@@ -151,11 +155,16 @@
 
   <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
 
+
+  <bean id="trackerSynchronization" class="org.hisp.dhis.dxf2.sync.TrackerSynchronization" />
+
+  <bean id="eventSynchronization" class="org.hisp.dhis.dxf2.sync.EventSynchronization" />
+
   <!-- Scheduling -->
   <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob" />
 
   <bean id="dataSynchJob" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
 
-  <bean id="dataSyncJob" class="org.hisp.dhis.dxf2.sync.DataSyncJob" />
+  <bean id="programDataSyncJob" class="org.hisp.dhis.dxf2.sync.ProgramDataSynchronizationJob" />
 
 </beans>

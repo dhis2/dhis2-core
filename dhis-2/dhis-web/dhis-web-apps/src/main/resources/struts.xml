@@ -137,10 +137,22 @@
         </action>
     </package>
     
+    <package name="dhis-web-user" extends="dhis-web-commons" namespace="/dhis-web-user">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+    
     <package name="dhis-web-data-administration" extends="dhis-web-commons" namespace="/dhis-web-data-administration">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">index.html</result>
         </action>
+    </package>
+
+    <package name="dhis-web-data-quality" extends="dhis-web-commons" namespace="/dhis-web-data-quality">
+      <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+        <result name="success" type="redirect">#</result>
+      </action>
     </package>
 
 </struts>

@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -650,15 +651,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.setAsFavorite( user );
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
+    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        object.subscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
@@ -810,15 +833,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.removeAsFavorite( user );
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
+    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        object.unsubscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
@@ -1158,7 +1203,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User user )
     {
         boolean generateLinks = hasHref( fields );
-        boolean generateAccess = hasAccess( fields );
 
         if ( generateLinks )
         {

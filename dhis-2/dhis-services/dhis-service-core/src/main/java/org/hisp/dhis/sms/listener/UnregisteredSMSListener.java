@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -45,12 +44,14 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Transactional
 public class UnregisteredSMSListener
     extends BaseSMSListener
 {
 
-    public static final String USER_NAME = "anonymous";
+    private static final String USER_NAME = "anonymous";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -69,21 +70,16 @@ public class UnregisteredSMSListener
     // IncomingSmsListener implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.UNREGISTERED_PARSER ) != null;
+            ParserType.UNREGISTERED_PARSER );
     }
 
-    @Transactional
     @Override
-    public void receive( IncomingSms sms )
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.UNREGISTERED_PARSER );
-
         UserGroup userGroup = smsCommand.getUserGroup();
 
         String userName = sms.getOriginator();
@@ -104,6 +100,7 @@ public class UnregisteredSMSListener
                 user.setSurname( userName );
                 user.setFirstName( "" );
                 user.setUserCredentials( usercredential );
+                user.setAutoFields();
 
                 userService.addUserCredentials( usercredential );
                 userService.addUser( user );
@@ -114,26 +111,12 @@ public class UnregisteredSMSListener
 
             messageService.sendMessage(
                 new MessageConversationParams.Builder( userGroup.getMembers(), anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM )
-                    .build()
+                .build()
             );
 
             sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 
             update( sms, SmsMessageStatus.PROCESSED, true );
         }
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for UnregisteredSMSListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for UnregisteredSMSListener
-        return StringUtils.EMPTY;
     }
 }

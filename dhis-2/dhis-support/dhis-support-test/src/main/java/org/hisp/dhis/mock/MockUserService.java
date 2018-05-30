@@ -94,12 +94,6 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public List<User> getUsersByUid( List<String> uids )
-    {
-        return null;
-    }
-
-    @Override
     public boolean isLastSuperUser( UserCredentials userCredentials )
     {
         return false;
@@ -294,18 +288,6 @@ public class MockUserService implements UserService
 
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
-    {
-        return 0;
-    }
-
-    @Override
-    public int getUserRoleCount()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getUserRoleCountByName( String name )
     {
         return 0;
     }

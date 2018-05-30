@@ -51,8 +51,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -232,11 +230,11 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case EVENT_REPORT:
-            link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
+            link += "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
         case EVENT_CHART:
-            link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid()
+            link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
                 + "&interpretationid=" + interpretation.getUid();
             break;
         default:

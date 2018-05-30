@@ -169,12 +169,6 @@ public class DefaultUserService
     }
 
     @Override
-    public List<User> getUsersByUid( List<String> uids )
-    {
-        return userStore.getByUid( uids );
-    }
-
-    @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -437,18 +431,6 @@ public class DefaultUserService
     public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
     {
         return userAuthorityGroupStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getUserRoleCount()
-    {
-        return userAuthorityGroupStore.getCount();
-    }
-
-    @Override
-    public int getUserRoleCountByName( String name )
-    {
-        return userAuthorityGroupStore.getCountLikeName( name );
     }
 
     @Override

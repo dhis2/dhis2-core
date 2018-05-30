@@ -52,6 +52,8 @@ public interface EnrollmentService
     // READ
     // -------------------------------------------------------------------------
 
+    List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException;
+
     Enrollment getEnrollment( String id );
 
     Enrollment getEnrollment( ProgramInstance programInstance );
@@ -72,11 +74,9 @@ public interface EnrollmentService
 
     Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
+    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
-
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, TrackedEntityInstance trackedEntityInstance );
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -88,11 +88,13 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, TrackedEntityInstance daoTrackedEntityInstance );
+
     ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 
@@ -109,5 +111,4 @@ public interface EnrollmentService
     ImportSummary deleteEnrollment( String uid );
 
     ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
-
 }

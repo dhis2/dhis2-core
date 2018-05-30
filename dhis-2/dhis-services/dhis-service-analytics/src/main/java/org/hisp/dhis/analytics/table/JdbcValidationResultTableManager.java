@@ -89,14 +89,14 @@ public class JdbcValidationResultTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
+        return Lists.newArrayList(
+            "year = " + partition.getYear() + "",
+            "yearly = '" + partition.getYear() + "'" );
     }
     
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
 
         String insert = "insert into " + partition.getTempTableName() + " (";
@@ -123,17 +123,17 @@ public class JdbcValidationResultTableManager
         select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
 
         select +=
-            "cdr.created as value " +
-            "from validationresult cdr " +
-            "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
-            "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
-            "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
-            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
-            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
-            "where pe.startdate >= '" + start + "' " +
-            "and pe.startdate < '" + end + "' " +
-            "and cdr.created is not null";
+            "vrs.created as value " +
+            "from validationresult vrs " +
+            "inner join period pe on vrs.periodid=pe.periodid " +
+            "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
+            "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
+            "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
+            "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "where ps.year = " + partition.getYear() + " " +
+            "and vrs.created is not null";
 
         final String sql = insert + select;
 
@@ -144,8 +144,8 @@ public class JdbcValidationResultTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-            "from validationresult cdr " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
+            "from validationresult vrs " +
+            "inner join period pe on vrs.periodid=pe.periodid " +
             "where pe.startdate is not null ";
 
         if ( earliest != null )
@@ -194,6 +194,7 @@ public class JdbcValidationResultTableManager
         }
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
 
         return filterDimensionColumns( columns );
     }

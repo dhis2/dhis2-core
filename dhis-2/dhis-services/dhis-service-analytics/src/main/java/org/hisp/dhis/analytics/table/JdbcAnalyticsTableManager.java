@@ -71,6 +71,8 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
  * The data records in this table are not aggregated. Typically, queries will
  * aggregate in organisation unit hierarchy dimension, in the period/time dimension,
  * and the category dimensions, as well as organisation unit group set dimensions.
+ * <p>
+ * This analytics table is partitioned by year.
  *
  * @author Lars Helge Overland
  */
@@ -141,6 +143,7 @@ public class JdbcAnalyticsTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
+            "year = " + partition.getYear() + "",
             "yearly = '" + partition.getYear() + "'",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
@@ -213,11 +216,10 @@ public class JdbcAnalyticsTableManager
             "inner join dataelement de on dv.dataelementid=de.dataelementid " +
             "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
             "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "and (pe.startdate >= degs.startdate or degs.startdate is null) and (pe.enddate <= degs.enddate or degs.enddate is null) " +
             "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
             "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
             "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "and (pe.startdate >= ougs.startdate or ougs.startdate is null) and (pe.enddate <= ougs.enddate or ougs.enddate is null) " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
             "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
@@ -228,7 +230,7 @@ public class JdbcAnalyticsTableManager
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
-            "and ps.yearly = '" + partition.getYear() + "' " +
+            "and ps.year = " + partition.getYear() + " " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -356,6 +358,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );

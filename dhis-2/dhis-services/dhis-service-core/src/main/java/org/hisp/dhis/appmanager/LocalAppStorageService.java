@@ -1,4 +1,5 @@
 package org.hisp.dhis.appmanager;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -238,7 +239,7 @@ public class LocalAppStorageService
     public Resource getAppResource( App app, String pageName )
         throws IOException
     {
-        Iterable<Resource> locations = Lists.newArrayList(
+        List<Resource> locations = Lists.newArrayList(
             resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/" ),
             resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" )
         );
