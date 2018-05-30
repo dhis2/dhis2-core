@@ -41,7 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,9 +56,6 @@ import static org.junit.Assert.*;
 public class CompleteDataSetRegistrationServiceTest
     extends DhisSpringTest
 {
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
