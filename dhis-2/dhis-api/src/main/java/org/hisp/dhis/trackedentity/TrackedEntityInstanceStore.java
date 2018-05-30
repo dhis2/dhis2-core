@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -64,4 +65,12 @@ public interface TrackedEntityInstanceStore
      * @return true/false depending on result.
      */
     boolean existsIncludingDeleted( String uid );
+
+    /**
+     * Set lastSynced timestamp to provided timestamp for provided TEIs
+     *
+     * @param entityInstanceUIDs UIDs of Tracked entity instances where the lastSynced flag should be updated
+     * @param lastSynced         The date of last successful sync
+     */
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced );
 }

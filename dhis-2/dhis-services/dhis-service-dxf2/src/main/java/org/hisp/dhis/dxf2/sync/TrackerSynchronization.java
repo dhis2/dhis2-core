@@ -79,13 +79,14 @@ public class TrackerSynchronization
             return;
         }
 
+        log.info( "Starting tracker data synchronization job." );
+
         final Date startTime = new Date();
-        final Date lastSuccess = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
-        log.info( "Tracker data synchronization was last successfully done on: " + lastSuccess );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setLastUpdatedStartDate( lastSuccess );
+
         queryParams.setIncludeDeleted( true );
+        queryParams.setSynchronizationQuery( true );
 
         int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
@@ -95,7 +96,7 @@ public class TrackerSynchronization
             return;
         }
 
-        log.info( objectsToSync + " TEIs, to sync, were found since last sync success: " + lastSuccess );
+        log.info( objectsToSync + " TEIs to sync were found." );
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
@@ -125,7 +126,13 @@ public class TrackerSynchronization
                 log.debug( "TEIs that are going to be synced are: " + dtoTeis );
             }
 
-            if ( !sendTrackerSyncRequest( dtoTeis, username, password ) )
+            if ( sendTrackerSyncRequest( dtoTeis, username, password ) )
+            {
+                List<String> teiUIDs = dtoTeis.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() );
+                log.info( "The lastSynced flag of these TEIs should be updated to: " + teiUIDs );
+                teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, startTime );
+            }
+            else
             {
                 syncResult = false;
             }
@@ -133,7 +140,6 @@ public class TrackerSynchronization
 
         if ( syncResult )
         {
-            SyncUtils.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
         }

@@ -20,6 +20,8 @@
 
     <property name="deleted" column="deleted" />
 
+    <property name="lastSynced" column="lastsynced" not-null="false" />
+
     <property name="featureType" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
