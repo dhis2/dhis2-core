@@ -1,5 +1,7 @@
 package org.hisp.dhis.cache;
 
+import java.util.ArrayList;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -102,7 +104,7 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public Collection<V> getAll()
     {
-        return caffeineCache.asMap().values();
+        return new ArrayList<V>(caffeineCache.asMap().values());
     }
 
     @Override

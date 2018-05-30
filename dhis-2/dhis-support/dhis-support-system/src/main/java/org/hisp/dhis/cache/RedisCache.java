@@ -30,6 +30,7 @@ package org.hisp.dhis.cache;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -132,7 +133,8 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Collection<V> getAll()
     {
-        return redisTemplate.boundSetOps( cacheRegion ).members();
+        Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
+        return redisTemplate.opsForValue().multiGet( keySet );
     }
 
     @Override

@@ -86,7 +86,7 @@ public class DefaultAppManager
     @PostConstruct
     public void initCache()
     {
-        appCache = cacheProvider.newCacheBuilder( App.class ).build();
+        appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
     }
 
     @Override
@@ -112,9 +112,11 @@ public class DefaultAppManager
     public App getApp( String appName )
     {
         // Checks for app.getUrlFriendlyName which is the key of AppMap
-        if ( appCache.getIfPresent( appName ).isPresent() )
+        
+        Optional<App> appOptional = appCache.getIfPresent( appName );
+        if ( appOptional.isPresent() )
         {
-            return appCache.getIfPresent( appName ).get();
+            return appOptional.get();
         }
 
         // If no apps are found, check for original name
