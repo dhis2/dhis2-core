@@ -141,10 +141,10 @@ public class InitTableAlteror
         executeSql( "UPDATE trackedentityattribute SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
         executeSql( "alter table trackedentityattribute alter column skipsynchronization set not null" );
 
-        // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
-        executeSql( "UPDATE trackedentityinstance SET lastsynced = (select to_timestamp(0)) WHERE lastsynced IS NULL" );
-        executeSql( "alter table trackedentityinstance alter column lastsynced set not null" );
-        executeSql( "alter table trackedentityinstance alter column lastsynced set default '1970-01-01 01:00:00.000000'" );
+        // alter/update lastsynchronized column in trackedentityinstance to: NOT NULL, DEFAULT to_timestamp(0)
+        executeSql( "UPDATE trackedentityinstance SET lastsynchronized = to_timestamp(0) WHERE lastsynchronized IS NULL;" ); //Do not remove this line if some cleanup will ever happen
+        executeSql( "alter table trackedentityinstance alter column lastsynchronized set not null" );
+        executeSql( "alter table trackedentityinstance alter column lastsynchronized set default to_timestamp(0)" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()

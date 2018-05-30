@@ -129,7 +129,7 @@ public class TrackerSynchronization
             if ( sendTrackerSyncRequest( dtoTeis, username, password ) )
             {
                 List<String> teiUIDs = dtoTeis.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() );
-                log.info( "The lastSynced flag of these TEIs should be updated to: " + teiUIDs );
+                log.info( "The lastSynchronized flag of these TEIs should be updated: " + teiUIDs );
                 teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, startTime );
             }
             else

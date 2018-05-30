@@ -200,7 +200,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.isSynchronizationQuery() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynced";
+            hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
         }
 
         if ( params.hasOrganisationUnits() )
@@ -668,12 +668,12 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced )
+    public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
-        String hql = "update TrackedEntityInstance set lastSynced = :lastSynced WHERE uid in :entityInstances";
+        String hql = "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
         Query query = getQuery( hql );
-        query.setParameter( "lastSynced", lastSynced );
-        query.setParameter( "entityInstances", entityInstanceUIDs );
+        query.setParameter( "lastSynchronized", lastSynchronized );
+        query.setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs );
 
         query.executeUpdate();
     }

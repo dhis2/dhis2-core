@@ -80,7 +80,7 @@ public class TrackedEntityInstance
 
     private String coordinates;
 
-    private Date lastSynced = new Date( 0 );
+    private Date lastSynchronized = new Date( 0 );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -280,13 +280,13 @@ public class TrackedEntityInstance
     }
 
     @JsonIgnore
-    public Date getLastSynced()
+    public Date getLastSynchronized()
     {
-        return lastSynced;
+        return lastSynchronized;
     }
 
-    public void setLastSynced( Date lastSynced )
+    public void setLastSynchronized( Date lastSynchronized )
     {
-        this.lastSynced = lastSynced;
+        this.lastSynchronized = lastSynchronized;
     }
 }

@@ -842,9 +842,9 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced )
+    public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
-        trackedEntityInstanceStore.updateTrackedEntityInstancesSyncTimestamp( entityInstanceUIDs, lastSynced );
+        trackedEntityInstanceStore.updateTrackedEntityInstancesSyncTimestamp( trackedEntityInstanceUIDs, lastSynchronized );
     }
 
     @Override

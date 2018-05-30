@@ -67,10 +67,10 @@ public interface TrackedEntityInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Set lastSynced timestamp to provided timestamp for provided TEIs
+     * Set lastSynchronized timestamp to provided timestamp for provided TEIs
      *
-     * @param entityInstanceUIDs UIDs of Tracked entity instances where the lastSynced flag should be updated
-     * @param lastSynced         The date of last successful sync
+     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be updated
+     * @param lastSynchronized          The date of last successful sync
      */
-    void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced );
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
 }
