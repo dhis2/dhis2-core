@@ -36,8 +36,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
-import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -110,8 +108,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramRuleAction programRuleActionForSendMessage;
 
     private ProgramRuleAction programRuleActionForScheduleMessage;
-
-    private ProgramRuleAction programRuleActionForScheduleMessageForDuplicate;
 
     private ProgramRuleAction programRuleActionForDisplayTextForEnrollment;
 
@@ -280,9 +276,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
-
-    @Autowired
-    private NotificationLoggingService notificationLoggingService;
 
     @Override
     public void setUpTest()
