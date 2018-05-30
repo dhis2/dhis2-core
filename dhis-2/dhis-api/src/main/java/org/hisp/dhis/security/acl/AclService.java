@@ -40,11 +40,8 @@ import java.util.List;
 public interface AclService
 {
     String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
-
     String LIKE_WRITE_METADATA = "_w%"; // TODO use r_______ ?
-
     String LIKE_READ_DATA = "__r_____";
-
     String LIKE_WRITE_DATA = "___w____";
 
     /**
@@ -238,6 +235,12 @@ public interface AclService
      */
     <T extends IdentifiableObject> boolean defaultPublic( Class<T> klass );
 
+    /**
+     * Returns the class type corresponding to the given class type.
+     * 
+     * @param type the singular class type name.
+     * @return the class.
+     */
     Class<? extends IdentifiableObject> classForType( String type );
 
     /**
@@ -265,6 +268,13 @@ public interface AclService
      */
     <T extends IdentifiableObject> void resetSharing( T object, User user );
 
+    /**
+     * Clears all sharing information on the given object, and sets the owner to
+     * the given user.
+     * 
+     * @param object the object.
+     * @param user the user.
+     */
     <T extends IdentifiableObject> void clearSharing( T object, User user );
 
     /**
