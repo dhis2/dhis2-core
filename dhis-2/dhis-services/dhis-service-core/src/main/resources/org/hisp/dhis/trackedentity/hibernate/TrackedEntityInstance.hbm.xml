@@ -20,7 +20,7 @@
 
     <property name="deleted" column="deleted" />
 
-    <property name="lastSynced" column="lastsynced" not-null="false" />
+    <property name="lastSynced" column="lastsynced" type="timestamp" not-null="false" />
 
     <property name="featureType" length="50">
       <type name="org.hibernate.type.EnumType">
