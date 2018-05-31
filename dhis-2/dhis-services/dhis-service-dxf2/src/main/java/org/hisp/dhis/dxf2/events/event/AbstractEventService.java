@@ -129,7 +129,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -642,6 +659,17 @@ public abstract class AbstractEventService
         return eventStore.getEventCount( params, null );
     }
 
+    @Override
+    public int getAnonymousEventReadyForSynchronizationCount()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        params.setIncludeDeleted( true );
+        params.setSynchronizationQuery( true );
+
+        return eventStore.getEventCount( params, null );
+    }
+
     //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
     //TODO: Do changes from the comment above
 
@@ -656,11 +684,18 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page )
+    public Events getAnonymousEventsForSync( int pageSize )
     {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
+        //A page is not specified here. The reason is, that after a page is synchronized, the items that were in that page
+        // get lastSynchronized column updated. Therefore, they are not present in the results in the next query anymore.
+        // If I used paging, I would come to SQLGrammarException because I would try to fetch entries (with specific offset)
+        // that don't exist anymore.
+
+        EventSearchParams params = new EventSearchParams();
+        params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        params.setIncludeDeleted( true );
+        params.setSynchronizationQuery( true );
         params.setPageSize( pageSize );
-        params.setPage( page );
 
         Events anonymousEvents = new Events();
         List<Event> events = eventStore.getEvents( params, null );
@@ -1262,6 +1297,12 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setExecutionDate( executionDate );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+    }
+
+    @Override
+    public void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized )
+    {
+        programStageInstanceService.updateProgramStageInstancesSyncTimestamp( eventsUIDs, lastSynchronized );
     }
 
     // -------------------------------------------------------------------------
