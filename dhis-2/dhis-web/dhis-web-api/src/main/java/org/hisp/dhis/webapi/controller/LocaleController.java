@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -58,7 +57,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -109,7 +107,7 @@ public class LocaleController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws IOException, WebMessageException
+    public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         I18nLocale locale = localeService.getI18nLocaleByUid( uid );
@@ -138,7 +136,7 @@ public class LocaleController
     @RequestMapping( method = RequestMethod.POST )
     @ResponseStatus( value = HttpStatus.OK )
     public void addLocale( @RequestParam String country, @RequestParam String language,
-        HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( StringUtils.isEmpty( country ) || StringUtils.isEmpty( language ) )
         {
@@ -171,26 +169,15 @@ public class LocaleController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
     @RequestMapping( path = "/{uid}" ,method = RequestMethod.DELETE )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void delete( @PathVariable String uid ) throws WebMessageException
+    public void delete( @PathVariable String uid ) throws Exception
     {
-        try
-        {
-            I18nLocale i18nLocale = localeService.getI18nLocaleByUid( uid );
+        I18nLocale i18nLocale = localeService.getI18nLocaleByUid( uid );
 
-            if ( i18nLocale == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Cannot find Locale with uid " + uid ) );
-            }
-
-            localeService.deleteI18nLocale( i18nLocale );
-        }
-        catch ( DeleteNotAllowedException ex )
+        if ( i18nLocale == null )
         {
-            if ( ex.getErrorCode().equals( DeleteNotAllowedException.ERROR_ASSOCIATED_BY_OTHER_OBJECTS ) )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "This locale is currently used by other objects."  + ":" + ex.getMessage()) );
-            }
+            throw new WebMessageException( WebMessageUtils.notFound( "Cannot find Locale with uid " + uid ) );
         }
+
+        localeService.deleteI18nLocale( i18nLocale );
     }
-
 }
