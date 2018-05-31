@@ -132,7 +132,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date programEndDate,
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
+        @RequestParam( required = false ) String enrollment,        
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,

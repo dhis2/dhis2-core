@@ -69,6 +69,8 @@
     <property name="maxTeiCountToReturn" />
 
     <property name="style" type="jbObjectStyle" column="style" />
+    
+    <property name="allowAuditLog" />
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
