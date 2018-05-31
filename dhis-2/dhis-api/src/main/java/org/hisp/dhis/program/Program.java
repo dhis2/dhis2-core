@@ -179,6 +179,12 @@ public class Program
      * Property indicating maximum number of TEI to return after search
      */
     private int maxTeiCountToReturn = 0;
+    
+    
+    /**
+     * Property indicating whether to allow (read) audit log or not
+     */
+    private boolean allowAuditLog;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -879,5 +885,17 @@ public class Program
     public void setProgramSections( Set<ProgramSection> programSections )
     {
         this.programSections = programSections;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAllowAuditLog()
+    {
+        return allowAuditLog;
+    }
+
+    public void setAllowAuditLog( boolean allowAuditLog )
+    {
+        this.allowAuditLog = allowAuditLog;
     }
 }

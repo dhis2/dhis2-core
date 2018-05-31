@@ -49,8 +49,10 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -237,9 +239,12 @@ public class DataQueryServiceTest
         organisationUnitGroupService.addOrganisationUnitGroupSet( ouGroupSetA );
         
         ouGroupA = createOrganisationUnitGroup( 'A' );
+        ouGroupA.setPublicAccess( AccessStringHelper.FULL );
         ouGroupB = createOrganisationUnitGroup( 'B' );
+        ouGroupB.setPublicAccess( AccessStringHelper.FULL );
         ouGroupC = createOrganisationUnitGroup( 'C' );
-                
+        ouGroupC.setPublicAccess( AccessStringHelper.FULL );
+
         ouGroupA.addOrganisationUnit( ouA );
         ouGroupA.addOrganisationUnit( ouB );
         ouGroupA.addOrganisationUnit( ouC );
@@ -285,8 +290,13 @@ public class DataQueryServiceTest
         // Inject user
         // ---------------------------------------------------------------------
 
+        UserAuthorityGroup role = createUserAuthorityGroup( 'A', "ALL" );
+        
+        userService.addUserAuthorityGroup( role );
+        
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
+        user.getUserCredentials().getUserAuthorityGroups().add( role );
         saveAndInjectUserSecurityContext( user );
     }
 
@@ -644,7 +654,6 @@ public class DataQueryServiceTest
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
-
         
         assertEquals( 3, params.getDataElements().size() );
         assertEquals( 2, params.getPeriods().size() );

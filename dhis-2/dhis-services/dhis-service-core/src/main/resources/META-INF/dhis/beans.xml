@@ -643,6 +643,14 @@
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditService"
+    class="org.hisp.dhis.program.DefaultProgramInstanceAuditService" />
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">

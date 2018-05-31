@@ -69,7 +69,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -502,7 +501,7 @@ public class DefaultPushAnalysisService
         externalFileResource.setExpires( null );
 
         fileResource.setAssigned( true );
-        ListenableFuture<String> uid = schedulingManager.executeJob( () -> fileResourceService.saveFileResource( fileResource, bytes ) );
+        schedulingManager.executeJob( () -> fileResourceService.saveFileResource( fileResource, bytes ) );
 
         return externalFileResourceService.saveExternalFileResource( externalFileResource );
 
