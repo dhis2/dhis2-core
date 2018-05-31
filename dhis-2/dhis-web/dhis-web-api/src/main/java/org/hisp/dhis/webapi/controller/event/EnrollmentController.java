@@ -132,8 +132,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date programEndDate,
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) String auditMessage,
+        @RequestParam( required = false ) String enrollment,        
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
@@ -160,7 +159,7 @@ public class EnrollmentController
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted, auditMessage );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 

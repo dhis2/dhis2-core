@@ -136,31 +136,29 @@ public class DefaultProgramInstanceService
     @Override
     public ProgramInstance getProgramInstance( int id )
     {
-        return programInstanceStore.get( id );
-    }
-    
-    @Override
-    public ProgramInstance getProgramInstance( int id, String auditMessage )
-    {
         ProgramInstance programInstance = programInstanceStore.get( id );
         
-        addProgramInstanceAudit( programInstance, auditMessage );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
         
         return programInstance;
     }
-
+    
     @Override
     public ProgramInstance getProgramInstance( String uid )
     {
-        return programInstanceStore.getByUid( uid );
-    }
-    
-    @Override
-    public ProgramInstance getProgramInstance( String uid, String auditMessage )
-    {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
         
-        addProgramInstanceAudit( programInstance, auditMessage );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
         
         return programInstance;
     }
@@ -186,7 +184,7 @@ public class DefaultProgramInstanceService
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, 
-        boolean totalPages, boolean skipPaging, boolean includeDeleted, String auditMessage )
+        boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
@@ -240,7 +238,6 @@ public class DefaultProgramInstanceService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeDeleted( includeDeleted );
-        params.setAuditMessage( auditMessage );
 
         return params;
     }
@@ -279,7 +276,10 @@ public class DefaultProgramInstanceService
         
         List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
         
-        addProrgamInstanceAudits( programInstances, params.getAuditMessage() );
+        if ( user != null )
+        {
+            addProrgamInstanceAudits( programInstances, user.getUsername() );
+        }
 
         return programInstances;
     }
@@ -564,53 +564,21 @@ public class DefaultProgramInstanceService
         updateProgramInstance( programInstance );
     }
     
-    private void addProgramInstanceAudit( ProgramInstance programInstance, String comment )
-    {
-        User user = currentUserService.getCurrentUser();
-        
-        if ( programInstance != null && user != null && programInstance.getOrganisationUnit() != null )
+    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
+    {        
+        if ( programInstance != null && accessedBy != null )
         {
-            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, user.getUsername(), AuditType.READ );
-            
-            if ( comment != null )
-            {
-                programInstanceAudit.setComment( comment );                
-            }
-            
-            if ( comment == null && !programInstance.getOrganisationUnit().isDescendant( user.getOrganisationUnits() ) )
-            {
-                throw new IllegalQueryException( "REASON_FOR_ACCESS_REQUIRED" );
-            }
+            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
                 
             programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
         }
     }
     
-    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String comment )
+    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
     {
-        User user = currentUserService.getCurrentUser();
-        
-        if ( user != null )
+        for( ProgramInstance programInstance : programInstances )
         {
-            for( ProgramInstance programInstance : programInstances )
-            {
-                if ( programInstance != null && programInstance.getOrganisationUnit() != null )
-                {
-                    ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, user.getUsername(), AuditType.READ );
-                    
-                    if ( comment != null )
-                    {
-                        programInstanceAudit.setComment( comment );                
-                    }
-                    
-                    if ( comment == null && !programInstance.getOrganisationUnit().isDescendant( user.getOrganisationUnits() ) )
-                    {
-                        throw new IllegalQueryException( "REASON_FOR_ACCESS_REQUIRED" );
-                    }
-                        
-                    programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
-                }
-            }
+            addProgramInstanceAudit( programInstance, accessedBy );
         }
     }
 }
