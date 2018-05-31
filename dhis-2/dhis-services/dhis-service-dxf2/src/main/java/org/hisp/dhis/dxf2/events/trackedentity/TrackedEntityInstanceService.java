@@ -37,6 +37,7 @@ import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -91,6 +92,8 @@ public interface TrackedEntityInstanceService
     ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 
     ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
+
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced );
 
     // -------------------------------------------------------------------------
     // DELETE
