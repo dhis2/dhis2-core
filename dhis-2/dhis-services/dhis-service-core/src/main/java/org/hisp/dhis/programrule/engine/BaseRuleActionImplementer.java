@@ -28,74 +28,93 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
-import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.*;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 /**
- * Created by zubair@dhis2.org on 04.01.18.
+ * @Author Zubair Asghar.
  */
-public class RuleActionSendMessageImplementer extends BaseRuleActionImplementer
+abstract class BaseRuleActionImplementer implements RuleActionImplementer
 {
+    private static final Log log = LogFactory.getLog( BaseRuleActionImplementer.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     @Autowired
-    private ProgramNotificationPublisher publisher;
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     @Autowired
     private NotificationLoggingService notificationLoggingService;
 
-    @Override
-    public boolean accept( RuleAction ruleAction )
+    protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
     {
-        return ruleAction != null && ruleAction instanceof RuleActionSendMessage;
+        ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
+        entry.setLastSentAt( new Date() );
+        entry.setKey( key );
+        entry.setNotificationTemplateUid( templateUid );
+        entry.setAllowMultiple( false );
+
+        return entry;
     }
 
-    @Override
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    protected ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
-        if ( !validate( ruleEffect, programInstance ) )
+        String uid = "";
+
+        if ( action instanceof RuleActionSendMessage )
         {
-            return;
+            RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
+            uid = sendMessage.notification();
+        }
+        else if ( action instanceof RuleActionScheduleMessage )
+        {
+            RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
+            uid = scheduleMessage.notification();
+        }
+
+        return programNotificationTemplateStore.getByUid( uid );
+    }
+
+    protected String generateKey( ProgramNotificationTemplate template, ProgramInstance programInstance )
+    {
+        return template.getUid() + programInstance.getUid();
+    }
+
+    protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
+    {
+        if ( ruleEffect == null )
+        {
+            return false;
         }
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
-        String key = generateKey( template, programInstance );
-
-        publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
-        notificationLoggingService.save( entry );
-    }
-
-    @Override
-    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
-    {
-        if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
+        if ( template == null )
         {
-            return;
+            log.info( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
+            return false;
         }
 
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+        if ( !notificationLoggingService.isValidForSending( generateKey( template, programInstance ) ) )
+        {
+            log.info( String.format( "Skipped rule action for template id: %s", template.getUid() ) );
+            return false;
+        }
 
-        String key = generateKey( template, programStageInstance.getProgramInstance() );
-
-        publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
-
-        notificationLoggingService.save( entry );
+        return true;
     }
 }

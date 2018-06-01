@@ -28,36 +28,40 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.*;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
- * Created by zubair@dhis2.org on 04.01.18.
+ * @Author Zubair Asghar.
  */
-public class RuleActionSendMessageImplementer extends BaseRuleActionImplementer
+public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplementer
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     @Autowired
-    private ProgramNotificationPublisher publisher;
-
-    @Autowired
     private NotificationLoggingService notificationLoggingService;
+
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
+    private GenericIdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction != null && ruleAction instanceof RuleActionSendMessage;
+        return ruleAction != null && ruleAction instanceof RuleActionScheduleMessage;
     }
 
     @Override
@@ -72,7 +76,18 @@ public class RuleActionSendMessageImplementer extends BaseRuleActionImplementer
 
         String key = generateKey( template, programInstance );
 
-        publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
+        String date = ruleEffect.data();
+
+        if ( !isDateValid( date ) )
+        {
+            return;
+        }
+
+        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        notificationInstance.setProgramStageInstance( null );
+        notificationInstance.setProgramInstance( programInstance );
+
+        programNotificationInstanceStore.save( notificationInstance );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -91,11 +106,46 @@ public class RuleActionSendMessageImplementer extends BaseRuleActionImplementer
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
+        String date = ruleEffect.data();
+
+        if ( !isDateValid( date ) )
+        {
+            return;
+        }
+
+        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        notificationInstance.setProgramStageInstance( programStageInstance );
+        notificationInstance.setProgramInstance( null );
+
+        programNotificationInstanceStore.save( notificationInstance );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
-
+        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         notificationLoggingService.save( entry );
+
+    }
+
+    private ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template, String date )
+    {
+        ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
+        notificationInstance.setAutoFields();
+        notificationInstance.setName( template.getName() );
+        notificationInstance.setScheduledAt(  DateUtils.parseDate( date ) );
+        notificationInstance.setProgramNotificationTemplate( template );
+
+        return notificationInstance;
+    }
+
+    private boolean isDateValid( String date )
+    {
+        if ( !date.isEmpty() )
+        {
+            if ( DateUtils.dateIsValid( date ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1784,6 +1784,21 @@ public abstract class DhisConvenienceTest
         );
     }
 
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+    {
+        return new ProgramNotificationTemplate(
+                name,
+                "Subject",
+                "Message",
+                trigger,
+                recipient,
+                Sets.newHashSet(),
+                days,
+                null, null
+        );
+    }
+
     public static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();

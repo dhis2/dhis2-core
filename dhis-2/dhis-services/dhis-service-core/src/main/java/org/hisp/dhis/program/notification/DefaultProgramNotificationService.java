@@ -49,6 +49,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -57,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +68,10 @@ public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramNotificationService.class );
+
+    private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
+        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
+        pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -148,6 +154,38 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
+    public void sendScheduledNotifications()
+    {
+        Clock clock = new Clock( log ).startClock()
+            .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
+
+        List<ProgramNotificationInstance> templates = identifiableObjectManager.getAll( ProgramNotificationInstance.class ).stream()
+            .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
+
+        int totalMessageCount = 0;
+
+        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationInstance::hasProgramInstance )
+            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramInstance() ) ) )
+            .collect( Collectors.toList() );
+
+        batches.addAll( templates.stream().filter( ProgramNotificationInstance::hasProgramStageInstance )
+            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramStageInstance() ) ) )
+            .collect( Collectors.toList() ) );
+
+        batches.stream().forEach( this::sendAll );
+
+        totalMessageCount = batches.stream().mapToInt( MessageBatch::messageCount ).sum();
+
+        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
+    }
+
+    @Transactional
+    @Override
     public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
         sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
@@ -210,6 +248,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
+        if ( programStageInstance == null )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
         if ( templates.isEmpty() )
@@ -226,6 +269,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
         for ( ProgramNotificationTemplate template : templates )
@@ -349,9 +397,9 @@ public class DefaultProgramNotificationService
                 && template.getRecipientDataElement() != null )
         {
             List<String> recipientList = psi.getDataValues().stream()
-                    .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
-                    .map( TrackedEntityDataValue::getValue )
-                    .collect( Collectors.toList() );
+                .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
+                .map( TrackedEntityDataValue::getValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -391,9 +439,9 @@ public class DefaultProgramNotificationService
                 && template.getRecipientProgramAttribute() != null )
         {
             List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
-                    .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
-                    .map( TrackedEntityAttributeValue::getPlainValue )
-                    .collect( Collectors.toList() );
+                .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                .map( TrackedEntityAttributeValue::getPlainValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -411,15 +459,15 @@ public class DefaultProgramNotificationService
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
     {
         return programInstance.getProgram().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
         return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private DhisMessage createDhisMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )

@@ -36,6 +36,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.LocalDate;
 import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -386,6 +387,19 @@ public class DateUtils
         final Days days = Days.daysBetween( new DateTime( startDate ), new DateTime( endDate ) );
 
         return days.getDays();
+    }
+
+    /**
+     * Checks if the date provided in argument is today's date.
+     *
+     * @param date to check
+     * @return <code>true</code> if date is representing today's date <code>false</code> otherwise
+     */
+    public static boolean isToday( Date date )
+    {
+        int days = Days.daysBetween( new LocalDate( date ), new LocalDate() ).getDays();
+
+        return days == 0;
     }
 
     /**

@@ -44,6 +44,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,17 +54,13 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 
 import javax.annotation.Nonnull;
@@ -75,7 +72,6 @@ import javax.annotation.Nonnull;
 public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
-    private static final String DATA = "123abc";
 
     private static final String MANDATORY_FIELD = "fname";
 
@@ -97,11 +93,18 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate template;
 
+    private ProgramNotificationTemplate spyTemplate = null;
+
     private ProgramNotificationEventType eventType;
 
     private ExternalNotificationLogEntry logEntry;
 
+    private RuleEffect ruleEffectWithActionSendMessage;
+    private RuleEffect ruleEffectWithActionSendMessageWithDate;
+    private RuleEffect ruleEffectWithActionSetMandatoryField;
+
     private RuleAction ruleActionSendMessage;
+    private RuleAction ruleActionSendMessageWithDate;
 
     private RuleAction setMandatoryFieldFalse;
 
@@ -111,6 +114,11 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
     private ProgramRule programRuleA;
 
+    private String data = "today";
+
+    private SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd" );
+
+
     @Before
     public void initTest()
     {
@@ -119,6 +127,11 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         // stub for templateStore;
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+        doAnswer( invocation ->
+        {
+            spyTemplate = (ProgramNotificationTemplate) invocation.getArguments()[0];
+            return 0;
+        }).when( templateStore ).update( any() );
 
         // stub for publisher
 
@@ -163,9 +176,9 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
         ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+        verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
         verify( publisher ).publishEnrollment( Matchers.any( ProgramNotificationTemplate.class ), argumentInstanceCaptor.capture(), argumentEventCaptor.capture() );
@@ -179,9 +192,9 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
         ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        implementer.implement( ruleActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+        verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
         verify( publisher ).publishEvent( Matchers.any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );
@@ -194,7 +207,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     {
         String key = template.getUid() + programInstance.getUid();
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         assertEquals( key, logEntry.getKey() );
     }
@@ -205,7 +218,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).isValidForSending( anyString() );
@@ -217,7 +230,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).isValidForSending( anyString() );
@@ -254,9 +267,33 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
             @Override
             public String data()
             {
-                return DATA;
+                return null;
             }
         };
+
+        ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
+
+        ruleActionSendMessageWithDate = new RuleActionSendMessage()
+        {
+            @Nonnull
+            @Override
+            public String notification()
+            {
+                return NOTIFICATION_UID;
+            }
+
+            @Nonnull
+            @Override
+            public String data()
+            {
+                return data;
+            }
+        };
+
+
+        data = format.format( new Date() );
+
+        ruleEffectWithActionSendMessageWithDate = RuleEffect.create( ruleActionSendMessageWithDate,  data );
 
         setMandatoryFieldFalse = new RuleActionSetMandatoryField()
         {
@@ -267,6 +304,8 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
                 return MANDATORY_FIELD;
             }
         };
+
+        ruleEffectWithActionSetMandatoryField = RuleEffect.create( setMandatoryFieldFalse );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 

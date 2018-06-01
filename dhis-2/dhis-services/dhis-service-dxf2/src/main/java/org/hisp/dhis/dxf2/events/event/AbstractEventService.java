@@ -88,6 +88,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -201,6 +202,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected FileResourceService fileResourceService;
+
+    @Autowired
+    protected ProgramRuleEngineService programRuleEngineService;
 
     @Autowired
     protected SchemaService schemaService;
@@ -1172,6 +1176,11 @@ public abstract class AbstractEventService
 
                 saveDataValue( programStageInstance, event.getStoredBy(), dataElement, value.getValue(),
                     value.getProvidedElsewhere(), existingDataValue, null );
+            }
+
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
             }
         }
 
