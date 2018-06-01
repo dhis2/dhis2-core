@@ -144,7 +144,6 @@ public class JdbcAnalyticsTableManager
     {
         return Lists.newArrayList(
             "year = " + partition.getYear() + "",
-            "yearly = '" + partition.getYear() + "'",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     

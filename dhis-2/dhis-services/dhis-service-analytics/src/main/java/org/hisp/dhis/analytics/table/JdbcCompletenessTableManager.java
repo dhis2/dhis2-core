@@ -94,8 +94,7 @@ public class JdbcCompletenessTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
-            "year = " + partition.getYear() + "",
-            "yearly = '" + partition.getYear() + "'" );
+            "year = " + partition.getYear() + "" );
     }
     
     @Override
