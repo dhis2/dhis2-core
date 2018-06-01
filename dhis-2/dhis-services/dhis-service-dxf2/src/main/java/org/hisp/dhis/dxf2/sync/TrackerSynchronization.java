@@ -79,20 +79,19 @@ public class TrackerSynchronization
             return;
         }
 
-        log.info( "Starting tracker data synchronization job." );
+        log.info( "Starting Tracker program data synchronization job." );
 
         final Date startTime = new Date();
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
 
-        int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+        final int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
         if ( objectsToSync == 0 )
         {
-            log.info( "Nothing to sync." );
+            log.info( "Skipping sync. No new tracker data to sync were found." );
             return;
         }
 
@@ -106,8 +105,6 @@ public class TrackerSynchronization
 
         log.info( "Remote server URL for Tracker POST sync: " + syncUrl );
         log.info( "Tracker sync job has " + pages + " pages to sync. With page size: " + trackerSyncPageSize );
-
-        //TODO: Add functionality (to the query/queryParams) to order by timestamp? (Then I can always start by the oldest one and move to the newest ones.)
 
         queryParams.setPageSize( trackerSyncPageSize );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
@@ -128,8 +125,10 @@ public class TrackerSynchronization
 
             if ( sendTrackerSyncRequest( dtoTeis, username, password ) )
             {
-                List<String> teiUIDs = dtoTeis.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() );
-                log.info( "The lastSynchronized flag of these TEIs should be updated: " + teiUIDs );
+                List<String> teiUIDs = dtoTeis.stream()
+                    .map( TrackedEntityInstance::getTrackedEntityInstance )
+                    .collect( Collectors.toList() );
+                log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
                 teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, startTime );
             }
             else
