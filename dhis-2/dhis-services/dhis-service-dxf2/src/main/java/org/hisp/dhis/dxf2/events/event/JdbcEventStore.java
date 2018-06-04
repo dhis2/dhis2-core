@@ -992,11 +992,21 @@ public class JdbcEventStore
             return true;
         }
         
-        if ( rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null && rowSet.getString( "deco_publicaccess" ) == null )
+        if ( AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ), AccessStringHelper.Permission.DATA_READ ) )
         {
-            return false;            
+            return true;
         }
         
-        return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ), AccessStringHelper.Permission.DATA_READ );
-    }    
+        if ( rowSet.getString( "uga_access" ) != null && AccessStringHelper.isEnabled( rowSet.getString( "uga_access" ), AccessStringHelper.Permission.DATA_READ ) )
+        {
+            return true;
+        }
+        
+        if ( rowSet.getString( "ua_access" ) != null && AccessStringHelper.isEnabled( rowSet.getString( "ua_access" ), AccessStringHelper.Permission.DATA_READ ) )
+        {
+            return true;
+        }
+        
+        return false;
+    }
 }
