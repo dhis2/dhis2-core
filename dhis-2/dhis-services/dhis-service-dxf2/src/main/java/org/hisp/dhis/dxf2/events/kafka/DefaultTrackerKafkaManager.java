@@ -48,6 +48,7 @@ import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -330,6 +331,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( eventService.addEvents( events, importOptions, true ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaEvent.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cEvent.commitSync();
@@ -375,6 +381,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( enrollmentService.addEnrollments( enrollments, importOptions, false ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaEnrollment.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cEnrollment.commitSync();
@@ -420,6 +431,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaTrackedEntity.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cTrackedEntity.commitSync();
