@@ -183,8 +183,11 @@ public class MessageConversationController
                 queryOperator = options.get( "queryOperator" );
             }
 
-            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ), "messages.text:" + queryOperator + ":" + options.get( "queryString" ), "userMessages.user.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
-            Query subQuery = queryService.getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList( ), Junction.Type.OR );
+            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ),
+                "messages.text:" + queryOperator + ":" + options.get( "queryString" ),
+                "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
+            Query subQuery = queryService
+                .getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList(), Junction.Type.OR );
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
         }
