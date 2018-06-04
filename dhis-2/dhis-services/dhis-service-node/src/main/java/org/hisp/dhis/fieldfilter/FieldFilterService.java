@@ -31,11 +31,17 @@ package org.hisp.dhis.fieldfilter;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface FieldFilterService
 {
+    List<String> SHARING_FIELDS = Arrays.asList(
+        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess" );
+
     /**
      * Perform inclusion/exclusion on a list of objects.
      */
