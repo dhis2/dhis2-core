@@ -155,4 +155,10 @@
       </action>
     </package>
 
+    <package name="dhis-web-reports" extends="dhis-web-commons" namespace="/dhis-web-reports">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+
 </struts>
