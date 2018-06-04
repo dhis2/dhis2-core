@@ -28,8 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -83,6 +84,8 @@ public class ProgramStageInstance
     private String completedBy;
 
     private Date completedDate;
+
+    private Date lastSynchronized = new Date( 0 );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -301,5 +304,16 @@ public class ProgramStageInstance
     public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonIgnore
+    public Date getLastSynchronized()
+    {
+        return lastSynchronized;
+    }
+
+    public void setLastSynchronized( Date lastSynchronized )
+    {
+        this.lastSynchronized = lastSynchronized;
     }
 }

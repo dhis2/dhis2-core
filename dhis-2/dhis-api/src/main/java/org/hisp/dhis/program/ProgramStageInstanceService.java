@@ -4,6 +4,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -70,6 +71,14 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance to update.
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+
+    /**
+     * Updates a last sync timestamp on specified ProgramStageInstances
+     *
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
+     * @param lastSynchronized         The date of last successful sync
+     */
+    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
 
     /**
      * Checks whether a {@link ProgramStageInstance} with the given identifier

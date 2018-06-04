@@ -157,6 +157,7 @@ public class NotifierTest extends DhisSpringTest
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testGetSummary()
     {
         notifier.addJobSummary( dataValueImportJobConfig, "somethingid1", String.class );
