@@ -28,11 +28,11 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.i18n.locale.I18nLocale;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.hisp.dhis.i18n.locale.I18nLocale;
 
 public interface I18nLocaleService
 {
@@ -46,7 +46,7 @@ public interface I18nLocaleService
      */
     Map<String, String> getAvailableCountries();
     
-    boolean addI18nLocale( String language, String country );
+    I18nLocale addI18nLocale( String language, String country );
     
     void saveI18nLocale( I18nLocale locale );
     
@@ -62,4 +62,5 @@ public interface I18nLocaleService
         
     List<Locale> getAllLocales();
 
+    List<I18nLocale> getAllI18nLocales();
 }
