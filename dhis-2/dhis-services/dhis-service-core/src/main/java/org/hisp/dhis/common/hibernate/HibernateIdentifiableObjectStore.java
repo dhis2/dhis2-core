@@ -128,10 +128,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // InternalHibernateGenericStore implementation
     // -------------------------------------------------------------------------
 
-//    public final Criteria getDataSharingCriteria()
-//    {
-//        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-//    }
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+    }
 
     public final Criteria getDataSharingCriteria( String access )
     {
@@ -458,7 +458,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate(  root -> builder.equal( root.join( ( "attributeValues" ), JoinType.INNER ).get( "value" ) , value ) );
+            .addPredicate(  root -> {
+                Join<Object, Object> joinAttrValue = root.join( "attributeValues", JoinType.INNER );
+                Join<Object, Object> joinAttribute = joinAttrValue.join( "attribute", JoinType.INNER );
+                return builder.and( builder.equal( joinAttrValue.get( "value" ), value ), builder.equal( joinAttribute.get( "id" ), attribute.getId() ) );
+            } );
 
         return getSingleResult( builder, param );
     }
@@ -975,7 +979,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     // ----------------------------------------------------------------------
-    // JPA Implementations
+    // JPA support methods
     // ----------------------------------------------------------------------
 
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )

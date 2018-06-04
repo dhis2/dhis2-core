@@ -34,7 +34,6 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.Attribute;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +48,9 @@ public class JpaQueryParameters<T> implements Serializable
 
     // pagination
     private int maxResults ;
+
     private int firstResult ;
+
     private int pageSize;
 
     // query properties
@@ -60,7 +61,6 @@ public class JpaQueryParameters<T> implements Serializable
     private Boolean cachable;
 
     // select attributes
-    private List<Attribute<?,?>> attributes = new ArrayList<>();
 
     private List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
@@ -70,11 +70,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     protected Class clazz;
 
-    private Enum searchMode;
-
     private boolean withSharing = false;
-
-    private Order order;
 
     public JpaQueryParameters()
     {
@@ -110,11 +106,6 @@ public class JpaQueryParameters<T> implements Serializable
         return this;
     }
 
-    public boolean hasPaging()
-    {
-        return firstResult > -1 && maxResults > -1 ;
-    }
-
     public boolean hasFirstResult()
     {
         return firstResult > -1 ;
@@ -130,9 +121,6 @@ public class JpaQueryParameters<T> implements Serializable
     // Getters & Setters
     // -----------------------------
 
-    /**
-     * Could be overridden programmatically.
-     */
     public Class<?> getClazz()
     {
         return clazz;
@@ -192,36 +180,6 @@ public class JpaQueryParameters<T> implements Serializable
         return this;
     }
 
-    public List<Attribute<?, ?>> getAttributes()
-    {
-        return this.attributes;
-    }
-
-    public void setAttributes( List<Attribute<?, ?>> attributes )
-    {
-        this.attributes = attributes;
-    }
-
-    public Enum getSearchMode()
-    {
-        return this.searchMode;
-    }
-
-    public void setSearchMode( Enum searchMode )
-    {
-        this.searchMode = searchMode;
-    }
-
-    public Order getOrder()
-    {
-        return this.order;
-    }
-
-    public void setOrder( Order order )
-    {
-        this.order = order;
-    }
-
     public List<Function<Root<T>, Predicate>> getPredicates()
     {
         return predicates;
@@ -269,8 +227,9 @@ public class JpaQueryParameters<T> implements Serializable
         return countExpressions;
     }
 
-    public void setCountExpressions( List<Function<Root<T>, Expression<Long>>> countExpressions )
+    public JpaQueryParameters<T> setCountExpressions( List<Function<Root<T>, Expression<Long>>> countExpressions )
     {
         this.countExpressions = countExpressions;
+        return this;
     }
 }
