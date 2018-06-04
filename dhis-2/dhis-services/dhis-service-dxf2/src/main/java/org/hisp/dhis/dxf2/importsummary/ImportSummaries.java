@@ -167,6 +167,10 @@ public class ImportSummaries extends AbstractWebMessageResponse
         return imported + updated + deleted + ignored;
     }
 
+    public void setTotal( int total )
+    {
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportOptions getImportOptions()
