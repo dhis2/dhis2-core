@@ -146,6 +146,7 @@ public class DefaultSystemService
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
+        info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
         setSystemMetadataVersionInfo( info );
 
@@ -286,7 +287,6 @@ public class DefaultSystemService
         info.setMemoryInfo( SystemUtils.getMemoryString() );
         info.setCpuCores( SystemUtils.getCpuCores() );
         info.setEncryption( dhisConfig.getEncryptionStatus().isOk() );
-        info.setEmailEnabled( systemSettingManager.emailEnabled() );
 
         return info;
     }
