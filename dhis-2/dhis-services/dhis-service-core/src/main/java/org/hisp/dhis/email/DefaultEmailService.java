@@ -83,15 +83,15 @@ public class DefaultEmailService
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean emailEnabled()
+    public boolean emailNotificationsEnabled()
     {
-        return systemSettingManager.emailEnabled();
+        return systemSettingManager.emailNotificationsEnabled();
     }
 
     @Override
     public boolean emailConfigured()
     {
-        return emailMessageSender.isConfigured();
+        return systemSettingManager.emailConfigured();
     }
 
     @Override
