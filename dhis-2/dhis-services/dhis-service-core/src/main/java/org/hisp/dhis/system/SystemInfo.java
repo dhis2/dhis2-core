@@ -115,7 +115,7 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-    
+
     private boolean emailConfigured;
 
     private String systemId;
@@ -552,7 +552,7 @@ public class SystemInfo
     {
         this.emailConfigured = emailConfigured;
     }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemId()
