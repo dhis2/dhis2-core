@@ -806,14 +806,28 @@ public class AuditController
         return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
     
-    private List<ProgramInstance> getEnrollments( @RequestParam List<String> en ) throws WebMessageException
+    private List<ProgramInstance> getEnrollments( @RequestParam List<String> enrollmentIdentifiers ) throws WebMessageException
     {
-        if ( en == null )
+        List<ProgramInstance> programInstances = new ArrayList<>();
+        
+        if ( enrollmentIdentifiers == null )
         {
-            return new ArrayList<>();
+            return programInstances;
         }
         
-        return manager.getByUid( ProgramInstance.class, en );        
+        for ( String en : enrollmentIdentifiers )
+        {
+            ProgramInstance programInstance = manager.get( ProgramInstance.class, en );
+
+            if ( programInstance == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Illegal enrollment identifier: " + en ) );
+            }
+
+            programInstances.add( programInstance );
+        }
+        
+        return programInstances;
     }
     
     private List<Program> getPrograms( @RequestParam List<String> programIdentifiers ) throws WebMessageException
