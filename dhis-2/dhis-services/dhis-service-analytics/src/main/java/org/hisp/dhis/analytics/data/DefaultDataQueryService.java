@@ -62,9 +62,11 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +105,12 @@ public class DefaultDataQueryService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+    
+    @Autowired
+    private AclService aclService;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -245,6 +253,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems, IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
+        User user = currentUserService.getCurrentUser();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
@@ -510,7 +519,7 @@ public class DefaultDataQueryService
 
                 Class<? extends DimensionalItemObject> itemClass = DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP.get( dimClass );
 
-                List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : dimObject.getItems();
+                List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : getCanReadItems( user, dimObject );
 
                 return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
             }
@@ -551,5 +560,16 @@ public class DefaultDataQueryService
         }
 
         return units;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
+    {
+        return object.getItems().stream()
+            .filter( o -> aclService.canDataRead( user, o ) )
+            .collect( Collectors.toList() );
     }
 }

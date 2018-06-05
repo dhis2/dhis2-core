@@ -32,7 +32,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
@@ -76,6 +75,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -183,6 +183,10 @@ public class SystemController
         return rootNode;
     }
 
+    // -------------------------------------------------------------------------
+    // Tasks
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTasksJson( HttpServletResponse response )
         throws IOException
@@ -242,6 +246,10 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
+    // -------------------------------------------------------------------------
+    // Tasks summary
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
@@ -274,8 +282,7 @@ public class SystemController
         setNoStore( response );
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -304,10 +311,12 @@ public class SystemController
         }
     }
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
-    public @ResponseBody
-    SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    // -------------------------------------------------------------------------
+    // Various
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -370,19 +379,9 @@ public class SystemController
 
     private List<StyleObject> getFlagObjects()
     {
-        List<String> flags = systemSettingManager.getFlags();
-
-        I18n i18n = i18nManager.getI18n();
-
-        List<StyleObject> list = Lists.newArrayList();
-
-        for ( String flag : flags )
-        {
-            String file = flag + ".png";
-
-            list.add( new StyleObject( i18n.getString( flag ), flag, file ) );
-        }
-
-        return list;
+        I18n i18n = i18nManager.getI18n();        
+        return systemSettingManager.getFlags().stream()
+            .map( flag -> new StyleObject( i18n.getString( flag ), flag, ( flag + ".png" ) ) )
+            .collect( Collectors.toList() );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.fieldfilter;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,29 +28,45 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public interface FieldParser
+public interface ProgramInstanceAuditService
 {
-    /**
-     * Parses and writes out fieldMap with included/excluded properties.
-     *
-     * @param filter String to parse, can be used for both inclusion/exclusion
-     * @return FieldMap with property name as key, and another FieldMap as value (recursive)
-     * @see org.hisp.dhis.fieldfilter.FieldMap
-     */
-    FieldMap parse( String filter );
+
+    String ID = ProgramInstanceAuditService.class.getName();
 
     /**
-     * Recursively add some field filtering to a field filter
-     *
-     * @param fieldFilter Field filter to modify
-     * @param excludeFields Fields to add to the field filter
-     * @return Modified field filter
+     * Adds program instance audit
+     * 
+     * @param programInstanceAudit the audit to add
      */
-    List<String> modifyFilter( Collection<String> fieldFilter, Collection<String> excludeFields );
+    void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit );
+
+    /**
+     * Deletes program instance audit for the given program instance
+     * 
+     * @param programInstance the program instance
+     */
+    void deleteProgramInstanceAudit( ProgramInstance programInstance );
+
+    /**
+     * Returns program instance audits matching query params
+     * 
+     * @param params program instance audit query params
+     * @return matching ProgramInstanceAudits
+     */
+    List<ProgramInstanceAudit> getProgramInstanceAudits( ProgramInstanceAuditQueryParams params );
+
+    /**
+     * Returns count of program instance audits matching query params
+     * 
+     * @param params program instance audit query params
+     * @return count of ProgramInstanceAudits
+     */
+    int getProgramInstanceAuditsCount( ProgramInstanceAuditQueryParams params );
+
 }

@@ -480,7 +480,6 @@ public abstract class AbstractTrackedEntityInstanceService
             }
 
             importSummary.setConflicts( importConflicts );
-
             return importSummary;
         }
 
@@ -505,6 +504,12 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
+    }
+
+    @Override
+    public void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced )
+    {
+        teiService.updateTrackedEntityInstancesSyncTimestamp( entityInstanceUIDs, lastSynced );
     }
 
     // -------------------------------------------------------------------------

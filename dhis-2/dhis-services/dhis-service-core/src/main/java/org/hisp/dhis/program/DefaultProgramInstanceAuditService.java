@@ -1,4 +1,4 @@
-package org.hisp.dhis.fieldfilter;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,29 +28,50 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface FieldParser
-{
-    /**
-     * Parses and writes out fieldMap with included/excluded properties.
-     *
-     * @param filter String to parse, can be used for both inclusion/exclusion
-     * @return FieldMap with property name as key, and another FieldMap as value (recursive)
-     * @see org.hisp.dhis.fieldfilter.FieldMap
-     */
-    FieldMap parse( String filter );
+import org.springframework.beans.factory.annotation.Autowired;
 
-    /**
-     * Recursively add some field filtering to a field filter
-     *
-     * @param fieldFilter Field filter to modify
-     * @param excludeFields Fields to add to the field filter
-     * @return Modified field filter
-     */
-    List<String> modifyFilter( Collection<String> fieldFilter, Collection<String> excludeFields );
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
+ */
+public class DefaultProgramInstanceAuditService
+    implements ProgramInstanceAuditService
+{
+    
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    
+    @Autowired 
+    private ProgramInstanceAuditStore programInstanceAuditStore;
+    
+    // -------------------------------------------------------------------------
+    // ProgramInstanceAuditService implementation
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit )
+    {
+        programInstanceAuditStore.addProgramInstanceAudit( programInstanceAudit );
+    }
+
+    @Override
+    public void deleteProgramInstanceAudit( ProgramInstance programInstance )
+    {
+        programInstanceAuditStore.deleteProgramInstanceAudit( programInstance );
+    }
+
+    @Override
+    public List<ProgramInstanceAudit> getProgramInstanceAudits( ProgramInstanceAuditQueryParams params )
+    {
+        return programInstanceAuditStore.getProgramInstanceAudits( params );
+    }
+
+    @Override
+    public int getProgramInstanceAuditsCount( ProgramInstanceAuditQueryParams params )
+    {
+        return programInstanceAuditStore.getProgramInstanceAuditsCount( params );
+    }
 }
