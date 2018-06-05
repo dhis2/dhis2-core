@@ -115,6 +115,8 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
+    
+    private boolean emailEnabled;
 
     private String systemId;
 
@@ -537,6 +539,18 @@ public class SystemInfo
     public void setEncryption( boolean encryption )
     {
         this.encryption = encryption;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEmailEnabled()
+    {
+        return emailEnabled;
+    }
+
+    public void setEmailEnabled( boolean emailEnabled )
+    {
+        this.emailEnabled = emailEnabled;
     }
 
     @JsonProperty
