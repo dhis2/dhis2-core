@@ -1703,8 +1703,6 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType = new RelationshipType();
         relationshipType.setAutoFields();
 
-        relationshipType.setaIsToB( "aIsToB" );
-        relationshipType.setbIsToA( "bIsToA" );
         relationshipType.setName( "RelationshipType" + uniqueChar );
 
         return relationshipType;

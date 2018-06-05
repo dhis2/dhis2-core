@@ -140,7 +140,7 @@ public class RelationshipServiceTest
 
         assertNotNull( relationshipService.getRelationship( idA ) );
 
-        relationshipA.setEntityInstanceA( entityInstanceC );
+        //relationshipA.setEntityInstanceA( entityInstanceC );
         relationshipService.updateRelationship( relationshipA );
 
         assertEquals( relationshipA, relationshipService.getRelationship( idA ) );

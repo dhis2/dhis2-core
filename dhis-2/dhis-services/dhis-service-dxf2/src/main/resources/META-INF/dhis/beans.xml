@@ -43,7 +43,10 @@
   </bean>
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook"
-    class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+        class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook"
+        class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService"
     class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />

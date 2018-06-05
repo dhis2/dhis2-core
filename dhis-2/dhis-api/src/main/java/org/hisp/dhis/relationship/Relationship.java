@@ -41,9 +41,11 @@ import java.io.Serializable;
 
 /**
  * @author Abyot Asalefew
+ * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationship
+    extends BaseIdentifiableObject
     implements Serializable
 {
     /**
@@ -53,11 +55,11 @@ public class Relationship
 
     private int id;
 
-    private TrackedEntityInstance entityInstanceA;
-
     private RelationshipType relationshipType;
 
-    private TrackedEntityInstance entityInstanceB;
+    private RelationshipItem from;
+
+    private RelationshipItem to;
 
     private ObjectStyle style;
 
@@ -76,50 +78,6 @@ public class Relationship
     public Relationship( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType,
         TrackedEntityInstance entityInstanceB )
     {
-        this.entityInstanceA = entityInstanceA;
-        this.relationshipType = relationshipType;
-        this.entityInstanceB = entityInstanceB;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        final Relationship other = (Relationship) object;
-
-        return entityInstanceA.equals( other.getEntityInstanceA() ) && relationshipType.equals( other.getRelationshipType() )
-            && entityInstanceB.equals( other.getEntityInstanceB() );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-
-        result = result * prime + entityInstanceA.hashCode();
-        result = result * prime + entityInstanceB.hashCode();
-        result = result * prime + relationshipType.hashCode();
-
-        return result;
     }
 
     // -------------------------------------------------------------------------
@@ -162,32 +120,6 @@ public class Relationship
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstanceA()
-    {
-        return entityInstanceA;
-    }
-
-    public void setEntityInstanceA( TrackedEntityInstance entityInstanceA )
-    {
-        this.entityInstanceA = entityInstanceA;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstanceB()
-    {
-        return entityInstanceB;
-    }
-
-    public void setEntityInstanceB( TrackedEntityInstance entityInstanceB )
-    {
-        this.entityInstanceB = entityInstanceB;
-    }
-
-    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ObjectStyle getStyle()
     {
@@ -221,5 +153,29 @@ public class Relationship
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelationshipItem getFrom()
+    {
+        return from;
+    }
+
+    public void setFrom( RelationshipItem from )
+    {
+        this.from = from;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelationshipItem getTo()
+    {
+        return to;
+    }
+
+    public void setTo( RelationshipItem to )
+    {
+        this.to = to;
     }
 }

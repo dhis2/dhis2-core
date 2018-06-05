@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.relationship.RelationshipItem" table="relationshipitem">
+
+        <cache usage="read-write" />
+
+        <id name="id" column="relationshipitemid">
+            <generator class="native" />
+        </id>
+
+        <property name="trackedEntityInstance" />
+        <property name="programInstance" />
+        <property name="programStageInstance" />
+
+    </class>
+</hibernate-mapping>

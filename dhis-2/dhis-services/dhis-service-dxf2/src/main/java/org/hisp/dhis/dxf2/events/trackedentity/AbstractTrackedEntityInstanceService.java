@@ -236,12 +236,13 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
                 relationship.setDisplayName( daoEntityRelationship.getRelationshipType().getDisplayName() );
-                relationship.setTrackedEntityInstanceA( daoEntityRelationship.getEntityInstanceA().getUid() );
-                relationship.setTrackedEntityInstanceB( daoEntityRelationship.getEntityInstanceB().getUid() );
+                //relationship.setTrackedEntityInstanceA( daoEntityRelationship.getEntityInstanceA().getUid() );
+                // relationship.setTrackedEntityInstanceB( daoEntityRelationship.getEntityInstanceB().getUid() );
 
                 relationship.setRelationship( daoEntityRelationship.getRelationshipType().getUid() );
 
                 // we might have cases where A <=> A, so we only include the relative if the UIDs do not match
+                /*
                 if ( !daoEntityRelationship.getEntityInstanceA().getUid().equals( daoTrackedEntityInstance.getUid() ) )
                 {
                     relationship.setRelative( getTrackedEntityInstance( daoEntityRelationship.getEntityInstanceA(), TrackedEntityInstanceParams.FALSE ) );
@@ -250,6 +251,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     relationship.setRelative( getTrackedEntityInstance( daoEntityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE ) );
                 }
+                */
 
                 trackedEntityInstance.getRelationships().add( relationship );
             }
@@ -682,8 +684,8 @@ public abstract class AbstractTrackedEntityInstanceService
             RelationshipType relationshipType = manager.get( RelationshipType.class, dtoRelationship.getRelationship() );
 
             Relationship daoRelationship = new Relationship();
-            daoRelationship.setEntityInstanceA( daoEntityInstanceA );
-            daoRelationship.setEntityInstanceB( daoEntityInstanceB );
+            //daoRelationship.setEntityInstanceA( daoEntityInstanceA );
+            //daoRelationship.setEntityInstanceB( daoEntityInstanceB );
             daoRelationship.setRelationshipType( relationshipType );
 
             relationshipService.addRelationship( daoRelationship );
