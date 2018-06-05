@@ -109,6 +109,12 @@ public class HibernateProgramInstanceAuditStore
             criteria.add( Restrictions.in( "programInstance", params.getProgramInstances() ) );
         }
         
+        if ( params.hasPrograms() )
+        {
+            criteria.createAlias( "programInstance", "programInstance" );
+            criteria.add( Restrictions.in( "programInstance.program", params.getPrograms() ) );
+        }
+        
         if ( params.hasUsers() )
         {
             criteria.add( Restrictions.in( "accessedBy", params.getUsers() ) );
