@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class MinMaxOutlierAnalysisParams
@@ -53,6 +55,7 @@ public class MinMaxOutlierAnalysisParams
         this.organisationUnitId = organisationUnitId;
     }
 
+    @JsonProperty
     public String getStartDate()
     {
         return startDate;
@@ -63,6 +66,7 @@ public class MinMaxOutlierAnalysisParams
         this.startDate = startDate;
     }
 
+    @JsonProperty
     public String getEndDate()
     {
         return endDate;
@@ -73,6 +77,7 @@ public class MinMaxOutlierAnalysisParams
         this.endDate = endDate;
     }
 
+    @JsonProperty
     public List<String> getDataSetIds()
     {
         return dataSetIds;
@@ -83,6 +88,7 @@ public class MinMaxOutlierAnalysisParams
         this.dataSetIds = dataSetIds;
     }
 
+    @JsonProperty
     public String getOrganisationUnitId()
     {
         return organisationUnitId;
@@ -91,5 +97,16 @@ public class MinMaxOutlierAnalysisParams
     public void setOrganisationUnitId( String organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "MinMaxOutlierAnalysisParams{" +
+            "startDate='" + startDate + '\'' +
+            ", endDate='" + endDate + '\'' +
+            ", dataSetIds=" + dataSetIds +
+            ", organisationUnitId='" + organisationUnitId + '\'' +
+            '}';
     }
 }

@@ -84,6 +84,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
@@ -1183,6 +1184,24 @@ public abstract class DhisConvenienceTest
         return predictor;
     }
 
+    /**
+     * Creates a Predictor Group
+     *
+     * @param uniqueCharacter A unique character to identify the object.
+     * @return PredictorGroup
+     */
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    {
+        PredictorGroup group = new PredictorGroup();
+        group.setAutoFields();
+
+        group.setName( "PredictorGroup" + uniqueCharacter );
+        group.setDescription( "Description" + uniqueCharacter );
+
+        return group;
+    }
+
+
     public static Legend createLegend( char uniqueCharacter, Double startValue, Double endValue )
     {
         Legend legend = new Legend();
@@ -1309,11 +1328,21 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+    }
+
+    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    {
         UserAuthorityGroup role = new UserAuthorityGroup();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
         role.setName( "UserAuthorityGroup" + uniqueCharacter );
+        
+        for ( String auth : auths )
+        {
+            role.getAuthorities().add( auth );
+        }
 
         return role;
     }
@@ -1773,6 +1802,21 @@ public abstract class DhisConvenienceTest
             Sets.newHashSet(),
             days,
             null, null
+        );
+    }
+
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+    {
+        return new ProgramNotificationTemplate(
+                name,
+                "Subject",
+                "Message",
+                trigger,
+                recipient,
+                Sets.newHashSet(),
+                days,
+                null, null
         );
     }
 

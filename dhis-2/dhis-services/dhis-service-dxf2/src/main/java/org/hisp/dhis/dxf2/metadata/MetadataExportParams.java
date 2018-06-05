@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.user.User;
@@ -41,6 +42,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -91,6 +94,11 @@ public class MetadataExportParams
      * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
      */
     private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
+
+    /**
+     * Indicates whether sharing properties should be included in the export.
+     */
+    private boolean skipSharing;
 
     public MetadataExportParams()
     {
@@ -146,9 +154,15 @@ public class MetadataExportParams
 
     public MetadataExportParams addFields( Class<? extends IdentifiableObject> klass, List<String> classFields )
     {
-        if ( !fields.containsKey( klass ) ) fields.put( klass, classFields );
+        if ( !fields.containsKey( klass ) )
+        {
+            fields.put( klass, classFields );
+        }
+        else
+        {
+            fields.get( klass ).addAll( classFields );
+        }
 
-        fields.get( klass ).addAll( classFields );
         return this;
     }
 
@@ -176,6 +190,7 @@ public class MetadataExportParams
     public void setDefaultFilter( List<String> filter )
     {
         this.defaultFilter = filter;
+
     }
 
     public List<String> getDefaultOrder()
@@ -206,5 +221,24 @@ public class MetadataExportParams
     public void setInclusionStrategy( InclusionStrategy inclusionStrategy )
     {
         this.inclusionStrategy = inclusionStrategy;
+    }
+
+    public void setSkipSharing( boolean skipSharing )
+    {
+        if ( skipSharing )
+        {
+            addAllUnique( defaultFields, FieldFilterService.SHARING_FIELDS );
+        }
+        else
+        {
+            defaultFields.removeAll( FieldFilterService.SHARING_FIELDS );
+        }
+
+        this.skipSharing = skipSharing;
+    }
+
+    public boolean getSkipSharing()
+    {
+        return this.skipSharing;
     }
 }

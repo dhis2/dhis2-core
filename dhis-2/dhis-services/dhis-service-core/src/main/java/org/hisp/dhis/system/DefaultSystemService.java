@@ -29,7 +29,6 @@ package org.hisp.dhis.system;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,9 +49,8 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
@@ -67,7 +65,7 @@ import java.util.Properties;
  * @author Lars Helge Overland
  */
 public class DefaultSystemService
-    implements SystemService
+    implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
@@ -97,8 +95,8 @@ public class DefaultSystemService
      */
     private SystemInfo systemInfo = null;
 
-    @EventListener
-    public void initFixedInfo( ContextRefreshedEvent event )
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
         systemInfo = getFixedSystemInfo();
 
@@ -121,7 +119,7 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
-        SystemInfo info = systemInfo.instance();
+        SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
 
         if ( info == null )
         {
@@ -151,6 +149,22 @@ public class DefaultSystemService
 
         setSystemMetadataVersionInfo( info );
 
+        // ---------------------------------------------------------------------
+        // Kafka
+        // ---------------------------------------------------------------------
+
+        Kafka kafka = new Kafka(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_POLL_RECORDS ) )
+        );
+
+        if ( kafka.isValid() )
+        {
+            info.setKafka( kafka );
+        }
+
         return info;
     }
 
@@ -166,12 +180,8 @@ public class DefaultSystemService
 
         if ( resource.isReadable() )
         {
-            InputStream in = null;
-
-            try
+            try ( InputStream in = resource.getInputStream() )
             {
-                in = resource.getInputStream();
-
                 Properties properties = new Properties();
 
                 properties.load( in );
@@ -189,10 +199,6 @@ public class DefaultSystemService
             catch ( IOException ex )
             {
                 // Do nothing
-            }
-            finally
-            {
-                IOUtils.closeQuietly( in );
             }
         }
 
@@ -254,17 +260,6 @@ public class DefaultSystemService
         if ( rabbitMQ.isValid() )
         {
             info.setRabbitMQ( rabbitMQ );
-        }
-
-        // ---------------------------------------------------------------------
-        // Kafka
-        // ---------------------------------------------------------------------
-
-        Kafka kafka = new Kafka( dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ) );
-
-        if ( kafka.isValid() )
-        {
-            info.setKafka( kafka );
         }
 
         // ---------------------------------------------------------------------

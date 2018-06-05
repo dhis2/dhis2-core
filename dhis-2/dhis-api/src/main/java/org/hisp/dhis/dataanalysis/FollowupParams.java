@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FollowupParams
 {
     private int dataElementId;
@@ -57,6 +59,7 @@ public class FollowupParams
         this.followup = followup;
     }
 
+    @JsonProperty
     public int getDataElementId()
     {
         return dataElementId;
@@ -67,6 +70,7 @@ public class FollowupParams
         this.dataElementId = dataElementId;
     }
 
+    @JsonProperty
     public int getPeriodId()
     {
         return periodId;
@@ -77,6 +81,7 @@ public class FollowupParams
         this.periodId = periodId;
     }
 
+    @JsonProperty
     public int getOrganisationUnitId()
     {
         return organisationUnitId;
@@ -87,6 +92,7 @@ public class FollowupParams
         this.organisationUnitId = organisationUnitId;
     }
 
+    @JsonProperty
     public int getCategoryOptionComboId()
     {
         return categoryOptionComboId;
@@ -97,6 +103,7 @@ public class FollowupParams
         this.categoryOptionComboId = categoryOptionComboId;
     }
 
+    @JsonProperty
     public int getAttributeOptionComboId()
     {
         return attributeOptionComboId;
@@ -107,6 +114,7 @@ public class FollowupParams
         this.attributeOptionComboId = attributeOptionComboId;
     }
 
+    @JsonProperty
     public boolean isFollowup()
     {
         return followup;
@@ -115,5 +123,18 @@ public class FollowupParams
     public void setFollowup( boolean followup )
     {
         this.followup = followup;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "FollowupParams{" +
+            "dataElementId=" + dataElementId +
+            ", periodId=" + periodId +
+            ", organisationUnitId=" + organisationUnitId +
+            ", categoryOptionComboId=" + categoryOptionComboId +
+            ", attributeOptionComboId=" + attributeOptionComboId +
+            ", followup=" + followup +
+            '}';
     }
 }

@@ -96,8 +96,6 @@ public class TwoFactorAuthenticationProvider
             TwoFactorWebAuthenticationDetails authDetails =
                 (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
-            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-
             // -------------------------------------------------------------------------
             // Check whether account is locked due to multiple failed login attempts
             // -------------------------------------------------------------------------
@@ -109,6 +107,7 @@ public class TwoFactorAuthenticationProvider
             }
 
             String ip = authDetails.getIp();
+            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
             if ( securityService.isLocked( ip ) )
             {

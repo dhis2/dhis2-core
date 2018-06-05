@@ -1,8 +1,0 @@
-<h3>$i18n.getString( "dhis-web-validationrule" )</h3>
-
-<ul class="introList">
-    #introListImgItem( "showRunValidationForm.action" "validation_rule_analysis" "validationanalysis" )
-    #introListImgItem( "viewAnalysisForm.action?key=stddevoutlier" "stddevoutlier_analysis" "validationanalysis" )
-    #introListImgItem( "viewAnalysisForm.action?key=minmaxoutlier" "minmaxoutlier_analysis" "validationanalysis" )
-    #introListImgItem( "viewFollowupAnalysisForm.action" "followup_analysis" "validationanalysis" )
-</ul>

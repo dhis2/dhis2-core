@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -207,21 +206,14 @@ public class ContextUtils
         response.setContentType( CONTENT_TYPE_TEXT );
         response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().getHeaderValue() );
 
-        PrintWriter writer = null;
-
-        try
+        try ( PrintWriter writer = response.getWriter() )
         {
-            writer = response.getWriter();
             writer.println( message );
             writer.flush();
         }
         catch ( IOException ex )
         {
             // Ignore
-        }
-        finally
-        {
-            IOUtils.closeQuietly( writer );
         }
     }
 

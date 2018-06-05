@@ -90,7 +90,8 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
+        TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;

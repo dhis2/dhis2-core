@@ -35,7 +35,6 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -43,7 +42,6 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 

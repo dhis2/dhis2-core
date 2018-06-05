@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -38,6 +39,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
+import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -51,6 +53,8 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -62,6 +66,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -78,6 +83,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -87,6 +94,9 @@ import java.util.stream.Collectors;
 public class EnrollmentController
 {
     public static final String RESOURCE_PATH = "/enrollments";
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -102,6 +112,9 @@ public class EnrollmentController
 
     @Autowired
     private WebMessageService webMessageService;
+
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
 
     // -------------------------------------------------------------------------
     // READ
@@ -119,7 +132,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date programEndDate,
         @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
+        @RequestParam( required = false ) String enrollment,        
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
@@ -327,6 +340,27 @@ public class EnrollmentController
     }
 
     // -------------------------------------------------------------------------
+    // QUEUED IMPORT
+    // -------------------------------------------------------------------------
+
+    @PostMapping( value = "/queue", consumes = "application/json" )
+    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
+    {
+        if ( !trackerKafkaManager.isEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration is not enabled." ) );
+        }
+
+        importOptions.setImportStrategy( strategy );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+
+        List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
+        JobConfiguration job = trackerKafkaManager.dispatchEnrollments( currentUserService.getCurrentUser(), importOptions, enrollments );
+        webMessageService.send( jobConfigurationReport( job ), response, request );
+    }
+
+    // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
 
@@ -342,8 +376,33 @@ public class EnrollmentController
         return enrollment;
     }
 
+    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
+    {
+
+        String idScheme = getParamValue( params, "idScheme" );
+
+        if ( idScheme != null )
+        {
+            idSchemes.setIdScheme( idScheme );
+        }
+
+        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
+
+        if ( programStageInstanceIdScheme != null )
+        {
+            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
+        }
+
+        return idSchemes;
+    }
+
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
+    }
+
+    private String getParamValue( Map<String, List<String>> params, String key )
+    {
+        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 }

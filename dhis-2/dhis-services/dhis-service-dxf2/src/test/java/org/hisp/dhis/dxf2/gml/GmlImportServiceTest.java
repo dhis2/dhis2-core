@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -129,12 +128,6 @@ public class GmlImportServiceTest
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
         importOptions.setPreheatCache( true );
-    }
-
-    @Override
-    protected void tearDownTest()
-    {
-        IOUtils.closeQuietly( inputStream );
     }
 
     // -------------------------------------------------------------------------

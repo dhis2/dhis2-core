@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
+import org.hisp.dhis.analytics.AggregationType;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -160,7 +162,7 @@ public class QueryPlannerUtils
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         DataType dataType = DataType.fromValueType( valueType );
-        boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
+        boolean disaggregation = isDisaggregation( aggregationType, aggregationPeriodType, dataPeriodType );
         
         return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
             aggregationType.getPeriodAggregationType(), dataType, disaggregation );
@@ -174,9 +176,14 @@ public class QueryPlannerUtils
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static boolean isDisaggregation( PeriodType aggregationPeriodType, PeriodType dataPeriodType )
+    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         if ( dataPeriodType == null || aggregationPeriodType == null )
+        {
+            return false;
+        }
+        
+        if ( aggregationType == null || AggregationType.AVERAGE != aggregationType.getPeriodAggregationType() )
         {
             return false;
         }

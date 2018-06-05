@@ -28,6 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class UpdateFollowUpForDataValuesRequest
@@ -43,6 +45,7 @@ public class UpdateFollowUpForDataValuesRequest
         this.followups = followups;
     }
 
+    @JsonProperty
     public List<FollowupParams> getFollowups()
     {
         return followups;
@@ -51,5 +54,13 @@ public class UpdateFollowUpForDataValuesRequest
     public void setFollowups( List<FollowupParams> followups )
     {
         this.followups = followups;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "UpdateFollowUpForDataValuesRequest{" +
+            "followups=" + followups +
+            '}';
     }
 }

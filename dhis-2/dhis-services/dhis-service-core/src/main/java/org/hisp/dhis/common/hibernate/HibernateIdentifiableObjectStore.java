@@ -419,6 +419,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         Criteria criteria = getSharingCriteria();
         criteria.createAlias( "attributeValues", "av" );
         criteria.add( Restrictions.eq( "av.value", value ) );
+        criteria.createAlias( "av.attribute", "att" );
+        criteria.add( Restrictions.eq( "att.id", attribute.getId() ) );
 
         return (T) criteria.uniqueResult();
     }
@@ -634,7 +636,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllNoAcl()
     {
         return super.getAll();
