@@ -351,24 +351,23 @@ public class TableAlteror
 
     private void createPersonTrackedEntity()
     {
-        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentity where name='Person'",
+        final String uid = "MCPQUTHX1Ze";
+        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentity where uid='" + uid + "'",
             Integer.class );
 
         if ( exist == 0 )
         {
-
             String id = statementBuilder.getAutoIncrementValue();
-            String uid = "MCPQUTHX1Ze";
             String date = DateUtils.getSqlDateString( new Date() );
 
             jdbcTemplate.execute( "INSERT INTO trackedentity(trackedentityid,uid, code, created, lastupdated,name, description) values("
                 + id + ",'" + uid + "','Person','" + date + "','" + date + "','Person','Person')" );
 
             jdbcTemplate.execute( "UPDATE program SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+                + "  (SELECT trackedentityid FROM trackedentity where uid='" + uid + "') where trackedentityid is null" );
 
             jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+                + "  (SELECT trackedentityid FROM trackedentity where uid='" + uid + "') where trackedentityid is null" );
         }
     }
 
