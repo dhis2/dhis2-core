@@ -223,7 +223,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes) {
+    public void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes)
+    {
         cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, outputStream, idSchemes );
     }
 
@@ -521,9 +522,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 lastUpdatedBy = cdsr.getLastUpdatedBy();
 
-                if (lastUpdatedBy == null) {
+                if (lastUpdatedBy == null)
+                {
                     lastUpdatedBy = currentUserService.getCurrentUser();
-                } else {
+                }
+                else
+                {
                     lastUpdatedBy = userService.getUser(cdsr.getLastUpdatedBy().getUid());
                 }
 

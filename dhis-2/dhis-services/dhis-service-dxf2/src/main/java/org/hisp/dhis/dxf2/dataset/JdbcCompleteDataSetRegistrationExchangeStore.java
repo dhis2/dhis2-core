@@ -130,7 +130,9 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes) {
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes
+            idSchemes )
+    {
         String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
