@@ -100,13 +100,25 @@ public class LocaleController
         return webLocales;
     }
 
+    @RequestMapping( value = "/languages", method = RequestMethod.GET, produces = "application/json" )
+    public @ResponseBody Map<String, String> getAvailableLanguages()
+    {
+        return localeService.getAvailableLanguages();
+    }
+
+    @RequestMapping( value = "/countries", method = RequestMethod.GET, produces = "application/json" )
+    public @ResponseBody Map<String, String> getAvailableCountries()
+    {
+        return localeService.getAvailableCountries();
+    }
+
     @RequestMapping( value = "/dbLocales", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<I18nLocale> getDbLocalesWithId()
     {
         return localeService.getAllI18nLocales();
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping( value = "/dbLocales/{uid}", method = RequestMethod.GET, produces = "application/json")
     public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
@@ -120,20 +132,8 @@ public class LocaleController
         return locale;
     }
 
-    @RequestMapping( value = "/languages", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody Map<String, String> getAvailableLanguages()
-    {
-        return localeService.getAvailableLanguages();
-    }
-
-    @RequestMapping( value = "/countries", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody Map<String, String> getAvailableCountries()
-    {
-        return localeService.getAvailableCountries();
-    }
-
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
-    @RequestMapping( method = RequestMethod.POST )
+    @RequestMapping( value="/dbLocales", method = RequestMethod.POST )
     @ResponseStatus( value = HttpStatus.OK )
     public void addLocale( @RequestParam String country, @RequestParam String language,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -167,7 +167,7 @@ public class LocaleController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
-    @RequestMapping( path = "/{uid}" ,method = RequestMethod.DELETE )
+    @RequestMapping( path = "/dbLocales/{uid}" ,method = RequestMethod.DELETE )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void delete( @PathVariable String uid ) throws Exception
     {
