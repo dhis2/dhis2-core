@@ -28,6 +28,7 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -51,6 +52,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -58,6 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -74,6 +77,9 @@ public class PredictionServiceTest
 {
     @Autowired
     private PredictionService predictionService;
+
+    @Autowired
+    private PredictorService predictorService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -859,5 +865,73 @@ public class PredictionServiceTest
         assertEquals( 1, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
 
         assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictTaskPredictors()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 20 );
+
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor predictorB = createPredictor( dataElementY, defaultCombo, "B", expressionB, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictorService.addPredictor( predictorA );
+        predictorService.addPredictor( predictorB );
+
+        List<String> predictors = Lists.newArrayList( predictorA.getUid() );
+
+        assertEquals( 1, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+
+        predictors = Lists.newArrayList( predictorA.getUid(), predictorB.getUid() );
+
+        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+
+        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictTaskPredictorGroups()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 20 );
+
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor predictorB = createPredictor( dataElementY, defaultCombo, "B", expressionB, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictorService.addPredictor( predictorA );
+        predictorService.addPredictor( predictorB );
+
+        PredictorGroup predictorGroupA = createPredictorGroup( 'A' );
+
+        predictorGroupA.addPredictor( predictorA );
+
+        predictorService.addPredictorGroup( predictorGroupA );
+
+        List<String> predictorGroups = Lists.newArrayList( predictorGroupA.getUid() );
+
+        assertEquals( 1, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null ) );
+
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+
+        predictorGroupA.addPredictor( predictorB );
+
+        predictorService.updatePredictorGroup( predictorGroupA );
+
+        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null ) );
+
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
 }

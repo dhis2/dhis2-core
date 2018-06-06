@@ -39,11 +39,13 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ListMapMap;
 import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -64,6 +66,11 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -81,7 +88,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
@@ -116,7 +123,13 @@ public class DefaultPredictionService
     private PeriodService periodService;
 
     @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
     private AnalyticsService analyticsService;
+
+    @Autowired
+    protected Notifier notifier;
 
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
@@ -137,25 +150,83 @@ public class DefaultPredictionService
 
     public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
 
-    public int predictPredictors( List<String> predictors, Date startDate, Date endDate )
+    @Override
+    public PredictionSummary predictJob( PredictorJobParameters params, JobConfiguration jobId )
     {
-        int totalCount = 0;
+        Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
+        Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
 
-        if ( CollectionUtils.isEmpty( predictors ) )
+        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroupss(), jobId );
+    }
+
+    @Override
+    public PredictionSummary predictTask( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId )
+    {
+        PredictionSummary predictionSummary;
+
+        try
         {
-            predictors = getUids( predictorService.getAllPredictors() );
+            predictionSummary = predictInternal( startDate, endDate, predictors, predictorGroups );
+
+            if ( jobId != null )
+            {
+                notifier.notify( jobId, NotificationLevel.INFO, "Prediction done", true )
+                    .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
+            }
+        }
+        catch ( RuntimeException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            predictionSummary = new PredictionSummary( PredictionStatus.ERROR, "The prediction failed: " + ex.getMessage() );
+
+            if ( jobId != null )
+            {
+                notifier.notify( jobId, ERROR, predictionSummary.getDescription(), true );
+            }
         }
 
-        for ( String uid : predictors) {
-            Predictor predictor = predictorService.getPredictor( uid );
+        return predictionSummary;
+    }
 
-            int count = predict( predictor, startDate, endDate );
+    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors, List<String> predictorGroups )
+    {
+        PredictionSummary predictionSummary = new PredictionSummary();
 
-            log.info( "Generated " + count + " predictions" );
-            totalCount += count;
+        int count = 0;
+
+        List<Predictor> predictorList = new ArrayList<>();
+
+        if ( CollectionUtils.isEmpty( predictors ) && CollectionUtils.isEmpty( predictorGroups ) )
+        {
+            predictorList = predictorService.getAllPredictors();
+        }
+        else
+        {
+            if ( !CollectionUtils.isEmpty( predictors ) )
+            {
+                predictorList = idObjectManager.get( Predictor.class, predictors );
+            }
+
+            if ( !CollectionUtils.isEmpty( predictorGroups ) )
+            {
+                List<PredictorGroup> predictorGroupList = idObjectManager.get( PredictorGroup.class, predictorGroups );
+
+                for ( PredictorGroup predictorGroup : predictorGroupList )
+                {
+                    predictorList.addAll( predictorGroup.getMembers() );
+                }
+            }
         }
 
-        return totalCount;
+        for ( Predictor predictor : predictorList )
+        {
+            count += predict( predictor, startDate, endDate );
+        }
+
+        predictionSummary.setPredicted( count );
+
+        return predictionSummary;
     }
 
     @Override

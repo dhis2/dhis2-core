@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.predictor;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,88 +28,44 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * @author Henning Håkonsen
+ * @author Jim Grace
  */
-public class PredictorJobParameters
-    implements JobParameters
+public class PredictionTask
+    extends SecurityContextRunnable
 {
-    private static final long serialVersionUID = 5526554074518768146L;
+    private final Date startDate;
+    private final Date endDate;
 
-    @JsonProperty
-    private int relativeStart;
+    private final List<String> predictors;
+    private final List<String> predictorGroups;
 
-    @JsonProperty
-    private int relativeEnd;
+    private final PredictionService predictionService;
 
-    @JsonProperty
-    private List<String> predictors;
+    private final JobConfiguration jobId;
 
-    @JsonProperty
-    private List<String> predictorGroups;
-
-    public PredictorJobParameters()
+    public PredictionTask( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups,
+        PredictionService predictionService, JobConfiguration jobId )
     {
-    }
-
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors, List<String> predictorGroups )
-    {
-        this.relativeStart = relativeStart;
-        this.relativeEnd = relativeEnd;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.predictors = predictors;
         this.predictorGroups = predictorGroups;
-    }
-
-    public int getRelativeStart()
-    {
-        return relativeStart;
-    }
-
-    public void setRelativeStart( int relativeStart )
-    {
-        this.relativeStart = relativeStart;
-    }
-
-    public int getRelativeEnd()
-    {
-        return relativeEnd;
-    }
-
-    public void setRelativeEnd( int relativeEnd )
-    {
-        this.relativeEnd = relativeEnd;
-    }
-
-    public List<String> getPredictors()
-    {
-        return predictors;
-    }
-
-    public void setPredictors( List<String> predictors )
-    {
-        this.predictors = predictors;
-    }
-
-    public List<String> getPredictorGroupss()
-    {
-        return predictorGroups;
-    }
-
-    public void setPredictorGroups( List<String> predictorGroups )
-    {
-        this.predictorGroups = predictorGroups;
+        this.predictionService = predictionService;
+        this.jobId = jobId;
     }
 
     @Override
-    public ErrorReport validate()
+    public void call()
     {
-        return null;
+        predictionService.predictTask( startDate, endDate,
+            predictors, predictorGroups, jobId );
     }
 }
