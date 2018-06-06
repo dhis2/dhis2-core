@@ -77,9 +77,22 @@ public interface EventService
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 
+    /**
+     * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     *
+     * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     */
+    int getAnonymousEventReadyForSynchronizationCount();
+
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
-    Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page );
+    /**
+     * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     *
+     * @param pageSize Specifies the max number for the events returned.
+     * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     */
+    Events getAnonymousEventsForSync( int pageSize );
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -113,6 +126,14 @@ public interface EventService
 
     void updateEventForEventDate( Event event );
 
+    /**
+     * Updates a last sync timestamp on specified Events
+     *
+     * @param eventsUIDs       UIDs of Events where the lastSynchronized flag should be updated
+     * @param lastSynchronized The date of last successful sync
+     */
+    void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
+
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
@@ -122,5 +143,4 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
-
 }

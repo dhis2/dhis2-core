@@ -437,7 +437,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary, ImportSummary.class );
 
         ImportCount count = importSummary.getImportCount();
 

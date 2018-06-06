@@ -177,6 +177,12 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.predictor.PredictorGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.predictor.PredictorGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.period.PeriodStore" class="org.hisp.dhis.period.hibernate.HibernatePeriodStore">
     <property name="clazz" value="org.hisp.dhis.period.Period" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -629,12 +635,20 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
-    
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceAuditService" />
-    
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
-    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">    
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditService"
+    class="org.hisp.dhis.program.DefaultProgramInstanceAuditService" />
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -674,8 +688,9 @@
 
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
 
-  <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
 
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" class="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" />
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
@@ -1263,7 +1278,9 @@
     <property name="commentStore" ref="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.predictor.PredictorService" class="org.hisp.dhis.predictor.DefaultPredictorService" />
+  <bean id="org.hisp.dhis.predictor.PredictorService" class="org.hisp.dhis.predictor.DefaultPredictorService">
+    <property name="predictorGroupStore" ref="org.hisp.dhis.predictor.PredictorGroupStore" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore"
 
@@ -1275,6 +1292,13 @@
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationStore"
     class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationInstanceStore"
+        class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationInstance" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -1613,7 +1637,13 @@
     class="org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler"
-    class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
+        class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.predictor.PredictorDeletionHandler"
+        class="org.hisp.dhis.predictor.PredictorDeletionHandler" />
+
+  <bean id="org.hisp.dhis.predictor.PredictorGroupDeletionHandler"
+        class="org.hisp.dhis.predictor.PredictorGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserCredentialsDeletionHandler" class="org.hisp.dhis.user.UserCredentialsDeletionHandler" />
 
@@ -1748,6 +1778,11 @@
     <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler"
+        class="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <!-- AOP definitions -->
 
   <aop:config>
@@ -1763,6 +1798,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.period.PeriodService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitGroupService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.predictor.PredictorService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
@@ -1788,6 +1824,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )" method="intercept" />
     </aop:aspect>
   </aop:config>
 

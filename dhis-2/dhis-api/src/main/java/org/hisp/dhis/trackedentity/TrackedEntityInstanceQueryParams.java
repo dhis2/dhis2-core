@@ -199,6 +199,11 @@ public class TrackedEntityInstanceQueryParams
     private boolean internalSearch;
 
     /**
+     * Indicates whether the search is for synchronization purposes (for Program Data sync job).
+     */
+    private boolean synchronizationQuery;
+
+    /**
      * TEI order params
      */
     private List<String> orders;
@@ -299,6 +304,11 @@ public class TrackedEntityInstanceQueryParams
         if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
             setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
+            setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        }
+        else if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.CAPTURE ) )
+        {
+            setOrganisationUnits( user.getOrganisationUnits() );
             setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( isOrganisationUnitMode( CHILDREN ) )
@@ -911,6 +921,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
     {
         this.internalSearch = internalSearch;
+        return this;
+    }
+
+    public boolean isSynchronizationQuery()
+    {
+        return synchronizationQuery;
+    }
+
+    public TrackedEntityInstanceQueryParams setSynchronizationQuery( boolean synchronizationQuery )
+    {
+        this.synchronizationQuery = synchronizationQuery;
         return this;
     }
 

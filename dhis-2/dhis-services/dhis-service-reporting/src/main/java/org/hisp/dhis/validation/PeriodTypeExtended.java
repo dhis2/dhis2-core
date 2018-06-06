@@ -123,7 +123,7 @@ public class PeriodTypeExtended
         dataElementOperandIdMap.put( deoIdKey, deo );
     }
 
-    public static String getDeoIds( int dataElementId, int categoryOptionComboId )
+    public String getDeoIds( int dataElementId, int categoryOptionComboId )
     {
         return dataElementId + "." + categoryOptionComboId;
     }

@@ -294,7 +294,7 @@ public class DefaultAdxDataService
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        JobConfiguration dxfJobId = ( id == null ) ? null : new JobConfiguration( "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUser().getUid(), true );
+        JobConfiguration dxfJobId = ( id == null ) ? null : new JobConfiguration( "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid(), true );
 
         int groupCount = 0;
 
@@ -352,7 +352,7 @@ public class DefaultAdxDataService
 
         executor.shutdown();
 
-        notifier.update( id, INFO, "ADX data import done", true ).addJobSummary( id, importSummary );
+        notifier.update( id, INFO, "ADX data import done", true ).addJobSummary( id, importSummary, ImportSummary.class );
 
         ImportCount c = importSummary.getImportCount();
         log.info( "ADX data import done, imported: " + c.getImported() + ", updated: " + c.getUpdated() + ", deleted: " + c.getDeleted() + ", ignored: " + c.getIgnored() );

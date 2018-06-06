@@ -778,7 +778,7 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary, ImportSummary.class );
             dataValueSet.close();
             return summary;
         }
@@ -1277,7 +1277,7 @@ public class DefaultDataValueSetService
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
-        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary );
+        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary, ImportSummary.class );
 
         dataValueSet.close();
 

@@ -37,6 +37,7 @@ import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -49,6 +50,8 @@ public interface TrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException;
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
@@ -89,6 +92,8 @@ public interface TrackedEntityInstanceService
     ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 
     ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
+
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced );
 
     // -------------------------------------------------------------------------
     // DELETE

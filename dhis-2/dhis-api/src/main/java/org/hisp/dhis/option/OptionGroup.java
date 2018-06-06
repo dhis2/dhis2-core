@@ -38,7 +38,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -51,8 +50,6 @@ public class OptionGroup
     extends BaseDimensionalItemObject implements MetadataObject
 {
     private Set<Option> members = new HashSet<>();
-
-    private String description;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -80,19 +77,6 @@ public class OptionGroup
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 1 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
 
     @JsonProperty( "options" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )

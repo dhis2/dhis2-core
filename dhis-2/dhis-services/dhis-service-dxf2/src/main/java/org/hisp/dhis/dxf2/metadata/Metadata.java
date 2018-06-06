@@ -81,6 +81,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -244,6 +245,8 @@ public class Metadata
     private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
+
+    private List<PredictorGroup> predictorGroups = new ArrayList<>();
 
     private List<ProgramNotificationTemplate> programNotificationTemplates = new ArrayList<>();
 
@@ -1113,6 +1116,19 @@ public class Metadata
     }
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "predictorGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public List<PredictorGroup> getPredictorGroups()
+    {
+        return predictorGroups;
+    }
+
+    public void setPredictorGroups( List<PredictorGroup> predictorGroups )
+    {
+        this.predictorGroups = predictorGroups;
+    }
+
+    @JsonProperty
     @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramNotificationTemplate> getProgramNotificationTemplates()
@@ -1208,6 +1224,7 @@ public class Metadata
             ", colorSets=" + colorSets +
             ", programNotificationTemplates=" + programNotificationTemplates +
             ", predictors=" + predictors +
+            ", predictorGroups=" + predictorGroups +
             ", analyticsTableHooks=" + analyticsTableHooks +
             ", validationNotificationTemplates=" + validationNotificationTemplates +
             '}';

@@ -94,6 +94,22 @@ public class DateUtilsTest
     }
 
     @Test
+    public void testIsToday()
+    {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+
+        Date today = cal.getTime();
+        cal.add( java.util.Calendar.DATE, -1 );
+        Date yesterday = cal.getTime();
+        cal.add( java.util.Calendar.DATE, +2 );
+        Date tomorrow = cal.getTime();
+
+        assertTrue( DateUtils.isToday( today ) );
+        assertFalse( DateUtils.isToday( yesterday ) );
+        assertFalse( DateUtils.isToday( tomorrow ) );
+    }
+
+    @Test
     public void testMax()
     {
         Date date1 = new DateTime( 2014, 5, 15, 3, 3 ).toDate();

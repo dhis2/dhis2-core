@@ -42,13 +42,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
- *
  * Reschedule old jobs and execute jobs which were scheduled when the server was
  * not running.
  *
@@ -78,13 +78,15 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
 
+    private final String DEFAULT_KAFKA_TRACKER = "Kafka Tracker Consume";
+
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
     @Autowired
     private SystemSettingManager systemSettingManager;
 
     private String redisEnabled;
-    
+
     private String leaderElectionTime;
 
     private JobConfigurationService jobConfigurationService;
@@ -112,7 +114,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     {
         this.redisEnabled = redisEnabled;
     }
-    
+
     public void setLeaderElectionTime( String leaderElectionTime )
     {
         this.leaderElectionTime = leaderElectionTime;
@@ -178,7 +180,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            portJob( systemSettingManager, dataStatistics,"lastSuccessfulDataStatistics" );
+            portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
             dataStatistics.setLeaderOnlyJob( true );
             addAndScheduleJob( dataStatistics );
         }
@@ -186,7 +188,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
         {
             JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
-               VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
+                VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
             validationResultNotification.setLeaderOnlyJob( true );
             addAndScheduleJob( validationResultNotification );
         }
@@ -215,6 +217,13 @@ public class SchedulerStart extends AbstractStartupRoutine
             addAndScheduleJob( removeExpiredReservedValues );
         }
 
+        if ( verifyNoJobExist( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
+        {
+            JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
+                KAFKA_TRACKER, CRON_HOURLY, null, false, true );
+            addAndScheduleJob( kafkaTracker );
+        }
+
         if ( verifyNoJobExist( DEFAULT_LEADER_ELECTION, jobConfigurations ) && "true".equalsIgnoreCase( redisEnabled ) )
         {
             JobConfiguration leaderElectionJobConfiguration = new JobConfiguration( DEFAULT_LEADER_ELECTION,
@@ -226,28 +235,28 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             checkLeaderElectionJobConfiguration( jobConfigurations );
         }
-        
+
     }
 
     private void checkLeaderElectionJobConfiguration( List<JobConfiguration> jobConfigurations )
     {
-        /*
-        JobConfiguration leaderElectionJobConfiguration = jobConfigurations.stream()
-            .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst()
-            .get();
-        leaderElectionJobConfiguration.setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
-
-        if ( "true".equalsIgnoreCase( redisEnabled ) )
+        Optional<JobConfiguration> leaderElectionJobConfigurationOptional = jobConfigurations.stream()
+            .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst();
+        if ( leaderElectionJobConfigurationOptional.isPresent() )
         {
-            leaderElectionJobConfiguration.setEnabled( true );
+            JobConfiguration leaderElectionJobConfiguration = leaderElectionJobConfigurationOptional.get();
+            leaderElectionJobConfiguration
+                .setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
+            if ( "true".equalsIgnoreCase( redisEnabled ) )
+            {
+                leaderElectionJobConfiguration.setEnabled( true );
+            }
+            else
+            {
+                leaderElectionJobConfiguration.setEnabled( false );
+            }
+            jobConfigurationService.updateJobConfiguration( leaderElectionJobConfiguration );
         }
-        else
-        {
-            leaderElectionJobConfiguration.setEnabled( false  );
-        }
-
-        jobConfigurationService.updateJobConfiguration( leaderElectionJobConfiguration );
-        */
     }
 
     private boolean verifyNoJobExist( String name, List<JobConfiguration> jobConfigurations )

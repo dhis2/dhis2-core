@@ -71,6 +71,8 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
  * The data records in this table are not aggregated. Typically, queries will
  * aggregate in organisation unit hierarchy dimension, in the period/time dimension,
  * and the category dimensions, as well as organisation unit group set dimensions.
+ * <p>
+ * This analytics table is partitioned by year.
  *
  * @author Lars Helge Overland
  */
@@ -141,7 +143,7 @@ public class JdbcAnalyticsTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
-            "yearly = '" + partition.getYear() + "'",
+            "year = " + partition.getYear() + "",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
@@ -227,7 +229,7 @@ public class JdbcAnalyticsTableManager
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
-            "and ps.yearly = '" + partition.getYear() + "' " +
+            "and ps.year = " + partition.getYear() + " " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -355,6 +357,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );

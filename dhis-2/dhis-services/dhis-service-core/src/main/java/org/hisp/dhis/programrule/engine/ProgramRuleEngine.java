@@ -31,6 +31,9 @@ package org.hisp.dhis.programrule.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -40,6 +43,7 @@ import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -59,6 +63,9 @@ public class ProgramRuleEngine
 
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
 
     public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
@@ -119,7 +126,7 @@ public class ProgramRuleEngine
         try
         {
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
-
+            
             ruleEffects.stream().map( RuleEffect::ruleAction )
                 .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
@@ -134,8 +141,15 @@ public class ProgramRuleEngine
 
     private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
     {
+        Map<String, List<String>> supplementaryData = new HashMap<>();
+
+        List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
+
+        groups.stream().forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
+            .supplementaryData( supplementaryData )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder();

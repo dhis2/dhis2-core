@@ -60,9 +60,9 @@ public class TestUtils
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        objectMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
         objectMapper.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
+        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
         objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         objectMapper.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );

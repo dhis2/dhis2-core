@@ -179,6 +179,12 @@ public class Program
      * Property indicating maximum number of TEI to return after search
      */
     private int maxTeiCountToReturn = 0;
+    
+    
+    /**
+     * Property indicating level of access
+     */
+    private AccessLevel accessLevel;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -879,5 +885,17 @@ public class Program
     public void setProgramSections( Set<ProgramSection> programSections )
     {
         this.programSections = programSections;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AccessLevel getAccessLevel()
+    {
+        return accessLevel;
+    }
+
+    public void setAccessLevel( AccessLevel accessLevel )
+    {
+        this.accessLevel = accessLevel;
     }
 }

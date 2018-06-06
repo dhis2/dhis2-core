@@ -109,4 +109,17 @@ public class CollectionUtils
     {
         return set != null ? set : new HashSet<>();
     }
+
+    /**
+     * Adds all items not already present in the target collection
+     *
+     * @param collection collection to add items to.
+     * @param items collection of items to add.
+     */
+    public static <E> void addAllUnique( Collection<E> collection, Collection<E> items )
+    {
+        items.stream()
+            .filter( item -> !collection.contains( item ) )
+            .forEach( item -> collection.add( item ) );
+    }
 }

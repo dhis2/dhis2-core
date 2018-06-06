@@ -93,14 +93,13 @@ public class JdbcCompletenessTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
+        return Lists.newArrayList(
+            "year = " + partition.getYear() + "" );
     }
     
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
 
         String insert = "insert into " + partition.getTempTableName() + " (";
@@ -136,8 +135,7 @@ public class JdbcCompletenessTableManager
                 "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "where pe.startdate >= '" + start + "' " +
-            "and pe.startdate < '" + end + "' " +
+            "where ps.year = " + partition.getYear() + " " +
             "and cdr.date is not null";
 
         final String sql = insert + select;
@@ -193,6 +191,7 @@ public class JdbcCompletenessTableManager
         
         columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         
         return filterDimensionColumns( columns );
     }
