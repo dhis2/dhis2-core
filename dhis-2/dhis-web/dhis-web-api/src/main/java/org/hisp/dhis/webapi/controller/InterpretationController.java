@@ -43,6 +43,7 @@ import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -74,7 +75,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -93,6 +93,9 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MessageService messageService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -326,9 +329,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             throw new AccessDeniedException( "You are not allowed to update this interpretation." );
         }
 
-        interpretation.setText( text );
-
-        interpretationService.updateInterpretation( interpretation );
+        interpretationService.updateInterpretationText( interpretation, text );
     }
 
     @Override
@@ -399,12 +400,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
                 }
 
                 comment.setText( content );
-                Set<User> users = MentionUtils.getMentionedUsers( content, userService );
-                comment.setMentionsFromUsers( users );
-                interpretationService.updateSharingForMentions( interpretation, users );
-                
-                interpretationService.updateInterpretation( interpretation );
-                interpretationService.sendNotifications( interpretation, comment, users );
+                interpretationService.updateComment( interpretation, comment );
 
             }
         }

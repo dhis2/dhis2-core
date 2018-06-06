@@ -49,6 +49,8 @@ public interface MessageService
 
     MessageConversationParams.Builder createSystemMessage( String subject, String text );
 
+    MessageConversationParams.Builder createSystemMessage( Collection<User> user, String subject, String text );
+
     MessageConversationParams.Builder createValidationResultMessage( Collection<User> users, String subject, String text );
 
     int sendMessage( MessageConversationParams params );

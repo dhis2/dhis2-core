@@ -77,6 +77,12 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uid )
+    {
+        return this.users;
+    }
+
+    @Override
     public List<User> getAllUsers()
     {
         return null;

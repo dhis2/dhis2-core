@@ -170,6 +170,12 @@ public class DefaultUserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uids )
+    {
+        return userStore.getByUid( uids );
+    }
+
+    @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
