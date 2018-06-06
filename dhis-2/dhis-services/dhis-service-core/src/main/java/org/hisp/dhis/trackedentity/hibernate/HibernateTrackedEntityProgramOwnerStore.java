@@ -1,7 +1,5 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,7 +31,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.transaction.annotation.Transactional;

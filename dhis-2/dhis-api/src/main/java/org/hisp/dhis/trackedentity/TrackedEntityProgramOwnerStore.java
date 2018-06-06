@@ -58,12 +58,6 @@ import org.hisp.dhis.common.GenericStore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Ameen Mohamed
  */
