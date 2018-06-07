@@ -292,10 +292,10 @@ public class DefaultInterpretationService
 
         String fullBody = String.join( "\n\n", Arrays.asList(
             String.format( "%s: %s", subject, interpretableName ),
-            getInterpretationLink( interpretation ),
-            Jsoup.parse( details ).text()
+            Jsoup.parse( details ).text(),
+            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
         ) );
-
+        
         return messageService.createSystemMessage( users, subject, fullBody ).build();
     }
 
@@ -308,9 +308,10 @@ public class DefaultInterpretationService
             SubscribableObject object = (SubscribableObject) interpretableObject;
             Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
-            MessageConversationParams message =
-                getNotificationMessage( subscribers, interpretation, comment, notificationType );
-            messageService.sendMessage( message );
+            if ( !subscribers.isEmpty() ){
+                MessageConversationParams message = getNotificationMessage( subscribers, interpretation, comment, notificationType );
+                messageService.sendMessage( message );
+            }
         }
     }
 
