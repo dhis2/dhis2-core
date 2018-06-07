@@ -313,12 +313,12 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetDataElementIdsInExpression()
+    public void testGetElementsAndOptionCombosInExpression()
     {
-        Set<String> ids = expressionService.getDataElementIdsInExpression( expressionC );
+        Set<String> ids = expressionService.getElementsAndOptionCombosInExpression( expressionC );
 
         assertEquals( 2, ids.size() );
-        assertTrue( ids.contains( deA.getUid() ) );
+        assertTrue( ids.contains( deA.getUid() + SEPARATOR + coc.getUid() ) );
         assertTrue( ids.contains( deE.getUid() ) );
     }
 

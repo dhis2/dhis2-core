@@ -204,7 +204,7 @@ public class DefaultValidationService
     public ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnit,
         Period period )
     {
-        Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
+        Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
         Collection<Period> periods = Sets.newHashSet(period);
 
         return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);

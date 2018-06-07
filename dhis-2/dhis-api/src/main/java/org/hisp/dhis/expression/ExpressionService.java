@@ -321,11 +321,18 @@ public interface ExpressionService
         Set<String> aggregates, Set<String> nonAggregates );
 
     /**
-     * Returns identifiers of all data elements which are present in the expression.
+     * Returns UIDs of Data Elements and associated Option Combos (if any)
+     * found in the Data Element Operands an expression.
+     * <p/>
+     * If the Data Element Operand consists of just a Data Element, or if
+     * the Option Combo is a wildcard "*", returns just dataElementUID.
+     * <p/>
+     * If an Option Combo is present, returns dataElementUID.optionComboUID.
+     *
      * @param expression the expression.
      * @return set of data element identifiers.
      */
-    Set<String> getDataElementIdsInExpression( String expression );
+    Set<String> getElementsAndOptionCombosInExpression( String expression );
 
     /**
      * Returns identifiers of all dimensional item objects which are present
