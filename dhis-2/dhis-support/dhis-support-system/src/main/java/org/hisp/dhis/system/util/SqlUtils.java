@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.util;
 
+import org.springframework.util.Assert;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -37,6 +39,7 @@ package org.hisp.dhis.system.util;
 public class SqlUtils
 {
     public static final String QUOTE = "\"";
+    public static final String SEPARATOR = ".";
     
     /**
      * Quotes the given relation (typically a column). Quotes part of
@@ -47,8 +50,24 @@ public class SqlUtils
      */
     public static String quote( String relation )
     {
+        Assert.notNull( relation, "Relation must be specified" );
+        
         String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
         
         return QUOTE + rel + QUOTE;
+    }
+
+    /**
+     * Quotes and qualifies the given relation (typically a column). Quotes part 
+     * of the given relation are encoded (replaced by double quotes that is).
+     * 
+     * @param relation the relation (typically a column).
+     * @return the quoted relation.
+     */
+    public static String quote( String alias, String relation )
+    {
+        Assert.notNull( alias, "Alias must be specified" );
+        
+        return alias + SEPARATOR + quote( relation );
     }
 }
