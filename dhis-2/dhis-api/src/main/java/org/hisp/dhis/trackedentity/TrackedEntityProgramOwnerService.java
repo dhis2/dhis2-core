@@ -54,7 +54,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programUid The program Uid
      * @param orgUnitUid The organisation Unit Uid
      */
-    void changeTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid );
+    void updateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid );
 
     /**
      * Assign an orgUnit as the owner for a tracked entity instance for the
@@ -75,7 +75,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programId The program Id
      * @param orgUnitId The organisation Unit Id
      */
-    void changeTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId );
+    void updateTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId );
 
     /**
      * Get the program owner details for a tracked entity instance.

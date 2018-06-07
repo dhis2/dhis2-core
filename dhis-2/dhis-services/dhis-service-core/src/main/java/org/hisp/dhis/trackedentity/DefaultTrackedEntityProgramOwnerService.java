@@ -87,7 +87,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public void changeTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
+    public void updateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
         Program program = programService.getProgram( programUid );
@@ -124,7 +124,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public void changeTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
+    public void updateTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
     {
         TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( teiId,
             programId );
@@ -153,4 +153,5 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         }
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
     }
+
 }
