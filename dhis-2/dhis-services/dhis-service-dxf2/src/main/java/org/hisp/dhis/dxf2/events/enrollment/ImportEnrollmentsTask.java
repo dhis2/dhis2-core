@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,58 +28,38 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * @author Markus Bekken
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ProgramRuleActionType
+public class ImportEnrollmentsTask
+    extends SecurityContextRunnable
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" ),
-    HIDEOPTION( "hideoption" ),
-    SHOWOPTIONGROUP( "showoptiongroup" ),
-    HIDEOPTIONGROUP( "hideoptiongroup" );
+    private final List<Enrollment> enrollments;
 
-    final String value;
+    private final EnrollmentService enrollmentService;
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions having back end implementation
+    private final ImportOptions importOptions;
 
-    ProgramRuleActionType( String value )
+    private final JobConfiguration id;
+
+    public ImportEnrollmentsTask( List<Enrollment> enrollments, EnrollmentService enrollmentService, ImportOptions importOptions, JobConfiguration id )
     {
-        this.value = value;
+        super();
+        this.enrollments = enrollments;
+        this.enrollmentService = enrollmentService;
+        this.importOptions = importOptions;
+        this.id = id;
     }
 
-    public static ProgramRuleActionType fromValue( String value )
+    @Override
+    public void call()
     {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isImplementable()
-    {
-        return IMPLEMENTED_ACTIONS.contains( this );
+        enrollmentService.addEnrollments( enrollments, importOptions, id );
     }
 }
