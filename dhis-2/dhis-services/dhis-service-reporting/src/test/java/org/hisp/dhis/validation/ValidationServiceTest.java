@@ -105,6 +105,10 @@ public class ValidationServiceTest
 
     private Set<CategoryOptionCombo> optionCombos;
 
+    private CategoryCombo categoryComboX;
+
+    private CategoryOptionCombo optionComboX;
+
     private CategoryOptionCombo optionCombo;
 
     private Expression expressionA;
@@ -121,6 +125,10 @@ public class ValidationServiceTest
     private Expression expressionL;
     private Expression expressionP;
     private Expression expressionQ;
+    private Expression expressionR;
+    private Expression expressionS;
+    private Expression expressionT;
+    private Expression expressionU;
 
     private DataSet dataSetWeekly;
 
@@ -155,6 +163,10 @@ public class ValidationServiceTest
     private ValidationRule validationRuleG;
     private ValidationRule validationRuleP;
     private ValidationRule validationRuleQ;
+    private ValidationRule validationRuleR;
+    private ValidationRule validationRuleS;
+    private ValidationRule validationRuleT;
+    private ValidationRule validationRuleU;
     private ValidationRule validationRuleX;
 
     private ValidationRuleGroup group;
@@ -192,8 +204,21 @@ public class ValidationServiceTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementE );
 
+        CategoryOption optionX = createCategoryOption( 'X' );
+        Category categoryX = createCategory( 'X', optionX );
+        categoryComboX = createCategoryCombo( 'X', categoryX );
+        optionComboX = createCategoryOptionCombo( 'X', categoryComboX, optionX );
+
+        categoryComboX.getOptionCombos().add( optionComboX );
+
+        categoryService.addCategoryOption( optionX );
+        categoryService.addCategory( categoryX );
+        categoryService.addCategoryCombo( categoryComboX );
+        categoryService.addCategoryOptionCombo( optionComboX );
+
         optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
+        String suffixX = SEPARATOR + optionComboX.getUid();
         String suffix = SEPARATOR + optionCombo.getUid();
 
         optionCombos = new HashSet<>();
@@ -215,6 +240,10 @@ public class ValidationServiceTest
         expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
         expressionP = new Expression( SYMBOL_DAYS, "expressionP", NEVER_SKIP );
         expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
+        expressionR = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionR" );
+        expressionS = new Expression( "#{" + dataElementA.getUid() + suffixX + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
+        expressionT = new Expression( "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
+        expressionU = new Expression( "1000", "expressionT" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -315,6 +344,10 @@ public class ValidationServiceTest
         validationRuleG = createValidationRule( "G", equal_to, expressionK, expressionL, periodTypeMonthly ); // deC = deD
         validationRuleP = createValidationRule( "P", equal_to, expressionI, expressionP, periodTypeMonthly ); // deA = [days]
         validationRuleQ = createValidationRule( "Q", equal_to, expressionQ, expressionP, periodTypeYearly ); // deE = [days]
+        validationRuleR = createValidationRule( "R", equal_to, expressionR, expressionU, periodTypeMonthly ); // deA(sum) + deB(sum) = 1000
+        validationRuleS = createValidationRule( "S", equal_to, expressionS, expressionU, periodTypeMonthly ); // deA.optionComboX + deB.optionComboX = 1000
+        validationRuleT = createValidationRule( "T", equal_to, expressionT, expressionU, periodTypeMonthly ); // deA.default + deB.optionComboX = 1000
+        validationRuleU = createValidationRule( "U", equal_to, expressionA, expressionU, periodTypeMonthly ); // deA.default + deB.default = 1000
         validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
         group = createValidationRuleGroup( 'A' );
 
@@ -1001,6 +1034,52 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleZ, periodA, sourceA, defaultCombo, 7.0, 10.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateWithDataSetElements()
+    {
+        DataSet dataSetA = createDataSet( 'A', periodTypeMonthly );
+        DataSet dataSetB = createDataSet( 'B', periodTypeMonthly );
+        DataSet dataSetC = createDataSet( 'C', periodTypeMonthly );
+        DataSet dataSetD = createDataSet( 'D', periodTypeMonthly );
+
+        dataSetA.addDataSetElement( dataElementA );
+        dataSetA.addDataSetElement( dataElementB );
+
+        dataSetB.addDataSetElement( dataElementA, categoryComboX );
+        dataSetB.addDataSetElement( dataElementB );
+
+        dataSetC.addDataSetElement( dataElementA );
+        dataSetC.addDataSetElement( dataElementB, categoryComboX );
+
+        dataSetD.addDataSetElement( dataElementA, categoryComboX );
+        dataSetD.addDataSetElement( dataElementB, categoryComboX );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+        dataSetService.addDataSet( dataSetC );
+        dataSetService.addDataSet( dataSetD );
+
+        validationRuleService.saveValidationRule( validationRuleR );
+        validationRuleService.saveValidationRule( validationRuleS );
+        validationRuleService.saveValidationRule( validationRuleT );
+        validationRuleService.saveValidationRule( validationRuleU );
+
+        useDataValue( dataElementA, periodA, sourceA, "1", optionCombo, optionCombo );
+        useDataValue( dataElementB, periodA, sourceA, "2", optionCombo, optionCombo );
+        useDataValue( dataElementA, periodA, sourceA, "4", optionComboX, optionCombo );
+        useDataValue( dataElementB, periodA, sourceA, "8", optionComboX, optionCombo );
+
+        ValidationResult r = new ValidationResult( validationRuleR, periodA, sourceA, defaultCombo, 15.0, 1000.0, dayInPeriodA );
+        ValidationResult s = new ValidationResult( validationRuleS, periodA, sourceA, defaultCombo, 12.0, 1000.0, dayInPeriodA );
+        ValidationResult t = new ValidationResult( validationRuleT, periodA, sourceA, defaultCombo, 9.0, 1000.0, dayInPeriodA );
+        ValidationResult u = new ValidationResult( validationRuleU, periodA, sourceA, defaultCombo, 3.0, 1000.0, dayInPeriodA );
+
+        assertResultsEquals( Lists.newArrayList( r, t, u ), validationService.validationAnalysis( validationService.newParamsBuilder( dataSetA, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, u ), validationService.validationAnalysis( validationService.newParamsBuilder( dataSetB, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, t, u ), validationService.validationAnalysis( validationService.newParamsBuilder( dataSetC, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, t ), validationService.validationAnalysis( validationService.newParamsBuilder( dataSetD, sourceA, periodA ).build() ) );
     }
 
     @Test
