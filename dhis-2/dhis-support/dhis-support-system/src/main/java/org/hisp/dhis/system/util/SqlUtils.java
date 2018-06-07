@@ -80,6 +80,6 @@ public class SqlUtils
             value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
         }
 
-        return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+        return quote ? ( SINGLE_QUOTE + value + SINGLE_QUOTE ) : value;
     }
 }
