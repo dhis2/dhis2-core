@@ -38,8 +38,9 @@ import org.springframework.util.Assert;
  */
 public class SqlUtils
 {
-    public static final String QUOTE = "\"";
-    public static final String SEPARATOR = ".";
+    private static final String DOUBLE_QUOTE = "\"";
+    private static final String SINGLE_QUOTE = "'";
+    private static final String SEPARATOR = ".";
     
     /**
      * Quotes the given relation (typically a column). Quotes part of
@@ -52,9 +53,9 @@ public class SqlUtils
     {
         Assert.notNull( relation, "Relation must be specified" );
         
-        String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
+        String rel = relation.replaceAll( DOUBLE_QUOTE, ( DOUBLE_QUOTE + DOUBLE_QUOTE ) );
         
-        return QUOTE + rel + QUOTE;
+        return DOUBLE_QUOTE + rel + DOUBLE_QUOTE;
     }
 
     /**
@@ -69,5 +70,16 @@ public class SqlUtils
         Assert.notNull( alias, "Alias must be specified" );
         
         return alias + SEPARATOR + quote( relation );
+    }
+
+    public static String encode( String value, boolean quote )
+    {
+        if ( value != null )
+        {
+            value = value.endsWith( "\\" ) ? value.substring( 0, value.length() - 1 ) : value;
+            value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
+        }
+
+        return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
     }
 }

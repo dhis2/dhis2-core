@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.Date;
 import java.util.List;
@@ -134,7 +135,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
             {
-                columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+                columns.add( quote( dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -163,12 +164,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
+                String asClause = " as " + quote( in.getUid() );
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                String colName = quote( queryItem.getItemName() );
                 
                 String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
                 
@@ -176,7 +177,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
+                columns.add( quote( queryItem.getItemName() ) );
             }
         }
         
@@ -326,7 +327,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
-            String expression = statementBuilder.columnQuote( params.getValue().getUid() );
+            String expression = quote( params.getValue().getUid() );
             
             return function + "(" + expression + ")";
         }
@@ -358,15 +359,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
+                    return "count(distinct " + quote( "tei") + ")";
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
+                    return "count(distinct " + quote( "pi") + ")";
                 }
                 else // EVENT
                 {
-                    return "count(" + statementBuilder.columnQuote( "psi") + ")";
+                    return "count(" + quote( "psi") + ")";
                 }
             }
         }
@@ -416,7 +417,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getColumn( QueryItem item )
     {
-        String col = statementBuilder.columnQuote( item.getItemName() );
+        String col = quote( item.getItemName() );
         return item.isText() ? "lower(" + col + ")" : col;
     }
     

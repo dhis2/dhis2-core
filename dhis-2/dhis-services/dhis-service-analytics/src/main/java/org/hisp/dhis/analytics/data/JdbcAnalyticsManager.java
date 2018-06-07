@@ -57,11 +57,9 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -83,6 +81,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -108,9 +107,6 @@ public class JdbcAnalyticsManager
     
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
     // AnalyticsManager implementation
@@ -331,7 +327,7 @@ public class JdbcAnalyticsManager
         {
             if ( !dim.getItems().isEmpty() && !dim.isFixed() )
             {
-                String col = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = quote( dim.getDimensionName() );
 
                 sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
             }
@@ -355,7 +351,7 @@ public class JdbcAnalyticsManager
                 {
                     if ( filter.hasItems() )
                     {
-                        String col = statementBuilder.columnQuote( filter.getDimensionName() );
+                        String col = quote( filter.getDimensionName() );
 
                         sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
                     }
@@ -375,11 +371,11 @@ public class JdbcAnalyticsManager
 
             for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
             {
-                String ouCol = statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() );
+                String ouCol = quote( LEVEL_PREFIX + unit.getLevel() );
                 Integer level = params.getDataApprovalLevels().get( unit );
 
                 sql += "(" + ouCol + " = '" + unit.getUid() + "' and " + 
-                    statementBuilder.columnQuote( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
+                    quote( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
             }
 
             sql = removeLastOr( sql ) + ") ";
@@ -392,26 +388,26 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + statementBuilder.columnQuote( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "ouopeningdate" ) + " is null) and " +
-                "(" + statementBuilder.columnQuote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "oucloseddate" ) + " is null)) ";
+                "(" + quote( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quote( "ouopeningdate" ) + " is null) and " +
+                "(" + quote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quote( "oucloseddate" ) + " is null)) ";
         }
         
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + statementBuilder.columnQuote( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "costartdate" ) + " is null) and " +
-                "(" + statementBuilder.columnQuote( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "coenddate" ) +  " is null)) ";
+                "(" + quote( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quote( "costartdate" ) + " is null) and " +
+                "(" + quote( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quote( "coenddate" ) +  " is null)) ";
         }
 
         if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and " + statementBuilder.columnQuote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + quote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + quote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "timely" ) + " is true ";
+            sql += sqlHelper.whereAnd() + " " + quote( "timely" ) + " is true ";
         }
 
         // ---------------------------------------------------------------------
@@ -420,7 +416,7 @@ public class JdbcAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {            
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "year" ) + " in (" + 
+            sql += sqlHelper.whereAnd() + " " + quote( "year" ) + " in (" + 
                 TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -430,7 +426,7 @@ public class JdbcAnalyticsManager
         
         if ( params.getAggregationType().isLastPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + quote( "pe_rank" ) + " = 1 ";
         }
         
         return sql;
@@ -496,15 +492,15 @@ public class JdbcAnalyticsManager
         
         List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
-        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+        cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
 
         if ( params.isDataApproval() )
         {
-            cols.add( statementBuilder.columnQuote( COL_APPROVALLEVEL ) );
+            cols.add( quote( COL_APPROVALLEVEL ) );
 
             for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
             {                
-                cols.add( statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() ) );
+                cols.add( quote( LEVEL_PREFIX + unit.getLevel() ) );
             }
         }
 
@@ -512,7 +508,7 @@ public class JdbcAnalyticsManager
         {            
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
-                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
                 
                 cols.remove( alias ); // Remove column if already present, i.e. "yearly"
@@ -520,7 +516,7 @@ public class JdbcAnalyticsManager
             }
             else
             {
-                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+                cols.add( quote( dim.getDimensionName() ) );
             }
         }
 
@@ -631,7 +627,7 @@ public class JdbcAnalyticsManager
             {
                 if ( !dimension.isFixed() )
                 {
-                    builder.append( statementBuilder.columnQuote( dimension.getDimensionName() ) ).append( "," );
+                    builder.append( quote( dimension.getDimensionName() ) ).append( "," );
                 }
             }
 
