@@ -81,7 +81,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data

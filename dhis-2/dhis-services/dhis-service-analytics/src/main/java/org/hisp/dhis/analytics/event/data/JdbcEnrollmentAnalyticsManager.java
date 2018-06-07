@@ -34,7 +34,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.List;
 

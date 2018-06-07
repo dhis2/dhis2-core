@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.Date;
 import java.util.List;
@@ -41,9 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;

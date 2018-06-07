@@ -70,8 +70,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
 /**
  * @author Lars Helge Overland
  */

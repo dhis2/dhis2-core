@@ -64,7 +64,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.

@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.analytics.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,15 +28,19 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.util.Assert;
+
 /**
- * Utilities for SQL operations, compatible with PostgreSQL
+ * Utilities for analytics SQL operations, compatible with PostgreSQL
  * and H2 database platforms.
  * 
  * @author Lars Helge Overland
  */
-public class SqlUtils
+public class AnalyticsSqlUtils
 {
-    private static final String QUOTE = "\"";
+    private static final String DOUBLE_QUOTE = "\"";
+    private static final String SINGLE_QUOTE = "'";
+    private static final String SEPARATOR = ".";
     
     /**
      * Quotes the given relation (typically a column). Quotes part of
@@ -46,9 +50,43 @@ public class SqlUtils
      * @return the quoted relation.
      */
     public static String quote( String relation )
-    {        
-        String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
+    {
+        Assert.notNull( relation, "Relation must be specified" );
         
-        return QUOTE + rel + QUOTE;
+        String rel = relation.replaceAll( DOUBLE_QUOTE, ( DOUBLE_QUOTE + DOUBLE_QUOTE ) );
+        
+        return DOUBLE_QUOTE + rel + DOUBLE_QUOTE;
+    }
+
+    /**
+     * Quotes and qualifies the given relation (typically a column). Quotes part 
+     * of the given relation are encoded (replaced by double quotes that is).
+     * 
+     * @param relation the relation (typically a column).
+     * @return the quoted relation.
+     */
+    public static String quote( String alias, String relation )
+    {
+        Assert.notNull( alias, "Alias must be specified" );
+        
+        return alias + SEPARATOR + quote( relation );
+    }
+
+    /**
+     * Encodes the given value.
+     * 
+     * @param value the value.
+     * @param quote whether to quote the value.
+     * @return the encoded value.
+     */
+    public static String encode( String value, boolean quote )
+    {
+        if ( value != null )
+        {
+            value = value.endsWith( "\\" ) ? value.substring( 0, value.length() - 1 ) : value;
+            value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
+        }
+
+        return quote ? ( SINGLE_QUOTE + value + SINGLE_QUOTE ) : value;
     }
 }
