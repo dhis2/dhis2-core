@@ -52,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
 import org.joda.time.DateTime;
 import org.junit.Test;

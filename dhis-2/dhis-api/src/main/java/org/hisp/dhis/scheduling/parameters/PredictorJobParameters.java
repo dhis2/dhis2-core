@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
-import java.util.Date;
 import java.util.List;
 
 /**
