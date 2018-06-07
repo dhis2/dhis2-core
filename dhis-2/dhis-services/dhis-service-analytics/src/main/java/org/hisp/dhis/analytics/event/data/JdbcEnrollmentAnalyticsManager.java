@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.List;
 
@@ -120,7 +121,7 @@ public class JdbcEnrollmentAnalyticsManager
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + quote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
             }
         }        
 
@@ -158,7 +159,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = statementBuilder.columnQuote( dim.getDimensionName() );
+            String col = quote( dim.getDimensionName() );
             
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -243,7 +244,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
+            sql += "and " + quote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -253,7 +254,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += "and " + quote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;
