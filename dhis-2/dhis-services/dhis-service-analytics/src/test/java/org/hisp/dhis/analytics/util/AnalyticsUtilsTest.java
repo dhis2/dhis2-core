@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
