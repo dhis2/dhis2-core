@@ -85,6 +85,8 @@ public enum JobType
     METADATA_IMPORT( null, false, null, null ),
     DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
     EVENT_IMPORT( null, false, null, null ),
+    ENROLLMENT_IMPORT( null, false, null, null ),
+    TEI_IMPORT( null, false, null, null ),
     LEADER_ELECTION( "leaderElectionJob", false, null, null ),
     LEADER_RENEWAL( "leaderRenewalJob", false, null, null ),
     COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );

@@ -820,8 +820,7 @@ public class EventController
         }
         else
         {
-            List<Event> events = eventService.getEventsJson( inputStream );
-
+            List<Event> events = eventService.getEventsXml( inputStream );
             startAsyncImport( importOptions, events, request, response );
         }
     }
@@ -867,7 +866,6 @@ public class EventController
         else
         {
             List<Event> events = eventService.getEventsJson( inputStream );
-
             startAsyncImport( importOptions, events, request, response );
         }
     }
