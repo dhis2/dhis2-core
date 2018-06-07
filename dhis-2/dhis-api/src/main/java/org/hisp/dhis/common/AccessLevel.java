@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,58 +28,26 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
-
 /**
- * @author Markus Bekken
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public enum ProgramRuleActionType
+public enum AccessLevel
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" ),
-    HIDEOPTION( "hideoption" ),
-    SHOWOPTIONGROUP( "showoptiongroup" ),
-    HIDEOPTIONGROUP( "hideoptiongroup" );
+    OPEN( 0 ),
+    AUDITED( 1 ),
+    PROTECTED( 2 ),
+    CLOSED( 3 );
+    
+    private final int value;
 
-    final String value;
-
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions having back end implementation
-
-    ProgramRuleActionType( String value )
+    AccessLevel( int value )
     {
         this.value = value;
     }
 
-    public static ProgramRuleActionType fromValue( String value )
+    public int getValue()
     {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isImplementable()
-    {
-        return IMPLEMENTED_ACTIONS.contains( this );
+        return value;
     }
 }

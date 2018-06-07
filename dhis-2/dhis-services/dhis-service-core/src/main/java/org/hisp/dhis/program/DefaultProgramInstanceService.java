@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -566,7 +567,7 @@ public class DefaultProgramInstanceService
     
     private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
     {        
-        if ( programInstance != null && programInstance.getProgram() != null && programInstance.getProgram().isAllowAuditLog() && accessedBy != null )
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() == AccessLevel.AUDITED && accessedBy != null )
         {
             ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
                 

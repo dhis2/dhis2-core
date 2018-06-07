@@ -63,6 +63,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
@@ -489,6 +490,7 @@ public class AuditController
     @RequestMapping( value = "enrollment", method = RequestMethod.GET )
     public @ResponseBody RootNode getEnrollmentAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> en,
+        @RequestParam( required = false, defaultValue = "" ) List<String> pr,
         @RequestParam( required = false, defaultValue = "" ) List<String> user,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Date startDate,
@@ -509,8 +511,11 @@ public class AuditController
         ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
         
         List<ProgramInstance> pis = getEnrollments( en );
+        
+        List<Program> prs = getPrograms( pr );
 
         params.setProgramInstances( new HashSet<>( pis ) );
+        params.setPrograms( new HashSet<>( prs ) );
         params.setUsers( new HashSet<>(  user ) );
         params.setAuditType( auditType );
         params.setStartDate( startDate );
@@ -801,13 +806,52 @@ public class AuditController
         return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
     
-    private List<ProgramInstance> getEnrollments( @RequestParam List<String> en ) throws WebMessageException
+    private List<ProgramInstance> getEnrollments( @RequestParam List<String> enrollmentIdentifiers ) throws WebMessageException
     {
-        if ( en == null )
+        List<ProgramInstance> programInstances = new ArrayList<>();
+        
+        if ( enrollmentIdentifiers == null )
         {
-            return new ArrayList<>();
+            return programInstances;
         }
         
-        return manager.getByUid( ProgramInstance.class, en );        
+        for ( String en : enrollmentIdentifiers )
+        {
+            ProgramInstance programInstance = manager.get( ProgramInstance.class, en );
+
+            if ( programInstance == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Illegal enrollment identifier: " + en ) );
+            }
+
+            programInstances.add( programInstance );
+        }
+        
+        return programInstances;
+    }
+    
+    private List<Program> getPrograms( @RequestParam List<String> programIdentifiers ) throws WebMessageException
+    {
+        List<Program> programs = new ArrayList<>();
+        
+        if ( programIdentifiers == null )
+        {
+            return programs;
+        }
+        
+        for ( String pr : programIdentifiers )
+        {
+            Program program = manager.get( Program.class, pr );
+
+            if ( pr == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Illegal program identifier: " + pr ) );
+            }
+
+            programs.add( program );
+        }
+
+        return programs;
+
     }
 }
