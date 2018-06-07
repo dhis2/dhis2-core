@@ -293,8 +293,9 @@ public class TableAlteror
         
         executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
         executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
-        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );
-        executeSql( "update program set allowauditlog = false where allowauditlog is null" );
+        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );        
+        executeSql( "alter table program drop column allowauditlog" );
+        executeSql( "update program set accesslevel = 'OPEN' where accesslevel is null" );
     }
 
     // -------------------------------------------------------------------------

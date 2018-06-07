@@ -59,9 +59,7 @@ import java.util.Set;
 public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
-
     private static final String SMTP_ERROR = "SMTP server not configured";
-
     private static final String EMAIL_DISABLED = "Email message notifications disabled";
 
     //--------------------------------------------------------------------------
@@ -99,7 +97,8 @@ public class EmailController
     }
 
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
-    public void sendSystemNotificationEmail( @RequestBody Email email, HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void sendSystemNotificationEmail( @RequestBody Email email, 
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -118,8 +117,8 @@ public class EmailController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
     @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
     public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
-                                       @RequestParam ( defaultValue = "DHIS 2" ) String subject,
-                                       HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+        @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -147,7 +146,7 @@ public class EmailController
     
     private void checkEmailSettings() throws WebMessageException
     {
-        if ( !emailService.emailEnabled() )
+        if ( !emailService.emailNotificationsEnabled() )
         {
             throw new WebMessageException( WebMessageUtils.error( EMAIL_DISABLED ) );
         }

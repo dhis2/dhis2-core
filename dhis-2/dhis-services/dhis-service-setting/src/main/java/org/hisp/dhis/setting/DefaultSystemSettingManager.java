@@ -64,7 +64,8 @@ import com.google.common.collect.Lists;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public class DefaultSystemSettingManager implements SystemSettingManager
+public class DefaultSystemSettingManager 
+    implements SystemSettingManager
 {
    
     // -------------------------------------------------------------------------
@@ -429,11 +430,18 @@ public class DefaultSystemSettingManager implements SystemSettingManager
     }
 
     @Override
-    public boolean emailEnabled()
+    public boolean emailNotificationsEnabled()
     {
         return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
     }
 
+    @Override
+    public boolean emailConfigured()
+    {
+        return StringUtils.isNotBlank( getEmailHostName() )
+            && StringUtils.isNotBlank( getEmailUsername() );
+    }
+    
     @Override
     public boolean systemNotificationEmailValid()
     {

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.validation;
+package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,53 +28,39 @@ package org.hisp.dhis.webapi.controller.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
-import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = ValidationRuleSchemaDescriptor.API_ENDPOINT )
-public class ValidationRuleController
-    extends AbstractCrudController<ValidationRule>
+public class ImportTrackedEntitiesTask
+    extends SecurityContextRunnable
 {
-    @Autowired
-    private DataSetService dataSetService;
+    private final List<TrackedEntityInstance> trackedEntityInstances;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
+
+    private final ImportOptions importOptions;
+
+    private final JobConfiguration id;
+
+    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances, TrackedEntityInstanceService trackedEntityInstanceService,
+        ImportOptions importOptions, JobConfiguration id )
+    {
+        super();
+        this.trackedEntityInstances = trackedEntityInstances;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.importOptions = importOptions;
+        this.id = id;
+    }
 
     @Override
-    protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
-        throws QueryParserException
+    public void call()
     {
-        if ( options.contains( "dataSet" ) )
-        {
-            DataSet ds = dataSetService.getDataSet( options.get( "dataSet" ) );
-
-            if ( ds == null )
-            {
-                return null;
-            }
-
-            return Lists.newArrayList( validationRuleService.getValidationRulesForDataSet( ds ) );
-        }
-
-        return super.getEntityList( metadata, options, filters, orders );
+        trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions, id );
     }
 }

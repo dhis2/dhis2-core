@@ -146,6 +146,7 @@ public class DefaultSystemService
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
+        info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
         setSystemMetadataVersionInfo( info );
 

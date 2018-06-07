@@ -92,7 +92,9 @@ public interface SystemSettingManager
 
     boolean selfRegistrationNoRecaptcha();
 
-    boolean emailEnabled();
+    boolean emailNotificationsEnabled();
+    
+    boolean emailConfigured();
 
     boolean systemNotificationEmailValid();
 

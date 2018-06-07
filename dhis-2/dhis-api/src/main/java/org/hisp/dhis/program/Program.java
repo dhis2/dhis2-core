@@ -182,9 +182,9 @@ public class Program
     
     
     /**
-     * Property indicating whether to allow (read) audit log or not
+     * Property indicating level of access
      */
-    private boolean allowAuditLog;
+    private AccessLevel accessLevel;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -889,13 +889,13 @@ public class Program
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isAllowAuditLog()
+    public AccessLevel getAccessLevel()
     {
-        return allowAuditLog;
+        return accessLevel;
     }
 
-    public void setAllowAuditLog( boolean allowAuditLog )
+    public void setAccessLevel( AccessLevel accessLevel )
     {
-        this.allowAuditLog = allowAuditLog;
+        this.accessLevel = accessLevel;
     }
 }

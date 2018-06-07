@@ -51,6 +51,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
@@ -589,7 +590,9 @@ public class DefaultUserService
         
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
-        user.getUserCredentials().getUserAuthorityGroups().forEach( ur ->
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( r -> r.getUid() ).collect( Collectors.toList() ) );
+
+        roles.forEach( ur ->
         {
             if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
