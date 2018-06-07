@@ -48,9 +48,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -83,7 +85,7 @@ public class LocaleController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/ui", method = RequestMethod.GET )
+    @GetMapping( value = "/ui" )
     public @ResponseBody List<WebLocale> getUiLocales( Model model )
     {
         List<Locale> locales = localeManager.getAvailableLocales();
@@ -92,7 +94,7 @@ public class LocaleController
         return webLocales;
     }
 
-    @RequestMapping( value = "/db", method = RequestMethod.GET )
+    @GetMapping( value = "/db" )
     public @ResponseBody List<WebLocale> getDbLocales()
     {
         List<Locale> locales = localeService.getAllLocales();
@@ -100,25 +102,25 @@ public class LocaleController
         return webLocales;
     }
 
-    @RequestMapping( value = "/languages", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/languages", produces = "application/json" )
     public @ResponseBody Map<String, String> getAvailableLanguages()
     {
         return localeService.getAvailableLanguages();
     }
 
-    @RequestMapping( value = "/countries", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/countries", produces = "application/json" )
     public @ResponseBody Map<String, String> getAvailableCountries()
     {
         return localeService.getAvailableCountries();
     }
 
-    @RequestMapping( value = "/dbLocales", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/dbLocales", produces = "application/json" )
     public @ResponseBody List<I18nLocale> getDbLocalesWithId()
     {
         return localeService.getAllI18nLocales();
     }
 
-    @RequestMapping( value = "/dbLocales/{uid}", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping( value = "/dbLocales/{uid}", produces = "application/json")
     public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
@@ -133,7 +135,7 @@ public class LocaleController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
-    @RequestMapping( value="/dbLocales", method = RequestMethod.POST )
+    @PostMapping( value="/dbLocales" )
     @ResponseStatus( value = HttpStatus.OK )
     public void addLocale( @RequestParam String country, @RequestParam String language,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -167,7 +169,7 @@ public class LocaleController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
-    @RequestMapping( path = "/dbLocales/{uid}" ,method = RequestMethod.DELETE )
+    @DeleteMapping( path = "/dbLocales/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void delete( @PathVariable String uid ) throws Exception
     {
