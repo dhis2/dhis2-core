@@ -105,11 +105,11 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testAddGet()
     {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true");
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving");
-        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null);
-        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleA, ProgramRuleActionType.HIDEFIELD, null, attributeA, null, null, null, null, null, null);
-        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleA, ProgramRuleActionType.CREATEEVENT, null, null, null, programStageA, null, null, null, "{wqpUVEeJR3D:30,mrVkW9h2Rdp:'live'}");
+        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
+        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleA, ProgramRuleActionType.HIDEFIELD, null, attributeA, null, null, null, null, null, null, null, null);
+        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleA, ProgramRuleActionType.CREATEEVENT, null, null, null, programStageA, null, null, null, "{wqpUVEeJR3D:30,mrVkW9h2Rdp:'live'}", null, null);
         
         int idA = actionService.addProgramRuleAction( actionA );
         int idB = actionService.addProgramRuleAction( actionB );
@@ -127,11 +127,11 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testGetByProgram()
     {
-        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true");
-        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleB, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving");
-        ProgramRuleAction actionF = new ProgramRuleAction( "ActionF", programRuleB, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null);
+        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleB, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+        ProgramRuleAction actionF = new ProgramRuleAction( "ActionF", programRuleB, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
         //Add an action that is not part of programRuleB....
-        ProgramRuleAction actionG = new ProgramRuleAction( "ActionG", programRuleC, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null);
+        ProgramRuleAction actionG = new ProgramRuleAction( "ActionG", programRuleC, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
         
         actionService.addProgramRuleAction( actionD );
         actionService.addProgramRuleAction( actionE );
@@ -152,7 +152,7 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testUpdate()
     {
-        ProgramRuleAction actionH = new ProgramRuleAction( "ActionH", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true");
+        ProgramRuleAction actionH = new ProgramRuleAction( "ActionH", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
         
         int idH = actionService.addProgramRuleAction( actionH );
         
@@ -171,8 +171,8 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testDeleteProgramRuleVariable()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true");
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving");
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
         
         int idI = actionService.addProgramRuleAction( actionI );
         int idJ = actionService.addProgramRuleAction( actionJ );

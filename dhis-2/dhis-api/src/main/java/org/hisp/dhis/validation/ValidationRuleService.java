@@ -29,6 +29,8 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -114,13 +116,12 @@ public interface ValidationRuleService
     Set<DataElement> getDataElements( ValidationRule validationRule );
 
     /**
-     * Returns all form validation rules which have specified data elements
-     * assigned to them.
+     * Returns all form validation rules for validating a data set.
      *
-     * @param dataElements the data elements to look for.
-     * @return all validation rules which have the data elements assigned.
+     * @param dataSet the data set to validate.
+     * @return all validation rules which apply to that data set.
      */
-    Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements );
+    Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.
