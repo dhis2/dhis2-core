@@ -36,7 +36,7 @@ package org.hisp.dhis.system.util;
  */
 public class SqlUtils
 {
-    private static final String QUOTE = "\"";
+    public static final String QUOTE = "\"";
     
     /**
      * Quotes the given relation (typically a column). Quotes part of
@@ -46,7 +46,7 @@ public class SqlUtils
      * @return the quoted relation.
      */
     public static String quote( String relation )
-    {        
+    {
         String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
         
         return QUOTE + rel + QUOTE;
