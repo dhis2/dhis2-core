@@ -54,6 +54,8 @@ public interface EnrollmentService
 
     List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException;
 
+    List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException;
+
     Enrollment getEnrollment( String id );
 
     Enrollment getEnrollment( ProgramInstance programInstance );

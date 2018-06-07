@@ -53,6 +53,8 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException;
 
+    List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException;
+
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
