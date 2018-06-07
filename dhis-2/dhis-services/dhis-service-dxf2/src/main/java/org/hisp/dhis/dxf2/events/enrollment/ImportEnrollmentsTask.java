@@ -60,6 +60,6 @@ public class ImportEnrollmentsTask
     @Override
     public void call()
     {
-        enrollmentService.addEnrollments( enrollments, importOptions, false );
+        enrollmentService.addEnrollments( enrollments, importOptions, id );
     }
 }

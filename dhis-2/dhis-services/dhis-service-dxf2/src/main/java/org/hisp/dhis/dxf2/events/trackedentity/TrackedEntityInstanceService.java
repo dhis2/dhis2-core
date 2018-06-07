@@ -32,6 +32,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
 
@@ -80,6 +81,8 @@ public interface TrackedEntityInstanceService
         TrackedEntityInstanceParams params, User user );
 
     ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
+
+    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
 

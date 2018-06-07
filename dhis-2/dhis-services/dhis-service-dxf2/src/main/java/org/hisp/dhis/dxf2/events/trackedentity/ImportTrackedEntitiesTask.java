@@ -61,6 +61,6 @@ public class ImportTrackedEntitiesTask
     @Override
     public void call()
     {
-        trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions );
+        trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions, id );
     }
 }
