@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
@@ -53,6 +54,8 @@ public interface EnrollmentService
     // -------------------------------------------------------------------------
 
     List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException;
+
+    List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException;
 
     Enrollment getEnrollment( String id );
 
@@ -75,6 +78,8 @@ public interface EnrollmentService
     Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+
+    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 

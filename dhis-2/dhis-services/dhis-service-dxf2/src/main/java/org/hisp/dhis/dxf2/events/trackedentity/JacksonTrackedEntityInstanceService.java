@@ -145,6 +145,26 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     }
 
     @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+        try
+        {
+            TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
+            trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
+            trackedEntityInstances.add( fromXml );
+        }
+
+        return trackedEntityInstances;
+    }
+
+    @Override
     public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );

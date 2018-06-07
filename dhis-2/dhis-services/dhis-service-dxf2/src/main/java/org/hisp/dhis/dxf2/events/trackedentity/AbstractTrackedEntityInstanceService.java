@@ -30,11 +30,14 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -58,8 +61,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -82,15 +88,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
+    private static final Log log = LogFactory.getLog( AbstractTrackedEntityInstanceService.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
@@ -135,6 +146,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
+
+    @Autowired
+    protected Notifier notifier;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -351,6 +365,31 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importSummaries;
+    }
+
+    @Override
+    public ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions, JobConfiguration jobId )
+    {
+        notifier.clear( jobId ).notify( jobId, "Importing tracked entities" );
+        importOptions = updateImportOptions( importOptions );
+
+        try
+        {
+            ImportSummaries importSummaries = addTrackedEntityInstances( trackedEntityInstances, importOptions );
+
+            if ( jobId != null )
+            {
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId, importSummaries, ImportSummaries.class );
+            }
+
+            return importSummaries;
+        }
+        catch ( RuntimeException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
+            return new ImportSummaries().addImportSummary( new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
+        }
     }
 
     @Override
@@ -883,7 +922,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( daoTrackedEntityType == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType" +
+            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType " +
                 entityInstance.getTrackedEntityType() ) );
         }
 
