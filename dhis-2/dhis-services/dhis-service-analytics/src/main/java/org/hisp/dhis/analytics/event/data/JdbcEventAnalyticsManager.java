@@ -64,6 +64,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -103,12 +104,12 @@ public class JdbcEventAnalyticsManager
 
             for ( DimensionalItemObject item : params.getAsc() )
             {
-                sql += statementBuilder.columnQuote( item.getUid() ) + " asc,";
+                sql += quote( item.getUid() ) + " asc,";
             }
 
             for  ( DimensionalItemObject item : params.getDesc() )
             {
-                sql += statementBuilder.columnQuote( item.getUid() ) + " desc,";
+                sql += quote( item.getUid() ) + " desc,";
             }
 
             sql = removeLastComma( sql ) + " ";
@@ -181,7 +182,7 @@ public class JdbcEventAnalyticsManager
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
         String clusterField = params.getCoordinateField();
-        String quotedClusterField = statementBuilder.columnQuote( clusterField );
+        String quotedClusterField = quote( clusterField );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + quotedClusterField + "))) as center", "ST_Extent(" + quotedClusterField + ") as extent" );
@@ -243,7 +244,7 @@ public class JdbcEventAnalyticsManager
     public Rectangle getRectangle( EventQueryParams params )
     {
         String clusterField = params.getCoordinateField();
-        String quotedClusterField = statementBuilder.columnQuote( clusterField );
+        String quotedClusterField = quote( clusterField );
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
 
@@ -319,12 +320,12 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {        
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += sqlHelper.whereAnd() + " "  + statementBuilder.columnQuote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + quote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " "  + quote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + quote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -346,7 +347,7 @@ public class JdbcEventAnalyticsManager
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
                 OrganisationUnit unit = (OrganisationUnit) object;
-                sql += statementBuilder.columnQuote( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
+                sql += quote( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
             sql = removeLastOr( sql ) + ") ";
@@ -361,7 +362,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = statementBuilder.columnQuote( dim.getDimensionName() );
+            String col = quote( dim.getDimensionName() );
             
             sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -372,7 +373,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStage() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
+            sql += sqlHelper.whereAnd() + " " + quote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
 
         // ---------------------------------------------------------------------
@@ -448,7 +449,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
+            sql += sqlHelper.whereAnd() + " " + quote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -458,7 +459,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += sqlHelper.whereAnd() + " " + quote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
 
         // ---------------------------------------------------------------------
@@ -467,7 +468,7 @@ public class JdbcEventAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
+            sql += sqlHelper.whereAnd() + " " + quote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -477,7 +478,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + quote( "pe_rank" ) + " = 1 ";
         }
         
         return sql;
@@ -495,7 +496,7 @@ public class JdbcEventAnalyticsManager
         
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String valueItem = statementBuilder.columnQuote( params.getValue().getDimensionItem() );
+        String valueItem = quote( params.getValue().getDimensionItem() );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
         
         String sql = "(select ";
@@ -531,13 +532,13 @@ public class JdbcEventAnalyticsManager
         
         List<String> cols = Lists.newArrayList( "yearly", valueItem );
 
-        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+        cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
         
         for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {            
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
-                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
                 
                 cols.remove( alias ); // Remove column if already present, i.e. "yearly"
@@ -545,7 +546,7 @@ public class JdbcEventAnalyticsManager
             }
             else
             {
-                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+                cols.add( quote( dim.getDimensionName() ) );
             }
         }
 
