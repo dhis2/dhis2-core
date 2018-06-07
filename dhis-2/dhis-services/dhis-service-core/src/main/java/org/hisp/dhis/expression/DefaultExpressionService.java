@@ -390,23 +390,30 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<String> getDataElementIdsInExpression( String expression )
+    public Set<String> getElementsAndOptionCombosInExpression( String expression )
     {
-        Set<String> dataElementIds = new HashSet<>();
+        Set<String> elementsAndCombos = new HashSet<>();
 
         if ( expression == null || expression.isEmpty() )
         {
-            return dataElementIds;
+            return elementsAndCombos;
         }
 
         Matcher matcher = OPERAND_PATTERN.matcher( expression );
 
         while ( matcher.find() )
         {
-            dataElementIds.add( matcher.group( 1 ) );
+            String elementAndCombo = matcher.group( 1 );
+
+            if ( matcher.group( 2 ) != null && !matcher.group( 2 ).equals( SYMBOL_WILDCARD ) )
+            {
+                elementAndCombo += matcher.group( 2 );
+            }
+
+            elementsAndCombos.add( elementAndCombo );
         }
 
-        return dataElementIds;
+        return elementsAndCombos;
     }
 
     @Override
