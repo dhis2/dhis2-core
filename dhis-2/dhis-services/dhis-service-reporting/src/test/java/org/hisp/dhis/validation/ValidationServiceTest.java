@@ -111,24 +111,7 @@ public class ValidationServiceTest
 
     private CategoryOptionCombo optionCombo;
 
-    private Expression expressionA;
-    private Expression expressionB;
-    private Expression expressionC;
-    private Expression expressionD;
-    private Expression expressionE;
-    private Expression expressionF;
-    private Expression expressionG;
-    private Expression expressionH;
-    private Expression expressionI;
-    private Expression expressionJ;
-    private Expression expressionK;
-    private Expression expressionL;
-    private Expression expressionP;
-    private Expression expressionQ;
-    private Expression expressionR;
-    private Expression expressionS;
-    private Expression expressionT;
-    private Expression expressionU;
+    Expression expressionL;
 
     private DataSet dataSetWeekly;
 
@@ -224,26 +207,26 @@ public class ValidationServiceTest
         optionCombos = new HashSet<>();
         optionCombos.add( optionCombo );
 
-        expressionA = new Expression(
+        Expression expressionA = new Expression(
             "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA" );
-        expressionB = new Expression(
+        Expression expressionB = new Expression(
             "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB" );
-        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
-        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
-        expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
-        expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF" );
-        expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})", "expressionG" );
-        expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})", "expressionH" );
-        expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
-        expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
-        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
+        Expression expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
+        Expression expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
+        Expression expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
+        Expression expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF" );
+        Expression expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})", "expressionG" );
+        Expression expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})", "expressionH" );
+        Expression expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
+        Expression expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
+        Expression expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
         expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
-        expressionP = new Expression( SYMBOL_DAYS, "expressionP", NEVER_SKIP );
-        expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
-        expressionR = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionR" );
-        expressionS = new Expression( "#{" + dataElementA.getUid() + suffixX + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
-        expressionT = new Expression( "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
-        expressionU = new Expression( "1000", "expressionT" );
+        Expression expressionP = new Expression( SYMBOL_DAYS, "expressionP", NEVER_SKIP );
+        Expression expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
+        Expression expressionR = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionR" );
+        Expression expressionS = new Expression( "#{" + dataElementA.getUid() + suffixX + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
+        Expression expressionT = new Expression( "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
+        Expression expressionU = new Expression( "1000", "expressionT" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
