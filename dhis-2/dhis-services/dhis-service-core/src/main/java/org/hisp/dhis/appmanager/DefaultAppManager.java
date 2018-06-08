@@ -32,6 +32,9 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.setting.SettingKey;
@@ -42,6 +45,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -70,14 +74,25 @@ public class DefaultAppManager
     @Autowired
     private KeyJsonValueService keyJsonValueService;
 
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    private Cache<App> appCache;
+
     // -------------------------------------------------------------------------
     // AppManagerService implementation
     // -------------------------------------------------------------------------
 
+    @PostConstruct
+    public void initCache()
+    {
+        appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
+    }
+
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = Lists.newArrayList( getAppMap().values() );
+        List<App> apps = appCache.getAll().stream().collect( Collectors.toList() );
         
         apps.forEach( a -> a.init( contextPath ) );
         
@@ -97,13 +112,15 @@ public class DefaultAppManager
     public App getApp( String appName )
     {
         // Checks for app.getUrlFriendlyName which is the key of AppMap
-        if ( getAppMap().containsKey( appName ) )
+        
+        Optional<App> appOptional = appCache.getIfPresent( appName );
+        if ( appOptional.isPresent() )
         {
-            return getAppMap().get( appName );
+            return appOptional.get();
         }
 
         // If no apps are found, check for original name
-        for ( App app : getAppMap().values() )
+        for ( App app : appCache.getAll() )
         {
             if ( app.getName().equals( appName ) )
             {
@@ -163,7 +180,7 @@ public class DefaultAppManager
     @Override
     public App getApp( String key, String contextPath )
     {
-        List<App> apps = getApps( contextPath );
+        Collection<App> apps = getApps( contextPath );
 
         for ( App app : apps )
         {
@@ -188,7 +205,14 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        return jCloudsAppStorageService.installApp( file, fileName );
+        App app = jCloudsAppStorageService.installApp( file, fileName );
+
+        if ( app.getAppState().ok() )
+        {
+            appCache.put( app.getKey(), app );
+        }
+
+        return app.getAppState();
     }
 
     @Override
@@ -201,6 +225,8 @@ public class DefaultAppManager
     public boolean deleteApp( App app, boolean deleteAppData )
     {
         boolean deleted = false;
+
+        appCache.invalidate( app.getKey() );
 
         if ( app != null )
         {
@@ -234,8 +260,13 @@ public class DefaultAppManager
     @Override
     public void reloadApps()
     {
-        localAppStorageService.discoverInstalledApps();
-        jCloudsAppStorageService.discoverInstalledApps();
+        localAppStorageService.discoverInstalledApps().entrySet().stream()
+            .filter( entry -> !appCache.getIfPresent( entry.getKey() ).isPresent() )
+            .forEach( entry -> appCache.put( entry.getKey(), entry.getValue() ) );
+
+        jCloudsAppStorageService.discoverInstalledApps().entrySet().stream()
+            .filter( entry -> !appCache.getIfPresent( entry.getKey() ).isPresent() )
+            .forEach( entry -> appCache.put( entry.getKey(), entry.getValue() ) );
     }
 
     @Override
@@ -286,16 +317,6 @@ public class DefaultAppManager
         {
             return jCloudsAppStorageService;
         }
-    }
-
-    private Map<String, App> getAppMap()
-    {
-        Map<String, App> apps = new HashMap<>();
-
-        apps.putAll( jCloudsAppStorageService.getApps() );
-        apps.putAll( localAppStorageService.getApps() );
-
-        return apps;
     }
 
     private Map<String, App> getNamespaceMap()
