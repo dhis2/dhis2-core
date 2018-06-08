@@ -50,7 +50,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -1054,7 +1053,6 @@ public class AclServiceTest
     }
 
     @Test
-    @Ignore
     public void testUserBCanUpdateReportTableWithoutAuthority()
     {
         User userA = createUser( 'A' );
