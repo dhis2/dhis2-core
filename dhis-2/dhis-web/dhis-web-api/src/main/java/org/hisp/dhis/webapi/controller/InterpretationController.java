@@ -43,7 +43,6 @@ import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -93,9 +92,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private MessageService messageService;
 
     @Override
     @SuppressWarnings( "unchecked" )
