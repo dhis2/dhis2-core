@@ -61,8 +61,10 @@ public class UserServiceTest
     @Autowired
     private SystemSettingManager systemSettingManager;
     
-    private OrganisationUnit unit1;
-    private OrganisationUnit unit2;
+    private OrganisationUnit unitA;
+    private OrganisationUnit unitB;
+    private OrganisationUnit unitC;
+    private OrganisationUnit unitD;
 
     private UserAuthorityGroup roleA;
     private UserAuthorityGroup roleB;
@@ -72,11 +74,15 @@ public class UserServiceTest
     public void setUpTest()
         throws Exception
     { 
-        unit1 = createOrganisationUnit( 'A' );
-        unit2 = createOrganisationUnit( 'B' );
+        unitA = createOrganisationUnit( 'A' );
+        unitB = createOrganisationUnit( 'B' );
+        unitC = createOrganisationUnit( 'C', unitA );
+        unitD = createOrganisationUnit( 'D', unitB );
 
-        organisationUnitService.addOrganisationUnit( unit1 );
-        organisationUnitService.addOrganisationUnit( unit2 );
+        organisationUnitService.addOrganisationUnit( unitA );
+        organisationUnitService.addOrganisationUnit( unitB );
+        organisationUnitService.addOrganisationUnit( unitC );
+        organisationUnitService.addOrganisationUnit( unitD );
         
         roleA = createUserAuthorityGroup( 'A' );
         roleB = createUserAuthorityGroup( 'B' );
@@ -102,8 +108,8 @@ public class UserServiceTest
     {        
         Set<OrganisationUnit> units = new HashSet<>();
         
-        units.add( unit1 );
-        units.add( unit2 );
+        units.add( unitA );
+        units.add( unitB );
 
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
@@ -156,6 +162,57 @@ public class UserServiceTest
         
         assertNull( userService.getUser( idA ) );
         assertNotNull( userService.getUser( idB ) );
+    }
+
+    @Test
+    public void testUserByOrgUnits()
+    {
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        User userC = createUser( 'C' );
+        User userD = createUser( 'D' );
+
+        userA.getOrganisationUnits().add( unitA );
+        userB.getOrganisationUnits().add( unitB );
+        userC.getOrganisationUnits().add( unitC );
+        userD.getOrganisationUnits().add( unitD );
+
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+        UserCredentials credentialsD = createUserCredentials( 'D', userD );
+        
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userService.addUser( userC );
+        userService.addUser( userD );
+
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+        userService.addUserCredentials( credentialsC );
+        userService.addUserCredentials( credentialsD );
+        
+        UserQueryParams params = new UserQueryParams()
+            .addOrganisationUnit( unitA )
+            .setUser( userA );
+        
+        List<User> users = userService.getUsers( params );
+        
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userA ) );
+
+        params = new UserQueryParams()
+            .addOrganisationUnit( unitA )
+            .setIncludeOrgUnitChildren( true )
+            .setUser( userA );
+        
+        users = userService.getUsers( params );
+        
+        assertEquals( 2, users.size() );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userC ) );
     }
     
     @Test
@@ -431,11 +488,11 @@ public class UserServiceTest
         User userC = createUser( 'C' );
         User userD = createUser( 'D' );
 
-        userA.getOrganisationUnits().add( unit1 );
-        userA.getOrganisationUnits().add( unit2 );
-        userB.getOrganisationUnits().add( unit2 );
-        userC.getOrganisationUnits().add( unit1 );
-        userD.getOrganisationUnits().add( unit2 );
+        userA.getOrganisationUnits().add( unitA );
+        userA.getOrganisationUnits().add( unitB );
+        userB.getOrganisationUnits().add( unitB );
+        userC.getOrganisationUnits().add( unitA );
+        userD.getOrganisationUnits().add( unitB );
         
         UserCredentials credentialsA = createUserCredentials( 'A', userA );
         UserCredentials credentialsB = createUserCredentials( 'B', userB );
@@ -453,7 +510,7 @@ public class UserServiceTest
         userService.addUserCredentials( credentialsD );
 
         UserQueryParams params = new UserQueryParams();
-        params.setOrganisationUnit( unit1 );
+        params.getOrganisationUnits().add( unitA );
         
         List<User> users = userService.getUsers( params );
         

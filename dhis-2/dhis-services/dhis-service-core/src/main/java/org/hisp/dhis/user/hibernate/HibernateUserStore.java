@@ -32,6 +32,7 @@ import org.hibernate.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -80,17 +81,24 @@ public class HibernateUserStore
             "inner join u.userCredentials uc " +
             "left join u.groups g ";
 
-        if ( params.getOrganisationUnit() != null )
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
             hql += "left join u.organisationUnits ou ";
 
-            if ( params.getIncludeOrgUnitChildren() )
+            if ( params.isIncludeOrgUnitChildren() )
             {
-                hql += hlp.whereAnd() + " ou.path like :organisationUnitUid ";
+                hql += hlp.whereAnd() + " (";
+                
+                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                {
+                    hql += String.format( "ou.path like :ouUid%d or ", i );
+                }
+                
+                hql = TextUtils.removeLastOr( hql ) + ")";                
             }
             else
             {
-                hql += hlp.whereAnd() + " ou = :organisationUnit ";
+                hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
             }
         }
 
@@ -183,6 +191,8 @@ public class HibernateUserStore
             hql += "order by u.surname, u.firstName";
         }
 
+        System.out.println( "HQL " + hql );
+        
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
         
         if ( params.getQuery() != null )
@@ -236,15 +246,21 @@ public class HibernateUserStore
             query.setTimestamp( "inactiveSince", params.getInactiveSince() );
         }
         
-        if ( params.getOrganisationUnit() != null )
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
-            if ( params.getIncludeOrgUnitChildren() )
+            if ( params.isIncludeOrgUnitChildren() )
             {
-                query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
+                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                {
+                    query.setString( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                }
             }
             else
             {
-                query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+                Collection<Integer> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
+                
+                System.out.println( "setting ouds "  + ouIds);
+                query.setParameterList( "ouIds", ouIds );
             }
         }
         
