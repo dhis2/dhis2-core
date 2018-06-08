@@ -296,7 +296,8 @@ public class DefaultInterpretationService
         IdentifiableObject interpretableObject = interpretation.getObject();
         Schema interpretableObjectSchema = schemaService.getDynamicSchema( interpretableObject.getClass() );
 
-        if ( interpretableObjectSchema.isSubscribable() ) {
+        if ( interpretableObjectSchema.isSubscribable() )
+        {
             SubscribableObject object = (SubscribableObject) interpretableObject;
             Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
