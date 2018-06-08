@@ -152,6 +152,6 @@ public class ProgramRuleEngine
             .supplementaryData( supplementaryData )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-            .build().toEngineBuilder();
+            .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
     }
 }
