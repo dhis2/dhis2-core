@@ -257,7 +257,6 @@ public class HibernateUserStore
             {
                 Collection<Integer> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
                 
-                System.out.println( "setting ouds "  + ouIds);
                 query.setParameterList( "ouIds", ouIds );
             }
         }
