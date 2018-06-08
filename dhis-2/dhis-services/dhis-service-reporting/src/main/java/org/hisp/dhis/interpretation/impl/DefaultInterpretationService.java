@@ -37,6 +37,7 @@ import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.interpretation.MentionUtils;
+import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
@@ -129,15 +130,6 @@ public class DefaultInterpretationService
     public void setI18nManager( I18nManager i18nManager )
     {
         this.i18nManager = i18nManager;
-    }
-
-    private enum NotificationType
-    {
-        INTERPRETATION_CREATE,
-        INTERPRETATION_UPDATE,
-        INTERPRETATION_LIKE,
-        COMMENT_CREATE,
-        COMMENT_UPDATE
     }
 
     @Autowired
