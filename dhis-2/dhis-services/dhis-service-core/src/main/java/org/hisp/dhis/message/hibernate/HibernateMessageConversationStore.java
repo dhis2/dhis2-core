@@ -126,28 +126,6 @@ public class HibernateMessageConversationStore
     }
 
     @Override
-    public int getMessageConversationCount( User user, boolean followUpOnly, boolean unreadOnly )
-    {
-        Assert.notNull( user, "User must be specified" );
-
-        String sql = "select count(*) from messageconversation mc " +
-            "left join messageconversation_usermessages mu on mc.messageconversationid=mu.messageconversationid " +
-            "left join usermessage um on mu.usermessageid=um.usermessageid " + "where um.userid=" + user.getId() + " ";
-
-        if ( followUpOnly )
-        {
-            sql += "and um.isfollowup=true ";
-        }
-
-        if ( unreadOnly )
-        {
-            sql += "and um.isread=false ";
-        }
-
-        return jdbcTemplate.queryForObject( sql, Integer.class );
-    }
-
-    @Override
     public long getUnreadUserMessageConversationCount( User user )
     {
         Assert.notNull( user, "User must be specified" );

@@ -181,26 +181,6 @@ public class DefaultUserService
     }
 
     @Override
-    public List<User> getManagedUsers( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUsers( params );
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUserCount( params );
-    }
-
-    @Override
     public List<User> getUsers( UserQueryParams params )
     {
         handleUserQueryParams( params );

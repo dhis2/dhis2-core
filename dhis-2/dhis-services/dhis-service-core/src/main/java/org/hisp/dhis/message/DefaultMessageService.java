@@ -359,14 +359,6 @@ public class DefaultMessageService
     }
 
     @Override
-    public List<MessageConversation> getMessageConversations( MessageConversationStatus status, boolean followUpOnly,
-        boolean unreadOnly, int first, int max )
-    {
-        return messageConversationStore
-            .getMessageConversations( currentUserService.getCurrentUser(), status, followUpOnly, unreadOnly, first, max );
-    }
-
-    @Override
     public List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids )
     {
         List<MessageConversation> conversations = messageConversationStore
@@ -381,20 +373,6 @@ public class DefaultMessageService
         }
 
         return conversations;
-    }
-
-    @Override
-    public int getMessageConversationCount()
-    {
-        return messageConversationStore.getMessageConversationCount( currentUserService.getCurrentUser(),
-            false, false );
-    }
-
-    @Override
-    public int getMessageConversationCount( boolean followUpOnly, boolean unreadOnly )
-    {
-        return messageConversationStore.getMessageConversationCount( currentUserService.getCurrentUser(),
-            followUpOnly, unreadOnly );
     }
 
     @Override

@@ -120,24 +120,6 @@ public interface UserService
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
 
     /**
-     * Returns all users which are managed by the given user through its managed
-     * groups association.
-     *
-     * @param user the user.
-     * @return a List of users.
-     */
-    List<User> getManagedUsers( User user );
-
-    /**
-     * Returns the number of users which are managed by the given user through its
-     * managed groups association.
-     *
-     * @param user the user.
-     * @return number of users.
-     */
-    int getManagedUserCount( User user );
-
-    /**
      * Returns a list of users based on the given query parameters.
      *
      * @param params the user query parameters.
