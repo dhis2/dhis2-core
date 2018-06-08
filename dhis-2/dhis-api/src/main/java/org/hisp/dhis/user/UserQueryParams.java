@@ -31,7 +31,9 @@ package org.hisp.dhis.user;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -64,11 +66,13 @@ public class UserQueryParams
     
     private UserInvitationStatus invitationStatus;
     
-    private OrganisationUnit organisationUnit;
+    private List<OrganisationUnit> organisationUnits = new ArrayList<>();
     
     private Integer first;
     
     private Integer max;
+    
+    private boolean userOrgUnits;
 
     private boolean includeOrgUnitChildren;
     
@@ -108,11 +112,20 @@ public class UserQueryParams
             .add( "self registered", selfRegistered )
             .add( "isNot2FA", isNot2FA )
             .add( "invitation status", invitationStatus )
-            .add( "organisation unit", organisationUnit != null ? organisationUnit.getUid() : null )
             .add( "first", first )
             .add( "max", max )
             .add( "includeOrgUnitChildren", includeOrgUnitChildren )
             .add( "disabled", disabled ).toString();
+    }
+
+    // -------------------------------------------------------------------------
+    // Builder
+    // -------------------------------------------------------------------------
+
+    public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
+    {
+        this.organisationUnits.add( unit );
+        return this;
     }
     
     // -------------------------------------------------------------------------
@@ -251,14 +264,14 @@ public class UserQueryParams
         return this;
     }
 
-    public OrganisationUnit getOrganisationUnit()
+    public List<OrganisationUnit> getOrganisationUnits()
     {
-        return organisationUnit;
+        return organisationUnits;
     }
 
-    public UserQueryParams setOrganisationUnit( OrganisationUnit organisationUnit )
+    public UserQueryParams setOrganisationUnits( List<OrganisationUnit> organisationUnits )
     {
-        this.organisationUnit = organisationUnit;
+        this.organisationUnits = organisationUnits;
         return this;
     }
 
@@ -284,7 +297,18 @@ public class UserQueryParams
         return this;
     }
 
-    public boolean getIncludeOrgUnitChildren()
+    public boolean isUserOrgUnits()
+    {
+        return userOrgUnits;
+    }
+
+    public UserQueryParams setUserOrgUnits( boolean userOrgUnits )
+    {
+        this.userOrgUnits = userOrgUnits;
+        return this;
+    }
+
+    public boolean isIncludeOrgUnitChildren()
     {
         return includeOrgUnitChildren;
     }

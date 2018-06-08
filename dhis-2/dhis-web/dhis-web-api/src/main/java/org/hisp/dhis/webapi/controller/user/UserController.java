@@ -140,7 +140,7 @@ public class UserController
 
         if ( ou != null )
         {
-            params.setOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
+            params.addOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
             params.setIncludeOrgUnitChildren( includeOrgUnitChildren );
         }
 
