@@ -154,9 +154,9 @@ public class HibernateUserStore
             hql += hlp.whereAnd() + " uc.lastLogin < :inactiveSince ";
         }
 
-        if ( params.getDaysPassedSincePasswordChange() != null )
+        if ( params.getPasswordLastUpdated() != null )
         {
-            hql += hlp.whereAnd() + " uc.passwordLastUpdated < :daysPassedSincePasswordChange ";
+            hql += hlp.whereAnd() + " uc.passwordLastUpdated < :passwordLastUpdated ";
         }
         
         if ( params.isSelfRegistered() )
@@ -226,9 +226,9 @@ public class HibernateUserStore
             query.setTimestamp( "lastLogin", params.getLastLogin() );
         }
 
-        if ( params.getDaysPassedSincePasswordChange() != null )
+        if ( params.getPasswordLastUpdated() != null )
         {
-            query.setTimestamp( "daysPassedSincePasswordChange", params.getDaysPassedSincePasswordChange() );
+            query.setTimestamp( "passwordLastUpdated", params.getPasswordLastUpdated() );
         }
 
         if ( params.getInactiveSince() != null )
@@ -240,7 +240,6 @@ public class HibernateUserStore
         {
             if ( params.getIncludeOrgUnitChildren() )
             {
-                // Match self and all children of selv in the path column.
                 query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
             }
             else
