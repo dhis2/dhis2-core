@@ -34,6 +34,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -100,6 +101,7 @@ public interface AttributeStore
         .put( DataElementGroupSet.class, "dataElementGroupSetAttribute" )
         .put( ValidationRule.class, "validationRuleAttribute" )
         .put( ValidationRuleGroup.class, "validationRuleGroupAttribute" )
+        .put( DataElementCategory.class, "categoryAttribute" )
         .build();
 
     /**
