@@ -54,7 +54,7 @@ public class UserQueryParams
     
     private Date inactiveSince;
 
-    private Date daysPassedSincePasswordChange;
+    private Date passwordLastUpdated;
     
     private Integer inactiveMonths;
     
@@ -71,8 +71,8 @@ public class UserQueryParams
     private Integer max;
 
     private boolean includeOrgUnitChildren;
-
-    private Boolean isDisabled;
+    
+    private Boolean disabled;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -94,21 +94,25 @@ public class UserQueryParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "query", query ).
-            add( "phone number", phoneNumber ).
-            add( "user", user != null ? user.getUsername() : null ).
-            add( "can manage", canManage ).
-            add( "auth subset", authSubset ).
-            add( "disjoint roles", disjointRoles ).
-            add( "last login", lastLogin ).
-            add( "inactive since", inactiveSince ).
-            add( "inactive months", inactiveMonths ).
-            add( "self registered", selfRegistered ).
-            add( "invitation status", invitationStatus ).
-            add( "organisation unit", organisationUnit != null ? organisationUnit.getUid() : null ).
-            add( "first", first ).
-            add( "max", max ).toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "query", query )
+            .add( "phone number", phoneNumber )
+            .add( "user", user != null ? user.getUsername() : null )
+            .add( "can manage", canManage )
+            .add( "auth subset", authSubset )
+            .add( "disjoint roles", disjointRoles )
+            .add( "last login", lastLogin )
+            .add( "inactive since", inactiveSince )
+            .add( "passwordLastUpdated", passwordLastUpdated )
+            .add( "inactive months", inactiveMonths )
+            .add( "self registered", selfRegistered )
+            .add( "isNot2FA", isNot2FA )
+            .add( "invitation status", invitationStatus )
+            .add( "organisation unit", organisationUnit != null ? organisationUnit.getUid() : null )
+            .add( "first", first )
+            .add( "max", max )
+            .add( "includeOrgUnitChildren", includeOrgUnitChildren )
+            .add( "disabled", disabled ).toString();
     }
     
     // -------------------------------------------------------------------------
@@ -225,6 +229,17 @@ public class UserQueryParams
         return this;
     }
 
+    public boolean isNot2FA()
+    {
+        return isNot2FA;
+    }
+
+    public UserQueryParams setNot2FA( boolean isNot2FA )
+    {
+        this.isNot2FA = isNot2FA;
+        return this;
+    }
+    
     public UserInvitationStatus getInvitationStatus()
     {
         return invitationStatus;
@@ -280,33 +295,25 @@ public class UserQueryParams
         return this;
     }
 
-    public Date getDaysPassedSincePasswordChange()
+    public Date getPasswordLastUpdated()
     {
-        return daysPassedSincePasswordChange;
+        return passwordLastUpdated;
     }
 
-    public void setDaysPassedSincePasswordChange( Date daysPassedSincePasswordChange )
+    public UserQueryParams setPasswordLastUpdated( Date passwordLastUpdated )
     {
-        this.daysPassedSincePasswordChange = daysPassedSincePasswordChange;
+        this.passwordLastUpdated = passwordLastUpdated;
+        return this;
     }
 
     public Boolean getDisabled()
     {
-        return isDisabled;
+        return disabled;
     }
 
-    public void setDisabled( Boolean disabled )
+    public UserQueryParams setDisabled( Boolean disabled )
     {
-        this.isDisabled = disabled;
-    }
-
-    public boolean isNot2FA()
-    {
-        return isNot2FA;
-    }
-
-    public void setNot2FA( boolean not2FA )
-    {
-        isNot2FA = not2FA;
+        this.disabled = disabled;
+        return this;
     }
 }
