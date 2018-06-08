@@ -127,13 +127,13 @@ public class DefaultInterpretationService
 
     private I18nManager i18nManager;
 
+    @Autowired
+    private SchemaService schemaService;
+
     public void setI18nManager( I18nManager i18nManager )
     {
         this.i18nManager = i18nManager;
     }
-
-    @Autowired
-    private SchemaService schemaService;
 
     // -------------------------------------------------------------------------
     // InterpretationService implementation
@@ -272,7 +272,7 @@ public class DefaultInterpretationService
                 details = comment.getText();
                 break;
             default:
-                throw new RuntimeException( "Unknown notification type: " + notificationType );
+                throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
         }
 
         String subject = String.join( " ", Arrays.asList(
