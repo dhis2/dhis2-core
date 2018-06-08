@@ -37,6 +37,13 @@
 
     <property name="dataDimension" column="datadimension" not-null="true" />
 
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="categoryattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
     <set name="translations" table="dataelementcategorytranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />

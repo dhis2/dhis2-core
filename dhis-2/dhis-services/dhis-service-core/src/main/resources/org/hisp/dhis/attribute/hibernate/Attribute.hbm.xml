@@ -91,6 +91,8 @@
 
     <property name="validationRuleGroupAttribute" not-null="false" />
 
+    <property name="categoryAttribute" not-null="false" />
+
     <property name="sortOrder" />
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
