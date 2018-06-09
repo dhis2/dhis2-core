@@ -1257,6 +1257,9 @@
     
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityProgramOwnerService" />
+  
+  <bean id="org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager"
+    class="org.hisp.dhis.trackedentity.DefaultTrackerOwnershipAccessManager" />
 
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />

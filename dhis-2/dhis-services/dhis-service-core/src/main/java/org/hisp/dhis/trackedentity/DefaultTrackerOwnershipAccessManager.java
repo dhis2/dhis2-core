@@ -152,13 +152,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
 
         return false;
-    }
-
-    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
-    {
-        return organisationUnit != null && organisationUnits != null
-            && organisationUnit.isDescendant( organisationUnits );
-    }
+    }    
 
     @Override
     public void changeOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation )
@@ -176,5 +170,25 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         {
             trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiId, programId, orgUnitId );
         }
+    }
+
+    @Override
+    public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {        
+        
+        return isOwner( user, entityInstance, program ) || hasTemporaryAccess( user, entityInstance, program );
+    }
+    
+    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
+    {
+        return organisationUnit != null && organisationUnits != null
+            && organisationUnit.isDescendant( organisationUnits );
+    }
+    
+    private boolean hasTemporaryAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {
+        // need to check if temporary access is granted ...
+        
+        return true;
     }
 }
