@@ -102,5 +102,16 @@ public interface TrackerOwnershipAccessManager
      * @return true if the user has access, false otherwise.
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
+    
+    /**
+     * Check whether the user has access (as owner or has temporarily broken the glass) 
+     * for the tracked entity instance - program combination.
+     * 
+     * @param user The user with which access has to be checked for.
+     * @param teiUid the tracked entity instance uid
+     * @param programUid the program uid
+     * @return true if the user has access, false otherwise.
+     */
+    boolean hasAccess( User user, String teiUid, String programUid );
 
 }

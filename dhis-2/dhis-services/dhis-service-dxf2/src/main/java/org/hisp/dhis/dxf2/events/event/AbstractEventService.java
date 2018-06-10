@@ -104,6 +104,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -229,6 +230,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
+    
+    @Autowired
+    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
     @Autowired
     protected AclService aclService;
@@ -541,7 +545,16 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
-        events.setEvents( eventList );
+        
+        User user = currentUserService.getCurrentUser();
+        
+        for ( Event event : eventList )
+        {
+        	if ( trackerOwnershipAccessManager.hasAccess( user, event.getTrackedEntityInstance(), event.getProgram() ) )
+        	{
+        		events.getEvents().add( event );
+        	}
+        }
 
         return events;
     }

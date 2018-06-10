@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +57,16 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
 
     @Autowired
     private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+    
+    @Autowired
+    private ProgramService programService;
 
     @Override
     public boolean isOwner( User user, TrackedEntityInstance entityInstance, Program program )
     {
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+    	// or program is null
+        if ( user == null || user.isSuper() || program == null )
         {
             return true;
         }
@@ -174,10 +179,24 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
 
     @Override
     public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
-    {        
-        
+    {
         return isOwner( user, entityInstance, program ) || hasTemporaryAccess( user, entityInstance, program );
     }
+    
+    @Override
+	public boolean hasAccess( User user, String teiUid, String programUid ) 
+    {
+    	TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+    	
+    	Program program = programService.getProgram( programUid );
+    	
+    	if ( program == null || trackedEntityInstance == null )
+    	{
+    		return true;
+    	}
+    	
+    	return isOwner( user, teiUid, programUid ) || hasTemporaryAccess( user, trackedEntityInstance, program );
+	}
     
     private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
     {

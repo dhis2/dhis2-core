@@ -186,6 +186,11 @@ public class EventSearchParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
+    
+    public boolean hasProgram()
+    {
+    	return program != null;
+    }
 
     /**
      * Indicates whether this search params contain any filters.
