@@ -75,6 +75,8 @@ public class DefaultInterpretationService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    @Autowired
+    private SchemaService schemaService;
 
     private InterpretationStore interpretationStore;
 
@@ -126,9 +128,6 @@ public class DefaultInterpretationService
     }
 
     private I18nManager i18nManager;
-
-    @Autowired
-    private SchemaService schemaService;
 
     public void setI18nManager( I18nManager i18nManager )
     {
