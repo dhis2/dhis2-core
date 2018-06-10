@@ -96,6 +96,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -493,7 +494,10 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        validateExpiryDays( event, program, null );
+        if ( importOptions.getUser() != null && !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, null );
+        }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
@@ -1152,7 +1156,10 @@ public abstract class AbstractEventService
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
-        validateExpiryDays( event, program, programStageInstance );
+        if ( importOptions.getUser() != null && !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, programStageInstance );
+        }
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
