@@ -749,18 +749,18 @@ public abstract class AbstractEnrollmentService
                 importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
             }
 
-            Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances().stream()
-                .filter( pi -> !pi.isDeleted() )
-                .collect( Collectors.toSet() );
-
-            if ( !notDeletedProgramStageInstances.isEmpty() && importOptions.getUser() != null &&
-                !importOptions.getUser().isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            if ( importOptions.getUser() != null )
             {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setReference( uid );
-                importSummary.setDescription( "Enrollment " + uid + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                List<ImportConflict> importConflicts = isAllowedToDelete( importOptions.getUser(), programInstance );
 
-                return importSummary.incrementIgnored();
+                if ( !importConflicts.isEmpty() )
+                {
+                    importSummary.setStatus( ImportStatus.ERROR );
+                    importSummary.setReference( programInstance.getUid() );
+                    importSummary.getConflicts().addAll( importConflicts );
+                    importSummary.incrementIgnored();
+                    return importSummary;
+                }
             }
 
             programInstanceService.deleteProgramInstance( programInstance );
@@ -1162,5 +1162,28 @@ public abstract class AbstractEnrollmentService
         }
 
         return importOptions;
+    }
+
+    private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )
+    {
+        List<ImportConflict> importConflicts = new ArrayList<>();
+
+        Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
+            .filter( psi -> !psi.isDeleted() )
+            .collect( Collectors.toSet() );
+
+        if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+        {
+            importConflicts.add(  new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority()  ) );
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, pi );
+
+        if ( !errors.isEmpty() )
+        {
+            errors.forEach( error -> importConflicts.add( new ImportConflict( pi.getUid(), error ) ) );
+        }
+
+        return importConflicts;
     }
 }
