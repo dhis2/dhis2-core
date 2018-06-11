@@ -74,7 +74,10 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -133,6 +136,9 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+    
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private ContextUtils contextUtils;
@@ -817,6 +823,13 @@ public class TrackedEntityInstanceController
             throw new NotFoundException( "TrackedEntityInstance", id );
         }
         
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null || user.isSuper() )
+        {
+            return trackedEntityInstance;
+        }
+        
         if ( pr != null )
         {
         	Program program = programService.getProgram( pr );
@@ -826,12 +839,29 @@ public class TrackedEntityInstanceController
         		throw new NotFoundException( "Program", pr );
         	}
         	
-        	List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program );
+        	List<String> errors = trackerAccessManager.canRead( user, instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program );
         	
         	if ( !errors.isEmpty() )
         	{
         		throw new NotFoundException( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED, id + ":" + pr );
         	}        		
+        }
+        else
+        {
+        	//return only tracked entity type attributes
+        	
+        	TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
+
+        	if ( trackedEntityType != null )
+        	{
+        		List<String> tetAttributes = trackedEntityType.getTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+        		
+        		trackedEntityInstance.setAttributes(
+        			trackedEntityInstance.getAttributes().stream()
+                        .filter( att -> tetAttributes.contains( att.getAttribute() ) )
+                        .collect( Collectors.toList() )
+                );
+    		}
         }
 
         return trackedEntityInstance;
@@ -866,7 +896,6 @@ public class TrackedEntityInstanceController
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
         {
-
             return Arrays.asList( order.split( "," ) );
         }
 
