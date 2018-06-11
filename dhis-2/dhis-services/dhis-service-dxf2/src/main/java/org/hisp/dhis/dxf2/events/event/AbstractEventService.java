@@ -749,6 +749,7 @@ public abstract class AbstractEventService
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
+        event.setGeometry( programStageInstance.getGeometry() );
         event.setDeleted( programStageInstance.isDeleted() );
         event.setGeometry( programStageInstance.getGeometry() );
 
@@ -1504,13 +1505,13 @@ public abstract class AbstractEventService
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
-                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(),
+                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
             }
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
-                    executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
+                    executionDate, event.getStatus().getValue(), completedBy,
                     programStageInstance, aoc, importOptions );
             }
 
@@ -1619,7 +1620,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
-        int status, Coordinate coordinate, String completedBy, String storeBy, String programStageInstanceIdentifier,
+        int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
         CategoryOptionCombo aoc, ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1639,13 +1640,13 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, coordinate, completedBy, programStageInstance, aoc, importOptions );
+            status, completedBy, programStageInstance, aoc, importOptions );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
-        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
+        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
         String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
         ImportOptions importOptions )
     {

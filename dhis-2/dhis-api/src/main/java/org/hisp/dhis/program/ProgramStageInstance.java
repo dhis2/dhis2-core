@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -86,7 +85,6 @@ public class ProgramStageInstance
     private Date lastSynchronized = new Date( 0 );
 
     private Geometry geometry;
-
 
     // -------------------------------------------------------------------------
     // Constructors
