@@ -150,7 +150,7 @@ public class TrackedEntityRegistrationSMSListener
 
         programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 
-        smsSender.sendMessage( null, "Tracked Entity Registered Successfully with uid: " + tei.getUid(), senderPhoneNumber );
+        smsSender.sendMessage( null, "Tracked Entity Registered Successfully with uid. " + tei.getUid(), senderPhoneNumber );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
