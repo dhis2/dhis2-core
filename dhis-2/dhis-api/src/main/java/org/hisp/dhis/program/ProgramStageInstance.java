@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
@@ -86,6 +87,9 @@ public class ProgramStageInstance
     private Date completedDate;
 
     private Date lastSynchronized = new Date( 0 );
+
+    private Geometry geometry;
+
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -315,5 +319,15 @@ public class ProgramStageInstance
     public void setLastSynchronized( Date lastSynchronized )
     {
         this.lastSynchronized = lastSynchronized;
+    }
+
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
     }
 }
