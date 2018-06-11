@@ -31,6 +31,7 @@ package org.hisp.dhis.relationship;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
@@ -38,9 +39,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
  * @version $Id$
  */
 public interface RelationshipStore
-    extends GenericStore<Relationship>
+    extends IdentifiableObjectStore<Relationship>
 {
     String ID = RelationshipStore.class.getName();
+
+    List<Relationship> getByType( RelationshipType relationshipType );
 
     /**
      * Get the relationship between two entityInstances by retrieving a
@@ -71,4 +74,5 @@ public interface RelationshipStore
      * @return Relationship list
      */
     List<Relationship> getByRelationshipType( RelationshipType relationshipType );
+
 }

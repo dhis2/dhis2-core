@@ -230,8 +230,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             //TODO include relationships in data model and void transactional query in for-loop
 
-            Collection<Relationship> daoRelationships = relationshipService.getRelationshipsForTrackedEntityInstance( daoTrackedEntityInstance );
-
+            //Collection<Relationship> daoRelationships = relationshipService.getRelationshipsForTrackedEntityInstance( daoTrackedEntityInstance );
+/*
             for ( Relationship daoEntityRelationship : daoRelationships )
             {
                 org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
@@ -251,10 +251,11 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     relationship.setRelative( getTrackedEntityInstance( daoEntityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE ) );
                 }
-                */
 
                 trackedEntityInstance.getRelationships().add( relationship );
-            }
+
+                */
+            //}
         }
 
         if ( params.isIncludeEnrollments() )
@@ -683,8 +684,8 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         for ( org.hisp.dhis.dxf2.events.trackedentity.Relationship dtoRelationship : dtoEntityInstance.getRelationships() )
         {
-            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceA = teiService.getTrackedEntityInstance( dtoRelationship.getTrackedEntityInstanceA() );
-            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceB = teiService.getTrackedEntityInstance( dtoRelationship.getTrackedEntityInstanceB() );
+            //org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceA = teiService.getTrackedEntityInstance( dtoRelationship.getTrackedEntityInstanceA() );
+            //org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceB = teiService.getTrackedEntityInstance( dtoRelationship.getTrackedEntityInstanceB() );
 
             RelationshipType relationshipType = manager.get( RelationshipType.class, dtoRelationship.getRelationship() );
 
@@ -763,6 +764,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             RelationshipType daoRelationshipType = manager.get( RelationshipType.class, dtoRelationship.getRelationship() );
 
+            /*
             if ( daoRelationshipType == null )
             {
                 importConflicts.add( new ImportConflict( "Relationship.type", "Invalid type " + dtoRelationship.getRelationship() ) );
@@ -783,6 +785,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 importConflicts.add( new ImportConflict( "Relationship.trackedEntityInstance", "Invalid trackedEntityInstance "
                     + dtoRelationship.getTrackedEntityInstanceB() ) );
             }
+            */
         }
 
         return importConflicts;

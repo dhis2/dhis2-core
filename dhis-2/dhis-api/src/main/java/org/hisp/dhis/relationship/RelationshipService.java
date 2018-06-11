@@ -39,9 +39,11 @@ public interface RelationshipService
 {
     String ID = RelationshipService.class.getName();
 
+    boolean relationshipExists( String uid );
+
     /**
      * Adds an {@link Relationship}
-     * 
+     *
      * @param relationship the relationship.
      * @return id of the added relationship.
      */
@@ -49,23 +51,22 @@ public interface RelationshipService
 
     /**
      * Returns a {@link Relationship}.
-     * 
+     *
      * @param relationship the relationship.
      */
     void deleteRelationship( Relationship relationship );
 
     /**
      * Updates a {@link Relationship}.
-     * 
+     *
      * @param relationship the relationship.
      */
     void updateRelationship( Relationship relationship );
 
     /**
      * Returns a {@link Relationship}.
-     * 
+     *
      * @param id the id of the relationship to return.
-     * 
      * @return the relationship with the given identifier.
      */
     Relationship getRelationship( int id );
@@ -73,20 +74,19 @@ public interface RelationshipService
     /**
      * Get the relationship between two entityInstances by retrieving a
      * {@link RelationshipType}
-     * 
-     * @param entityInstanceA {@link TrackedEntityInstance}
-     * @param entityInstanceB {@link TrackedEntityInstance}
+     *
+     * @param entityInstanceA  {@link TrackedEntityInstance}
+     * @param entityInstanceB  {@link TrackedEntityInstance}
      * @param relationshipType {@link RelationshipType}
-     * 
      * @return {@link RelationshipType}
      */
-    Relationship getRelationship( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType );
-    
+    Relationship getRelationship( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB,
+        RelationshipType relationshipType );
+
     /**
      * Retrieve relationships of a {@link TrackedEntityInstance}.
-     * 
+     *
      * @param instance the tracked entity instance.
-     * 
      * @return a list of relationships.
      */
     List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance );
@@ -94,10 +94,12 @@ public interface RelationshipService
     /**
      * Retrieve all relationships by relationship type of a person, for example
      * a instance might have more than one sibling
-     * 
-     * @param entityInstanceA TrackedEntityInstance
+     *
+     * @param entityInstanceA  TrackedEntityInstance
      * @param relationshipType RelationshipType
      * @return a list of relationships.
      */
     List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType );
+
+    List<Relationship> getRelationshipsByType( String relationshipType );
 }

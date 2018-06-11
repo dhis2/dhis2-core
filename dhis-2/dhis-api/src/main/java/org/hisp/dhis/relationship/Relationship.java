@@ -178,4 +178,18 @@ public class Relationship
     {
         this.to = to;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Relationship{" +
+            "id=" + id +
+            ", relationshipType=" + relationshipType +
+            ", from=" + from +
+            ", to=" + to +
+            ", style=" + style +
+            ", formName='" + formName + '\'' +
+            ", description='" + description + '\'' +
+            '}';
+    }
 }

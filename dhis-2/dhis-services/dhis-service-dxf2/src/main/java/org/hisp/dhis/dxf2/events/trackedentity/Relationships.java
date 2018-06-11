@@ -30,87 +30,31 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
-public class Relationship
+public class Relationships
 {
-    private String relationshipType;
 
-    private String relationship;
+    private List<Relationship> relationships;
 
-    private String from;
-
-    private String to;
-
-    public Relationship()
+    public Relationships()
     {
+
     }
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public String getRelationshipType()
+    public List<Relationship> getRelationships()
     {
-        return relationshipType;
+        return relationships;
     }
 
-    public void setRelationshipType( String relationshipType )
+    public void setRelationships( List<Relationship> relationships )
     {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getRelationship()
-    {
-        return relationship;
-    }
-
-    public void setRelationship( String relationship )
-    {
-        this.relationship = relationship;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getFrom()
-    {
-        return from;
-    }
-
-    public void setFrom( String from )
-    {
-        this.from = from;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTo()
-    {
-        return to;
-    }
-
-    public void setTo( String to )
-    {
-        this.to = to;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Relationship{" +
-            "relationshipType='" + relationshipType + '\'' +
-            ", relationship='" + relationship + '\'' +
-            ", from='" + from + '\'' +
-            ", to='" + to + '\'' +
-            '}';
+        this.relationships = relationships;
     }
 }

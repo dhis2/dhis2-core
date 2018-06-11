@@ -12,9 +12,9 @@
             <generator class="native" />
         </id>
 
-        <property name="trackedEntityInstance" />
-        <property name="programInstance" />
-        <property name="programStageInstance" />
+        <property name="trackedEntityInstance" not-null="false" />
+        <property name="programInstance" not-null="false" />
+        <property name="programStageInstance" not-null="false" />
 
     </class>
 </hibernate-mapping>

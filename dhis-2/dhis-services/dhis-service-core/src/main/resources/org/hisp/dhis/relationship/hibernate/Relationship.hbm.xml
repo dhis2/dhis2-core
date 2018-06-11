@@ -21,6 +21,12 @@
 
         <property name="style" type="jbObjectStyle" column="style"/>
 
+        <many-to-one name="relationshipType"
+                     class="org.hisp.dhis.relationship.RelationshipType"
+                     column="relationshiptypeid"
+                     foreign-key="fk_relationship_relationshiptypeid"
+                     not-null="true"/>
+
         <many-to-one name="from" class="org.hisp.dhis.relationship.RelationshipItem"
                      column="from_relationshipitemid"
                      foreign-key="fk_relationship_from_relationshipitemid"

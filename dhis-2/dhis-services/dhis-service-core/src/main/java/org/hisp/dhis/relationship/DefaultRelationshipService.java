@@ -30,6 +30,7 @@ package org.hisp.dhis.relationship;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,6 +45,9 @@ public class DefaultRelationshipService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    @Autowired
+    private RelationshipTypeStore relationshipTypeStore;
 
     private RelationshipStore relationshipStore;
 
@@ -71,12 +75,19 @@ public class DefaultRelationshipService
     @Override
     public List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        return relationshipStore.getForTrackedEntityInstance( instance );
+        throw new UnsupportedOperationException( "NOT SUPPORTED ANYMORE" );
+    }
+
+    @Override
+    public boolean relationshipExists( String uid )
+    {
+        return relationshipStore.getByUid( uid ) != null;
     }
 
     @Override
     public int addRelationship( Relationship relationship )
     {
+        System.out.println("Relationship: " + relationship);
         relationshipStore.save( relationship );
         return relationship.getId();
     }
@@ -88,7 +99,8 @@ public class DefaultRelationshipService
     }
 
     @Override
-    public Relationship getRelationship( TrackedEntityInstance instanceA, TrackedEntityInstance instanceB, RelationshipType relationshipType )
+    public Relationship getRelationship( TrackedEntityInstance instanceA, TrackedEntityInstance instanceB,
+        RelationshipType relationshipType )
     {
         return relationshipStore.get( instanceA, instanceB, relationshipType );
     }
@@ -97,6 +109,12 @@ public class DefaultRelationshipService
     public List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA,
         RelationshipType relationshipType )
     {
-        throw new NotImplementedException("");
+        throw new NotImplementedException( "" );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByType( String relationshipType )
+    {
+        return relationshipStore.getByType( relationshipTypeStore.getByUid( relationshipType ) );
     }
 }

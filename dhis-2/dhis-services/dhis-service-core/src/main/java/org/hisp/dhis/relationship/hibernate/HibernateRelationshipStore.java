@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
@@ -42,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
  * @author Abyot Asalefew
  */
 public class HibernateRelationshipStore
-    extends HibernateGenericStore<Relationship>
+    extends HibernateIdentifiableObjectStore<Relationship>
     implements RelationshipStore
 {
     @Override
@@ -51,7 +52,7 @@ public class HibernateRelationshipStore
     {
         return getCriteria( 
             Restrictions.disjunction().add( 
-            Restrictions.eq( "entityInstanceA", instance ) ).add(
+            Restrictions.eq( "from", instance ) ).add(
             Restrictions.eq( "entityInstanceB", instance ) ) ).list();
     }
 
@@ -62,10 +63,20 @@ public class HibernateRelationshipStore
         return getCriteria( Restrictions.eq( "relationshipType", relationshipType ) ).list();
     }
 
+    @Override
+    public List<Relationship> getByType( RelationshipType relationshipType )
+    {
+
+        return getCriteria(
+            Restrictions.eq( "relationshipType", relationshipType )
+        ).list();
+
+    }
+
     @SuppressWarnings( "unchecked" )
     public Collection<Relationship> get( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType )
     {
-        return getCriteria( 
+        return getCriteria(
             Restrictions.eq( "entityInstanceA", entityInstanceA ),
             Restrictions.eq( "relationshipType", relationshipType ) ).list();
     }
