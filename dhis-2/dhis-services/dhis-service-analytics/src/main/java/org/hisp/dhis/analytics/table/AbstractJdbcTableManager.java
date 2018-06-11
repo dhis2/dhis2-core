@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -277,7 +278,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String removeQuote( String column )
     {
-        return column != null ? column.replaceAll( statementBuilder.getColumnQuote(), StringUtils.EMPTY ) : null;
+        return column != null ? column.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY ) : null;
     }
     
     /**
