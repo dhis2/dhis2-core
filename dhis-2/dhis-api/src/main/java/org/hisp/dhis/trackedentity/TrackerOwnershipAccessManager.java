@@ -115,6 +115,17 @@ public interface TrackerOwnershipAccessManager
     boolean hasAccess( User user, String teiUid, String programUid );
 
     /**
+     * Check whether the user has access (as owner or has temporarily broken the glass) 
+     * for the tracked entity instance - program combination.
+     * 
+     * @param user The user with which access has to be checked for.
+     * @param teiId the tracked entity instance Id
+     * @param programId the program Id
+     * @return true if the user has access, false otherwise.
+     */
+    boolean hasAccess( User user, int teiId, int programId );
+    
+    /**
      * Grant temporary ownership for a user for a specific tei-program combination
      * 
      * @param teiId The tracked entity instnace id
@@ -131,6 +142,15 @@ public interface TrackerOwnershipAccessManager
      * @param user The user object
      */
     void grantTemporaryOwnership( String teiUid, String programUid, User user );
+
+    /**
+     * Grant temporary ownership for a user for a specific tei-program combination
+     * 
+     * @param teiUid The tracked entity instance object
+     * @param programUid The program object
+     * @param user The user object
+     */
+    void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user );
 
     /**
      * Check if the user has temporary access for a specific tei-program combination
@@ -151,5 +171,17 @@ public interface TrackerOwnershipAccessManager
      * @return true if the user has temporary access, false otherwise
      */
     boolean hasTemporaryAccess( int teiId, int programId, User user );
+
+    /**
+     * Check if the user has temporary access for a specific tei-program combination
+     * 
+     * @param entityInstance The tracked entity instance object
+     * @param progrprogramamId The program object
+     * @param user The user object against which the check has to be performed
+     * @return true if the user has temporary access, false otherwise
+     */
+    boolean hasTemporaryAccess( TrackedEntityInstance entityInstance, Program program, User user );
+
+
 
 }

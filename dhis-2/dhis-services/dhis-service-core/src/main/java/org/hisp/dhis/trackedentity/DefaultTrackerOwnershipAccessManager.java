@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -85,18 +86,19 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             .withMaximumSize( 10000 ).build();
 
     }
-
+    
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
     @Override
     public boolean isOwner( User user, TrackedEntityInstance entityInstance, Program program )
     {
-        // always allow if user == null (internal process) or user is superuser
-        // or program is null
-        if ( user == null || user.isSuper() || program == null )
+        if ( skipOwnershipValidation( user, program ) )
         {
             return true;
         }
-        OrganisationUnit ou = null;
 
+        OrganisationUnit ou = null;
         TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
             .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
         if ( trackedEntityProgramOwner == null )
@@ -119,8 +121,8 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     @Override
     public boolean isOwner( User user, int teiId, int programId )
     {
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        Program program = programService.getProgram( programId );
+        if ( skipOwnershipValidation( user, program ) )
         {
             return true;
         }
@@ -147,19 +149,19 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             return isInHierarchy( ou, user.getOrganisationUnits() );
         }
 
-        return false;
+        return true;
     }
 
     @Override
     public boolean isOwner( User user, String teiUid, String programUid )
     {
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        Program program = programService.getProgram( programUid );
+        if ( skipOwnershipValidation( user, program ) )
         {
             return true;
         }
-        OrganisationUnit ou = null;
 
+        OrganisationUnit ou = null;
         TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
             .getTrackedEntityProgramOwner( teiUid, programUid );
         if ( trackedEntityProgramOwner == null )
@@ -180,14 +182,13 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         { // ou should never be null, but needs to be checked for legacy reasons
             return isInHierarchy( ou, user.getOrganisationUnits() );
         }
-
         return false;
     }
 
     @Override
     public void changeOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation )
     {
-        if ( isOwner( currentUserService.getCurrentUser(), teiUid, programUid ) || skipAccessValidation )
+        if ( hasAccess( currentUserService.getCurrentUser(), teiUid, programUid ) || skipAccessValidation )
         {
             trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiUid, programUid, orgUnitUid );
         }
@@ -196,7 +197,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     @Override
     public void changeOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation )
     {
-        if ( isOwner( currentUserService.getCurrentUser(), teiId, programId ) || skipAccessValidation )
+        if ( hasAccess( currentUserService.getCurrentUser(), teiId, programId ) || skipAccessValidation )
         {
             trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiId, programId, orgUnitId );
         }
@@ -207,7 +208,12 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
         Program program = programService.getProgram( programId );
-        if ( entityInstance != null && program != null )
+        if ( skipOwnershipValidation( user, program ) )
+        {
+            return;
+        }
+
+        if ( entityInstance != null && program.getAccessLevel() != AccessLevel.CLOSED )
         {
             temporaryTrackerOwnershipCache
                 .put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
@@ -217,75 +223,141 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     @Override
     public void grantTemporaryOwnership( String teiUid, String programUid, User user )
     {
-        if ( user != null )
+        Program program = programService.getProgram( programUid );
+        if ( skipOwnershipValidation( user, program ) )
+        {
+            return;
+        }
+        if ( user != null && program.getAccessLevel() != AccessLevel.CLOSED )
         {
             temporaryTrackerOwnershipCache.put( tempAccessKey( teiUid, programUid, user.getUsername() ), true );
         }
     }
 
     @Override
+    public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user )
+    {
+        if ( skipOwnershipValidation( user, program ) )
+        {
+            return;
+        }
+        if ( user != null && program.getAccessLevel() != AccessLevel.CLOSED )
+        {
+            temporaryTrackerOwnershipCache
+                .put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
+        }
+    }
+
+    @Override
     public boolean hasTemporaryAccess( String teiUid, String programUid, User user )
     {
-        if ( user == null || user.isSuper() )
+        Program program = programService.getProgram( programUid );
+        if ( skipOwnershipValidation( user, program ) )
         {
             return true;
         }
         return temporaryTrackerOwnershipCache.get( tempAccessKey( teiUid, programUid, user.getUsername() ) ).get();
     }
 
+    @Override
+    public boolean hasTemporaryAccess( TrackedEntityInstance entityInstance, Program program, User user )
+    {
+        return hasTemporaryAccess( entityInstance.getUid(), program.getUid(), user );
+    }
+
+    @Override
+    public boolean hasTemporaryAccess( int teiId, int programId, User user )
+    {
+        Program program = programService.getProgram( programId );
+        if ( skipOwnershipValidation( user, program ) )
+        {
+            return true;
+        }
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        if ( entityInstance != null )
+        {
+            return temporaryTrackerOwnershipCache
+                .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {
+        return isOwner( user, entityInstance, program ) || hasTemporaryAccess( entityInstance, program, user );
+    }
+
+    @Override
+    public boolean hasAccess( User user, String teiUid, String programUid )
+    {
+        return isOwner( user, teiUid, programUid ) || hasTemporaryAccess( teiUid, programUid, user );
+    }
+
+    @Override
+    public boolean hasAccess( User user, int teiId, int programId )
+    {
+        return isOwner( user, teiId, programId ) || hasTemporaryAccess( teiId, programId, user );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Private Helper Methods
+    // -------------------------------------------------------------------------
+    
+    /**
+     * Generates a unique key for the tei-program-user combination to be put
+     * into cache.
+     * 
+     * @param teiUid
+     * @param programUid
+     * @param username
+     * @return A unique cache key
+     */
     private String tempAccessKey( String teiUid, String programUid, String username )
     {
         return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON )
             .append( teiUid ).toString();
     }
 
-    @Override
-    public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
-    {
-        return isOwner( user, entityInstance, program ) || hasTemporaryAccess( user, entityInstance, program );
-    }
-
-    @Override
-    public boolean hasAccess( User user, String teiUid, String programUid )
-    {
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-
-        Program program = programService.getProgram( programUid );
-
-        if ( program == null || trackedEntityInstance == null )
-        {
-            return true;
-        }
-
-        return isOwner( user, teiUid, programUid ) || hasTemporaryAccess( user, trackedEntityInstance, program );
-    }
-
+    /**
+     * Check whether the specified organisation unit is part of any descendants
+     * of the given set of org units.
+     * 
+     * @param organisationUnit The OU to be searched in the hierarchy.
+     * @param organisationUnits The set of candidate ous which represents the
+     *        hierarchy,
+     * @return true if the ou is in the hierarchy, false otherwise.
+     */
     private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
     {
         return organisationUnit != null && organisationUnits != null
             && organisationUnit.isDescendant( organisationUnits );
     }
-
-    private boolean hasTemporaryAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    
+    /**
+     * Checks if the user is super user or if the program requires ownership
+     * validation or not.
+     * 
+     * @param user
+     * @param program
+     * @return true if validation can be skipped because user is super user or
+     *         program is not protected.
+     */
+    private boolean skipOwnershipValidation( User user, Program program )
     {
-        return hasTemporaryAccess( entityInstance.getUid(), program.getUid(), user );
-
-    }
-
-    @Override
-    public boolean hasTemporaryAccess( int teiId, int programId, User user )
-    {
-        if ( user == null || user.isSuper() )
+        // allow if user == null (internal process) or user is superuser or
+        // program is null
+        if ( user == null || user.isSuper() || program == null )
         {
             return true;
         }
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
-        Program program = programService.getProgram( programId );
-        if ( entityInstance != null && program != null )
+
+        // allow if the program is OPEN or AUDITED or without registration
+        if ( program.isWithoutRegistration() || program.getAccessLevel() == AccessLevel.OPEN
+            || program.getAccessLevel() == AccessLevel.AUDITED )
         {
-            return temporaryTrackerOwnershipCache
-                .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
+            return true;
         }
-        return true;
+        return false;
     }
 }
