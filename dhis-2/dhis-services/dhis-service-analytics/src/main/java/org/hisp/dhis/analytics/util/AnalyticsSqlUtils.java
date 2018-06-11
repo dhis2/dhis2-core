@@ -38,8 +38,8 @@ import org.springframework.util.Assert;
  */
 public class AnalyticsSqlUtils
 {
-    private static final String DOUBLE_QUOTE = "\"";
-    private static final String SINGLE_QUOTE = "'";
+    public static final String QUOTE = "\"";
+    public static final String SINGLE_QUOTE = "'";
     private static final String SEPARATOR = ".";
     
     /**
@@ -53,9 +53,9 @@ public class AnalyticsSqlUtils
     {
         Assert.notNull( relation, "Relation must be specified" );
         
-        String rel = relation.replaceAll( DOUBLE_QUOTE, ( DOUBLE_QUOTE + DOUBLE_QUOTE ) );
+        String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
         
-        return DOUBLE_QUOTE + rel + DOUBLE_QUOTE;
+        return QUOTE + rel + QUOTE;
     }
 
     /**
