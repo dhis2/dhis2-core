@@ -28,18 +28,20 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -178,5 +180,50 @@ public class MetadataExportServiceTest
         assertTrue( metadata.containsKey( DataElement.class ) );
 
         assertEquals( 2, metadata.get( DataElement.class ).size() );
+    }
+
+    @Test
+    public void testSkipSharing()
+    {
+        MetadataExportParams params = new MetadataExportParams();
+        params.setSkipSharing( true );
+
+        User user = createUser( 'A' );
+        UserGroup group = createUserGroup( 'A', Sets.newHashSet( user ));
+        DataElement de1 = createDataElement( 'A' );
+        DataElement de2 = createDataElement( 'B' );
+        DataElement de3 = createDataElement( 'C' );
+        DataElement de4 = createDataElement( 'D' );
+        DataElement de5 = createDataElement( 'E' );
+
+        de1.setUserAccesses( Sets.newHashSet( new UserAccess( user, "rwrwrwrw" ) ) );
+        de2.setPublicAccess( "rwrwrwrw" );
+        de3.setUser( user );
+        de4.setUserGroupAccesses( Sets.newHashSet( new UserGroupAccess( group, "rwrwrwrw" ) ) );
+        de5.setExternalAccess( true );
+
+        manager.save( user );
+        manager.save( group );
+        manager.save( de1 );
+        manager.save( de2 );
+        manager.save( de3 );
+        manager.save( de4 );
+        manager.save( de5 );
+
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService.getMetadata( params );
+
+        assertEquals( 5, metadata.get( DataElement.class ).size() );
+
+        metadata.get( DataElement.class ).stream()
+            .forEach( element -> checkSharingFields( element ) );
+    }
+
+    private void checkSharingFields( IdentifiableObject object )
+    {
+        assertTrue( object.getUserAccesses().isEmpty() );
+        assertEquals( "--------", object.getPublicAccess() );
+        //assertNull( object.getUser() );
+        assertTrue( object.getUserGroupAccesses().isEmpty() );
+        //assertFalse( object.getExternalAccess() );
     }
 }

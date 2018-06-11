@@ -1,4 +1,6 @@
-package org.hisp.dhis.dxf2.sync;/*
+package org.hisp.dhis.dxf2.sync;
+
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -31,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -50,7 +53,6 @@ import java.util.stream.Collectors;
  */
 public class TrackerSynchronization
 {
-
     private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
 
     private final TrackedEntityInstanceService teiService;
@@ -77,32 +79,32 @@ public class TrackerSynchronization
             return;
         }
 
+        log.info( "Starting Tracker program data synchronization job." );
+
         final Date startTime = new Date();
-        final Date lastSuccess = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setLastUpdatedStartDate( lastSuccess );
         queryParams.setIncludeDeleted( true );
+        queryParams.setSynchronizationQuery( true );
 
-        int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+        final int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
         if ( objectsToSync == 0 )
         {
-            log.info( "Nothing to sync." );
+            log.info( "Skipping sync. No new tracker data to sync were found." );
             return;
         }
 
-        log.info( objectsToSync + " TEIs, to sync, were found since last sync success: " + lastSuccess );
+        log.info( objectsToSync + " TEIs to sync were found." );
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final int trackerSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
-        final int pages = (int) Math.ceil( objectsToSync / trackerSyncPageSize );
+        final int pages = (objectsToSync / trackerSyncPageSize) + ((objectsToSync % trackerSyncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
         final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TEIS_ENDPOINT.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
 
         log.info( "Remote server URL for Tracker POST sync: " + syncUrl );
-
-        //TODO: Add functionality (to the query/queryParams) to order by timestamp? (Then I can always start by the oldest one and move to the newest ones.)
+        log.info( "Tracker sync job has " + pages + " pages to sync. With page size: " + trackerSyncPageSize );
 
         queryParams.setPageSize( trackerSyncPageSize );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
@@ -112,7 +114,7 @@ public class TrackerSynchronization
         {
             queryParams.setPage( i );
 
-            List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params );
+            List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
             filterOutNonSynchronizableAttributes( dtoTeis );
             log.info( String.format( "Syncing page %d, page size is: %d", i, trackerSyncPageSize ) );
 
@@ -121,7 +123,15 @@ public class TrackerSynchronization
                 log.debug( "TEIs that are going to be synced are: " + dtoTeis );
             }
 
-            if ( !sendTrackerSyncRequest( dtoTeis, username, password ) )
+            if ( sendTrackerSyncRequest( dtoTeis, username, password ) )
+            {
+                List<String> teiUIDs = dtoTeis.stream()
+                    .map( TrackedEntityInstance::getTrackedEntityInstance )
+                    .collect( Collectors.toList() );
+                log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
+                teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, startTime );
+            }
+            else
             {
                 syncResult = false;
             }
@@ -129,7 +139,6 @@ public class TrackerSynchronization
 
         if ( syncResult )
         {
-            SyncUtils.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
         }
@@ -147,11 +156,14 @@ public class TrackerSynchronization
 
     private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, String username, String password )
     {
+        TrackedEntityInstances teis = new TrackedEntityInstances();
+        teis.setTrackedEntityInstances( dtoTeis );
+
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
-            renderService.toJson( request.getBody(), dtoTeis );
+            renderService.toJson( request.getBody(), teis );
         };
 
         return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, SyncEndpoint.TEIS_ENDPOINT );

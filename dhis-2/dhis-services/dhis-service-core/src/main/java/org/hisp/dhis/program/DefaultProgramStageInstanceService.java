@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -144,6 +145,12 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    {
+        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs, lastSynchronized );
+    }
+
+    @Override
     public boolean programStageInstanceExists( String uid )
     {
         return programStageInstanceStore.exists( uid );
@@ -166,15 +173,22 @@ public class DefaultProgramStageInstanceService
 
     @Override
     public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
-        I18nFormat format )
+        I18nFormat format, Date completedDate )
     {
         Calendar today = Calendar.getInstance();
         PeriodType.clearTimeOfDay( today );
-        Date date = today.getTime();
+        Date todayDate = today.getTime();
 
         programStageInstance.setStatus( EventStatus.COMPLETED );
-        programStageInstance.setCompletedDate( date );
 
+        if ( completedDate == null )
+        {
+            programStageInstance.setCompletedDate( todayDate );
+        }
+        else
+        {
+            programStageInstance.setCompletedDate( completedDate );
+        }
         if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
         {
             programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );

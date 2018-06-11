@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
@@ -118,6 +119,17 @@ public class HibernateProgramStageInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override
+    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    {
+        String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
+        Query query = getQuery( hql );
+        query.setParameter( "lastSynchronized", lastSynchronized );
+        query.setParameter( "programStageInstances", programStageInstanceUIDs );
+
+        query.executeUpdate();
     }
 
     @Override

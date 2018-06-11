@@ -21,9 +21,7 @@
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-importexport</module>
-    <module>dhis-web-validationrule</module>
     <module>dhis-web-reporting</module>
-    <module>dhis-web-messaging</module>
     <module>dhis-web-apps</module>
     <module>dhis-web-light</module>
     <module>dhis-web-portal</module>

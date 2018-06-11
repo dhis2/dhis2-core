@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
@@ -1251,5 +1252,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         return true;
+    }
+
+    public void flush()
+    {
+        getSession().flush();
     }
 }

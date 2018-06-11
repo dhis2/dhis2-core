@@ -232,6 +232,10 @@ public class HibernateDbmsManager
         emptyTable( "dataapprovalworkflow" );
         emptyTable( "dataapprovallevel" );
 
+        emptyTable( "predictorgroupmembers" );
+        emptyTable( "predictorgroup" );
+        emptyTable( "predictorgroupusergroupaccesses" );
+
         emptyTable( "predictororgunitlevels" );
         emptyTable( "predictor" );
 

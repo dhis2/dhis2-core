@@ -62,7 +62,6 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     static
     {
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        objectMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, true );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
         objectMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
     }

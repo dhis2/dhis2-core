@@ -43,7 +43,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-maintenance</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maintenance</outputDirectory>
                   <includes>**/*.*</includes>
@@ -106,7 +106,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-event-capture</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-capture</outputDirectory>
                   <includes>**/*.*</includes>
@@ -115,7 +115,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-tracker-capture</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-tracker-capture</outputDirectory>
                   <includes>**/*.*</includes>
@@ -124,7 +124,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-visualizer</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-visualizer</outputDirectory>
                   <includes>**/*.*</includes>
@@ -133,7 +133,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-pivot</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-pivot</outputDirectory>
                   <includes>**/*.*</includes>
@@ -142,7 +142,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-maps</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maps</outputDirectory>
                   <includes>**/*.*</includes>
@@ -187,7 +187,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-dashboard</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard</outputDirectory>
                   <includes>**/*.*</includes>
@@ -214,10 +214,18 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-scheduler</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-scheduler</outputDirectory>
                   <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Data Quality App -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-data-quality</artifactId>
+                  <version>2.29-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-data-quality</outputDirectory>
                 </artifactItem>
                 <!-- User -->
                 <artifactItem>
@@ -236,7 +244,7 @@
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-data-administration</outputDirectory>
                   <includes>**/*.*</includes>
-                  </artifactItem>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>

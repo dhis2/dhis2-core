@@ -28,7 +28,9 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -88,8 +90,7 @@ public class RedisCache<V> implements Cache<V>
         {
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
-        return Optional
-            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+        return Optional.ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override
@@ -101,10 +102,12 @@ public class RedisCache<V> implements Cache<V>
         }
         
         String redisKey = generateActualKey( key );
+        
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
+        
         V value = redisTemplate.boundValueOps( redisKey ).get();
 
         if ( null == value )
@@ -128,12 +131,20 @@ public class RedisCache<V> implements Cache<V>
     }
 
     @Override
+    public Collection<V> getAll()
+    {
+        Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
+        return redisTemplate.opsForValue().multiGet( keySet );
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
+        
         String redisKey = generateActualKey( key );
 
         if ( expiryEnabled )

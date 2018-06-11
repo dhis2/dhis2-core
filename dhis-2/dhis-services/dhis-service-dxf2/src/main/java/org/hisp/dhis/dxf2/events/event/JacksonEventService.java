@@ -139,7 +139,7 @@ public class JacksonEventService extends AbstractEventService
     @Override
     public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
-        return addEventsXml( inputStream, null, importOptions );
+        return addEventsXml( inputStream, null, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -148,23 +148,22 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
 
-        return addEvents( events, jobId, importOptions );
+        return addEvents( events, jobId, updateImportOptions( importOptions ) );
     }
 
     @Override
     public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
-        return addEventsJson( inputStream, null, importOptions );
+        return addEventsJson( inputStream, null, updateImportOptions( importOptions ) );
     }
 
     @Override
     public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-
         List<Event> events = parseJsonEvents( input );
 
-        return addEvents( events, jobId, importOptions );
+        return addEvents( events, jobId, updateImportOptions( importOptions ) );
     }
 
     // -------------------------------------------------------------------------
@@ -210,6 +209,7 @@ public class JacksonEventService extends AbstractEventService
     private ImportSummaries addEvents( List<Event> events, JobConfiguration jobId, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
@@ -253,13 +253,13 @@ public class JacksonEventService extends AbstractEventService
         }
 
         importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
-        importSummaries.addImportSummaries( updateEvents( update, false, true ) );
+        importSummaries.addImportSummaries( updateEvents( update, importOptions, false, true ) );
         importSummaries.addImportSummaries( deleteEvents( delete, true ) );
 
         if ( jobId != null )
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addJobSummary( jobId, importSummaries );
+                addJobSummary( jobId, importSummaries, ImportSummaries.class );
         }
         else
         {

@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -96,6 +98,9 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
+    
+    @Autowired
+    private ProgramInstanceAuditService programInstanceAuditService;    
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -132,13 +137,31 @@ public class DefaultProgramInstanceService
     @Override
     public ProgramInstance getProgramInstance( int id )
     {
-        return programInstanceStore.get( id );
-    }
+        ProgramInstance programInstance = programInstanceStore.get( id );
+        
+        User user = currentUserService.getCurrentUser();
 
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
+        
+        return programInstance;
+    }
+    
     @Override
-    public ProgramInstance getProgramInstance( String id )
+    public ProgramInstance getProgramInstance( String uid )
     {
-        return programInstanceStore.getByUid( id );
+        ProgramInstance programInstance = programInstanceStore.getByUid( uid );
+        
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
+        
+        return programInstance;
     }
 
     @Override
@@ -161,7 +184,8 @@ public class DefaultProgramInstanceService
 
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted )
+        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, 
+        boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
@@ -250,8 +274,15 @@ public class DefaultProgramInstanceService
         {
             params.setDefaultPaging();
         }
+        
+        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
+        
+        if ( user != null )
+        {
+            addProrgamInstanceAudits( programInstances, user.getUsername() );
+        }
 
-        return programInstanceStore.getProgramInstances( params );
+        return programInstances;
     }
 
     @Override
@@ -532,5 +563,23 @@ public class DefaultProgramInstanceService
         programInstance.setStatus( ProgramStatus.ACTIVE );
 
         updateProgramInstance( programInstance );
+    }
+    
+    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
+    {        
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() == AccessLevel.AUDITED && accessedBy != null )
+        {
+            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
+                
+            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
+        }
+    }
+    
+    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
+    {
+        for( ProgramInstance programInstance : programInstances )
+        {
+            addProgramInstanceAudit( programInstance, accessedBy );
+        }
     }
 }

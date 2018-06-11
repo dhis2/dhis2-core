@@ -28,10 +28,27 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -43,9 +60,13 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +105,12 @@ public class DefaultDataQueryService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+    
+    @Autowired
+    private AclService aclService;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -226,6 +253,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems, IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
+        User user = currentUserService.getCurrentUser();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
@@ -316,10 +344,12 @@ public class DefaultDataQueryService
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
+            Boolean queryContainsRelativePeriods = false;
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
+                    queryContainsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
@@ -343,11 +373,20 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
 
+            if ( queryContainsRelativePeriods )
+            {
+                periods.sort( new AscendingPeriodComparator() );
+            }
+
             for ( Period period : periods )
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
+                if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
+                {
+                    period.setShortName( name );
+                }
                 period.setName( name );
-                period.setShortName( name );
+
 
                 if ( !calendar.isIso8601() )
                 {
@@ -480,7 +519,7 @@ public class DefaultDataQueryService
 
                 Class<? extends DimensionalItemObject> itemClass = DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP.get( dimClass );
 
-                List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : dimObject.getItems();
+                List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : getCanReadItems( user, dimObject );
 
                 return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
             }
@@ -521,5 +560,16 @@ public class DefaultDataQueryService
         }
 
         return units;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
+    {
+        return object.getItems().stream()
+            .filter( o -> aclService.canDataRead( user, o ) )
+            .collect( Collectors.toList() );
     }
 }

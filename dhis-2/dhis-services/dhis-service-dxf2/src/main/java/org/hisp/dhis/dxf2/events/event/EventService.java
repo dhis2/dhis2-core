@@ -65,7 +65,7 @@ public interface EventService
         OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
         Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeDeleted );
+        Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
@@ -77,9 +77,22 @@ public interface EventService
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 
+    /**
+     * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     *
+     * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     */
+    int getAnonymousEventReadyForSynchronizationCount();
+
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
-    Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page );
+    /**
+     * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     *
+     * @param pageSize Specifies the max number for the events returned.
+     * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     */
+    Events getAnonymousEventsForSync( int pageSize );
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -107,11 +120,19 @@ public interface EventService
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
 
-    ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession );
 
     void updateEventForNote( Event event );
 
     void updateEventForEventDate( Event event );
+
+    /**
+     * Updates a last sync timestamp on specified Events
+     *
+     * @param eventsUIDs       UIDs of Events where the lastSynchronized flag should be updated
+     * @param lastSynchronized The date of last successful sync
+     */
+    void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
 
     // -------------------------------------------------------------------------
     // DELETE
@@ -122,5 +143,4 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
-
 }

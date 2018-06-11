@@ -4,6 +4,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -72,6 +73,14 @@ public interface ProgramStageInstanceService
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
+     * Updates a last sync timestamp on specified ProgramStageInstances
+     *
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
+     * @param lastSynchronized         The date of last successful sync
+     */
+    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+
+    /**
      * Checks whether a {@link ProgramStageInstance} with the given identifier
      * exists. Doesn't take into account the deleted values.
      *
@@ -130,8 +139,9 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance.
      * @param skipNotifications    whether to send prgram stage notifications or not.
      * @param format               the I18nFormat for the notification messages.
+     * @param completedDate        the completedDate for the event. If null, the current date is set as the completed date.
      */
-    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
+    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format, Date completedDate );
 
     /**
      * Creates a program stage instance.

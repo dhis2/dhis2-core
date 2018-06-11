@@ -58,6 +58,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -81,6 +82,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
@@ -367,6 +370,24 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteRelativePeriods( RelativePeriods relativePeriods )
+    {
+        return null;
+    }
+
+    public void deletePredictor( Predictor predictor )
+    {
+    }
+
+    public String allowDeletePredictor( Predictor predictor )
+    {
+        return null;
+    }
+
+    public void deletePredictorGroup( PredictorGroup predictorGroup )
+    {
+    }
+
+    public String allowDeletePredictorGroup( PredictorGroup predictorGroup )
     {
         return null;
     }
@@ -970,5 +991,14 @@ public abstract class DeletionHandler
     public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
     {
         return null;
+    }
+
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        return null;
+    }
+
+    public void deleteFileResource( FileResource fileResource )
+    {
     }
 }

@@ -52,7 +52,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -90,9 +89,6 @@ public class RegistrationSingleEventServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -176,7 +172,7 @@ public class RegistrationSingleEventServiceTest
     public void testSaveWithEnrollmentShouldNotFail()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -189,7 +185,7 @@ public class RegistrationSingleEventServiceTest
     public void testSavingMultipleEventsShouldOnlyUpdate()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

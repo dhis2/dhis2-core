@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.Date;
 import java.util.List;
@@ -40,9 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -91,10 +92,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected ProgramIndicatorService programIndicatorService;
     
     /**
-     * Returns the dynamic select column names. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions.
+     * Returns the dynamic select column names to use in a group by clause. Dimensions come
+     * first and query items second. Program indicator expressions are converted to SQL expressions.
+     * When grouping with non-default analytics period boundaries, all periods are skipped in the group
+     * clause, as non default boundaries is defining their own period groups within their where clause.
      */
-    protected List<String> getSelectColumnNames( EventQueryParams params )
+    protected List<String> getGroupByColumnNames( EventQueryParams params )
     {
         return getSelectColumns( params, true );
     }
@@ -115,23 +118,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * second. Program indicator expressions are converted to SQL expressions.
      * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
      * the period is hard coded into the select statement with "(isoPeriod) as (periodType)".
-     * @param columnNamesOnly is used to only return column names, even for non-default bondaries
+     * @param isGroupByClause used to avoid grouping by period when using non-default boundaries
      * where the column content would be hard coded. Used by the group-by calls. 
      */
-    private List<String> getSelectColumns( EventQueryParams params, boolean columnNamesOnly )
+    private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause )
     {
         List<String> columns = Lists.newArrayList();
         
         for ( DimensionalObject dimension : params.getDimensions() )
         {
+            if ( isGroupByClause && dimension.getDimensionType() == DimensionType.PERIOD 
+                && params.hasNonDefaultBoundaries() ) 
+            {
+                continue;
+            }
+            
             if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
             {
-                columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+                columns.add( quote( dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
                 Period period = (Period) params.getPeriods().get( 0 );
-                columns.add( ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) +
+                columns.add( statementBuilder.encode( period.getIsoDate() ) + " as " +
                     period.getPeriodType().getName() );
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
@@ -139,8 +148,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 // Assuming same period type for all period filters, as the query planner splits into one query per period type
                 
                 Period period = (Period) params.getFilterPeriods().get( 0 );
-                String periodCol = ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) + period.getPeriodType().getName();
-                columns.add( periodCol );
+                columns.add( statementBuilder.encode( period.getIsoDate() ) + " as " +
+                    period.getPeriodType().getName() );
             }
             else
             {
@@ -155,12 +164,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
+                String asClause = " as " + quote( in.getUid() );
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                String colName = quote( queryItem.getItemName() );
                 
                 String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
                 
@@ -168,7 +177,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
+                columns.add( quote( queryItem.getItemName() ) );
             }
         }
         
@@ -194,7 +203,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // Group by
         // ---------------------------------------------------------------------
         
-        List<String> selectColumnNames = getSelectColumnNames( params );
+        List<String> selectColumnNames = getGroupByColumnNames( params );
         
         if ( selectColumnNames.size() > 0 )
         {
@@ -318,7 +327,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
-            String expression = statementBuilder.columnQuote( params.getValue().getUid() );
+            String expression = quote( params.getValue().getUid() );
             
             return function + "(" + expression + ")";
         }
@@ -350,15 +359,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
+                    return "count(distinct " + quote( "tei") + ")";
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
+                    return "count(distinct " + quote( "pi") + ")";
                 }
                 else // EVENT
                 {
-                    return "count(" + statementBuilder.columnQuote( "psi") + ")";
+                    return "count(" + quote( "psi") + ")";
                 }
             }
         }
@@ -408,7 +417,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getColumn( QueryItem item )
     {
-        String col = statementBuilder.columnQuote( item.getItemName() );
+        String col = quote( item.getItemName() );
         return item.isText() ? "lower(" + col + ")" : col;
     }
     

@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.gml;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -156,21 +155,15 @@ public class DefaultGmlImportService
 
     private PreProcessingResult preProcessGml( InputStream inputStream )
     {
-        InputStream dxfStream = null;
         Metadata metadata = null;
 
-        try
+        try ( InputStream dxfStream = transformGml( inputStream ) )
         {
-            dxfStream = transformGml( inputStream );
             metadata = renderService.fromXml( dxfStream, Metadata.class );
         }
         catch ( IOException | TransformerException e )
         {
             return PreProcessingResult.failure( e );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( dxfStream );
         }
 
         Map<String, OrganisationUnit> uidMap = Maps.newHashMap(), codeMap = Maps.newHashMap(), nameMap = Maps.newHashMap();

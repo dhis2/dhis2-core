@@ -28,12 +28,15 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -57,6 +60,8 @@ public class PeriodTypeExtended
 
     private Set<Period> periods = new HashSet<>();
 
+    private Map<Integer, Period> periodIdMap = new HashMap<>();
+
     private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
     private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
@@ -65,7 +70,13 @@ public class PeriodTypeExtended
 
     private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
-    private Set<DataElementOperand> dataItems = new HashSet<>();
+    private Set<DataElement> dataElements = new HashSet<>();
+
+    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+
+    private Map<Integer, DataElement> dataElementIdMap = new HashMap<>();
+
+    private Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -80,12 +91,45 @@ public class PeriodTypeExtended
             .append( "ruleXs", ruleXs.toArray() )
             .append( "eventItems", eventItems )
             .append( "eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions )
-            .append( "dataItems", dataItems )
+            .append( "dataElements", dataElements )
+            .append( "dataElementOperands", dataElementOperands )
             .append( "allowedPeriodTypes", allowedPeriodTypes ).toString();
     }
 
     // -------------------------------------------------------------------------
-    // Set and get methods
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addPeriod( Period p )
+    {
+        periods.add( p );
+
+        periodIdMap.put( p.getId(), p );
+    }
+
+    public void addDataElement( DataElement de )
+    {
+        dataElements.add( de );
+
+        dataElementIdMap.put( de.getId(), de );
+    }
+
+    public void addDataElementOperand( DataElementOperand deo )
+    {
+        dataElementOperands.add( deo );
+
+        String deoIdKey = getDeoIds( deo.getDataElement().getId(), deo.getCategoryOptionCombo().getId() );
+
+        dataElementOperandIdMap.put( deoIdKey, deo );
+    }
+
+    public String getDeoIds( int dataElementId, int categoryOptionComboId )
+    {
+        return dataElementId + "." + categoryOptionComboId;
+    }
+
+    // -------------------------------------------------------------------------
+    // Get methods
     // -------------------------------------------------------------------------  
 
     public PeriodType getPeriodType()
@@ -96,11 +140,6 @@ public class PeriodTypeExtended
     public Set<Period> getPeriods()
     {
         return periods;
-    }
-
-    public void setPeriods( Set<Period> periods )
-    {
-        this.periods = periods;
     }
 
     public Set<ValidationRuleExtended> getRuleXs()
@@ -118,9 +157,24 @@ public class PeriodTypeExtended
         return eventItemsWithoutAttributeOptions;
     }
 
-    public Set<DataElementOperand> getDataItems()
+    public Set<DataElement> getDataElements()
     {
-        return dataItems;
+        return dataElements;
+    }
+
+    public Set<DataElementOperand> getDataElementOperands()
+    {
+        return dataElementOperands;
+    }
+
+    public Map<Integer, DataElement> getDataElementIdMap()
+    {
+        return dataElementIdMap;
+    }
+
+    public Map<String, DataElementOperand> getDataElementOperandIdMap()
+    {
+        return dataElementOperandIdMap;
     }
 
     public Set<PeriodType> getAllowedPeriodTypes()

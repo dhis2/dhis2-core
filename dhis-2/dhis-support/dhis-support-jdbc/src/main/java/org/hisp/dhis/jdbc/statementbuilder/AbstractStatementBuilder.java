@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -199,7 +200,89 @@ public abstract class AbstractStatementBuilder
 
         return sb.append(") ").append( table ).toString();
     }
-    
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and string.
+     *
+     * The generic implementation, which works in all supported database
+     * types, returns a subquery in the following form:
+     * <code>
+     *     (select i1 as intColumn, 's1' as stringColumn
+     *      union select i2, 's2'
+     *      union select i3, 's3') table
+     * </code>
+     *
+     * @param intValues (non-empty) Integer values for the derived table
+     * @param strValues (same size) String values for the derived table
+     * @param table the desired table name alias
+     * @param intColumn the desired integer column name
+     * @param strColumn the desired string column name
+     * @return the derived literal table
+     */
+    @Override
+    public String literalIntStringTable( List<Integer> intValues,
+        List<String> strValues, String table, String intColumn, String strColumn )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        String before = "(select ";
+        String afterInt = " as " + intColumn + ", '";
+        String afterStr = "' as " + strColumn;
+
+        for ( int i = 0; i < intValues.size(); i++ )
+        {
+            sb.append( before ).append( intValues.get( i ) ).append( afterInt )
+                .append( strValues.get( i ) ).append( afterStr );
+            before = " union select ";
+            afterInt = ", '";
+            afterStr = "'";
+        }
+
+        return sb.append( ") " ).append( table ).toString();
+    }
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and integer.
+     *
+     * @param int1Values (non-empty) 1st integer column values for the table
+     * @param int2Values (same size) 2nd integer column values for the table
+     * @param table the desired table name alias
+     * @param int1Column the desired 1st integer column name
+     * @param int2Column the desired 2nd integer column name
+     * @return the derived literal table
+     *
+     * The generic implementation, which works in all supported database
+     * types, returns a subquery in the following form:
+     * <code>
+     *     (select i1_1 as int1Column, i2_1 as int2Column
+     *      union select i1_2, i2_2
+     *      union select i1_3, i2_3) table
+     * </code>
+     */
+    @Override
+    public String literalIntIntTable( List<Integer> int1Values,
+        List<Integer> int2Values, String table, String int1Column, String int2Column )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        String before = "(select ";
+        String afterInt1 = " as " + int1Column + ", ";
+        String afterInt2 = " as " + int2Column;
+
+        for ( int i = 0; i < int1Values.size(); i++ )
+        {
+            sb.append( before ).append( int1Values.get( i ) ).append( afterInt1 )
+                .append( int2Values.get( i ) ).append( afterInt2 );
+            before = " union select ";
+            afterInt1 = ", ";
+            afterInt2 = "";
+        }
+
+        return sb.append( ") " ).append( table ).toString();
+    }
+
     @Override
     public boolean supportsPartialIndexes()
     {

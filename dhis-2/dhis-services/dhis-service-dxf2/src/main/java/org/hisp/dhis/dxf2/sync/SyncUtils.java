@@ -64,7 +64,7 @@ public class SyncUtils
     private static final Log log = LogFactory.getLog( SyncUtils.class );
 
     static final String HEADER_AUTHORIZATION = "Authorization";
-    static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
+    static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";
 
     private SyncUtils()
@@ -169,7 +169,7 @@ public class SyncUtils
         {
             for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                if ( !checkSummaryStatus( summary, originalTopSummaries, endpoint ) )
+                if ( !checkSummaryStatus( summary, summaries, originalTopSummaries, endpoint ) )
                 {
                     return false;
                 }
@@ -202,14 +202,15 @@ public class SyncUtils
      *
      * @param summary      ImportSummary that are checked for error/warning
      * @param topSummaries References to the ImportSummaries from top level of the graph (Used to create proper log message)
+     * @param summaries    References to the ImportSummaries 1 level above (Used to create proper log message)
      * @param endpoint     Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
-    private static boolean checkSummaryStatus( ImportSummary summary, ImportSummaries topSummaries, SyncEndpoint endpoint )
+    private static boolean checkSummaryStatus( ImportSummary summary, ImportSummaries summaries, ImportSummaries topSummaries, SyncEndpoint endpoint )
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
-            log.error( "Sync against endpoint: " + endpoint.name() + " failed: " + topSummaries );
+            log.error( "Sync against endpoint: " + endpoint.name() + " failed: ImportSummaries: " + summaries + " |########| Top ImportSummaries: " + topSummaries );
             return false;
         }
 

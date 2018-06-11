@@ -125,6 +125,46 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        try
+        {
+            Enrollments fromJson = fromJson( input, Enrollments.class );
+            enrollments.addAll( fromJson.getEnrollments() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            Enrollment fromJson = fromJson( input, Enrollment.class );
+            enrollments.add( fromJson );
+        }
+
+        return enrollments;
+    }
+
+    @Override
+    public List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        try
+        {
+            Enrollments fromXml = fromXml( input, Enrollments.class );
+            enrollments.addAll( fromXml.getEnrollments() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            Enrollment fromXml = fromXml( input, Enrollment.class );
+            enrollments.add( fromXml );
+        }
+
+        return enrollments;
+    }
+
+    @Override
     public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
@@ -141,7 +181,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             enrollments.add( fromJson );
         }
 
-        return addEnrollmentList( enrollments, importOptions );
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -161,12 +201,13 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             enrollments.add( fromXml );
         }
 
-        return addEnrollmentList( enrollments, importOptions );
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
     private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
@@ -247,7 +288,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromJson( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -265,6 +306,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromXml( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 }

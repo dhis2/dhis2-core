@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -123,6 +123,8 @@ public class EventSearchParams
 
     private boolean includeAttributes;
 
+    private boolean includeAllDataElements;
+
     private Set<String> events = new HashSet<>();
 
     /**
@@ -133,13 +135,15 @@ public class EventSearchParams
     /**
      * DataElements to be included in the response. Can be used to filter response.
      */
-    private List<QueryItem> dataElements = new ArrayList<>();
+    private Set<QueryItem> dataElements = new HashSet<>();
 
     private boolean includeDeleted;
 
     private Set<String> accessiblePrograms;
 
     private Set<String> accessibleProgramStages;
+
+    private boolean synchronizationQuery;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -431,6 +435,16 @@ public class EventSearchParams
         this.includeAttributes = includeAttributes;
     }
 
+    public boolean isIncludeAllDataElements()
+    {
+        return includeAllDataElements;
+    }
+
+    public void setIncludeAllDataElements( boolean includeAllDataElements )
+    {
+        this.includeAllDataElements = includeAllDataElements;
+    }
+
     public List<Order> getOrders()
     {
         return this.orders;
@@ -491,12 +505,12 @@ public class EventSearchParams
         return this.includeDeleted;
     }
 
-    public List<QueryItem> getDataElements()
+    public Set<QueryItem> getDataElements()
     {
         return dataElements;
     }
 
-    public void setDataElements( List<QueryItem> dataElements )
+    public void setDataElements( Set<QueryItem> dataElements )
     {
         this.dataElements = dataElements;
     }
@@ -524,5 +538,15 @@ public class EventSearchParams
     public boolean hasSecurityFilter()
     {
         return accessiblePrograms != null && accessibleProgramStages != null;
+    }
+
+    public boolean isSynchronizationQuery()
+    {
+        return synchronizationQuery;
+    }
+
+    public void setSynchronizationQuery( boolean synchronizationQuery )
+    {
+        this.synchronizationQuery = synchronizationQuery;
     }
 }

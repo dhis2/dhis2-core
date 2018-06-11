@@ -84,6 +84,15 @@
       <artifactId>hibernate-validator</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-spatial</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.bedatadriven</groupId>
+      <artifactId>jackson-datatype-jts</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-opengis</artifactId>
     </dependency>
@@ -124,6 +133,12 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>20041127.091804</version>
+    </dependency>
+    <dependency>
+        <groupId>com.vividsolutions</groupId>
+        <artifactId>jts-io</artifactId>
+        <version>1.14.0</version>
+        <scope>compile</scope>
     </dependency>
   </dependencies>
 

@@ -1,4 +1,5 @@
-package org.hisp.dhis.dxf2.sync;/*
+package org.hisp.dhis.dxf2.sync;
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -28,17 +29,13 @@ package org.hisp.dhis.dxf2.sync;/*
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * @author David Katuscak
@@ -47,18 +44,14 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( ProgramDataSynchronizationJob.class );
 
-    private final SystemSettingManager systemSettingManager;
-    private final RestTemplate restTemplate;
     private final Notifier notifier;
     private final MessageService messageService;
     private final TrackerSynchronization trackerSync;
     private final EventSynchronization eventSync;
 
     @Autowired
-    public ProgramDataSynchronizationJob( SystemSettingManager systemSettingManager, RestTemplate restTemplate, Notifier notifier, MessageService messageService, TrackerSynchronization trackerSync, EventSynchronization eventSync )
+    public ProgramDataSynchronizationJob( Notifier notifier, MessageService messageService, TrackerSynchronization trackerSync, EventSynchronization eventSync )
     {
-        this.systemSettingManager = systemSettingManager;
-        this.restTemplate = restTemplate;
         this.notifier = notifier;
         this.messageService = messageService;
         this.trackerSync = trackerSync;
@@ -76,6 +69,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         try
         {
             eventSync.syncEventProgramData();
+            notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }
         catch ( Exception e )
         {
@@ -87,6 +81,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         try
         {
             trackerSync.syncTrackerProgramData();
+            notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }
         catch ( Exception e )
         {
@@ -94,20 +89,11 @@ public class ProgramDataSynchronizationJob extends AbstractJob
             notifier.notify( jobConfiguration, "TrackerPrograms data sync failed: " + e.getMessage() );
             messageService.sendSystemErrorNotification( "TrackerProgram data sync failed", e );
         }
-
-        notifier.notify( jobConfiguration, "Event and Tracker programs data sync successful" );
     }
 
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = SyncUtils.testServerAvailability( systemSettingManager, restTemplate );
-
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( ProgramDataSynchronizationJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
         return super.validate();
     }
 }

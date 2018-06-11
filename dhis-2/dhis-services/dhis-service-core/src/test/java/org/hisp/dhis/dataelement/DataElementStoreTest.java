@@ -485,7 +485,7 @@ public class DataElementStoreTest
         assertEquals( "DataElementB", dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ).getName() );
         assertEquals( "DataElementC", dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ).getName() );
     }
-
+    
     @Test
     public void testDataElementByNonUniqueAttributeValue() throws NonUniqueAttributeValueException
     {

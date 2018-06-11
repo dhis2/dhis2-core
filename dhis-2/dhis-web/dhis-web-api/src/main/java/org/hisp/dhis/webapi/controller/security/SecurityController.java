@@ -28,10 +28,12 @@ package org.hisp.dhis.webapi.controller.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +50,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping( value = "/2fa" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SecurityController
 {
     @Autowired

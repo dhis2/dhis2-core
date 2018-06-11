@@ -30,17 +30,11 @@ package org.hisp.dhis.datavalue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -52,7 +46,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
@@ -60,7 +53,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 /**
  * Data value service implementation. Note that data values are softly deleted,
  * which implies having the deleted property set to true and updated.
- * 
+ *
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
@@ -157,12 +150,12 @@ public class DefaultDataValueService
         // ---------------------------------------------------------------------
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
-        
+
         if ( softDelete != null )
         {
             softDelete.mergeWith( dataValue );
             softDelete.setDeleted( false );
-            
+
             dataValueStore.updateDataValue( softDelete );
         }
         else
@@ -177,15 +170,17 @@ public class DefaultDataValueService
     @Transactional
     public void updateDataValue( DataValue dataValue )
     {
-        if ( dataValue.isNullValue() || dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
+        if ( dataValue.isNullValue() ||
+            dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
         {
             deleteDataValue( dataValue );
         }
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
             dataValue.setLastUpdated( new Date() );
-            
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
+
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
             dataValueStore.updateDataValue( dataValue );
@@ -194,18 +189,32 @@ public class DefaultDataValueService
 
     @Override
     @Transactional
+    public void updateDataValues( List<DataValue> dataValues )
+    {
+        if ( dataValues != null && !dataValues.isEmpty() )
+        {
+            for ( DataValue dataValue : dataValues )
+            {
+                updateDataValue( dataValue );
+            }
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteDataValue( DataValue dataValue )
     {
-        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
+        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+            currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         dataValueAuditService.addDataValueAudit( dataValueAudit );
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
-        
+
         dataValueStore.updateDataValue( dataValue );
     }
-    
+
     @Override
     @Transactional
     public void deleteDataValues( OrganisationUnit organisationUnit )
@@ -220,7 +229,8 @@ public class DefaultDataValueService
     }
 
     @Override
-    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo )
+    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo )
     {
         CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -242,7 +252,7 @@ public class DefaultDataValueService
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
-        
+
         return dataValueStore.getDataValues( params );
     }
 
@@ -256,7 +266,8 @@ public class DefaultDataValueService
             throw new IllegalArgumentException( "Params cannot be null" );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() &&
+            params.getDataElementGroups().isEmpty() )
         {
             violation = "At least one valid data set or data element group must be specified";
         }
@@ -304,7 +315,7 @@ public class DefaultDataValueService
     {
         return dataValueStore.getAllDataValues();
     }
-    
+
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
@@ -313,12 +324,9 @@ public class DefaultDataValueService
     }
 
     @Override
-    public Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
-        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        Collection<OrganisationUnit> orgUnits )
+    public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
-        return dataValueStore.getDataElementOperandValues( dataElementOperands,
-            periods, orgUnits );
+        return dataValueStore.getDeflatedDataValues( params );
     }
 
     @Override
@@ -340,15 +348,5 @@ public class DefaultDataValueService
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
-    }
-
-    @Override
-    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
-        Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints )
-    {
-        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperands, date, orgUnits,
-            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints );
     }
 }

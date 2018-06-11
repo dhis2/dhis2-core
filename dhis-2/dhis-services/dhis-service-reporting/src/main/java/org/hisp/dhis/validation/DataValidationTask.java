@@ -30,14 +30,20 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
@@ -89,19 +95,26 @@ public class DataValidationTask
     private AnalyticsService analyticsService;
 
     private List<OrganisationUnit> orgUnits;
+
     private ValidationRunContext context;
 
     private Set<ValidationResult> validationResults;
 
     private PeriodTypeExtended periodTypeX; // Current period type extended.
+
     private Period period;                  // Current period.
+
     private OrganisationUnit orgUnit;       // Current organisation unit.
+
     private int orgUnitId;                  // Current organisation unit id.
+
     private ValidationRuleExtended ruleX;   // Current rule extended.
 
     // Data for current period and all rules being evaluated:
     private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
+
     private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
+
     private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
@@ -142,8 +155,7 @@ public class DataValidationTask
             return;
         }
 
-        validationResults = new HashSet<>();
-
+        loop:
         for ( PeriodTypeExtended ptx : context.getPeriodTypeXs() )
         {
             periodTypeX = ptx;
@@ -163,13 +175,17 @@ public class DataValidationTask
                     {
                         ruleX = r;
 
+                        if ( context.isAnalysisComplete() )
+                        {
+                            break loop;
+                        }
+                        validationResults = new HashSet<>();
                         validateRule();
+                        addValidationResultsToContext();
                     }
                 }
             }
         }
-
-        addValidationResultsToContext();
     }
 
     /**
@@ -185,13 +201,21 @@ public class DataValidationTask
             return;
         }
 
-        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(), ruleX.getLeftSlidingWindow() );
-        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(), ruleX.getRightSlidingWindow() );
+        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(),
+            ruleX.getLeftSlidingWindow() );
+        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(),
+            ruleX.getRightSlidingWindow() );
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
+        loop:
         for ( String optionCombo : attributeOptionCombos )
         {
+            if ( context.isAnalysisComplete() )
+            {
+                break loop;
+            }
+
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
             {
                 continue;
@@ -207,8 +231,8 @@ public class DataValidationTask
      * Validates one rule / period / attribute option combo.
      *
      * @param optionCombo the attribute option combo.
-     * @param leftSide left side value.
-     * @param rightSide right side value.
+     * @param leftSide    left side value.
+     * @param rightSide   right side value.
      */
     private void validateOptionCombo( String optionCombo, Double leftSide, Double rightSide )
     {
@@ -223,11 +247,11 @@ public class DataValidationTask
 
         boolean violation = isViolation( leftSide, rightSide );
 
-        if ( violation )
+        if ( violation && !context.isAnalysisComplete() )
         {
             validationResults.add( new ValidationResult(
                 ruleX.getRule(), period, orgUnit,
-                categoryService.getCategoryOptionCombo( optionCombo ),
+                getAttributeOptionCombo( optionCombo ),
                 roundSignificant( zeroIfNull( leftSide ) ),
                 roundSignificant( zeroIfNull( rightSide ) ),
                 periodService.getDayInPeriod( period, new Date() ) ) );
@@ -237,7 +261,7 @@ public class DataValidationTask
     /**
      * Determines if left and right side values violate a rule.
      *
-     * @param leftSide the left side value.
+     * @param leftSide  the left side value.
      * @param rightSide the right side value.
      * @return true if violation, otherwise false.
      */
@@ -245,12 +269,12 @@ public class DataValidationTask
     {
         if ( Operator.compulsory_pair.equals( ruleX.getRule().getOperator() ) )
         {
-            return ( leftSide == null ) != ( rightSide == null );
+            return (leftSide == null) != (rightSide == null);
         }
 
         if ( Operator.exclusive_pair.equals( ruleX.getRule().getOperator() ) )
         {
-            return ( leftSide != null ) && ( rightSide != null );
+            return (leftSide != null) && (rightSide != null);
         }
 
         if ( leftSide == null )
@@ -288,12 +312,13 @@ public class DataValidationTask
         getDataMap();
 
         slidingWindowEventMap = getEventMapForSlidingWindow( true, periodTypeX.getEventItems() );
-        slidingWindowEventMap.putMap ( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
+        slidingWindowEventMap
+            .putMap( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         slidingWindowEventMap.putMap( dataMap );
 
         eventMap = getEventMap( true, periodTypeX.getEventItems() );
-        eventMap.putMap ( getEventMap( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
+        eventMap.putMap( getEventMap( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         dataMap.putMap( eventMap );
     }
@@ -302,7 +327,7 @@ public class DataValidationTask
      * For an expression (left side or right side), finds the values
      * (grouped by attribute option combo).
      *
-     * @param expression left or right side expression.
+     * @param expression    left or right side expression.
      * @param slidingWindow whether to use sliding window.
      * @return the values grouped by attribute option combo.
      */
@@ -336,6 +361,54 @@ public class DataValidationTask
                 validationResultService.saveValidationResults( validationResults );
             }
         }
+    }
+
+    private Period getPeriod( int id )
+    {
+        Period p = context.getPeriodIdMap().get( id );
+
+        if ( p == null )
+        {
+            p = periodService.getPeriod( id );
+
+            context.getPeriodIdMap().put( id, p );
+        }
+
+        return p;
+    }
+
+    private CategoryOptionCombo getAttributeOptionCombo( int id )
+    {
+        CategoryOptionCombo aoc = context.getAocIdMap().get( id );
+
+        if ( aoc == null )
+        {
+            aoc = categoryService.getCategoryOptionCombo( id );
+
+            addToAocCache( aoc );
+        }
+
+        return aoc;
+    }
+
+    private CategoryOptionCombo getAttributeOptionCombo( String uid )
+    {
+        CategoryOptionCombo aoc = context.getAocUidMap().get( uid );
+
+        if ( aoc == null )
+        {
+            aoc = categoryService.getCategoryOptionCombo( uid );
+
+            addToAocCache( aoc );
+        }
+
+        return aoc;
+    }
+
+    private void addToAocCache( CategoryOptionCombo aoc )
+    {
+        context.getAocIdMap().put( aoc.getId(), aoc );
+        context.getAocUidMap().put( aoc.getUid(), aoc );
     }
 
     /**
@@ -395,11 +468,83 @@ public class DataValidationTask
      */
     private void getDataMap()
     {
-        dataMap = dataValueService.getDataValueMapByAttributeCombo(
-            periodTypeX.getDataItems(), period.getStartDate(), orgUnits,
-            periodTypeX.getAllowedPeriodTypes(),
-            context.getAttributeCombo(), context.getCogDimensionConstraints(),
-            context.getCoDimensionConstraints() );
+        DataExportParams params = new DataExportParams();
+        params.setDataElements( periodTypeX.getDataElements() );
+        params.setDataElementOperands( periodTypeX.getDataElementOperands() );
+        params.setIncludedDate( period.getStartDate() );
+        params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setPeriodTypes( periodTypeX.getAllowedPeriodTypes() );
+        params.setCoDimensionConstraints( context.getCoDimensionConstraints() );
+        params.setCogDimensionConstraints( context.getCogDimensionConstraints() );
+
+        if ( context.getAttributeCombo() != null )
+        {
+            params.setAttributeOptionCombos( Sets.newHashSet( context.getAttributeCombo() ) );
+        }
+
+        List<DeflatedDataValue> dataValues = dataValueService.getDeflatedDataValues( params );
+
+        dataMap = new MapMapMap<>();
+
+        MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
+
+        for ( DeflatedDataValue dv : dataValues )
+        {
+            DataElement dataElement = periodTypeX.getDataElementIdMap().get( dv.getDataElementId() );
+            String deoIdKey = periodTypeX.getDeoIds( dv.getDataElementId(), dv.getCategoryOptionComboId() );
+            DataElementOperand dataElementOperand = periodTypeX.getDataElementOperandIdMap().get( deoIdKey );
+            Period p = getPeriod( dv.getPeriodId() );
+            int orgUnitId = dv.getSourceId();
+            String attributeOptionComboUid = getAttributeOptionCombo( dv.getAttributeOptionComboId() ).getUid();
+            String valueString = dv.getValue();
+            Double value;
+
+            try
+            {
+                value = Double.parseDouble( valueString );
+            }
+            catch ( NumberFormatException e )
+            {
+                continue;
+            }
+
+            if ( dataElement != null )
+            {
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElement, value, p, checkForDuplicates );
+            }
+
+            if ( dataElementOperand != null )
+            {
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p,
+                    checkForDuplicates );
+            }
+        }
+    }
+
+    private void addValueToDataMap( int orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
+        Double value, Period p, MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates )
+    {
+        double existingValue = ObjectUtils.firstNonNull( dataMap.getValue( orgUnitId, aocUid, dimItemObject ), 0.0 );
+
+        long periodInterval = p.getEndDate().getTime() - p.getStartDate().getTime();
+
+        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnitId, aocUid, dimItemObject );
+
+        if ( existingPeriodInterval != null )
+        {
+            if ( existingPeriodInterval < periodInterval )
+            {
+                return; // Do not overwrite the previous value if for a shorter interval
+            }
+            else if ( existingPeriodInterval > periodInterval )
+            {
+                existingValue = 0.0; // Overwrite previous value if for a longer interval
+            }
+        }
+
+        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value + existingValue );
+
+        checkForDuplicates.putEntry( orgUnitId, aocUid, dimItemObject, periodInterval );
     }
 
     /**
@@ -480,7 +625,7 @@ public class DataValidationTask
     /**
      * Gets event data.
      *
-     * @param params event data query parameters.
+     * @param params              event data query parameters.
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
@@ -496,8 +641,10 @@ public class DataValidationTask
         int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
-        Map<String, OrganisationUnit> ouLookup = orgUnits.stream().collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
-        Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+        Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
+            .collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
+        Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
+            .collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
 
         for ( List<Object> row : grid.getRows() )
         {
