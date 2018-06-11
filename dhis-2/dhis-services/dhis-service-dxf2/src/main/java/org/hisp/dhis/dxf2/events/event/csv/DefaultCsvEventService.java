@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -78,10 +80,9 @@ public class DefaultCsvEventService implements CsvEventService
             templateDataValue.setCompletedDate( event.getCompletedDate() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
 
-            if ( event.getCoordinate() != null )
+            if ( event.getGeometry() != null )
             {
-                templateDataValue.setLatitude( event.getCoordinate().getLatitude() );
-                templateDataValue.setLongitude( event.getCoordinate().getLongitude() );
+                templateDataValue.setGeometry( event.getGeometry().toText() );
             }
 
             for ( DataValue value : event.getDataValues() )
@@ -134,9 +135,16 @@ public class DefaultCsvEventService implements CsvEventService
                 event.setCompletedDate( dataValue.getCompletedDate() );
                 event.setCompletedBy( dataValue.getCompletedBy() );
 
-                if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
+                if ( dataValue.getGeometry() != null )
                 {
-                    event.setCoordinate( new Coordinate( dataValue.getLongitude(), dataValue.getLatitude() ) );
+                    try
+                    {
+                        event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
+                    }
+                    catch ( ParseException e )
+                    {
+                        throw new IOException( e );
+                    }
                 }
 
                 events.getEvents().add( event );
