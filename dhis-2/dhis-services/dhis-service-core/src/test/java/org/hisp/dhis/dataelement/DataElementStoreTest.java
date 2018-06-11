@@ -576,4 +576,24 @@ public class DataElementStoreTest
 
         assertEquals( 2, dataElementStore.getAllLikeName( "DataElement" ).size() );
     }
+
+    @Test
+    public void testCountMethods()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+
+        assertEquals( 2, dataElementStore.getCountLikeName( "dataelement" ) );
+
+        assertEquals( 2, dataElementStore.getCount() );
+
+        assertEquals( 0, dataElementStore.getCountGeCreated( new Date() ) );
+
+        assertEquals( 2, dataElementStore.getCountGeCreated( dataElementA.getCreated() ) );
+
+        assertEquals( 2, dataElementStore.getCountGeLastUpdated( dataElementA.getLastUpdated() ) );
+    }
 }

@@ -83,7 +83,7 @@ public class HibernateMinMaxDataElementStore
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
             .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) )
-            .addPredicate( root -> builder.equal( root.get( "optionCombo" ), optionCombo ) ));
+            .addPredicate( root -> builder.equal( root.get( "optionCombo" ), optionCombo ) ) );
     }
 
     @Override

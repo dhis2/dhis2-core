@@ -336,10 +336,7 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
-        if ( parameters.isCachable() != null )
-        {
-            typedQuery.setHint( HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
-        }
+        typedQuery.setHint( HIBERNATE_CACHEABLE_HINT, parameters.isCachable() != null ? parameters.isCachable() : cacheable );
 
         return typedQuery;
     }
@@ -373,14 +370,7 @@ public class HibernateGenericStore<T>
         }
         else
         {
-            if ( parameters.isUseDistinct() )
-            {
-                query.select( builder.countDistinct( root ) );
-            }
-            else
-            {
-                query.select( builder.count( root ) );
-            }
+            query.select(  parameters.isUseDistinct() ?  builder.countDistinct( root ) :  builder.count( root )  );
         }
 
         if ( !predicateProviders.isEmpty() )
