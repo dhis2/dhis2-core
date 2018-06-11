@@ -35,6 +35,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -108,7 +109,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
 
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
+            if ( checkUser( user, object ) || checkSharingPermission( user, object, Permission.READ ) )
             {
                 return true;
             }
@@ -147,7 +148,7 @@ public class DefaultAclService implements AclService
             }
 
             if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
             }
@@ -187,12 +188,13 @@ public class DefaultAclService implements AclService
             }
 
             if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) && checkSharingAccess( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
+            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -226,7 +228,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
 
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE ) )
+            if ( checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) )
             {
                 return true;
             }
@@ -483,7 +485,7 @@ public class DefaultAclService implements AclService
         return true;
     }
 
-    private boolean checkSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
+    private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
         if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
         {
