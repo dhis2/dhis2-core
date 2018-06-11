@@ -61,9 +61,6 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private ProgramService programService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
@@ -71,6 +68,9 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
 
     @Autowired
     private CacheProvider cacheProvider;
+
+    @Autowired
+    private ProgramService programService;
 
     /**
      * Cache for storing temporary ownership grants.
@@ -90,7 +90,8 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     public boolean isOwner( User user, TrackedEntityInstance entityInstance, Program program )
     {
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        // or program is null
+        if ( user == null || user.isSuper() || program == null )
         {
             return true;
         }
@@ -183,12 +184,6 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         return false;
     }
 
-    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
-    {
-        return organisationUnit != null && organisationUnits != null
-            && organisationUnit.isDescendant( organisationUnits );
-    }
-
     @Override
     public void changeOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation )
     {
@@ -228,12 +223,6 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
     }
 
-    private String tempAccessKey( String teiUid, String programUid, String username )
-    {
-        return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON )
-            .append( teiUid ).toString();
-    }
-
     @Override
     public boolean hasTemporaryAccess( String teiUid, String programUid, User user )
     {
@@ -242,6 +231,45 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             return true;
         }
         return temporaryTrackerOwnershipCache.get( tempAccessKey( teiUid, programUid, user.getUsername() ) ).get();
+    }
+
+    private String tempAccessKey( String teiUid, String programUid, String username )
+    {
+        return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON )
+            .append( teiUid ).toString();
+    }
+
+    @Override
+    public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {
+        return isOwner( user, entityInstance, program ) || hasTemporaryAccess( user, entityInstance, program );
+    }
+
+    @Override
+    public boolean hasAccess( User user, String teiUid, String programUid )
+    {
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+
+        Program program = programService.getProgram( programUid );
+
+        if ( program == null || trackedEntityInstance == null )
+        {
+            return true;
+        }
+
+        return isOwner( user, teiUid, programUid ) || hasTemporaryAccess( user, trackedEntityInstance, program );
+    }
+
+    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
+    {
+        return organisationUnit != null && organisationUnits != null
+            && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    private boolean hasTemporaryAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {
+        return hasTemporaryAccess( entityInstance.getUid(), program.getUid(), user );
+
     }
 
     @Override
@@ -258,6 +286,6 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             return temporaryTrackerOwnershipCache
                 .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
         }
-        return false;
+        return true;
     }
 }
