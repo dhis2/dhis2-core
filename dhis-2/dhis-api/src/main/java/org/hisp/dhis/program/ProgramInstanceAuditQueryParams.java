@@ -47,6 +47,11 @@ public class ProgramInstanceAuditQueryParams
     private Set<ProgramInstance> programInstances = new HashSet<>();
     
     /**
+     * Programs to fetch audits for
+     */
+    private Set<Program> programs = new HashSet<>();
+    
+    /**
      * Users to fetch audits for
      */
     private Set<String> users = new HashSet<>();
@@ -98,6 +103,11 @@ public class ProgramInstanceAuditQueryParams
         return programInstances != null && !programInstances.isEmpty();
     }
     
+    public boolean hasPrograms()
+    {
+        return programs != null && !programs.isEmpty();
+    }
+    
     public boolean hasUsers()
     {
         return users != null && !users.isEmpty();
@@ -130,7 +140,17 @@ public class ProgramInstanceAuditQueryParams
     public void setProgramInstances( Set<ProgramInstance> programInstances )
     {
         this.programInstances = programInstances;
-    }    
+    }
+    
+    public Set<Program> getPrograms()
+    {
+        return programs;
+    }
+    
+    public void setPrograms( Set<Program> programs )
+    {
+        this.programs = programs;
+    }
 
     public Set<String> getUsers()
     {

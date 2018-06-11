@@ -1,4 +1,4 @@
-package org.hisp.dhis.dashboard.message.action;
+package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,61 +28,39 @@ package org.hisp.dhis.dashboard.message.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.message.MessageConversation;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UnreadMessageAction
-    implements Action
+public class ImportTrackedEntitiesTask
+    extends SecurityContextRunnable
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final List<TrackedEntityInstance> trackedEntityInstances;
 
-    private MessageService messageService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    public void setMessageService( MessageService messageService )
+    private final ImportOptions importOptions;
+
+    private final JobConfiguration id;
+
+    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances, TrackedEntityInstanceService trackedEntityInstanceService,
+        ImportOptions importOptions, JobConfiguration id )
     {
-        this.messageService = messageService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
-
-    private Integer id;
-    
-    public void setId( Integer id )
-    {
+        super();
+        this.trackedEntityInstances = trackedEntityInstances;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.importOptions = importOptions;
         this.id = id;
     }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String execute()
-        throws Exception
+    public void call()
     {
-        MessageConversation conversation = messageService.getMessageConversation( id );
-        
-        conversation.markUnread( currentUserService.getCurrentUser() );
-        
-        messageService.updateMessageConversation( conversation );
-        
-        return SUCCESS;
+        trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions, id );
     }
 }

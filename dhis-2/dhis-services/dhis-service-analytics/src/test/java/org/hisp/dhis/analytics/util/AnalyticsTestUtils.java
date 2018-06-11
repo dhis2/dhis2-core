@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.utils;
+package org.hisp.dhis.analytics.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

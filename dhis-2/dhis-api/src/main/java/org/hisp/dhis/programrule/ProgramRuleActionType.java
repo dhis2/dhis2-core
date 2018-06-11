@@ -50,7 +50,10 @@ public enum ProgramRuleActionType
     CREATEEVENT( "createevent" ),
     SETMANDATORYFIELD( "setmandatoryfield" ),
     SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" );
+    SCHEDULEMESSAGE( "schedulemessage" ),
+    HIDEOPTION( "hideoption" ),
+    SHOWOPTIONGROUP( "showoptiongroup" ),
+    HIDEOPTIONGROUP( "hideoptiongroup" );
 
     final String value;
 

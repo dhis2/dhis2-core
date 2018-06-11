@@ -181,26 +181,6 @@ public class DefaultUserService
     }
 
     @Override
-    public List<User> getManagedUsers( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUsers( params );
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUserCount( params );
-    }
-
-    @Override
     public List<User> getUsers( UserQueryParams params )
     {
         handleUserQueryParams( params );
@@ -635,11 +615,9 @@ public class DefaultUserService
 
         Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
 
-        UserQueryParams userQueryParams = new UserQueryParams();
-
-        userQueryParams.setDisabled( false );
-
-        userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
+        UserQueryParams userQueryParams = new UserQueryParams()
+            .setDisabled( false )
+            .setPasswordLastUpdated( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
     }

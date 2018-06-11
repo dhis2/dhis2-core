@@ -1,4 +1,4 @@
-package org.hisp.dhis.dashboard.message.action;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,59 +28,26 @@ package org.hisp.dhis.dashboard.message.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.util.ContextUtils;
-
-import com.opensymphony.xwork2.Action;
-
 /**
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class SendFeedbackAction
-    implements Action
+public enum AccessLevel
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
+    OPEN( 0 ),
+    AUDITED( 1 ),
+    PROTECTED( 2 ),
+    CLOSED( 3 );
     
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+    private final int value;
 
-    private String subject;
-    
-    public void setSubject( String subject )
+    AccessLevel( int value )
     {
-        this.subject = subject;
+        this.value = value;
     }
 
-    private String text;
-
-    public void setText( String text )
+    public int getValue()
     {
-        this.text = text;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        String metaData = MessageService.META_USER_AGENT + 
-            ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );
-
-        messageService.sendMessage( messageService.createTicketMessage( subject, text, metaData ).build() );
-        
-        return SUCCESS;
+        return value;
     }
 }

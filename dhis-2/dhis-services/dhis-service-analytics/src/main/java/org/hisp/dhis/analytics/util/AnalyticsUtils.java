@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -34,6 +34,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;

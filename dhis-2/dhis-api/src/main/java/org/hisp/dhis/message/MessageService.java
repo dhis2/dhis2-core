@@ -80,14 +80,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMessageConversations( MessageConversationStatus status, boolean followUpOnly,
-        boolean unreadOnly, int first, int max );
-
     List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids );
-
-    int getMessageConversationCount();
-
-    int getMessageConversationCount( boolean followUpOnly, boolean unreadOnly );
 
     void deleteMessages( User sender );
 

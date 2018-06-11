@@ -1,4 +1,4 @@
-package org.hisp.dhis.dashboard.profile.action;
+package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,67 +28,38 @@ package org.hisp.dhis.dashboard.profile.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class GetUserAction
-    implements Action
+public class ImportEnrollmentsTask
+    extends SecurityContextRunnable
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final List<Enrollment> enrollments;
 
-    @Autowired
-    private UserService userService;
+    private final EnrollmentService enrollmentService;
 
-    @Autowired
-    private CurrentUserService currentUserService;    
-    
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+    private final ImportOptions importOptions;
 
-    private String id;
+    private final JobConfiguration id;
 
-    public void setId( String id )
+    public ImportEnrollmentsTask( List<Enrollment> enrollments, EnrollmentService enrollmentService, ImportOptions importOptions, JobConfiguration id )
     {
+        super();
+        this.enrollments = enrollments;
+        this.enrollmentService = enrollmentService;
+        this.importOptions = importOptions;
         this.id = id;
     }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private User user;
-
-    public User getUser()
-    {
-        return user;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String execute()
+    public void call()
     {
-        if ( id != null )
-        {
-            user = userService.getUser( id );
-        }
-        else
-        {
-            user = currentUserService.getCurrentUser();
-        }
-        
-        return SUCCESS;
+        enrollmentService.addEnrollments( enrollments, importOptions, id );
     }
 }
