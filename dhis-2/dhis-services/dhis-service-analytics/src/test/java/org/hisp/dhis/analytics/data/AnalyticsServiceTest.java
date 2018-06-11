@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
+import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;

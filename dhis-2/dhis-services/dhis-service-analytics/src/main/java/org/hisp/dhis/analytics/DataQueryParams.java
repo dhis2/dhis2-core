@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 
 import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;

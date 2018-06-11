@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -138,6 +139,8 @@ public class Attribute
 
     private boolean validationRuleGroupAttribute;
 
+    private boolean categoryAttribute;
+
     private boolean mandatory;
 
     private boolean unique;
@@ -164,7 +167,7 @@ public class Attribute
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
             programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
             mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute,
-            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute, validationRuleGroupAttribute );
+            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute, validationRuleGroupAttribute, categoryAttribute );
     }
 
     @Override
@@ -213,6 +216,7 @@ public class Attribute
             && Objects.equals( this.dataElementGroupSetAttribute, other.dataElementGroupSetAttribute )
             && Objects.equals( this.validationRuleAttribute, other.validationRuleAttribute )
             && Objects.equals( this.validationRuleGroupAttribute, other.validationRuleGroupAttribute )
+            && Objects.equals( this.categoryAttribute, other.categoryAttribute )
 
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
@@ -617,6 +621,18 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCategoryAttribute()
+    {
+        return this.categoryAttribute;
+    }
+
+    public void setCategoryAttribute( boolean categoryAttribute )
+    {
+        this.categoryAttribute = categoryAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Integer getSortOrder()
     {
         return sortOrder;
@@ -660,6 +676,7 @@ public class Attribute
         if ( dataElementGroupSetAttribute ) klasses.add( DataElementGroupSet.class );
         if ( validationRuleAttribute ) klasses.add( ValidationRule.class );
         if ( validationRuleGroupAttribute ) klasses.add( ValidationRuleGroup.class );
+        if ( categoryAttribute ) klasses.add( Category.class );
 
         return klasses;
     }
@@ -696,6 +713,7 @@ public class Attribute
             .add( "dataElementGroupSetAttribute", dataElementGroupSetAttribute )
             .add( "validationRuleAttribute", validationRuleAttribute )
             .add( "validationRuleGroupAttribute", validationRuleGroupAttribute )
+            .add( "categoryAttribute", categoryAttribute )
             .add( "mandatory", mandatory )
             .toString();
     }
