@@ -77,8 +77,9 @@ public class LocalAppStorageService
     }
 
     @Override
-    public void discoverInstalledApps()
+    public Map<String, App> discoverInstalledApps()
     {
+        Map appMap = new HashMap<>();
         List<App> appList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
@@ -90,7 +91,7 @@ public class LocalAppStorageService
         if ( path == null )
         {
             log.error( "Failed to discover installed apps: Could not get app folder path, external directory not set" );
-            return;
+            return appMap;
         }
 
         File appFolderPath = new File( path );
@@ -99,7 +100,7 @@ public class LocalAppStorageService
         if ( !appFolderPath.exists() )
         {
             log.info( "Old apps folder does not exist, stopping discovery" );
-            return;
+            return appMap;
         }
 
         if ( !appFolderPath.isDirectory() )
@@ -163,6 +164,7 @@ public class LocalAppStorageService
                     reservedNamespaces.put( namespace, app );
                 }
 
+                appMap.put( app.getUrlFriendlyName(), app );
                 apps.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from local storage " );
@@ -173,12 +175,8 @@ public class LocalAppStorageService
         {
             log.info(" No apps found during local discovery.");
         }
-    }
 
-    @Override
-    public Map<String, App> getApps()
-    {
-        return apps;
+        return appMap;
     }
 
     @Override
@@ -188,7 +186,7 @@ public class LocalAppStorageService
     }
 
     @Override
-    public AppStatus installApp( File file, String fileName )
+    public App installApp( File file, String fileName )
     {
         throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
     }

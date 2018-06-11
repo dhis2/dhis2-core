@@ -106,18 +106,6 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public List<User> getManagedUsers( User user )
-    {
-        return null;
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        return 0;
-    }
-
-    @Override
     public List<User> getUsers( UserQueryParams params )
     {
         return null;
