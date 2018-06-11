@@ -576,19 +576,18 @@ public abstract class AbstractTrackedEntityInstanceService
                 importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
             }
 
-            Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances().stream()
-                .filter( pi -> !pi.isDeleted() )
-                .collect( Collectors.toSet() );
-
-            if ( !programInstances.isEmpty() && importOptions.getUser() != null &&
-                !importOptions.getUser().isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            if ( importOptions.getUser() != null )
             {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setReference( uid );
-                importSummary.setDescription( "Tracked entity instance " + uid + " cannot be deleted as it has associated enrollments and user does not have authority "
-                    + Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                List<ImportConflict> importConflicts = isAllowedToDelete( importOptions.getUser(), daoEntityInstance );
 
-                return importSummary.incrementIgnored();
+                if ( !importConflicts.isEmpty() )
+                {
+                    importSummary.setStatus( ImportStatus.ERROR );
+                    importSummary.setReference( daoEntityInstance.getUid() );
+                    importSummary.getConflicts().addAll( importConflicts );
+                    importSummary.incrementIgnored();
+                    return importSummary;
+                }
             }
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
@@ -998,5 +997,29 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importOptions;
+    }
+
+    private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    {
+        List<ImportConflict> importConflicts = new ArrayList<>();
+
+        Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
+            .filter( pi -> !pi.isDeleted() )
+            .collect( Collectors.toSet() );
+
+        if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+        {
+            importConflicts.add( new ImportConflict( tei.getUid(), "Tracked entity instance " + tei.getUid() + " cannot be deleted as it has associated enrollments and user does not have authority "
+                + Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, tei );
+
+        if ( !errors.isEmpty() )
+        {
+            errors.forEach( error -> importConflicts.add( new ImportConflict( tei.getUid(), error ) ) );
+        }
+
+        return importConflicts;
     }
 }
