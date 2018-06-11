@@ -89,4 +89,42 @@ public interface TrackerOwnershipAccessManager
      */
     void changeOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation );
 
+    /**
+     * Grant temporary ownership for a user for a specific tei-program combination
+     * 
+     * @param teiId The tracked entity instnace id
+     * @param programId The program id
+     * @param user The user to which temporary access has to be granted
+     */
+    void grantTemporaryOwnership( int teiId, int programId, User user );
+
+    /**
+     * Grant temporary ownership for a user for a specific tei-program combination
+     * 
+     * @param teiUid The tracked entity instance uid
+     * @param programUid The program Uid
+     * @param user The user object
+     */
+    void grantTemporaryOwnership( String teiUid, String programUid, User user );
+
+    /**
+     * Check if the user has temporary access for a specific tei-program combination
+     * 
+     * @param teiUid The tracked entity instance Uid
+     * @param programUid The program Uid
+     * @param user The user object against which the check has to be performed
+     * @return true if the user has temporary access, false otherwise
+     */
+    boolean hasTemporaryAccess( String teiUid, String programUid, User user );
+
+    /**
+     * Check if the user has temporary access for a specific tei-program combination
+     * 
+     * @param teiId The tracked entity instance Id
+     * @param programId The program Id
+     * @param user The user object against which the check has to be performed
+     * @return true if the user has temporary access, false otherwise
+     */
+    boolean hasTemporaryAccess( int teiId, int programId, User user );
+
 }

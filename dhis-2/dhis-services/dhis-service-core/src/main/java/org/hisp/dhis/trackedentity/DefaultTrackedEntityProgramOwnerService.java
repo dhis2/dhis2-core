@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentity;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -38,7 +40,12 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @author Ameen Mohamed
@@ -47,6 +54,9 @@ import java.util.Date;
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService
 {
     private static final Log log = LogFactory.getLog( DefaultTrackedEntityProgramOwnerService.class );
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -59,10 +69,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
     @Autowired
     private TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
@@ -152,6 +158,18 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
             return null;
         }
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds )
+    {
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds );
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program )
+    {
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
     }
 
 }

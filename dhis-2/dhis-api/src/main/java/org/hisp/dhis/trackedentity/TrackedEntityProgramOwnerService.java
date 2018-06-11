@@ -1,5 +1,9 @@
 package org.hisp.dhis.trackedentity;
 
+import java.util.List;
+
+import org.hisp.dhis.program.Program;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -94,5 +98,23 @@ public interface TrackedEntityProgramOwnerService
      * @return The TrackedEntityProgramOwner object
      */
     TrackedEntityProgramOwner getTrackedEntityProgramOwner( String teiUid, String programUid );
+
+    /**
+     * Get the program owner details for a list of teiIds. Includes all possible program
+     * 
+     * @param teiIds The list of tei Ids
+     * @return The  list of TrackedEntityProgramOwner details
+     */
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds );
+
+    /**
+     * Get the program owner details for a list of teiIds for a specific program
+     * 
+     * 
+     * @param teiIds The list of tei Ids
+     * @param program The program
+     * @return The  list of TrackedEntityProgramOwner details
+     */
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program );
 
 }

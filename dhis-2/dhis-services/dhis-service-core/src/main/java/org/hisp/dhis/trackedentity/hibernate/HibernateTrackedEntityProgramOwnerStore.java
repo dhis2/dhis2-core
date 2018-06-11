@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,6 +32,7 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
@@ -46,10 +49,30 @@ public class HibernateTrackedEntityProgramOwnerStore
     private static final Log log = LogFactory.getLog( HibernateTrackedEntityProgramOwnerStore.class );
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner(int teiId,int programId)
     {
         return (TrackedEntityProgramOwner) getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="+teiId+" and tepo.program.id="+programId ).uniqueResult();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds )
+    {
+        String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
+        Query q = getQuery(hql);
+        q.setParameterList("teiIds", teiIds);
+        return q.list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds, int programId )
+    {
+        String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
+        Query q = getQuery(hql);
+        q.setParameterList("teiIds", teiIds);
+        q.setParameter( "programId", programId );
+        return q.list();
     }
 
 }

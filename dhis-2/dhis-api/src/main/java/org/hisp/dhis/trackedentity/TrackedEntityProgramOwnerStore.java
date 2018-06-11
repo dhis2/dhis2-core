@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -66,4 +68,8 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
     String ID = TrackedEntityProgramOwnerStore.class.getName();
 
     TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId );
+
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds );
+
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds, int programId );
 }

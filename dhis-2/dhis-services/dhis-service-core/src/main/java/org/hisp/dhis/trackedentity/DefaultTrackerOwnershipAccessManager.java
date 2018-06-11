@@ -30,18 +30,27 @@ package org.hisp.dhis.trackedentity;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author Ameen Mohamed
  */
 public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAccessManager
 {
+    private static final String COLON = ":";
+
     private static final Log log = LogFactory.getLog( DefaultTrackerOwnershipAccessManager.class );
 
     // -------------------------------------------------------------------------
@@ -52,10 +61,30 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
+    private ProgramService programService;
+
+    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    /**
+     * Cache for storing temporary ownership grants.
+     */
+    private Cache<Boolean> temporaryTrackerOwnershipCache;
+
+    @PostConstruct
+    public void init()
+    {
+        temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "tempTrackerOwnership" ).withDefaultValue( false ).expireAfterWrite( 1, TimeUnit.HOURS )
+            .withMaximumSize( 10000 ).build();
+
+    }
 
     @Override
     public boolean isOwner( User user, TrackedEntityInstance entityInstance, Program program )
@@ -176,5 +205,59 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         {
             trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiId, programId, orgUnitId );
         }
+    }
+
+    @Override
+    public void grantTemporaryOwnership( int teiId, int programId, User user )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        Program program = programService.getProgram( programId );
+        if ( entityInstance != null && program != null )
+        {
+            temporaryTrackerOwnershipCache
+                .put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
+        }
+    }
+
+    @Override
+    public void grantTemporaryOwnership( String teiUid, String programUid, User user )
+    {
+        if ( user != null )
+        {
+            temporaryTrackerOwnershipCache.put( tempAccessKey( teiUid, programUid, user.getUsername() ), true );
+        }
+    }
+
+    private String tempAccessKey( String teiUid, String programUid, String username )
+    {
+        return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON )
+            .append( teiUid ).toString();
+    }
+
+    @Override
+    public boolean hasTemporaryAccess( String teiUid, String programUid, User user )
+    {
+        if ( user == null || user.isSuper() )
+        {
+            return true;
+        }
+        return temporaryTrackerOwnershipCache.get( tempAccessKey( teiUid, programUid, user.getUsername() ) ).get();
+    }
+
+    @Override
+    public boolean hasTemporaryAccess( int teiId, int programId, User user )
+    {
+        if ( user == null || user.isSuper() )
+        {
+            return true;
+        }
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        Program program = programService.getProgram( programId );
+        if ( entityInstance != null && program != null )
+        {
+            return temporaryTrackerOwnershipCache
+                .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
+        }
+        return false;
     }
 }
