@@ -44,6 +44,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
@@ -802,5 +804,95 @@ public class AclServiceTest
         assertTrue( errorReports.isEmpty() );
 
         manager.update( program );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithAuthority()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.READ_WRITE ) );
+        manager.update( reportTable );
+
+        assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithAuthorityNoUserAccess()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        manager.update( reportTable );
+
+        assertFalse( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithoutAuthority()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        User userB = createUser( 'B' );
+        manager.save( userB );
+
+        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.READ_WRITE ) );
+        manager.update( reportTable );
+
+        assertTrue( aclService.canUpdate( userB, reportTable ) );
     }
 }
