@@ -51,7 +51,12 @@ public final class FieldFilterParams
      */
     private List<String> fields;
 
-    private Defaults defaults = Defaults.EXCLUDE;
+    /**
+     * Filters out sharing fields if true
+     */
+    private boolean skipSharing;
+
+    private Defaults defaults = Defaults.INCLUDE;
 
     public FieldFilterParams( List<?> objects, List<String> fields )
     {
