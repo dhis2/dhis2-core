@@ -151,6 +151,8 @@ public class InitTableAlteror
         executeSql( "alter table programstageinstance alter column lastsynchronized set not null" );
         executeSql( "alter table programstageinstance alter column lastsynchronized set default to_timestamp(0)" );
 
+        executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
+        executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramStageInstanceCoordinates();
     }
 
@@ -161,6 +163,9 @@ public class InitTableAlteror
             "WHERE longitude IS NOT NULL " +
             "AND latitude IS NOT NULL" +
             "AND geometry IS NULL");
+
+        executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
+        executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()

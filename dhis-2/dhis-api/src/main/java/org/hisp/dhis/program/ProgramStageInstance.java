@@ -34,6 +34,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -77,10 +78,6 @@ public class ProgramStageInstance
     private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
 
     private EventStatus status = EventStatus.ACTIVE;
-
-    private Double longitude;
-
-    private Double latitude;
 
     private String completedBy;
 
@@ -253,26 +250,6 @@ public class ProgramStageInstance
     public void setMessageConversations( List<MessageConversation> messageConversations )
     {
         this.messageConversations = messageConversations;
-    }
-
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
     }
 
     public List<TrackedEntityComment> getComments()

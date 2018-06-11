@@ -73,6 +73,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -476,6 +477,14 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
+        if ( event.getGeometry() != null )
+        {
+            if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid()  );
+            }
+        }
+
         validateExpiryDays( event, program, null );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
@@ -771,34 +780,6 @@ public abstract class AbstractEventService
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
             event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-        }
-
-        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-        {
-            Coordinate coordinate = null;
-
-            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
-            {
-                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
-                    {
-                    } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                event.setCoordinate( coordinate );
-            }
         }
 
         Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
@@ -1118,23 +1099,6 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setGeometry( event.getGeometry() );
 
-        if ( !singleValue )
-        {
-            if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-            {
-                if ( event.getCoordinate() != null && event.getCoordinate().isValid() )
-                {
-                    programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
-                    programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
-                }
-                else
-                {
-                    programStageInstance.setLatitude( null );
-                    programStageInstance.setLongitude( null );
-                }
-            }
-        }
-
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
         validateExpiryDays( event, program, programStageInstance );
@@ -1157,6 +1121,17 @@ public abstract class AbstractEventService
             }
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
+        }
+
+        if ( event.getGeometry() != null )
+        {
+            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
+                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
+                    ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
+                    ") specified for the program stage: " + programStageInstance.getProgramStage().getUid()  );
+            }
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
@@ -1681,15 +1656,6 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setGeometry( event.getGeometry() );
-
-        if ( programStage.getCaptureCoordinates() )
-        {
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                programStageInstance.setLongitude( coordinate.getLongitude() );
-                programStageInstance.setLatitude( coordinate.getLatitude() );
-            }
-        }
 
         updateDateFields( event, programStageInstance );
 
