@@ -88,6 +88,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -210,6 +211,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    protected ProgramRuleEngineService programRuleEngineService;
 
     @Autowired
     protected AclService aclService;
@@ -1076,6 +1080,11 @@ public abstract class AbstractEventService
             {
                 programStageInstanceService.completeProgramStageInstance( programStageInstance,
                     importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+
+                if ( !importOptions.isSkipNotifications() )
+                {
+                    programRuleEngineService.evaluate( programStageInstance );
+                }
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1172,6 +1181,11 @@ public abstract class AbstractEventService
 
                 saveDataValue( programStageInstance, event.getStoredBy(), dataElement, value.getValue(),
                     value.getProvidedElsewhere(), existingDataValue, null );
+            }
+
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
             }
         }
 
