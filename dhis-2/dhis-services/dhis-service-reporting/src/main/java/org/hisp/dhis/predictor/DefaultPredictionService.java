@@ -167,23 +167,20 @@ public class DefaultPredictionService
 
         try
         {
+            notifier.notify( jobId, NotificationLevel.INFO, "Making predictions", false );
+
             predictionSummary = predictInternal( startDate, endDate, predictors, predictorGroups );
 
-            if ( jobId != null )
-            {
-                notifier.notify( jobId, NotificationLevel.INFO, "Prediction done", true )
-                    .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
-            }
+            notifier.update( jobId, NotificationLevel.INFO, "Prediction done", true )
+                .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
         }
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            predictionSummary = new PredictionSummary( PredictionStatus.ERROR, "The prediction failed: " + ex.getMessage() );
 
-            if ( jobId != null )
-            {
-                notifier.notify( jobId, ERROR, predictionSummary.getDescription(), true );
-            }
+            predictionSummary = new PredictionSummary( PredictionStatus.ERROR, "Predictions failed: " + ex.getMessage() );
+
+            notifier.update( jobId, ERROR, predictionSummary.getDescription(), true );
         }
 
         return predictionSummary;
