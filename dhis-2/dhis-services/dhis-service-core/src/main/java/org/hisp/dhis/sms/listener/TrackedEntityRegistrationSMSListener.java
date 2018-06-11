@@ -147,11 +147,11 @@ public class TrackedEntityRegistrationSMSListener
             sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
         }
 
-        programInstanceService.enrollTrackedEntityInstance(
-            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
-            new Date(), date, orgUnit );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
 
-        sendFeedback( "Tracked Entity Registered Successfully", senderPhoneNumber, INFO );
+        programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+
+        sendFeedback( "Tracked Entity Registered Successfully with uid. " + tei.getUid(), senderPhoneNumber, INFO );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
