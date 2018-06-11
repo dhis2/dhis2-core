@@ -70,6 +70,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -267,17 +269,7 @@ public abstract class AbstractJdbcTableManager
     {
         return getAnalyticsTableType().getTableName();
     }
-    
-    /**
-     * Quotes the given column name.
-     * 
-     * @param column the column name.
-     */
-    protected String quote( String column )
-    {
-        return quote( column );
-    }
-    
+        
     /**
      * Remove quotes from the given column name.
      * 
