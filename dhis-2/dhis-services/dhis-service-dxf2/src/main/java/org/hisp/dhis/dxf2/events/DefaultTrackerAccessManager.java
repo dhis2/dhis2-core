@@ -224,6 +224,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
+        
+        if ( program == null || programStage == null )
+        {
+        	return errors;
+        }
 
         if ( !aclService.canDataRead( user, program ) )
         {
