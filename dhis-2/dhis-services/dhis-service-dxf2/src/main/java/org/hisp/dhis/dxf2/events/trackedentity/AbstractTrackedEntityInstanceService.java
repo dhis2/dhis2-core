@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -101,7 +100,6 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
     @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
@@ -226,7 +224,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             throw new IllegalQueryException( errors.toString() );
         }
-        
+
         return getTei( daoTrackedEntityInstance, params, user );
     }
 
@@ -569,7 +567,7 @@ public abstract class AbstractTrackedEntityInstanceService
             enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
 
-            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && enrollment.isDeleted() )
+            if ( importOptions.getImportStrategy().isSync() && enrollment.isDeleted() )
             {
                 delete.add( enrollment );
             }
@@ -846,7 +844,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( daoTrackedEntityType == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType " +
+            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType" +
                 entityInstance.getTrackedEntityType() ) );
         }
 
@@ -947,15 +945,15 @@ public abstract class AbstractTrackedEntityInstanceService
 
         return importConflicts;
     }
-    
+
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-            TrackedEntityInstanceParams params, User user )
+        TrackedEntityInstanceParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
             return null;
         }
-       
+
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( daoTrackedEntityInstance.getOrganisationUnit().getUid() );
