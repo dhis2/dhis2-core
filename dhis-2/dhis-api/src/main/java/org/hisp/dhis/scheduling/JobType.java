@@ -70,7 +70,8 @@ public enum JobType
         "pushAnalysis", "/api/pushAnalysis"
     ) ),
     PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
-        "predictors", "/api/predictors"
+        "predictors", "/api/predictors",
+        "predictorGroups", "/api/predictorGroups"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
