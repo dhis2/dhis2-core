@@ -34,7 +34,6 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -55,10 +54,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
-            .addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) );
-
-        return getList( builder, parameters );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
     }
 
     @Override
@@ -66,10 +62,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
-            .addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) );
-
-        return getList( builder, parameters );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
     }
     
     @Override
@@ -77,10 +70,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
-            .addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) );
-
-        return getList( builder, parameters );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
     }
 
     @Override
@@ -88,15 +78,12 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
-            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ));
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutGroups()
     {
         String hql = "from DataElement d where size(d.groups) = 0";
@@ -105,7 +92,6 @@ public class HibernateDataElementStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutDataSets()
     {
         String hql = "from DataElement d where size(d.dataSetElements) = 0 and d.domainType =:domainType";
@@ -114,7 +100,6 @@ public class HibernateDataElementStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithDataSets()
     {
         String hql = "from DataElement d where size(d.dataSetElements) > 0";
@@ -123,7 +108,6 @@ public class HibernateDataElementStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
     {
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";

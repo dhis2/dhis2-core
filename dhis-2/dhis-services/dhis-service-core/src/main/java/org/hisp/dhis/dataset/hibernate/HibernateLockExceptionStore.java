@@ -159,7 +159,7 @@ public class HibernateLockExceptionStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return count( builder, newJpaParameters()
+        return getCount( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "period" ), periodService.reloadPeriod( period ) ) )
             .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
             .addPredicate( root -> root.get( "dataSet" ).in( dataElement.getDataSets() ) ) );
@@ -170,7 +170,7 @@ public class HibernateLockExceptionStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return count( builder, newJpaParameters()
+        return getCount( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "period" ),  periodService.reloadPeriod( period ) ) )
             .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
             .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );

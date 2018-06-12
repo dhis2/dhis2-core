@@ -34,9 +34,7 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
 
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.List;
@@ -51,41 +49,28 @@ import java.util.function.Function;
 public interface InternalHibernateGenericStore<T>
     extends GenericStore<T>
 {
-    @Deprecated
     Criteria getCriteria();
 
-    @Deprecated
     Criteria getSharingCriteria();
 
-    //    Criteria getDataSharingCriteria();
-    @Deprecated
     Criteria getSharingCriteria( String access );
 
-    @Deprecated
     Criteria getDataSharingCriteria( String access );
 
-    @Deprecated
     Criteria getDataSharingCriteria( User user, String access );
 
-    @Deprecated
     Criteria getSharingCriteria( User user );
 
-    @Deprecated
     DetachedCriteria getDataSharingDetachedCriteria( User user );
 
-    @Deprecated
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
-    @Deprecated
     DetachedCriteria getSharingDetachedCriteria();
 
-    @Deprecated
     DetachedCriteria getSharingDetachedCriteria( String access );
 
-    @Deprecated
     DetachedCriteria getDataSharingDetachedCriteria( String access );
 
-    @Deprecated
     DetachedCriteria getSharingDetachedCriteria( User user );
 
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder );
@@ -111,6 +96,4 @@ public interface InternalHibernateGenericStore<T>
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
 
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access );
-
-    TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery );
 }

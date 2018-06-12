@@ -134,7 +134,7 @@ public class HibernateMinMaxDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return count( builder, newJpaParameters()
+        return getCount( builder, newJpaParameters()
             .addPredicate( root -> parseFilter( builder, root, query.getFilters() ) )
             .setUseDistinct( true ) )
             .intValue();

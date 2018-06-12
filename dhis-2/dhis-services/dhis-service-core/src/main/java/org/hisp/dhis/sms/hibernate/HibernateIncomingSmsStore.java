@@ -93,7 +93,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     @Override
     public long getSmsCount()
     {
-        return count( getCriteriaBuilder(), newJpaParameters() );
+        return getCount( getCriteriaBuilder(), newJpaParameters() );
     }
 
     @Override

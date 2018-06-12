@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -51,10 +50,8 @@ public class HibernateCategoryOptionGroupSetStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOptionGroupSet> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

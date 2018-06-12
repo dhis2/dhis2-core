@@ -53,7 +53,7 @@ public class HibernateAttributeStore
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( getCriteriaBuilder(), newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) ) );
     }
 
@@ -67,7 +67,7 @@ public class HibernateAttributeStore
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( getCriteriaBuilder(), newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
             .addPredicate( root -> builder.equal( root.get( "mandatory" ), true ) ) );
     }
@@ -82,7 +82,7 @@ public class HibernateAttributeStore
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( getCriteriaBuilder(), newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
             .addPredicate( root -> builder.equal( root.get( "unique" ), true ) ) );
     }

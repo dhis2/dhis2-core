@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -97,10 +96,4 @@ public interface GenericStore<T>
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
 
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
-
-    /**
-     * Get JPA CriteriaBuilder
-     * @return
-     */
-    CriteriaBuilder getCriteriaBuilder();
 }

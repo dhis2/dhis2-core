@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -51,10 +50,8 @@ public class HibernateCategoryComboStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryCombo> parameters = newJpaParameters()
+        return getList( builder,  newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) ) );
     }
 }

@@ -29,28 +29,10 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Sets;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hibernate.query.Query;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -495,7 +477,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
         }
 
-        return count( builder, newJpaParameters()
+        return getCount( builder, newJpaParameters()
             .addPredicates( predicateList )
             .count( root -> builder.countDistinct( root ) ) )
             .intValue();

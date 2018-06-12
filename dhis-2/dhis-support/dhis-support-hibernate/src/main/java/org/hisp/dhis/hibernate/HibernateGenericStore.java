@@ -167,7 +167,6 @@ public class HibernateGenericStore<T>
      *
      * @return a Criteria instance.
      */
-    @Deprecated
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
@@ -208,7 +207,6 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
-    @Deprecated
     protected final Criteria getCriteria( Criterion... expressions )
     {
         Criteria criteria = getCriteria();
@@ -347,7 +345,7 @@ public class HibernateGenericStore<T>
      * @param parameters JpaQueryParameters
      * @return number of objects
      */
-    protected  final Long count( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
+    protected  final Long getCount( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
     {
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
 
@@ -400,12 +398,12 @@ public class HibernateGenericStore<T>
     /**
      * Creates a SqlQuery.
      *
-     * @param sql the sql query.
-     * @return a SqlQuery instance.
+     * @param sql the sql query String.
+     * @return a NativeQuery<T> instance.
      */
-    protected final NativeQuery getSqlQuery( String sql )
+    protected final NativeQuery<T> getSqlQuery( String sql )
     {
-        NativeQuery query = getSession().createNativeQuery( sql );
+        NativeQuery<T> query = getSession().createNativeQuery( sql );
         query.setHint( HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
@@ -475,7 +473,7 @@ public class HibernateGenericStore<T>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return count( builder, newJpaParameters().count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
+        return getCount( builder, newJpaParameters().count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
     @Override
@@ -525,7 +523,7 @@ public class HibernateGenericStore<T>
 
     /**
      * Create new instance of JpaQueryParameters
-     * @return
+     * @return JpaQueryParameters<T>
      */
     protected JpaQueryParameters<T> newJpaParameters()
     {

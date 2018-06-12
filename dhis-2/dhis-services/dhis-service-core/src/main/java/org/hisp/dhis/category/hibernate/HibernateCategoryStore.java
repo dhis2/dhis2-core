@@ -34,7 +34,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -51,11 +50,9 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) ) );
     }
 
     @Override
@@ -63,12 +60,10 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
     
     @Override
@@ -76,10 +71,8 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

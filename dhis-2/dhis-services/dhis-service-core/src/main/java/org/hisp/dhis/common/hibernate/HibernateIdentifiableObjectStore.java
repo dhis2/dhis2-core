@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
@@ -361,7 +360,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicates( getSharingPredicates( builder ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        return count( builder, param ).intValue();
+        return getCount( builder, param ).intValue();
     }
 
     @Override
@@ -585,7 +584,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicate( root ->  builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        return count( builder, param ).intValue();
+        return getCount( builder, param ).intValue();
     }
 
     @Override
@@ -598,7 +597,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        return count( builder, param ).intValue();
+        return getCount( builder, param ).intValue();
     }
 
     @Override
@@ -624,7 +623,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        return count( builder, param ).intValue();
+        return getCount( builder, param ).intValue();
     }
 
     @Override

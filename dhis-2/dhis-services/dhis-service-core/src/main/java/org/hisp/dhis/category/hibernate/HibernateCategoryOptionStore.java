@@ -34,7 +34,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -51,11 +50,9 @@ public class HibernateCategoryOptionStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOption> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
 
     }
 }

@@ -236,7 +236,7 @@ public class HibernateUserStore
 
         if ( params.getPasswordLastUpdated() != null )
         {
-            query.setTimestamp( "passwordLastUpdated", params.getPasswordLastUpdated() );
+            query.setParameter( "passwordLastUpdated", params.getPasswordLastUpdated() );
         }
 
         if ( params.getInactiveSince() != null )
@@ -250,7 +250,7 @@ public class HibernateUserStore
             {
                 for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
                 {
-                    query.setString( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
                 }
             }
             else

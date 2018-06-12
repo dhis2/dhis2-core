@@ -57,6 +57,7 @@ public class HibernateCategoryOptionGroupStore
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> {
                 Join<Object, Object> groupSets = root.join( "groupSets" );
+
                 return builder.or( builder.equal( groupSets.get( "id" ) , groupSet.getId() ),
                                     builder.isNull( groupSets.get( "id" ) ) );
             });
@@ -69,10 +70,8 @@ public class HibernateCategoryOptionGroupStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOptionGroup> parameters = newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
-
-        return getList( builder, parameters );
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

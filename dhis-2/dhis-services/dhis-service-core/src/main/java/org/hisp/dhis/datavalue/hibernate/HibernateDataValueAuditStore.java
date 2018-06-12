@@ -29,10 +29,6 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Lists;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -84,8 +80,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
         
-        getSession().createQuery( hql ).
-            setParameter( "unit", organisationUnit ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -93,8 +88,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
-        getSession().createQuery( hql )
-            .setParameter( "dataElement", dataElement ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override
@@ -137,7 +131,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return count( builder, newJpaParameters()
+        return getCount( builder, newJpaParameters()
             .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) )).intValue();
     }
@@ -161,7 +155,6 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         }
 
         List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
-
 
         if ( !dataElements.isEmpty() )
         {
