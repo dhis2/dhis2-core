@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 /**
  * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "predictionSummary", namespace = DxfNamespaces.DXF_2_0 )
 public class PredictionSummary extends AbstractWebMessageResponse
 {
     private PredictionStatus status = PredictionStatus.SUCCESS;
