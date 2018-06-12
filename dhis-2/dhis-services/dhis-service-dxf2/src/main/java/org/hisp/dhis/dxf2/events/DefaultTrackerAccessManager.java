@@ -223,6 +223,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+        
+        if ( isNull( programStage) )
+        {
+        	return errors;
+        }
+        
         Program program = programStage.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
@@ -270,6 +276,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+        
+        if ( isNull( programStage) )
+        {
+        	return errors;
+        }
+        
         Program program = programStage.getProgram();
 
         if ( program.isWithoutRegistration() )
@@ -391,5 +403,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
     {
         return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
+    }
+    
+    private boolean isNull( ProgramStage programStage )
+    {
+    	return programStage == null || programStage.getProgram() == null; 
     }
 }
