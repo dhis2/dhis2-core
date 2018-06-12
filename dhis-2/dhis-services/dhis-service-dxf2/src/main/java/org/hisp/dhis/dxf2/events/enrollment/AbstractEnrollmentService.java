@@ -58,7 +58,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -842,7 +841,7 @@ public abstract class AbstractEnrollmentService
             event.setProgram( programInstance.getProgram().getUid() );
             event.setTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
 
-            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && event.isDeleted() )
+            if ( importOptions.getImportStrategy().isSync() && event.isDeleted() )
             {
                 delete.add( event.getEvent() );
             }
@@ -1089,6 +1088,7 @@ public abstract class AbstractEnrollmentService
 
     private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment )
     {
+        //TODO: Possible performance improvement: Use UserInfo class instead  //Will fix in one of the following commits
         String storedBy = currentUserService.getCurrentUsername();
 
         for ( Note note : enrollment.getNotes() )
@@ -1174,7 +1174,7 @@ public abstract class AbstractEnrollmentService
 
         if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
-            importConflicts.add(  new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority()  ) );
+            importConflicts.add( new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
         }
 
         List<String> errors = trackerAccessManager.canWrite( user, pi );
