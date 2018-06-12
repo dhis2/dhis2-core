@@ -73,7 +73,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -130,7 +129,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -146,7 +162,7 @@ public abstract class AbstractEventService
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
         EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -477,14 +493,6 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        if ( event.getGeometry() != null )
-        {
-            if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid()  );
-            }
-        }
-
         validateExpiryDays( event, program, null );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
@@ -749,9 +757,7 @@ public abstract class AbstractEventService
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
-        event.setGeometry( programStageInstance.getGeometry() );
         event.setDeleted( programStageInstance.isDeleted() );
-        event.setGeometry( programStageInstance.getGeometry() );
 
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
@@ -781,6 +787,34 @@ public abstract class AbstractEventService
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
             event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+        }
+
+        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
+        {
+            Coordinate coordinate = null;
+
+            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
+            {
+                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
+
+                try
+                {
+                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
+                    {
+                    } );
+
+                    coordinate.setLongitude( list.get( 0 ) );
+                    coordinate.setLatitude( list.get( 1 ) );
+                }
+                catch ( IOException ignored )
+                {
+                }
+            }
+
+            if ( coordinate != null && coordinate.isValid() )
+            {
+                event.setCoordinate( coordinate );
+            }
         }
 
         Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
@@ -1098,7 +1132,23 @@ public abstract class AbstractEventService
 
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setGeometry( event.getGeometry() );
+
+        if ( !singleValue )
+        {
+            if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
+            {
+                if ( event.getCoordinate() != null && event.getCoordinate().isValid() )
+                {
+                    programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
+                    programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
+                }
+                else
+                {
+                    programStageInstance.setLatitude( null );
+                    programStageInstance.setLongitude( null );
+                }
+            }
+        }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
@@ -1122,17 +1172,6 @@ public abstract class AbstractEventService
             }
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
-        }
-
-        if ( event.getGeometry() != null )
-        {
-            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
-                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
-                    ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
-                    ") specified for the program stage: " + programStageInstance.getProgramStage().getUid()  );
-            }
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
@@ -1505,13 +1544,13 @@ public abstract class AbstractEventService
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
-                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
+                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
             }
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
-                    executionDate, event.getStatus().getValue(), completedBy,
+                    executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
                     programStageInstance, aoc, importOptions );
             }
 
@@ -1620,7 +1659,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
-        int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
+        int status, Coordinate coordinate, String completedBy, String storeBy, String programStageInstanceIdentifier,
         CategoryOptionCombo aoc, ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1640,13 +1679,13 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, completedBy, programStageInstance, aoc, importOptions );
+            status, coordinate, completedBy, programStageInstance, aoc, importOptions );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
-        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
+        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
         String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
@@ -1656,7 +1695,15 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
-        programStageInstance.setGeometry( event.getGeometry() );
+
+        if ( programStage.getCaptureCoordinates() )
+        {
+            if ( coordinate != null && coordinate.isValid() )
+            {
+                programStageInstance.setLongitude( coordinate.getLongitude() );
+                programStageInstance.setLatitude( coordinate.getLatitude() );
+            }
+        }
 
         updateDateFields( event, programStageInstance );
 

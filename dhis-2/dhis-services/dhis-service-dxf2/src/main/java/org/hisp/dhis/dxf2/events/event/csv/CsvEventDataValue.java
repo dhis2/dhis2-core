@@ -47,7 +47,8 @@ import java.util.Objects;
     "orgUnit",
     "eventDate",
     "dueDate",
-    "geometry",
+    "latitude",
+    "longitude",
     "dataElement",
     "value",
     "storedBy",
@@ -73,6 +74,10 @@ public class CsvEventDataValue
 
     private String dueDate;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private String dataElement;
 
     private String value;
@@ -84,8 +89,6 @@ public class CsvEventDataValue
     private String completedDate;
 
     private String completedBy;
-
-    private String geometry;
 
     public CsvEventDataValue()
     {
@@ -103,13 +106,14 @@ public class CsvEventDataValue
         orgUnit = dataValue.getOrgUnit();
         eventDate = dataValue.getEventDate();
         dueDate = dataValue.getDueDate();
+        latitude = dataValue.getLatitude();
+        longitude = dataValue.getLongitude();
         dataElement = dataValue.getDataElement();
         value = dataValue.getValue();
         storedBy = dataValue.getStoredBy();
         providedElsewhere = dataValue.getProvidedElsewhere();
         completedDate = dataValue.getCompletedDate();
         completedBy = dataValue.getCompletedBy();
-        geometry = dataValue.getGeometry();
     }
 
     @JsonProperty
@@ -201,6 +205,28 @@ public class CsvEventDataValue
     }
 
     @JsonProperty
+    public Double getLatitude()
+    {
+        return latitude;
+    }
+
+    public void setLatitude( Double latitude )
+    {
+        this.latitude = latitude;
+    }
+
+    @JsonProperty
+    public Double getLongitude()
+    {
+        return longitude;
+    }
+
+    public void setLongitude( Double longitude )
+    {
+        this.longitude = longitude;
+    }
+
+    @JsonProperty
     public String getDataElement()
     {
         return dataElement;
@@ -266,21 +292,10 @@ public class CsvEventDataValue
         this.completedBy = completedBy;
     }
 
-    @JsonProperty
-    public String getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( String geometry )
-    {
-        this.geometry = geometry;
-    }
-
     @Override
     public int hashCode()
     {
-        return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate,
+        return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate, latitude, longitude,
             dataElement, value, storedBy, providedElsewhere );
     }
 
@@ -301,7 +316,8 @@ public class CsvEventDataValue
         return Objects.equals( this.event, other.event ) && Objects.equals( this.status, other.status ) && Objects.equals( this.program,
             other.program ) && Objects.equals( this.programStage, other.programStage ) && Objects.equals( this.orgUnit,
             other.orgUnit ) && Objects.equals( this.enrollment, other.enrollment ) && Objects.equals( this.eventDate,
-            other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.dataElement,
+            other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
+            other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
             other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
             other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere );
     }
@@ -318,6 +334,8 @@ public class CsvEventDataValue
             .add( "orgUnit", orgUnit )
             .add( "eventDate", eventDate )
             .add( "dueDate", dueDate )
+            .add( "latitude", latitude )
+            .add( "longitude", longitude )
             .add( "dataElement", dataElement )
             .add( "value", value )
             .add( "storedBy", storedBy )
