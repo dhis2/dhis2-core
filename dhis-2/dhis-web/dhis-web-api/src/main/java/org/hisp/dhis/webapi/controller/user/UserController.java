@@ -135,14 +135,13 @@ public class UserController
         params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
         params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
+        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
 
         String ou = options.get( "ou" );
-        boolean includeOrgUnitChildren = Boolean.valueOf( options.get( "includeChildren" ) );
 
         if ( ou != null )
         {
             params.addOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
-            params.setIncludeOrgUnitChildren( includeOrgUnitChildren );
         }
 
         if ( options.isManage() )
