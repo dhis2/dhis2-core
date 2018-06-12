@@ -47,13 +47,15 @@ import java.util.Objects;
     "orgUnit",
     "eventDate",
     "dueDate",
-    "geometry",
+    "latitude",
+    "longitude",
     "dataElement",
     "value",
     "storedBy",
     "providedElsewhere",
     "completedDate",
-    "completedBy"
+    "completedBy",
+    "geometry"
 } )
 public class CsvEventDataValue
 {
@@ -72,6 +74,10 @@ public class CsvEventDataValue
     private String eventDate;
 
     private String dueDate;
+
+    private Double latitude;
+
+    private Double longitude;
 
     private String dataElement;
 
@@ -103,6 +109,8 @@ public class CsvEventDataValue
         orgUnit = dataValue.getOrgUnit();
         eventDate = dataValue.getEventDate();
         dueDate = dataValue.getDueDate();
+        latitude = dataValue.getLatitude();
+        longitude = dataValue.getLongitude();
         dataElement = dataValue.getDataElement();
         value = dataValue.getValue();
         storedBy = dataValue.getStoredBy();
@@ -198,6 +206,28 @@ public class CsvEventDataValue
     public void setDueDate( String dueDate )
     {
         this.dueDate = dueDate;
+    }
+
+    @JsonProperty
+    public Double getLatitude()
+    {
+        return latitude;
+    }
+
+    public void setLatitude( Double latitude )
+    {
+        this.latitude = latitude;
+    }
+
+    @JsonProperty
+    public Double getLongitude()
+    {
+        return longitude;
+    }
+
+    public void setLongitude( Double longitude )
+    {
+        this.longitude = longitude;
     }
 
     @JsonProperty
@@ -301,9 +331,11 @@ public class CsvEventDataValue
         return Objects.equals( this.event, other.event ) && Objects.equals( this.status, other.status ) && Objects.equals( this.program,
             other.program ) && Objects.equals( this.programStage, other.programStage ) && Objects.equals( this.orgUnit,
             other.orgUnit ) && Objects.equals( this.enrollment, other.enrollment ) && Objects.equals( this.eventDate,
-            other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.dataElement,
+            other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
+            other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
             other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere );
+            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere ) &&Objects.equals( this.geometry,
+            other.geometry );
     }
 
     @Override
@@ -318,12 +350,15 @@ public class CsvEventDataValue
             .add( "orgUnit", orgUnit )
             .add( "eventDate", eventDate )
             .add( "dueDate", dueDate )
+            .add( "latitude", latitude )
+            .add( "longitude", longitude )
             .add( "dataElement", dataElement )
             .add( "value", value )
             .add( "storedBy", storedBy )
             .add( "providedElsewhere", providedElsewhere )
             .add( "completedDate", completedDate )
             .add( "completedBy", completedBy )
+            .add( "geometry", geometry )
             .toString();
     }
 }

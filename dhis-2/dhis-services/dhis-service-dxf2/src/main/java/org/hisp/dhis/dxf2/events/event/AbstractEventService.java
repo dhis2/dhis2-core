@@ -751,7 +751,13 @@ public abstract class AbstractEventService
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
         event.setGeometry( programStageInstance.getGeometry() );
         event.setDeleted( programStageInstance.isDeleted() );
-        event.setGeometry( programStageInstance.getGeometry() );
+
+        // Lat and lnt deprecated in 2.30, remove by 2.33
+        if ( event.getGeometry() != null && event.getGeometry().getGeometryType().equals( "Point" ))
+        {
+            com.vividsolutions.jts.geom.Coordinate geometryCoordinate = event.getGeometry().getCoordinate();
+            event.setCoordinate( new Coordinate( geometryCoordinate.x, geometryCoordinate.y ) );
+        }
 
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();

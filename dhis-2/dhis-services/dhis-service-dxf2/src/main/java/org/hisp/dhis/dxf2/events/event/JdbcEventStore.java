@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.StringUtils;
@@ -211,7 +212,10 @@ public class JdbcEventStore
                 {
                     try
                     {
-                        event.setGeometry( new WKTReader().read( rowSet.getString( "psi_geometry" ) ) );
+                        Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
+
+                        event.setGeometry( geom );
+                        event.setCoordinate( new Coordinate( geom.getCoordinate().x, geom.getCoordinate().y ) );
                     }
                     catch ( ParseException e )
                     {

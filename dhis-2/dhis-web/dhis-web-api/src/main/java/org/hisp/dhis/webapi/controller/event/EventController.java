@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
+import com.vividsolutions.jts.io.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -889,7 +890,8 @@ public class EventController
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+        throws IOException, ParseException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 

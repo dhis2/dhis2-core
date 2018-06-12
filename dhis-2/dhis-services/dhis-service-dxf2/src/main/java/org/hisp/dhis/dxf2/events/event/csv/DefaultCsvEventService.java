@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -52,14 +51,17 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultCsvEventService implements CsvEventService
+public class DefaultCsvEventService
+    implements CsvEventService
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
-    private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class ).withLineSeparator( "\n" );
+    private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+        .withLineSeparator( "\n" );
 
     @Override
-    public void writeEvents( OutputStream outputStream, Events events, boolean withHeader ) throws IOException
+    public void writeEvents( OutputStream outputStream, Events events, boolean withHeader )
+        throws IOException
     {
         ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
 
@@ -83,6 +85,12 @@ public class DefaultCsvEventService implements CsvEventService
             if ( event.getGeometry() != null )
             {
                 templateDataValue.setGeometry( event.getGeometry().toText() );
+
+                if ( event.getGeometry().getGeometryType().equals( "Point" ) )
+                {
+                    templateDataValue.setLongitude( event.getGeometry().getCoordinate().x );
+                    templateDataValue.setLatitude( event.getGeometry().getCoordinate().y );
+                }
             }
 
             for ( DataValue value : event.getDataValues() )
@@ -105,7 +113,8 @@ public class DefaultCsvEventService implements CsvEventService
     }
 
     @Override
-    public Events readEvents( InputStream inputStream, boolean skipFirst ) throws IOException
+    public Events readEvents( InputStream inputStream, boolean skipFirst )
+        throws IOException, ParseException
     {
         Events events = new Events();
 
@@ -135,16 +144,15 @@ public class DefaultCsvEventService implements CsvEventService
                 event.setCompletedDate( dataValue.getCompletedDate() );
                 event.setCompletedBy( dataValue.getCompletedBy() );
 
+
                 if ( dataValue.getGeometry() != null )
                 {
-                    try
-                    {
-                        event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
-                    }
-                    catch ( ParseException e )
-                    {
-                        throw new IOException( e );
-                    }
+                    event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
+                }
+                else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
+                {
+                    event.setGeometry( new WKTReader()
+                        .read( "Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")" ) );
                 }
 
                 events.getEvents().add( event );
