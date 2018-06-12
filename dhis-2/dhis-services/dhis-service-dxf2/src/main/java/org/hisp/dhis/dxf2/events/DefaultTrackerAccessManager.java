@@ -223,8 +223,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+        
+        if ( isNull( programStage ) )
+        {
+        	return errors;
+        }
+        
         Program program = programStage.getProgram();
-
+        
         if ( !aclService.canDataRead( user, program ) )
         {
             errors.add( "User has no data read access to program: " + program.getUid() );
@@ -270,6 +276,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+        
+        if ( isNull( programStage ) )
+        {
+        	return errors;
+        }
+        
         Program program = programStage.getProgram();
 
         if ( program.isWithoutRegistration() )
@@ -392,4 +404,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
     }
+    
+    private boolean isNull( ProgramStage programStage )
+    {
+    	return programStage == null || programStage.getProgram() == null;     	
+    }    
 }

@@ -139,33 +139,21 @@ public class InitTableAlteror
 
         // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
         executeSql( "UPDATE trackedentityattribute SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
-        executeSql( "alter table trackedentityattribute alter column skipsynchronization set not null" );
+        executeSql( "ALTER TABLE trackedentityattribute ALTER COLUMN skipsynchronization SET NOT NULL" );
 
         // alter/update lastsynchronized column in trackedentityinstance to: NOT NULL, DEFAULT to_timestamp(0)
         executeSql( "UPDATE trackedentityinstance SET lastsynchronized = to_timestamp(0) WHERE lastsynchronized IS NULL;" ); //Do not remove this line if some cleanup will ever happen
-        executeSql( "alter table trackedentityinstance alter column lastsynchronized set not null" );
-        executeSql( "alter table trackedentityinstance alter column lastsynchronized set default to_timestamp(0)" );
+        executeSql( "ALTER TABLE trackedentityinstance ALTER COLUMN lastsynchronized SET NOT NULL" );
+        executeSql( "ALTER TABLE trackedentityinstance ALTER COLUMN lastsynchronized SET DEFAULT to_timestamp(0)" );
 
         // alter/update lastsynchronized column in programstageinstance to: NOT NULL, DEFAULT to_timestamp(0)
         executeSql( "UPDATE programstageinstance SET lastsynchronized = to_timestamp(0) WHERE lastsynchronized IS NULL" );  //Do not remove this line if some cleanup will ever happen
-        executeSql( "alter table programstageinstance alter column lastsynchronized set not null" );
-        executeSql( "alter table programstageinstance alter column lastsynchronized set default to_timestamp(0)" );
+        executeSql( "ALTER TABLE programstageinstance ALTER COLUMN lastsynchronized SET NOT NULL" );
+        executeSql( "ALTER TABLE programstageinstance ALTER COLUMN lastsynchronized SET DEFAULT to_timestamp(0)" );
 
-        executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
-        executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
-        updateAndRemoveOldProgramStageInstanceCoordinates();
-    }
-
-    private void updateAndRemoveOldProgramStageInstanceCoordinates()
-    {
-        executeSql( "UPDATE programstageinstance " +
-            "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
-            "WHERE longitude IS NOT NULL " +
-            "AND latitude IS NOT NULL" +
-            "AND geometry IS NULL");
-
-        executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
-        executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );
+        // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
+        executeSql( "UPDATE programstagedataelement SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
+        executeSql( "ALTER TABLE programstagedataelement ALTER COLUMN skipsynchronization SET NOT NULL" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
