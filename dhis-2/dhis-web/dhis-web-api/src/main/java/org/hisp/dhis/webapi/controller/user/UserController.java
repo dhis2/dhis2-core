@@ -134,6 +134,7 @@ public class UserController
         params.setInactiveSince( options.getDate( "inactiveSince" ) );
         params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
+        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
 
         String ou = options.get( "ou" );
         boolean includeOrgUnitChildren = Boolean.valueOf( options.get( "includeChildren" ) );

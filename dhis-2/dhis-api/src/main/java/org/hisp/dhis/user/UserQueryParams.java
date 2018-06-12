@@ -128,6 +128,11 @@ public class UserQueryParams
         return this;
     }
     
+    public boolean hasUser()
+    {
+        return user != null;
+    }
+    
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

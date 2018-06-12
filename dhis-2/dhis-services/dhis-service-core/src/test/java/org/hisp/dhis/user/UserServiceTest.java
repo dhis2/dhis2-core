@@ -216,6 +216,54 @@ public class UserServiceTest
     }
     
     @Test
+    public void testGetUserOrgUnits()
+    {
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        
+        User currentUser = createUser( 'Z' );
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        User userC = createUser( 'C' );
+        User userD = createUser( 'D' );
+
+        currentUser.getOrganisationUnits().add( unitA );
+        currentUser.getOrganisationUnits().add( unitB );
+        userA.getOrganisationUnits().add( unitA );
+        userB.getOrganisationUnits().add( unitB );
+        userC.getOrganisationUnits().add( unitC );
+        userD.getOrganisationUnits().add( unitD );
+        
+        UserCredentials currentCredentials = createUserCredentials( 'Z', currentUser );
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+        UserCredentials credentialsD = createUserCredentials( 'D', userD );
+
+        userService.addUser( currentUser );
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userService.addUser( userC );
+        userService.addUser( userD );
+
+        userService.addUserCredentials( currentCredentials );
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+        userService.addUserCredentials( credentialsC );
+        userService.addUserCredentials( credentialsD );
+
+        UserQueryParams params = new UserQueryParams()
+            .setUser( currentUser )
+            .setUserOrgUnits( true );
+        
+        List<User> users = userService.getUsers( params );
+        
+        assertEquals( 3, users.size() );
+        assertTrue( users.contains( currentUser ) );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );        
+    }
+    
+    @Test
     public void testManagedGroups()
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
