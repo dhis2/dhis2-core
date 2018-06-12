@@ -238,7 +238,6 @@ public class DefaultUserService
         
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
-            System.out.println( "Setting ous " + params.getUser().getOrganisationUnits() );
             params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
         }
     }
