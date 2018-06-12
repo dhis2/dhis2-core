@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -69,6 +70,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -267,17 +270,7 @@ public abstract class AbstractJdbcTableManager
     {
         return getAnalyticsTableType().getTableName();
     }
-    
-    /**
-     * Quotes the given column name.
-     * 
-     * @param column the column name.
-     */
-    protected String quote( String column )
-    {
-        return quote( column );
-    }
-    
+        
     /**
      * Remove quotes from the given column name.
      * 
@@ -285,7 +278,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String removeQuote( String column )
     {
-        return column != null ? column.replaceAll( statementBuilder.getColumnQuote(), StringUtils.EMPTY ) : null;
+        return column != null ? column.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY ) : null;
     }
     
     /**

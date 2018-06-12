@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +55,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
