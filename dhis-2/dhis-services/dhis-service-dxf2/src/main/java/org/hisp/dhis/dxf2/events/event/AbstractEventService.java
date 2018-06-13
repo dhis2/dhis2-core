@@ -1881,7 +1881,6 @@ public abstract class AbstractEventService
     {
         if ( program != null )
         {
-
             if ( program.getCompleteEventsExpiryDays() > 0 )
             {
                 if ( event.getStatus() == EventStatus.COMPLETED

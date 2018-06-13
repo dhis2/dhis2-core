@@ -29,20 +29,27 @@ package org.hisp.dhis.dataset;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -253,25 +260,25 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
+    public boolean isLocked( User user,  DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {
-        return dataSet.isLocked( period, now ) && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
+        return dataSet.isLocked( user, period, now ) && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
     }
 
     @Override
-    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now )
+    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now )
     {
-        return isLocked( dataSet, period, organisationUnit, now ) ||
+        return isLocked( user, dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 
     @Override
-    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
     {
         if ( !useOrgUnitChildren )
         {
-            return isLocked( dataSet, period, organisationUnit, attributeOptionCombo, now );
+            return isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, now );
         }
 
         if ( organisationUnit == null || !organisationUnit.hasChild() )
@@ -281,7 +288,7 @@ public class DefaultDataSetService
 
         for ( OrganisationUnit child : organisationUnit.getChildren() )
         {
-            if ( isLocked( dataSet, period, child, attributeOptionCombo, now ) )
+            if ( isLocked( user, dataSet, period, child, attributeOptionCombo, now ) )
             {
                 return true;
             }
@@ -291,16 +298,19 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
+    public boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now )
     {
-        now = now != null ? now : new Date();
-
-        boolean expired = dataElement.isExpired( period, now );
-
-        if ( expired && lockExceptionStore.getCount( dataElement, period, organisationUnit ) == 0L )
+        if ( user != null && !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
-            return true;
+            now = now != null ? now : new Date();
+
+            boolean expired = dataElement.isExpired( period, now );
+
+            if ( expired && lockExceptionStore.getCount( dataElement, period, organisationUnit ) == 0L )
+            {
+                return true;
+            }
         }
 
         DataSet dataSet = dataElement.getApprovalDataSet();
