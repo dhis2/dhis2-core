@@ -67,6 +67,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -261,7 +262,15 @@ public class JdbcEventAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql + " as " + ANALYTICS_TBL_ALIAS + " ";
+        sql += " as " + ANALYTICS_TBL_ALIAS + " ";
+        
+        if ( params.hasTimeField() )
+        {
+            String joinCol = quoteAlias( params.getTimeField() );            
+            sql += "left join _dateperiodstructure " + DATE_PERIOD_STRUCT_ALIAS + " on cast(" + joinCol + " as date)=dps.dateperiod ";
+        }
+        
+        return sql;
     }
 
     /**

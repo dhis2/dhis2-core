@@ -163,6 +163,11 @@ public class EventQueryParams
     private boolean aggregateData;
     
     /**
+     * The time field used as basis for aggregation.
+     */
+    private String timeField;
+    
+    /**
      * Size of cluster in meter.
      */
     private Long clusterSize;
@@ -567,6 +572,24 @@ public class EventQueryParams
     }
 
     /**
+     * Indicates whether the EventQueryParams has exactly one Period dimension. 
+     * @return true when exactly one Period dimension exists.
+     */
+    public boolean hasSinglePeriod()
+    {
+        return getPeriods().size() == 1;
+    }
+
+    /**
+     * Indicates whether the EventQueryParams has Period filters. 
+     * @return true when any Period filters exists.
+     */
+    public boolean hasFilterPeriods()
+    {
+        return getFilterPeriods().size() > 0;
+    }
+    
+    /**
      * Indicates whether the program of this query requires registration of
      * tracked entity instances.
      */
@@ -597,6 +620,14 @@ public class EventQueryParams
     public int getSortOrderAsInt()
     {
         return SortOrder.ASC.equals( sortOrder ) ? -1 : SortOrder.DESC.equals( sortOrder ) ? 1 : 0;
+    }
+    
+    /**
+     * Indicates whether a non-default time field is specified (default is {@link TimeField#EVENT_DATE}.
+     */
+    public boolean hasTimeField()
+    {
+        return timeField != null && !TimeField.EVENT_DATE.name().equals( timeField );
     }
 
     @Override
@@ -718,6 +749,11 @@ public class EventQueryParams
         return aggregateData;
     }
 
+    public String getTimeField()
+    {
+        return timeField;
+    }
+    
     public Long getClusterSize()
     {
         return clusterSize;
@@ -1006,6 +1042,12 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withTimeField( String timeField )
+        {
+            this.params.timeField = timeField;
+            return this;
+        }
+        
         public Builder withClusterSize( Long clusterSize )
         {
             this.params.clusterSize = clusterSize;
@@ -1058,23 +1100,5 @@ public class EventQueryParams
         {
             return params;
         }
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has exactly one Period dimension. 
-     * @return true when exactly one Period dimension exists.
-     */
-    public boolean hasSinglePeriod()
-    {
-        return getPeriods().size() == 1;
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has Period filters. 
-     * @return true when any Period filters exists.
-     */
-    public boolean hasFilterPeriods()
-    {
-        return getFilterPeriods().size() > 0;
     }
 }
