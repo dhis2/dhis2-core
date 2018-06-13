@@ -57,7 +57,7 @@ public enum TimeField
         return field;
     }
     
-    public boolean fieldIsValid( String field )
+    public static boolean fieldIsValid( String field )
     {
         return FIELDS.contains( field );
     }
