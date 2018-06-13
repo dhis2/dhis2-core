@@ -154,4 +154,14 @@ public class EventQueryValidatorTest
         
         queryValidator.validate( params );
     }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateInvalidTimeField()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( "notAUidOrTimeField" ).build();
+
+        queryValidator.validate( params );        
+    }
 }
