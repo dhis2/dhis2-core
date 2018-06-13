@@ -40,11 +40,13 @@ import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Transactional
 public class HibernateProgramTempOwnershipAuditStore implements ProgramTempOwnershipAuditStore
 {
 

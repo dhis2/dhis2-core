@@ -75,6 +75,7 @@ public class ProgramTempOwnershipAudit implements Serializable
         this.reason = reason;
         this.accessedBy = accessedBy;
         this.created = new Date();
+        this.entityInstance = entityInstance;
     }
 
     @Override

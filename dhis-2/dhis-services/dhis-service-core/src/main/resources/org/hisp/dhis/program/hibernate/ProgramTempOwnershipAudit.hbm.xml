@@ -10,7 +10,7 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="program" class="org.hisp.dhis.program.ProgramTempOwnershipAudit"
+        <many-to-one name="program" class="org.hisp.dhis.program.Program"
             column="programid"
             foreign-key="fk_programtempownershipaudit_programid"/>
             
