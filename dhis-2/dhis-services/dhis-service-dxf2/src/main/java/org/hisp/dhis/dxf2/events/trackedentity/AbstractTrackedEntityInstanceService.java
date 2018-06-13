@@ -883,11 +883,11 @@ public abstract class AbstractTrackedEntityInstanceService
                 // we might have cases where A <=> A, so we only include the relative if the UIDs do not match
                 if ( !daoEntityRelationship.getEntityInstanceA().getUid().equals( daoTrackedEntityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( daoEntityRelationship.getEntityInstanceA(), TrackedEntityInstanceParams.FALSE ) );
+                    relationship.setRelative( getTei( daoEntityRelationship.getEntityInstanceA(), TrackedEntityInstanceParams.FALSE, user ) );
                 }
                 else if ( !daoEntityRelationship.getEntityInstanceB().getUid().equals( daoTrackedEntityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( daoEntityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE ) );
+                    relationship.setRelative( getTei( daoEntityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE, user ) );
                 }
 
                 trackedEntityInstance.getRelationships().add( relationship );
