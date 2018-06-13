@@ -1,4 +1,10 @@
-package org.hisp.dhis.importexport.action.dxf2;
+package org.hisp.dhis.analytics;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,26 +33,32 @@ package org.hisp.dhis.importexport.action.dxf2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Stian Sandvold
- */
-
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.dxf2.csv.CsvImportClass;
-
-public class ImportMetadataAction implements Action
+public enum TimeField
 {
-    private CsvImportClass[] csvImportClasses = CsvImportClass.values();
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    DUE_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" );
 
-    @Override
-    public String execute()
-        throws Exception
+    private String field;
+    
+    private static final Set<String> FIELDS = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::getField )
+        .collect( Collectors.toSet() );
+        
+    TimeField( String field )
     {
-        return SUCCESS;
+        this.field = field;
     }
-
-    public CsvImportClass[] getCsvImportClasses()
+    
+    public String getField()
     {
-        return csvImportClasses;
+        return field;
+    }
+    
+    public static boolean fieldIsValid( String field )
+    {
+        return FIELDS.contains( field );
     }
 }
