@@ -449,7 +449,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
         
         return sql;
