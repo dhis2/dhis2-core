@@ -42,6 +42,7 @@ public class AnalyticsSqlUtils
 {
     public static final String QUOTE = "\"";
     public static final String SINGLE_QUOTE = "'";
+    public static final String ANALYTICS_TABLE_ALIAS = "ax";
     private static final String SEPARATOR = ".";
     
     /**
@@ -59,6 +60,8 @@ public class AnalyticsSqlUtils
         
         return QUOTE + rel + QUOTE;
     }
+    
+    
 
     /**
      * Quotes and qualifies the given relation (typically a column). Quotes part 

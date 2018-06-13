@@ -35,6 +35,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TABLE_ALIAS;
 
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class JdbcEnrollmentAnalyticsManager
      */
     protected String getFromClause( EventQueryParams params )
     {
-        return " from " + params.getTableName() + " as enrollmenttable ";
+        return " from " + params.getTableName() + " as " + ANALYTICS_TABLE_ALIAS + " ";
     }
     
     /**
@@ -80,7 +81,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
-    {        
+    { 
         String sql = "";
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -105,7 +106,7 @@ public class JdbcEnrollmentAnalyticsManager
             if ( params.getProgramIndicator().hasEventBoundary() )
             {
                 sql += sqlHelper.whereAnd() + "( select count(*) from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
-                    " where pi = enrollmenttable.pi " + 
+                    " where pi = " + ANALYTICS_TABLE_ALIAS + ".pi " + 
                     ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
                     params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
                     ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 

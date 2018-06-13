@@ -82,6 +82,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TABLE_ALIAS;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -307,7 +308,7 @@ public class JdbcAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql + " ";
+        return sql + " as " + ANALYTICS_TABLE_ALIAS + " ";
     }
 
     /**
@@ -473,9 +474,8 @@ public class JdbcAnalyticsManager
                 "order by peenddate desc, pestartdate desc) as pe_rank " + 
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
-            "and (value is not null or textvalue is not null)) " +
-            "as " + params.getTableName();
+            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
+            "and (value is not null or textvalue is not null))";
         
         return sql;
     }
@@ -490,7 +490,7 @@ public class JdbcAnalyticsManager
     {
         Period period = params.getLatestPeriod();
         
-        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
+        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
         cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
 
@@ -540,7 +540,7 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
-        sql += ") as " + params.getTableName();
+        sql += ")";
 
         return sql;
     }

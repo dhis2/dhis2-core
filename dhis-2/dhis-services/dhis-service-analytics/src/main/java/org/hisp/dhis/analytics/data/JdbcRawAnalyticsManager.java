@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TABLE_ALIAS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,7 +142,7 @@ public class JdbcRawAnalyticsManager
         
         String sql = 
             "select " + StringUtils.join( dimensionColumns, ", " ) + ", " +  DIM_NAME_OU + ", value " +
-            "from " + params.getTableName() + " ax " +
+            "from " + params.getTableName() + " as " + ANALYTICS_TABLE_ALIAS + " " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid " +
             "inner join _periodstructure ps on ax.pe = ps.iso ";
