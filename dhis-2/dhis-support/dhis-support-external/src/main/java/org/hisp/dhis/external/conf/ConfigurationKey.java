@@ -80,7 +80,7 @@ public enum ConfigurationKey
     KAFKA_BOOTSTRAP_SERVERS( "kafka.bootstrap-servers", null, false ),
     KAFKA_CLIENT_ID( "kafka.client-id", "dhis2", false ),
     KAFKA_RETRIES( "kafka.retries", "10", false ),
-    KAFKA_POLL_RECORDS( "kafka.poll-records", "100", false ),
+    KAFKA_POLL_RECORDS( "kafka.poll-records", "1000", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
     REDIS_PASSWORD( "redis.password", "", true ),
