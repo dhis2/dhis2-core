@@ -653,9 +653,17 @@
   
   <bean id="org.hisp.dhis.program.ProgramInstanceAuditService"
     class="org.hisp.dhis.program.DefaultProgramInstanceAuditService" />
+    
+  <bean id="org.hisp.dhis.program.ProgramTempOwnershipAuditService"
+    class="org.hisp.dhis.program.DefaultProgramTempOwnershipAuditService" />
 
   <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramTempOwnershipAuditStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramTempOwnershipAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 

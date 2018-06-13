@@ -34,8 +34,11 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTempOwnershipAudit;
+import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +76,12 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     @Autowired
     private ProgramService programService;
 
+    @Autowired
+    private ProgramTempOwnershipAuditService programTempOwnershipAuditService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
     /**
      * Cache for storing temporary ownership grants.
      */
@@ -86,14 +95,14 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             .withMaximumSize( 10000 ).build();
 
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
     @Override
     public boolean isOwner( User user, TrackedEntityInstance entityInstance, Program program )
     {
-        if ( skipOwnershipValidation( user, program ) )
+        if ( skipOwnershipValidation( user, program ) || entityInstance == null )
         {
             return true;
         }
@@ -122,120 +131,123 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     public boolean isOwner( User user, int teiId, int programId )
     {
         Program program = programService.getProgram( programId );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return true;
-        }
-        OrganisationUnit ou = null;
-
-        TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
-            .getTrackedEntityProgramOwner( teiId, programId );
-        if ( trackedEntityProgramOwner == null )
-        {
-            TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
-            if ( entityInstance == null )
-            {
-                return false;
-            }
-            ou = entityInstance.getOrganisationUnit();
-        }
-        else
-        {
-            ou = trackedEntityProgramOwner.getOrganisationUnit();
-        }
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            return isInHierarchy( ou, user.getOrganisationUnits() );
-        }
-
-        return true;
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        return isOwner( user, entityInstance, program );
     }
 
     @Override
     public boolean isOwner( User user, String teiUid, String programUid )
     {
         Program program = programService.getProgram( programUid );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return true;
-        }
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        return isOwner( user, entityInstance, program );
+    }
 
-        OrganisationUnit ou = null;
-        TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
-            .getTrackedEntityProgramOwner( teiUid, programUid );
-        if ( trackedEntityProgramOwner == null )
+    @Override
+    public void transferOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation,
+        boolean createIfNotExists )
+    {
+        Program program = programService.getProgram( programUid );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid );
+        transferOwnership( entityInstance, program, orgUnit, skipAccessValidation, createIfNotExists );
+    }
+
+    @Override
+    public void transferOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation,
+        boolean createIfNotExists )
+    {
+        Program program = programService.getProgram( teiId );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( programId );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
+        transferOwnership( entityInstance, program, orgUnit, skipAccessValidation, createIfNotExists );
+    }
+
+    @Override
+    public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
+        boolean skipAccessValidation, boolean createIfNotExists )
+    {
+        if ( entityInstance == null || program == null | orgUnit == null )
         {
-            TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-            if ( entityInstance == null )
+            return;
+        }
+        if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
+        {
+            if ( createIfNotExists )
             {
-                return false;
+                trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( entityInstance, program,
+                    orgUnit );
             }
-            ou = entityInstance.getOrganisationUnit();
+            else
+            {
+                trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
+            }
         }
-        else
-        {
-            ou = trackedEntityProgramOwner.getOrganisationUnit();
-        }
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            return isInHierarchy( ou, user.getOrganisationUnits() );
-        }
-        return false;
     }
 
     @Override
-    public void changeOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation )
+    public void assignOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation,
+        boolean overwriteIfExists )
     {
-        if ( hasAccess( currentUserService.getCurrentUser(), teiUid, programUid ) || skipAccessValidation )
-        {
-            trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiUid, programUid, orgUnitUid );
-        }
+        Program program = programService.getProgram( programUid );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid );
+        assignOwnership( entityInstance, program, orgUnit, skipAccessValidation, overwriteIfExists );
     }
 
     @Override
-    public void changeOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation )
+    public void assignOwnership( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit organisationUnit, boolean skipAccessValidation, boolean overwriteIfExists )
     {
-        if ( hasAccess( currentUserService.getCurrentUser(), teiId, programId ) || skipAccessValidation )
+        if ( entityInstance == null || program == null || organisationUnit == null )
         {
-            trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( teiId, programId, orgUnitId );
+            return;
+        }
+        if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
+        {
+            if ( overwriteIfExists )
+            {
+                trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( entityInstance, program,
+                    organisationUnit );
+            }
+            else
+            {
+
+                trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
+                    organisationUnit );
+            }
         }
     }
 
     @Override
-    public void grantTemporaryOwnership( int teiId, int programId, User user )
+    public void assignOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation,
+        boolean overwriteIfExists )
+    {
+        Program program = programService.getProgram( teiId );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( programId );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
+        assignOwnership( entityInstance, program, orgUnit, skipAccessValidation, overwriteIfExists );
+    }
+
+    @Override
+    public void grantTemporaryOwnership( int teiId, int programId, User user, String reason )
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
         Program program = programService.getProgram( programId );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return;
-        }
-
-        if ( entityInstance != null && program.getAccessLevel() != AccessLevel.CLOSED )
-        {
-            temporaryTrackerOwnershipCache
-                .put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
-        }
+        grantTemporaryOwnership( entityInstance, program, user, reason );
     }
 
     @Override
-    public void grantTemporaryOwnership( String teiUid, String programUid, User user )
+    public void grantTemporaryOwnership( String teiUid, String programUid, User user, String reason )
     {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
         Program program = programService.getProgram( programUid );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return;
-        }
-        if ( user != null && program.getAccessLevel() != AccessLevel.CLOSED )
-        {
-            temporaryTrackerOwnershipCache.put( tempAccessKey( teiUid, programUid, user.getUsername() ), true );
-        }
+        grantTemporaryOwnership( entityInstance, program, user, reason );
     }
 
     @Override
-    public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user )
+    public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user,
+        String reason )
     {
         if ( skipOwnershipValidation( user, program ) )
         {
@@ -243,6 +255,8 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
         if ( user != null && program.getAccessLevel() != AccessLevel.CLOSED )
         {
+            programTempOwnershipAuditService.addProgramTempOwnershipAudit(
+                new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
             temporaryTrackerOwnershipCache
                 .put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
         }
@@ -252,34 +266,27 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     public boolean hasTemporaryAccess( String teiUid, String programUid, User user )
     {
         Program program = programService.getProgram( programUid );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return true;
-        }
-        return temporaryTrackerOwnershipCache.get( tempAccessKey( teiUid, programUid, user.getUsername() ) ).get();
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        return hasTemporaryAccess( entityInstance, program, user );
     }
 
     @Override
     public boolean hasTemporaryAccess( TrackedEntityInstance entityInstance, Program program, User user )
     {
-        return hasTemporaryAccess( entityInstance.getUid(), program.getUid(), user );
+        if ( skipOwnershipValidation( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+        return temporaryTrackerOwnershipCache
+            .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
     }
 
     @Override
     public boolean hasTemporaryAccess( int teiId, int programId, User user )
     {
         Program program = programService.getProgram( programId );
-        if ( skipOwnershipValidation( user, program ) )
-        {
-            return true;
-        }
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
-        if ( entityInstance != null )
-        {
-            return temporaryTrackerOwnershipCache
-                .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
-        }
-        return true;
+        return hasTemporaryAccess( entityInstance, program, user );
     }
 
     @Override
@@ -299,11 +306,11 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     {
         return isOwner( user, teiId, programId ) || hasTemporaryAccess( teiId, programId, user );
     }
-    
+
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
-    
+
     /**
      * Generates a unique key for the tei-program-user combination to be put
      * into cache.
@@ -333,7 +340,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         return organisationUnit != null && organisationUnits != null
             && organisationUnit.isDescendant( organisationUnits );
     }
-    
+
     /**
      * Checks if the user is super user or if the program requires ownership
      * validation or not.

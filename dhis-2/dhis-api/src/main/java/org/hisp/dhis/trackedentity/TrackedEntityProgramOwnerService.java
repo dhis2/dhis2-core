@@ -2,6 +2,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
 /*
@@ -110,11 +111,51 @@ public interface TrackedEntityProgramOwnerService
     /**
      * Get the program owner details for a list of teiIds for a specific program
      * 
-     * 
      * @param teiIds The list of tei Ids
      * @param program The program
      * @return The  list of TrackedEntityProgramOwner details
      */
     List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program );
+
+    /**
+     * Assign an orgUnit as the owner for a tracked entity instance for the
+     * given program. If another owner already exist then it would be overwritten.
+     * 
+     * @param teiUid
+     * @param programUid
+     * @param orgUnitUid
+     */
+    void createOrUpdateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid );
+
+    /**
+     * Assign an orgUnit as the owner for a tracked entity instance for the
+     * given program. If another owner already exist then it would be overwritten.
+     * 
+     * @param teiUid
+     * @param programUid
+     * @param orgUnitUid
+     */
+    void createOrUpdateTrackedEntityProgramOwner( int teiUid, int programUid, int orgUnitUid );
+
+    /**
+     * Assign an orgUnit as the owner for a tracked entity instance for the
+     * given program. If another owner already exist then it would be overwritten.
+     * 
+     * @param entityInstance
+     * @param program
+     * @param ou
+     */
+    void createOrUpdateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit ou );
+
+    /**
+     * Update the owner ou for a tracked entity instance for the given program.
+     * If no owner previously exist, then this method will fail.
+     * 
+     * @param entityInstance
+     * @param program
+     * @param ou
+     */
+    void updateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou );
 
 }

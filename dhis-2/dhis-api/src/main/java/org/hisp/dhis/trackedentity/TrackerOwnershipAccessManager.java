@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -37,7 +39,7 @@ import org.hisp.dhis.user.User;
 public interface TrackerOwnershipAccessManager
 {
     String ID = TrackerOwnershipAccessManager.class.getName();
-    
+
     public static final String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
 
     /**
@@ -80,7 +82,8 @@ public interface TrackerOwnershipAccessManager
      * @param skipAccessValidation whether ownership access validation has to be
      *        skipped or not.
      */
-    void changeOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation );
+    void transferOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation,
+        boolean createIfNotExists );
 
     /**
      * @param teiId The tracked entity instance id
@@ -89,12 +92,52 @@ public interface TrackerOwnershipAccessManager
      * @param skipAccessValidation whether ownership access validation has to be
      *        skipped or not.
      */
-    void changeOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation );
-    
-    
+    void transferOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation,
+        boolean createIfNotExists );
+
     /**
-     * Check whether the user has access (as owner or has temporarily broken the glass) 
-     * for the tracked entity instance - program combination.
+     * @param entityInstance The tracked entity instance object
+     * @param progrprogramamId The program object
+     * @param organisationUnit The org unit that has to become the owner
+     * @param skipAccessValidation whether ownership access validation has to be
+     *        skipped or not.
+     */
+    void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
+        boolean skipAccessValidation, boolean createIfNotExists );
+
+    /**
+     * @param teiUid the tracked entity instance uid
+     * @param programUid the prorgram uid
+     * @param orgUnitUid the org unit uid
+     * @param skipAccessValidation whether ownership access validation has to be
+     *        skipped or not.
+     */
+    void assignOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation,
+        boolean overwriteIfExists );
+
+    /**
+     * @param teiId The tracked entity instance id
+     * @param programId The program id
+     * @param orgUnitId the organisation unit id
+     * @param skipAccessValidation whether ownership access validation has to be
+     *        skipped or not.
+     */
+    void assignOwnership( int teiId, int programId, int orgUnitId, boolean skipAccessValidation,
+        boolean overwriteIfExists );
+
+    /**
+     * @param entityInstance The tracked entity instance object
+     * @param progrprogramamId The program object
+     * @param organisationUnit The org unit that has to become the owner
+     * @param skipAccessValidation
+     * @param overwriteIfExists
+     */
+    void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
+        boolean skipAccessValidation, boolean overwriteIfExists );
+
+    /**
+     * Check whether the user has access (as owner or has temporarily broken the
+     * glass) for the tracked entity instance - program combination.
      * 
      * @param user The user with which access has to be checked for.
      * @param entityInstance The tracked entity instance.
@@ -102,10 +145,10 @@ public interface TrackerOwnershipAccessManager
      * @return true if the user has access, false otherwise.
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
-    
+
     /**
-     * Check whether the user has access (as owner or has temporarily broken the glass) 
-     * for the tracked entity instance - program combination.
+     * Check whether the user has access (as owner or has temporarily broken the
+     * glass) for the tracked entity instance - program combination.
      * 
      * @param user The user with which access has to be checked for.
      * @param teiUid the tracked entity instance uid
@@ -115,8 +158,8 @@ public interface TrackerOwnershipAccessManager
     boolean hasAccess( User user, String teiUid, String programUid );
 
     /**
-     * Check whether the user has access (as owner or has temporarily broken the glass) 
-     * for the tracked entity instance - program combination.
+     * Check whether the user has access (as owner or has temporarily broken the
+     * glass) for the tracked entity instance - program combination.
      * 
      * @param user The user with which access has to be checked for.
      * @param teiId the tracked entity instance Id
@@ -124,36 +167,43 @@ public interface TrackerOwnershipAccessManager
      * @return true if the user has access, false otherwise.
      */
     boolean hasAccess( User user, int teiId, int programId );
-    
+
     /**
-     * Grant temporary ownership for a user for a specific tei-program combination
+     * Grant temporary ownership for a user for a specific tei-program
+     * combination
      * 
      * @param teiId The tracked entity instnace id
      * @param programId The program id
      * @param user The user to which temporary access has to be granted
+     * @param reason The reason for requesting temporary ownership
      */
-    void grantTemporaryOwnership( int teiId, int programId, User user );
+    void grantTemporaryOwnership( int teiId, int programId, User user, String reason  );
 
     /**
-     * Grant temporary ownership for a user for a specific tei-program combination
+     * Grant temporary ownership for a user for a specific tei-program
+     * combination
      * 
      * @param teiUid The tracked entity instance uid
      * @param programUid The program Uid
      * @param user The user object
+     * @param reason The reason for requesting temporary ownership
      */
-    void grantTemporaryOwnership( String teiUid, String programUid, User user );
+    void grantTemporaryOwnership( String teiUid, String programUid, User user, String reason  );
 
     /**
-     * Grant temporary ownership for a user for a specific tei-program combination
+     * Grant temporary ownership for a user for a specific tei-program
+     * combination
      * 
-     * @param teiUid The tracked entity instance object
-     * @param programUid The program object
-     * @param user The user object
+     * @param entityInstance The tracked entity instance object
+     * @param program The program object
+     * @param user The user for which temporary access is granted.
+     * @param reason The reason for requesting temporary ownership
      */
-    void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user );
+    void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason );
 
     /**
-     * Check if the user has temporary access for a specific tei-program combination
+     * Check if the user has temporary access for a specific tei-program
+     * combination
      * 
      * @param teiUid The tracked entity instance Uid
      * @param programUid The program Uid
@@ -163,7 +213,8 @@ public interface TrackerOwnershipAccessManager
     boolean hasTemporaryAccess( String teiUid, String programUid, User user );
 
     /**
-     * Check if the user has temporary access for a specific tei-program combination
+     * Check if the user has temporary access for a specific tei-program
+     * combination
      * 
      * @param teiId The tracked entity instance Id
      * @param programId The program Id
@@ -173,15 +224,14 @@ public interface TrackerOwnershipAccessManager
     boolean hasTemporaryAccess( int teiId, int programId, User user );
 
     /**
-     * Check if the user has temporary access for a specific tei-program combination
+     * Check if the user has temporary access for a specific tei-program
+     * combination
      * 
      * @param entityInstance The tracked entity instance object
-     * @param progrprogramamId The program object
+     * @param program The program object
      * @param user The user object against which the check has to be performed
      * @return true if the user has temporary access, false otherwise
      */
     boolean hasTemporaryAccess( TrackedEntityInstance entityInstance, Program program, User user );
-
-
 
 }
