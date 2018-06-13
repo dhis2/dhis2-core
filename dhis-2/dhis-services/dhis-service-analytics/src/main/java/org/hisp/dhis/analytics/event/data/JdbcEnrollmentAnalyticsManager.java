@@ -161,7 +161,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = quote( ANALYTICS_TBL_ALIAS, dim.getDimensionName() );
+            String col = quoteAlias( dim.getDimensionName() );
             
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }

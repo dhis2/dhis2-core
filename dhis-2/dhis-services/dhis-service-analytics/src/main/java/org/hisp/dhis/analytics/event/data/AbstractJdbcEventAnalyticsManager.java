@@ -68,7 +68,6 @@ import org.springframework.util.Assert;
 import com.google.common.collect.Lists;
 
 /**
- * 
  * @author Markus Bekken
  */
 public abstract class AbstractJdbcEventAnalyticsManager
@@ -329,7 +328,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
-            String expression = quote( params.getValue().getUid() );
+            String expression = quoteAlias( params.getValue().getUid() );
             
             return function + "(" + expression + ")";
         }
@@ -361,15 +360,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
                 {
-                    return "count(distinct " + quote( "tei") + ")";
+                    return "count(distinct " + quoteAlias( "tei") + ")";
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + quote( "pi") + ")";
+                    return "count(distinct " + quoteAlias( "pi") + ")";
                 }
                 else // EVENT
                 {
-                    return "count(" + quote( "psi") + ")";
+                    return "count(" + quoteAlias( "psi") + ")";
                 }
             }
         }

@@ -296,7 +296,7 @@ public class JdbcEventAnalyticsManager
         }
         else // Periods
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -333,7 +333,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = quote( ANALYTICS_TBL_ALIAS, dim.getDimensionName() );
+            String col = quoteAlias( dim.getDimensionName() );
             
             sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -470,12 +470,12 @@ public class JdbcEventAnalyticsManager
 
             for ( DimensionalItemObject item : params.getAsc() )
             {
-                sql += quote( ANALYTICS_TBL_ALIAS, item.getUid() ) + " asc,";
+                sql += quoteAlias( item.getUid() ) + " asc,";
             }
 
             for  ( DimensionalItemObject item : params.getDesc() )
             {
-                sql += quote( ANALYTICS_TBL_ALIAS, item.getUid() ) + " desc,";
+                sql += quoteAlias( item.getUid() ) + " desc,";
             }
 
             sql = removeLastComma( sql ) + " ";
