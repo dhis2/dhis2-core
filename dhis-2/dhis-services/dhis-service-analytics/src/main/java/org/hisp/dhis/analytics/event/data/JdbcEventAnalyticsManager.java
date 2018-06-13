@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -65,6 +66,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TABLE_ALIAS;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -254,7 +256,7 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            sql += params.getTableName();
+            sql += params.getTableName() + " as " + ANALYTICS_TABLE_ALIAS;
         }
         
         return sql + " ";
@@ -531,7 +533,7 @@ public class JdbcEventAnalyticsManager
             "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
             "and executiondate <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null) " +
-            "as " + params.getTableName();
+            "as " + ANALYTICS_TABLE_ALIAS;
         
         return sql;
     }
