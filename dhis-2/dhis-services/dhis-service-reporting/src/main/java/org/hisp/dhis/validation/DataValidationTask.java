@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -81,9 +82,6 @@ public class DataValidationTask
 
     @Autowired
     private PeriodService periodService;
-
-    @Autowired
-    private ValidationResultService validationResultService;
 
     // (wired through constructor)
     private AnalyticsService analyticsService;
@@ -219,8 +217,6 @@ public class DataValidationTask
             return;
         }
 
-        log.trace( "Validation attributeOptionCombo " + optionCombo );
-
         boolean violation = isViolation( leftSide, rightSide );
 
         if ( violation )
@@ -330,11 +326,6 @@ public class DataValidationTask
         if ( validationResults.size() > 0 )
         {
             context.getValidationResults().addAll( validationResults );
-
-            if ( context.isPersistResults() )
-            {
-                validationResultService.saveValidationResults( validationResults );
-            }
         }
     }
 
@@ -513,5 +504,23 @@ public class DataValidationTask
         }
 
         return map;
+    }
+
+    private DataElementCategoryOptionCombo getAttributeOptionCombo( String uid )
+    {
+        DataElementCategoryOptionCombo aoc = context.getAocUidMap().get( uid );
+
+        if ( aoc == null )
+        {
+            log.trace("DataValidationTask calling getDataElementCategoryOptionCombo( uid " + uid + " )" );
+
+            aoc = categoryService.getDataElementCategoryOptionCombo( uid );
+
+            log.trace("DataValidationTask called getDataElementCategoryOptionCombo( uid " + uid + " )" );
+
+            context.getAocUidMap().put( aoc.getUid(), aoc );
+        }
+
+        return aoc;
     }
 }

@@ -37,7 +37,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 /**
  * This class keeps track of a validation analysis. It contains information about the initial params of the analysis,
@@ -60,6 +62,13 @@ public class ValidationRunContext
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
     private Set<DataElementCategoryOption> coDimensionConstraints;
+
+    private Map<String, DataElementCategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
+
+    public Map<String, DataElementCategoryOptionCombo> getAocUidMap()
+    {
+        return aocUidMap;
+    }
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
@@ -207,6 +216,9 @@ public class ValidationRunContext
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
+
+            // Preload the cache:
+            context.aocUidMap.put( context.defaultAttributeCombo.getUid(), context.defaultAttributeCombo );
 
             return this.context;
         }

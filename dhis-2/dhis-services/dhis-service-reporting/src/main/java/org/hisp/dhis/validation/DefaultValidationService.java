@@ -140,6 +140,11 @@ public class DefaultValidationService
 
         Collection<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
 
+        if ( context.isPersistResults() )
+        {
+            validationResultService.saveValidationResults( context.getValidationResults() );
+        }
+
         clock.logTime( "Finished validation analysis." ).stop();
 
         if ( context.isSendNotifications() )
