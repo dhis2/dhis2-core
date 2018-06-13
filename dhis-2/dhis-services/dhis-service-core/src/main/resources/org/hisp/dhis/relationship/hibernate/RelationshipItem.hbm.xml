@@ -12,9 +12,16 @@
             <generator class="native" />
         </id>
 
-        <property name="trackedEntityInstance" not-null="false" />
-        <property name="programInstance" not-null="false" />
-        <property name="programStageInstance" not-null="false" />
+        <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+                     column="trackedentitytypeid"
+                     foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
+        <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+                     column="programinstanceid"
+                     foreign-key="fk_relationshipitem_programinstanceid"/>
+
+        <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
+                     column="programstageinstanceid"
+                     foreign-key="fk_relationshipitem_programstageinstanceid"/>
     </class>
 </hibernate-mapping>

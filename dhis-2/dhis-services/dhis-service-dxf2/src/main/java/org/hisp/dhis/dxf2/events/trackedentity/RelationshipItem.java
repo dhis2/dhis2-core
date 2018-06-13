@@ -30,87 +30,55 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
 
-import java.util.Objects;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Stian Sandvold
- */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
-public class Relationship
+public class RelationshipItem
 {
-    private String relationshipType;
+    private TrackedEntityInstance trackedEntityInstance;
 
-    private String relationship;
+    private Enrollment enrollment;
 
-    private RelationshipItem from;
+    private Event event;
 
-    private RelationshipItem to;
-
-    public Relationship()
+    public RelationshipItem()
     {
+
     }
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public String getRelationshipType()
+    public TrackedEntityInstance getTrackedEntityInstance()
     {
-        return relationshipType;
+        return trackedEntityInstance;
     }
 
-    public void setRelationshipType( String relationshipType )
+    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
     {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getRelationship()
-    {
-        return relationship;
-    }
-
-    public void setRelationship( String relationship )
-    {
-        this.relationship = relationship;
+        this.trackedEntityInstance = trackedEntityInstance;
     }
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public RelationshipItem getFrom()
+    public Enrollment getEnrollment()
     {
-        return from;
+        return enrollment;
     }
 
-    public void setFrom( RelationshipItem from )
+    public void setEnrollment( Enrollment enrollment )
     {
-        this.from = from;
+        this.enrollment = enrollment;
     }
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public RelationshipItem getTo()
+    public Event getEvent()
     {
-        return to;
+        return event;
     }
 
-    public void setTo( RelationshipItem to )
+    public void setEvent( Event event )
     {
-        this.to = to;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Relationship{" +
-            "relationshipType='" + relationshipType + '\'' +
-            ", relationship='" + relationship + '\'' +
-            ", from='" + from + '\'' +
-            ", to='" + to + '\'' +
-            '}';
+        this.event = event;
     }
 }

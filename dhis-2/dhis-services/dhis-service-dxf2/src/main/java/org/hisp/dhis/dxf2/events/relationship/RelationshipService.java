@@ -29,9 +29,14 @@ package org.hisp.dhis.dxf2.events.relationship;
  */
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,11 +53,12 @@ public interface RelationshipService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
-/*
-    List<Relationship> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException;
 
-    List<Relationship> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 
+    /*
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     Relationship getTrackedEntityInstance( String uid );
@@ -67,7 +73,6 @@ public interface RelationshipService
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
-
 
     ImportSummaries addRelationshipsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
@@ -94,9 +99,16 @@ public interface RelationshipService
     // DELETE
     // -------------------------------------------------------------------------
 
-    /*
     ImportSummary deleteRelationship( String uid );
 
     ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions );
-*/
+
+    Relationship getRelationshipByUid( String id );
+
+    // -------------------------------------------------------------------------
+    // HELPER METHODS
+    // -------------------------------------------------------------------------
+
+    Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params );
+
 }

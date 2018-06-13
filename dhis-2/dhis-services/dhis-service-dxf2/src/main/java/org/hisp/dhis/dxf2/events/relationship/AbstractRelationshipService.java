@@ -34,8 +34,13 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -55,13 +60,15 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -80,8 +87,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 public abstract class AbstractRelationshipService
     implements RelationshipService
 {
-    private static Logger log = Logger.getLogger( AbstractRelationshipService.class.getSimpleName() );
-
     @Autowired
     protected DbmsManager dbmsManager;
 
@@ -95,22 +100,19 @@ public abstract class AbstractRelationshipService
     private QueryService queryService;
 
     @Autowired
-    private RelationshipTypeService relationshipTypeService;
+    private TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    private org.hisp.dhis.relationship.RelationshipService relationshipService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private TrackerAccessManager trackerAccessManager;
-
-    @Autowired
-    private org.hisp.dhis.relationship.RelationshipService relationshipService;
+    private EventService eventService;
 
     private HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
 
@@ -119,6 +121,29 @@ public abstract class AbstractRelationshipService
     private HashMap<String, ProgramInstance> programInstanceCache = new HashMap<>();
 
     private HashMap<String, ProgramStageInstance> programStageInstanceCache = new HashMap<>();
+
+    @Override
+    public List<Relationship> getRelationshipsByTrackedEntityInstance(
+        TrackedEntityInstance tei, boolean skipAccessValidation )
+    {
+        return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
+            .map( this::getRelationship ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    {
+        return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
+            .map( this::getRelationship ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        boolean skipAccessValidation )
+    {
+        return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
+            .map( this::getRelationship ).collect( Collectors.toList() );
+    }
 
     @Override
     public ImportSummaries addRelationships( List<Relationship> relationships, ImportOptions importOptions )
@@ -242,18 +267,28 @@ public abstract class AbstractRelationshipService
     {
         ImportSummary importSummary = new ImportSummary( relationship.getRelationship() );
         importOptions = updateImportOptions( importOptions );
-
         Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkRelationship( relationship, importOptions ) );
+
+        // Set up cache if not set already
+        if ( !cacheExists() )
+        {
+            prepareCaches( Lists.newArrayList( relationship ), importOptions.getUser() );
+        }
 
         org.hisp.dhis.relationship.Relationship daoRelationship = relationshipService
             .getRelationship( relationship.getRelationship() );
 
+        importConflicts.addAll( checkRelationship( relationship, importOptions ) );
+
         if ( daoRelationship == null )
         {
-            String message =
-                "Relationship '" + relationship.getRelationship() + "' does not exist";
+            String message = "Relationship '" + relationship.getRelationship() + "' does not exist";
             importConflicts.add( new ImportConflict( "Relationship", message ) );
+
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getImportCount().incrementIgnored();
+
+            importSummary.setConflicts( importConflicts );
             return importSummary;
         }
 
@@ -273,7 +308,6 @@ public abstract class AbstractRelationshipService
         errors.addAll( trackerAccessManager
             .canWrite( importOptions.getUser(), daoRelationship.getTo().getProgramStageInstance() ) );
 
-
         if ( !errors.isEmpty() || !importConflicts.isEmpty() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -288,8 +322,8 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship, importOptions, importSummary );
-
+        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship, importOptions,
+            importSummary );
 
         daoRelationship.setRelationshipType( _relationship.getRelationshipType() );
         daoRelationship.setTo( _relationship.getTo() );
@@ -301,6 +335,125 @@ public abstract class AbstractRelationshipService
         importSummary.getImportCount().incrementUpdated();
 
         return importSummary;
+    }
+
+    @Override
+    public ImportSummary deleteRelationship( String uid )
+    {
+        return deleteRelationship( uid, null );
+    }
+
+    @Override
+    public ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions )
+    {
+        ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
+
+        int counter = 0;
+
+        for ( Relationship relationship : relationships )
+        {
+            importSummaries.addImportSummary( deleteRelationship( relationship.getRelationship(), importOptions ) );
+
+            if ( counter % FLUSH_FREQUENCY == 0 )
+            {
+                clearSession();
+            }
+
+            counter++;
+        }
+
+        clearSession();
+
+        return importSummaries;
+    }
+
+    @Override
+    public Relationship getRelationshipByUid( String id )
+    {
+        return getRelationship( relationshipService.getRelationship( id ) );
+    }
+
+    @Override
+    public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params )
+    {
+        Relationship relationship = new Relationship();
+
+        relationship.setRelationship( dao.getUid() );
+        relationship.setRelationshipType( dao.getRelationshipType().getUid() );
+
+        if ( params.isIncludeFrom() )
+        {
+            relationship.setFrom( includeRelationshipItem( dao.getFrom() ) );
+        }
+
+        if ( params.isIncludeTo() )
+        {
+            relationship.setTo( includeRelationshipItem( dao.getTo() ) );
+        }
+
+        return relationship;
+
+    }
+
+    private Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao )
+    {
+        return getRelationship( dao, RelationshipParams.TRUE );
+    }
+
+    private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao )
+    {
+        TrackedEntityInstanceParams teiParams = new TrackedEntityInstanceParams( false, true, true );
+        org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
+
+        if ( dao.getTrackedEntityInstance() != null )
+        {
+            relationshipItem.setTrackedEntityInstance(
+                trackedEntityInstanceService.getTrackedEntityInstance( dao.getTrackedEntityInstance(), teiParams ) );
+        }
+        else if ( dao.getProgramInstance() != null )
+        {
+            relationshipItem.setEnrollment( enrollmentService.getEnrollment( dao.getProgramInstance(), teiParams ) );
+        }
+        else if ( dao.getProgramStageInstance() != null )
+        {
+            relationshipItem.setEvent( eventService.getEvent( dao.getProgramStageInstance() ) );
+        }
+
+        return relationshipItem;
+
+    }
+
+    private ImportSummary deleteRelationship( String uid, ImportOptions importOptions )
+    {
+        ImportSummary importSummary = new ImportSummary();
+
+        if ( uid.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.WARNING );
+            importSummary.setDescription( "Missing required property 'relationship'" );
+            return importSummary.incrementIgnored();
+        }
+
+        org.hisp.dhis.relationship.Relationship daoRelationship = relationshipService.getRelationship( uid );
+
+        if ( daoRelationship != null )
+        {
+            importSummary.setReference( uid );
+
+            relationshipService.deleteRelationship( daoRelationship );
+
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.setDescription( "Deletion of relationship " + uid + " was successful" );
+            return importSummary.incrementDeleted();
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.WARNING );
+            importSummary
+                .setDescription( "Relationship " + uid + " cannot be deleted as it is not present in the system" );
+            return importSummary.incrementIgnored();
+        }
     }
 
     /**
@@ -326,12 +479,12 @@ public abstract class AbstractRelationshipService
             relationshipType = relationshipTypeCache.get( relationship.getRelationshipType() );
         }
 
-        if ( StringUtils.isEmpty( relationship.getFrom() ) )
+        if ( relationship.getFrom() == null || getUidOfRelationshipItem( relationship.getFrom() ).isEmpty() )
         {
             conflicts.add( new ImportConflict( relationship.getRelationship(), "Missing property 'from'" ) );
         }
 
-        if ( StringUtils.isEmpty( relationship.getTo() ) )
+        if ( relationship.getTo() == null || getUidOfRelationshipItem( relationship.getTo() ).isEmpty() )
         {
             conflicts.add( new ImportConflict( relationship.getRelationship(), "Missing property 'to'" ) );
         }
@@ -360,55 +513,56 @@ public abstract class AbstractRelationshipService
     /**
      * Finds and returns any conflicts between relationship and relationship type
      *
-     * @param constraint      the constraint to check
-     * @param constraintUid   the uid of the entity to check
-     * @param relationshipUid the uid of the relationship
+     * @param constraint       the constraint to check
+     * @param relationshipItem the relationshipItem to check
+     * @param relationshipUid  the uid of the relationship
      * @return a list of conflicts
      */
     private List<ImportConflict> getRelationshipConstraintConflicts( RelationshipConstraint constraint,
-        String constraintUid, String relationshipUid )
+        org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem, String relationshipUid )
     {
         List<ImportConflict> conflicts = new ArrayList<>();
         RelationshipEntity entity = constraint.getRelationshipEntity();
+        String itemUid = getUidOfRelationshipItem( relationshipItem );
 
         if ( TRACKED_ENTITY_INSTANCE.equals( entity ) )
         {
-            TrackedEntityInstance tei = trackedEntityInstanceCache.get( constraintUid );
+            TrackedEntityInstance tei = trackedEntityInstanceCache.get( itemUid );
 
             if ( tei == null )
             {
                 conflicts.add( new ImportConflict( relationshipUid,
-                    "TrackedEntityInstance '" + constraintUid + "' not found." ) );
+                    "TrackedEntityInstance '" + itemUid + "' not found." ) );
             }
             else if ( !tei.getTrackedEntityType().equals( constraint.getTrackedEntityType() ) )
             {
                 conflicts.add( new ImportConflict( relationshipUid,
-                    "TrackedEntityInstance '" + constraintUid + "' has invalid TrackedEntityType." ) );
+                    "TrackedEntityInstance '" + itemUid + "' has invalid TrackedEntityType." ) );
             }
         }
         else if ( PROGRAM_INSTANCE.equals( entity ) )
         {
-            ProgramInstance pi = programInstanceCache.get( constraintUid );
+            ProgramInstance pi = programInstanceCache.get( itemUid );
 
             if ( pi == null )
             {
                 conflicts.add( new ImportConflict( relationshipUid,
-                    "ProgramInstance '" + constraintUid + "' not found." ) );
+                    "ProgramInstance '" + itemUid + "' not found." ) );
             }
             else if ( !pi.getProgram().equals( constraint.getProgram() ) )
             {
                 conflicts.add( new ImportConflict( relationshipUid,
-                    "ProgramInstance '" + constraintUid + "' has invalid Program." ) );
+                    "ProgramInstance '" + itemUid + "' has invalid Program." ) );
             }
         }
         else if ( PROGRAM_STAGE_INSTANCE.equals( entity ) )
         {
-            ProgramStageInstance psi = programStageInstanceCache.get( constraintUid );
+            ProgramStageInstance psi = programStageInstanceCache.get( itemUid );
 
             if ( psi == null )
             {
                 conflicts.add( new ImportConflict( relationshipUid,
-                    "ProgramStageInstance '" + constraintUid + "' not found." ) );
+                    "ProgramStageInstance '" + itemUid + "' not found." ) );
             }
             else
             {
@@ -416,18 +570,36 @@ public abstract class AbstractRelationshipService
                     !psi.getProgramStage().getProgram().equals( constraint.getProgram() ) )
                 {
                     conflicts.add( new ImportConflict( relationshipUid,
-                        "ProgramStageInstance '" + constraintUid + "' has invalid Program." ) );
+                        "ProgramStageInstance '" + itemUid + "' has invalid Program." ) );
                 }
                 else if ( constraint.getProgramStage() != null &&
                     !psi.getProgramStage().equals( constraint.getProgramStage() ) )
                 {
                     conflicts.add( new ImportConflict( relationshipUid,
-                        "ProgramStageInstance '" + constraintUid + "' has invalid ProgramStage." ) );
+                        "ProgramStageInstance '" + itemUid + "' has invalid ProgramStage." ) );
                 }
             }
         }
 
         return conflicts;
+    }
+
+    private String getUidOfRelationshipItem( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem )
+    {
+        if ( relationshipItem.getTrackedEntityInstance() != null )
+        {
+            return relationshipItem.getTrackedEntityInstance().getTrackedEntityInstance();
+        }
+        else if ( relationshipItem.getEnrollment() != null )
+        {
+            return relationshipItem.getEnrollment().getEnrollment();
+        }
+        else if ( relationshipItem.getEvent() != null )
+        {
+            return relationshipItem.getEvent().getEvent();
+        }
+
+        return "";
     }
 
     protected org.hisp.dhis.relationship.Relationship createDAORelationship( Relationship relationship,
@@ -444,34 +616,34 @@ public abstract class AbstractRelationshipService
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( relationship.getFrom() ) );
+            fromItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setProgramInstance( programInstanceCache.get( relationship.getFrom() ) );
+            fromItem.setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setProgramStageInstance( programStageInstanceCache.get( relationship.getFrom() ) );
+            fromItem.setProgramStageInstance( programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
 
         // TO
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( relationship.getTo() ) );
+            toItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramInstance( programInstanceCache.get( relationship.getTo() ) );
+            toItem.setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramStageInstance( programStageInstanceCache.get( relationship.getTo() ) );
+            toItem.setProgramStageInstance( programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
 
         daoRelationship.setFrom( fromItem );
@@ -500,10 +672,10 @@ public abstract class AbstractRelationshipService
         // Group all uids into their respective RelationshipEntities
         relationshipTypeCache.values().stream().forEach( relationshipType -> {
             List<String> fromUids = relationshipTypeMap.get( relationshipType.getUid() ).stream()
-                .map( Relationship::getFrom ).collect( Collectors.toList() );
+                .map( ( r ) -> getUidOfRelationshipItem( r.getFrom() ) ).collect( Collectors.toList() );
 
             List<String> toUids = relationshipTypeMap.get( relationshipType.getUid() ).stream()
-                .map( Relationship::getTo ).collect( Collectors.toList() );
+                .map( ( r ) -> getUidOfRelationshipItem( r.getTo() ) ).collect( Collectors.toList() );
 
             // Merge existing results with newly found ones.
 

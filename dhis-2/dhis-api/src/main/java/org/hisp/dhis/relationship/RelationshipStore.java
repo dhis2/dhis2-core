@@ -32,6 +32,8 @@ import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
@@ -75,4 +77,9 @@ public interface RelationshipStore
      */
     List<Relationship> getByRelationshipType( RelationshipType relationshipType );
 
+    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
+
+    List<Relationship> getByProgramInstance( ProgramInstance pi );
+
+    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
 }

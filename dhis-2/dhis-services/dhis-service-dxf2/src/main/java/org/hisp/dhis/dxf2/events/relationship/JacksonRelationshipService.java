@@ -216,8 +216,8 @@ public class JacksonRelationshipService
         }
 
         importSummaries.addImportSummaries( addRelationships( create, importOptions ) );
-        //importSummaries.addImportSummaries( updateRelationships( update, importOptions ) );
-        //importSummaries.addImportSummaries( deleteRelationships( delete, importOptions ) );
+        importSummaries.addImportSummaries( updateRelationships( update, importOptions ) );
+        importSummaries.addImportSummaries( deleteRelationships( delete, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {

@@ -28,8 +28,11 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.List;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
@@ -106,4 +109,10 @@ public interface RelationshipService
     List<Relationship> getAll();
 
     Relationship getRelationship( String uid );
+
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 }

@@ -29,6 +29,8 @@ package org.hisp.dhis.relationship;
  */
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,7 +89,6 @@ public class DefaultRelationshipService
     @Override
     public int addRelationship( Relationship relationship )
     {
-        System.out.println("Relationship: " + relationship);
         relationshipStore.save( relationship );
         return relationship.getId();
     }
@@ -128,5 +129,25 @@ public class DefaultRelationshipService
     public Relationship getRelationship( String uid )
     {
         return relationshipStore.getByUid( uid );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        boolean skipAccessValidation )
+    {
+        return relationshipStore.getByTrackedEntityInstance( tei );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramInstance( pi );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramStageInstance( psi );
     }
 }

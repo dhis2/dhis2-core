@@ -34,6 +34,8 @@ import java.util.List;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -50,10 +52,10 @@ public class HibernateRelationshipStore
     @SuppressWarnings( "unchecked" )
     public List<Relationship> getForTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        return getCriteria( 
-            Restrictions.disjunction().add( 
-            Restrictions.eq( "from", instance ) ).add(
-            Restrictions.eq( "entityInstanceB", instance ) ) ).list();
+        return getCriteria(
+            Restrictions.disjunction().add(
+                Restrictions.eq( "from", instance ) ).add(
+                Restrictions.eq( "entityInstanceB", instance ) ) ).list();
     }
 
     @Override
@@ -61,6 +63,39 @@ public class HibernateRelationshipStore
     public List<Relationship> getByRelationshipType( RelationshipType relationshipType )
     {
         return getCriteria( Restrictions.eq( "relationshipType", relationshipType ) ).list();
+    }
+
+    @Override
+    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
+    {
+
+        return getCriteria(
+            Restrictions.eq( "from.trackedEntityInstance", tei )
+        )
+            .createAlias( "from", "from" )
+            .list();
+
+    }
+
+    @Override
+    public List<Relationship> getByProgramInstance( ProgramInstance pi )
+    {
+        return getCriteria(
+            Restrictions.eq( "from.programInstance", pi )
+        )
+            .createAlias( "from", "from" )
+            .list();
+    }
+
+    @Override
+    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
+    {
+
+        return getCriteria(
+            Restrictions.eq( "from.programStageInstance", psi )
+        )
+            .createAlias( "from", "from" )
+            .list();
     }
 
     @Override
@@ -82,11 +117,12 @@ public class HibernateRelationshipStore
     }
 
     @Override
-    public Relationship get( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType )
+    public Relationship get( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB,
+        RelationshipType relationshipType )
     {
-        return (Relationship) getCriteria( 
+        return (Relationship) getCriteria(
             Restrictions.eq( "entityInstanceA", entityInstanceA ),
-            Restrictions.eq( "entityInstanceB", entityInstanceB ), 
+            Restrictions.eq( "entityInstanceB", entityInstanceB ),
             Restrictions.eq( "relationshipType", relationshipType ) ).uniqueResult();
     }
 }

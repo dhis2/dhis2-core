@@ -28,60 +28,53 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
-@RestController( value = RelationshipSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( DhisApiVersion.ALL )
+@RestController
+@RequestMapping( value = RelationshipSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class RelationshipController
 {
 
@@ -89,104 +82,157 @@ public class RelationshipController
     private RelationshipService relationshipService;
 
     @Autowired
-    private org.hisp.dhis.relationship.RelationshipService relationshipService_;
+    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private WebMessageService webMessageService;
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    // -------------------------------------------------------------------------
+    // READ
+    // -------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody
-    List<Relationship> getRelationships()
+    public List<Relationship> getRelationships(
+        @RequestParam( required = false, defaultValue = "") String tei,
+        @RequestParam( required = false, defaultValue = "" ) String pi,
+        @RequestParam( required = false, defaultValue = "" ) String psi
+    )
+        throws WebMessageException
     {
-        return relationshipService_.getAll();
+        if ( !tei.isEmpty() )
+        {
+            TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( tei );
+
+            if ( trackedEntityInstance != null )
+            {
+                return relationshipService.getRelationshipsByTrackedEntityInstance( trackedEntityInstance, false );
+            }
+            else
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( "No trackedEntityInstance '" + tei + "' found." ) );
+            }
+        }
+        else if ( !pi.isEmpty() )
+        {
+            ProgramInstance programInstance = programInstanceService.getProgramInstance( pi );
+
+            if ( programInstance != null )
+            {
+                return relationshipService.getRelationshipsByProgramInstance( programInstance, false );
+            }
+            else
+            {
+                throw new WebMessageException( WebMessageUtils.notFound( "No programInstance '" + pi + "' found." ) );
+            }
+        }
+        else if ( !psi.isEmpty() )
+        {
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( psi );
+
+            if ( programStageInstance != null )
+            {
+                return relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, false );
+            }
+            else
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( "No programStageInstance '" + psi + "' found." ) );
+            }
+        }
+        else
+        {
+            throw new WebMessageException(
+                WebMessageUtils.badRequest( "Missing required parameter 'tei', 'pi' or 'psi'." ) );
+        }
     }
 
-    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
-    public void postRelationshipJson(
+    @GetMapping("/{id}")
+    public Relationship getRelationship(
+        @PathVariable String id
+    )
+        throws WebMessageException
+    {
+        Relationship relationship = relationshipService.getRelationshipByUid( id );
+
+        if (relationship == null)
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No relationship with id '" + id + "' was found." ) );
+        }
+
+        return relationship;
+    }
+
+    // -------------------------------------------------------------------------
+    // CREATE
+    // -------------------------------------------------------------------------
+
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_UTF8_VALUE )
+    public WebMessage postRelationshipJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions,
+        HttpServletRequest request
+    )
         throws IOException
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = relationshipService.addRelationshipsJson( inputStream, importOptions );
-        response.setContentType( APPLICATION_JSON_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter(
-                importSummary -> !importOptions.isDryRun() &&
-                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() &&
-                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
-            .forEach( importSummary -> importSummary.setHref(
-                ContextUtils.getRootPath( request ) + RelationshipSchemaDescriptor.API_ENDPOINT + "/" +
-                    importSummary.getReference() ) );
+            .filter( filterImportSummary( importOptions ) )
+            .forEach( setImportSummaryHref( request ) );
 
-        if ( importSummaries.getImportSummaries().size() == 1 )
-        {
-            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummary.setImportOptions( importOptions );
-
-            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-            {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
-            }
-        }
-
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        return WebMessageUtils.importSummaries( importSummaries );
     }
 
-
-    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE )
-    public void postRelationshipXml(
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    public WebMessage postRelationshipXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions,
+        HttpServletRequest request
+    )
         throws IOException
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = relationshipService.addRelationshipsXml( inputStream, importOptions );
-        response.setContentType( APPLICATION_XML_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter(
-                importSummary -> !importOptions.isDryRun() &&
-                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() &&
-                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
-            .forEach( importSummary -> importSummary.setHref(
-                ContextUtils.getRootPath( request ) + RelationshipSchemaDescriptor.API_ENDPOINT + "/" +
-                    importSummary.getReference() ) );
+            .filter( filterImportSummary( importOptions ) )
+            .forEach( setImportSummaryHref( request ) );
 
-        if ( importSummaries.getImportSummaries().size() == 1 )
-        {
-            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummary.setImportOptions( importOptions );
-
-            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-            {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
-            }
-        }
-
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        return WebMessageUtils.importSummaries( importSummaries );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ImportSummary updateRelationshipJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    // -------------------------------------------------------------------------
+    // UPDATE
+    // -------------------------------------------------------------------------
+
+    @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_UTF8_VALUE )
+    public WebMessage updateRelationshipJson(
+        @PathVariable String id,
+        ImportOptions importOptions,
+        HttpServletRequest request
+    )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = relationshipService.updateRelationshipJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return importSummary;
+        return WebMessageUtils.importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE )
-    public @ResponseBody ImportSummary updateRelationshipXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    public ImportSummary updateRelationshipXml(
+        @PathVariable String id,
+        ImportOptions importOptions,
+        HttpServletRequest request
+    )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -196,9 +242,48 @@ public class RelationshipController
         return importSummary;
     }
 
-    private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
+    // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
+
+    @DeleteMapping( value = "/{id}" )
+    public WebMessage deleteRelationship(
+        @PathVariable String id
+    )
     {
-        return ContextUtils.getContextPath( request ) + "/api/" + "relationships" + "/" +
-            importSummary.getReference();
+        return WebMessageUtils.importSummary( relationshipService.deleteRelationship( id ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // HELPER METHODS
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a Predicate that filters out ImportSummary depending on importOptions and the summary itself
+     *
+     * @param importOptions
+     * @return a Predicate for ImportSummary
+     */
+    private Predicate<ImportSummary> filterImportSummary( ImportOptions importOptions )
+    {
+        return importSummary -> !importOptions.isDryRun() &&
+            !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+            !importOptions.getImportStrategy().isDelete() &&
+            (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0);
+    }
+
+    /**
+     * Creates a Consumer that takes an ImportSummary and sets the href property, based on the request root path,
+     * api endpoint and the reference from the import summary.
+     *
+     * @param request
+     * @return a Consumer for ImportSummary
+     */
+    private Consumer<ImportSummary> setImportSummaryHref( HttpServletRequest request )
+    {
+        return importSummary -> importSummary.setHref(
+            ContextUtils.getRootPath( request ) +
+                RelationshipSchemaDescriptor.API_ENDPOINT + "/" +
+                importSummary.getReference() );
     }
 }
