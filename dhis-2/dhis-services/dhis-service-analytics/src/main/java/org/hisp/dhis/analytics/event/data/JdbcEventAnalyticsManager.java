@@ -86,48 +86,14 @@ public class JdbcEventAnalyticsManager
 
         String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
 
-        // ---------------------------------------------------------------------
-        // Criteria
-        // ---------------------------------------------------------------------
-
         sql += getFromClause( params );
         
         sql += getWhereClause( params );
         
-        // ---------------------------------------------------------------------
-        // Sorting
-        // ---------------------------------------------------------------------
+        sql += getSortClause( params );
 
-        if ( params.isSorting() )
-        {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quote( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quote( item.getUid() ) + " desc,";
-            }
-
-            sql = removeLastComma( sql ) + " ";
-        }
+        sql += getPagingClause( params, maxLimit );
         
-        // ---------------------------------------------------------------------
-        // Paging
-        // ---------------------------------------------------------------------
-
-        if ( params.isPaging() )
-        {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
-        }
-
         // ---------------------------------------------------------------------
         // Grid
         // ---------------------------------------------------------------------
@@ -300,6 +266,7 @@ public class JdbcEventAnalyticsManager
      * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
      * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular 
      * analytics table periods.
+     * 
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
@@ -483,7 +450,57 @@ public class JdbcEventAnalyticsManager
         
         return sql;
     }
+    
+    /**
+     * Returns an SQL sort clause.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getSortClause( EventQueryParams params )
+    {
+        String sql = "";
+        
+        if ( params.isSorting() )
+        {
+            sql += "order by ";
 
+            for ( DimensionalItemObject item : params.getAsc() )
+            {
+                sql += quote( item.getUid() ) + " asc,";
+            }
+
+            for  ( DimensionalItemObject item : params.getDesc() )
+            {
+                sql += quote( item.getUid() ) + " desc,";
+            }
+
+            sql = removeLastComma( sql ) + " ";
+        }
+        
+        return sql;
+    }
+
+    /**
+     * Returns an SQL paging clause.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getPagingClause( EventQueryParams params, int maxLimit )
+    {
+        String sql = "";
+        
+        if ( params.isPaging() )
+        {
+            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+        }
+        else if ( maxLimit > 0 )
+        {
+            sql += "limit " + ( maxLimit + 1 );
+        }
+        
+        return sql;
+    }
+    
     /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by 
