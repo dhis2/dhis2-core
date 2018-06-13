@@ -77,22 +77,24 @@ public interface RelationshipService
 
     ImportSummary addRelationship( Relationship relationships, ImportOptions importOptions );
 
+
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
-/*
+
     ImportSummary updateRelationshipXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
     ImportSummary updateRelationshipJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries updateRelationships( List<Relationship> trackedEntityInstances, ImportOptions importOptions );
+    ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions );
 
-    ImportSummary updateRelationship( Relationship trackedEntityInstance, ImportOptions importOptions );
+    ImportSummary updateRelationship( Relationship relationship, ImportOptions importOptions );
 
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
 
+    /*
     ImportSummary deleteRelationship( String uid );
 
     ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions );

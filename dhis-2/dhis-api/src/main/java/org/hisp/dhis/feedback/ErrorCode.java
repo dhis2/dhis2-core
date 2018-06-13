@@ -84,6 +84,8 @@ public enum ErrorCode
     /* Tracker Relationship */
     E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. "),
     E4024( "Property `{0}` must be set when property `{1}` is `{2}`. "),
+    E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together."),
+    E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

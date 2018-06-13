@@ -102,4 +102,8 @@ public interface RelationshipService
     List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType );
 
     List<Relationship> getRelationshipsByType( String relationshipType );
+
+    List<Relationship> getAll();
+
+    Relationship getRelationship( String uid );
 }

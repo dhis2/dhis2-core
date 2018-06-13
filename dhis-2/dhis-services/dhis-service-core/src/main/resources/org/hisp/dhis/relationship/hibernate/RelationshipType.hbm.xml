@@ -20,14 +20,14 @@
         <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="left_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_left_relationshipconstraintid"
-                     not-null="true"
+                     not-null="false"
                      unique="true"
                      cascade="all-delete-orphan"/>
 
         <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="right_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_right_relationshipconstraintid"
-                     not-null="true"
+                     not-null="false"
                      unique="true"
                      cascade="all-delete-orphan"/>
 

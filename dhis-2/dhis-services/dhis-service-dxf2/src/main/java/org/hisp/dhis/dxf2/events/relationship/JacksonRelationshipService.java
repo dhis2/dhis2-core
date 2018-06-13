@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationships;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
@@ -141,6 +142,26 @@ public class JacksonRelationshipService
         }
 
         return addRelationshipList( relationships, updateImportOptions( importOptions ) );
+    }
+
+    @Override
+    public ImportSummary updateRelationshipJson( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException
+    {
+        Relationship relationship = fromJson( inputStream, Relationship.class );
+        relationship.setRelationship( id );
+
+        return updateRelationship( relationship, updateImportOptions( importOptions ) );
+    }
+
+    @Override
+    public ImportSummary updateRelationshipXml( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException
+    {
+        Relationship relationship = fromXml( inputStream, Relationship.class );
+        relationship.setRelationship( id );
+
+        return updateRelationship( relationship, updateImportOptions( importOptions ) );
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )

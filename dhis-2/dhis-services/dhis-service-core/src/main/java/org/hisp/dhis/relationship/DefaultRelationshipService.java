@@ -117,4 +117,16 @@ public class DefaultRelationshipService
     {
         return relationshipStore.getByType( relationshipTypeStore.getByUid( relationshipType ) );
     }
+
+    @Override
+    public List<Relationship> getAll()
+    {
+        return relationshipStore.getAll();
+    }
+
+    @Override
+    public Relationship getRelationship( String uid )
+    {
+        return relationshipStore.getByUid( uid );
+    }
 }

@@ -101,6 +101,7 @@ public class RelationshipTypeObjectBundleHook
         }
 
         handleRelationshipTypeReferences( (RelationshipType) object );
+
     }
 
     /**
@@ -236,9 +237,15 @@ public class RelationshipTypeObjectBundleHook
             }
 
             // Should be null
-            if ( constraint.getProgram() == null && constraint.getProgramStage() != null )
+            if ( constraint.getProgram() != null && constraint.getProgramStage() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "program", "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
+            }
+
+            // Should be null
+            if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
+            {
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage", "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
             }
 
         }
