@@ -40,7 +40,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping( value = "/staticConfiguration/" )
-@ApiVersion( DhisApiVersion.DEFAULT )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class StaticRenderingConfigurationController
 {
 
