@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 import java.util.Date;
 import java.util.List;
@@ -135,7 +137,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
             {
-                columns.add( quote( dimension.getDimensionName() ) );
+                columns.add( quote( ANALYTICS_TBL_ALIAS, dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -177,7 +179,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( quote( queryItem.getItemName() ) );
+                columns.add( quoteAlias( queryItem.getItemName() ) );
             }
         }
         
@@ -417,7 +419,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getColumn( QueryItem item )
     {
-        String col = quote( item.getItemName() );
+        String col = quoteAlias( item.getItemName() );
         return item.isText() ? "lower(" + col + ")" : col;
     }
     
