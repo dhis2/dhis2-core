@@ -567,7 +567,7 @@ public class DefaultProgramInstanceService
     
     private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
     {        
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() == AccessLevel.AUDITED && accessedBy != null )
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
         {
             ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
                 
