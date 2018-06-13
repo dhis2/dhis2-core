@@ -294,7 +294,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEvents( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 1000 );
+        ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
@@ -344,7 +344,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEnrollments( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 1000 );
+        ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
@@ -394,7 +394,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeTrackedEntities( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 1000 );
+        ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
