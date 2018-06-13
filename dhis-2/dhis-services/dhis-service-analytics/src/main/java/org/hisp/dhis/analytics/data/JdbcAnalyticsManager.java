@@ -475,8 +475,7 @@ public class JdbcAnalyticsManager
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null)) " +
-            "as " + params.getTableName();
+            "and (value is not null or textvalue is not null))";
         
         return sql;
     }
@@ -541,7 +540,7 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
-        sql += ") as " + params.getTableName();
+        sql += ")";
 
         return sql;
     }
