@@ -68,8 +68,12 @@ public class KafkaTrackerJob
             return;
         }
 
+        /*
         trackerKafkaManager.consumeTrackedEntities( jobConfiguration );
         trackerKafkaManager.consumeEnrollments( jobConfiguration );
         trackerKafkaManager.consumeEvents( jobConfiguration );
+        */
+
+        System.err.println( "Running Kafka" );
     }
 }

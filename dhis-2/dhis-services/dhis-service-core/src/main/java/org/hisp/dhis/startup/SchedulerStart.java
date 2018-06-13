@@ -220,7 +220,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
         {
             JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
-                KAFKA_TRACKER, CRON_HOURLY, null, false, true );
+                KAFKA_TRACKER, "* * * * * ?", null, true, true );
             addAndScheduleJob( kafkaTracker );
         }
 
