@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -70,6 +72,19 @@ public class AnalyticsSqlUtils
         Assert.notNull( alias, "Alias must be specified" );
         
         return alias + SEPARATOR + quote( relation );
+    }
+    
+    /**
+     * Removes all quotes from the given relation.
+     * 
+     * @param relation the relation (typically a column).
+     * @return the unquoted relation.
+     */
+    public static String removeQuote( String relation )
+    {
+        Assert.notNull( relation, "Relation must be specified" );
+        
+        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
     }
 
     /**
