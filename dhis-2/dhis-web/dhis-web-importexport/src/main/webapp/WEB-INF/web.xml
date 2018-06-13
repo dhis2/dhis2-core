@@ -20,7 +20,7 @@
     <async-supported>true</async-supported>
     <init-param>
       <param-name>redirectPath</param-name>
-      <param-value>dhis-web-importexport/index.action</param-value>
+      <param-value>dhis-web-importexport/</param-value>
     </init-param>
   </filter>
   <filter>
