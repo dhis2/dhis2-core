@@ -28,11 +28,8 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -42,7 +39,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;

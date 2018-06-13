@@ -28,27 +28,13 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
-import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -57,9 +43,6 @@ import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -74,6 +57,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dataapproval.DataApprovalState.*;
 
 /**
  * @author Jim Grace

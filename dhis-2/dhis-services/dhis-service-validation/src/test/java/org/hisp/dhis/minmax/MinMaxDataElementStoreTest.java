@@ -164,8 +164,8 @@ public class MinMaxDataElementStoreTest
         assertEquals( 1, result.size() );
 
         params = new MinMaxDataElementQueryParams();
-        filters.clear();;
-        filters.add( "min:eq:0"  );
+        filters.clear();
+        filters.add( "min:eq:0" );
 
         params.setFilters( filters );
 

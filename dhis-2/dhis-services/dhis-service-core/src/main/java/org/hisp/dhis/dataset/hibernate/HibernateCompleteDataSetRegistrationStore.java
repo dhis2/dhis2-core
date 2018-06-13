@@ -28,13 +28,7 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
@@ -45,6 +39,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
