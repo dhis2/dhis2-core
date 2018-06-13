@@ -28,6 +28,9 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+
 import java.util.Date;
 import java.util.List;
 
@@ -36,7 +39,10 @@ import java.util.List;
  */
 public interface PredictionService
 {
-    int predictPredictors( List<String> predictors, Date startDate, Date endDate );
+    PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
+
+    PredictionSummary predictTask( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
 
     int predict( Predictor predictor, Date startDate, Date endDate );
 }

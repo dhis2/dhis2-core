@@ -28,38 +28,11 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
- * @author Henning Håkonsen
+ * @author Jim Grace
  */
-public class PredictorJob
-    extends AbstractJob
+public enum PredictionStatus
 {
-    @Autowired
-    private PredictionService predictionService;
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.PREDICTOR;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
-        throws Exception
-    {
-        PredictorJobParameters predictorJobParameters = ( PredictorJobParameters ) jobConfiguration.getJobParameters();
-
-        if ( predictorJobParameters == null )
-        {
-            throw new Exception( "No job parameters present in predictor job" );
-        }
-
-        predictionService.predictJob( predictorJobParameters, null );
-    }
+    SUCCESS,
+    ERROR
 }
