@@ -254,6 +254,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-messaging</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Import/Export -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-import-export</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-importexport</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
