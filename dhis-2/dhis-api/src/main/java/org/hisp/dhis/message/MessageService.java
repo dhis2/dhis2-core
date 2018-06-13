@@ -80,7 +80,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids );
+    List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 
     void deleteMessages( User sender );
 

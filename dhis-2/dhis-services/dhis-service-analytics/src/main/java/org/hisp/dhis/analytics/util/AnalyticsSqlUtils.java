@@ -60,6 +60,8 @@ public class AnalyticsSqlUtils
         
         return QUOTE + rel + QUOTE;
     }
+    
+    
 
     /**
      * Quotes and qualifies the given relation (typically a column). Quotes part 

@@ -255,10 +255,10 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            sql += params.getTableName() + " as " + ANALYTICS_TABLE_ALIAS;
+            sql += params.getTableName();
         }
         
-        return sql + " ";
+        return sql + " as " + ANALYTICS_TABLE_ALIAS + " ";
     }
 
     /**
@@ -288,8 +288,8 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {        
-            sql += sqlHelper.whereAnd() + " " + quote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += sqlHelper.whereAnd() + " "  + quote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + quote( "executiondate" ) + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " "  + quote( "executiondate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
@@ -531,8 +531,7 @@ public class JdbcEventAnalyticsManager
             "from " + params.getTableName() + " " +
             "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
             "and executiondate <= '" + getMediumDateString( latest ) + "' " +
-            "and " + valueItem + " is not null) " +
-            "as " + ANALYTICS_TABLE_ALIAS;
+            "and " + valueItem + " is not null)";
         
         return sql;
     }

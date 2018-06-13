@@ -359,10 +359,10 @@ public class DefaultMessageService
     }
 
     @Override
-    public List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids )
+    public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
-            .getMessageConversations( messageConversationUids );
+            .getMessageConversations( uid );
 
         // Set transient properties
 
