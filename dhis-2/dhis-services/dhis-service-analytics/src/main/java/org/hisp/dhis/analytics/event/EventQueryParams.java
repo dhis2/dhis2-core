@@ -214,6 +214,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.timeField = this.timeField;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
