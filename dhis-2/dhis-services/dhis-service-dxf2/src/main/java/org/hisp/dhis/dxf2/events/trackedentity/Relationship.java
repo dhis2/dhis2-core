@@ -45,11 +45,17 @@ public class Relationship
 {
     private String relationshipType;
 
+    private String relationshipName;
+
     private String relationship;
 
     private RelationshipItem from;
 
     private RelationshipItem to;
+
+    private String created;
+
+    private String lastUpdated;
 
     public Relationship()
     {
@@ -103,14 +109,53 @@ public class Relationship
         this.to = to;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getRelationshipName()
+    {
+        return relationshipName;
+    }
+
+    public void setRelationshipName( String relationshipName )
+    {
+        this.relationshipName = relationshipName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( String lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
     @Override
     public String toString()
     {
         return "Relationship{" +
             "relationshipType='" + relationshipType + '\'' +
+            ", relationshipName='" + relationshipName + '\'' +
             ", relationship='" + relationship + '\'' +
-            ", from='" + from + '\'' +
-            ", to='" + to + '\'' +
+            ", from=" + from +
+            ", to=" + to +
+            ", created='" + created + '\'' +
+            ", lastUpdated='" + lastUpdated + '\'' +
             '}';
     }
 }

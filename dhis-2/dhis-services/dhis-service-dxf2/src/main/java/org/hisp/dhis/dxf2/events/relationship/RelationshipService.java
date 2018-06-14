@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,18 +59,6 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 
-    /*
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
-
-    Relationship getTrackedEntityInstance( String uid );
-
-    Relationship getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params );
-
-    Relationship getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance );
-
-    Relationship getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
-        TrackedEntityInstanceParams params );
-*/
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
@@ -109,6 +98,5 @@ public interface RelationshipService
     // HELPER METHODS
     // -------------------------------------------------------------------------
 
-    Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params );
-
+    Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user );
 }

@@ -31,6 +31,8 @@ package org.hisp.dhis.relationship;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,9 @@ public class DefaultRelationshipService
     @Autowired
     private RelationshipTypeStore relationshipTypeStore;
 
+    @Autowired
+    private ProgramStageInstanceStore programStageInstanceStore;
+
     private RelationshipStore relationshipStore;
 
     public void setRelationshipStore( RelationshipStore relationshipStore )
@@ -65,6 +70,14 @@ public class DefaultRelationshipService
     @Override
     public void deleteRelationship( Relationship relationship )
     {
+        ProgramStageInstance psi = relationship.getFrom().getProgramStageInstance();
+
+        if ( psi != null )
+        {
+            psi.getRelationships().remove( relationship );
+            programStageInstanceStore.save( psi );
+        }
+
         relationshipStore.delete( relationship );
     }
 
@@ -90,6 +103,15 @@ public class DefaultRelationshipService
     public int addRelationship( Relationship relationship )
     {
         relationshipStore.save( relationship );
+
+        ProgramStageInstance psi = relationship.getFrom().getProgramStageInstance();
+
+        if ( psi != null )
+        {
+            psi.getRelationships().add( relationship );
+            programStageInstanceStore.save( psi );
+        }
+
         return relationship.getId();
     }
 

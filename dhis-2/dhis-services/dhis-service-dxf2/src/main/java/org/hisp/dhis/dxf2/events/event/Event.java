@@ -35,10 +35,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,6 +68,8 @@ public class Event
     private String orgUnitName;
 
     private String trackedEntityInstance;
+
+    private Set<Relationship> relationships;
 
     private String eventDate;
 
@@ -425,6 +429,18 @@ public class Event
 	public void setOptionSize(int optionSize) {
 		this.optionSize = optionSize;
 	}
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Relationship> getRelationships()
+    {
+        return relationships;
+    }
+
+    public void setRelationships( Set<Relationship> relationships )
+    {
+        this.relationships = relationships;
+    }
 
 	@Override
     public boolean equals( Object o )

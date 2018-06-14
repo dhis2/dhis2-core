@@ -42,6 +42,11 @@
       <one-to-many class="org.hisp.dhis.program.ProgramInstance" />
     </set>
 
+    <set name="relationships" inverse="true">
+      <key column="trackedentityinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.Relationship" />
+    </set>
+
     <many-to-one name="representative" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="representativeid"
       foreign-key="fk_trackedentityinstance_representativeid" />
 

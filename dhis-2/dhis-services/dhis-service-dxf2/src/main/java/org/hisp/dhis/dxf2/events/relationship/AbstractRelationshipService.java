@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.relationship;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -45,43 +45,33 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
 
 @Transactional
 public abstract class AbstractRelationshipService
@@ -126,23 +116,29 @@ public abstract class AbstractRelationshipService
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
         TrackedEntityInstance tei, boolean skipAccessValidation )
     {
+        User user = currentUserService.getCurrentUser();
+
         return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
-            .map( this::getRelationship ).collect( Collectors.toList() );
+            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
     @Override
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
+        User user = currentUserService.getCurrentUser();
+
         return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
-            .map( this::getRelationship ).collect( Collectors.toList() );
+            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
     @Override
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
+        User user = currentUserService.getCurrentUser();
+
         return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
-            .map( this::getRelationship ).collect( Collectors.toList() );
+            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
     @Override
@@ -210,20 +206,7 @@ public abstract class AbstractRelationshipService
         }
 
         // Check access for both sides
-        List<String> errors = new ArrayList<>();
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getFrom().getTrackedEntityInstance() ) );
-        errors.addAll(
-            trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship.getFrom().getProgramInstance() ) );
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getFrom().getProgramStageInstance() ) );
-
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getTo().getTrackedEntityInstance() ) );
-        errors.addAll(
-            trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship.getTo().getProgramInstance() ) );
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getTo().getProgramStageInstance() ) );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship );
 
         if ( !errors.isEmpty() )
         {
@@ -292,21 +275,7 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        // Check access for both sides
-        List<String> errors = new ArrayList<>();
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getFrom().getTrackedEntityInstance() ) );
-        errors.addAll(
-            trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship.getFrom().getProgramInstance() ) );
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getFrom().getProgramStageInstance() ) );
-
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getTo().getTrackedEntityInstance() ) );
-        errors.addAll(
-            trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship.getTo().getProgramInstance() ) );
-        errors.addAll( trackerAccessManager
-            .canWrite( importOptions.getUser(), daoRelationship.getTo().getProgramStageInstance() ) );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship );
 
         if ( !errors.isEmpty() || !importConflicts.isEmpty() )
         {
@@ -371,16 +340,25 @@ public abstract class AbstractRelationshipService
     @Override
     public Relationship getRelationshipByUid( String id )
     {
-        return getRelationship( relationshipService.getRelationship( id ) );
+        return getRelationship( relationshipService.getRelationship( id ), currentUserService.getCurrentUser() );
     }
 
     @Override
-    public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params )
+    public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
+        User user )
     {
+        List<String> errors = trackerAccessManager.canRead( user, dao );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
+
         Relationship relationship = new Relationship();
 
         relationship.setRelationship( dao.getUid() );
         relationship.setRelationshipType( dao.getRelationshipType().getUid() );
+        relationship.setRelationshipName( dao.getRelationshipType().getName() );
 
         if ( params.isIncludeFrom() )
         {
@@ -392,13 +370,16 @@ public abstract class AbstractRelationshipService
             relationship.setTo( includeRelationshipItem( dao.getTo() ) );
         }
 
+        relationship.setCreated( DateUtils.getIso8601NoTz( dao.getCreated() ) );
+        relationship.setLastUpdated( DateUtils.getIso8601NoTz( dao.getLastUpdated() ) );
+
         return relationship;
 
     }
 
-    private Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao )
+    private Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, User user )
     {
-        return getRelationship( dao, RelationshipParams.TRUE );
+        return getRelationship( dao, RelationshipParams.TRUE, user );
     }
 
     private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao )
@@ -427,6 +408,7 @@ public abstract class AbstractRelationshipService
     private ImportSummary deleteRelationship( String uid, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary();
+        importOptions = updateImportOptions( importOptions );
 
         if ( uid.isEmpty() )
         {
@@ -440,6 +422,16 @@ public abstract class AbstractRelationshipService
         if ( daoRelationship != null )
         {
             importSummary.setReference( uid );
+
+            List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship );
+
+            if ( !errors.isEmpty() )
+            {
+                importSummary.setDescription( errors.toString() );
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.getImportCount().incrementIgnored();
+                return importSummary;
+            }
 
             relationshipService.deleteRelationship( daoRelationship );
 
@@ -616,24 +608,28 @@ public abstract class AbstractRelationshipService
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
+            fromItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
+            fromItem
+                .setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setProgramStageInstance( programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
+            fromItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
 
         // TO
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setTrackedEntityInstance( trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
+            toItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
@@ -643,7 +639,8 @@ public abstract class AbstractRelationshipService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramStageInstance( programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
+            toItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
 
         daoRelationship.setFrom( fromItem );
@@ -705,6 +702,7 @@ public abstract class AbstractRelationshipService
             queryService.query( piQuery )
                 .forEach( pi -> programInstanceCache.put( pi.getUid(), (ProgramInstance) pi ) );
         }
+
         if ( relationshipEntities.get( PROGRAM_STAGE_INSTANCE ) != null )
         {
             Query psiQuery = Query.from( schemaService.getDynamicSchema( ProgramStageInstance.class ) );
@@ -738,5 +736,10 @@ public abstract class AbstractRelationshipService
         }
 
         return importOptions;
+    }
+
+    private Function<org.hisp.dhis.relationship.Relationship, Relationship> mapDaoToDto( User user )
+    {
+        return relationship -> getRelationship( relationship, user );
     }
 }

@@ -37,6 +37,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -298,6 +301,76 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canRead( User user, Relationship relationship )
+    {
+        List<String> errors = new ArrayList<>();
+        RelationshipType relationshipType;
+        RelationshipItem from;
+        RelationshipItem to;
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || relationship == null )
+        {
+            return errors;
+        }
+
+        relationshipType = relationship.getRelationshipType();
+
+        if ( !aclService.canDataRead( user, relationshipType ) )
+        {
+            errors.add( "User has no data read access to relationshipType: " + relationshipType.getUid() );
+        }
+
+        from = relationship.getFrom();
+        to = relationship.getTo();
+
+        errors.addAll( canRead( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, from.getProgramInstance() ) );
+        errors.addAll( canRead( user, from.getProgramStageInstance() ) );
+
+        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance() ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, Relationship relationship )
+    {
+        List<String> errors = new ArrayList<>();
+        RelationshipType relationshipType;
+        RelationshipItem from;
+        RelationshipItem to;
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || relationship == null )
+        {
+            return errors;
+        }
+
+        relationshipType = relationship.getRelationshipType();
+
+        if ( !aclService.canDataWrite( user, relationshipType ) )
+        {
+            errors.add( "User has no data write access to relationshipType: " + relationshipType.getUid() );
+        }
+
+        from = relationship.getFrom();
+        to = relationship.getTo();
+
+        errors.addAll( canWrite( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canWrite( user, from.getProgramInstance() ) );
+        errors.addAll( canWrite( user, from.getProgramStageInstance() ) );
+
+        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance() ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
 
         return errors;
     }

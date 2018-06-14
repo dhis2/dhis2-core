@@ -68,27 +68,43 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+/**
+ * @author Stian Sandvold
+ */
 @RestController
 @RequestMapping( value = RelationshipSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class RelationshipController
 {
 
-    @Autowired
-    private RelationshipService relationshipService;
+    // -------------------------------------------------------------------------
+    // DEPENDENCIES
+    // -------------------------------------------------------------------------
+
+    private final RelationshipService relationshipService;
+
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
+
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    public RelationshipController( RelationshipService relationshipService,
+        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService )
+    {
+        this.relationshipService = relationshipService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
 
     // -------------------------------------------------------------------------
     // READ
@@ -96,13 +112,13 @@ public class RelationshipController
 
     @GetMapping
     public List<Relationship> getRelationships(
-        @RequestParam( required = false, defaultValue = "") String tei,
-        @RequestParam( required = false, defaultValue = "" ) String pi,
-        @RequestParam( required = false, defaultValue = "" ) String psi
+        @RequestParam( required = false ) String tei,
+        @RequestParam( required = false ) String enrollment,
+        @RequestParam( required = false ) String event
     )
         throws WebMessageException
     {
-        if ( !tei.isEmpty() )
+        if ( tei != null )
         {
             TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( tei );
 
@@ -112,13 +128,12 @@ public class RelationshipController
             }
             else
             {
-                throw new WebMessageException(
-                    WebMessageUtils.notFound( "No trackedEntityInstance '" + tei + "' found." ) );
+                throw new WebMessageException( notFound( "No trackedEntityInstance '" + tei + "' found." ) );
             }
         }
-        else if ( !pi.isEmpty() )
+        else if ( enrollment != null )
         {
-            ProgramInstance programInstance = programInstanceService.getProgramInstance( pi );
+            ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
 
             if ( programInstance != null )
             {
@@ -126,12 +141,12 @@ public class RelationshipController
             }
             else
             {
-                throw new WebMessageException( WebMessageUtils.notFound( "No programInstance '" + pi + "' found." ) );
+                throw new WebMessageException( notFound( "No enrollment '" + enrollment + "' found." ) );
             }
         }
-        else if ( !psi.isEmpty() )
+        else if ( event != null )
         {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( psi );
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event );
 
             if ( programStageInstance != null )
             {
@@ -139,18 +154,16 @@ public class RelationshipController
             }
             else
             {
-                throw new WebMessageException(
-                    WebMessageUtils.notFound( "No programStageInstance '" + psi + "' found." ) );
+                throw new WebMessageException( notFound( "No event '" + event + "' found." ) );
             }
         }
         else
         {
-            throw new WebMessageException(
-                WebMessageUtils.badRequest( "Missing required parameter 'tei', 'pi' or 'psi'." ) );
+            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping( "/{id}" )
     public Relationship getRelationship(
         @PathVariable String id
     )
@@ -158,9 +171,9 @@ public class RelationshipController
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
 
-        if (relationship == null)
+        if ( relationship == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No relationship with id '" + id + "' was found." ) );
+            throw new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) );
         }
 
         return relationship;
@@ -250,7 +263,15 @@ public class RelationshipController
     public WebMessage deleteRelationship(
         @PathVariable String id
     )
+        throws WebMessageException
     {
+        Relationship relationship = relationshipService.getRelationshipByUid( id );
+
+        if ( relationship == null )
+        {
+            throw new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) );
+        }
+
         return WebMessageUtils.importSummary( relationshipService.deleteRelationship( id ) );
     }
 

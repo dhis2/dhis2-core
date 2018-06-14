@@ -44,8 +44,12 @@ public class RelationshipItem
 {
     private int id;
 
+    private Relationship relationship;
+
     private TrackedEntityInstance trackedEntityInstance;
+
     private ProgramInstance programInstance;
+
     private ProgramStageInstance programStageInstance;
 
     public RelationshipItem()
@@ -61,6 +65,18 @@ public class RelationshipItem
     public void setId( int id )
     {
         this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Relationship getRelationship()
+    {
+        return relationship;
+    }
+
+    public void setRelationship( Relationship relationship )
+    {
+        this.relationship = relationship;
     }
 
     @JsonProperty

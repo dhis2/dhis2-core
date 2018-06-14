@@ -33,6 +33,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 
+/**
+ * @author Stian Sandvold
+ */
 public class RelationshipItem
 {
     private TrackedEntityInstance trackedEntityInstance;
@@ -80,5 +83,15 @@ public class RelationshipItem
     public void setEvent( Event event )
     {
         this.event = event;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "RelationshipItem{" +
+            "trackedEntityInstance=" + trackedEntityInstance +
+            ", enrollment=" + enrollment +
+            ", event=" + event +
+            '}';
     }
 }

@@ -60,6 +60,11 @@
       <one-to-many class="org.hisp.dhis.program.ProgramStageInstance" />
     </set>
 
+    <set name="relationships" inverse="true">
+      <key column="programinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.Relationship" />
+    </set>
+
     <list name="messageConversations" table="programinstance_messageconversation">
       <key column="programinstanceid" />
       <list-index column="sort_order" base="1" />
