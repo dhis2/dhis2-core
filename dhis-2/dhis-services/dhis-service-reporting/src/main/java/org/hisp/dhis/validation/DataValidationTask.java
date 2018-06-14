@@ -223,7 +223,7 @@ public class DataValidationTask
         {
             validationResults.add( new ValidationResult(
                 ruleX.getRule(), period, orgUnit,
-                categoryService.getDataElementCategoryOptionCombo( optionCombo ),
+                getAttributeOptionCombo( optionCombo ),
                 roundSignificant( zeroIfNull( leftSide ) ),
                 roundSignificant( zeroIfNull( rightSide ) ),
                 periodService.getDayInPeriod( period, new Date() ) ) );
