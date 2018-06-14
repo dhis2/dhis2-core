@@ -42,7 +42,7 @@ public class AnalyticsSqlUtils
 {
     public static final String QUOTE = "\"";
     public static final String SINGLE_QUOTE = "'";
-    public static final String ANALYTICS_TABLE_ALIAS = "ax";
+    public static final String ANALYTICS_TBL_ALIAS = "ax";
     private static final String SEPARATOR = ".";
     
     /**
@@ -60,8 +60,6 @@ public class AnalyticsSqlUtils
         
         return QUOTE + rel + QUOTE;
     }
-    
-    
 
     /**
      * Quotes and qualifies the given relation (typically a column). Quotes part 
@@ -75,6 +73,18 @@ public class AnalyticsSqlUtils
         Assert.notNull( alias, "Alias must be specified" );
         
         return alias + SEPARATOR + quote( relation );
+    }
+
+    /**
+     * Quotes and qualifies the given relation (typically a column). Quotes part 
+     * of the given relation are encoded (replaced by double quotes that is).
+     * The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
+     * 
+     * @return the quoted and qualified relation.
+     */
+    public static String quoteAlias( String relation )
+    {        
+        return ANALYTICS_TBL_ALIAS + SEPARATOR + quote( relation );
     }
     
     /**
