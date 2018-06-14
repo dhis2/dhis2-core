@@ -28,8 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -46,7 +44,6 @@ import java.util.List;
 @Transactional
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackedEntityProgramOwnerService.class );
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

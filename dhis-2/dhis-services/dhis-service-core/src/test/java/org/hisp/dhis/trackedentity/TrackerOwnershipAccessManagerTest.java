@@ -28,40 +28,19 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.List;
-
 import static org.junit.Assert.*;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
 {
@@ -126,6 +105,7 @@ public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
     {
         assertTrue(trackerOwnershipAccessManager.isOwner( userA, entityInstanceA1, programA ));
         assertFalse(trackerOwnershipAccessManager.isOwner( userB, entityInstanceA1, programA ));
+        assertTrue(trackerOwnershipAccessManager.isOwner( userB, entityInstanceB1, programA ));
         trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
         assertFalse(trackerOwnershipAccessManager.isOwner( userA, entityInstanceA1, programA ));
         assertFalse(trackerOwnershipAccessManager.hasTemporaryAccess( entityInstanceA1, programA,userA ));
@@ -133,16 +113,6 @@ public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
         assertFalse(trackerOwnershipAccessManager.hasTemporaryAccess( entityInstanceA1, programA,userB ));
     }
     
-    @Test
-    public void testEnrollmentImplicitOwnershipAfterBreakingGlass()
-    {
-    }
-    
-    @Test
-    public void testEnrollmentWithoutOwnership()
-    {
-    }
-
     @Test
     public void testGrantTemporaryOwnershipWithAudit()
     {

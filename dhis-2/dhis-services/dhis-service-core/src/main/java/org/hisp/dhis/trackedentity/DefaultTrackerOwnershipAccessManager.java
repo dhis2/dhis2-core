@@ -88,12 +88,20 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
      */
     private Cache<Boolean> temporaryTrackerOwnershipCache;
 
+    private String temporaryOwnershipTimeout;
+
+    public void setTemporaryOwnershipTimeout( String temporaryOwnershipTimeout )
+    {
+        this.temporaryOwnershipTimeout = temporaryOwnershipTimeout;
+    }
+
     @PostConstruct
     public void init()
     {
         temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "tempTrackerOwnership" ).withDefaultValue( false ).expireAfterWrite( 1, TimeUnit.HOURS )
-            .withMaximumSize( 10000 ).build();
+            .forRegion( "tempTrackerOwnership" ).withDefaultValue( false )
+            .expireAfterWrite( Long.parseLong( temporaryOwnershipTimeout ), TimeUnit.HOURS ).withMaximumSize( 10000 )
+            .build();
 
     }
 
@@ -186,7 +194,9 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
         else
         {
-            throw new AccessDeniedException( "User does not have access to change ownership for the entity program combination" );
+            log.error( "Unauthorized attempt to change ownership" );
+            throw new AccessDeniedException(
+                "User does not have access to change ownership for the entity program combination" );
         }
     }
 
@@ -221,10 +231,12 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
-        } 
+        }
         else
         {
-            throw new AccessDeniedException( "User does not have access to change ownership for the entity program combination" );
+            log.error( "Unauthorized attempt to change ownership" );
+            throw new AccessDeniedException(
+                "User does not have access to change ownership for the entity program combination" );
         }
     }
 
@@ -369,11 +381,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
 
         // allow if the program is OPEN or AUDITED or without registration
-        if ( program.isWithoutRegistration() || program.getAccessLevel() == AccessLevel.OPEN
-            || program.getAccessLevel() == AccessLevel.AUDITED )
-        {
-            return true;
-        }
-        return false;
+        return (program.isWithoutRegistration() || program.getAccessLevel() == AccessLevel.OPEN
+            || program.getAccessLevel() == AccessLevel.AUDITED);
     }
 }

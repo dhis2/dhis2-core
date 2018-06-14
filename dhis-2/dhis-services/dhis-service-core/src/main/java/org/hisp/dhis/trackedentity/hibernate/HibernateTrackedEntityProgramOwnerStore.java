@@ -30,8 +30,6 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -42,8 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
  */
 public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericStore<TrackedEntityProgramOwner> implements TrackedEntityProgramOwnerStore
 {
-    private static final Log log = LogFactory.getLog( HibernateTrackedEntityProgramOwnerStore.class );
-
     @Override
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId )
     {
