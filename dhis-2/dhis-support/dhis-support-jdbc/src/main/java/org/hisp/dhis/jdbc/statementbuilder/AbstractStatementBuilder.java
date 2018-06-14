@@ -298,25 +298,31 @@ public abstract class AbstractStatementBuilder
         return false;
     }
     
-    public String getBoundedDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+    public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
-        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) && 
-            programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            String columnName = "\"" + dataElementUid + "\"";
-            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                (programIndicator.getEndEventBoundary() != null ? ("and " + 
-                getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
-                " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
-                    getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
-                " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            if(programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+            {
+                String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+                String columnName = "\"" + dataElementUid + "\"";
+                return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+                    ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                    (programIndicator.getEndEventBoundary() != null ? ("and " + 
+                    getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
+                    " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                        getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                    " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            }
+            else
+            {
+                return this.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
+            }
         }
         else
         {
-            return this.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
+            return this.columnQuote( dataElementUid );
         }
     }
     
@@ -339,7 +345,7 @@ public abstract class AbstractStatementBuilder
             Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
             String dataElement = matcher.group( AnalyticsPeriodBoundary.DATA_ELEMENT_REGEX_GROUP );
             Assert.isTrue( dataElement != null, "Can not find data element for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
-            columnSql =  getBoundedDataValueSelectSql( programStage, dataElement, reportingStartDate, reportingEndDate, programIndicator );
+            columnSql =  getProgramIndicatorDataValueSelectSql( programStage, dataElement, reportingStartDate, reportingEndDate, programIndicator );
         }
         if ( boundary.isAttributeCohortBoundary() )
         {
