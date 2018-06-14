@@ -303,17 +303,17 @@ public abstract class AbstractStatementBuilder
     {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
-            if(programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+            if( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
             {
                 String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
                 String columnName = "\"" + dataElementUid + "\"";
                 return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                     ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                    (programIndicator.getEndEventBoundary() != null ? ("and " + 
+                    ( programIndicator.getEndEventBoundary() != null ? ("and " + 
                     getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
-                    " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                    " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
                         getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
-                    " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
             }
             else
             {
@@ -363,7 +363,7 @@ public abstract class AbstractStatementBuilder
     {
         String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE : 
             boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE : 
-                boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE : 
+            boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE : 
             this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate, programIndicator );
         
         final SimpleDateFormat format = new SimpleDateFormat();

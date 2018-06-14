@@ -260,11 +260,11 @@ public class JdbcEnrollmentAnalyticsManager
             String columnName = "\"" + dataElementUid + "\"";
             return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                 ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                (programIndicator.getEndEventBoundary() != null ? ("and " + 
+                ( programIndicator.getEndEventBoundary() != null ? ( "and " + 
                 statementBuilder.getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
-                " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
-                    statementBuilder.getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
-                " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+                    " ") : "" ) + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                statementBuilder.getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
         else
         {
