@@ -53,6 +53,7 @@ import java.util.Set;
 public class EventSearchParams
 {
     public static final String EVENT_ID = "event";
+    public static final String EVENT_ENROLLMENT_ID = "enrollment";
     public static final String EVENT_CREATED_ID = "created";
     public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
     public static final String EVENT_STORED_BY_ID = "storedBy";
@@ -190,6 +191,11 @@ public class EventSearchParams
     public boolean hasProgram()
     {
     	return program != null;
+    }
+    
+    public boolean hasProgramStage()
+    {
+    	return programStage != null;
     }
 
     /**

@@ -248,6 +248,11 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     @Override
     public boolean hasAccess( User user, String teiUid, String programUid )
     {
+    	if ( user == null || user.isSuper() )
+        {
+            return true;
+        }
+    	
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
 
         Program program = programService.getProgram( programUid );
