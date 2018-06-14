@@ -263,6 +263,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-importexport</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Capture  -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-capture</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-capture</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
