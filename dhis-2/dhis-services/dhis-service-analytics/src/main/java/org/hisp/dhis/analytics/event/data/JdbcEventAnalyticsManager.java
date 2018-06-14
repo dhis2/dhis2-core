@@ -335,7 +335,7 @@ public class JdbcEventAnalyticsManager
             
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
-                OrganisationUnit unit = (OrganisationUnit) object;                
+                OrganisationUnit unit = (OrganisationUnit) object;
                 sql += quoteAlias( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
