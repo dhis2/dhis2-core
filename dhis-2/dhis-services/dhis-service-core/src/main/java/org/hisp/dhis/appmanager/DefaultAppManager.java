@@ -87,6 +87,7 @@ public class DefaultAppManager
     public void initCache()
     {
         appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
+        reloadApps();
     }
 
     @Override

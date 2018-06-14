@@ -82,7 +82,8 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TABLE_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -308,7 +309,7 @@ public class JdbcAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql + " as " + ANALYTICS_TABLE_ALIAS + " ";
+        return sql + " as " + ANALYTICS_TBL_ALIAS + " ";
     }
 
     /**
@@ -328,7 +329,7 @@ public class JdbcAnalyticsManager
         {
             if ( !dim.getItems().isEmpty() && !dim.isFixed() )
             {
-                String col = quote( dim.getDimensionName() );
+                String col = quoteAlias( dim.getDimensionName() );
 
                 sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
             }
@@ -352,7 +353,7 @@ public class JdbcAnalyticsManager
                 {
                     if ( filter.hasItems() )
                     {
-                        String col = quote( filter.getDimensionName() );
+                        String col = quoteAlias( filter.getDimensionName() );
 
                         sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
                     }
@@ -372,11 +373,11 @@ public class JdbcAnalyticsManager
 
             for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
             {
-                String ouCol = quote( LEVEL_PREFIX + unit.getLevel() );
+                String ouCol = quoteAlias( LEVEL_PREFIX + unit.getLevel() );
                 Integer level = params.getDataApprovalLevels().get( unit );
 
                 sql += "(" + ouCol + " = '" + unit.getUid() + "' and " + 
-                    quote( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
+                    quoteAlias( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
             }
 
             sql = removeLastOr( sql ) + ") ";
@@ -389,26 +390,26 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + quote( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quote( "ouopeningdate" ) + " is null) and " +
-                "(" + quote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quote( "oucloseddate" ) + " is null)) ";
+                "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
+                "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
         }
         
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + quote( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quote( "costartdate" ) + " is null) and " +
-                "(" + quote( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quote( "coenddate" ) +  " is null)) ";
+                "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
+                "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
         }
 
         if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and " + quote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "timely" ) + " is true ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "timely" ) + " is true ";
         }
 
         // ---------------------------------------------------------------------
@@ -417,7 +418,7 @@ public class JdbcAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {            
-            sql += sqlHelper.whereAnd() + " " + quote( "year" ) + " in (" + 
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" + 
                 TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -427,7 +428,7 @@ public class JdbcAnalyticsManager
         
         if ( params.getAggregationType().isLastPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
         
         return sql;
@@ -627,7 +628,7 @@ public class JdbcAnalyticsManager
             {
                 if ( !dimension.isFixed() )
                 {
-                    builder.append( quote( dimension.getDimensionName() ) ).append( "," );
+                    builder.append( quoteAlias( dimension.getDimensionName() ) ).append( "," );
                 }
             }
 
