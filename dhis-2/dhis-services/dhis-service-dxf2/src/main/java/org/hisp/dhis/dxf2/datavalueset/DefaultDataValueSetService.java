@@ -1063,7 +1063,7 @@ public class DefaultDataValueSetService
             if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
                 if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> isLocked( approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
+                    () -> isLocked( currentUser, approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
                         period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );
@@ -1337,15 +1337,8 @@ public class DefaultDataValueSetService
      * @param organisationUnit       the organisation unit.
      * @param skipLockExceptionCheck whether to skip lock exception check.
      */
-    private boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
+    private boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
     {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && currentUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            return false;
-        }
-
-        return dataSet.isLocked( period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
+        return dataSet.isLocked( user, period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
     }
 }

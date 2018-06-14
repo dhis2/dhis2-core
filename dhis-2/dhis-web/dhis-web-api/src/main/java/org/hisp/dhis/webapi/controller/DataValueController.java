@@ -790,8 +790,10 @@ public class DataValueController
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
+        User user = currentUserService.getCurrentUser();
+
+        if ( dataSet == null ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }

@@ -301,7 +301,7 @@ public class DefaultDataSetService
     public boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now )
     {
-        if ( user != null && !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        if ( user == null || !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
             now = now != null ? now : new Date();
 
