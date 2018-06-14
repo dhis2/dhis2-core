@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
 import javax.annotation.Nullable;
@@ -1140,6 +1141,26 @@ public class DataQueryParams
     {
         return timeField != null && !TimeField.EVENT_DATE.name().equals( timeField );
     }
+    
+    /**
+     * Returns the time field as field (column) value. If the 
+     * time field is within {@link TimeField} enumeration, the field
+     * (column) value is returned.
+     */
+    public String getTimeFieldAsField()
+    {
+        return TimeField.fieldIsValid( timeField ) ? TimeField.valueOf( timeField ).getField() : timeField;
+    }
+        
+    /**
+     * Returns the time field as field (column) value using
+     * {@link DataQueryParams#getTimeFieldAsField()}. Returns the
+     * default {@link TimeField#EVENT_DATE} if not specified.
+     */
+    public String getTimeFieldAsFieldFallback()
+    {
+        return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
+    }
 
     /**
      * Indicates whether this object has a program.
@@ -1859,7 +1880,7 @@ public class DataQueryParams
     {
         return timeField;
     }
-    
+
     public DhisApiVersion getApiVersion()
     {
         return apiVersion;

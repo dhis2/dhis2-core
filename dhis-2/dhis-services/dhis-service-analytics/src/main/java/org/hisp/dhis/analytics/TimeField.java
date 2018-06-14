@@ -43,8 +43,8 @@ public enum TimeField
 
     private String field;
     
-    private static final Set<String> FIELDS = Sets.newHashSet( TimeField.values() )
-        .stream().map( TimeField::getField )
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
         .collect( Collectors.toSet() );
         
     TimeField( String field )
@@ -59,6 +59,6 @@ public enum TimeField
     
     public static boolean fieldIsValid( String field )
     {
-        return FIELDS.contains( field );
+        return field != null && FIELD_NAMES.contains( field );
     }
 }
