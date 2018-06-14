@@ -143,6 +143,7 @@ public class EventQueryValidatorTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
         queryValidator.validate( params );        
@@ -178,6 +179,7 @@ public class EventQueryValidatorTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
         queryValidator.validate( params );        
