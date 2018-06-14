@@ -136,6 +136,8 @@ public class PredictionServiceTest
 
     private DataSet dataSetMonthly;
 
+    private PredictionSummary summary;
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -237,6 +239,8 @@ public class PredictionServiceTest
         expressionService.addExpression( expressionB );
         expressionService.addExpression( expressionC );
         expressionService.addExpression( expressionD );
+
+        summary = new PredictionSummary();
 
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
@@ -447,7 +451,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionB, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 1, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ), summary );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
@@ -461,7 +467,13 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
             expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
-        assertEquals( 8, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
+
+        assertEquals( 1, summary.getPredictors() );
+        assertEquals( 8, summary.getInserted() );
+        assertEquals( 0, summary.getUpdated() );
+        assertEquals( 0, summary.getDeleted() );
+        assertEquals( 0, summary.getUnchanged() );
 
         assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
         assertEquals( "5.5", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
@@ -474,7 +486,16 @@ public class PredictionServiceTest
         assertEquals( "15.25", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 11 ) ) );
 
         // Make sure we can do it again.
-        assertEquals( 8, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
+
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
+
+        assertEquals( 1, summary.getPredictors() );
+        assertEquals( 0, summary.getInserted() );
+        assertEquals( 0, summary.getUpdated() );
+        assertEquals( 0, summary.getDeleted() );
+        assertEquals( 8, summary.getUnchanged() );
     }
 
     @Test
@@ -486,7 +507,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonal",
             expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
-        assertEquals( 100, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ), summary );
+
+        assertEquals( 100, summary.getInserted() );
 
         assertEquals( "5.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
         assertEquals( "5.5", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
@@ -511,7 +534,9 @@ public class PredictionServiceTest
             new Expression( "#{" + dataElementB.getUid() + "}", "outbreak" ),
             periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
-        assertEquals( 99, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ), summary );
+
+        assertEquals( 99, summary.getInserted() );
 
         assertEquals( "5.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
         assertEquals( "5.5", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
@@ -533,7 +558,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictConstant",
             expressionC, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
-        assertEquals( 6, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 6, summary.getInserted() );
 
         assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -554,7 +581,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementY, defaultCombo, "PredictInteger",
             expressionC, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
-        assertEquals( 3, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ), summary );
+
+        assertEquals( 3, summary.getInserted() );
 
         assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
@@ -570,7 +599,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, altCombo, "PredictDays",
             expressionD, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
-        assertEquals( 6, predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 10 ) ) );
+        predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 10 ), summary );
+
+        assertEquals( 6, summary.getInserted() );
 
         assertEquals( "31.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
         assertEquals( "30.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
@@ -591,7 +622,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, altCombo, "PredictDays",
             expressionD, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
-        assertEquals( 0, predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 8 ) ) );
+        predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 8 ), summary );
+
+        assertEquals( 0, summary.getInserted() );
     }
 
     @Test
@@ -611,7 +644,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithCurrentPeriodData",
             expressionE, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 4, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( 4, summary.getInserted() );
 
         assertEquals( "11.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "22.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -636,7 +671,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithOnlyCurrentPeriodData",
             expressionF, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 4, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ) ) );
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( 4, summary.getInserted() );
 
         assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "2.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -654,7 +691,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionG, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 1, predictionService.predict( p, monthStart( 2010, 7 ), monthStart( 2010, 8 ) ) );
+        predictionService.predict( p, monthStart( 2010, 7 ), monthStart( 2010, 8 ), summary );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 7 ) ) );
     }
@@ -700,7 +739,9 @@ public class PredictionServiceTest
         Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionG, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( p, monthStart( 2011, 7 ), monthStart( 2011, 8 ) ) );
+        predictionService.predict( p, monthStart( 2011, 7 ), monthStart( 2011, 8 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, optionComboJL, sourceA, makeMonth( 2011, 7 ) ) );
         assertEquals( "7.0", getDataValue( dataElementX, defaultCombo, optionComboKL, sourceA, makeMonth( 2011, 7 ) ) );
@@ -720,7 +761,9 @@ public class PredictionServiceTest
             new Expression( "If(#{" + dataElementB.getUid() + "} == #{" + dataElementA.getUid() + "},1,2)", "ExpressionIf_A" ),
             null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
+        predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
         assertEquals( "2.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
@@ -729,7 +772,11 @@ public class PredictionServiceTest
             new Expression( "SUM(if(#{" + dataElementB.getUid() + "} < 2 * #{" + dataElementA.getUid() + "},3,4))", "ExpressionIf_B" ),
             null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -738,7 +785,11 @@ public class PredictionServiceTest
             new Expression( "IF(SUM(#{" + dataElementB.getUid() + "}) != SUM(2 * #{" + dataElementA.getUid() + "}),5,6)", "ExpressionIf_C" ),
             null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "6.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -757,7 +808,9 @@ public class PredictionServiceTest
             new Expression( "#{" + dataElementA.getUid() + "} + If(IsNull(#{" + dataElementB.getUid() + "}),5,#{" + dataElementB.getUid() + "})", "ExpressionIsNull" ),
             null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
+        predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
         assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
@@ -784,7 +837,9 @@ public class PredictionServiceTest
         Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictNeverSkipY",
             expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 9, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+        predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 9, summary.getInserted() );
 
         assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
         assertEquals( "14.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
@@ -798,7 +853,11 @@ public class PredictionServiceTest
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
 
-        assertEquals( 2, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+        summary = new PredictionSummary();
+
+        predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "14", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
@@ -825,12 +884,18 @@ public class PredictionServiceTest
         Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictNeverSkipY",
             expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 2, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+        predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
         assertEquals( "14.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
 
-        assertEquals( 2, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+        summary = new PredictionSummary();
+
+        predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ), summary );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
         assertEquals( "14", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
@@ -857,11 +922,17 @@ public class PredictionServiceTest
         Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictSkipIfAnyValueMissingY",
             expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 1, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+        predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
 
-        assertEquals( 1, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+        summary = new PredictionSummary();
+
+        predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ), summary );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
     }
@@ -884,17 +955,23 @@ public class PredictionServiceTest
 
         List<String> predictors = Lists.newArrayList( predictorA.getUid() );
 
-        assertEquals( 1, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
 
         predictors = Lists.newArrayList( predictorA.getUid(), predictorB.getUid() );
 
-        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
 
-        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null ) );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+
+        assertEquals( 2, summary.getInserted() );
     }
 
     @Test
@@ -921,7 +998,9 @@ public class PredictionServiceTest
 
         List<String> predictorGroups = Lists.newArrayList( predictorGroupA.getUid() );
 
-        assertEquals( 1, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null ) );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null );
+
+        assertEquals( 1, summary.getInserted() );
 
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
 
@@ -929,7 +1008,9 @@ public class PredictionServiceTest
 
         predictorService.updatePredictorGroup( predictorGroupA );
 
-        assertEquals( 2, predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null ) );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups, null );
+
+        assertEquals( 2, summary.getInserted() );
 
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
