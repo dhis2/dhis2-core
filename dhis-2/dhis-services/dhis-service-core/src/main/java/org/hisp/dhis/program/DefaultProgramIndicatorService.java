@@ -396,9 +396,7 @@ public class DefaultProgramIndicatorService
 
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
-                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? 
-                        statementBuilder.getBoundedDataValueInEnrollmentSQL( programIndicator, el2, el1, startDate, endDate ) :
-                        statementBuilder.columnQuote( el2 );
+                    columnName = statementBuilder.getProgramIndicatorDataValueSelectSql( el1, el2, startDate, endDate, programIndicator );
                 }
                 else
                 // ProgramIndicator.KEY_ATTRIBUTE

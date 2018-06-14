@@ -315,7 +315,7 @@ public class JdbcEventAnalyticsManager
         {
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
-                sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.getCohortBoundaryCondition( boundary, params.getEarliestStartDate(), params.getLatestEndDate(), params.getProgramIndicator() ) + " ";
             }
         }
         else if ( params.hasStartEndDate() )

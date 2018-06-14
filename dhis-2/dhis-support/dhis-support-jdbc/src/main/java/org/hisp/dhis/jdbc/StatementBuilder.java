@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
@@ -267,7 +268,10 @@ public interface StatementBuilder
      */
     boolean supportsPartialIndexes();
     
-    String getBoundedDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+    String getCohortBoundaryCondition( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, 
+        ProgramIndicator programIndicator );
+    
+    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
     
 }

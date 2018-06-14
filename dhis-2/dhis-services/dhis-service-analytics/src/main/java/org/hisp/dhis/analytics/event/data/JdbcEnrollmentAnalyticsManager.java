@@ -97,7 +97,7 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 if ( boundary.isCohortDateBoundary() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + this.getCohortBoundaryCondition( boundary, params.getEarliestStartDate(), params.getLatestEndDate(),
+                    sql += sqlHelper.whereAnd() + " " + statementBuilder.getCohortBoundaryCondition( boundary, params.getEarliestStartDate(), params.getLatestEndDate(),
                         params.getProgramIndicator() ) + " ";
                 }
             }
@@ -260,9 +260,9 @@ public class JdbcEnrollmentAnalyticsManager
             return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                 ".pi = enrollmenttable.pi and " + columnName + " is not null " +
                 (programIndicator.getEndEventBoundary() != null ? ("and " + 
-                getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
+                statementBuilder.getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
                 " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
-                    getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                    statementBuilder.getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
                 " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
         else
