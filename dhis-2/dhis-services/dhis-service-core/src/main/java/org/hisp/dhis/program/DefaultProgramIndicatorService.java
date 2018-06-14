@@ -396,8 +396,9 @@ public class DefaultProgramIndicatorService
 
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
-                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? getDataValueEnrollmentSql(
-                        el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
+                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? 
+                        statementBuilder.getBoundedDataValueInEnrollmentSQL( programIndicator, el2, el1, startDate, endDate ) :
+                        statementBuilder.columnQuote( el2 );
                 }
                 else
                 // ProgramIndicator.KEY_ATTRIBUTE
@@ -432,27 +433,6 @@ public class DefaultProgramIndicatorService
         }
 
         return TextUtils.appendTail( matcher, buffer );
-    }
-
-    private String getDataValueEnrollmentSql( String dataElementUid, String programStageUid,
-        ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
-    {
-        if ( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
-        {
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            String columnName = "\"" + dataElementUid + "\"";
-            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                (programIndicator.getEndEventBoundary() != null ? ("and " + 
-                programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + 
-                " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
-                programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) +
-                " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
-        }
-        else
-        {
-            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
-        }
     }
 
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )

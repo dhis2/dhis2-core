@@ -218,7 +218,7 @@ public class ProgramIndicator
      * @param expression the program indicator expression.
      * @return a set of column names
      */
-    public static Set<String> getVariableColumnNames( String expression, AnalyticsType analyticsType )
+    public static Set<String> getVariableColumnNames( String expression )
     {
         Set<String> requiredColumns = new HashSet<String>();
         

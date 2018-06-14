@@ -29,7 +29,10 @@ package org.hisp.dhis.jdbc;
  */
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
  * @author Lars Helge Overland
@@ -263,4 +266,8 @@ public interface StatementBuilder
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
+    
+    String getBoundedDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
+    
 }
