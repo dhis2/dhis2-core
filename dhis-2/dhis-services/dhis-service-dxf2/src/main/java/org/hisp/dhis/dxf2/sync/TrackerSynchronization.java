@@ -150,7 +150,7 @@ public class TrackerSynchronization
         {
             tei.setAttributes(
                 tei.getAttributes().stream()
-                    .filter( attr -> !attr.getSkipSynchronization() )
+                    .filter( attr -> !attr.isSkipSynchronization() )
                     .collect( Collectors.toList() )
             );
         }

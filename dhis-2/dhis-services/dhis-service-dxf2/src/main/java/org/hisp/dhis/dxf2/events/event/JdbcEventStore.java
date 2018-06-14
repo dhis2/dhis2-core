@@ -891,11 +891,11 @@ public class JdbcEventStore
     {
 
         StringBuilder sb = new StringBuilder( "select pdv.programstageinstanceid as pdv_id, pdv.created as pdv_created, pdv.lastupdated as pdv_lastupdated, " );
-        sb.append( "pdv.value as pdv_value, pdv.storedby as pdv_storedby, pdv.providedelsewhere as pdv_providedelsewhere, de.uid as de_uid, de.code as de_code, " );
+        sb.append( "pdv.value as pdv_value, pdv.storedby as pdv_storedby, pdv.providedelsewhere as pdv_providedelsewhere, de.uid as de_uid, de.code as de_code " );
 
         if ( params.isSynchronizationQuery() )
         {
-            sb.append( "psde.skipsynchronization as psde_skipsynchronization " );
+            sb.append( ", psde.skipsynchronization as psde_skipsynchronization " );
         }
 
         sb.append( "from trackedentitydatavalue pdv inner join dataelement de on pdv.dataelementid = de.dataelementid " );
@@ -904,11 +904,6 @@ public class JdbcEventStore
         {
             sb.append( "inner join programstagedataelement psde on de.dataelementid = psde.dataelementid " );
             sb.append( "inner join programstage p2 on psde.programstageid = p2.programstageid " );
-        }
-
-        if ( params.isSynchronizationQuery() )
-        {
-            log.info( "it is a synchronization query" );
         }
 
         return sb.toString();

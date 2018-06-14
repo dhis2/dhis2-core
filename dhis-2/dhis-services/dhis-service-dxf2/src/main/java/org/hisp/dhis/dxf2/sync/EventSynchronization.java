@@ -144,9 +144,7 @@ public class EventSynchronization
         {
             event.setDataValues(
                 event.getDataValues().stream()
-                    .peek( dv -> System.out.println( "DV 1: " + dv ) )
                     .filter( dv -> !dv.isSkipSynchronization() )
-                    .peek( dv -> System.out.println( "DV 2: " + dv ) )
                     .collect( Collectors.toList() )
             );
         }
