@@ -158,7 +158,7 @@ public class DefaultSystemService
             dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
             dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
             Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_POLL_RECORDS ) )
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
         );
 
         if ( kafka.isValid() )
