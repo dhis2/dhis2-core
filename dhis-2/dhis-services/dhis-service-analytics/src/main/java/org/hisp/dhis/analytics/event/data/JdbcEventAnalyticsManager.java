@@ -266,7 +266,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasTimeField() )
         {
-            String joinCol = quoteAlias( params.getTimeField() );            
+            String joinCol = quoteAlias( params.getTimeFieldAsField() );            
             sql += "left join _dateperiodstructure " + DATE_PERIOD_STRUCT_ALIAS + " on cast(" + joinCol + " as date)=dps.dateperiod ";
         }
         
