@@ -99,9 +99,9 @@ public class EventDataQueryRequest
     protected Set<String> desc;
 
     protected String timeField;
-    
+
     protected boolean coordinatesOnly;
-    
+
     protected String coordinateField;
 
     protected Integer page;
