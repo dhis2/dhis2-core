@@ -42,6 +42,7 @@ import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -183,6 +184,10 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
         }
+        else
+        {
+            throw new AccessDeniedException( "User does not have access to change ownership for the entity program combination" );
+        }
     }
 
     @Override
@@ -216,6 +221,10 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
+        } 
+        else
+        {
+            throw new AccessDeniedException( "User does not have access to change ownership for the entity program combination" );
         }
     }
 
