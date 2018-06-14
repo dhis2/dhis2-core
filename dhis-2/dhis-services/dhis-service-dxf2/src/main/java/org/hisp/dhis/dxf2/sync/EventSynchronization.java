@@ -109,7 +109,7 @@ public class EventSynchronization
         for ( int i = 1; i <= pages; i++ )
         {
             Events events = eventService.getAnonymousEventsForSync( eventSyncPageSize );
-
+            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
             log.info( String.format( "Syncing page %d, page size is: %d", i, eventSyncPageSize ) );
 
             if ( log.isDebugEnabled() )
@@ -135,6 +135,18 @@ public class EventSynchronization
         {
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Events sync was successfully done! It took " + syncDuration + " ms." );
+        }
+    }
+
+    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
+    {
+        for ( Event event : events.getEvents() )
+        {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter( dv -> !dv.isSkipSynchronization() )
+                    .collect( Collectors.toList() )
+            );
         }
     }
 

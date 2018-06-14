@@ -158,6 +158,13 @@ public class DefaultMessageService
     }
 
     @Override
+    public MessageConversationParams.Builder createSystemMessage( Collection<User> recipients, String subject, String text )
+    {
+        return new MessageConversationParams.Builder( recipients, null, subject, text,
+            MessageType.SYSTEM );
+    }
+
+    @Override
     public MessageConversationParams.Builder createValidationResultMessage( Collection<User> receivers, String subject,
         String text )
     {
