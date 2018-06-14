@@ -335,7 +335,7 @@ public class JdbcEventAnalyticsManager
             
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
-                OrganisationUnit unit = (OrganisationUnit) object;
+                OrganisationUnit unit = (OrganisationUnit) object;                
                 sql += quoteAlias( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
@@ -351,8 +351,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = quoteAlias( dim.getDimensionName() );
-            
+            String col = quoteAlias( dim.getDimensionName() );            
             sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
@@ -537,6 +536,8 @@ public class JdbcEventAnalyticsManager
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String valueItem = quote( params.getValue().getDimensionItem() );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        String alias = params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+        String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         
         String sql = "(select ";
         
@@ -548,10 +549,10 @@ public class JdbcEventAnalyticsManager
         sql += 
             "row_number() over (" + 
                 "partition by ou, ao " +
-                "order by executiondate desc) as pe_rank " +
+                "order by " + timeCol + " desc) as pe_rank " +
             "from " + params.getTableName() + " " +
-            "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
-            "and executiondate <= '" + getMediumDateString( latest ) + "' " +
+            "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
+            "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
         
         return sql;
