@@ -196,7 +196,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-interpretation</artifactId>
-                  <version>2.27-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-interpretation</outputDirectory>
                   <includes>**/*.*</includes>

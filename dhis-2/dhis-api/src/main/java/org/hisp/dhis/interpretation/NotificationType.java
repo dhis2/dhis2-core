@@ -1,4 +1,5 @@
-package org.hisp.dhis.importexport.action.dxf2;
+package org.hisp.dhis.interpretation;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,26 +28,11 @@ package org.hisp.dhis.importexport.action.dxf2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Stian Sandvold
- */
-
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.dxf2.csv.CsvImportClass;
-
-public class ImportMetadataAction implements Action
+public enum NotificationType
 {
-    private CsvImportClass[] csvImportClasses = CsvImportClass.values();
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        return SUCCESS;
-    }
-
-    public CsvImportClass[] getCsvImportClasses()
-    {
-        return csvImportClasses;
-    }
+        INTERPRETATION_CREATE,
+        INTERPRETATION_UPDATE,
+        INTERPRETATION_LIKE,
+        COMMENT_CREATE,
+        COMMENT_UPDATE
 }
