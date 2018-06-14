@@ -107,6 +107,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean includeMetadataDetails,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -115,15 +116,15 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).program( program )
-            .stage( stage ).startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter )
-            .value( value ).aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .showHierarchy( showHierarchy ).sortOrder( sortOrder ).limit( limit ).outputType( outputType )
-            .eventStatus( eventStatus ).programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).value( value )
+            .aggregationType( aggregationType ).skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding )
+            .completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
+            .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
+            .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).includeMetadataDetails( includeMetadataDetails )
-            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion ).build();
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -157,6 +158,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -171,7 +173,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -206,6 +208,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -220,7 +223,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
    
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -255,6 +258,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -269,7 +273,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -304,6 +308,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -318,7 +323,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
    
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -353,6 +358,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -367,7 +373,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
   
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 

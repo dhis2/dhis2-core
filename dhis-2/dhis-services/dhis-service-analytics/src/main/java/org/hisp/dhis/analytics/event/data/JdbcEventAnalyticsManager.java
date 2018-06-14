@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.s.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -67,9 +67,10 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 
 /**
- * TODO could use row_number() and filtering for paging, but not supported on MySQL.
+ * TODO could use row_number() and filtering for paging.
  * 
  * @author Lars Helge Overland
  */
@@ -261,7 +262,15 @@ public class JdbcEventAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql + " as " + ANALYTICS_TBL_ALIAS + " ";
+        sql += " as " + ANALYTICS_TBL_ALIAS + " ";
+        
+        if ( params.hasTimeField() )
+        {
+            String joinCol = quoteAlias( params.getTimeField() );            
+            sql += "left join _dateperiodstructure " + DATE_PERIOD_STRUCT_ALIAS + " on cast(" + joinCol + " as date)=dps.dateperiod ";
+        }
+        
+        return sql;
     }
 
     /**
