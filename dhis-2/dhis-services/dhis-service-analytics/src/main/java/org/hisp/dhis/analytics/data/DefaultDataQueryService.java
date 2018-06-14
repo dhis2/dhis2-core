@@ -164,7 +164,8 @@ public class DefaultDataQueryService
         return params
             .withStartDate( request.getStartDate() )
             .withEndDate( request.getEndDate() )
-            .withOrder( request.getOrder())
+            .withOrder( request.getOrder() )
+            .withTimeField( request.getTimeField() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )
