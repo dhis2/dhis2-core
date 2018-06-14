@@ -78,21 +78,21 @@ public class TrackerOwnershipController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/transfer", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackerProgramOwner( @RequestParam String tei, @RequestParam String program,
+    public void updateTrackerProgramOwner( @RequestParam String trackedEntityInstance, @RequestParam String program,
         @RequestParam String ou, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        trackerOwnershipAccessManager.transferOwnership( tei, program, ou, false, false );
+        trackerOwnershipAccessManager.transferOwnership( trackedEntityInstance, program, ou, false, false );
 
         webMessageService.send( WebMessageUtils.ok( "Ownership transferred" ), response, request );
     }
 
-    @RequestMapping( value = "/override", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void overrideOwnershipAccess( @RequestParam String tei, @RequestParam String reason,
+    @RequestMapping( value = "/override", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    public void overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
         @RequestParam String program, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        trackerOwnershipAccessManager.grantTemporaryOwnership( tei, program, currentUserService.getCurrentUser(),
+        trackerOwnershipAccessManager.grantTemporaryOwnership( trackedEntityInstance, program, currentUserService.getCurrentUser(),
             reason );
 
         webMessageService.send( WebMessageUtils.ok( "Temporary Ownership granted" ), response, request );
