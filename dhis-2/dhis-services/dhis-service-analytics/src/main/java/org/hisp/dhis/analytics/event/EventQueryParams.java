@@ -163,11 +163,6 @@ public class EventQueryParams
     private boolean aggregateData;
     
     /**
-     * The time field used as basis for aggregation.
-     */
-    private String timeField;
-    
-    /**
      * Size of cluster in meter.
      */
     private Long clusterSize;
@@ -622,14 +617,6 @@ public class EventQueryParams
         return SortOrder.ASC.equals( sortOrder ) ? -1 : SortOrder.DESC.equals( sortOrder ) ? 1 : 0;
     }
     
-    /**
-     * Indicates whether a non-default time field is specified (default is {@link TimeField#EVENT_DATE}.
-     */
-    public boolean hasTimeField()
-    {
-        return timeField != null && !TimeField.EVENT_DATE.name().equals( timeField );
-    }
-
     @Override
     public String toString()
     {
@@ -749,11 +736,6 @@ public class EventQueryParams
         return aggregateData;
     }
 
-    public String getTimeField()
-    {
-        return timeField;
-    }
-    
     public Long getClusterSize()
     {
         return clusterSize;

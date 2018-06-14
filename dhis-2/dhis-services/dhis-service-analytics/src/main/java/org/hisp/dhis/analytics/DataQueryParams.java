@@ -265,6 +265,11 @@ public class DataQueryParams
     protected SortOrder order;
     
     /**
+     * The time field used as basis for aggregation.
+     */
+    protected String timeField;
+    
+    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -1127,7 +1132,15 @@ public class DataQueryParams
     {
         return order != null;
     }
-    
+
+    /**
+     * Indicates whether a non-default time field is specified (default is {@link TimeField#EVENT_DATE}.
+     */
+    public boolean hasTimeField()
+    {
+        return timeField != null && !TimeField.EVENT_DATE.name().equals( timeField );
+    }
+
     /**
      * Indicates whether this object has a program.
      */
@@ -1193,7 +1206,7 @@ public class DataQueryParams
     {
         return currentUser != null;
     }
-    
+
     /**
      * Indicates whether one of the dimensions or filters is a program indicator.
      * @return true if one or more of the dimensions is of type program indicator.
@@ -1842,6 +1855,11 @@ public class DataQueryParams
         return order;
     }
 
+    public String getTimeField()
+    {
+        return timeField;
+    }
+    
     public DhisApiVersion getApiVersion()
     {
         return apiVersion;
@@ -2673,6 +2691,12 @@ public class DataQueryParams
         public Builder withOrder( SortOrder order )
         {
             this.params.order = order;
+            return this;
+        }
+
+        public Builder withTimeField( String timeField )
+        {
+            this.params.timeField = timeField;
             return this;
         }
         
