@@ -382,7 +382,7 @@ public class EventQueryParams
 
         return objects;
     }
-
+    
     /**
      * Get legend sets part of items and item filters.
      */
@@ -393,7 +393,6 @@ public class EventQueryParams
             .map( i -> i.getLegendSet().getLegends() )
             .flatMap( i -> i.stream() )
             .collect( Collectors.toSet() );
-            
     }
 
     /**
@@ -406,6 +405,38 @@ public class EventQueryParams
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( q -> q.stream() )
             .collect( Collectors.toSet() );
+    }
+    
+    /**
+     * Indicates whether the given time field is valid, i.e. whether
+     * it is either a fixed time field or matches the identifier of an 
+     * attribute or data element of date value type part of the query program.
+     */
+    public boolean timeFieldIsValid()
+    {
+        if ( timeField == null )
+        {
+            return true;
+        }
+        
+        if ( TimeField.fieldIsValid( timeField ) )
+        {
+            return true;
+        }
+
+        if ( program.getTrackedEntityAttributes().stream()
+            .anyMatch( at -> at.getValueType().isDate() && timeField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+        
+        if ( program.getDataElements().stream()
+            .anyMatch( de -> de.getValueType().isDate() && timeField.equals( de.getUid() ) ) )
+        {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

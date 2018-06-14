@@ -31,10 +31,8 @@ package org.hisp.dhis.analytics.event.data;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.QueryValidator;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
@@ -123,7 +121,7 @@ public class DefaultEventQueryValidator
             violation = "Limit of: " + params.getLimit() + " is larger than max limit: " + getMaxLimit();
         }
         
-        if ( params.hasTimeField() && !( TimeField.fieldIsValid( params.getTimeField() ) || CodeGenerator.isValidUid( params.getTimeField() ) ) )
+        if ( params.hasTimeField() && !params.timeFieldIsValid() )
         {
             violation = "Time field is invalid: " + params.getTimeField();
         }

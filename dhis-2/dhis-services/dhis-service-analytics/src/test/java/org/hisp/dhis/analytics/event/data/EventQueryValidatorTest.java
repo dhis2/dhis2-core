@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -122,6 +123,7 @@ public class EventQueryValidatorTest
         
         idObjectManager.save( osA );
     }
+    
     @Test
     public void validateSuccesA()
     {
@@ -132,6 +134,18 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
         
         queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateValidTimeField()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
+
+        queryValidator.validate( params );        
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -149,6 +163,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
         
@@ -160,6 +176,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withTimeField( "notAUidOrTimeField" ).build();
 
         queryValidator.validate( params );        
