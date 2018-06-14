@@ -1,10 +1,5 @@
 package org.hisp.dhis.analytics;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.Sets;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,6 +27,11 @@ import com.google.common.collect.Sets;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
 
 public enum TimeField
 {
