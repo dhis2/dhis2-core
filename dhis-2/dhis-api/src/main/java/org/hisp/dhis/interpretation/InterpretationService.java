@@ -50,6 +50,8 @@ public interface InterpretationService
 
     void updateInterpretation( Interpretation interpretation );
 
+    void updateInterpretationText( Interpretation interpretation, String text );
+
     void deleteInterpretation( Interpretation interpretation );
 
     List<Interpretation> getInterpretations();
@@ -60,8 +62,8 @@ public interface InterpretationService
 
     InterpretationComment addInterpretationComment( String uid, String text );
 
-    void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users );
-    
+    void updateComment( Interpretation interpretation, InterpretationComment comment );
+
     void updateSharingForMentions( Interpretation interpretation, Set<User> users );
 
     void updateCurrentUserLastChecked();
