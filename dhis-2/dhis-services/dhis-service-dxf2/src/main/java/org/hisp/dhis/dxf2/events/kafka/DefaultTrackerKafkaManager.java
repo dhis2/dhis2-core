@@ -213,7 +213,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( Event event : events )
         {
@@ -222,14 +222,11 @@ public class DefaultTrackerKafkaManager
                 event.setEvent( CodeGenerator.generateUid() );
             }
 
-            KafkaEvent kafkaEvent = new KafkaEvent( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, event );
+            KafkaEvent kafkaEvent = new KafkaEvent( CodeGenerator.generateUid(), job.getUid(), user.getUid(), importOptions, event );
             kafkaEvent.setJobTotal( events.size() );
 
             ktEvent.send( TOPIC_BULK_EVENTS, kafkaEvent );
         }
-
-        JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER, user.getUid(), true );
-        job.setUid( jobId );
 
         notifier.notify( job, "Kafka Event job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
@@ -240,7 +237,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( Enrollment enrollment : enrollments )
         {
@@ -249,14 +246,12 @@ public class DefaultTrackerKafkaManager
                 enrollment.setEnrollment( CodeGenerator.generateUid() );
             }
 
-            KafkaEnrollment kafkaEnrollment = new KafkaEnrollment( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, enrollment );
+            KafkaEnrollment kafkaEnrollment = new KafkaEnrollment( CodeGenerator.generateUid(), job.getUid(), user.getUid(),
+                importOptions, enrollment );
             kafkaEnrollment.setJobTotal( enrollments.size() );
 
             ktEnrollment.send( TOPIC_BULK_ENROLLMENTS, kafkaEnrollment );
         }
-
-        JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER, user.getUid(), true );
-        job.setUid( jobId );
 
         notifier.notify( job, "Kafka Enrollment job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
@@ -267,7 +262,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( TrackedEntityInstance trackedEntity : trackedEntities )
         {
@@ -276,14 +271,12 @@ public class DefaultTrackerKafkaManager
                 trackedEntity.setTrackedEntityInstance( CodeGenerator.generateUid() );
             }
 
-            KafkaTrackedEntity kafkaTrackedEntity = new KafkaTrackedEntity( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, trackedEntity );
+            KafkaTrackedEntity kafkaTrackedEntity = new KafkaTrackedEntity( CodeGenerator.generateUid(), job.getUid(), user.getUid(),
+                importOptions, trackedEntity );
             kafkaTrackedEntity.setJobTotal( trackedEntities.size() );
 
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, kafkaTrackedEntity );
         }
-
-        JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER, user.getUid(), true );
-        job.setUid( jobId );
 
         notifier.notify( job, "Kafka Tracked Entity job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
