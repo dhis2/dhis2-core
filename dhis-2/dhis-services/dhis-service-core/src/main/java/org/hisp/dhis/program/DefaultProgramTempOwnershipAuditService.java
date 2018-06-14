@@ -31,11 +31,13 @@ package org.hisp.dhis.program;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Transactional
 public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwnershipAuditService
 {
 

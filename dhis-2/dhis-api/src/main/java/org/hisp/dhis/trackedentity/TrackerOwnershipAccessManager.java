@@ -1,7 +1,5 @@
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 
