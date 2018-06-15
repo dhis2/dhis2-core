@@ -55,7 +55,6 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,9 +89,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @Autowired
     private IdentifiableObjectManager idObjectManager;
     
-    @Autowired
-    private UserService userService;
-
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,

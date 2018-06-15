@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionItemType;
@@ -95,7 +94,6 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
- * @author Ken Haase
  * @author Jim Grace
  */
 public class DefaultPredictionService
@@ -135,9 +133,6 @@ public class DefaultPredictionService
 
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
