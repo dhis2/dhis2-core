@@ -44,5 +44,5 @@ public interface PredictionService
     PredictionSummary predictTask( Date startDate, Date endDate,
         List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
 
-    int predict( Predictor predictor, Date startDate, Date endDate );
+    void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary );
 }
