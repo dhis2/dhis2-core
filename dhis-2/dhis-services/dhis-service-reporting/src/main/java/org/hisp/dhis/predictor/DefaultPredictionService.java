@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionItemType;
@@ -58,6 +59,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -74,8 +76,9 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -95,7 +98,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
  * @author Ken Haase
  * @author Jim Grace
  */
-@Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
@@ -130,6 +132,12 @@ public class DefaultPredictionService
 
     @Autowired
     protected Notifier notifier;
+
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
@@ -188,10 +196,6 @@ public class DefaultPredictionService
 
     private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors, List<String> predictorGroups )
     {
-        PredictionSummary predictionSummary = new PredictionSummary();
-
-        int count = 0;
-
         List<Predictor> predictorList = new ArrayList<>();
 
         if ( CollectionUtils.isEmpty( predictors ) && CollectionUtils.isEmpty( predictorGroups ) )
@@ -216,21 +220,23 @@ public class DefaultPredictionService
             }
         }
 
+        PredictionSummary predictionSummary = new PredictionSummary();
+
+        log.info( "Running " + predictorList.size() + " predictors from " + startDate.toString() + " to " + endDate.toString() );
+
         for ( Predictor predictor : predictorList )
         {
-            count += predict( predictor, startDate, endDate );
+            predict( predictor, startDate, endDate, predictionSummary );
         }
 
-        predictionSummary.setPredicted( count );
+        log.info( "Finished predictors from " + startDate.toString() + " to " + endDate.toString() + ": " + predictionSummary.toString() );
 
         return predictionSummary;
     }
 
     @Override
-    public int predict( Predictor predictor, Date startDate, Date endDate )
+    public void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary )
     {
-        log.info( "Predicting for " + predictor.getName() + " from " + startDate.toString() + " to " + endDate.toString() );
-
         Expression generator = predictor.getGenerator();
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
@@ -254,16 +260,17 @@ public class DefaultPredictionService
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
             categoryService.getDefaultCategoryOptionCombo() : predictor.getOutputCombo();
 
-        int predictionCount = 0;
-
+        Date now = new Date();
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
-        String currentUsername = "system-process";
+        String storedBy = "system-process";
 
         if ( currentUser != null )
         {
             currentUserOrgUnits = currentUser.getOrganisationUnits();
-            currentUsername = currentUser.getUsername();
+            storedBy = currentUser.getUsername();
         }
+
+        predictionSummary.incrementPredictors();
 
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
@@ -286,6 +293,8 @@ public class DefaultPredictionService
                 Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> nonAggregateDataMap4 =
                     nonAggregateDimensionItems.isEmpty() ? emptyMap4 :
                         getDataValues( nonAggregateDimensionItems, existingOutputPeriods, orgUnits );
+
+                List<DataValue> predictions = new ArrayList<>();
 
                 for ( OrganisationUnit orgUnit : orgUnits )
                 {
@@ -337,22 +346,19 @@ public class DefaultPredictionService
                                     Long.toString( Math.round( value ) ) :
                                     Double.toString( MathUtils.roundFraction( value, 4 ) );
 
-                                writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
-                                    categoryService.getCategoryOptionCombo( aoc ),
-                                    valueString, currentUsername );
-
-                                predictionCount++;
+                                predictions.add( new DataValue( outputDataElement,
+                                    periodService.reloadPeriod( period ), orgUnit,
+                                    outputOptionCombo, categoryService.getCategoryOptionCombo( aoc ),
+                                    valueString, storedBy, now, null ) );
                             }
                         }
                     }
                 }
+
+                writePredictions( predictions, outputDataElement, outputOptionCombo,
+                    outputPeriods, orgUnits, storedBy, predictionSummary );
             }
         }
-
-        log.info("Generated " + predictionCount + " predictions for " + predictor.getName()
-            + " from " + startDate.toString() + " to " + endDate.toString() );
-
-        return predictionCount;
     }
 
     private Map<DimensionalItemObject, Double> combine ( Map<DimensionalItemObject, Double> a, Map<DimensionalItemObject, Double> b )
@@ -852,36 +858,88 @@ public class DefaultPredictionService
     }
 
     /**
-     * Writes (adds or updates) a predicted data value to the database.
+     * Writes the predicted values to the database. Also updates the
+     * prediction summmary per-record counts.
      *
-     * @param dataElement the data element.
-     * @param period the period.
-     * @param orgUnit the organisation unit.
-     * @param categoryOptionCombo the category option combo.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param value the value.
-     * @param storedBy the user that will store this data value.
+     * @param predictions Predictions to write to the database.
+     * @param outputDataElement Predictor output data elmeent.
+     * @param outputOptionCombo Predictor output category option commbo.
+     * @param periods Periods to predict for.
+     * @param orgUnits Organisation units to predict for.
+     * @param summary Prediction summary to update.
      */
-    private void writeDataValue( DataElement dataElement, Period period,
-        OrganisationUnit orgUnit, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, String value, String storedBy )
+    private void writePredictions( List<DataValue> predictions, DataElement outputDataElement,
+        CategoryOptionCombo outputOptionCombo, List<Period> periods, List<OrganisationUnit> orgUnits,
+        String storedBy, PredictionSummary summary )
     {
-        DataValue existingValue = dataValueService.getDataValue( dataElement, period,
-            orgUnit, categoryOptionCombo, attributeOptionCombo );
+        DataExportParams params = new DataExportParams();
+        params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
+        params.setPeriods( new HashSet<>( periodService.reloadPeriods( periods ) ) );
+        params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setReturnParentOrgUnit( true );
 
-        if ( existingValue != null )
+        List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
+
+        Map<String, DeflatedDataValue> oldValues = oldValueList.stream().collect( Collectors.toMap(
+            d -> d.getPeriodId() + "-" + d.getSourceId() + "-" + d.getAttributeOptionComboId(), d -> d ) );
+
+        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+
+        for ( DataValue newValue : predictions )
         {
-            existingValue.setValue( value );
-            existingValue.setStoredBy( storedBy );
+            boolean zeroInsignificant = dataValueIsZeroAndInsignificant( newValue.getValue(), newValue.getDataElement() );
 
-            dataValueService.updateDataValue( existingValue );
+            String key = newValue.getPeriod().getId() + "-" + newValue.getSource().getId() + "-" + newValue.getAttributeOptionCombo().getId();
+
+            DeflatedDataValue oldValue = oldValues.get( key );
+
+            if ( oldValue == null )
+            {
+                if ( zeroInsignificant )
+                {
+                    continue;
+                }
+
+                summary.incrementInserted();
+
+                dataValueBatchHandler.addObject( newValue );
+            }
+            else
+            {
+                if ( newValue.getValue().equals( oldValue.getValue() ) )
+                {
+                    summary.incrementUnchanged();
+                }
+                else
+                {
+                    if ( zeroInsignificant )
+                    {
+                        continue; // Leave the old value to be deleted because the new value, insigificant, won't be stored.
+                    }
+
+                    summary.incrementUpdated();
+
+                    dataValueBatchHandler.updateObject( newValue );
+                }
+
+                oldValues.remove( key );
+            }
         }
-        else
+
+        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
+
+        for ( DeflatedDataValue oldValue : oldValues.values() )
         {
-            DataValue dv = new DataValue( dataElement, period, orgUnit,
-                categoryOptionCombo, attributeOptionCombo, value, storedBy, null, null );
+            summary.incrementDeleted();
 
-            dataValueService.addDataValue( dv );
+            DataValue toDelete = new DataValue( outputDataElement, oldValue.getPeriod(),
+                orgUnitLookup.get( oldValue.getSourceId() ), outputOptionCombo,
+                categoryService.getCategoryOptionCombo( oldValue.getAttributeOptionComboId() ),
+                oldValue.getValue(), storedBy, null, null );
+
+            dataValueBatchHandler.deleteObject( toDelete );
         }
+
+        dataValueBatchHandler.flush();
     }
 }
