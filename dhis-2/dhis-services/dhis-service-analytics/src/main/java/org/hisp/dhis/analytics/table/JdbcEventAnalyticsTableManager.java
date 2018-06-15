@@ -303,17 +303,16 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "psi.geometry", false, "gist" ) );
+
+        // lat and lng deprecated in 2.30, should be removed after 2.33
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ) );
+
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-        if ( databaseInfo.isSpatialSupport() )
-        {
-            String alias = "(select ST_SetSRID(ST_MakePoint(psi.longitude, psi.latitude), 4326)) as geom";
-            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
-        }
         
         if ( program.isRegistration() )
         {
