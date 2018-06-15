@@ -42,8 +42,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
