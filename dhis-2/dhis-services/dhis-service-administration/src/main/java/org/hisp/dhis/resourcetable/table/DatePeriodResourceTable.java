@@ -121,6 +121,15 @@ public class DatePeriodResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        List<String> indexes = new ArrayList<>();
+
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            String name = periodType.getName().toLowerCase();
+            String sql = "create index in_" + getTableName() + "_" + name + " on " + getTempTableName() + "(" + quote( name ) + ")";
+            indexes.add( sql );
+        }
+        
+        return indexes;
     }
 }
