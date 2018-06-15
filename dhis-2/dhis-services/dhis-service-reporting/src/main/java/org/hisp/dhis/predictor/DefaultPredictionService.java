@@ -65,7 +65,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -80,7 +79,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,7 +98,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
  * @author Ken Haase
  * @author Jim Grace
  */
-@Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
@@ -138,9 +135,6 @@ public class DefaultPredictionService
 
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
-
-    @Autowired
-    private PeriodStore periodStore;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -228,8 +222,6 @@ public class DefaultPredictionService
 
         PredictionSummary predictionSummary = new PredictionSummary();
 
-        predictionSummary.setPredictors( predictorList.size() );
-
         log.info( "Running " + predictorList.size() + " predictors from " + startDate.toString() + " to " + endDate.toString() );
 
         for ( Predictor predictor : predictorList )
@@ -277,6 +269,8 @@ public class DefaultPredictionService
             currentUserOrgUnits = currentUser.getOrganisationUnits();
             storedBy = currentUser.getUsername();
         }
+
+        predictionSummary.incrementPredictors();
 
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
@@ -352,7 +346,8 @@ public class DefaultPredictionService
                                     Long.toString( Math.round( value ) ) :
                                     Double.toString( MathUtils.roundFraction( value, 4 ) );
 
-                                predictions.add( new DataValue( outputDataElement, period, orgUnit,
+                                predictions.add( new DataValue( outputDataElement,
+                                    periodService.reloadPeriod( period ), orgUnit,
                                     outputOptionCombo, categoryService.getCategoryOptionCombo( aoc ),
                                     valueString, storedBy, now, null ) );
                             }
@@ -361,7 +356,7 @@ public class DefaultPredictionService
                 }
 
                 writePredictions( predictions, outputDataElement, outputOptionCombo,
-                    existingOutputPeriods, orgUnits, storedBy, predictionSummary );
+                    outputPeriods, orgUnits, storedBy, predictionSummary );
             }
         }
     }
@@ -874,17 +869,19 @@ public class DefaultPredictionService
      * @param summary Prediction summary to update.
      */
     private void writePredictions( List<DataValue> predictions, DataElement outputDataElement,
-        CategoryOptionCombo outputOptionCombo, Set<Period> periods, List<OrganisationUnit> orgUnits,
+        CategoryOptionCombo outputOptionCombo, List<Period> periods, List<OrganisationUnit> orgUnits,
         String storedBy, PredictionSummary summary )
     {
         DataExportParams params = new DataExportParams();
         params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
-        params.setPeriods( periods );
+        params.setPeriods( new HashSet<>( periodService.reloadPeriods( periods ) ) );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
         params.setReturnParentOrgUnit( true );
 
-        Map<String, DeflatedDataValue> oldValues = dataValueService.getDeflatedDataValues( params ).stream().collect( Collectors.toMap(
-            d -> d.getPeriod().getIsoDate() + "-" + d.getSourceId() + "-" + d.getAttributeOptionComboId(), d -> d ) );
+        List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
+
+        Map<String, DeflatedDataValue> oldValues = oldValueList.stream().collect( Collectors.toMap(
+            d -> d.getPeriodId() + "-" + d.getSourceId() + "-" + d.getAttributeOptionComboId(), d -> d ) );
 
         BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
 
@@ -892,7 +889,7 @@ public class DefaultPredictionService
         {
             boolean zeroInsignificant = dataValueIsZeroAndInsignificant( newValue.getValue(), newValue.getDataElement() );
 
-            String key = newValue.getPeriod().getIsoDate() + "-" + newValue.getSource().getId() + "-" + newValue.getAttributeOptionCombo().getId();
+            String key = newValue.getPeriod().getId() + "-" + newValue.getSource().getId() + "-" + newValue.getAttributeOptionCombo().getId();
 
             DeflatedDataValue oldValue = oldValues.get( key );
 
@@ -902,8 +899,6 @@ public class DefaultPredictionService
                 {
                     continue;
                 }
-
-                newValue.setPeriod( periodStore.reloadForceAddPeriod( newValue.getPeriod() ) );
 
                 summary.incrementInserted();
 

@@ -67,22 +67,32 @@ public class PredictionSummary extends AbstractWebMessageResponse
 
     public void incrementInserted()
     {
+        inserted += 1;
+    }
+
+    public void incrementPredictors()
+    {
         predictors += 1;
     }
 
     public void incrementUpdated()
     {
-        predictors += 1;
+        updated += 1;
     }
 
     public void incrementDeleted()
     {
-        predictors += 1;
+        deleted += 1;
     }
 
     public void incrementUnchanged()
     {
-        predictors += 1;
+        unchanged += 1;
+    }
+
+    public int getPredictions()
+    {
+        return inserted + updated + unchanged;
     }
 
     @JsonProperty
@@ -118,12 +128,6 @@ public class PredictionSummary extends AbstractWebMessageResponse
         return predictors;
     }
 
-    public PredictionSummary setPredictors( int predictors )
-    {
-        this.predictors = predictors;
-        return this;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getInserted()
@@ -142,7 +146,7 @@ public class PredictionSummary extends AbstractWebMessageResponse
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getDeleted()
     {
-        return predictors;
+        return deleted;
     }
 
     @JsonProperty
