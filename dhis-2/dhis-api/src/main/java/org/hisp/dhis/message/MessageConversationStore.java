@@ -59,8 +59,6 @@ public interface MessageConversationStore
      */
     List<MessageConversation> getMessageConversations( Collection<String> messageConversationUids );
     
-    int getMessageConversationCount( User user, boolean followUpOnly, boolean unreadOnly );
-    
     long getUnreadUserMessageConversationCount( User user );
     
     int deleteMessages( User sender );

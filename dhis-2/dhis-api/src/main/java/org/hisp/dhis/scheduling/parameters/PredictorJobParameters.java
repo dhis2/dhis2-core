@@ -51,15 +51,19 @@ public class PredictorJobParameters
     @JsonProperty
     private List<String> predictors;
 
+    @JsonProperty
+    private List<String> predictorGroups;
+
     public PredictorJobParameters()
     {
     }
 
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors )
+    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors, List<String> predictorGroups )
     {
         this.relativeStart = relativeStart;
         this.relativeEnd = relativeEnd;
         this.predictors = predictors;
+        this.predictorGroups = predictorGroups;
     }
 
     public int getRelativeStart()
@@ -90,6 +94,16 @@ public class PredictorJobParameters
     public void setPredictors( List<String> predictors )
     {
         this.predictors = predictors;
+    }
+
+    public List<String> getPredictorGroupss()
+    {
+        return predictorGroups;
+    }
+
+    public void setPredictorGroups( List<String> predictorGroups )
+    {
+        this.predictorGroups = predictorGroups;
     }
 
     @Override

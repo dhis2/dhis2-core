@@ -124,7 +124,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-visualizer</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-visualizer</outputDirectory>
                   <includes>**/*.*</includes>
@@ -133,7 +133,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-pivot</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-pivot</outputDirectory>
                   <includes>**/*.*</includes>
@@ -142,7 +142,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-maps</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maps</outputDirectory>
                   <includes>**/*.*</includes>
@@ -160,7 +160,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-event-reports</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-reports</outputDirectory>
                   <includes>**/*.*</includes>
@@ -169,7 +169,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-event-visualizer</artifactId>
-                  <version>2.29-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-visualizer</outputDirectory>
                   <includes>**/*.*</includes>
@@ -196,7 +196,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-interpretation</artifactId>
-                  <version>2.27-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-interpretation</outputDirectory>
                   <includes>**/*.*</includes>
@@ -243,6 +243,33 @@
                   <version>2.29-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-data-administration</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Messaging -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-messaging</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-messaging</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Import/Export -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-import-export</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-importexport</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Capture  -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-capture</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-capture</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
               </artifactItems>

@@ -239,8 +239,23 @@ public class InterpretationServiceTest
     }
 
     @Test
+    public void testUpdateComment()
+    {
+        interpretationService.saveInterpretation( interpretationA );
+        String uid = interpretationA.getUid();
+        assertNotNull( uid );
+
+        InterpretationComment comment = interpretationService.addInterpretationComment( uid, "This interpretation is good" );
+        comment.setText( "Comment with Mentions @" + userA.getUsername() + " @" + userB.getUsername() );
+
+        interpretationService.updateComment( interpretationA, comment );
+        assertEquals( 2, comment.getMentions().size() );
+    }
+
+    @Test
     public void testMentions()
     {
+        String text;
         // Testing with mentions 
         interpretationA = new Interpretation( chartA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
         interpretationService.saveInterpretation( interpretationA );
@@ -250,8 +265,8 @@ public class InterpretationServiceTest
         assertNotNull( interpretationA.getMentions() );
         assertEquals( 1, interpretationA.getMentions().size() );
         
-        interpretationA.setText( "Interpretation of chart A with Mentions @" + userA.getUsername() + " @" + userB.getUsername() );
-        interpretationService.updateInterpretation( interpretationA );
+        text = "Interpretation of chart A with Mentions @" + userA.getUsername() + " @" + userB.getUsername();
+        interpretationService.updateInterpretationText( interpretationA, text );
         uid = interpretationA.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationA.getMentions() );
@@ -285,15 +300,15 @@ public class InterpretationServiceTest
         assertNotNull( interpretationB.getMentions() );
         assertEquals( 0, interpretationB.getMentions().size() );
         
-        interpretationB.setText( "Interpration of chart B with fake mention @thisisnotauser" );
-        interpretationService.updateInterpretation( interpretationB );
+        text = "Interpration of chart B with fake mention @thisisnotauser";
+        interpretationService.updateInterpretationText( interpretationB, text );
         uid = interpretationB.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationB.getMentions() );
         assertEquals( 0, interpretationB.getMentions().size() );
         
-        interpretationB.setText( "Interpration of chart B with 3 mentions @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername() );
-        interpretationService.updateInterpretation( interpretationB );
+        text = "Interpration of chart B with 3 mentions @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername();
+        interpretationService.updateInterpretationText( interpretationB, text );
         uid = interpretationB.getUid();
         assertNotNull( uid );
         assertNotNull( interpretationB.getMentions() );

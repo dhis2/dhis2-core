@@ -210,7 +210,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
             CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass,
-                new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults() ) );
+                new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults(), params.getSkipSharing() ) );
 
             if ( !collectionNode.getChildren().isEmpty() )
             {
@@ -254,6 +254,12 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             params.setDefaultOrder( parameters.get( "order" ) );
             parameters.remove( "order" );
+        }
+
+        if ( parameters.containsKey( "skipSharing" ) )
+        {
+            params.setSkipSharing( Boolean.parseBoolean( parameters.get( "skipSharing" ).get( 0 ) ) );
+            parameters.remove( "skipSharing" );
         }
 
         for ( String parameterKey : parameters.keySet() )

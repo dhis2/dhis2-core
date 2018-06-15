@@ -123,7 +123,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
+    <sec:http-basic />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -225,7 +225,6 @@
         <ref bean="webAccessDecisionVoting" />
         <ref bean="externalAccessDecisionVoting" />
         <ref bean="authenticatedVoting" />
-        <ref bean="regularAccessDecisionVoting" />
       </list>
     </property>
   </bean>

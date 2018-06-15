@@ -22,8 +22,11 @@
 
     <property name="lastUpdatedAtClient" type="timestamp" />
 
+    <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
+
     <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
-      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" index="programstageinstance_programinstanceid" />
+      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
+      index="programstageinstance_programinstanceid" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
@@ -51,13 +54,11 @@
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
-    <property name="longitude" />
-
-    <property name="latitude" />
-
     <property name="completedBy" />
 
     <property name="completedDate" />
+
+    <property name="geometry" />
 
     <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
       <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />

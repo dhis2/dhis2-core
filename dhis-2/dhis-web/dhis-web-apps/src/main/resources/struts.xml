@@ -155,4 +155,21 @@
       </action>
     </package>
 
+    <package name="dhis-web-messaging" extends="dhis-web-commons" namespace="/dhis-web-messaging">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-importexport" extends="dhis-web-commons" namespace="/dhis-web-importexport">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-capture" extends="dhis-web-commons" namespace="/dhis-web-capture">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 </struts>

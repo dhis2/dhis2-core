@@ -172,7 +172,7 @@ public class Attribute
     }
 
     @JsonIgnore
-    public Boolean getSkipSynchronization()
+    public Boolean isSkipSynchronization()
     {
         return skipSynchronization;
     }

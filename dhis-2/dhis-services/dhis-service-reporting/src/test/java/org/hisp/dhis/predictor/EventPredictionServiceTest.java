@@ -424,22 +424,24 @@ public class EventPredictionServiceTest
     @Test
     public void testPredictEvents()
     {
-        predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        PredictionSummary summary = new PredictionSummary();
+
+        predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("1", getDataValue( predictorOutputA, periodApr ) );
         assertEquals("2", getDataValue( predictorOutputA, periodMay ) );
 
-        predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("4", getDataValue( predictorOutputD, periodApr ) );
         assertEquals("9", getDataValue( predictorOutputD, periodMay ) );
 
-        predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("8", getDataValue( predictorOutputI, periodApr ) );
         assertEquals("17", getDataValue( predictorOutputI, periodMay ) );
 
-        predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("101", getDataValue( predictorOutputT, periodApr ) );
         assertEquals("302", getDataValue( predictorOutputT, periodMay ) );

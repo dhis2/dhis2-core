@@ -51,6 +51,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
@@ -169,6 +170,12 @@ public class DefaultUserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uids )
+    {
+        return userStore.getByUid( uids );
+    }
+
+    @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -177,26 +184,6 @@ public class DefaultUserService
         params.setMax( max );
 
         return userStore.getUsers( params );
-    }
-
-    @Override
-    public List<User> getManagedUsers( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUsers( params );
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUserCount( params );
     }
 
     @Override
@@ -236,12 +223,12 @@ public class DefaultUserService
         boolean canGrantOwnRoles = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
         params.setDisjointRoles( !canGrantOwnRoles );
 
-        if ( params.getUser() == null )
+        if ( !params.hasUser() )
         {
             params.setUser( currentUserService.getCurrentUser() );
         }
 
-        if ( params.getUser() != null && params.getUser().isSuper() )
+        if ( params.hasUser() && params.getUser().isSuper() )
         {
             params.setCanManage( false );
             params.setAuthSubset( false );
@@ -253,6 +240,11 @@ public class DefaultUserService
             Calendar cal = PeriodType.createCalendarInstance();
             cal.add( Calendar.MONTH, (params.getInactiveMonths() * -1) );
             params.setInactiveSince( cal.getTime() );
+        }
+        
+        if ( params.isUserOrgUnits() && params.hasUser() )
+        {
+            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
         }
     }
 
@@ -589,7 +581,9 @@ public class DefaultUserService
         
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
-        user.getUserCredentials().getUserAuthorityGroups().forEach( ur ->
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( r -> r.getUid() ).collect( Collectors.toList() ) );
+
+        roles.forEach( ur ->
         {
             if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
@@ -632,11 +626,9 @@ public class DefaultUserService
 
         Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
 
-        UserQueryParams userQueryParams = new UserQueryParams();
-
-        userQueryParams.setDisabled( false );
-
-        userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
+        UserQueryParams userQueryParams = new UserQueryParams()
+            .setDisabled( false )
+            .setPasswordLastUpdated( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
     }

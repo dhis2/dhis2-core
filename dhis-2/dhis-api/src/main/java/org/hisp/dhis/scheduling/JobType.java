@@ -30,7 +30,6 @@ package org.hisp.dhis.scheduling;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.KafkaJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -70,11 +69,12 @@ public enum JobType
         "pushAnalysis", "/api/pushAnalysis"
     ) ),
     PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
-        "predictors", "/api/predictors"
+        "predictors", "/api/predictors",
+        "predictorGroups", "/api/predictorGroups"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
-    KAFKA_TRACKER( "kafkaTrackerJob", true, KafkaJobParameters.class, null ),
+    KAFKA_TRACKER( "kafkaTrackerJob", false, null, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),
@@ -85,6 +85,8 @@ public enum JobType
     METADATA_IMPORT( null, false, null, null ),
     DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
     EVENT_IMPORT( null, false, null, null ),
+    ENROLLMENT_IMPORT( null, false, null, null ),
+    TEI_IMPORT( null, false, null, null ),
     LEADER_ELECTION( "leaderElectionJob", false, null, null ),
     LEADER_RENEWAL( "leaderRenewalJob", false, null, null ),
     COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );

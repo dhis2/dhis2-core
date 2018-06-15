@@ -28,8 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -76,13 +78,13 @@ public class ProgramStageInstance
 
     private EventStatus status = EventStatus.ACTIVE;
 
-    private Double longitude;
-
-    private Double latitude;
-
     private String completedBy;
 
     private Date completedDate;
+
+    private Date lastSynchronized = new Date( 0 );
+
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,26 +250,6 @@ public class ProgramStageInstance
         this.messageConversations = messageConversations;
     }
 
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
-    }
-
     public List<TrackedEntityComment> getComments()
     {
         return comments;
@@ -301,5 +283,26 @@ public class ProgramStageInstance
     public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonIgnore
+    public Date getLastSynchronized()
+    {
+        return lastSynchronized;
+    }
+
+    public void setLastSynchronized( Date lastSynchronized )
+    {
+        this.lastSynchronized = lastSynchronized;
+    }
+
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
     }
 }

@@ -78,7 +78,7 @@
 
     <property name="programScope" />
 
-    <property name="skipSynchronization" not-null="false" />
+    <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"

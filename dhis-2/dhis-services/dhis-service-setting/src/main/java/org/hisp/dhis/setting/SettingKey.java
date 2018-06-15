@@ -152,7 +152,6 @@ public enum SettingKey
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
     STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class ),
     FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class ),
-    LAST_SUCCESSFUL_TRACKER_DATA_SYNC( "syncLastSuccessfulTrackerDataSync", new Date( 0 ), Date.class ),
     TRACKER_SYNC_PAGE_SIZE( "syncTrackerPageSize", 20, Integer.class ),
     EVENT_SYNC_PAGE_SIZE( "syncEventsPageSize", 60, Integer.class ),
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),

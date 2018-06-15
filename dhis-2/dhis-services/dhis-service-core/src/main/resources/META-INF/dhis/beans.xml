@@ -599,6 +599,13 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
+  
+   <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityProgramOwnerStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityAttributeStore">
@@ -641,6 +648,22 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditService"
+    class="org.hisp.dhis.program.DefaultProgramInstanceAuditService" />
+    
+  <bean id="org.hisp.dhis.program.ProgramTempOwnershipAuditService"
+    class="org.hisp.dhis.program.DefaultProgramTempOwnershipAuditService" />
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramTempOwnershipAuditStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramTempOwnershipAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -1239,6 +1262,16 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
+    
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityProgramOwnerService" />
+
+  <bean id="org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager"
+	class="org.hisp.dhis.trackedentity.DefaultTrackerOwnershipAccessManager">
+	<property name="temporaryOwnershipTimeout" ref="temporararyOwnershipTimeout" />
+  </bean>
+    
+  <bean id="temporararyOwnershipTimeout" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT" /></bean>
 
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />

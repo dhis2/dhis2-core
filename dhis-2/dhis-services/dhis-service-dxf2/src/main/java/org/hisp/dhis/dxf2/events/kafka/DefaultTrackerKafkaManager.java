@@ -48,6 +48,7 @@ import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -212,7 +213,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( Event event : events )
         {
@@ -221,13 +222,11 @@ public class DefaultTrackerKafkaManager
                 event.setEvent( CodeGenerator.generateUid() );
             }
 
-            ktEvent.send( TOPIC_BULK_EVENTS,
-                new KafkaEvent( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, event ) );
-        }
+            KafkaEvent kafkaEvent = new KafkaEvent( CodeGenerator.generateUid(), job.getUid(), user.getUid(), importOptions, event );
+            kafkaEvent.setJobTotal( events.size() );
 
-        JobConfiguration job = new JobConfiguration( "kafka-event-import", JobType.KAFKA_TRACKER,
-            user.getUid(), true );
-        job.setUid( jobId );
+            ktEvent.send( TOPIC_BULK_EVENTS, kafkaEvent );
+        }
 
         notifier.notify( job, "Kafka Event job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
@@ -238,7 +237,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( Enrollment enrollment : enrollments )
         {
@@ -247,13 +246,12 @@ public class DefaultTrackerKafkaManager
                 enrollment.setEnrollment( CodeGenerator.generateUid() );
             }
 
-            ktEnrollment.send( TOPIC_BULK_ENROLLMENTS,
-                new KafkaEnrollment( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, enrollment ) );
-        }
+            KafkaEnrollment kafkaEnrollment = new KafkaEnrollment( CodeGenerator.generateUid(), job.getUid(), user.getUid(),
+                importOptions, enrollment );
+            kafkaEnrollment.setJobTotal( enrollments.size() );
 
-        JobConfiguration job = new JobConfiguration( "kafka-enrollment-import", JobType.KAFKA_TRACKER,
-            user.getUid(), true );
-        job.setUid( jobId );
+            ktEnrollment.send( TOPIC_BULK_ENROLLMENTS, kafkaEnrollment );
+        }
 
         notifier.notify( job, "Kafka Enrollment job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
@@ -264,7 +262,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public JobConfiguration dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
-        String jobId = CodeGenerator.generateUid();
+        JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER, user.getUid(), true );
 
         for ( TrackedEntityInstance trackedEntity : trackedEntities )
         {
@@ -273,13 +271,12 @@ public class DefaultTrackerKafkaManager
                 trackedEntity.setTrackedEntityInstance( CodeGenerator.generateUid() );
             }
 
-            ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES,
-                new KafkaTrackedEntity( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, trackedEntity ) );
-        }
+            KafkaTrackedEntity kafkaTrackedEntity = new KafkaTrackedEntity( CodeGenerator.generateUid(), job.getUid(), user.getUid(),
+                importOptions, trackedEntity );
+            kafkaTrackedEntity.setJobTotal( trackedEntities.size() );
 
-        JobConfiguration job = new JobConfiguration( "kafka-tracked-entity-import", JobType.KAFKA_TRACKER,
-            user.getUid(), true );
-        job.setUid( jobId );
+            ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, kafkaTrackedEntity );
+        }
 
         notifier.notify( job, "Kafka Tracked Entity job was queued." );
         notifier.addJobSummary( job, new ImportSummaries(), ImportSummaries.class );
@@ -290,7 +287,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEvents( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 1000 );
+        ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
@@ -327,6 +324,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( eventService.addEvents( events, importOptions, true ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaEvent.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cEvent.commitSync();
@@ -335,7 +337,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEnrollments( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 1000 );
+        ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
@@ -372,6 +374,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( enrollmentService.addEnrollments( enrollments, importOptions, false ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaEnrollment.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cEnrollment.commitSync();
@@ -380,7 +387,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeTrackedEntities( JobConfiguration jobConfiguration )
     {
-        ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 1000 );
+        ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 3000 );
 
         StreamSupport.stream( consumerRecords.spliterator(), false )
             .collect( groupingBy( record -> record.value().getJobId() ) )
@@ -417,6 +424,11 @@ public class DefaultTrackerKafkaManager
 
                 importSummaries.addImportSummaries( trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions ) );
                 notifier.addJobSummary( job, importSummaries, ImportSummaries.class );
+
+                if ( importSummaries.getTotal() == kafkaTrackedEntity.getJobTotal() )
+                {
+                    notifier.notify( job, NotificationLevel.INFO, "Import finished.", true );
+                }
             } );
 
         cTrackedEntity.commitSync();
