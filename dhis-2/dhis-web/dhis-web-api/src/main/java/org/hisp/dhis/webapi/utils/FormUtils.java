@@ -235,7 +235,7 @@ public class FormUtils
             }
         }
 
-        form.getOptions().put( "captureCoordinates", programStage.getCaptureCoordinates() );
+        form.getOptions().put( "featureType", programStage.getFeatureType() );
 
         if ( programStage.getProgramStageSections().size() > 0 )
         {

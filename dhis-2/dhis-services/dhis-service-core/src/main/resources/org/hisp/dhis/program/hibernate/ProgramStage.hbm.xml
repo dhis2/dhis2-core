@@ -58,7 +58,6 @@
 
     <property name="displayGenerateEventBox" />
 
-    <property name="captureCoordinates" />
 
     <property name="generatedByEnrollmentDate" />
 
@@ -79,6 +78,14 @@
     <property name="hideDueDate" />
 
     <property name="sortOrder" column="sort_order" />
+
+    <property name="featureType" column="featuretype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_programstage_periodtypeid" />

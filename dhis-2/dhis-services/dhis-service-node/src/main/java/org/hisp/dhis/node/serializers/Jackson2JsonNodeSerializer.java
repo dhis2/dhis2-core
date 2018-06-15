@@ -28,10 +28,12 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -64,6 +66,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
         objectMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
+        objectMapper.registerModule( new JtsModule(  ) );
     }
 
     private JsonGenerator generator = null;
@@ -116,6 +119,13 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         if ( Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
         {
             value = DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
+        }
+
+        if ( Geometry.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
+        {
+            generator.writeFieldName( simpleNode.getName() );
+            generator.writeRawValue( objectMapper.writeValueAsString( value ) );
+            return;
         }
 
         if ( simpleNode.getParent().isCollection() )
