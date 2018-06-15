@@ -42,8 +42,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
@@ -121,6 +119,15 @@ public class DatePeriodResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        List<String> indexes = new ArrayList<>();
+
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            String name = periodType.getName().toLowerCase();
+            String sql = "create index in_" + getTableName() + "_" + name + " on " + getTempTableName() + "(" + quote( name ) + ")";
+            indexes.add( sql );
+        }
+        
+        return indexes;
     }
 }

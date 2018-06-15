@@ -240,8 +240,6 @@ public class DataValidationTask
             return;
         }
 
-        log.trace( "Validation attributeOptionCombo " + optionCombo );
-
         boolean violation = isViolation( leftSide, rightSide );
 
         if ( violation && !context.isAnalysisComplete() )

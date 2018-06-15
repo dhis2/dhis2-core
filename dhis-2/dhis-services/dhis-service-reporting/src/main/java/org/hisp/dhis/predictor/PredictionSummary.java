@@ -38,28 +38,61 @@ import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 /**
  * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "predictionSummary", namespace = DxfNamespaces.DXF_2_0 )
 public class PredictionSummary extends AbstractWebMessageResponse
 {
     private PredictionStatus status = PredictionStatus.SUCCESS;
 
     private String description;
 
-    private int predicted = 0;
+    private int predictors = 0;
+
+    private int inserted = 0;
+
+    private int updated = 0;
+
+    private int deleted = 0;
+
+    private int unchanged = 0;
 
     public PredictionSummary()
     {
-    }
-
-    public PredictionSummary( int predicted )
-    {
-        this.predicted = predicted;
     }
 
     public PredictionSummary( PredictionStatus status, String description )
     {
         this.status = status;
         this.description = description;
+    }
+
+    public void incrementInserted()
+    {
+        inserted += 1;
+    }
+
+    public void incrementPredictors()
+    {
+        predictors += 1;
+    }
+
+    public void incrementUpdated()
+    {
+        updated += 1;
+    }
+
+    public void incrementDeleted()
+    {
+        deleted += 1;
+    }
+
+    public void incrementUnchanged()
+    {
+        unchanged += 1;
+    }
+
+    public int getPredictions()
+    {
+        return inserted + updated + unchanged;
     }
 
     @JsonProperty
@@ -90,15 +123,37 @@ public class PredictionSummary extends AbstractWebMessageResponse
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPredicted()
+    public int getPredictors()
     {
-        return predicted;
+        return predictors;
     }
 
-    public PredictionSummary setPredicted( int predicted )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getInserted()
     {
-        this.predicted = predicted;
-        return this;
+        return inserted;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getUpdated()
+    {
+        return updated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getDeleted()
+    {
+        return deleted;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getUnchanged()
+    {
+        return unchanged;
     }
 
     @Override
@@ -107,7 +162,11 @@ public class PredictionSummary extends AbstractWebMessageResponse
         return "PredictionSummary{" +
             "status=" + status +
             ", description='" + description + '\'' +
-            ", predicted=" + predicted +
+            ", predictors=" + predictors +
+            ", inserted=" + inserted +
+            ", updated=" + updated +
+            ", deleted=" + deleted +
+            ", unchanged=" + unchanged +
             '}';
     }
 }

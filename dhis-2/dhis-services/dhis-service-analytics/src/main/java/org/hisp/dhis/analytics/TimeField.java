@@ -1,4 +1,4 @@
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,37 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Sets;
 
-/**
- * @author Jim Grace
- */
-public interface PredictionService
+public enum TimeField
 {
-    PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    DUE_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" );
 
-    PredictionSummary predictTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
-
-    void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary );
+    private String field;
+    
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+        
+    TimeField( String field )
+    {
+        this.field = field;
+    }
+    
+    public String getField()
+    {
+        return field;
+    }
+    
+    public static boolean fieldIsValid( String field )
+    {
+        return field != null && FIELD_NAMES.contains( field );
+    }
 }

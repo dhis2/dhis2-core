@@ -298,7 +298,7 @@ public class App
         return appState;
     }
 
-    public void setAppState( AppStatus AppState )
+    public void setAppState( AppStatus appState )
     {
          this.appState = appState;
     }

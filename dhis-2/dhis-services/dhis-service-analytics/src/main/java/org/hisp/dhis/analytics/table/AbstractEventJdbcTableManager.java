@@ -32,7 +32,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.springframework.scheduling.annotation.Async;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -66,23 +65,23 @@ public abstract class AbstractEventJdbcTableManager
      */
     protected String getColumnType( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) )
+        if ( valueType.isDecimal() )
         {
             return statementBuilder.getDoubleColumnType();
         }
-        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isInteger() )
         {
             return "bigint";
         }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isBoolean() )
         {
             return "integer";
         }
-        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isDate() )
         {
             return "timestamp";
         }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
             return "geometry(Point, 4326)";
         }
@@ -100,23 +99,23 @@ public abstract class AbstractEventJdbcTableManager
      */
     protected String getSelectClause( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) )
+        if ( valueType.isDecimal() )
         {
             return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
         }
-        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isInteger() )
         {
             return "cast(value as bigint)";
         }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isBoolean() )
         {
             return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
         }
-        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isDate() )
         {
             return "cast(value as timestamp)";
         }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }

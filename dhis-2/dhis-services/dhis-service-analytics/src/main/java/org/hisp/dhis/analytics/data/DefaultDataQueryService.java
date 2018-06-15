@@ -164,7 +164,8 @@ public class DefaultDataQueryService
         return params
             .withStartDate( request.getStartDate() )
             .withEndDate( request.getEndDate() )
-            .withOrder( request.getOrder())
+            .withOrder( request.getOrder() )
+            .withTimeField( request.getTimeField() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )
@@ -218,7 +219,10 @@ public class DefaultDataQueryService
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
         }
         
-        return params.build();
+        return params
+            .withCompletedOnly( object.isCompletedOnly() )
+            .withTimeField( object.getTimeField() )
+            .build();
     }
 
     @Override

@@ -129,6 +129,8 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
+    
+    <property name="timeField" column="timefield" />
 
     <property name="title" />
     

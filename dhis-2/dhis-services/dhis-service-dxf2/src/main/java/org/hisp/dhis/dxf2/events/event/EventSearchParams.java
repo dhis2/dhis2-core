@@ -70,6 +70,7 @@ public class EventSearchParams
     public static final String EVENT_PROGRAM_ID = "program";
     public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
     public static final String EVENT_DELETED = "deleted";
+    public static final String EVENT_GEOMETRY = "geometry";
 
     public static final String PAGER_META_KEY = "pager";
 
