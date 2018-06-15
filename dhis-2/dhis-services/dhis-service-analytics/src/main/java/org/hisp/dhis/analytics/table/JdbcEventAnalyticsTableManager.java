@@ -245,8 +245,7 @@ public class JdbcEventAnalyticsTableManager
         {
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
-                String column = quote(
-                    dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String column = quote( dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
                 String select = getSelectClause( dataElement.getValueType() );
 
                 String sql =
