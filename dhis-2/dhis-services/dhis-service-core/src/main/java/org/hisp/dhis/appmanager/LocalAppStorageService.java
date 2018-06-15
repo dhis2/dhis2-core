@@ -70,12 +70,6 @@ public class LocalAppStorageService
     @Autowired
     private LocationManager locationManager;
 
-    @PostConstruct
-    public void init()
-    {
-        discoverInstalledApps();
-    }
-
     @Override
     public Map<String, App> discoverInstalledApps()
     {

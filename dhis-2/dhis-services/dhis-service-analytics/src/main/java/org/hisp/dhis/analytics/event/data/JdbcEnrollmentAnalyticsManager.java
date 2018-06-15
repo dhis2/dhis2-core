@@ -35,6 +35,8 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 import java.util.List;
 
@@ -67,7 +69,7 @@ public class JdbcEnrollmentAnalyticsManager
      */
     protected String getFromClause( EventQueryParams params )
     {
-        return " from " + params.getTableName() + " as enrollmenttable ";
+        return " from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " ";
     }
     
     /**
@@ -80,7 +82,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
-    {        
+    { 
         String sql = "";
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -105,7 +107,7 @@ public class JdbcEnrollmentAnalyticsManager
             if ( params.getProgramIndicator().hasEventBoundary() )
             {
                 sql += sqlHelper.whereAnd() + "( select count(*) from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
-                    " where pi = enrollmenttable.pi " + 
+                    " where pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
                     ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
                     params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
                     ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 
@@ -121,7 +123,7 @@ public class JdbcEnrollmentAnalyticsManager
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + quote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
             }
         }        
 
@@ -159,7 +161,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = quote( dim.getDimensionName() );
+            String col = quoteAlias( dim.getDimensionName() );
             
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -244,7 +246,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + quote( params.getCoordinateField() ) + " is not null ";
+            sql += "and " + quoteAlias( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -254,7 +256,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and " + quote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += "and " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;

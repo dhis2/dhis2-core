@@ -30,28 +30,21 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed
  */
-@Transactional
-public class HibernateTrackedEntityProgramOwnerStore
-    extends HibernateGenericStore<TrackedEntityProgramOwner>
-    implements TrackedEntityProgramOwnerStore
+public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericStore<TrackedEntityProgramOwner> implements TrackedEntityProgramOwnerStore
 {
-    private static final Log log = LogFactory.getLog( HibernateTrackedEntityProgramOwnerStore.class );
-    
     @Override
-    public TrackedEntityProgramOwner getTrackedEntityProgramOwner(int teiId,int programId)
+    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId )
     {
-        return (TrackedEntityProgramOwner) getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="+teiId+" and tepo.program.id="+programId ).uniqueResult();
+        return (TrackedEntityProgramOwner) getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="
+            + teiId + " and tepo.program.id=" + programId ).uniqueResult();
     }
 
     @Override
@@ -59,8 +52,8 @@ public class HibernateTrackedEntityProgramOwnerStore
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
-        Query q = getQuery(hql);
-        q.setParameterList("teiIds", teiIds);
+        Query q = getQuery( hql );
+        q.setParameterList( "teiIds", teiIds );
         return q.list();
     }
 
@@ -69,8 +62,8 @@ public class HibernateTrackedEntityProgramOwnerStore
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds, int programId )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
-        Query q = getQuery(hql);
-        q.setParameterList("teiIds", teiIds);
+        Query q = getQuery( hql );
+        q.setParameterList( "teiIds", teiIds );
         q.setParameter( "programId", programId );
         return q.list();
     }

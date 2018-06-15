@@ -1169,9 +1169,13 @@
         <artifactId>spring-restdocs-mockmvc</artifactId>
         <version>1.1.2.RELEASE</version>
         <scope>test</scope>
+      </dependency>      
+      <dependency>
+        <groupId>com.vividsolutions</groupId>
+        <artifactId>jts-io</artifactId>
+        <version>1.14.0</version>
       </dependency>
       <dependency>
-
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-mockito</artifactId>
         <version>${powermock.version}</version>

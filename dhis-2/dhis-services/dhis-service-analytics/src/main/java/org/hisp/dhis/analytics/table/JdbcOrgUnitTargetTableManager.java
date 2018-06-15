@@ -50,6 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */

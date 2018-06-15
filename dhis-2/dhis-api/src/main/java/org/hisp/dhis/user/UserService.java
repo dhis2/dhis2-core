@@ -79,6 +79,14 @@ public interface UserService
     User getUser( String uid );
 
     /**
+     * Retrieves a collection of User with the given unique identifiers.
+     *
+     * @param uids the identifiers of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<User> getUsers( Collection<String> uids );
+
+    /**
      * Returns a List of all Users.
      *
      * @return a Collection of Users.

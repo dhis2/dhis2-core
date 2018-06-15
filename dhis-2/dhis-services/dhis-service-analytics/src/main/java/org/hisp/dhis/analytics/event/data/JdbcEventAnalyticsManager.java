@@ -65,6 +65,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -76,6 +78,8 @@ public class JdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
     protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
+
+    //TODO introduce dedicated "year" partition column
     
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
@@ -86,48 +90,14 @@ public class JdbcEventAnalyticsManager
 
         String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
 
-        // ---------------------------------------------------------------------
-        // Criteria
-        // ---------------------------------------------------------------------
-
         sql += getFromClause( params );
         
         sql += getWhereClause( params );
         
-        // ---------------------------------------------------------------------
-        // Sorting
-        // ---------------------------------------------------------------------
+        sql += getSortClause( params );
 
-        if ( params.isSorting() )
-        {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quote( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quote( item.getUid() ) + " desc,";
-            }
-
-            sql = removeLastComma( sql ) + " ";
-        }
+        sql += getPagingClause( params, maxLimit );
         
-        // ---------------------------------------------------------------------
-        // Paging
-        // ---------------------------------------------------------------------
-
-        if ( params.isPaging() )
-        {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
-        }
-
         // ---------------------------------------------------------------------
         // Grid
         // ---------------------------------------------------------------------
@@ -182,7 +152,7 @@ public class JdbcEventAnalyticsManager
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
         String clusterField = params.getCoordinateField();
-        String quotedClusterField = quote( clusterField );
+        String quotedClusterField = quoteAlias( clusterField );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + quotedClusterField + "))) as center", "ST_Extent(" + quotedClusterField + ") as extent" );
@@ -244,7 +214,7 @@ public class JdbcEventAnalyticsManager
     public Rectangle getRectangle( EventQueryParams params )
     {
         String clusterField = params.getCoordinateField();
-        String quotedClusterField = quote( clusterField );
+        String quotedClusterField = quoteAlias( clusterField );
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
 
@@ -291,7 +261,7 @@ public class JdbcEventAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql + " ";
+        return sql + " as " + ANALYTICS_TBL_ALIAS + " ";
     }
 
     /**
@@ -300,6 +270,7 @@ public class JdbcEventAnalyticsManager
      * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
      * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular 
      * analytics table periods.
+     * 
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
@@ -320,12 +291,12 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {        
-            sql += sqlHelper.whereAnd() + " " + quote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += sqlHelper.whereAnd() + " "  + quote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "executiondate" ) + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " "  + quoteAlias( "executiondate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
-            sql += sqlHelper.whereAnd() + " " + quote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -347,7 +318,7 @@ public class JdbcEventAnalyticsManager
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
                 OrganisationUnit unit = (OrganisationUnit) object;
-                sql += quote( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
+                sql += quoteAlias( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
             sql = removeLastOr( sql ) + ") ";
@@ -362,7 +333,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = quote( dim.getDimensionName() );
+            String col = quoteAlias( dim.getDimensionName() );
             
             sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -373,7 +344,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStage() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
 
         // ---------------------------------------------------------------------
@@ -449,7 +420,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( params.getCoordinateField() ) + " is not null ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -459,7 +430,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
 
         // ---------------------------------------------------------------------
@@ -468,7 +439,7 @@ public class JdbcEventAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "yearly" ) + " in (" + 
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -478,12 +449,62 @@ public class JdbcEventAnalyticsManager
         
         if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + quote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
+        }
+        
+        return sql;
+    }
+    
+    /**
+     * Returns an SQL sort clause.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getSortClause( EventQueryParams params )
+    {
+        String sql = "";
+        
+        if ( params.isSorting() )
+        {
+            sql += "order by ";
+
+            for ( DimensionalItemObject item : params.getAsc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " asc,";
+            }
+
+            for  ( DimensionalItemObject item : params.getDesc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " desc,";
+            }
+
+            sql = removeLastComma( sql ) + " ";
         }
         
         return sql;
     }
 
+    /**
+     * Returns an SQL paging clause.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getPagingClause( EventQueryParams params, int maxLimit )
+    {
+        String sql = "";
+        
+        if ( params.isPaging() )
+        {
+            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+        }
+        else if ( maxLimit > 0 )
+        {
+            sql += "limit " + ( maxLimit + 1 );
+        }
+        
+        return sql;
+    }
+    
     /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by 
@@ -513,8 +534,7 @@ public class JdbcEventAnalyticsManager
             "from " + params.getTableName() + " " +
             "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
             "and executiondate <= '" + getMediumDateString( latest ) + "' " +
-            "and " + valueItem + " is not null) " +
-            "as " + params.getTableName();
+            "and " + valueItem + " is not null)";
         
         return sql;
     }

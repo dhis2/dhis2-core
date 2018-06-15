@@ -72,6 +72,7 @@ public class TrackedEntityProgramOwner implements Serializable
     // -------------------------------------------------------------------------
     public TrackedEntityProgramOwner()
     {
+        this.createdBy = "internal";
     }
 
     public TrackedEntityProgramOwner( TrackedEntityInstance trackedEntityInstance, Program program,
@@ -80,6 +81,7 @@ public class TrackedEntityProgramOwner implements Serializable
         this.entityInstance = trackedEntityInstance;
         this.program = program;
         this.organisationUnit = organisationUnit;
+        this.createdBy = "internal";
     }
 
     // -------------------------------------------------------------------------

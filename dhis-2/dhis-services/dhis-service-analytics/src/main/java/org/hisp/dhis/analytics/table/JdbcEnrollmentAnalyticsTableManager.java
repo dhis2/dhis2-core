@@ -51,6 +51,7 @@ import java.util.*;
 
 import static org.hisp.dhis.program.ProgramIndicator.DB_SEPARATOR_ID;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * @author Markus Bekken
