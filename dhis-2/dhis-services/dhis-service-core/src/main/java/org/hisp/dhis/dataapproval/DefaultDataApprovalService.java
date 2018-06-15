@@ -520,7 +520,7 @@ public class DefaultDataApprovalService
 
         for ( DataApprovalStatus status : statusList )
         {
-            makePermissionsEvaluator().evaluatePermissions( status, workflow );
+            permissionsEvaluator.evaluatePermissions( status, workflow );
         }
 
         return statusList;
@@ -617,7 +617,7 @@ public class DefaultDataApprovalService
     {
         Map<String, DataApprovalStatus> statusMap = new HashMap<>();
 
-        DataApprovalPermissionsEvaluator evaluator = makePermissionsEvaluator();
+        DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
         ListMap<String, DataApproval> listMap = getIndexedListMap( dataApprovalList );
         
@@ -634,7 +634,7 @@ public class DefaultDataApprovalService
 
             for ( DataApprovalStatus status : statuses )
             {
-                makePermissionsEvaluator().evaluatePermissions( status, da.getWorkflow() );
+                permissionsEvaluator.evaluatePermissions( status, da.getWorkflow() );
 
                 statusMap.put( daKey( da, status.getAttributeOptionComboUid() ), status );
             }
