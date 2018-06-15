@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,42 +28,45 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.user.User;
-
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public interface TrackerAccessManager
+public interface ProgramTempOwnershipAuditService
 {
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+    String ID = ProgramTempOwnershipAuditService.class.getName();
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    /**
+     * Adds program instance audit
+     * 
+     * @param programInstanceAudit the audit to add
+     */
+    void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    /**
+     * Deletes program temp ownership audit for the given program instance
+     * 
+     * @param program the program
+     */
+    void deleteProgramTempOwnershipAudit( Program program );
 
-    List<String> canRead( User user, ProgramInstance programInstance );
+    /**
+     * Returns program temp ownership audits matching query params
+     * 
+     * @param params program temp ownership audit query params
+     * @return matching ProgramTempOwnershipAuditQueryParams
+     */
+    List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params );
 
-    List<String> canWrite( User user, ProgramInstance programInstance );
+    /**
+     * Returns count of program temp ownership audits matching query params
+     * 
+     * @param params program temp ownership audit query params
+     * @return count of ProgramTempOwnershipAuditQueryParams
+     */
+    int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params );
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance );
-
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance );
-
-    List<String> canRead( User user, TrackedEntityDataValue dataValue );
-
-    List<String> canWrite( User user, TrackedEntityDataValue dataValue );
-
-    List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
-
-    List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo );
 }
