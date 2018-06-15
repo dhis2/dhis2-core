@@ -30,14 +30,19 @@ package org.hisp.dhis.scheduling;
 
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.scheduling.JobType.values;
@@ -49,11 +54,14 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+    private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+    private final SessionFactory sessionFactory;
 
-    public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
+    public DefaultJobConfigurationService( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore,
+        SessionFactory sessionFactory )
     {
         this.jobConfigurationStore = jobConfigurationStore;
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
@@ -63,13 +71,13 @@ public class DefaultJobConfigurationService
         {
             jobConfigurationStore.save( jobConfiguration );
         }
-        return jobConfiguration.getId( );
+        return jobConfiguration.getId();
     }
 
     @Override
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ));
+        jobConfigurations.forEach( jobConfigurationStore::save );
     }
 
     @Override
@@ -77,8 +85,9 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            jobConfigurationStore.update( jobConfiguration );
+            sessionFactory.getCurrentSession().update( jobConfiguration );
         }
+
         return jobConfiguration.getId();
     }
 
@@ -126,7 +135,7 @@ public class DefaultJobConfigurationService
 
         for ( JobType jobType : values() )
         {
-            Map<String, Property> jobParameters = new LinkedHashMap<>( );
+            Map<String, Property> jobParameters = new LinkedHashMap<>();
 
             if ( !jobType.isConfigurable() )
             {
@@ -136,7 +145,7 @@ public class DefaultJobConfigurationService
             Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
-                propertyMap.put( jobType.name(), new LinkedHashMap<>( ) );
+                propertyMap.put( jobType.name(), new LinkedHashMap<>() );
                 continue;
             }
 
