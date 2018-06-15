@@ -41,7 +41,6 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -73,7 +72,7 @@ public class LocalAppStorageService
     @Override
     public Map<String, App> discoverInstalledApps()
     {
-        Map appMap = new HashMap<>();
+        Map<String, App> appMap = new HashMap<>();
         List<App> appList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );

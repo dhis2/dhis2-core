@@ -34,7 +34,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
 
-import javax.imageio.ImageIO;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -65,34 +64,38 @@ public enum ValueType
     INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
     USERNAME( String.class, false ),
-    FILE_RESOURCE( String.class, false ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
+    FILE_RESOURCE( String.class, false ),
     IMAGE( String.class, false);
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ).build();
-
-    public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType>builder().add(
-        INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE, NUMBER, UNIT_INTERVAL, PERCENTAGE ).build();
+    
+    public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.<ValueType>builder().add(
+        NUMBER, UNIT_INTERVAL, PERCENTAGE ).build();
 
     public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.<ValueType>builder().add(
         BOOLEAN, TRUE_ONLY ).build();
 
     public static final Set<ValueType> TEXT_TYPES = ImmutableSet.<ValueType>builder().add(
-        TEXT, LONG_TEXT, LETTER, COORDINATE, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL ).build();
+        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL ).build();
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
         DATE, DATETIME, AGE ).build();
 
     public static final Set<ValueType> FILE_TYPES = ImmutableSet.<ValueType>builder().add(
         FILE_RESOURCE, IMAGE ).build();
+    
+    public static final Set<ValueType> GEO_TYPES = ImmutableSet.<ValueType>builder().add(
+        COORDINATE ).build();
 
-    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
-            ImageIO.getReaderFormatNames() ).build();
+    public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType>builder().addAll(
+        INTEGER_TYPES ).addAll( DECIMAL_TYPES ).build();
 
+    @Deprecated
     private final Class<?> javaClass;
 
     private boolean aggregateable;
@@ -117,10 +120,10 @@ public enum ValueType
     {
         return INTEGER_TYPES.contains( this );
     }
-
-    public boolean isNumeric()
+    
+    public boolean isDecimal()
     {
-        return NUMERIC_TYPES.contains( this );
+        return DECIMAL_TYPES.contains( this );
     }
 
     public boolean isBoolean()
@@ -142,10 +145,18 @@ public enum ValueType
     {
         return FILE_TYPES.contains( this );
     }
-
-    public boolean isCoordinate()
+    
+    public boolean isGeo()
     {
-        return this == COORDINATE;
+        return GEO_TYPES.contains( this );
+    }
+
+    /**
+     * Includes integer and decimal types.
+     */
+    public boolean isNumeric()
+    {
+        return NUMERIC_TYPES.contains( this );
     }
 
     public boolean isAggregateable()
