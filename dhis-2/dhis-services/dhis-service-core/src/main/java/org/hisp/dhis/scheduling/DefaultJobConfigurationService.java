@@ -34,6 +34,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
@@ -54,15 +55,15 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
-    private final SessionFactory sessionFactory;
+    private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public DefaultJobConfigurationService( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore,
-        SessionFactory sessionFactory )
+    public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         this.jobConfigurationStore = jobConfigurationStore;
-        this.sessionFactory = sessionFactory;
     }
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     @Override
     public int addJobConfiguration( JobConfiguration jobConfiguration )
@@ -77,7 +78,7 @@ public class DefaultJobConfigurationService
     @Override
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfigurationStore::save );
+        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ) );
     }
 
     @Override
