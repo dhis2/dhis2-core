@@ -41,6 +41,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 
 public class SendSmsJob
     extends AbstractJob
@@ -69,7 +70,10 @@ public class SendSmsJob
     public void execute( JobConfiguration jobConfiguration )
     {
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
-        OutboundSms sms = new OutboundSms( parameters.getSmsSubject(), parameters.getMessage(), parameters.getRecipientsList().toString() );
+        OutboundSms sms = new OutboundSms();
+        sms.setSubject( parameters.getSmsSubject() );
+        sms.setMessage( parameters.getMessage() );
+        sms.setRecipients( new HashSet<>( parameters.getRecipientsList() ) );
 
         notifier.notify( jobConfiguration, "Sending SMS" );
 

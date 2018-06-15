@@ -28,6 +28,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -132,15 +133,27 @@ public class DefaultValidationService
 
     public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters)
     {
-        Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis." );
+        Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
+            + ( parameters.getOrgUnit() == null ? "" : " for orgUnit " + parameters.getOrgUnit().getUid()
+                + ( parameters.isIncludeOrgUnitDescendants() ? " with descendants" : "" ) ) + ", "
+            + ( parameters.getPeriods().size() == 1 ? "period " + Iterables.getOnlyElement( parameters.getPeriods() ).getIsoDate()
+                : parameters.getPeriods().size() + " periods" ) + ", "
+            + parameters.getRules().size() + " rules"
+            + ( parameters.isPersistResults() ? ", persisting results" : "" )
+            + ( parameters.isSendNotifications() ? ", sending notifications" : "" ) );
 
         ValidationRunContext context = getValidationContext( parameters );
 
-        clock.logTime( "Initialized validation analysis." );
+        clock.logTime( "Initialized validation analysis" );
 
         Collection<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
 
-        clock.logTime( "Finished validation analysis." ).stop();
+        if ( context.isPersistResults() )
+        {
+            validationResultService.saveValidationResults( context.getValidationResults() );
+        }
+
+        clock.logTime( "Finished validation analysis, " +  context.getValidationResults().size() + " results").stop();
 
         if ( context.isSendNotifications() )
         {

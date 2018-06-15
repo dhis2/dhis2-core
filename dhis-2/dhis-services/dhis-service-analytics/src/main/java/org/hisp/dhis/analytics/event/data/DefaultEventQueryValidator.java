@@ -121,6 +121,11 @@ public class DefaultEventQueryValidator
             violation = "Limit of: " + params.getLimit() + " is larger than max limit: " + getMaxLimit();
         }
         
+        if ( params.hasTimeField() && !params.timeFieldIsValid() )
+        {
+            violation = "Time field is invalid: " + params.getTimeField();
+        }
+        
         if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
         {
             violation = "Cluster size must be a positive number: " + params.getClusterSize();

@@ -178,8 +178,6 @@ public class JCloudsAppStorageService
             log.error( String.format( "Could not authenticate with file store provider '%s' and container '%s'. " +
                 "File storage will not be available.", config.provider, config.location ), ex );
         }
-
-        discoverInstalledApps();
     }
 
     @PreDestroy

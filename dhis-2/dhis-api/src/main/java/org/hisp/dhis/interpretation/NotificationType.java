@@ -1,4 +1,4 @@
-package org.hisp.dhis.importexport.action.event;
+package org.hisp.dhis.interpretation;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,28 +28,11 @@ package org.hisp.dhis.importexport.action.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ExportEventAction implements Action
+public enum NotificationType
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // Action Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute() throws Exception
-    {
-        return SUCCESS;
-    }
+        INTERPRETATION_CREATE,
+        INTERPRETATION_UPDATE,
+        INTERPRETATION_LIKE,
+        COMMENT_CREATE,
+        COMMENT_UPDATE
 }

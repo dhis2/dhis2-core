@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -40,6 +42,8 @@ public class AnalyticsSqlUtils
 {
     public static final String QUOTE = "\"";
     public static final String SINGLE_QUOTE = "'";
+    public static final String ANALYTICS_TBL_ALIAS = "ax";
+    public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
     private static final String SEPARATOR = ".";
     
     /**
@@ -70,6 +74,31 @@ public class AnalyticsSqlUtils
         Assert.notNull( alias, "Alias must be specified" );
         
         return alias + SEPARATOR + quote( relation );
+    }
+
+    /**
+     * Quotes and qualifies the given relation (typically a column). Quotes part 
+     * of the given relation are encoded (replaced by double quotes that is).
+     * The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
+     * 
+     * @return the quoted and qualified relation.
+     */
+    public static String quoteAlias( String relation )
+    {        
+        return ANALYTICS_TBL_ALIAS + SEPARATOR + quote( relation );
+    }
+    
+    /**
+     * Removes all quotes from the given relation.
+     * 
+     * @param relation the relation (typically a column).
+     * @return the unquoted relation.
+     */
+    public static String removeQuote( String relation )
+    {
+        Assert.notNull( relation, "Relation must be specified" );
+        
+        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
     }
 
     /**
