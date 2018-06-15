@@ -33,11 +33,13 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.dxf2.sync.EventSynchronization;
+import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -61,19 +63,32 @@ public class MetadataSyncPreProcessor
 {
     private static final Log log = LogFactory.getLog( MetadataSyncPreProcessor.class );
 
-    @Autowired
-    private SynchronizationManager synchronizationManager;
+    private final SynchronizationManager synchronizationManager;
+    private final SystemSettingManager systemSettingManager;
+    private final MetadataVersionService metadataVersionService;
+    private final MetadataVersionDelegate metadataVersionDelegate;
+    private final TrackerSynchronization trackerSync;
+    private final EventSynchronization eventSync;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    public MetadataSyncPreProcessor(
+        SynchronizationManager synchronizationManager,
+        SystemSettingManager systemSettingManager,
+        MetadataVersionService metadataVersionService,
+        MetadataVersionDelegate metadataVersionDelegate,
+        TrackerSynchronization trackerSync,
+        EventSynchronization eventSync )
+    {
+        this.synchronizationManager = synchronizationManager;
+        this.systemSettingManager = systemSettingManager;
+        this.metadataVersionService = metadataVersionService;
+        this.metadataVersionDelegate = metadataVersionDelegate;
+        this.trackerSync = trackerSync;
+        this.eventSync = eventSync;
+    }
 
-    @Autowired
-    private MetadataVersionService metadataVersionService;
 
-    @Autowired
-    private MetadataVersionDelegate metadataVersionDelegate;
-
-    public void setUp(MetadataRetryContext context)
+    public void setUp( MetadataRetryContext context )
     {
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
@@ -108,7 +123,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw (MetadataSyncServiceException)ex;
+                throw (MetadataSyncServiceException) ex;
             }
             context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -119,40 +134,14 @@ public class MetadataSyncPreProcessor
 
     }
 
-    public ImportSummaries handleEventDataPush( MetadataRetryContext context )
+    public void handleTrackerDataPush()
     {
-        log.debug( "Entering event data push" );
-        ImportSummaries importSummary = null;
-        AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        trackerSync.syncTrackerProgramData();
+    }
 
-        if ( !remoteServerAvailable.isAvailable() )
-        {
-            String message = remoteServerAvailable.getMessage();
-            log.error( message );
-            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
-            throw new MetadataSyncServiceException( message );
-        }
-
-        try
-        {
-            importSummary = synchronizationManager.executeEventPush();
-            handleEventImportSummary( importSummary, context );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Exception happened while trying to do event data push " + ex.getMessage(), ex );
-
-            if ( ex instanceof MetadataSyncServiceException )
-            {
-                throw (MetadataSyncServiceException)ex;
-            }
-
-            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
-            throw new MetadataSyncServiceException( ex.getMessage(), ex );
-        }
-
-        log.debug( "Exiting event data push" );
-        return importSummary;
+    public void handleEventDataPush()
+    {
+        eventSync.syncEventProgramData();
     }
 
     public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context, MetadataVersion metadataVersion )
@@ -313,7 +302,7 @@ public class MetadataSyncPreProcessor
                 return metadataVersion;
             }
         }
-        
+
         return null;
     }
 }
