@@ -28,16 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.Period;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
+import org.hisp.dhis.period.Period;
 
 /**
 * @author Lars Helge Overland
@@ -72,6 +71,10 @@ public interface AnalyticalObject
     void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
     
     void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
+
+    boolean isCompletedOnly();
+    
+    String getTimeField();
     
     String getTitle();
     

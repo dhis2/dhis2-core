@@ -219,7 +219,10 @@ public class DefaultDataQueryService
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
         }
         
-        return params.build();
+        return params
+            .withCompletedOnly( object.isCompletedOnly() )
+            .withTimeField( object.getTimeField() )
+            .build();
     }
 
     @Override
