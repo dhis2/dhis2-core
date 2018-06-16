@@ -69,8 +69,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public static final String ATTRIBUTE_REGEX_GROUP = "a";
     public static final String COHORT_HAVING_ATTRIBUTE_REGEX = "A\\{(?<" + ATTRIBUTE_REGEX_GROUP + ">\\w{11})}";
     public static final Pattern COHORT_HAVING_ATTRIBUTE_PATTERN = Pattern.compile( COHORT_HAVING_ATTRIBUTE_REGEX );
-    
-    
+        
     public static final String DB_EVENT_DATE = "executiondate";
     public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
     public static final String DB_INCIDENT_DATE = "incidentdate";
