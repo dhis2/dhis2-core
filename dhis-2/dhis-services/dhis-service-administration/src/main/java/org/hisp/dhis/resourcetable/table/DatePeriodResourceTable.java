@@ -123,8 +123,9 @@ public class DatePeriodResourceTable
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            String name = periodType.getName().toLowerCase();
-            String sql = "create index in" + getTableName() + "_" + name + " on " + getTempTableName() + "(" + quote( name ) + ")";
+            String type = periodType.getName().toLowerCase();
+            String name = "in" + getTableName() + "_" + type + "_" + getRandomSuffix();
+            String sql = "create index " + name + " on " + getTempTableName() + "(" + quote( name ) + ")";
             indexes.add( sql );
         }
         
