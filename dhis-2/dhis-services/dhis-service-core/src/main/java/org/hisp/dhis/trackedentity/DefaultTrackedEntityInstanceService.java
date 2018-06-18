@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -137,6 +138,9 @@ public class DefaultTrackedEntityInstanceService
 
     @Autowired
     private AclService aclService;
+    
+    @Autowired
+    private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -165,8 +169,8 @@ public class DefaultTrackedEntityInstanceService
         {
             params.setDefaultPaging();
         }
-
-        Set<TrackedEntityAttribute> readableAttributes = attributeService.getAllUserReadableTrackedEntityAttributes();
+        
+        List<TrackedEntityAttribute> readableAttributes = getAttributes( params );
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
@@ -216,7 +220,9 @@ public class DefaultTrackedEntityInstanceService
         validateSearchScope( params );
         handleAttributes( params );
 
-        params.setUser( currentUserService.getCurrentUser() );
+        User user = currentUserService.getCurrentUser();
+        
+        params.setUser( user );
 
         // ---------------------------------------------------------------------
         // Conform parameters
@@ -272,6 +278,18 @@ public class DefaultTrackedEntityInstanceService
 
         for ( Map<String, String> entity : entities )
         {
+        	if ( user != null && !user.isSuper() && params.hasProgram() && 
+            		( params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) || 
+            				params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED ) ) )
+            {            	
+            	TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+            	
+            	if ( !trackerOwnershipAccessManager.hasAccess( user, tei, params.getProgram() ) )
+            	{
+            		continue;
+            	}
+            }
+        	
             grid.addRow();
             grid.addValue( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
             grid.addValue( entity.get( CREATED_ID ) );
@@ -286,7 +304,7 @@ public class DefaultTrackedEntityInstanceService
                 grid.addValue( entity.get( DELETED ) );
             }
 
-            tes.add( entity.get( TRACKED_ENTITY_ID ) );
+            tes.add( entity.get( TRACKED_ENTITY_ID ) );            
 
             TrackedEntityType te = trackedEntityTypes.get( entity.get( TRACKED_ENTITY_ID ) );
 
@@ -935,5 +953,25 @@ public class DefaultTrackedEntityInstanceService
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
+    }
+    
+    private List<TrackedEntityAttribute> getAttributes( TrackedEntityInstanceQueryParams params )
+    {
+    	
+    	//return attributeService.getAllUserReadableTrackedEntityAttributes();
+    	
+    	List<TrackedEntityAttribute> attributes = new ArrayList<>();
+        
+        if ( params.hasTrackedEntityType() )
+        {
+        	attributes = params.getTrackedEntityType().getTrackedEntityAttributes();
+        }
+        
+        if ( params.hasProgram() )
+        {
+        	attributes = params.getProgram().getTrackedEntityAttributes();
+        }
+        
+        return attributes;
     }
 }

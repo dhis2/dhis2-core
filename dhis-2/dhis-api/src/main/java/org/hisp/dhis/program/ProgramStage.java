@@ -43,6 +43,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.FormType;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
@@ -91,7 +92,7 @@ public class ProgramStage
 
     private Boolean displayGenerateEventBox = true;
 
-    private Boolean captureCoordinates = false;
+    private FeatureType featureType;
 
     private Boolean blockEntryForm = false;
 
@@ -389,18 +390,6 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getCaptureCoordinates()
-    {
-        return captureCoordinates;
-    }
-
-    public void setCaptureCoordinates( Boolean captureCoordinates )
-    {
-        this.captureCoordinates = captureCoordinates;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getAllowGenerateNextVisit()
     {
         return allowGenerateNextVisit;
@@ -508,5 +497,17 @@ public class ProgramStage
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
     }
 }

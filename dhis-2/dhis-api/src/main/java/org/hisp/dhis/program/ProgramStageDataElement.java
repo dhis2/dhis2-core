@@ -72,6 +72,8 @@ public class ProgramStageDataElement
      */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
+    private Boolean skipSynchronization = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -214,6 +216,18 @@ public class ProgramStageDataElement
     public void setRenderType( DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
     {
         this.renderType = renderType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( Boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
     }
 
     // -------------------------------------------------------------------------

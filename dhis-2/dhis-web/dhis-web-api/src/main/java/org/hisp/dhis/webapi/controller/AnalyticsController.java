@@ -89,6 +89,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -122,7 +123,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -140,6 +141,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -173,7 +175,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -192,6 +194,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -225,7 +228,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );       
 
@@ -244,6 +247,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -277,7 +281,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );        
 
@@ -296,6 +300,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -329,7 +334,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );        
 
@@ -348,6 +353,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -381,7 +387,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );        
 
@@ -445,6 +451,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
+        @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -478,7 +485,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).build();
+            .order( order ).timeField( timeField ).build();
         
         DataQueryParams params = dataQueryService.getFromRequest( request );               
 

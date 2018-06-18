@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import com.csvreader.CsvWriter;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
@@ -82,8 +81,6 @@ public class SpringDataValueSetStore
         String sql = getDataValueSql( params );
 
         writeDataValueSet( sql, params, completeDate, dataValueSet );
-
-        IOUtils.closeQuietly( out );
     }
 
     @Override
@@ -94,8 +91,6 @@ public class SpringDataValueSetStore
         String sql = getDataValueSql( params );
 
         writeDataValueSet( sql, params, completeDate, dataValueSet );
-
-        IOUtils.closeQuietly( out );
     }
 
     @Override
@@ -106,8 +101,6 @@ public class SpringDataValueSetStore
         String sql = getDataValueSql( params );
 
         writeDataValueSet( sql, params, completeDate, dataValueSet );
-
-        IOUtils.closeQuietly( writer );
     }
 
     @Override

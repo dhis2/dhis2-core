@@ -212,6 +212,11 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET dataelementid = 0 WHERE dataelementid IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
+
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -856,6 +861,7 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET dataElementGroupSetAttribute=false WHERE dataElementGroupSetAttribute IS NULL" );
         executeSql( "UPDATE attribute SET validationRuleAttribute=false WHERE validationRuleAttribute IS NULL" );
         executeSql( "UPDATE attribute SET validationRuleGroupAttribute=false WHERE validationRuleGroupAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryAttribute=false WHERE categoryAttribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 

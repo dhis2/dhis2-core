@@ -28,21 +28,19 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.joda.time.DateTime;
-import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -59,11 +57,25 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public static final String EVENT_DATE = "EVENT_DATE";
     public static final String ENROLLMENT_DATE = "ENROLLMENT_DATE";
     public static final String INCIDENT_DATE = "INCIDENT_DATE";
-    
+    public static final String COHORT_HAVING_PROGRAM_STAGE_PREFIX = "PS_EVENTDATE:";
+    public static final String PROGRAM_STAGE_REGEX_GROUP = "ps";
+    public static final String COHORT_HAVING_PROGRAM_STAGE_REGEX = COHORT_HAVING_PROGRAM_STAGE_PREFIX + "(?<" + PROGRAM_STAGE_REGEX_GROUP +">\\w{11})"; 
+    public static final Pattern COHORT_HAVING_PROGRAM_STAGE_PATTERN = Pattern.compile( COHORT_HAVING_PROGRAM_STAGE_REGEX );
+    public static final String COHORT_HAVING_DATA_ELEMENT_PREFIX = "#{";
+    public static final String DATA_ELEMENT_REGEX_GROUP = "de";
+    public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "#\\{(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11})\\.(?<"+ DATA_ELEMENT_REGEX_GROUP + ">\\w{11})}"; 
+    public static final Pattern COHORT_HAVING_DATA_ELEMENT_PATTERN = Pattern.compile( COHORT_HAVING_DATA_ELEMENT_REGEX );
+    public static final String COHORT_HAVING_ATTRIBUTE_PREFIX = "A{";
+    public static final String ATTRIBUTE_REGEX_GROUP = "a";
+    public static final String COHORT_HAVING_ATTRIBUTE_REGEX = "A\\{(?<" + ATTRIBUTE_REGEX_GROUP + ">\\w{11})}";
+    public static final Pattern COHORT_HAVING_ATTRIBUTE_PATTERN = Pattern.compile( COHORT_HAVING_ATTRIBUTE_REGEX );
+        
     public static final String DB_EVENT_DATE = "executiondate";
     public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
     public static final String DB_INCIDENT_DATE = "incidentdate";
     
+    public static final String DB_QUOTE = "\"";
+    public static final String DB_SEPARATOR_ID = "_";
     
     private String boundaryTarget;
     
@@ -103,7 +115,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     // Logic
     // -------------------------------------------------------------------------
  
-    private Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
+    public Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
     {
         Date returnDate = null;
         
@@ -125,6 +137,27 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         return returnDate;
     }
     
+
+    public Boolean isCohortDateBoundary()
+    {
+        return !isEventDateBoundary();
+    }
+    
+    public Boolean isEnrollmentHavingEventDateCohortBoundary()
+    {
+        return boundaryTarget.startsWith( COHORT_HAVING_PROGRAM_STAGE_PREFIX );
+    }
+    
+    public Boolean isDataElementCohortBoundary()
+    {
+        return boundaryTarget.startsWith( COHORT_HAVING_DATA_ELEMENT_PREFIX );
+    }
+    
+    public Boolean isAttributeCohortBoundary()
+    {
+        return boundaryTarget.startsWith( COHORT_HAVING_ATTRIBUTE_PREFIX );
+    }
+    
     public Boolean isEventDateBoundary()
     {
         return boundaryTarget.equals( AnalyticsPeriodBoundary.EVENT_DATE );
@@ -138,17 +171,6 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public Boolean isIncidentDateBoundary()
     {
         return boundaryTarget.equals( AnalyticsPeriodBoundary.INCIDENT_DATE );
-    }
-    
-    public String getSqlCondition( Date reportingStartDate, Date reportingEndDate )
-    {
-        String column = isEventDateBoundary() ? DB_EVENT_DATE : isEnrollmentDateBoundary() ? DB_ENROLLMENT_DATE : isIncidentDateBoundary() ? DB_INCIDENT_DATE : null;
-        Assert.isTrue( column != null, "Can not generate where condition for analyticsPeriodBoundary " + this.uid + " - unknown boundaryTarget" );
-        
-        final SimpleDateFormat format = new SimpleDateFormat();
-        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<" : ">=" ) +
-            " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
     }
     
     // -------------------------------------------------------------------------

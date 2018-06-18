@@ -466,7 +466,8 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                //TODO: As we make support for event reports with enrollment listings, we will have to change this.
+                //TODO As we build support for event reports with enrollment listings we will have to change this
+                
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
                     enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );

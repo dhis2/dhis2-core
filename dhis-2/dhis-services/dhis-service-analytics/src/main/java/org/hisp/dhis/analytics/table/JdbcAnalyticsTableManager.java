@@ -60,6 +60,7 @@ import java.util.concurrent.Future;
 
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized

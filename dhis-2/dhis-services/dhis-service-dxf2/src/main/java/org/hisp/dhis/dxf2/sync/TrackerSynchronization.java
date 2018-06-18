@@ -115,7 +115,7 @@ public class TrackerSynchronization
             queryParams.setPage( i );
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
-            filterOutNonSynchronizableAttributes( dtoTeis );
+            filterOutAttributesMarkedWithSkipSynchronizationFlag( dtoTeis );
             log.info( String.format( "Syncing page %d, page size is: %d", i, trackerSyncPageSize ) );
 
             if ( log.isDebugEnabled() )
@@ -144,13 +144,15 @@ public class TrackerSynchronization
         }
     }
 
-    private void filterOutNonSynchronizableAttributes( List<TrackedEntityInstance> dtoTeis )
+    private void filterOutAttributesMarkedWithSkipSynchronizationFlag( List<TrackedEntityInstance> dtoTeis )
     {
         for ( TrackedEntityInstance tei : dtoTeis )
         {
-            tei.setAttributes( tei.getAttributes().stream()
-                .filter( attr -> !attr.getSkipSynchronization() )
-                .collect( Collectors.toList() ) );
+            tei.setAttributes(
+                tei.getAttributes().stream()
+                    .filter( attr -> !attr.isSkipSynchronization() )
+                    .collect( Collectors.toList() )
+            );
         }
     }
 

@@ -107,7 +107,28 @@
     <property name="startDate" column="startdate" />
 
     <property name="endDate" column="enddate" />
+    
+    <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+      column="trackedentitytypeid" foreign-key="fk_mapview_trackedentitytypeid" />
 
+    <property name="programStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="followUp" column="followup" />
+    
+    <property name="organisationUnitSelectionMode" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.OrganisationUnitSelectionMode</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="method" />
 
     <property name="classes" />

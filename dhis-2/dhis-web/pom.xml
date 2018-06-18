@@ -20,7 +20,6 @@
     <module>dhis-web-uaa</module>
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
-    <module>dhis-web-importexport</module>
     <module>dhis-web-reporting</module>
     <module>dhis-web-apps</module>
     <module>dhis-web-light</module>
