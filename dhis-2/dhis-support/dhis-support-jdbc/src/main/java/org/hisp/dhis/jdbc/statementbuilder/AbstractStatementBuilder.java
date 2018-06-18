@@ -28,11 +28,23 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.springframework.util.Assert;
 
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
 
 /**
  * @author Lars Helge Overland
@@ -287,5 +299,86 @@ public abstract class AbstractStatementBuilder
     public boolean supportsPartialIndexes()
     {
         return false;
+    }
+    
+    public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
+        {
+            if( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+            {
+                String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+                String columnName = "\"" + dataElementUid + "\"";
+                return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+                    ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                    ( programIndicator.getEndEventBoundary() != null ? ("and " + 
+                    getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
+                    " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
+                        getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            }
+            else
+            {
+                return this.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
+            }
+        }
+        else
+        {
+            return this.columnQuote( dataElementUid );
+        }
+    }
+    
+    public String getProgramIndicatorHavingEventInProgramStageAndPeriodSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
+    {
+        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(), "Can not get evend date cohort boundaries for program indicator:" + programIndicator.getUid() );
+        
+        Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
+        
+        String sql = "";
+        SqlHelper sqlHelper = new SqlHelper();
+        for ( String programStage : map.keySet() )
+        {
+            throw new NotImplementedException();
+        }
+        return sql;
+    }
+    
+    private String getBoundaryElementColumnSql( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        String columnSql = null;
+        if ( boundary.isDataElementCohortBoundary() )
+        {
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_DATA_ELEMENT_PATTERN.matcher( boundary.getBoundaryTarget() );
+            Assert.isTrue( matcher.find(), "Can not parse data element pattern for analyticsPeriodBoundary " + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
+            String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
+            Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            String dataElement = matcher.group( AnalyticsPeriodBoundary.DATA_ELEMENT_REGEX_GROUP );
+            Assert.isTrue( dataElement != null, "Can not find data element for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            columnSql =  getCastToDate( getProgramIndicatorDataValueSelectSql( programStage, dataElement, reportingStartDate, reportingEndDate, programIndicator ) );
+        }
+        else if ( boundary.isAttributeCohortBoundary() )
+        {
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_ATTRIBUTE_PATTERN.matcher( boundary.getBoundaryTarget() );
+            Assert.isTrue( matcher.find(), "Can not parse attribute pattern for analyticsPeriodBoundary " + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
+            String attribute = matcher.group( AnalyticsPeriodBoundary.ATTRIBUTE_REGEX_GROUP );
+            Assert.isTrue( attribute != null, "Can not find attribute for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            columnSql =  getCastToDate( this.columnQuote( attribute ) );
+        }
+        Assert.isTrue( columnSql != null, "Can not determine boundary type for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+        return columnSql;
+    }
+    
+    public String getCohortBoundaryCondition( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE : 
+            boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE : 
+            boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE : 
+            this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate, programIndicator );
+        
+        final SimpleDateFormat format = new SimpleDateFormat();
+        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+        return column + " " + ( boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=" ) +
+            " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
     }
 }
