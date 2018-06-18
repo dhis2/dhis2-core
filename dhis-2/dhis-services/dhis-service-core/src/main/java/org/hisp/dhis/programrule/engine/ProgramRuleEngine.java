@@ -34,6 +34,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -75,8 +76,8 @@ public class ProgramRuleEngine
         }
 
         List<RuleEffect> ruleEffects = new ArrayList<>();
-
-        List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
+        
+        List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
@@ -84,7 +85,7 @@ public class ProgramRuleEngine
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).events( ruleEvents ).build();
+        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
 
         try
         {
@@ -113,7 +114,7 @@ public class ProgramRuleEngine
 
         ProgramInstance enrollment = programStageInstance.getProgramInstance();
 
-        List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
+        List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
@@ -121,7 +122,7 @@ public class ProgramRuleEngine
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
         try
         {
@@ -153,5 +154,27 @@ public class ProgramRuleEngine
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
+    }
+
+    private List<ProgramRule> getImplementableRules( Program program )
+    {
+        List<ProgramRule> rules =  programRuleService.getProgramRule( program );
+
+        return rules.stream().filter( this::isImplementable ).collect( Collectors.toList() );
+    }
+
+    private boolean isImplementable( ProgramRule rule )
+    {
+        Set<ProgramRuleAction> actions = rule.getProgramRuleActions();
+
+        for( ProgramRuleAction action : actions )
+        {
+            if ( action.getProgramRuleActionType().isImplementable() )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
