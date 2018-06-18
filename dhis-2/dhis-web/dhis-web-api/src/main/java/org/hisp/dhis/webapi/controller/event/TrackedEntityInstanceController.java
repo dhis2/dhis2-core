@@ -623,7 +623,7 @@ public class TrackedEntityInstanceController
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEntityInstanceById( 
     		@PathVariable( "id" ) String pvId,
-    		@RequestParam( required = false ) String program ) throws NotFoundException
+    		@RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -813,7 +813,7 @@ public class TrackedEntityInstanceController
     }
 
     private TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
-        throws NotFoundException
+        throws NotFoundException, WebMessageException
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
             getTrackedEntityInstanceParams( fields ) );
@@ -843,7 +843,7 @@ public class TrackedEntityInstanceController
         	
         	if ( !errors.isEmpty() )
         	{
-        		throw new NotFoundException( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED, id + ":" + pr );
+        		throw new WebMessageException( WebMessageUtils.unathorized( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED ) );
         	}        		
         }
         else
