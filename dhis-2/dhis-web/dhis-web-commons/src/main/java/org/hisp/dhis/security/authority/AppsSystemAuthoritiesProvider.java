@@ -58,4 +58,13 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
 
         return authorities;
     }
+
+    private String generateAppAuthority( String appName )
+    {
+        String authority = "";
+
+        auth
+
+        return authority;
+    }
 }
