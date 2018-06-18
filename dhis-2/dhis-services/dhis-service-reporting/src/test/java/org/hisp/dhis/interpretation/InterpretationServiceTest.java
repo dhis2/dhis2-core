@@ -272,7 +272,7 @@ public class InterpretationServiceTest
         assertNotNull( interpretationA.getMentions() );
         assertEquals( 2, interpretationA.getMentions().size() );
         
-        InterpretationComment interpretationComment = interpretationService.addInterpretationComment( uid, "This interpretation is good @" +  userA.getUsername() + " @" + userB.getUsername());
+        InterpretationComment interpretationComment = interpretationService.addInterpretationComment( uid, "This interpretation with HTML is good <p>@" +  userA.getUsername() + "</p> <b>@" + userB.getUsername() + "</b>");
         assertNotNull( interpretationComment.getMentions() );
         assertEquals( 2, interpretationComment.getMentions().size() );
         
@@ -321,7 +321,7 @@ public class InterpretationServiceTest
         interpretationComment3 = interpretationService.addInterpretationComment( uid, "This interpretation has a fake mention @thisisnotauser");
         assertNotNull( interpretationComment3.getMentions() );
         assertEquals( 0, interpretationComment3.getMentions().size() );
-        
+
         interpretationA = interpretationService.getInterpretation( uid );
         assertNotNull( interpretationA.getComments() );
         assertEquals( 2, interpretationA.getComments().size() );

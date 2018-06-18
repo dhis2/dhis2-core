@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.jsoup.Jsoup;
 
 public final class MentionUtils
 {
@@ -59,7 +60,8 @@ public final class MentionUtils
     public static Set<User> getMentionedUsers( String text, UserService userService )
     {
         Set<User> users = new HashSet<>();
-        Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( text );
+        String plainText = Jsoup.parse( text ).text();
+        Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( plainText );
         while ( matcher.find() )
         {
             String username = matcher.group( 1 );
