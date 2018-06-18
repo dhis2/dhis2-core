@@ -64,9 +64,9 @@ public interface UserGroupService
 
     void removeUserFromGroups( User user, Collection<String> uids );
 
-    void updateUserGroups( User user, Collection<String> uids );
+    void updateUserGroupsByUids( User user, Collection<String> uids );
 
-    void updateUserGroups( User user, Collection<String> uids, User currentUser );
+    void updateUserGroupsByUids( User user, Collection<String> uids, User currentUser );
 
     List<UserGroup> getAllUserGroups();
 
@@ -79,4 +79,8 @@ public interface UserGroupService
     int getUserGroupCount();
 
     int getUserGroupCountByName( String name );
+
+    Collection<UserGroup> getUserGroupsByUid( Collection<String> uids );
+
+    void updateUserGroups( User user, Collection<UserGroup> updates, User currentUser );
 }

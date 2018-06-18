@@ -178,15 +178,9 @@ public class DefaultUserGroupService
     }
 
     @Override
-    public void updateUserGroups( User user, Collection<String> uids )
+    public void updateUserGroups( User user, Collection<UserGroup> updates, User currentUser )
     {
-        updateUserGroups( user, uids, currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public void updateUserGroups( User user, Collection<String> uids, User currentUser )
-    {
-        Collection<UserGroup> updates = getUserGroupsByUid( uids );
+        if ( updates == null || updates.isEmpty() ) return;
 
         for ( UserGroup userGroup : new HashSet<>( user.getGroups() ) )
         {
@@ -204,6 +198,20 @@ public class DefaultUserGroupService
                 userGroupStore.updateNoAcl( userGroup );
             }
         }
+    }
+
+    @Override
+    public void updateUserGroupsByUids( User user, Collection<String> uids )
+    {
+        updateUserGroupsByUids( user, uids, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public void updateUserGroupsByUids( User user, Collection<String> uids, User currentUser )
+    {
+        Collection<UserGroup> updates = getUserGroupsByUid( uids );
+
+       updateUserGroups( user, updates, currentUser );
     }
 
     public Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
