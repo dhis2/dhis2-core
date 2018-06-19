@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -73,4 +74,6 @@ public interface TrackedEntityInstanceStore
      * @param lastSynchronized          The date of last successful sync
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+
+    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

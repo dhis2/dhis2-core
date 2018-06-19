@@ -860,11 +860,9 @@ public abstract class AbstractEventService
 
             event.getNotes().add( note );
         }
-
-        System.out.println("Relationships: " + programStageInstance.getRelationships().size());
-
-        event.setRelationships( programStageInstance.getRelationships().stream()
-            .map( ( r ) -> relationshipService.getRelationship( r, RelationshipParams.FALSE, user )  )
+        
+        event.setRelationships( programStageInstance.getRelationshipItems().stream()
+            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user )  )
             .collect( Collectors.toSet() )
         );
 

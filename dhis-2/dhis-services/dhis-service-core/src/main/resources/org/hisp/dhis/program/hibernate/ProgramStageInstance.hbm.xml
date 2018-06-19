@@ -74,9 +74,9 @@
       <one-to-many class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
     </set>
 
-    <set name="relationships">
-      <key column="programstageinstanceid" not-null="false" />
-      <many-to-many column="relationshipid" class="org.hisp.dhis.relationship.Relationship" />
+    <set name="relationshipItems" inverse="true">
+      <key column="programstageinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
   </class>

@@ -545,8 +545,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T parsed = deserializeJsonEntity( request, response );
         parsed.getTranslations().clear();
 
-        System.out.println("PARSED: " + parsed);
-
         preCreateEntity( parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )

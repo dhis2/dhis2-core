@@ -70,14 +70,6 @@ public class DefaultRelationshipService
     @Override
     public void deleteRelationship( Relationship relationship )
     {
-        ProgramStageInstance psi = relationship.getFrom().getProgramStageInstance();
-
-        if ( psi != null )
-        {
-            psi.getRelationships().remove( relationship );
-            programStageInstanceStore.save( psi );
-        }
-
         relationshipStore.delete( relationship );
     }
 
@@ -102,15 +94,9 @@ public class DefaultRelationshipService
     @Override
     public int addRelationship( Relationship relationship )
     {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
         relationshipStore.save( relationship );
-
-        ProgramStageInstance psi = relationship.getFrom().getProgramStageInstance();
-
-        if ( psi != null )
-        {
-            psi.getRelationships().add( relationship );
-            programStageInstanceStore.save( psi );
-        }
 
         return relationship.getId();
     }
@@ -118,6 +104,8 @@ public class DefaultRelationshipService
     @Override
     public void updateRelationship( Relationship relationship )
     {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );
     }
 

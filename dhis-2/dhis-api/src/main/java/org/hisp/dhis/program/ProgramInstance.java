@@ -39,6 +39,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -75,7 +76,7 @@ public class ProgramInstance
 
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
 
-    private Set<Relationship> relationships = new HashSet<>();
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
@@ -504,15 +505,14 @@ public class ProgramInstance
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Relationship> getRelationships()
+    public Set<RelationshipItem> getRelationshipItems()
     {
-        return relationships;
+        return relationshipItems;
     }
 
-    public void setRelationships( Set<Relationship> relationships )
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
     {
-        this.relationships = relationships;
+        this.relationshipItems = relationshipItems;
     }
 }

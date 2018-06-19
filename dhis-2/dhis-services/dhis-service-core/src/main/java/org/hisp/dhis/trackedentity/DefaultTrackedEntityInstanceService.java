@@ -836,6 +836,12 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    {
+        return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
+    }
+
+    @Override
     public void updateTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );

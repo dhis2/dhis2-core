@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -65,7 +66,7 @@ public class TrackedEntityInstance
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
-    private Set<Relationship> relationships = new HashSet<>();
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
 
@@ -296,13 +297,13 @@ public class TrackedEntityInstance
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Relationship> getRelationships()
+    public Set<RelationshipItem> getRelationshipItems()
     {
-        return relationships;
+        return relationshipItems;
     }
 
-    public void setRelationships( Set<Relationship> relationships )
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
     {
-        this.relationships = relationships;
+        this.relationshipItems = relationshipItems;
     }
 }

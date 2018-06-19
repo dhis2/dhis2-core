@@ -35,6 +35,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
@@ -76,7 +77,7 @@ public class ProgramStageInstance
 
     private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
 
-    private Set<Relationship> relationships = new HashSet<>();
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private EventStatus status = EventStatus.ACTIVE;
 
@@ -320,13 +321,13 @@ public class ProgramStageInstance
         this.lastSynchronized = lastSynchronized;
     }
 
-    public Set<Relationship> getRelationships()
+    public Set<RelationshipItem> getRelationshipItems()
     {
-        return relationships;
+        return relationshipItems;
     }
 
-    public void setRelationships( Set<Relationship> relationships )
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
     {
-        this.relationships = relationships;
+        this.relationshipItems = relationshipItems;
     }
 }

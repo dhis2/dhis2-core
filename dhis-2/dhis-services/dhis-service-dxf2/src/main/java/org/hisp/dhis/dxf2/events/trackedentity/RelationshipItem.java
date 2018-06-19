@@ -33,6 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 
+import java.util.Objects;
+
 /**
  * @author Stian Sandvold
  */
@@ -93,5 +95,29 @@ public class RelationshipItem
             ", enrollment=" + enrollment +
             ", event=" + event +
             '}';
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        RelationshipItem that = (RelationshipItem) o;
+
+        return (trackedEntityInstance != null && that.trackedEntityInstance != null &&
+            Objects.equals( trackedEntityInstance.getTrackedEntityInstance(),
+                that.trackedEntityInstance.getTrackedEntityInstance() )) ||
+            (enrollment != null && that.enrollment != null &&
+                Objects.equals( enrollment.getEnrollment(), that.enrollment.getEnrollment() )) ||
+            (event != null && that.event != null &&
+                Objects.equals( event.getEvent(), that.event.getEvent() ));
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( trackedEntityInstance, enrollment, event );
     }
 }

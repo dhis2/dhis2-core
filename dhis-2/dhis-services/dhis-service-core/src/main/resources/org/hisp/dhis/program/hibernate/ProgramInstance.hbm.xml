@@ -60,9 +60,9 @@
       <one-to-many class="org.hisp.dhis.program.ProgramStageInstance" />
     </set>
 
-    <set name="relationships" inverse="true">
+    <set name="relationshipItems" inverse="true">
       <key column="programinstanceid" />
-      <one-to-many class="org.hisp.dhis.relationship.Relationship" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
     <list name="messageConversations" table="programinstance_messageconversation">

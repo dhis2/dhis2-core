@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.relationship;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -37,7 +38,9 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -68,6 +71,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -103,6 +107,9 @@ public abstract class AbstractRelationshipService
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
 
     private HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
 
@@ -340,10 +347,18 @@ public abstract class AbstractRelationshipService
     @Override
     public Relationship getRelationshipByUid( String id )
     {
-        return getRelationship( relationshipService.getRelationship( id ), currentUserService.getCurrentUser() );
+        org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
+
+        if ( relationship == null)
+        {
+            return null;
+        }
+
+        return getRelationship( relationship, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional
     public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
         User user )
     {
@@ -360,15 +375,8 @@ public abstract class AbstractRelationshipService
         relationship.setRelationshipType( dao.getRelationshipType().getUid() );
         relationship.setRelationshipName( dao.getRelationshipType().getName() );
 
-        if ( params.isIncludeFrom() )
-        {
-            relationship.setFrom( includeRelationshipItem( dao.getFrom() ) );
-        }
-
-        if ( params.isIncludeTo() )
-        {
-            relationship.setTo( includeRelationshipItem( dao.getTo() ) );
-        }
+        relationship.setFrom( includeRelationshipItem( dao.getFrom(), !params.isIncludeFrom() ) );
+        relationship.setTo( includeRelationshipItem( dao.getTo(), !params.isIncludeTo() ) );
 
         relationship.setCreated( DateUtils.getIso8601NoTz( dao.getCreated() ) );
         relationship.setLastUpdated( DateUtils.getIso8601NoTz( dao.getLastUpdated() ) );
@@ -382,23 +390,75 @@ public abstract class AbstractRelationshipService
         return getRelationship( dao, RelationshipParams.TRUE, user );
     }
 
-    private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao )
+    private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao,
+        boolean uidOnly )
     {
-        TrackedEntityInstanceParams teiParams = new TrackedEntityInstanceParams( false, true, true );
+        TrackedEntityInstanceParams teiParams = TrackedEntityInstanceParams.FALSE;
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
         if ( dao.getTrackedEntityInstance() != null )
         {
-            relationshipItem.setTrackedEntityInstance(
-                trackedEntityInstanceService.getTrackedEntityInstance( dao.getTrackedEntityInstance(), teiParams ) );
+            org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance tei = new org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance();
+            String uid = dao.getTrackedEntityInstance().getUid();
+
+            if ( uidOnly )
+            {
+                tei.setTrackedEntityInstance( uid );
+                tei.setDeleted( null );
+                tei.setFeatureType( null );
+                tei.setEnrollments( null );
+                tei.setRelationships( null );
+                tei.setAttributes( null );
+            }
+            else
+            {
+                tei = trackedEntityInstanceService
+                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), teiParams );
+            }
+
+            relationshipItem.setTrackedEntityInstance( tei );
         }
         else if ( dao.getProgramInstance() != null )
         {
-            relationshipItem.setEnrollment( enrollmentService.getEnrollment( dao.getProgramInstance(), teiParams ) );
+            Enrollment enrollment = new Enrollment();
+            String uid = dao.getProgramInstance().getUid();
+
+            if ( uidOnly )
+            {
+                enrollment.setEnrollment( uid );
+                enrollment.setDeleted( null );
+                enrollment.setNotes( null );
+                enrollment.setRelationships( null );
+                enrollment.setAttributes( null );
+                enrollment.setEvents( null );
+            }
+            else
+            {
+                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), teiParams );
+            }
+
+            relationshipItem.setEnrollment( enrollment );
         }
         else if ( dao.getProgramStageInstance() != null )
         {
-            relationshipItem.setEvent( eventService.getEvent( dao.getProgramStageInstance() ) );
+            Event event = new Event();
+            String uid = dao.getProgramStageInstance().getUid();
+
+            if ( uidOnly )
+            {
+                event.setEvent( uid );
+                event.setDeleted( null );
+                event.setStatus( null );
+                event.setDataValues( null );
+                event.setNotes( null );
+            }
+            else
+            {
+                event = eventService.getEvent( dao.getProgramStageInstance() );
+                event.setRelationships( null );
+            }
+
+            relationshipItem.setEvent( event );
         }
 
         return relationshipItem;
@@ -479,6 +539,11 @@ public abstract class AbstractRelationshipService
         if ( relationship.getTo() == null || getUidOfRelationshipItem( relationship.getTo() ).isEmpty() )
         {
             conflicts.add( new ImportConflict( relationship.getRelationship(), "Missing property 'to'" ) );
+        }
+
+        if ( relationship.getFrom().equals( relationship.getTo() ) )
+        {
+            conflicts.add( new ImportConflict( relationship.getRelationship(), "Self-referencing relationships are not allowed." ));
         }
 
         if ( !conflicts.isEmpty() )
@@ -684,14 +749,10 @@ public abstract class AbstractRelationshipService
         } );
 
         // Find and put all Relationship members in their respective cache
-
         if ( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ) != null )
         {
-            Query teiQuery = Query.from( schemaService.getDynamicSchema( TrackedEntityInstance.class ) );
-            teiQuery.setUser( user );
-            teiQuery.add( Restrictions.in( "id", relationshipEntities.get( TRACKED_ENTITY_INSTANCE ) ) );
-            queryService.query( teiQuery )
-                .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), (TrackedEntityInstance) tei ) );
+            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user)
+                .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), tei ) );
         }
 
         if ( relationshipEntities.get( PROGRAM_INSTANCE ) != null )
