@@ -1622,6 +1622,8 @@ public abstract class AbstractEventService
 
                 dataValueService.saveTrackedEntityDataValue( dataValue );
 
+                programStageInstance.getDataValues().add( dataValue );
+
                 if ( importSummary != null )
                 {
                     importSummary.getImportCount().incrementImported();
@@ -1640,8 +1642,6 @@ public abstract class AbstractEventService
                     importSummary.getImportCount().incrementUpdated();
                 }
             }
-
-            programStageInstance.getDataValues().add( dataValue );
         }
         else if ( dataValue != null )
         {
