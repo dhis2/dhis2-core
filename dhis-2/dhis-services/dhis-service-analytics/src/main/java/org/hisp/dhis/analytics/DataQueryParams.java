@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 
 import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -52,6 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
 import javax.annotation.Nullable;
@@ -264,6 +266,11 @@ public class DataQueryParams
     protected SortOrder order;
     
     /**
+     * The time field used as basis for aggregation.
+     */
+    protected String timeField;
+    
+    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -428,6 +435,7 @@ public class DataQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.order = this.order;
+        params.timeField = this.timeField;
         params.apiVersion = this.apiVersion;
         
         params.currentUser = this.currentUser;
@@ -1126,7 +1134,35 @@ public class DataQueryParams
     {
         return order != null;
     }
+
+    /**
+     * Indicates whether a non-default time field is specified (default is {@link TimeField#EVENT_DATE}.
+     */
+    public boolean hasTimeField()
+    {
+        return timeField != null && !TimeField.EVENT_DATE.name().equals( timeField );
+    }
     
+    /**
+     * Returns the time field as field (column) value. If the 
+     * time field is within {@link TimeField} enumeration, the field
+     * (column) value is returned.
+     */
+    public String getTimeFieldAsField()
+    {
+        return TimeField.fieldIsValid( timeField ) ? TimeField.valueOf( timeField ).getField() : timeField;
+    }
+        
+    /**
+     * Returns the time field as field (column) value using
+     * {@link DataQueryParams#getTimeFieldAsField()}. Returns the
+     * default {@link TimeField#EVENT_DATE} if not specified.
+     */
+    public String getTimeFieldAsFieldFallback()
+    {
+        return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
+    }
+
     /**
      * Indicates whether this object has a program.
      */
@@ -1192,7 +1228,7 @@ public class DataQueryParams
     {
         return currentUser != null;
     }
-    
+
     /**
      * Indicates whether one of the dimensions or filters is a program indicator.
      * @return true if one or more of the dimensions is of type program indicator.
@@ -1839,6 +1875,11 @@ public class DataQueryParams
     public SortOrder getOrder()
     {
         return order;
+    }
+
+    public String getTimeField()
+    {
+        return timeField;
     }
 
     public DhisApiVersion getApiVersion()
@@ -2672,6 +2713,12 @@ public class DataQueryParams
         public Builder withOrder( SortOrder order )
         {
             this.params.order = order;
+            return this;
+        }
+
+        public Builder withTimeField( String timeField )
+        {
+            this.params.timeField = timeField;
             return this;
         }
         

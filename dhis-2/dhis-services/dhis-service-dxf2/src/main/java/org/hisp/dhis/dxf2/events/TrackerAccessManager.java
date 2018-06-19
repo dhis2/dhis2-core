@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -46,6 +47,10 @@ public interface TrackerAccessManager
     List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
 
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+
+    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+
+    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program );
 
     List<String> canRead( User user, ProgramInstance programInstance );
 

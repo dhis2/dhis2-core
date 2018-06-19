@@ -293,8 +293,11 @@ public class TableAlteror
         
         executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
         executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
-        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );
-        executeSql( "update program set allowauditlog = false where allowauditlog is null" );
+        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );        
+        executeSql( "alter table program drop column allowauditlog" );
+        executeSql( "update program set accesslevel = 'OPEN' where accesslevel is null" );
+        
+        updateTrackedEntityProgramOwners();
     }
 
     // -------------------------------------------------------------------------
@@ -313,6 +316,17 @@ public class TableAlteror
                 "alter table programstagedataelement drop column programstagesectionid;" +
                 "alter table programstagedataelement drop column section_sort_order;";
 
+        executeSql( sql );
+    }
+    
+    private void updateTrackedEntityProgramOwners()
+    {
+        String sql = "insert into "
+            + "trackedentityprogramowner(trackedentityprogramownerid,trackedentityinstanceid,programid,created,lastupdated,organisationunitid,createdby) "
+            + " (select nextval('hibernate_sequence') ,trackedentityinstanceid,programid,created,lastupdated,organisationunitid,"
+            + "coalesce(storedby,'system') createdby from programinstance where "
+            + "trackedentityinstanceid is not null and " + " programid is not null and organisationunitid is not null "
+            + " order by lastupdated desc) ON CONFLICT DO NOTHING;";
         executeSql( sql );
     }
 

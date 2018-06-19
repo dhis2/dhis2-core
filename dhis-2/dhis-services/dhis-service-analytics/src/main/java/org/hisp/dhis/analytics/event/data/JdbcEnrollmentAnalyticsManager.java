@@ -34,7 +34,12 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
+
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -49,6 +54,7 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramIndicator;
 
 import com.google.common.collect.Sets;
 
@@ -66,7 +72,7 @@ public class JdbcEnrollmentAnalyticsManager
      */
     protected String getFromClause( EventQueryParams params )
     {
-        return " from " + params.getTableName() + " as enrollmenttable ";
+        return " from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " ";
     }
     
     /**
@@ -79,7 +85,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
-    {        
+    { 
         String sql = "";
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -91,24 +97,11 @@ public class JdbcEnrollmentAnalyticsManager
         {
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
-                // Event data joined in the program indicator service, as part of translating the expression or filter for the program indicator
-                
-                if ( !boundary.isEventDateBoundary() )
+                if ( boundary.isCohortDateBoundary() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + statementBuilder.getCohortBoundaryCondition( boundary, params.getEarliestStartDate(), params.getLatestEndDate(),
+                        params.getProgramIndicator() ) + " ";
                 }
-            }
-            
-            // Filter for evaluating enrollments which have any events in the boundary period
-            
-            if ( params.getProgramIndicator().hasEventBoundary() )
-            {
-                sql += sqlHelper.whereAnd() + "( select count(*) from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
-                    " where pi = enrollmenttable.pi " + 
-                    ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
-                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
-                    ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 
-                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + ") > 0";
             }
         }
         else
@@ -120,7 +113,7 @@ public class JdbcEnrollmentAnalyticsManager
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
             }
         }        
 
@@ -158,7 +151,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dim : dynamicDimensions )
         {            
-            String col = statementBuilder.columnQuote( dim.getDimensionName() );
+            String col = quoteAlias( dim.getDimensionName() );
             
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -243,7 +236,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
+            sql += "and " + quoteAlias( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -253,9 +246,30 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += "and " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;
+    }
+    
+    protected String getBoundedDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+        {
+            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+            String columnName = "\"" + dataElementUid + "\"";
+            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                ( programIndicator.getEndEventBoundary() != null ? ( "and " + 
+                statementBuilder.getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
+                    " ") : "" ) + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                statementBuilder.getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+        }
+        else
+        {
+            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
+        }
     }
 }

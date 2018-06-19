@@ -323,7 +323,8 @@ public class MessageConversationController
 
 
     @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
-    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid, @RequestBody MessageConversation messageConversation )
+    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid,
+        @RequestBody MessageConversation messageConversation, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( uid );

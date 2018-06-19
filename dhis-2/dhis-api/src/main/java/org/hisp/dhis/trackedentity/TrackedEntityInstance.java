@@ -69,6 +69,8 @@ public class TrackedEntityInstance
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
+    
+    private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
     private OrganisationUnit organisationUnit;
 
@@ -188,6 +190,19 @@ public class TrackedEntityInstance
     public void setProgramInstances( Set<ProgramInstance> programInstances )
     {
         this.programInstances = programInstances;
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<TrackedEntityProgramOwner> getProgramOwners()
+    {
+        return programOwners;
+    }
+
+    public void setProgramOwners( Set<TrackedEntityProgramOwner> programOwners )
+    {
+        this.programOwners = programOwners;
     }
 
     @JsonProperty

@@ -29,6 +29,7 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -100,6 +101,7 @@ public interface AttributeStore
         .put( DataElementGroupSet.class, "dataElementGroupSetAttribute" )
         .put( ValidationRule.class, "validationRuleAttribute" )
         .put( ValidationRuleGroup.class, "validationRuleGroupAttribute" )
+        .put( Category.class, "categoryAttribute" )
         .build();
 
     /**

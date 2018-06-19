@@ -29,6 +29,8 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Sets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -67,6 +69,8 @@ import static org.hisp.dhis.commons.util.TextUtils.*;
 public class HibernateDataValueStore
     implements DataValueStore
 {
+    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -445,7 +449,9 @@ public class HibernateDataValueStore
             where += sqlHelper.whereAnd() + "dv.deleted is false";
         }
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql + where );
+        sql += where;
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         List<DeflatedDataValue> result = new ArrayList<>();
 
@@ -467,6 +473,8 @@ public class HibernateDataValueStore
                 organisationUnitId, categoryOptionComboId, attributeOptionComboId,
                 value, storedBy, created, lastUpdated, comment, followup ) );
         }
+
+        log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
 
         return result;
     }

@@ -98,6 +98,8 @@ public class EventDataQueryRequest
 
     protected Set<String> desc;
 
+    protected String timeField;
+
     protected boolean coordinatesOnly;
 
     protected String coordinateField;
@@ -251,6 +253,11 @@ public class EventDataQueryRequest
         return desc;
     }
 
+    public String getTimeField()
+    {
+        return timeField;
+    }
+
     public boolean isCoordinatesOnly()
     {
         return coordinatesOnly;
@@ -308,6 +315,7 @@ public class EventDataQueryRequest
         request.ouMode = this.ouMode;
         request.asc = new HashSet<>( this.asc );
         request.desc = new HashSet<>( this.desc );
+        request.timeField = this.timeField;
         request.coordinatesOnly = this.coordinatesOnly;
         request.coordinateField = this.coordinateField;
         request.page = this.page;
@@ -517,6 +525,12 @@ public class EventDataQueryRequest
             return this;
         }
 
+        public EventDataQueryRequestBuilder timeField( String timeField )
+        {
+            this.request.timeField = timeField;
+            return this;
+        }
+        
         public EventDataQueryRequestBuilder coordinatesOnly( boolean coordinatesOnly )
         {
             this.request.coordinatesOnly = coordinatesOnly;
@@ -545,7 +559,5 @@ public class EventDataQueryRequest
         {
             return request;
         }
-
     }
-
 }
