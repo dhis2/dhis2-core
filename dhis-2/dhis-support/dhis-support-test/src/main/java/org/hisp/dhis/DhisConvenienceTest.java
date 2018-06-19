@@ -1706,20 +1706,6 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @return RelationshipType
-     */
-    public static RelationshipType createRelationshipType( char uniqueChar )
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setAutoFields();
-
-        relationshipType.setName( "RelationshipType" + uniqueChar );
-
-        return relationshipType;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
      * @param content The content of the file
      * @return a fileResource object
      */

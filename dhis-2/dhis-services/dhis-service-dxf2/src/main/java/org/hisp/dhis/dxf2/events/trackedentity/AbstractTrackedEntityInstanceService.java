@@ -83,6 +83,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -622,7 +623,6 @@ public abstract class AbstractTrackedEntityInstanceService
     private ImportSummaries handleRelationships( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
-
         ImportSummaries importSummaries = new ImportSummaries();
         List<Relationship> create = new ArrayList<>();
         List<Relationship> update = new ArrayList<>();
@@ -687,6 +687,12 @@ public abstract class AbstractTrackedEntityInstanceService
                 }
             }
         }
+
+        Logger log = Logger.getLogger("TESTING");
+
+        log.info( "create: " + create.size() );
+        log.info( "delete: " + delete.size() );
+        log.info( "update: " + update.size() );
 
         importSummaries.addImportSummaries( relationshipService.addRelationships( create, importOptions ) );
         importSummaries.addImportSummaries( relationshipService.updateRelationships( update, importOptions ) );

@@ -45,38 +45,6 @@ public interface RelationshipStore
 {
     String ID = RelationshipStore.class.getName();
 
-    List<Relationship> getByType( RelationshipType relationshipType );
-
-    /**
-     * Get the relationship between two entityInstances by retrieving a
-     * {@link RelationshipType}
-     * 
-     * @param entityInstanceA {@link TrackedEntityInstance}
-     * @param entityInstanceB {@link TrackedEntityInstance}
-     * @param relationshipType {@link RelationshipType}
-     * 
-     * @return {@link RelationshipType}
-     */
-    Relationship get( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType );
-
-    /**
-     * Retrieve relationships of a instance
-     * 
-     * @param instance TrackedEntityInstance
-     * 
-     * @return Relationship list
-     */
-    List<Relationship> getForTrackedEntityInstance( TrackedEntityInstance instance );
-
-    /**
-     * Retrieve all relationships of a relationship type
-     * 
-     * @param relationshipType RelationshipType
-     * 
-     * @return Relationship list
-     */
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
-
     List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
 
     List<Relationship> getByProgramInstance( ProgramInstance pi );

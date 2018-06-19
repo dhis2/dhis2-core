@@ -56,7 +56,9 @@ public interface RelationshipService
     // -------------------------------------------------------------------------
 
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
+
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 
     // -------------------------------------------------------------------------
@@ -99,4 +101,5 @@ public interface RelationshipService
     // -------------------------------------------------------------------------
 
     Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user );
+
 }

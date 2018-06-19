@@ -339,8 +339,6 @@ public abstract class AbstractRelationshipService
             counter++;
         }
 
-        clearSession();
-
         return importSummaries;
     }
 

@@ -50,12 +50,6 @@ public class DefaultRelationshipService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private RelationshipTypeStore relationshipTypeStore;
-
-    @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
-
     private RelationshipStore relationshipStore;
 
     public void setRelationshipStore( RelationshipStore relationshipStore )
@@ -80,12 +74,6 @@ public class DefaultRelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance )
-    {
-        throw new UnsupportedOperationException( "NOT SUPPORTED ANYMORE" );
-    }
-
-    @Override
     public boolean relationshipExists( String uid )
     {
         return relationshipStore.getByUid( uid ) != null;
@@ -107,32 +95,6 @@ public class DefaultRelationshipService
         relationship.getFrom().setRelationship( relationship );
         relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );
-    }
-
-    @Override
-    public Relationship getRelationship( TrackedEntityInstance instanceA, TrackedEntityInstance instanceB,
-        RelationshipType relationshipType )
-    {
-        return relationshipStore.get( instanceA, instanceB, relationshipType );
-    }
-
-    @Override
-    public List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA,
-        RelationshipType relationshipType )
-    {
-        throw new NotImplementedException( "" );
-    }
-
-    @Override
-    public List<Relationship> getRelationshipsByType( String relationshipType )
-    {
-        return relationshipStore.getByType( relationshipTypeStore.getByUid( relationshipType ) );
-    }
-
-    @Override
-    public List<Relationship> getAll()
-    {
-        return relationshipStore.getAll();
     }
 
     @Override

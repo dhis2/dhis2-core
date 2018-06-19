@@ -75,11 +75,6 @@ public class Relationship
     {
     }
 
-    public Relationship( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType,
-        TrackedEntityInstance entityInstanceB )
-    {
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
