@@ -1640,6 +1640,8 @@ public abstract class AbstractEventService
                     importSummary.getImportCount().incrementUpdated();
                 }
             }
+
+            programStageInstance.getDataValues().add( dataValue );
         }
         else if ( dataValue != null )
         {
