@@ -128,8 +128,8 @@ public class MetadataSyncJobParametersTest
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleEventDataPush();
-        verify( metadataSyncPreProcessor ).handleTrackerDataPush();
+        verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
@@ -148,8 +148,8 @@ public class MetadataSyncJobParametersTest
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleEventDataPush();
-        verify( metadataSyncPreProcessor ).handleTrackerDataPush();
+        verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
@@ -169,8 +169,8 @@ public class MetadataSyncJobParametersTest
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush();
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush();
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService, times( 1 ) ).doMetadataSync( any( MetadataSyncParams.class ) );
@@ -190,8 +190,8 @@ public class MetadataSyncJobParametersTest
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush();
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush();
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService, times( 1 ) ).doMetadataSync( any( MetadataSyncParams.class ) );

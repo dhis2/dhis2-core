@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.sync.EventSynchronization;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
 import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -134,14 +136,26 @@ public class MetadataSyncPreProcessor
 
     }
 
-    public void handleTrackerDataPush()
+    public void handleTrackerDataPush( MetadataRetryContext context )
     {
-        trackerSync.syncTrackerProgramData();
+        SynchronizationResult trackerSynchronizationResult = trackerSync.syncTrackerProgramData();
+
+        if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        {
+            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message, null, null );
+            throw new MetadataSyncServiceException( trackerSynchronizationResult.message );
+        }
     }
 
-    public void handleEventDataPush()
+    public void handleEventDataPush( MetadataRetryContext context )
     {
-        eventSync.syncEventProgramData();
+        SynchronizationResult eventsSynchronizationResult = eventSync.syncEventProgramData();
+
+        if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        {
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null, null );
+            throw new MetadataSyncServiceException( eventsSynchronizationResult.message );
+        }
     }
 
     public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context, MetadataVersion metadataVersion )

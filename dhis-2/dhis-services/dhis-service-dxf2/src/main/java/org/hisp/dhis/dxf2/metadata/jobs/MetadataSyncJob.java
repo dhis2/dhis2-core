@@ -67,6 +67,7 @@ public class MetadataSyncJob
     public static String VERSION_KEY = "version";
     public static String DATA_PUSH_SUMMARY = "dataPushSummary";
     public static String EVENT_PUSH_SUMMARY = "eventPushSummary";
+    public static String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
     public static String GET_METADATAVERSION = "getMetadataVersion";
     public static String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
     public static String METADATA_SYNC = "metadataSync";
@@ -153,8 +154,8 @@ public class MetadataSyncJob
 
         metadataSyncPreProcessor.handleAggregateDataPush( context );
 
-        metadataSyncPreProcessor.handleEventDataPush();
-        metadataSyncPreProcessor.handleTrackerDataPush();
+        metadataSyncPreProcessor.handleEventDataPush( context );
+        metadataSyncPreProcessor.handleTrackerDataPush( context );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
 
