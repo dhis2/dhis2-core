@@ -1622,6 +1622,8 @@ public abstract class AbstractEventService
 
                 dataValueService.saveTrackedEntityDataValue( dataValue );
 
+                programStageInstance.getDataValues().add( dataValue );
+
                 if ( importSummary != null )
                 {
                     importSummary.getImportCount().incrementImported();
