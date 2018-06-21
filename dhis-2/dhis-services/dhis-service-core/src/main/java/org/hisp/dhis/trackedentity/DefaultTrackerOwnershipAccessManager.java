@@ -191,10 +191,14 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
             if ( teProgramOwner != null )
             {
-                ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance,
-                    teProgramOwner.getCreated(), teProgramOwner.getCreatedBy() );
-                programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
-                trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
+                if ( !teProgramOwner.getOrganisationUnit().equals( orgUnit ) )
+                {
+                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
+                        entityInstance, teProgramOwner.getCreated(), teProgramOwner.getCreatedBy() );
+                    programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
+                    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
+                        orgUnit );
+                }
             }
             else if ( createIfNotExists )
             {
@@ -233,7 +237,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
             if ( teProgramOwner != null )
             {
-                if ( overwriteIfExists )
+                if ( overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals( organisationUnit ) )
                 {
                     ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
                         entityInstance, teProgramOwner.getCreated(), teProgramOwner.getCreatedBy() );
