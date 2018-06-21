@@ -79,7 +79,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-user-profile</artifactId>
-                  <version>2.28-SNAPSHOT</version>
+                  <version>2.30-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-user-profile</outputDirectory>
                   <includes>**/*.*</includes>
