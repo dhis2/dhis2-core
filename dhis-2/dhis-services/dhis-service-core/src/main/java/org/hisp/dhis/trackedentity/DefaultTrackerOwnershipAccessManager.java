@@ -194,7 +194,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 if ( !teProgramOwner.getOrganisationUnit().equals( orgUnit ) )
                 {
                     ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
-                        entityInstance, teProgramOwner.getCreated(), teProgramOwner.getCreatedBy() );
+                        entityInstance, teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
                         orgUnit );
@@ -240,7 +240,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
                 if ( overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals( organisationUnit ) )
                 {
                     ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
-                        entityInstance, teProgramOwner.getCreated(), teProgramOwner.getCreatedBy() );
+                        entityInstance, teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
                         organisationUnit );
