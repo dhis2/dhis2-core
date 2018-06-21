@@ -28,45 +28,19 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public interface ProgramTempOwnershipAuditService
+public interface ProgramOwnershipHistoryService
 {
 
-    String ID = ProgramTempOwnershipAuditService.class.getName();
+    String ID = ProgramOwnershipHistoryService.class.getName();
 
     /**
-     * Adds program temp ownership audit
+     * Adds program ownership history
      * 
-     * @param programTempOwnershipAudit the audit to add
+     * @param programOwnershipHistory the history to add
      */
-    void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
-
-    /**
-     * Deletes program temp ownership audit for the given program instance
-     * 
-     * @param program the program
-     */
-    void deleteProgramTempOwnershipAudit( Program program );
-
-    /**
-     * Returns program temp ownership audits matching query params
-     * 
-     * @param params program temp ownership audit query params
-     * @return matching ProgramTempOwnershipAuditQueryParams
-     */
-    List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params );
-
-    /**
-     * Returns count of program temp ownership audits matching query params
-     * 
-     * @param params program temp ownership audit query params
-     * @return count of ProgramTempOwnershipAuditQueryParams
-     */
-    int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params );
-
+    void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory );
 }

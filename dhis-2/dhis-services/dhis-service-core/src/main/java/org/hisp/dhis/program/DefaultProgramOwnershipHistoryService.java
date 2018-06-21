@@ -28,45 +28,32 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public interface ProgramTempOwnershipAuditService
+@Transactional
+public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService
 {
 
-    String ID = ProgramTempOwnershipAuditService.class.getName();
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    /**
-     * Adds program temp ownership audit
-     * 
-     * @param programTempOwnershipAudit the audit to add
-     */
-    void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
+    @Autowired
+    private ProgramOwnershipHistoryStore programOwnershipHistoryStore;
 
-    /**
-     * Deletes program temp ownership audit for the given program instance
-     * 
-     * @param program the program
-     */
-    void deleteProgramTempOwnershipAudit( Program program );
+    // -------------------------------------------------------------------------
+    // ProgramOwnershipHistoryService implementation
+    // -------------------------------------------------------------------------
 
-    /**
-     * Returns program temp ownership audits matching query params
-     * 
-     * @param params program temp ownership audit query params
-     * @return matching ProgramTempOwnershipAuditQueryParams
-     */
-    List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params );
-
-    /**
-     * Returns count of program temp ownership audits matching query params
-     * 
-     * @param params program temp ownership audit query params
-     * @return count of ProgramTempOwnershipAuditQueryParams
-     */
-    int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params );
+    @Override
+    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
+    {
+        programOwnershipHistoryStore.addProgramOwnershipHistory( programOwnershipHistory );
+    }
 
 }
