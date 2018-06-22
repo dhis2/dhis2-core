@@ -51,7 +51,7 @@ public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHi
     }
 
     // -------------------------------------------------------------------------
-    // ProgramTempOwnershipAuditStore implementation
+    // ProgramOwnershipHistoryStore implementation
     // -------------------------------------------------------------------------
 
     @Override
