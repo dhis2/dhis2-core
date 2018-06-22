@@ -1,6 +1,4 @@
-package org.hisp.dhis.minmax;
-
-/*
+package org.hisp.dhis.dxf2.sync;/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -28,47 +26,11 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import java.util.List;
-
-@JacksonXmlRootElement
-public class MinMaxValueParams
+/**
+ * @author David Katuscak
+ */
+public enum SynchronizationStatus
 {
-    private List<String> dataSets;
-
-    private String organisationUnit;
-
-    public MinMaxValueParams()
-    {
-    }
-
-    public MinMaxValueParams( List<String> dataSets, String organisationUnit )
-    {
-        this.dataSets = dataSets;
-        this.organisationUnit = organisationUnit;
-    }
-
-    @JsonProperty
-    public List<String> getDataSets()
-    {
-        return dataSets;
-    }
-
-    public void setDataSets( List<String> dataSets )
-    {
-        this.dataSets = dataSets;
-    }
-
-    @JsonProperty
-    public String getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( String organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+    SUCCESS,
+    FAILURE;
 }

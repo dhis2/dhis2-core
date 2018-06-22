@@ -1,6 +1,4 @@
-package org.hisp.dhis.minmax;
-
-/*
+package org.hisp.dhis.dxf2.sync;/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -28,47 +26,27 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import java.util.List;
-
-@JacksonXmlRootElement
-public class MinMaxValueParams
+/**
+ * @author David Katuscak
+ */
+public class SynchronizationResult
 {
-    private List<String> dataSets;
+    public final SynchronizationStatus status;
+    public final String message;
 
-    private String organisationUnit;
-
-    public MinMaxValueParams()
+    private SynchronizationResult( SynchronizationStatus status, String message )
     {
+        this.status = status;
+        this.message = message;
     }
 
-    public MinMaxValueParams( List<String> dataSets, String organisationUnit )
+    public static SynchronizationResult newSuccessResultWithMessage( String message )
     {
-        this.dataSets = dataSets;
-        this.organisationUnit = organisationUnit;
+        return new SynchronizationResult( SynchronizationStatus.SUCCESS, message );
     }
 
-    @JsonProperty
-    public List<String> getDataSets()
+    public static SynchronizationResult newFailureResultWithMessage( String message )
     {
-        return dataSets;
-    }
-
-    public void setDataSets( List<String> dataSets )
-    {
-        this.dataSets = dataSets;
-    }
-
-    @JsonProperty
-    public String getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( String organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
+        return new SynchronizationResult( SynchronizationStatus.FAILURE, message );
     }
 }
