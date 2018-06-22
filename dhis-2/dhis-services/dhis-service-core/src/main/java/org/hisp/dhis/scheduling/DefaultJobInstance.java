@@ -150,10 +150,10 @@ public class DefaultJobInstance
         Clock clock )
         throws Exception
     {
-        log.info( "Job '" + jobConfiguration.getName() + "' started" );
+        log.debug( "Job '" + jobConfiguration.getName() + "' started" );
 
         schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
 
-        log.info( "Job '" + jobConfiguration.getName() + "' executed successfully. Time used: " + clock.time() );
+        log.debug( "Job '" + jobConfiguration.getName() + "' executed successfully. Time used: " + clock.time() );
     }
 }
