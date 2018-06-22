@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 
 /**
  * @Author Zubair Asghar.
@@ -38,16 +39,19 @@ public class ProgramRuleEngineListener
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
 
+    @EventListener
     public void listenEvent( TrackedEntityInstanceEnrolledEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramInstance() );
     }
 
+    @EventListener
     public void listenEvent( DataValueUpdatedEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramStageInstance() );
     }
 
+    @EventListener
     public void listenEvent( ProgramStageInstanceCompletedEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramStageInstance() );

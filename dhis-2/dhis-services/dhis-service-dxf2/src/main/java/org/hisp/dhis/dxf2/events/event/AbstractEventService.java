@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -90,7 +89,9 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
+import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -118,7 +119,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -223,7 +223,7 @@ public abstract class AbstractEventService
     protected AclService aclService;
 
     @Autowired
-    protected ProgramRuleEngineService programRuleEngineService;
+    protected ProgramRuleEnginePublisher enginePublisher;
 
     @Autowired
     protected ProgramNotificationPublisher programNotificationPublisher;
@@ -1117,7 +1117,7 @@ public abstract class AbstractEventService
 
             if ( !importOptions.isSkipNotifications() )
             {
-                programRuleEngineService.evaluate( programStageInstance );
+                enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1224,7 +1224,7 @@ public abstract class AbstractEventService
 
             if ( !importOptions.isSkipNotifications() )
             {
-                programRuleEngineService.evaluate( programStageInstance );
+                enginePublisher.publishProgramRuleEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
 
