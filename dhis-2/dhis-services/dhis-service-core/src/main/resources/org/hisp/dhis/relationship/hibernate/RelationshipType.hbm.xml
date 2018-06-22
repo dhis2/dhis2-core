@@ -17,18 +17,22 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230"/>
 
+        <property name="description" column="description" not-null="false" />
+
         <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
-                     column="left_relationshipconstraintid"
-                     foreign-key="fk_relationshiptype_left_relationshipconstraintid"
+                     column="from_relationshipconstraintid"
+                     foreign-key="fk_relationshiptype_from_relationshipconstraintid"
                      not-null="false"
                      unique="true"
+                     unique-key="relationshiptype_from_key"
                      cascade="all-delete-orphan"/>
 
         <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
-                     column="right_relationshipconstraintid"
-                     foreign-key="fk_relationshiptype_right_relationshipconstraintid"
+                     column="to_relationshipconstraintid"
+                     foreign-key="fk_relationshiptype_to_relationshipconstraintid"
                      not-null="false"
                      unique="true"
+                     unique-key="relationshiptype_to_key"
                      cascade="all-delete-orphan"/>
 
         <!-- Object Translation -->
@@ -40,5 +44,4 @@
         </set>
 
     </class>
-
 </hibernate-mapping>

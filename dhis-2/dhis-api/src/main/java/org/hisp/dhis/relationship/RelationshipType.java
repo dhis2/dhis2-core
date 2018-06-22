@@ -49,6 +49,8 @@ public class RelationshipType
 
     private RelationshipConstraint toConstraint;
 
+    private String description;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -84,5 +86,17 @@ public class RelationshipType
     public void setToConstraint( RelationshipConstraint toConstraint )
     {
         this.toConstraint = toConstraint;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 }
