@@ -72,11 +72,11 @@ public class TrackerSynchronization
         this.renderService = renderService;
     }
 
-    public void syncTrackerProgramData()
+    public SynchronizationResult syncTrackerProgramData()
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return;
+            return SynchronizationResult.newFailureResultWithMessage( "Tracker synchronization failed. Remote server is unavailable." );
         }
 
         log.info( "Starting Tracker program data synchronization job." );
@@ -92,7 +92,7 @@ public class TrackerSynchronization
         if ( objectsToSync == 0 )
         {
             log.info( "Skipping sync. No new tracker data to sync were found." );
-            return;
+            return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization skipped. No new or updated events found." );
         }
 
         log.info( objectsToSync + " TEIs to sync were found." );
@@ -140,8 +140,11 @@ public class TrackerSynchronization
         if ( syncResult )
         {
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
-            log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
+            log.info( "SUCCESS! Tracker synchronization was successfully done! It took " + syncDuration + " ms." );
+            return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization done. It took " + syncDuration + " ms." );
         }
+
+        return SynchronizationResult.newFailureResultWithMessage( "Tracker synchronization failed." );
     }
 
     private void filterOutAttributesMarkedWithSkipSynchronizationFlag( List<TrackedEntityInstance> dtoTeis )
