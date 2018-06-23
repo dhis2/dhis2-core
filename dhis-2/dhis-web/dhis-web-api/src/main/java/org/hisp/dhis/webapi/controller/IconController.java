@@ -28,19 +28,20 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconData;
 import org.hisp.dhis.icon.IconService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -50,29 +51,52 @@ import java.util.stream.Collectors;
 @RequestMapping( value = IconSchemaDescriptor.API_ENDPOINT )
 public class IconController
 {
+    private static final String ICON_PATH = "/SVGs";
 
     @Autowired
     private IconService iconService;
 
     @Autowired
-    private RenderService renderService;
+    private ContextService contextService;
 
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody
-    List<String> getIcons()
+    List<IconData> getIcons( @RequestParam( required = false ) Collection<String> keywords )
     {
-        return Arrays.stream( Icon.values() )
-                .map( icon -> icon.getKey() )
-                .collect( Collectors.toList() );
+        Collection<IconData> icons;
+
+        if ( keywords == null )
+        {
+            icons = iconService.getIcons();
+        }
+        else
+        {
+            icons = iconService.getIcons( keywords );
+        }
+
+        return icons.stream()
+            .map( data -> data.setReference( String.format( "%s%s/%s.%s", contextService.getContextPath(), ICON_PATH, data.getKey(), Icon.SUFFIX ) ) )
+            .collect( Collectors.toList() );
     }
 
     @RequestMapping( value="/keywords", method = RequestMethod.GET )
     public @ResponseBody
     Collection<String> getKeywords()
     {
-        return Arrays.stream( Icon.values() )
-            .map( icon -> icon.getKeywords() )
-            .flatMap( keywords ->  keywords.stream() )
-            .collect( Collectors.toSet() );
+        return iconService.getKeywords();
+    }
+
+    @RequestMapping( value="/{iconKey}", method = RequestMethod.GET )
+    public @ResponseBody
+    IconData getIcon( @PathVariable String iconKey ) throws WebMessageException
+    {
+        Optional<IconData> icon = iconService.getIcon( iconKey );
+
+        if ( !icon.isPresent() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "Icon not found: '%s", iconKey ) ) );
+        }
+
+        return icon.get();
     }
 }

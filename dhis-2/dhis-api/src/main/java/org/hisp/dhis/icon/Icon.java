@@ -33,6 +33,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.google.common.net.MediaType;
 
 /**
  * @author Kristian Wærstad
@@ -43,21 +46,21 @@ public enum Icon
     FEMALE_AND_MALE("female_and_male", "Female and Male adult", new String[]{}),
     MAN("man", "", new String[]{"male", "boy", "man"}),
     WOMAN("woman", "", new String[]{"female", "girl", "woman"}),
-    STRYNGE("strynge", "", new String[]{"syringe", "vaccination", "injectable"}),
+    SYRINGE("syringe", "", new String[]{"syringe", "vaccination", "injectable"}),
     MICROSCOPE("microscope", "Optical Microscope", new String[]{"microscope", "laboratory", "lab", "analysis"}),
     TAC("tac", "Computed axialtomography", new String[]{}),
     NEUROLOGY("neurology", "", new String[]{"mental health", "meningitis"}),
-    MANTAL_DISORDERS("mantal_disorders", "mental_disorders", new String[]{"mental health", "mental disorder"}),
-    CLINICAL_ANALYSIS("clinical_analysis", "Clinical analysis", new String[]{}),
-    CLINICAL_FILE("clinical_file", "Clinical file", new String[]{"medical history", "diagnosis test", "Clinical file", "patient record"}),
-    CLINICAL_FILE_EDIT("clinical_file_edit", "Edit clinical file", new String[]{"medical history", "diagnosis test"}),
+    MENTAL_DISORDERS("mental_disorders", "mental_disorders", new String[]{"mental health", "mental disorder"}),
+    CLINICAL_A("clinical_a", "Clinical analysis", new String[]{}),
+    CLINICAL_F("clinical_f", "Clinical file", new String[]{"medical history", "diagnosis test", "Clinical file", "patient record"}),
+    CLINICAL_FE("clinical_fe", "Edit clinical file", new String[]{"medical history", "diagnosis test"}),
     CARDIOGRAM("cardiogram", "Cardiogram card", new String[]{"medical history"}),
-    CARDIOGRAM_EDIT("cardiogram_edit", "Edit ardiogram card", new String[]{"cardiogram", "Cardiogram card"}),
+    CARDIOGRAM_E("cardiogram_e", "Edit ardiogram card", new String[]{"cardiogram", "Cardiogram card"}),
     HEART_CARDIOGRAM("heart_cardiogram", "Heart - cardiogram", new String[]{"heart", "electrocardiogram"}),
     BLOOD_PRESSURE("blood_pressure", "", new String[]{"Blood Pressure"}),
     PREGNANT("pregnant", "ANC", new String[]{"pregnant", "ANC", "maternity"}),
     PREGNANT_0812W("pregnant_0812w", "ANC", new String[]{"pregnant", "ANC", "maternity", "First visit 8-12 weeks"}),
-    PREGNANT_2426W("pregnant_2426w", "ANC", new String[]{"pregnant", "ANC", "maternity", "Second visit 24-26 weeks"}),
+    PREGNANT_426W("pregnant_426w", "ANC", new String[]{"pregnant", "ANC", "maternity", "Second visit 24-26 weeks"}),
     PREGNANT_32W("pregnant_32w", "ANC", new String[]{"pregnant", "ANC", "maternity", "Third visit 32 weeks"}),
     PREGNANT_3638W("pregnant_3638w", "ANC", new String[]{"pregnant", "ANC", "maternity", "Fourth visit 36-38 weeks"}),
     BABY_MALE_0203M("baby_male_0203m", "", new String[]{"baby", "female", "2-3 months", "pediatric"}),
@@ -78,7 +81,7 @@ public enum Icon
     LACTATION("lactation", "", new String[]{"baby", "ANC", "child", "pediatric"}),
     FEVER("fever", "", new String[]{"fever"}),
     LLIN("llin", "", new String[]{"llin", "malaria", "net"}),
-    PILL1("pill1", "", new String[]{"One pill", "pills, 1"}),
+    PILL_1("pill_1", "", new String[]{"One pill", "pills, 1"}),
     PILLS_2("pills_2", "", new String[]{"pills", "two"}),
     PILLS_3("pills_3", "", new String[]{"pills", "three"}),
     PILLS_4("pills_4", "", new String[]{"pills", "four"}),
@@ -86,7 +89,7 @@ public enum Icon
     MOSQUITO("mosquito", "", new String[]{"malaria", "mosquito", "denge"}),
     CHOLERA("cholera", "", new String[]{"cholera", "vibrio cholerae"}),
     MALARIA_OUTBREAK("malaria_outbreak", "malaria outbreak", new String[]{"outbreak", "malaria", "midge", "denge"}),
-    DIARRRHEA("diarrrhea", "", new String[]{"diarrhea"}),
+    DIARRHEA("diarrhea", "", new String[]{"diarrhea"}),
     VOMITING("vomiting", "", new String[]{"sickness", "ailment", "threw-up", "vomiting"}),
     HOT_MEAL("hot_meal", "", new String[]{"food", "hot meal"}),
     WATER_TREATMENT("water_treatment", "", new String[]{"water", "water treatment"}),
@@ -98,7 +101,7 @@ public enum Icon
     FEMALE_CONDOM("female_condom", "", new String[]{"female", "contraception", "reproductive", "sexual", "condom"}),
     COPPER_IUD("copper_iud", "", new String[]{"copper iud", "contraception", "reproductive", "sexual", "copper"}),
     IUD("iud", "", new String[]{"iud", "contraception", "reproductive", "sexual", "iud"}),
-    IMPLANT_("implant_", "", new String[]{"implant", "contraception", "reproductive", "sexual", "pellet"}),
+    IMPLANT("implant", "", new String[]{"implant", "contraception", "reproductive", "sexual", "pellet"}),
     SURGICAL_STERILIZATION("surgical_sterilization", "", new String[]{"contraception", "reproductive", "sexual", "sterilization", "circusicion"}),
     HORMONAL_RING("hormonal_ring", "", new String[]{"contraception", "reproductive", "sexual", "sterilization", "hormonal ring"}),
     CONTRACEPTIVE_INJECTION("contraceptive_injection", "", new String[]{"female", "contraception", "reproductive", "sexual", "inyectable"}),
@@ -117,7 +120,7 @@ public enum Icon
     STAR_LARGE("star_large", "", new String[]{}),
     STAR_MEDIUM("star_medium", "", new String[]{}),
     STAR_SMALL("star_small", "", new String[]{}),
-    FAMILY_PLANNING("family_planning", "", new String[]{"family planning", "contraception", "reproductive", "sexual"}),
+    AMILY_PLANNING("amily_planning", "", new String[]{"family planning", "contraception", "reproductive", "sexual"}),
     SEXUAL_REPRODUCTIVE_HEALTH("sexual_reproductive_health", "", new String[]{"sexual", "contraception", "sexual", "reproductive"}),
     CERVICAL_CANCER("cervical_cancer", "", new String[]{"cancer", "cervical", "female"}),
     FEMALE_SEX_WORKER("female_sex_worker", "", new String[]{"female", "sex worker"}),
@@ -125,7 +128,7 @@ public enum Icon
     MSM("msm", "", new String[]{"msm"}),
     PWID("pwid", "", new String[]{"pwid"}),
     TRANSGENDER("transgender", "", new String[]{"transgender"}),
-    TRUCK_DRIVE("truck_drive", "", new String[]{"truck driver", "driver", "worker"}),
+    TRUCK_DRIVER("truck_driver", "", new String[]{"truck driver", "driver", "worker"}),
     PLANTATION_WORKER("plantation_worker", "", new String[]{"plantation worker", "plantation", "worker"}),
     MINER_WORKER("miner_worker", "", new String[]{"miner worker", "miner", "worker"}),
     SECURITY_WORKER("security_worker", "", new String[]{"security worker", "security", "worker"}),
@@ -163,19 +166,26 @@ public enum Icon
     MALARIA_NEGATIVE_MICROSCOPE("malaria_negative_microscope", "", new String[]{}),
     MALARIA_MIXED_MICROSCOPE("malaria_mixed_microscope", "", new String[]{}),
     MALARIA_PF_MICROSCOPE("malaria_pf_microscope", "", new String[]{}),
-    MALARIA_PV_MICROSCOPE("malaria_pv_microscope", "", new String[]{});
+    MALARIA_PV_MICROSCOPE("malaria_pv_microscope", "", new String[]{}),
+    ANCV("ancv", "ANC visit", new String[]{}),
+    CHILD_PROGRAM("child_program", "child program", new String[]{}),
+    CONTRACEPTIVE_VOUCHER("contraceptive_voucher", "contraceptive voucher", new String[]{}),
+    IMM("imm", "Inpatient morbidity and mortality", new String[]{}),
+    INFORMATION_CAMPAIGN("information_campaign", "information campaign", new String[]{}),
+    MALARIA_TESTING("malaria_testing", "malaria testing", new String[]{}),
+    PROVIDER_FST("provider_fst", "Provider Follow-up and Support Tool", new String[]{}),
+    RMNH("rmnh", "WHO RMNCH Tracker", new String[]{}),
+    TB("tb", "TB program", new String[]{});
 
-    private String key;
+    private static final String[] VARIANTS = { "positive", "negative", "outline" };
 
-    private String description;
+    public static final String SUFFIX = "svg";
 
-    private Collection<String> keywords;
+    private IconData data;
 
     Icon( String key, String description, String[] keywords )
     {
-        this.key = key;
-        this.description = description;
-        this.keywords = Arrays.asList( keywords );
+        this.data = new IconData( key, description, keywords );
     }
 
     public static Optional<Icon> getIcon( String name )
@@ -191,21 +201,30 @@ public enum Icon
         return Optional.empty();
     }
 
-    @JsonProperty
     public String getKey()
     {
-        return key;
+        return data.getKey();
     }
 
-    @JsonProperty
     public String getDescription()
     {
-        return description;
+        return data.getDescription();
     }
 
-    @JsonProperty
-    public Collection<String> getKeywords()
+    public String[] getKeywords()
     {
-        return keywords;
+        return data.getKeywords();
+    }
+
+    public IconData getData()
+    {
+        return this.data;
+    }
+
+    public Collection<IconData> getVariants()
+    {
+        return Arrays.stream( VARIANTS )
+            .map( variant -> new IconData( String.format( "%s_%s", getKey(), variant ), getDescription(), getKeywords() ) )
+            .collect( Collectors.toList() );
     }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.icon;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,35 +41,37 @@ import java.util.stream.Collectors;
 public class DefaultIconService
     implements IconService
 {
-    private Map<String, Icon> icons = Arrays.stream( Icon.values() )
-        .collect( Collectors.toMap( Icon::getKey, Function.identity() ) );
+    private Map<String, IconData> icons = Arrays.stream( Icon.values() )
+        .map( Icon::getVariants )
+        .flatMap( Collection::stream )
+        .collect( Collectors.toMap( IconData::getKey, Function.identity() ) );
 
     @Override
-    public Collection<Icon> getIcons()
+    public Collection<IconData> getIcons()
     {
         return icons.values();
     }
 
     @Override
-    public Collection<Icon> getIcons( Collection<String> keywords )
+    public Collection<IconData> getIcons( Collection<String> keywords )
     {
         return icons.values().stream()
-            .filter( icon -> icon.getKeywords().containsAll( keywords ) )
+            .filter( icon -> Arrays.asList( icon.getKeywords() ).containsAll( keywords ) )
             .collect( Collectors.toList() );
     }
 
     @Override
-    public Icon getIcon( String key )
+    public Optional<IconData> getIcon( String key )
     {
-        return icons.get( key );
+        return Optional.ofNullable( icons.get( key ) );
     }
 
     @Override
     public Collection<String> getKeywords()
     {
         return icons.values().stream()
-            .map( Icon::getKeywords )
-            .flatMap( Collection::stream )
+            .map( IconData::getKeywords )
+            .flatMap( Arrays::stream )
             .collect( Collectors.toSet() );
     }
 }

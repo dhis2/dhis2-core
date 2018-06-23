@@ -28,41 +28,55 @@ package org.hisp.dhis.icon;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Kristian Wærstad
  */
-public interface IconService
+public class IconData
 {
-    /**
-     * Gets data about all the icons in the system
-     *
-     * @return a collection of data about all the icons in the system
-     */
-    Collection<IconData> getIcons();
+    private String key;
 
-    /**
-     * Gets info about the icons in the system tagged with all the keywords in a collection
-     *
-     * @param keywords collection of keywords
-     * @return a collection of matching icons
-     */
-    Collection<IconData> getIcons( Collection<String> keywords );
+    private String description;
 
-    /**
-     * Gets the info of the icon associated with a specific key if there is one
-     *
-     * @param key key of the icon
-     * @return icon data associated with the key if there is one
-     */
-    Optional<IconData> getIcon( String key );
+    private String[] keywords;
 
-    /**
-     * Gets a collection of all unique keywords assigned to icons
-     *
-     * @return collection of uniquee keywords
-     */
-    Collection<String> getKeywords();
+    private String reference;
+
+    IconData( String key, String description, String[] keywords )
+    {
+        this.key = key;
+        this.description = description;
+        this.keywords = keywords;
+    }
+
+    @JsonProperty
+    public String getKey()
+    {
+        return key;
+    }
+
+    @JsonProperty
+    public String getDescription()
+    {
+        return description;
+    }
+
+    @JsonProperty
+    public String[] getKeywords()
+    {
+        return keywords;
+    }
+
+    @JsonProperty( "href" )
+    public String getReference()
+    {
+        return reference;
+    }
+
+    public IconData setReference( String ref )
+    {
+        this.reference = ref;
+        return this;
+    }
 }
