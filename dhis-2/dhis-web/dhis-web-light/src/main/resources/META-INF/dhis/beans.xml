@@ -67,6 +67,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
 		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
+		<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
 	</bean>
 
 	<bean id="org.hisp.dhis.light.dataentry.action.GetDataSetOverviewAction"

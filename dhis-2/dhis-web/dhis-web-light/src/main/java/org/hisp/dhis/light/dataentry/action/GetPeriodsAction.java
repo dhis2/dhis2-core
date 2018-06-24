@@ -41,6 +41,8 @@ import org.hisp.dhis.light.utils.FormUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,6 +85,13 @@ public class GetPeriodsAction
     public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
+    }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
     
     private FormUtils formUtils;
@@ -212,7 +221,9 @@ public class GetPeriodsAction
 
         periods = formUtils.getPeriodsForDataSet( dataSetId );
 
-        markLockedDataSets( organisationUnit, dataSet, periods );
+        User user = currentUserService.getCurrentUser();
+
+        markLockedDataSets( user, organisationUnit, dataSet, periods );
 
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo(); //TODO
         
@@ -229,11 +240,11 @@ public class GetPeriodsAction
         return SUCCESS;
     }
 
-    private void markLockedDataSets( OrganisationUnit organisationUnit, DataSet dataSet, List<Period> periods )
+    private void markLockedDataSets( User currentUser, OrganisationUnit organisationUnit, DataSet dataSet, List<Period> periods )
     {
         for ( Period period : periods )
         {
-            if ( dataSetService.isLocked( dataSet, period, organisationUnit, null, null ) ) //TODO attributes
+            if ( dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, null, null ) ) //TODO attributes
             {
                 lockedPeriods.add( period );
             }

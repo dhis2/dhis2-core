@@ -442,7 +442,7 @@
         <value>F_SEND_EMAIL</value>
         <value>F_TEI_CASCADE_DELETE</value>
         <value>F_ENROLLMENT_CASCADE_DELETE</value>
-        <value>F_EDIT_EXPRIRED</value>
+        <value>F_EDIT_EXPIRED</value>
       </set>
     </property>
   </bean>
