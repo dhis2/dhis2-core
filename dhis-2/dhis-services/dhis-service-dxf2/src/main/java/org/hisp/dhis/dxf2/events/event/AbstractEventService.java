@@ -1076,17 +1076,17 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storedBy );
 
         String completedBy = getCompletedBy( event, null, importOptions.getUser() );
-        
+
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
         {
             UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
-            
+
             if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "User is not authorized to uncomplete events" );
-            
+
                 return importSummary;
             }
         }
