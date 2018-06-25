@@ -72,6 +72,11 @@
       <one-to-many class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
     </set>
 
+    <set name="relationshipItems" inverse="true">
+      <key column="programstageinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
+    </set>
+
   </class>
 
 </hibernate-mapping>

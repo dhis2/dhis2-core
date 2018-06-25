@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -114,8 +113,6 @@ public class JdbcEventStore
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
     // EventStore implementation
