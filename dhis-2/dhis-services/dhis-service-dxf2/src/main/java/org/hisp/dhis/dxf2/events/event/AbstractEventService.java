@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -120,7 +118,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -234,8 +231,6 @@ public abstract class AbstractEventService
     protected RelationshipService relationshipService;
 
     protected static final int FLUSH_FREQUENCY = 100;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
     // Caches

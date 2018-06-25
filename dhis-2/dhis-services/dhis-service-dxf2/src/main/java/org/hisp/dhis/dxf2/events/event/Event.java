@@ -38,7 +38,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
 import java.util.List;
