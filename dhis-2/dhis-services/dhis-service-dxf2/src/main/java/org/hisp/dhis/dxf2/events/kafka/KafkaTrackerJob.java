@@ -64,7 +64,7 @@ public class KafkaTrackerJob
 
         if ( !systemInfo.isKafka() )
         {
-            log.info( "Kafka integration is not enabled, skipping scheduled kafka job." );
+            log.debug( "Kafka integration is not enabled, skipping scheduled kafka job." );
             return;
         }
 
