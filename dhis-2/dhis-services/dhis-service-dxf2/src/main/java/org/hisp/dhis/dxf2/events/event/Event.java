@@ -114,6 +114,14 @@ public class Event
         deleted = false;
     }
 
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setStatus( null );
+        this.setDataValues( null );
+        this.setNotes( null );
+    }
+
     public String getUid()
     {
         return uid;

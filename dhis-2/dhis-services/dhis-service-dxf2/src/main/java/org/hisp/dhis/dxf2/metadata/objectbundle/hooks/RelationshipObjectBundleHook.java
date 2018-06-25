@@ -64,18 +64,15 @@ public class RelationshipObjectBundleHook
         relationship.setRelationshipType(
             relationshipTypeService.getRelationshipType( relationship.getRelationshipType().getUid() ) );
         sessionFactory.getCurrentSession().save( relationship.getRelationshipType() );
-
     }
 
     private void handleRelationshipItem( RelationshipItem relationshipItem )
     {
-
         if ( relationshipItem.getTrackedEntityInstance() != null )
         {
             relationshipItem.setTrackedEntityInstance(
                 trackedEntityInstanceStore.getByUid( relationshipItem.getTrackedEntityInstance().getUid() ) );
         }
-
     }
 
 }

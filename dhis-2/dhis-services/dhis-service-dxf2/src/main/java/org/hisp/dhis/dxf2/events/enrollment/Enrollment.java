@@ -101,6 +101,15 @@ public class Enrollment
     {
     }
 
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setNotes( null );
+        this.setRelationships( null );
+        this.setAttributes( null );
+        this.setEvents( null );
+    }
+
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
     public String getEnrollment()

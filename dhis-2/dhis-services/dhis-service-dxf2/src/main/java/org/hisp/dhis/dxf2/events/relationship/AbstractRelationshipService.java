@@ -401,12 +401,8 @@ public abstract class AbstractRelationshipService
 
             if ( uidOnly )
             {
+                tei.clear();
                 tei.setTrackedEntityInstance( uid );
-                tei.setDeleted( null );
-                tei.setFeatureType( null );
-                tei.setEnrollments( null );
-                tei.setRelationships( null );
-                tei.setAttributes( null );
             }
             else
             {
@@ -423,12 +419,9 @@ public abstract class AbstractRelationshipService
 
             if ( uidOnly )
             {
+
+                enrollment.clear();
                 enrollment.setEnrollment( uid );
-                enrollment.setDeleted( null );
-                enrollment.setNotes( null );
-                enrollment.setRelationships( null );
-                enrollment.setAttributes( null );
-                enrollment.setEvents( null );
             }
             else
             {
@@ -444,11 +437,8 @@ public abstract class AbstractRelationshipService
 
             if ( uidOnly )
             {
+                event.clear();
                 event.setEvent( uid );
-                event.setDeleted( null );
-                event.setStatus( null );
-                event.setDataValues( null );
-                event.setNotes( null );
             }
             else
             {

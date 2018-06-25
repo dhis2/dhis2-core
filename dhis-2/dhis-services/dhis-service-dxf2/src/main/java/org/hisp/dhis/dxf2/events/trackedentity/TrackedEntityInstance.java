@@ -96,6 +96,15 @@ public class TrackedEntityInstance
         }
     }
 
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setFeatureType( null );
+        this.setEnrollments( null );
+        this.setRelationships( null );
+        this.setAttributes( null );
+    }
+
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityType()

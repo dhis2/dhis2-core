@@ -30,7 +30,7 @@ package org.hisp.dhis.relationship;
 
 public enum RelationshipEntity
 {
-    TRACKED_ENTITY_INSTANCE( "tracked entity" ),
+    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
     PROGRAM_INSTANCE( "enrollment" ),
     PROGRAM_STAGE_INSTANCE( "event" );
 

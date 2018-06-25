@@ -95,7 +95,6 @@ public class RelationshipController
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
     public RelationshipController( RelationshipService relationshipService,
         TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService )
@@ -185,7 +184,7 @@ public class RelationshipController
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_UTF8_VALUE )
     public WebMessage postRelationshipJson(
-        @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
         HttpServletRequest request
     )

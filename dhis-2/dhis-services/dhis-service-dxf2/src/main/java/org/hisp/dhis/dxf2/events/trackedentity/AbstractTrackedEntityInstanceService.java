@@ -663,12 +663,6 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-        Logger log = Logger.getLogger( "TESTING" );
-
-        log.info( "create: " + create.size() );
-        log.info( "delete: " + delete.size() );
-        log.info( "update: " + update.size() );
-
         importSummaries.addImportSummaries( relationshipService.addRelationships( create, importOptions ) );
         importSummaries.addImportSummaries( relationshipService.updateRelationships( update, importOptions ) );
         importSummaries.addImportSummaries( relationshipService.deleteRelationships( delete, importOptions ) );

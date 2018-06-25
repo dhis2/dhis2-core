@@ -832,8 +832,6 @@ public class DefaultTrackedEntityInstanceService
                 instance.setRepresentative( representative );
 
                 Relationship rel = new Relationship();
-                //rel.setEntityInstanceA( representative );
-                //rel.setEntityInstanceB( instance );
 
                 if ( relationshipTypeId != null )
                 {
