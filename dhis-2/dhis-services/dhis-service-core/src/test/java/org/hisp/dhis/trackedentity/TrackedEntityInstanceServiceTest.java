@@ -151,21 +151,4 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( "B1" ) );
     }
 
-    @Test
-    public void testCreateTrackedEntityInstanceAndRelative()
-    {
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        int relationshipTypeId = relationshipTypeService.addRelationshipType( relationshipType );
-
-        TrackedEntityAttributeValue attributeValue = createTrackedEntityAttributeValue( 'A', entityInstanceA1,
-            entityInstanceAttribute );
-        Set<TrackedEntityAttributeValue> entityInstanceAttributeValues = new HashSet<>();
-        entityInstanceAttributeValues.add( attributeValue );
-
-        int idA = entityInstanceService.createTrackedEntityInstance( entityInstanceA1, entityInstanceB1.getUid(),
-            relationshipTypeId, entityInstanceAttributeValues );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-    }
 }

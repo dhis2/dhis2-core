@@ -169,6 +169,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
+
             List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
             List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
 

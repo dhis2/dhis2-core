@@ -832,8 +832,6 @@ public class DefaultTrackedEntityInstanceService
                 instance.setRepresentative( representative );
 
                 Relationship rel = new Relationship();
-                rel.setEntityInstanceA( representative );
-                rel.setEntityInstanceB( instance );
 
                 if ( relationshipTypeId != null )
                 {
@@ -851,6 +849,12 @@ public class DefaultTrackedEntityInstanceService
         updateTrackedEntityInstance( instance ); // Update associations
 
         return id;
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    {
+        return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
     }
 
     @Override
