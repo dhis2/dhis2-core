@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" fill="#333" transform="translate(0,-284.3)">
+  <path id="path5786" d="m6.3758 285.63c-0.43968-0.004-0.88968 0.0422-1.3527 0.14812 0.17523 0.74106 0.3885 1.0759 0.66256 1.5662 0.34671-0.10888 0.91754-0.17758 1.2643-0.0149 0.37559-0.56585 0.55929-1.071 0.71538-1.5525-0.4212-0.0909-0.84983-0.14319-1.2895-0.14697zm-1.5077 0.302-0.27673 0.83249c-0.21621 0.65153-0.28051 0.91802-0.29855 1.2195-0.026681 0.44559-0.041235 0.40931 0.45701 1.1735 0.20034 0.30731 0.37534 0.55867 0.38927 0.5592 0.030712 0.0009901 0.95077-1.3134 0.95077-1.3584 0-0.0178-0.18375-0.31874-0.40764-0.66944-0.46278-0.7249-0.71925-1.2377-0.77509-1.5456zm2.9648 0-0.042488 0.22621c-0.052542 0.27624-0.33724 0.84585-0.74982 1.5031-1.6 2.3408-2.8677 4.115-4.5759 6.5337 0.34627 0.48793 0.71683 1.0219 1.1023 1.4457 1.6878-2.8318 3.4119-4.4429 4.8354-7.2743 0.062305-0.33216-0.00898-0.72022-0.28937-1.5777zm-0.26181 4.4989-0.46046 0.67978c-0.25343 0.37375-0.46988 0.71171-0.48113 0.75098-0.011289 0.0394 0.19142 0.38147 0.45012 0.76131 0.73079 1.0585 1.3357 2.0054 2.0818 3.0487 0.39259-0.50805 0.67182-0.91028 1.0736-1.4709-0.88781-1.2567-1.7761-2.5132-2.664-3.7698z"/>
+ </g>
+</svg>

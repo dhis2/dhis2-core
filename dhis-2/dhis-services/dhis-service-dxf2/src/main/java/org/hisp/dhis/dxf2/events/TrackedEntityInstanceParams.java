@@ -36,15 +36,17 @@ import com.google.common.base.MoreObjects;
  */
 public class TrackedEntityInstanceParams
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true );
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false );
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false );
 
     private boolean includeRelationships;
 
     private boolean includeEnrollments;
 
     private boolean includeEvents;
+    
+    private boolean includeProgramOwners;
 
     public TrackedEntityInstanceParams()
     {
@@ -55,6 +57,15 @@ public class TrackedEntityInstanceParams
         this.includeRelationships = includeRelationships;
         this.includeEnrollments = includeEnrollments;
         this.includeEvents = includeEvents;
+    }
+    
+    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
+        boolean includeProgramOwners )
+    {
+        this.includeRelationships = includeRelationships;
+        this.includeEnrollments = includeEnrollments;
+        this.includeEvents = includeEvents;
+        this.includeProgramOwners = includeProgramOwners;
     }
 
     @JsonProperty
@@ -88,6 +99,17 @@ public class TrackedEntityInstanceParams
     public void setIncludeEvents( boolean includeEvents )
     {
         this.includeEvents = includeEvents;
+    }
+    
+    @JsonProperty
+    public boolean isIncludeProgramOwners()
+    {
+        return includeProgramOwners;
+    }
+
+    public void setIncludeProgramOwners( boolean includeProgramOwners )
+    {
+        this.includeProgramOwners = includeProgramOwners;
     }
 
     @Override
