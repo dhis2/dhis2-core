@@ -624,7 +624,7 @@ public class DefaultUserService
         {
             if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
-                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser, ur ) );
+                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName() ) );
             }
         } );
 
