@@ -28,9 +28,11 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -39,9 +41,11 @@ public interface RelationshipService
 {
     String ID = RelationshipService.class.getName();
 
+    boolean relationshipExists( String uid );
+
     /**
      * Adds an {@link Relationship}
-     * 
+     *
      * @param relationship the relationship.
      * @return id of the added relationship.
      */
@@ -49,55 +53,31 @@ public interface RelationshipService
 
     /**
      * Returns a {@link Relationship}.
-     * 
+     *
      * @param relationship the relationship.
      */
     void deleteRelationship( Relationship relationship );
 
     /**
      * Updates a {@link Relationship}.
-     * 
+     *
      * @param relationship the relationship.
      */
     void updateRelationship( Relationship relationship );
 
     /**
      * Returns a {@link Relationship}.
-     * 
+     *
      * @param id the id of the relationship to return.
-     * 
      * @return the relationship with the given identifier.
      */
     Relationship getRelationship( int id );
 
-    /**
-     * Get the relationship between two entityInstances by retrieving a
-     * {@link RelationshipType}
-     * 
-     * @param entityInstanceA {@link TrackedEntityInstance}
-     * @param entityInstanceB {@link TrackedEntityInstance}
-     * @param relationshipType {@link RelationshipType}
-     * 
-     * @return {@link RelationshipType}
-     */
-    Relationship getRelationship( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType );
-    
-    /**
-     * Retrieve relationships of a {@link TrackedEntityInstance}.
-     * 
-     * @param instance the tracked entity instance.
-     * 
-     * @return a list of relationships.
-     */
-    List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance );
+    Relationship getRelationship( String uid );
 
-    /**
-     * Retrieve all relationships by relationship type of a person, for example
-     * a instance might have more than one sibling
-     * 
-     * @param entityInstanceA TrackedEntityInstance
-     * @param relationshipType RelationshipType
-     * @return a list of relationships.
-     */
-    List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType );
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 }

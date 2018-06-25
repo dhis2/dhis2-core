@@ -43,7 +43,13 @@
   </bean>
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook"
-    class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+        class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook"
+        class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook"
+        class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService"
     class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
@@ -100,7 +106,12 @@
   </bean>
 
   <bean id="org.hisp.dhis.dxf2.events.enrollment.EnrollmentService"
-    class="org.hisp.dhis.dxf2.events.enrollment.JacksonEnrollmentService" scope="prototype">
+        class="org.hisp.dhis.dxf2.events.enrollment.JacksonEnrollmentService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dxf2.events.relationship.RelationshipService"
+        class="org.hisp.dhis.dxf2.events.relationship.JacksonRelationshipService" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>
 

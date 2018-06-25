@@ -62,8 +62,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -227,6 +229,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected ProgramNotificationPublisher programNotificationPublisher;
+
+    @Autowired
+    protected RelationshipService relationshipService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -855,6 +860,11 @@ public abstract class AbstractEventService
 
             event.getNotes().add( note );
         }
+        
+        event.setRelationships( programStageInstance.getRelationshipItems().stream()
+            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user )  )
+            .collect( Collectors.toSet() )
+        );
 
         return event;
     }

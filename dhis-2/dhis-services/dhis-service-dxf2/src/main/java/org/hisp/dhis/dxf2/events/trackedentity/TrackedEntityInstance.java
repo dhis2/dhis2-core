@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.system.util.DateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +96,15 @@ public class TrackedEntityInstance
                 attribute.setValue( StringUtils.trimToNull( attribute.getValue() ) );
             }
         }
+    }
+
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setFeatureType( null );
+        this.setEnrollments( null );
+        this.setRelationships( null );
+        this.setAttributes( null );
     }
 
     @JsonProperty( required = true )
