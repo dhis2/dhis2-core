@@ -413,33 +413,36 @@
     <property name="authorities">
       <set>
         <value>ALL</value>
-        <value>F_VIEW_EVENT_ANALYTICS</value>
+        <!-- Import - export -->
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
+        <value>F_EXPORT_DATA</value>
+        <value>F_IMPORT_DATA</value>
+        <value>F_EXPORT_EVENTS</value>
+        <value>F_IMPORT_EVENTS</value>
+        <!-- Approval -->
         <value>F_APPROVE_DATA</value>
         <value>F_APPROVE_DATA_LOWER_LEVELS</value>
         <value>F_ACCEPT_DATA_LOWER_LEVELS</value>
+        <!-- Various -->
+        <value>F_PERFORM_MAINTENANCE</value>
+        <value>F_LOCALE_ADD</value>
+        <value>F_GENERATE_MIN_MAX_VALUES</value>
+        <value>F_RUN_VALIDATION</value>
+        <value>F_PREDICTOR_RUN</value>
+        <value>F_SEND_EMAIL</value>
+        <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_INSERT_CUSTOM_JS_CSS</value>
         <value>F_VIEW_UNAPPROVED_DATA</value>
+        <!-- User -->
+        <value>F_USER_VIEW</value>
         <value>F_REPLICATE_USER</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_ADD</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
         <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
+        <!-- Tracker -->
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_READ</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_SEARCH</value>
         <value>F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_ADD</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
-        <value>F_UNCOMPLETE_EVENT</value>
-        <value>F_PROGRAM_ENROLLMENT</value>
-        <value>F_PROGRAM_UNENROLLMENT</value>
-        <value>F_PROGRAM_ENROLLMENT_READ</value>
-        <value>F_ORGANISATIONUNIT_MOVE</value>
-        <value>F_PREDICTOR_RUN</value>
-        <value>F_SEND_EMAIL</value>
         <value>F_TEI_CASCADE_DELETE</value>
         <value>F_ENROLLMENT_CASCADE_DELETE</value>
       </set>

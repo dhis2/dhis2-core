@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -118,7 +116,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -229,8 +226,6 @@ public abstract class AbstractEventService
     protected ProgramNotificationPublisher programNotificationPublisher;
 
     protected static final int FLUSH_FREQUENCY = 100;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
     // Caches
@@ -1081,20 +1076,6 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storedBy );
 
         String completedBy = getCompletedBy( event, null, importOptions.getUser() );
-
-        if ( event.getStatus() != programStageInstance.getStatus()
-            && programStageInstance.getStatus() == EventStatus.COMPLETED )
-        {
-            UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
-
-            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "User is not authorized to uncomplete events" );
-
-                return importSummary;
-            }
-        }
 
         if ( event.getStatus() == EventStatus.ACTIVE )
         {
