@@ -81,10 +81,21 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         {
             return;
         }
-        trackedEntityProgramOwnerStore.save( createTrackedEntityProgramOwner( entityInstance, program, ou ) );
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
     }
 
-    private TrackedEntityProgramOwner createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance,
+    @Override
+    public void createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit ou )
+    {
+        if ( entityInstance == null || program == null || ou == null )
+        {
+            return;
+        }
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
+    }
+
+    private TrackedEntityProgramOwner buildTrackedEntityProgramOwner( TrackedEntityInstance entityInstance,
         Program program, OrganisationUnit ou )
     {
         TrackedEntityProgramOwner teiProgramOwner = new TrackedEntityProgramOwner( entityInstance, program, ou );
@@ -116,7 +127,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
         if ( teiProgramOwner == null )
         {
-            trackedEntityProgramOwnerStore.save( createTrackedEntityProgramOwner( entityInstance, program, ou ) );
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
         }
         else
         {
@@ -144,7 +155,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
         if ( teiProgramOwner == null )
         {
-            trackedEntityProgramOwnerStore.save( createTrackedEntityProgramOwner( entityInstance, program, ou ) );
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
         }
         else
         {
@@ -165,7 +176,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
             .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
         if ( teiProgramOwner == null )
         {
-            trackedEntityProgramOwnerStore.save( createTrackedEntityProgramOwner( entityInstance, program, ou ) );
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
         }
         else
         {
@@ -252,7 +263,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         {
             return;
         }
-        trackedEntityProgramOwnerStore.save( createTrackedEntityProgramOwner( entityInstance, program, ou ) );
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
     }
 
     @Override

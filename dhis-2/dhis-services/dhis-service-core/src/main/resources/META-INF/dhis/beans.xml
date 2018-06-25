@@ -666,6 +666,14 @@
     class="org.hisp.dhis.program.hibernate.HibernateProgramTempOwnershipAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramOwnershipHistoryStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramOwnershipHistoryStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramOwnershipHistoryService"
+    class="org.hisp.dhis.program.DefaultProgramOwnershipHistoryService" />
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
