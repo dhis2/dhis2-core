@@ -763,6 +763,7 @@
 
   <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
 
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" class="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" />
   
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
@@ -1458,6 +1459,13 @@
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationInstanceStore"
+        class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationInstance" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher" class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />

@@ -29,6 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -91,6 +92,22 @@ public class DateUtilsTest
     public void testDaysBetween()
     {
         assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(), new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
+    }
+
+    @Test
+    public void testIsToday()
+    {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+
+        Date today = cal.getTime();
+        cal.add( java.util.Calendar.DATE, -1 );
+        Date yesterday = cal.getTime();
+        cal.add( java.util.Calendar.DATE, +2 );
+        Date tomorrow = cal.getTime();
+
+        assertTrue( DateUtils.isToday( today ) );
+        assertFalse( DateUtils.isToday( yesterday ) );
+        assertFalse( DateUtils.isToday( tomorrow ) );
     }
 
     @Test
