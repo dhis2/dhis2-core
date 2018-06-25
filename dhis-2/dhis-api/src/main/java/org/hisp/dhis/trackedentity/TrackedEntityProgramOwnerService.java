@@ -156,5 +156,15 @@ public interface TrackedEntityProgramOwnerService
      * @param ou
      */
     void updateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou );
+    
+    /**
+     * Create a new program owner ou for a tracked entity instance.
+     * If an owner previously exist, then this method will fail.
+     * 
+     * @param entityInstance
+     * @param program
+     * @param ou
+     */
+    void createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou );
 
 }

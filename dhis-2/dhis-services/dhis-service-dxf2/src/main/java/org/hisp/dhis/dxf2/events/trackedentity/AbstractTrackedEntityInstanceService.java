@@ -70,6 +70,7 @@ import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -1005,6 +1006,15 @@ public abstract class AbstractTrackedEntityInstanceService
                     trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( user, programInstance, params ) );
                 }
             }
+        }
+        
+        if ( params.isIncludeProgramOwners() )
+        {
+            for ( TrackedEntityProgramOwner programOwner : daoTrackedEntityInstance.getProgramOwners() )
+            {
+                trackedEntityInstance.getProgramOwners().add( new ProgramOwner( programOwner ) );
+            }
+
         }
 
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
