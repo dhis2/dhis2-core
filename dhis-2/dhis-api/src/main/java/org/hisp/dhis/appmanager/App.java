@@ -46,7 +46,7 @@ public class App
      */
     private static final long serialVersionUID = -6638197841892194228L;
 
-    public static final String SEE_APP_AUTHORITY_PREFIX = "M_See_";
+    public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
 
     /**
      * Required.
