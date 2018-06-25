@@ -68,6 +68,8 @@ public class TrackedEntityInstance
     private List<Attribute> attributes = new ArrayList<>();
 
     private List<Enrollment> enrollments = new ArrayList<>();
+    
+    private List<ProgramOwner> programOwners = new ArrayList<>();
 
     private Boolean inactive;
 
@@ -215,6 +217,19 @@ public class TrackedEntityInstance
     public void setEnrollments( List<Enrollment> enrollments )
     {
         this.enrollments = enrollments;
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ProgramOwner> getProgramOwners()
+    {
+        return programOwners;
+    }
+
+    public void setProgramOwners( List<ProgramOwner> programOwners )
+    {
+        this.programOwners = programOwners;
     }
 
     @JsonProperty
