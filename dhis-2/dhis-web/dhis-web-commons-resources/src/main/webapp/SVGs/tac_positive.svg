@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-284.3)">
+  <g id="layer1-3" transform="matrix(1.0525 0 0 1.0511 -.36321 -14.861)" stroke-width=".95075" fill="#333">
+   <path id="rect894" d="m24.076 5.0293c-5.801 0.0078-11.281 2.6613-14.885 7.2067h8.7871c1.8759-1.038 3.9701-1.5827 6.0977-1.5859 7.1601-0.000165 12.965 6.002 12.965 13.406-0.0018 2.7405-0.81565 5.4146-2.332 7.6621h-27.777c-1.0895 0-1.9668 0.87728-1.9668 1.9668s0.87728 1.9668 1.9668 1.9668h3.6934v1.8555h0.01172c3.5641 3.5659 8.3978 5.5714 13.439 5.5762 10.509 0.00016 19.028-8.5188 19.027-19.027 0.001-10.509-8.518-19.028-19.027-19.028zm1.0273 10.885a7.0269 7.0269 0 0 0 -7.0273 7.0273 7.0269 7.0269 0 0 0 7.0273 7.0273 7.0269 7.0269 0 0 0 7.0254 -7.0273 7.0269 7.0269 0 0 0 -7.0254 -7.0273zm-19.033 3.33v8.5586h-0.0156v2.166h10.916v-5.912h-0.02148c-0.22181-2.6982-2.4629-4.8065-5.2188-4.8125h-0.409zm5.9477 16.408h0.607v1.8555h-0.60742zm2 0h0.607v1.8555h-0.60742zm2 0h0.607v1.8555h-0.60742zm2 0h0.607v1.8555h-0.60742zm2 0h0.607v1.8555h-0.60742zm2 0h0.607v1.8555h-0.60742zm2 0h0.607v1.834c-0.18299 0.009-0.36518 0.02102-0.54883 0.02148h-0.05859zm2 0h0.607v1.5703c-0.20146 0.04425-0.40403 0.07921-0.60742 0.11328zm2 0h0.607v0.94922c-0.2009 0.08033-0.40318 0.15648-0.60742 0.22656zm2 0h0.5332c-0.17479 0.10487-0.35438 0.20018-0.5332 0.29688z" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
+   <rect id="rect925" ry="0" height=".76589" width=".36833" y="293.46" x="7.5737"/>
+  </g>
+ </g>
+</svg>
