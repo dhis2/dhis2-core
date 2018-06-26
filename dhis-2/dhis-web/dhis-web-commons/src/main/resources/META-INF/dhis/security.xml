@@ -160,6 +160,7 @@
     <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
     <sec:intercept-url pattern="/dhis-web-data-administration/**" access="hasAnyRole('ALL,M_dhis-web-data-administration')" />
     <sec:intercept-url pattern="/dhis-web-data-quality/**" access="hasAnyRole('ALL,F_PERFORM_MAINTENANCE')" />
+    <sec:intercept-url pattern="/dhis-web-reports/**" access="hasAnyRole('ALL,F_PERFORM_MAINTENANCE')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />

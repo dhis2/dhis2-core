@@ -272,6 +272,14 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-capture</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Reports App -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-reports</artifactId>
+                  <version>2.30-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-reports</outputDirectory>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
