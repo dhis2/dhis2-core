@@ -483,7 +483,7 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        if ( importOptions.getUser() != null && !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
             validateExpiryDays( event, program, null );
         }
@@ -1145,7 +1145,7 @@ public abstract class AbstractEventService
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
-        if ( importOptions.getUser() != null && !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
             validateExpiryDays( event, program, programStageInstance );
         }
