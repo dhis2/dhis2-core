@@ -537,20 +537,6 @@ public class Program
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
-    public void setProgramRules( Set<ProgramRule> programRules )
-    {
-        this.programRules = programRules;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRuleVariable> getProgramRuleVariables()
