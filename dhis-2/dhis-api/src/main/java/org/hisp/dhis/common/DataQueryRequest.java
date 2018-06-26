@@ -52,6 +52,8 @@ public class DataQueryRequest
     protected Date endDate;
 
     protected SortOrder order;
+    
+    protected String timeField;
 
     protected boolean skipMeta;
 
@@ -133,6 +135,11 @@ public class DataQueryRequest
         return order;
     }
 
+    public String getTimeField()
+    {
+        return timeField;
+    }
+    
     public boolean isSkipMeta()
     {
         return skipMeta;
@@ -346,6 +353,12 @@ public class DataQueryRequest
         public DataQueryRequestBuilder order( SortOrder order )
         {
             this.request.order = order;
+            return this;
+        }
+        
+        public DataQueryRequestBuilder timeField( String timeField )
+        {
+            this.request.timeField = timeField;
             return this;
         }
 

@@ -39,7 +39,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
@@ -53,7 +52,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-
 
 /**
  * Created by zubair@dhis2.org on 04.02.18.
@@ -130,18 +128,16 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_whenNoImplementableActionExist_programInstance()
+    public void testWhenNoImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_ShowError();
-
-        List<RuleEffect> effects = service.evaluate( programInstance );
 
         verify( programRuleEngine, never() ).evaluateEnrollment( programInstance );
         assertEquals( 0, ruleEffects.size() );
     }
 
     @Test
-    public void test_withImplementableActionExist_programInstance()
+    public void testWithImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_SendMessage();
 
@@ -170,7 +166,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_whenNoImplementableActionExist_programStageInstance()
+    public void testWhenNoImplementableActionExist_programStageInstance()
     {
         setProgramRuleActionType_ShowError();
         List<RuleEffect> ruleEffects = service.evaluate( programStageInstance );
@@ -180,7 +176,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_withImplementableActionExist_programStageInstance()
+    public void testWithImplementableActionExist_programStageInstance()
     {
         setProgramRuleActionType_SendMessage();
 
@@ -201,7 +197,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_withProgramInstanceNull_programStageInstance()
+    public void testWithProgramInstanceNull_programStageInstance()
     {
         setProgramRuleActionType_SendMessage();
         programStageInstance.setProgramInstance( null );

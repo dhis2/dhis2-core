@@ -120,7 +120,7 @@ public class ProgramInstanceQueryParams
     /**
      * Indicates whether to include soft-deleted enrollments
      */
-    private boolean includeDeleted;
+    private boolean includeDeleted;    
 
     // -------------------------------------------------------------------------
     // Constructors

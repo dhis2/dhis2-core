@@ -32,6 +32,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -39,14 +41,17 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -55,7 +60,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -69,12 +73,17 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -96,12 +105,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractEnrollmentService
     implements EnrollmentService
 {
+    private static final Log log = LogFactory.getLog( AbstractEnrollmentService.class );
+
     @Autowired
     protected ProgramInstanceService programInstanceService;
 
@@ -113,6 +126,12 @@ public abstract class AbstractEnrollmentService
 
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
+    
+    @Autowired
+    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+
+    @Autowired
+    protected RelationshipService relationshipService;
 
     @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
@@ -152,6 +171,9 @@ public abstract class AbstractEnrollmentService
 
     @Autowired
     protected QueryService queryService;
+
+    @Autowired
+    protected Notifier notifier;
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -325,6 +347,15 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        if ( params.isIncludeRelationships() )
+        {
+            for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
+            {
+                enrollment.getRelationships().add( relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    RelationshipParams.FALSE, user ) );
+            }
+        }
+
         return enrollment;
     }
 
@@ -336,6 +367,31 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         return addEnrollments( enrollments, importOptions, null, clearSession );
+    }
+
+    @Override
+    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId )
+    {
+        notifier.clear( jobId ).notify( jobId, "Importing enrollments" );
+        importOptions = updateImportOptions( importOptions );
+
+        try
+        {
+            ImportSummaries importSummaries = addEnrollments( enrollments, importOptions, true );
+
+            if ( jobId != null )
+            {
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId, importSummaries, ImportSummaries.class );
+            }
+
+            return importSummaries;
+        }
+        catch ( RuntimeException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
+            return new ImportSummaries().addImportSummary( new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
+        }
     }
 
     @Override
@@ -426,6 +482,8 @@ public abstract class AbstractEnrollmentService
         programInstance.setStoredBy( storedBy );
 
         programInstanceService.updateProgramInstance( programInstance );
+        
+        trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -711,18 +769,18 @@ public abstract class AbstractEnrollmentService
                 importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
             }
 
-            Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances().stream()
-                .filter( pi -> !pi.isDeleted() )
-                .collect( Collectors.toSet() );
-
-            if ( !notDeletedProgramStageInstances.isEmpty() && importOptions.getUser() != null &&
-                !importOptions.getUser().isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            if ( importOptions.getUser() != null )
             {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setReference( uid );
-                importSummary.setDescription( "Enrollment " + uid + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                List<ImportConflict> importConflicts = isAllowedToDelete( importOptions.getUser(), programInstance );
 
-                return importSummary.incrementIgnored();
+                if ( !importConflicts.isEmpty() )
+                {
+                    importSummary.setStatus( ImportStatus.ERROR );
+                    importSummary.setReference( programInstance.getUid() );
+                    importSummary.getConflicts().addAll( importConflicts );
+                    importSummary.incrementIgnored();
+                    return importSummary;
+                }
             }
 
             programInstanceService.deleteProgramInstance( programInstance );
@@ -804,7 +862,7 @@ public abstract class AbstractEnrollmentService
             event.setProgram( programInstance.getProgram().getUid() );
             event.setTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
 
-            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && event.isDeleted() )
+            if ( importOptions.getImportStrategy().isSync() && event.isDeleted() )
             {
                 delete.add( event.getEvent() );
             }
@@ -1051,6 +1109,7 @@ public abstract class AbstractEnrollmentService
 
     private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment )
     {
+        //TODO: Possible performance improvement: Use UserInfo class instead  //Will fix in one of the following commits
         String storedBy = currentUserService.getCurrentUsername();
 
         for ( Note note : enrollment.getNotes() )
@@ -1124,5 +1183,28 @@ public abstract class AbstractEnrollmentService
         }
 
         return importOptions;
+    }
+
+    private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )
+    {
+        List<ImportConflict> importConflicts = new ArrayList<>();
+
+        Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
+            .filter( psi -> !psi.isDeleted() )
+            .collect( Collectors.toSet() );
+
+        if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+        {
+            importConflicts.add( new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, pi );
+
+        if ( !errors.isEmpty() )
+        {
+            errors.forEach( error -> importConflicts.add( new ImportConflict( pi.getUid(), error ) ) );
+        }
+
+        return importConflicts;
     }
 }

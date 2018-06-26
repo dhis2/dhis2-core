@@ -77,6 +77,12 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uid )
+    {
+        return this.users;
+    }
+
+    @Override
     public List<User> getAllUsers()
     {
         return null;
@@ -103,18 +109,6 @@ public class MockUserService implements UserService
     public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
     {
         return false;
-    }
-
-    @Override
-    public List<User> getManagedUsers( User user )
-    {
-        return null;
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        return 0;
     }
 
     @Override

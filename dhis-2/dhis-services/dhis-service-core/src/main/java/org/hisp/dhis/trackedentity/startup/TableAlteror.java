@@ -187,35 +187,6 @@ public class TableAlteror
         executeSql( "DROP TABLE patientidentifiertype" );
         executeSql( "ALTER TABLE trackedentityattribute RENAME CONSTRAINT fk_patientidentifiertype_periodtypeid TO trackedentityattribute_periodtypeid" );
 
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_REMOVE_EMPTY_EVENTS' where authority='F_PATIENT_REMOVE_EMPTY_EVENTS'" );
-        executeSql( "update userroleauthorities set authority='F_ACCESS_TRACKED_ENTITY_ATTRIBUTES' where authority='F_ACCESS_PATIENT_ATTRIBUTES'" );
-        executeSql( "update userroleauthorities set authority='F_ALLOW_EDIT_TRACKED_ENTITY_ATTRIBUTES' where authority='F_ALLOW_EDIT_PATIENT_ATTRIBUTES'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTE_ADD' where authority='F_TRACKED_ENTITY_INSTANCEATTRIBUTE_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTE_DELETE' where authority='F_TRACKED_ENTITY_INSTANCEATTRIBUTE_DELETE'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_ADD' where authority='F_TRACKED_ENTITY_INSTANCEATTRIBUTE_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_CHANGE_LOCATION' where authority='F_PATIENT_CHANGE_LOCATION'" );
-        executeSql( "update userroleauthorities set authority='F_SEARCH_TRACKED_ENTITY_INSTANCE_IN_ALL_FACILITIES' where authority='F_SEARCH_PATIENT_IN_ALL_FACILITIES'" );
-        executeSql( "update userroleauthorities set authority='F_SEARCH_TRACKED_ENTITY_INSTANCE_IN_OTHER_ORGUNITS' where authority='F_SEARCH_PATIENT_IN_OTHER_ORGUNITS'" );
-        executeSql( "update userroleauthorities set authority='F_ADD_TRACKED_ENTITY_FORM' where authority='F_ADD_PATIENT_REGISTRATION_FORM'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_DATAVALUE_ADD' where authority='F_PATIENT_DATAVALUE_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_DATAVALUE_DELETE' where authority='F_PATIENT_DATAVALUE_DELETE'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_ADD' where authority='F_PATIENT_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_DELETE' where authority='F_PATIENT_DELETE'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_SEARCH' where authority='F_PATIENT_SEARCH'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_LIST' where authority='F_PATIENT_LIST'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_HISTORY' where authority='F_PATIENT_HISTORY'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_DASHBOARD' where authority='F_PATIENT_DASHBOARD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_COMMENT_ADD' where authority='F_PATIENT_COMMENT_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_COMMENT_DELETE' where authority='F_PATIENT_COMMENT_DELETE'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_AGGREGATE_REPORT_PUBLIC_ADD' where authority='F_PATIENT_AGGREGATE_REPORT_PUBLIC_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_AGGREGATE_REPORT_PRIVATE_ADD' where authority='F_PATIENT_AGGREGATE_REPORT_PRIVATE_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_TABULAR_REPORT_PUBLIC_ADD' where authority='F_PATIENT_TABULAR_REPORT_PUBLIC_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_TABULAR_REPORT_PRIVATE_ADD' where authority='F_PATIENT_TABULAR_REPORT_PRIVATE_ADD'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_AGGREGATION' where authority='F_PATIENT_AGGREGATION'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_MANAGEMENT' where authority='F_PATIENT_MANAGEMENT'" );
-        executeSql( "update userroleauthorities set authority='F_NAME_BASED_DATA_ENTRY' where authority='F_NAME_BASED_DATA_ENTRY'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_DELETE' where authority='F_PATIENTATTRIBUTEVALUE_DELETE'" );
-
         executeSql( "ALTER TABLE program_attributes RENAME COLUMN programattributeid TO programtrackedentityattributeid" );
 
         executeSql( "ALTER TABLE trackedentityattributevalue DROP COLUMN trackedentityattributeoptionid" );
@@ -293,7 +264,11 @@ public class TableAlteror
         
         executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
         executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
-        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );
+        executeSql( "update trackedentitytype set allowauditlog = false where allowauditlog is null" );        
+        executeSql( "alter table program drop column allowauditlog" );
+        executeSql( "update program set accesslevel = 'OPEN' where accesslevel is null" );
+        
+        updateTrackedEntityProgramOwners();
     }
 
     // -------------------------------------------------------------------------
@@ -312,6 +287,17 @@ public class TableAlteror
                 "alter table programstagedataelement drop column programstagesectionid;" +
                 "alter table programstagedataelement drop column section_sort_order;";
 
+        executeSql( sql );
+    }
+    
+    private void updateTrackedEntityProgramOwners()
+    {
+        String sql = "insert into "
+            + "trackedentityprogramowner(trackedentityprogramownerid,trackedentityinstanceid,programid,created,lastupdated,organisationunitid,createdby) "
+            + " (select nextval('hibernate_sequence') ,trackedentityinstanceid,programid,created,lastupdated,organisationunitid,"
+            + "coalesce(storedby,'system') createdby from programinstance where "
+            + "trackedentityinstanceid is not null and " + " programid is not null and organisationunitid is not null "
+            + " order by lastupdated desc) ON CONFLICT DO NOTHING;";
         executeSql( sql );
     }
 

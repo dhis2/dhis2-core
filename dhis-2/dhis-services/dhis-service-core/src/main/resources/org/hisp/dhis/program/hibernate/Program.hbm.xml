@@ -69,6 +69,14 @@
     <property name="maxTeiCountToReturn" />
 
     <property name="style" type="jbObjectStyle" column="style" />
+    
+    <property name="accessLevel" length="100">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.AccessLevel</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
@@ -110,13 +118,6 @@
     <property name="selectEnrollmentDatesInFuture" />
 
     <property name="selectIncidentDatesInFuture" />
-
-    <property name="relationshipText" />
-
-    <many-to-one name="relationshipType" class="org.hisp.dhis.relationship.RelationshipType"
-      column="relationshiptypeid" foreign-key="fk_program_relationshipid" />
-
-    <property name="relationshipFromA" />
 
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />

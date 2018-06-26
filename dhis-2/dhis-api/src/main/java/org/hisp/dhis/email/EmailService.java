@@ -42,7 +42,7 @@ public interface EmailService
      * 
      * @return true if all necessary email configurations are set.
      */
-    boolean emailEnabled();
+    boolean emailNotificationsEnabled();
 
     /**
      * Indicates whether email is configured.

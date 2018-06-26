@@ -46,18 +46,18 @@ public class Kafka
 
     private int retries;
 
-    private int pollRecords;
+    private int maxPollRecords;
 
     public Kafka()
     {
     }
 
-    public Kafka( String bootstrapServers, String clientId, int retries, int pollRecords )
+    public Kafka( String bootstrapServers, String clientId, int retries, int maxPollRecords )
     {
         this.bootstrapServers = bootstrapServers;
         this.clientId = clientId;
         this.retries = retries;
-        this.pollRecords = pollRecords;
+        this.maxPollRecords = maxPollRecords;
     }
 
     @JsonProperty( "bootstrap-servers" )
@@ -98,16 +98,16 @@ public class Kafka
         return this;
     }
 
-    @JsonProperty( "poll-records" )
-    @JacksonXmlProperty( localName = "poll-records", namespace = DxfNamespaces.DXF_2_0 )
-    public int getPollRecords()
+    @JsonProperty( "max-poll-records" )
+    @JacksonXmlProperty( localName = "max-poll-records", namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxPollRecords()
     {
-        return pollRecords;
+        return maxPollRecords;
     }
 
-    public void setPollRecords( int pollRecords )
+    public void setMaxPollRecords( int maxPollRecords )
     {
-        this.pollRecords = pollRecords;
+        this.maxPollRecords = maxPollRecords;
     }
 
     public boolean isValid()
@@ -119,8 +119,9 @@ public class Kafka
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "bootstrapServers", bootstrapServers )
+            .add( "bootstrap-servers", bootstrapServers )
             .add( "retries", retries )
+            .add( "max-poll-records", maxPollRecords )
             .toString();
     }
 }

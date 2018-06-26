@@ -28,43 +28,67 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.DataQueryRequest.DataQueryRequestBuilder;
-import org.hisp.dhis.dataelement.*;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.organisationunit.*;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -237,9 +261,12 @@ public class DataQueryServiceTest
         organisationUnitGroupService.addOrganisationUnitGroupSet( ouGroupSetA );
         
         ouGroupA = createOrganisationUnitGroup( 'A' );
+        ouGroupA.setPublicAccess( AccessStringHelper.FULL );
         ouGroupB = createOrganisationUnitGroup( 'B' );
+        ouGroupB.setPublicAccess( AccessStringHelper.FULL );
         ouGroupC = createOrganisationUnitGroup( 'C' );
-                
+        ouGroupC.setPublicAccess( AccessStringHelper.FULL );
+
         ouGroupA.addOrganisationUnit( ouA );
         ouGroupA.addOrganisationUnit( ouB );
         ouGroupA.addOrganisationUnit( ouC );
@@ -285,8 +312,13 @@ public class DataQueryServiceTest
         // Inject user
         // ---------------------------------------------------------------------
 
+        UserAuthorityGroup role = createUserAuthorityGroup( 'A', "ALL" );
+        
+        userService.addUserAuthorityGroup( role );
+        
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
+        user.getUserCredentials().getUserAuthorityGroups().add( role );
         saveAndInjectUserSecurityContext( user );
     }
 
@@ -523,9 +555,9 @@ public class DataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add(
             "ou:" + ouA.getUid() + ";" + ouB.getUid() + ";" + ouC.getUid() + ";" + ouD.getUid() + ";" + ouE.getUid() );
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 4, params.getDataElements().size() );
@@ -543,9 +575,9 @@ public class DataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getUid() );
         
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 4, params.getDataElements().size() );
@@ -560,10 +592,10 @@ public class DataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getDataElements().size() );
@@ -579,10 +611,10 @@ public class DataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getDataElements().size() );
@@ -600,9 +632,10 @@ public class DataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getCode() );
 
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams ).inputIdScheme( IdScheme.CODE );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .inputIdScheme( IdScheme.CODE ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 2, params.getDataElements().size() );
@@ -619,9 +652,10 @@ public class DataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getCode() );
 
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams ).inputIdScheme( IdScheme.CODE );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .inputIdScheme( IdScheme.CODE ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 2, params.getDataElements().size() );
@@ -639,12 +673,11 @@ public class DataQueryServiceTest
         
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() + ";" + ouC.getDimensionItem() );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 3, params.getDataElements().size() );
         assertEquals( 2, params.getPeriods().size() );
@@ -662,9 +695,9 @@ public class DataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() );
 
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 4, params.getDataElements().size() );
@@ -679,10 +712,9 @@ public class DataQueryServiceTest
         dimensionParams.add( "ou:" + OrganisationUnit.KEY_USER_ORGUNIT );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 1, params.getOrganisationUnits().size() );  
@@ -697,10 +729,9 @@ public class DataQueryServiceTest
         dimensionParams.add( "ou:OU_GROUP-" + ouGroupA.getUid() );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 3, params.getOrganisationUnits().size() );  
@@ -715,10 +746,9 @@ public class DataQueryServiceTest
         dimensionParams.add( "ou:LEVEL-2" );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getOrganisationUnits().size() );  
@@ -732,10 +762,9 @@ public class DataQueryServiceTest
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx" );
         dimensionParams.add( "pe:2012,2012S1,2012S2" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         dataQueryService.getFromRequest( dataQueryRequest );
     }
     
@@ -746,9 +775,8 @@ public class DataQueryServiceTest
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "pe" );
 
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         dataQueryService.getFromRequest( dataQueryRequest );
     }
 
@@ -758,10 +786,9 @@ public class DataQueryServiceTest
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         dataQueryService.getFromRequest( dataQueryRequest );
     }
 
@@ -771,10 +798,9 @@ public class DataQueryServiceTest
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "yebo:2012,2012S1,2012S2" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams ).build();
         dataQueryService.getFromRequest( dataQueryRequest );
     }
 
@@ -787,10 +813,10 @@ public class DataQueryServiceTest
         
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getUid() );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).filter( filterParams );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         List<DimensionalItemObject> periods = params.getPeriods();
@@ -807,10 +833,10 @@ public class DataQueryServiceTest
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + deA.getUid() + ";" + deB.getUid() + ";" + deC.getUid() + ";" + deD.getUid() );
         dimensionParams.add( "pe" );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).allowAllPeriods( true );
-        DataQueryRequest dataQueryRequest = builder.build();
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .allowAllPeriods( true ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 0, params.getPeriods().size() );

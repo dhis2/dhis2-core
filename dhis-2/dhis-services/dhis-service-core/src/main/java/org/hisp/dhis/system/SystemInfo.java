@@ -116,6 +116,8 @@ public class SystemInfo
 
     private boolean encryption;
 
+    private boolean emailConfigured;
+
     private String systemId;
 
     private String systemName;
@@ -539,6 +541,18 @@ public class SystemInfo
         this.encryption = encryption;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEmailConfigured()
+    {
+        return emailConfigured;
+    }
+
+    public void setEmailConfigured( boolean emailConfigured )
+    {
+        this.emailConfigured = emailConfigured;
+    }
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemId()

@@ -36,6 +36,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -157,6 +159,16 @@ public class ProgramRuleAction
      * Used by all the different actions. See “actions”. The data field will be evaluated, so it can contain a rich expression.
      */
     private String data;
+    
+    /**
+     * Option affected by the rule action
+     */
+    private Option option;
+    
+    /**
+     * Option group affected by the rule action 
+     */
+    private OptionGroup optionGroup;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -170,7 +182,8 @@ public class ProgramRuleAction
     public ProgramRuleAction( String name, ProgramRule programRule, ProgramRuleActionType programRuleActionType,
         DataElement dataElement, TrackedEntityAttribute attribute,
         ProgramStageSection programStageSection, ProgramStage programStage,
-        ProgramIndicator programIndicator, String location, String content, String data )
+        ProgramIndicator programIndicator, String location, String content, String data,
+        Option option, OptionGroup optionGroup)
     {
         this.name = name;
         this.programRule = programRule;
@@ -183,6 +196,8 @@ public class ProgramRuleAction
         this.location = location;
         this.content = content;
         this.data = data;
+        this.option = option;
+        this.optionGroup = optionGroup;
     }
 
     // -------------------------------------------------------------------------
@@ -207,6 +222,16 @@ public class ProgramRuleAction
     public boolean hasNotification()
     {
         return this.programNotificationTemplate != null;
+    }
+    
+    public boolean hasOption()
+    {
+        return this.option != null;
+    }
+    
+    public boolean hasOptionGroup()
+    {
+        return this.optionGroup != null;
     }
 
     // -------------------------------------------------------------------------
@@ -351,4 +376,28 @@ public class ProgramRuleAction
     {
         this.data = data;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Option getOption()
+    {
+        return option;
+    }
+
+    public void setOption( Option option )
+    {
+        this.option = option;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OptionGroup getOptionGroup()
+    {
+        return optionGroup;
+    }
+
+    public void setOptionGroup( OptionGroup optionGroup )
+    {
+        this.optionGroup = optionGroup;
+    }    
 }

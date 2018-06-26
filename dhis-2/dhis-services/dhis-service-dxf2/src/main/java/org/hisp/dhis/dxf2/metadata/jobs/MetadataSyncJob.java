@@ -31,7 +31,11 @@ package org.hisp.dhis.dxf2.metadata.jobs;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.*;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -63,6 +67,7 @@ public class MetadataSyncJob
     public static String VERSION_KEY = "version";
     public static String DATA_PUSH_SUMMARY = "dataPushSummary";
     public static String EVENT_PUSH_SUMMARY = "eventPushSummary";
+    public static String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
     public static String GET_METADATAVERSION = "getMetadataVersion";
     public static String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
     public static String METADATA_SYNC = "metadataSync";
@@ -150,6 +155,7 @@ public class MetadataSyncJob
         metadataSyncPreProcessor.handleAggregateDataPush( context );
 
         metadataSyncPreProcessor.handleEventDataPush( context );
+        metadataSyncPreProcessor.handleTrackerDataPush( context );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
 
@@ -160,7 +166,7 @@ public class MetadataSyncJob
             for ( MetadataVersion dataVersion : metadataVersionList )
             {
                 MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
-                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
                 MetadataSyncSummary metadataSyncSummary = null;
 
                 if ( isSyncRequired )

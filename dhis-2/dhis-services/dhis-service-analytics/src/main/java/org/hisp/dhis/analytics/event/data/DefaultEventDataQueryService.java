@@ -201,6 +201,7 @@ public class DefaultEventDataQueryService
             .withCoordinatesOnly( request.isCoordinatesOnly() )
             .withEventStatus( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
+            .withTimeField( request.getTimeField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )

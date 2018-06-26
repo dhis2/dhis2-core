@@ -79,6 +79,14 @@ public interface UserService
     User getUser( String uid );
 
     /**
+     * Retrieves a collection of User with the given unique identifiers.
+     *
+     * @param uids the identifiers of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<User> getUsers( Collection<String> uids );
+
+    /**
      * Returns a List of all Users.
      *
      * @return a Collection of Users.
@@ -118,24 +126,6 @@ public interface UserService
      * @return true if the given user role represents the last role with ALL authority.
      */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
-
-    /**
-     * Returns all users which are managed by the given user through its managed
-     * groups association.
-     *
-     * @param user the user.
-     * @return a List of users.
-     */
-    List<User> getManagedUsers( User user );
-
-    /**
-     * Returns the number of users which are managed by the given user through its
-     * managed groups association.
-     *
-     * @param user the user.
-     * @return number of users.
-     */
-    int getManagedUserCount( User user );
 
     /**
      * Returns a list of users based on the given query parameters.

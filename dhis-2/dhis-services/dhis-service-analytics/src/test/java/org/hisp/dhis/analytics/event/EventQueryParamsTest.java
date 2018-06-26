@@ -30,17 +30,22 @@ package org.hisp.dhis.analytics.event;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,6 +71,10 @@ public class EventQueryParamsTest
     private OptionSet osB;
     private DataElement deA;
     private DataElement deB;
+    private DataElement deC;
+    private OrganisationUnit ouA;
+    private Program prA;
+    private ProgramStage psA;
     
     @Before
     public void before()
@@ -79,6 +88,16 @@ public class EventQueryParamsTest
         
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
+        deC.setValueType( ValueType.DATE );
+        
+        ouA = createOrganisationUnit( 'A' );
+        
+        psA = createProgramStage( 'A', prA );
+        psA.addDataElement( deA, 0 );
+        psA.addDataElement( deB, 1 );
+        psA.addDataElement( deC, 2 );
+        prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
     }
     
     @Test
@@ -138,7 +157,7 @@ public class EventQueryParamsTest
     
     @Test
     public void testGetDuplicateQueryItems()
-    {        
+    {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         QueryItem iB = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
         QueryItem iC = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
@@ -154,5 +173,32 @@ public class EventQueryParamsTest
         
         assertEquals( 1, duplicates.size() );
         assertTrue( duplicates.contains( iC ) );        
+    }
+    
+    @Test
+    public void testIsTimeFieldValid()
+    {
+        QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
+        
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( deC.getUid() )
+            .addItem( iA ).build();
+        
+        assertTrue( params.timeFieldIsValid() );
+
+        params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( TimeField.DUE_DATE.name() )
+            .addItem( iA ).build();
+
+        assertTrue( params.timeFieldIsValid() );
+
+        params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( "someInvalidField" )
+            .addItem( iA ).build();
+
+        assertFalse( params.timeFieldIsValid() );
     }
 }

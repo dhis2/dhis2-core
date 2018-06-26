@@ -88,9 +88,6 @@ public class DataValidationTask
     @Autowired
     private PeriodService periodService;
 
-    @Autowired
-    private ValidationResultService validationResultService;
-
     // (wired through constructor)
     private AnalyticsService analyticsService;
 
@@ -243,8 +240,6 @@ public class DataValidationTask
             return;
         }
 
-        log.trace( "Validation attributeOptionCombo " + optionCombo );
-
         boolean violation = isViolation( leftSide, rightSide );
 
         if ( violation && !context.isAnalysisComplete() )
@@ -355,11 +350,6 @@ public class DataValidationTask
         if ( validationResults.size() > 0 )
         {
             context.getValidationResults().addAll( validationResults );
-
-            if ( context.isPersistResults() )
-            {
-                validationResultService.saveValidationResults( validationResults );
-            }
         }
     }
 
@@ -369,7 +359,11 @@ public class DataValidationTask
 
         if ( p == null )
         {
+            log.trace("DataValidationTask calling getPeriod( id " + id + " )" );
+
             p = periodService.getPeriod( id );
+
+            log.trace("DataValidationTask called getPeriod( id " + id + " )" );
 
             context.getPeriodIdMap().put( id, p );
         }
@@ -383,7 +377,11 @@ public class DataValidationTask
 
         if ( aoc == null )
         {
+            log.trace("DataValidationTask calling getCategoryOptionCombo( id " + id + " )" );
+
             aoc = categoryService.getCategoryOptionCombo( id );
+
+            log.trace("DataValidationTask called getCategoryOptionCombo( id " + id + ")" );
 
             addToAocCache( aoc );
         }
@@ -397,7 +395,11 @@ public class DataValidationTask
 
         if ( aoc == null )
         {
+            log.trace("DataValidationTask calling getCategoryOptionCombo( uid " + uid + " )" );
+
             aoc = categoryService.getCategoryOptionCombo( uid );
+
+            log.trace("DataValidationTask called getCategoryOptionCombo( uid " + uid + ")" );
 
             addToAocCache( aoc );
         }

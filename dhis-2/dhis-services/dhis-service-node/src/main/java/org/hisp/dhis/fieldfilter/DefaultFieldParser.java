@@ -31,7 +31,10 @@ package org.hisp.dhis.fieldfilter;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -87,6 +90,19 @@ public class DefaultFieldParser implements FieldParser
         }
 
         return fieldMap;
+    }
+
+    @Override
+    public List<String> modifyFilter( Collection<String> fields, Collection<String> excludeFields )
+    {
+        if ( fields == null )
+        {
+            fields = new LinkedList<String>();
+        }
+
+        return fields.stream()
+            .map( s -> s.replaceAll( "]", String.format( ",%s]", excludeFields.toString().replaceAll( "\\[|\\]", "" ) ) ) )
+            .collect( Collectors.toList() );
     }
 
     private String joinedWithPrefix( StringBuilder builder, List<String> prefixList )

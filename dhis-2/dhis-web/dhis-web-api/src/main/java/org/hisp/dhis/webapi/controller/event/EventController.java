@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
+import com.vividsolutions.jts.io.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -94,7 +95,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -618,7 +618,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody EventRows getEventRows(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String orgUnit,
@@ -820,8 +819,7 @@ public class EventController
         }
         else
         {
-            List<Event> events = eventService.getEventsJson( inputStream );
-
+            List<Event> events = eventService.getEventsXml( inputStream );
             startAsyncImport( importOptions, events, request, response );
         }
     }
@@ -867,7 +865,6 @@ public class EventController
         else
         {
             List<Event> events = eventService.getEventsJson( inputStream );
-
             startAsyncImport( importOptions, events, request, response );
         }
     }
@@ -891,7 +888,8 @@ public class EventController
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+        throws IOException, ParseException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 

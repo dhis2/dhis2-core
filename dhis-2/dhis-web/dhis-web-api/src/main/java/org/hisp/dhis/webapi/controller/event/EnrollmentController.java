@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
+import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
 import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -54,6 +55,7 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -84,6 +86,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.ENROLLMENT_IMPORT;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -100,6 +103,9 @@ public class EnrollmentController
 
     @Autowired
     private EnrollmentService enrollmentService;
+
+    @Autowired
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -182,8 +188,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody
-    Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
+    public @ResponseBody Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
     {
         return getEnrollment( id );
     }
@@ -198,32 +203,41 @@ public class EnrollmentController
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
-        importSummaries.setImportOptions( importOptions );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-        importSummaries.getImportSummaries().stream()
-            .filter(
-                importSummary -> !importOptions.isDryRun() &&
-                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() &&
-                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
-            .forEach( importSummary -> importSummary.setHref(
-                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
-
-        if ( importSummaries.getImportSummaries().size() == 1 )
+        if ( !importOptions.isAsync() )
         {
-            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummary.setImportOptions( importOptions );
+            ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
+            importSummaries.setImportOptions( importOptions );
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+            importSummaries.getImportSummaries().stream()
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+                .forEach( importSummary -> importSummary.setHref(
+                    ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
+
+            if ( importSummaries.getImportSummaries().size() == 1 )
             {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
-            }
-        }
+                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+                {
+                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                }
+            }
+
+            response.setStatus( HttpServletResponse.SC_CREATED );
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        }
+        else
+        {
+            List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( inputStream );
+            startAsyncImport( importOptions, enrollments, request, response );
+        }
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -232,32 +246,41 @@ public class EnrollmentController
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
-        importSummaries.setImportOptions( importOptions );
-        response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
-        importSummaries.getImportSummaries().stream()
-            .filter(
-                importSummary -> !importOptions.isDryRun() &&
-                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() &&
-                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
-            .forEach( importSummary -> importSummary.setHref(
-                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
-
-        if ( importSummaries.getImportSummaries().size() == 1 )
+        if ( !importOptions.isAsync() )
         {
-            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummary.setImportOptions( importOptions );
+            ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
+            importSummaries.setImportOptions( importOptions );
+            response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
-            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+            importSummaries.getImportSummaries().stream()
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+                .forEach( importSummary -> importSummary.setHref(
+                    ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
+
+            if ( importSummaries.getImportSummaries().size() == 1 )
             {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
-            }
-        }
+                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+                {
+                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                }
+            }
+
+            response.setStatus( HttpServletResponse.SC_CREATED );
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        }
+        else
+        {
+            List<Enrollment> enrollments = enrollmentService.getEnrollmentsXml( inputStream );
+            startAsyncImport( importOptions, enrollments, request, response );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -363,6 +386,24 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    /**
+     * Starts an asynchronous enrollment task.
+     *
+     * @param importOptions the ImportOptions.
+     * @param events        the events to import.
+     * @param request       the HttpRequest.
+     * @param response      the HttpResponse.
+     */
+    private void startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments, HttpServletRequest request, HttpServletResponse response )
+    {
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+            ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        schedulingManager.executeJob( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
+
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + ENROLLMENT_IMPORT );
+        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+    }
 
     private Enrollment getEnrollment( String id ) throws NotFoundException
     {
