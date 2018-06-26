@@ -85,6 +85,11 @@ public class DefaultProgramIndicatorService
         .put( MinutesBetweenSqlFunction.KEY, new MinutesBetweenSqlFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
+    
+    private static final Map<String, ProgramIndicatorFunction> PI_FUNC_MAP = ImmutableMap.<String, ProgramIndicatorFunction> builder()
+        .put( CountIfValueProgramIndicatorFunction.KEY, new CountIfValueProgramIndicatorFunction() )
+        .put( CountProgramIndicatorFunction.KEY, new CountProgramIndicatorFunction() )
+        .put( CountIfConditionProgramIndicatorFunction.KEY, new CountIfConditionProgramIndicatorFunction() ).build();
 
     private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
@@ -326,14 +331,25 @@ public class DefaultProgramIndicatorService
                     args[i] = arg;
                 }
 
-                SqlFunction function = SQL_FUNC_MAP.get( func );
+                String result = "";
+                
+                SqlFunction sqlFunction = SQL_FUNC_MAP.get( func );
 
-                if ( function == null )
+                if ( sqlFunction != null )
                 {
-                    throw new IllegalStateException( "Function not recognized: " + func );
+                    result = sqlFunction.evaluate( args );
                 }
-
-                String result = function.evaluate( args );
+                else
+                {
+                    ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
+                    
+                    if ( piFunction == null )
+                    {
+                        throw new IllegalStateException( "Function not recognized: " + func );
+                    }
+                    
+                    result = piFunction.evaluate( programIndicator, reportingStartDate, reportingEndDate, args );
+                }
 
                 matcher.appendReplacement( buffer, result );
             }
