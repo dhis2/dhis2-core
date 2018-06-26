@@ -1,7 +1,9 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,31 +34,27 @@ import java.util.regex.Pattern;
  */
 
 /**
- * Function which evaluates a relation between two given dates.
- *
+ * Function which counts the number of occurrences of a data value within an enrollment.
+ * 
  * @author Markus Bekken
  */
-public abstract class BaseDateComparatorSqlFunction
-    implements SqlFunction
-{   
-    protected abstract String compare( String startDate, String endDate );
-
+public class CountIfConditionProgramIndicatorFunction
+    extends BaseCountIfProgramIndicatorFunction
+{
+ 
+    public static final String KEY = "countIfCondition";
+    
     @Override
-    public String evaluate( String... args )
+    public String evaluate( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String... args )
     {
         if ( args == null || args.length != 2 )
         {
-            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: source data element/tracked entity attribute, value to count."
+                + " Arguments passed: " + Arrays.toString( args ) );
         }
         
-        String startDate = args[0];
-        String endDate = args[1];
-
-        return compare( startDate, endDate );
-    }
-    
-    public String getSampleValue()
-    {
-        return "1";
+        String condition = args[1].replace( "'", "" );
+        
+        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, args[0], condition );
     }
 }
