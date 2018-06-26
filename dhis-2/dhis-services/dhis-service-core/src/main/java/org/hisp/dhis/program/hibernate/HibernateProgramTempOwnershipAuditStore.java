@@ -36,7 +36,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
@@ -101,7 +100,7 @@ public class HibernateProgramTempOwnershipAuditStore implements ProgramTempOwner
 
     private Criteria getProgramTempOwnershipAuditCriteria( ProgramTempOwnershipAuditQueryParams params )
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramInstanceAudit.class );
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramTempOwnershipAudit.class );
 
         if ( params.hasPrograms() )
         {

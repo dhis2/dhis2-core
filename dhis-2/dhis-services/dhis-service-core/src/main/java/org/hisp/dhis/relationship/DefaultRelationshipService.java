@@ -29,7 +29,12 @@ package org.hisp.dhis.relationship;
  */
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -69,34 +74,52 @@ public class DefaultRelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance )
+    public boolean relationshipExists( String uid )
     {
-        return relationshipStore.getForTrackedEntityInstance( instance );
+        return relationshipStore.getByUid( uid ) != null;
     }
 
     @Override
     public int addRelationship( Relationship relationship )
     {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
         relationshipStore.save( relationship );
+
         return relationship.getId();
     }
 
     @Override
     public void updateRelationship( Relationship relationship )
     {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );
     }
 
     @Override
-    public Relationship getRelationship( TrackedEntityInstance instanceA, TrackedEntityInstance instanceB, RelationshipType relationshipType )
+    public Relationship getRelationship( String uid )
     {
-        return relationshipStore.get( instanceA, instanceB, relationshipType );
+        return relationshipStore.getByUid( uid );
     }
 
     @Override
-    public List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA,
-        RelationshipType relationshipType )
+    public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        boolean skipAccessValidation )
     {
-        throw new NotImplementedException("");
+        return relationshipStore.getByTrackedEntityInstance( tei );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramInstance( pi );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramStageInstance( psi );
     }
 }

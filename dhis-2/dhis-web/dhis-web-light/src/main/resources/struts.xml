@@ -13,10 +13,6 @@
 			<param name="page">/dhis-web-light/menu.vm</param>
 		</action>
 
-		<!-- <action name="viewChart" class="org.hisp.dhis.light.chart.action.GetDataSetInfoForChartAction"> 
-			<result name="success" type="velocity">/dhis-web-light/main.vm</result> <param 
-			name="page">/dhis-web-light/chart/viewChartInfo.vm</param> </action> -->
-
 		<!-- data entry -->
 
 		<action name="selectOrganisationUnit"
@@ -29,7 +25,6 @@
 			<result name="selectPeriod" type="redirect">
 				/light/selectPeriod.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}
 			</result>
-			<param name="requiredAuthorities">F_DATAVALUE_ADD</param>
 		</action>
 
 		<action name="selectDataSet"
@@ -282,7 +277,6 @@
 			class="org.hisp.dhis.light.anonymous.action.ShowAnonymousFormAction">
 			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
 			<param name="page">/dhis-web-light/anonymous/anonymousProgramForm.vm</param>
-			<param name="requiredAuthorities">F_TRACKED_ENTITY_DATAVALUE_ADD,F_TRACKED_ENTITY_DATAVALUE_DELETE</param>
 		</action>
 
 		<action name="saveAnonymousForm"
@@ -291,7 +285,6 @@
 			</result>
 			<result name="error" type="velocity">/dhis-web-light/main.vm</result>
 			<param name="page">/dhis-web-light/anonymous/anonymousProgramForm.vm</param>
-			<param name="requiredAuthorities">F_TRACKED_ENTITY_DATAVALUE_ADD,F_TRACKED_ENTITY_DATAVALUE_DELETE</param>
 		</action>
 
 	</package>

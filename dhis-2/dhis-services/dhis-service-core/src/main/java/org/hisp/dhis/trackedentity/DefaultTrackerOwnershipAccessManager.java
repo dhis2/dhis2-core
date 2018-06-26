@@ -36,6 +36,8 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramOwnershipHistory;
+import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
@@ -79,6 +81,9 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
 
     @Autowired
     private ProgramTempOwnershipAuditService programTempOwnershipAuditService;
+
+    @Autowired
+    private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -182,14 +187,22 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
         if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
         {
-            if ( createIfNotExists )
+            TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerService
+                .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+            if ( teProgramOwner != null )
             {
-                trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( entityInstance, program,
-                    orgUnit );
+                if ( !teProgramOwner.getOrganisationUnit().equals( orgUnit ) )
+                {
+                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
+                        entityInstance, teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
+                    programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
+                    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
+                        orgUnit );
+                }
             }
-            else
+            else if ( createIfNotExists )
             {
-                trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
+                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
         }
         else
@@ -220,15 +233,22 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         }
         if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
         {
-            if ( overwriteIfExists )
+            TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerService
+                .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+            if ( teProgramOwner != null )
             {
-                trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( entityInstance, program,
-                    organisationUnit );
+                if ( overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals( organisationUnit ) )
+                {
+                    ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program,
+                        entityInstance, teProgramOwner.getLastUpdated(), teProgramOwner.getCreatedBy() );
+                    programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
+                    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
+                        organisationUnit );
+                }
             }
             else
             {
-
-                trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program,
+                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
         }
@@ -321,7 +341,6 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
     {
         return isOwner( user, teiUid, programUid ) || hasTemporaryAccess( teiUid, programUid, user );
     }
-
 
     @Override
     public boolean hasAccess( User user, int teiId, int programId )

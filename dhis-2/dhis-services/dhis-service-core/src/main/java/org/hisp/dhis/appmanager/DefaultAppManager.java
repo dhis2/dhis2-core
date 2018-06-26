@@ -286,7 +286,7 @@ public class DefaultAppManager
 
         return userCredentials.getAllAuthorities().contains( "ALL" ) ||
             userCredentials.getAllAuthorities().contains( "M_dhis-web-maintenance-appmanager" ) ||
-            userCredentials.getAllAuthorities().contains( "See " + app.getName().trim() );
+            userCredentials.getAllAuthorities().contains( app.getSeeAppAuthority() );
     }
 
     @Override

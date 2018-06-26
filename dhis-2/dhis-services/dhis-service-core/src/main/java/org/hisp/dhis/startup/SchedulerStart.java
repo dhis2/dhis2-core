@@ -147,7 +147,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                 if ( jobConfig.getLastExecutedStatus() == FAILED
                     || (!jobConfig.isContinuousExecution() && oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
                 {
-                    unexecutedJobs.add( "Job [" + jobConfig.getUid() + ", " + jobConfig.getName()
+                    unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
                         + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
                         + oldExecutionTime );
                 }

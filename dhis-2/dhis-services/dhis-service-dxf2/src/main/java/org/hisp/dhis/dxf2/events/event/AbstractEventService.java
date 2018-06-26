@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -62,8 +60,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -119,7 +119,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -148,7 +147,7 @@ public abstract class AbstractEventService
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
-        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
+        EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
         EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
 
     // -------------------------------------------------------------------------
@@ -229,9 +228,10 @@ public abstract class AbstractEventService
     @Autowired
     protected ProgramNotificationPublisher programNotificationPublisher;
 
-    protected static final int FLUSH_FREQUENCY = 100;
+    @Autowired
+    protected RelationshipService relationshipService;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    protected static final int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // Caches
@@ -859,6 +859,11 @@ public abstract class AbstractEventService
 
             event.getNotes().add( note );
         }
+        
+        event.setRelationships( programStageInstance.getRelationshipItems().stream()
+            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user )  )
+            .collect( Collectors.toSet() )
+        );
 
         return event;
     }
@@ -1628,6 +1633,8 @@ public abstract class AbstractEventService
                 dataValue.setProvidedElsewhere( providedElsewhere );
 
                 dataValueService.saveTrackedEntityDataValue( dataValue );
+
+                programStageInstance.getDataValues().add( dataValue );
 
                 if ( importSummary != null )
                 {

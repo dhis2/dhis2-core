@@ -40,9 +40,9 @@ public interface ProgramTempOwnershipAuditService
     String ID = ProgramTempOwnershipAuditService.class.getName();
 
     /**
-     * Adds program instance audit
+     * Adds program temp ownership audit
      * 
-     * @param programInstanceAudit the audit to add
+     * @param programTempOwnershipAudit the audit to add
      */
     void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 

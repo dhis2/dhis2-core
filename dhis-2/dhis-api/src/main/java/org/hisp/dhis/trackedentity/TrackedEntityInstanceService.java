@@ -34,6 +34,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -262,4 +263,6 @@ public interface TrackedEntityInstanceService
      */
     int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+
+    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }
