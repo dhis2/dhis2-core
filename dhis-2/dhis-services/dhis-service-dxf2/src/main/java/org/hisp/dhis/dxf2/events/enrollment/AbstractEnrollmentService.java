@@ -44,12 +44,14 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -71,6 +73,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
@@ -126,6 +129,9 @@ public abstract class AbstractEnrollmentService
     
     @Autowired
     protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+
+    @Autowired
+    protected RelationshipService relationshipService;
 
     @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
@@ -338,6 +344,15 @@ public abstract class AbstractEnrollmentService
                 {
                     enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
                 }
+            }
+        }
+
+        if ( params.isIncludeRelationships() )
+        {
+            for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
+            {
+                enrollment.getRelationships().add( relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    RelationshipParams.FALSE, user ) );
             }
         }
 

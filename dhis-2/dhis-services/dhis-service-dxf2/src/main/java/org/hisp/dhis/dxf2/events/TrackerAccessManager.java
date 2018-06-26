@@ -32,6 +32,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
@@ -58,6 +59,10 @@ public interface TrackerAccessManager
     List<String> canRead( User user, ProgramStageInstance programStageInstance );
 
     List<String> canWrite( User user, ProgramStageInstance programStageInstance );
+
+    List<String> canRead( User user, Relationship relationship );
+
+    List<String> canWrite( User user, Relationship relationship );
 
     List<String> canRead( User user, TrackedEntityDataValue dataValue );
 
