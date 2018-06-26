@@ -31,16 +31,31 @@ package org.hisp.dhis.webapi.controller;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.completeness.DataSetCompletenessResult;
+import org.hisp.dhis.completeness.DataSetCompletenessService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
+import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
@@ -55,10 +70,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
@@ -74,10 +98,25 @@ public class ReportController
     public ReportService reportService;
 
     @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private PeriodService periodService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private I18nManager i18nManager;
+
+    @Autowired
     private ContextUtils contextUtils;
+
+    @Resource(name="dataCompletenessServiceProvider")
+    private ServiceProvider<DataSetCompletenessService> serviceProvider;
 
     // -------------------------------------------------------------------------
     // CRUD
@@ -176,6 +215,120 @@ public class ReportController
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         new ImageServlet().service( request, response );
+    }
+
+    @RequestMapping( value = "/rateSummary", method = RequestMethod.GET )
+    public void getDataSetReport(
+        @RequestParam( required = false ) String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam String criteria,
+        @RequestParam( required = false ) Set<String> groupUids,
+        HttpServletResponse response) throws IOException, WebMessageException
+    {
+        OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
+        DataSet selectedDataSet = dataSetService.getDataSet( ds );
+        Period selectedPeriod = PeriodType.getPeriodFromIsoString( pe );
+
+        if ( selectedOrgunit == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+        }
+
+        if ( selectedPeriod == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+        }
+
+        selectedPeriod = periodService.reloadPeriod( selectedPeriod );
+
+        // ---------------------------------------------------------------------
+        // Configure response
+        // ---------------------------------------------------------------------
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+
+        // ---------------------------------------------------------------------
+        // Assemble report
+        // ---------------------------------------------------------------------
+        List<DataSetCompletenessResult> mainResults = new ArrayList<>();
+        List<DataSetCompletenessResult> footerResults = new ArrayList<>();
+        DataSetCompletenessService completenessService = serviceProvider.provide( criteria );
+
+        Set<Integer> groupIds = new HashSet<>(  );
+        if ( groupUids != null ) {
+            for( String groupUid : groupUids ) {
+                OrganisationUnitGroup organisationUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
+                if ( organisationUnitGroup != null ) {
+                    groupIds.add( organisationUnitGroup.getId() );
+                    System.out.println( "GroupId: " +  organisationUnitGroup.getId());
+                }
+            }
+        }
+
+        if ( selectedDataSet != null ) {
+            mainResults = new ArrayList<>( completenessService.getDataSetCompleteness(
+                selectedPeriod.getId(), getIdentifiers( selectedOrgunit.getChildren() ), selectedDataSet.getId(), groupIds ) );
+
+            footerResults = new ArrayList<>(
+                completenessService.getDataSetCompleteness( selectedPeriod.getId(), Arrays.asList( selectedOrgunit.getId() ),
+                    selectedDataSet.getId(), groupIds ) );
+        } else {
+            mainResults = new ArrayList<>( completenessService.getDataSetCompleteness(
+                selectedPeriod.getId(), selectedOrgunit.getId(), groupIds ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Write response
+        // ---------------------------------------------------------------------
+
+        // FIXME move it a util method
+        I18n i18n = i18nManager.getI18n();
+        String title =
+            ( selectedOrgunit != null ? selectedOrgunit.getName() : "" ) +
+                ( selectedDataSet != null ? "-" + selectedDataSet.getName() : "" ) +
+                ( selectedPeriod != null ? "-" + i18nManager.getI18nFormat().formatPeriod( selectedPeriod ) : "" );
+
+        Grid grid = new ListGrid().setTitle( title );
+
+        grid.addHeader( new GridHeader( i18n.getString( "name" ), false, true ) );
+        grid.addHeader( new GridHeader( i18n.getString( "actual_reports" ), false, false ) );
+        grid.addHeader( new GridHeader( i18n.getString( "expected_reports" ), false, false ) );
+        grid.addHeader( new GridHeader( i18n.getString( "percent" ), false, false ) );
+        grid.addHeader( new GridHeader( i18n.getString( "reports_on_time" ), false, false ) );
+        grid.addHeader( new GridHeader( i18n.getString( "percent_on_time" ), false, false ) );
+
+        for ( DataSetCompletenessResult result : mainResults )
+        {
+            // FIXME move it a util method
+            grid.addRow();
+            grid.addValue( result.getName() );
+            grid.addValue( result.getRegistrations() );
+            grid.addValue( result.getSources() );
+            grid.addValue( result.getPercentage() );
+            grid.addValue( result.getRegistrationsOnTime() );
+            grid.addValue( result.getPercentageOnTime() );
+        }
+
+        if ( grid.getWidth() >= 4 )
+        {
+            grid.sortGrid( 4, 1 );
+        }
+
+        for ( DataSetCompletenessResult result : footerResults )
+        {
+            // FIXME move it a util method
+            grid.addRow();
+            grid.addValue( result.getName() );
+            grid.addValue( result.getRegistrations() );
+            grid.addValue( result.getSources() );
+            grid.addValue( result.getPercentage() );
+            grid.addValue( result.getRegistrationsOnTime() );
+            grid.addValue( result.getPercentageOnTime() );
+        }
+
+        Writer output = response.getWriter();
+        GridUtils.toHtmlCss( grid, output );
     }
 
     // -------------------------------------------------------------------------
