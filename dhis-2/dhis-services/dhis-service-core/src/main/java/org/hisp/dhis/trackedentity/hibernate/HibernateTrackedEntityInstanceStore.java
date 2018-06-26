@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.user.User;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -676,6 +677,14 @@ public class HibernateTrackedEntityInstanceStore
         query.setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs );
 
         query.executeUpdate();
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    {
+        return getSharingCriteria( user )
+            .add( Restrictions.in( "uid", uids ) )
+            .list();
     }
 
     @Override

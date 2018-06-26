@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg8"
+   height="48"
+   width="48"
+   version="1.1"
+   viewBox="0 0 12.7 12.7"
+   sodipodi:docname="plantation_worker_outline.svg"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)">
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     id="namedview7"
+     showgrid="false"
+     inkscape:zoom="4.916666667"
+     inkscape:cx="-7.423728814"
+     inkscape:cy="24"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
+  <title
+     id="title4753">UIO-icon</title>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>UIO-icon</dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Joaquín Urbano</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>GPL</dc:title>
+          </cc:Agent>
+        </dc:rights>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(0,-284.3)"
+     style="fill:#333333;fill-opacity:1">
+    <path
+       id="rect4902"
+       d="m23.891 3.875a4.5781 4.5781 0 0 0 -4.145 2.6445 7.125 0.46875 0 0 0 -3.121 0.3867 7.125 0.46875 0 0 0 3.133 0.3887 4.3911 4.3911 0 0 0 -0.149 1.1231 4.3911 4.3911 0 0 0 4.393 4.391 4.3911 4.3911 0 0 0 4.391 -4.391 4.3911 4.3911 0 0 0 -0.159 -1.1465 7.125 0.46875 0 0 0 2.641 -0.3653 7.125 0.46875 0 0 0 -2.834 -0.373 4.5781 4.5781 0 0 0 -4.15 -2.6582zm3.63 3.4277a3.698 3.698 0 0 1 0.178 1.1153 3.698 3.698 0 0 1 -3.697 3.697 3.698 3.698 0 0 1 -3.701 -3.697 3.698 3.698 0 0 1 0.166 -1.0957 7.125 0.46875 0 0 0 3.283 0.0527 7.125 0.46875 0 0 0 3.771 -0.0723zm-3.957 6.5883l-3.998 0.002v0.009c-0.718 0.015-1.404 0.409-1.742 1.102l-2.771 5.676v-4.118-1.576h1.787v-0.943h-4.516v0.943h1.787v5.194 2.427l-1.142 2.34c-0.481 0.985-0.072 2.164 0.912 2.645 0.075 0.036 0.153 0.057 0.23 0.084v2.674 4.127h-0.634v0.843h-0.719c-0.853 0-1.539 0.687-1.539 1.539v0.436 5.127 1.539h0.32v-1.875-4.799-0.092c0-0.82 0.66-1.48 1.481-1.48h0.435v8.258h0.506v-8.258h1.572v8.258h0.506v-8.258h0.08c0.821 0 1.481 0.66 1.481 1.48v0.092 4.799 1.875h0.343v-1.539-5.127-0.436c0-0.852-0.686-1.539-1.539-1.539h-0.718v-0.843h-0.633v-6.709c0.615-0.096 1.173-0.479 1.468-1.084l3.045-6.237v6.996 1.487 1.439 11.627c0 1.095 0.88 1.977 1.975 1.977s1.977-0.882 1.977-1.977v-11.627h0.046 0.864 0.043v11.627c0 1.095 0.883 1.977 1.978 1.977 1.096 0 1.977-0.882 1.977-1.977v-11.627-1.439-1.487-7.011l3.051 6.252c0.48 0.984 1.66 1.388 2.644 0.908 0.984-0.481 1.389-1.66 0.908-2.645l-4.853-9.943c-0.34-0.696-1.028-1.096-1.75-1.106v-0.007h-3.998-0.864zm4.791 0.722v0.014c0.472 0.013 0.921 0.267 1.145 0.721l1.039 2.105c0.012 0.023 0.032 0.033 0.043 0.057l3.838 7.775c0.322 0.652 0.056 1.435-0.596 1.756-0.651 0.322-1.434 0.056-1.756-0.596l-1.043-2.107c-0.011-0.019-0.03-0.033-0.041-0.057l-3.224-6.531v2.918 2.969 4.627 4.043 0.939 1.072 2.616 4.98c0 0.363-0.146 0.693-0.383 0.93-0.237 0.236-0.565 0.382-0.928 0.383-0.363 0-0.692-0.146-0.929-0.383s-0.385-0.567-0.385-0.93v-4.98-2.616-1.072-0.939-2.621h-2.281v2.621 0.939 1.072 2.616 4.98c0 0.727-0.586 1.313-1.313 1.313s-1.311-0.586-1.311-1.313v-4.98-2.616-1.072-0.939-2.969-1.074-2.616-0.937-1.074-2.969-2.965l-3.248 6.576c-0.01 0.024-0.029 0.038-0.041 0.057l-1.041 2.107c-0.321 0.652-1.106 0.918-1.757 0.596-0.652-0.322-0.918-1.106-0.596-1.758l3.838-7.775c0.011-0.023 0.033-0.031 0.045-0.055l1.039-2.105c0.241-0.489 0.741-0.759 1.252-0.731l8.634-0.002z"
+       transform="matrix(.26458 0 0 .26458 0 284.3)"
+       fill-rule="evenodd"
+       fill-opacity=".99272"
+       fill="#4d4d4d"
+       style="fill:#333333;fill-opacity:1" />
+  </g>
+</svg>

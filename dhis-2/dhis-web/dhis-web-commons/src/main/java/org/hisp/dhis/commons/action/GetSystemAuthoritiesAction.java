@@ -28,6 +28,11 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
 
@@ -52,13 +57,20 @@ public class GetSystemAuthoritiesAction
         this.authoritiesProvider = authoritiesProvider;
     }
 
+    private I18n i18n;
+
+    public void setI18n( I18n i18n )
+    {
+        this.i18n = i18n;
+    }
+
     // -------------------------------------------------------------------------
     // Input & Output
     // -------------------------------------------------------------------------
 
-    private List<String> systemAuthorities;
+    private String systemAuthorities;
 
-    public List<String> getSystemAuthorities()
+    public String getSystemAuthorities()
     {
         return systemAuthorities;
     }
@@ -71,17 +83,43 @@ public class GetSystemAuthoritiesAction
     public String execute()
         throws Exception
     {
-        systemAuthorities = new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        ArrayNode authNodes = mapper.createArrayNode();
 
-        Collections.sort( systemAuthorities );
+        List<String> listAuthorities =  new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
+        Collections.sort( listAuthorities );
 
         if ( usePaging )
         {
-            this.paging = createPaging( systemAuthorities.size() );
+            this.paging = createPaging( listAuthorities.size() );
 
-            systemAuthorities = systemAuthorities.subList( paging.getStartPos(), paging.getEndPos() );
+            listAuthorities = listAuthorities.subList( paging.getStartPos(), paging.getEndPos() );
         }
 
+        listAuthorities.forEach( auth -> {
+            String name = getAuthName( auth );
+
+            authNodes.add( mapper.createObjectNode().put( "id", auth ).put( "name", name ) );
+        } );
+
+        root.set( "systemAuthorities", authNodes );
+
+        systemAuthorities = mapper.writeValueAsString( root );
+
         return SUCCESS;
+    }
+
+    private String getAuthName( String auth )
+    {
+        // Custom App doesn't have translation for See App authority
+        if ( auth.startsWith( App.SEE_APP_AUTHORITY_PREFIX ) )
+        {
+            return auth.replace( "M_", "" ).replaceAll( "_", " " );
+        }
+        else
+        {
+            return i18n.getString( auth );
+        }
     }
 }
