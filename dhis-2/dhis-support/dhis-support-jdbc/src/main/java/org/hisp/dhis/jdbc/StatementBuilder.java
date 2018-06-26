@@ -29,7 +29,11 @@ package org.hisp.dhis.jdbc;
  */
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
  * @author Lars Helge Overland
@@ -263,4 +267,30 @@ public interface StatementBuilder
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
+   
+    /**
+     * Get SQL where-condition for an analyticsPeriodBoundary and program indicator.
+     * @param boundary to get SQL condition for. 
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @param programIndicator the program indicator context
+     * @return SQL to use in where clause.
+     */
+    String getCohortBoundaryCondition( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, 
+        ProgramIndicator programIndicator );
+    
+    /**
+     * Get SQL select-condition for getting event data values in the context of a program indicator.
+     * The select will adhere to any event-data-boundaries, only selecting event data within these boundaries.
+     * 
+     * @param programStageUid the program stage to get data for
+     * @param dataElementUid the data element to get data from
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @param programIndicator the program indicator context
+     * @return SQL to use for selecting the data value
+     */
+    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
+    
 }

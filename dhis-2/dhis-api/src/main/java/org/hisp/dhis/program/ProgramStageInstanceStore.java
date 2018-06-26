@@ -106,4 +106,12 @@ public interface ProgramStageInstanceStore
      * @return a list of ProgramStageInstance.
      */
     List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
+
+    /**
+     * Set lastSynchronized timestamp to provided timestamp for provided PSIs
+     *
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
+     * @param lastSynchronized         The date of last successful sync
+     */
+    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
 }

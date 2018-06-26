@@ -43,8 +43,7 @@ import java.util.Map;
 /**
  * @author Lars Helge Overland
  */
-public class InMemoryNotifier
-    implements Notifier
+public class InMemoryNotifier implements Notifier
 {
     private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
 
@@ -152,13 +151,14 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Notifier addJobSummary( JobConfiguration id, Object jobSummary )
+    public Notifier addJobSummary( JobConfiguration id, Object jobSummary, Class<?> jobSummaryType )
     {
-        return addJobSummary( id, NotificationLevel.INFO, jobSummary );
+        return addJobSummary( id, NotificationLevel.INFO, jobSummary, jobSummaryType );
     }
 
     @Override
-    public Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary )
+    public Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary,
+        Class<?> jobSummaryType )
     {
         if ( id != null && !(level != null && level.isOff()) )
         {

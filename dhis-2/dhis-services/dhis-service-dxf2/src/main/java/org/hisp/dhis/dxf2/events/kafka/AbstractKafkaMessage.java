@@ -41,6 +41,7 @@ public abstract class AbstractKafkaMessage<T>
 {
     private final String id;
     private final String jobId;
+    private Integer jobTotal;
     private final String user;
     private final ImportOptions importOptions;
     private final T payload;
@@ -70,6 +71,18 @@ public abstract class AbstractKafkaMessage<T>
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getJobTotal()
+    {
+        return jobTotal;
+    }
+
+    public void setJobTotal( Integer jobTotal )
+    {
+        this.jobTotal = jobTotal;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUser()
     {
         return user;
@@ -77,16 +90,16 @@ public abstract class AbstractKafkaMessage<T>
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public T getPayload()
+    public ImportOptions getImportOptions()
     {
-        return payload;
+        return importOptions;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportOptions getImportOptions()
+    public T getPayload()
     {
-        return importOptions;
+        return payload;
     }
 
     @Override

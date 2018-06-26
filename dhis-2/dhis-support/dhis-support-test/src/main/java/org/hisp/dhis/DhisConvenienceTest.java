@@ -1328,11 +1328,21 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+    }
+
+    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    {
         UserAuthorityGroup role = new UserAuthorityGroup();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
         role.setName( "UserAuthorityGroup" + uniqueCharacter );
+        
+        for ( String auth : auths )
+        {
+            role.getAuthorities().add( auth );
+        }
 
         return role;
     }
@@ -1692,22 +1702,6 @@ public abstract class DhisConvenienceTest
         attributeGroup.setUniqunessType( UniqunessType.NONE );
 
         return attributeGroup;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return RelationshipType
-     */
-    public static RelationshipType createRelationshipType( char uniqueChar )
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setAutoFields();
-
-        relationshipType.setaIsToB( "aIsToB" );
-        relationshipType.setbIsToA( "bIsToA" );
-        relationshipType.setName( "RelationshipType" + uniqueChar );
-
-        return relationshipType;
     }
 
     /**

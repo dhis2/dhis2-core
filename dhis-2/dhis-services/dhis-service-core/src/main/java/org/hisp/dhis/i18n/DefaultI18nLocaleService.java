@@ -28,21 +28,20 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Transactional
 public class DefaultI18nLocaleService
@@ -113,19 +112,19 @@ public class DefaultI18nLocaleService
     }
     
     @Override
-    public boolean addI18nLocale( String language, String country )
+    public I18nLocale addI18nLocale( String language, String country )
     {
         String languageName = languages.get( language );
         String countryName = countries.get( country );
         
         if ( language == null || languageName == null )
         {
-            return false; // Language is required
+            throw new IllegalArgumentException( "Invalid Language." );
         }
         
         if ( country != null && countryName == null )
         {
-            return false; // Country not valid
+            throw new IllegalArgumentException( "Invalid country." );
         }
 
         String localeStr = LocaleUtils.getLocaleString( language, country, null );
@@ -135,7 +134,7 @@ public class DefaultI18nLocaleService
         
         saveI18nLocale( i18nLocale );
         
-        return true;
+        return i18nLocale;
     }
         
     @Override
@@ -188,5 +187,12 @@ public class DefaultI18nLocaleService
         
         return locales;
     }
+
+    @Override
+    public List<I18nLocale> getAllI18nLocales()
+    {
+        return localeStore.getAll();
+    }
+
     
 }

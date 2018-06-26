@@ -34,6 +34,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -109,12 +110,20 @@ public interface TrackedEntityInstanceService
      * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
      * @param params               the TrackedEntityInstanceQueryParams.
-     * @param skipAccessValidation If true, access validation is skippes. Should be set to true only for internal
+     * @param skipAccessValidation If true, access validation is skipped. Should be set to true only for internal
      *                             tasks (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
+    /**
+     * Return the count of the Tracked entity instances that meet the criteria specified in params
+     *
+     * @param params                    Parameteres that specify searching criteria
+     * @param skipAccessValidation      If true, the access validation is skipped
+     * @param skipSearchScopeValidation If true, the search scope validation is skipped
+     * @return the count of the Tracked entity instances that meet the criteria specified in params
+     */
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
@@ -203,6 +212,14 @@ public interface TrackedEntityInstanceService
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
+     * Updates a last sync timestamp on specified TrackedEntityInstances
+     *
+     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be updated
+     * @param lastSynchronized          The date of last successful sync
+     */
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+
+    /**
      * Returns a {@link TrackedEntityInstance}.
      *
      * @param id the id of the TrackedEntityInstanceAttribute to return.
@@ -246,4 +263,6 @@ public interface TrackedEntityInstanceService
      */
     int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+
+    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

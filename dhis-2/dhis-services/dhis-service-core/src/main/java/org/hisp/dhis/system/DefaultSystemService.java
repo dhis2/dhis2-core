@@ -29,7 +29,6 @@ package org.hisp.dhis.system;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -147,6 +146,7 @@ public class DefaultSystemService
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
+        info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
         setSystemMetadataVersionInfo( info );
 
@@ -158,7 +158,7 @@ public class DefaultSystemService
             dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
             dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
             Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_POLL_RECORDS ) )
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
         );
 
         if ( kafka.isValid() )
@@ -181,12 +181,8 @@ public class DefaultSystemService
 
         if ( resource.isReadable() )
         {
-            InputStream in = null;
-
-            try
+            try ( InputStream in = resource.getInputStream() )
             {
-                in = resource.getInputStream();
-
                 Properties properties = new Properties();
 
                 properties.load( in );
@@ -204,10 +200,6 @@ public class DefaultSystemService
             catch ( IOException ex )
             {
                 // Do nothing
-            }
-            finally
-            {
-                IOUtils.closeQuietly( in );
             }
         }
 

@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -39,6 +40,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -63,7 +66,11 @@ public class TrackedEntityInstance
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
+
     private Set<ProgramInstance> programInstances = new HashSet<>();
+    
+    private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
     private OrganisationUnit organisationUnit;
 
@@ -78,6 +85,8 @@ public class TrackedEntityInstance
     private FeatureType featureType = FeatureType.NONE;
 
     private String coordinates;
+
+    private Date lastSynchronized = new Date( 0 );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -182,6 +191,19 @@ public class TrackedEntityInstance
     {
         this.programInstances = programInstances;
     }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<TrackedEntityProgramOwner> getProgramOwners()
+    {
+        return programOwners;
+    }
+
+    public void setProgramOwners( Set<TrackedEntityProgramOwner> programOwners )
+    {
+        this.programOwners = programOwners;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -274,5 +296,29 @@ public class TrackedEntityInstance
     public void setCoordinates( String coordinates )
     {
         this.coordinates = coordinates;
+    }
+
+    @JsonIgnore
+    public Date getLastSynchronized()
+    {
+        return lastSynchronized;
+    }
+
+    public void setLastSynchronized( Date lastSynchronized )
+    {
+        this.lastSynchronized = lastSynchronized;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
+
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
     }
 }

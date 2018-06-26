@@ -636,7 +636,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllNoAcl()
     {
         return super.getAll();

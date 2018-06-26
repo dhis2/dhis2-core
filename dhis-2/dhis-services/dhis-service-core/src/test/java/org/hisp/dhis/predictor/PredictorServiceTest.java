@@ -100,9 +100,6 @@ public class PredictorServiceTest
     private Predictor predictorA;
     private Predictor predictorB;
 
-    private int predictorIdA;
-    private int predictorIdB;
-
     private PredictorGroup predictorGroupA;
     private PredictorGroup predictorGroupB;
 
@@ -180,8 +177,8 @@ public class PredictorServiceTest
         predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
-        predictorIdA = predictorService.addPredictor( predictorA );
-        predictorIdB = predictorService.addPredictor( predictorB );
+        predictorService.addPredictor( predictorA );
+        predictorService.addPredictor( predictorB );
 
         predictorGroupA = createPredictorGroup( 'A' );
         predictorGroupB = createPredictorGroup( 'B' );

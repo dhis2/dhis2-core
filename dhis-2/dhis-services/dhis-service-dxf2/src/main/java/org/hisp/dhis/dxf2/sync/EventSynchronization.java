@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.sync;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.render.RenderService;
@@ -42,6 +43,8 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David Katuscak
@@ -67,12 +70,14 @@ public class EventSynchronization
         this.renderService = renderService;
     }
 
-    public void syncEventProgramData()
+    public SynchronizationResult syncEventProgramData()
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return;
+            return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed. Remote server is unavailable." );
         }
+
+        log.info( "Starting anonymous event program data synchronization job." );
 
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
@@ -80,18 +85,15 @@ public class EventSynchronization
         // ---------------------------------------------------------------------
 
         final Date startTime = new Date();
-        final Date lastSuccess = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
-        log.info( "Anonymous events data synchronization was last successfully done on: " + lastSuccess );
-
-        final int objectsToSync = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccess );
+        final int objectsToSync = eventService.getAnonymousEventReadyForSynchronizationCount();
 
         if ( objectsToSync == 0 )
         {
             log.info( "Skipping sync, no new or updated events found" );
-            return;
+            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization skipped. No new or updated events found." );
         }
 
-        log.info( objectsToSync + " Events, to sync, were found since last sync success: " + lastSuccess );
+        log.info( objectsToSync + " anonymous Events to sync were found." );
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
@@ -106,16 +108,24 @@ public class EventSynchronization
 
         for ( int i = 1; i <= pages; i++ )
         {
-            Events events = eventService.getAnonymousEventsForSync( lastSuccess, eventSyncPageSize, i );
-
+            Events events = eventService.getAnonymousEventsForSync( eventSyncPageSize );
+            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
             log.info( String.format( "Syncing page %d, page size is: %d", i, eventSyncPageSize ) );
 
             if ( log.isDebugEnabled() )
             {
-                log.debug( "Events that are going to be synced are: " + events );
+                log.debug( "Events that are going to be synchronized are: " + events );
             }
 
-            if ( !sendEventsSyncRequest( events, username, password ) )
+            if ( sendEventsSyncRequest( events, username, password ) )
+            {
+                List<String> eventsUIDs = events.getEvents().stream()
+                    .map( Event::getEvent )
+                    .collect( Collectors.toList() );
+                log.info( "The lastSynchronized flag of these Events will be updated: " + eventsUIDs );
+                eventService.updateEventsSyncTimestamp( eventsUIDs, startTime );
+            }
+            else
             {
                 syncResult = false;
             }
@@ -123,9 +133,23 @@ public class EventSynchronization
 
         if ( syncResult )
         {
-            SyncUtils.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC, startTime );
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Events sync was successfully done! It took " + syncDuration + " ms." );
+            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization done. It took " + syncDuration + " ms." );
+        }
+
+        return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );
+    }
+
+    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
+    {
+        for ( Event event : events.getEvents() )
+        {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter( dv -> !dv.isSkipSynchronization() )
+                    .collect( Collectors.toList() )
+            );
         }
     }
 

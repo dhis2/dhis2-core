@@ -50,11 +50,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 /**
  * @author Abyot Asalefew
@@ -64,6 +68,9 @@ public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
     private static final int VALUE_MAX_LENGTH = 50000;
+
+    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
+            ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -308,7 +315,7 @@ public class DefaultTrackedEntityAttributeService
         {
             return "Value '" + uid + "' is not the uid of a file";
         }
-        else if ( !ValueType.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        else if ( !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {
             return "File resource with uid '" + uid + "' is not a valid image";
         }

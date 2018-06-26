@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" fill="#333" transform="translate(0,-284.3)">
+  <path id="rect879" d="m0 0v48h48v-48zm21.688 4c3.5827 0.00046639 6.4878 2.9056 6.4883 6.4883 0.00087018 3.5836-2.9047 6.4878-6.4883 6.4883-3.5846 0.00087043-6.4911-2.9037-6.4902-6.4883 0-3.5843 2.906-6.4899 6.49-6.489zm4.9355 14.186c4.1956-0.054752 4.0528 1.1486 6.1953 3.7148 2.9032 3.4838 6.2818 7.4346 6.2227 9.9199-0.029327 1.2324-0.028665 2.4701-1.2676 3.709-1.067 1.1985-3.1098 3.1786-7.4336 7.4336-3.452 2.8898-6.6726-2.333-3.6973-5.0723 1.2185-1.1218 2.0703-1.8535 2.0703-1.8535-3.2043 0.66954-6.7912-3.0772-8.2773-7.1797-0.25057-0.65272-1.5927-1.0761-2.7109-0.71289-0.99809 0.32418-1.8176 1.3287-1.5254 2.5059l0.88086 2.2988c0.76067 1.9625 0.28878 2.2714-0.083984 2.2891 0.83012 0.61297 1.3427 1.1804 1.9355 1.7539 4.0469 4.0449-1.0593 8.0656-3.1055 6.5234-3.8176-3.6141-5.3014-6.6852-6.0566-8.2773-0.63177-1.4425-0.81957-2.54-0.81055-3.7676 0.018305-2.4892 1.7185-4.7837 4.2988-8.4219 1.5223-1.9308 2.3283-3.7148 6.1953-3.7148 2.6889-0.13605 5.931-1.1484 7.1699-1.1484zm1.7168 6.9727c-2.8272-0.00053442-5.1194 2.2977-5.1191 5.1328-0.00023157 2.8351 2.2919 5.1333 5.1191 5.1328 2.8272 0.00053481 5.1194-2.2977 5.1191-5.1328 0.00023157-2.8351-2.2919-5.1333-5.1191-5.1328z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
+ </g>
+</svg>

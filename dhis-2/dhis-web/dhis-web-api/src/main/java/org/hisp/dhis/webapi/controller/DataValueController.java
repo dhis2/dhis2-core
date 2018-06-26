@@ -57,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -137,6 +138,9 @@ public class DataValueController
     @Autowired
     private AggregateAccessManager accessManager;
 
+    @Autowired
+    private AclService aclService;
+
     // ---------------------------------------------------------------------
     // POST
     // ---------------------------------------------------------------------
@@ -162,12 +166,13 @@ public class DataValueController
         boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUser, de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
@@ -184,8 +189,6 @@ public class DataValueController
         validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, organisationUnit, period );
 
         String valueValid = ValidationUtils.dataValueIsValid( value, dataElement );
-
-        User currentUser = currentUserService.getCurrentUser();
 
         if ( valueValid != null )
         {
@@ -384,7 +387,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUserService.getCurrentUser(), de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
@@ -447,7 +450,9 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        User currentUser = currentUserService.getCurrentUser();
+
+        DataElement dataElement = getAndValidateDataElement( currentUser, de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
@@ -471,8 +476,6 @@ public class DataValueController
         // ---------------------------------------------------------------------
         // Data Sharing check
         // ---------------------------------------------------------------------
-
-        User currentUser = currentUserService.getCurrentUser();
 
         List<String> errors = accessManager.canRead( currentUser, dataValue );
 
@@ -506,7 +509,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUserService.getCurrentUser(), de );
 
         if ( !dataElement.isFileType() )
         {
@@ -596,11 +599,8 @@ public class DataValueController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = content.openStream() )
         {
-            inputStream = content.openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
@@ -609,24 +609,24 @@ public class DataValueController
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
         }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
-        }
     }
 
     // ---------------------------------------------------------------------
     // Supportive methods
     // ---------------------------------------------------------------------
 
-    private DataElement getAndValidateDataElement( String de )
+    private DataElement getAndValidateDataElement( User user, String de )
         throws WebMessageException
     {
-        DataElement dataElement = idObjectManager.get( DataElement.class, de );
+        DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, de );
 
         if ( dataElement == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal data element identifier: " + de ) );
+        }
+        else if ( !aclService.canRead( user, dataElement ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User does not have metadata read access for DataElement: " + de ) );
         }
 
         return dataElement;
@@ -783,8 +783,10 @@ public class DataValueController
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
+        User user = currentUserService.getCurrentUser();
+
+        if ( dataSet == null ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }

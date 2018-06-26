@@ -159,7 +159,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
-                .addJobSummary( bundle.getJobId(), importReport );
+                .addJobSummary( bundle.getJobId(), importReport, ImportReport.class );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )

@@ -33,6 +33,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -48,8 +50,6 @@ import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -85,6 +85,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -778,7 +779,7 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary, ImportSummary.class );
             dataValueSet.close();
             return summary;
         }
@@ -1062,7 +1063,7 @@ public class DefaultDataValueSetService
             if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
                 if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> isLocked( approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
+                    () -> isLocked( currentUser, approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
                         period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );
@@ -1277,7 +1278,7 @@ public class DefaultDataValueSetService
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
-        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary );
+        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary, ImportSummary.class );
 
         dataValueSet.close();
 
@@ -1336,8 +1337,8 @@ public class DefaultDataValueSetService
      * @param organisationUnit       the organisation unit.
      * @param skipLockExceptionCheck whether to skip lock exception check.
      */
-    private boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
+    private boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
     {
-        return dataSet.isLocked( period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
+        return dataSet.isLocked( user, period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
     }
 }

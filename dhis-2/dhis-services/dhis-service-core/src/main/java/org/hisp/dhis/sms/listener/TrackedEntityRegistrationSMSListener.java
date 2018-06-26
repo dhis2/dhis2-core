@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
-    private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully";
+    private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -120,11 +120,11 @@ public class TrackedEntityRegistrationSMSListener
             sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
         }
 
-        programInstanceService.enrollTrackedEntityInstance(
-            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
-            new Date(), date, orgUnit );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
 
-        sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE ), senderPhoneNumber, INFO );
+        programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+
+        sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + tei.getUid() ), senderPhoneNumber, INFO );
 
         update( sms,  SmsMessageStatus.PROCESSED, true );
     }

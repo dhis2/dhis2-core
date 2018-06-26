@@ -47,6 +47,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 /**
  * @author Henning Håkonsen
  */
@@ -90,8 +92,7 @@ public class JdbcValidationResultTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
-            "year = " + partition.getYear() + "",
-            "yearly = '" + partition.getYear() + "'" );
+            "year = " + partition.getYear() + "" );
     }
     
     @Override

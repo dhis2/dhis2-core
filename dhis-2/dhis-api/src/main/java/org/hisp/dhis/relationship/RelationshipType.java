@@ -38,14 +38,18 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * @author Abyot Asalefew
+ * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "relationshipType", namespace = DxfNamespaces.DXF_2_0 )
 public class RelationshipType
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
-    private String aIsToB;
+    private RelationshipConstraint fromConstraint;
 
-    private String bIsToA;
+    private RelationshipConstraint toConstraint;
+
+    private String description;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -56,55 +60,43 @@ public class RelationshipType
 
     }
 
-    public RelationshipType( String aIsToB, String bIsToA )
-    {
-        this.aIsToB = aIsToB;
-        this.bIsToA = bIsToA;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getaIsToB()
+    public RelationshipConstraint getFromConstraint()
     {
-        return aIsToB;
+        return fromConstraint;
     }
 
-    public void setaIsToB( String aIsToB )
+    public void setFromConstraint( RelationshipConstraint fromConstraint )
     {
-        this.aIsToB = aIsToB;
+        this.fromConstraint = fromConstraint;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getbIsToA()
+    public RelationshipConstraint getToConstraint()
     {
-        return bIsToA;
+        return toConstraint;
     }
 
-    public void setbIsToA( String bIsToA )
+    public void setToConstraint( RelationshipConstraint toConstraint )
     {
-        this.bIsToA = bIsToA;
+        this.toConstraint = toConstraint;
     }
 
-    @Override
-    public String toString()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
     {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + id + "\", " +
-            "\"uid\":\"" + uid + "\", " +
-            "\"code\":\"" + code + "\", " +
-            "\"name\":\"" + name + "\", " +
-            "\"created\":\"" + created + "\", " +
-            "\"lastUpdated\":\"" + lastUpdated + "\", " +
-            "\"aIsToB\":\"" + aIsToB + "\", " +
-            "\"bIsToA\":\"" + bIsToA + "\" " +
-            "}";
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 }

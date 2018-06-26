@@ -42,7 +42,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 
 /**
@@ -65,11 +64,6 @@ public class TwoFactorAuthenticationProvider
     public void setSecurityService( SecurityService securityService )
     {
         this.securityService = securityService;
-    }
-
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
-    {
-        super.setPasswordEncoder( passwordEncoder );
     }
 
     @Override
@@ -96,8 +90,6 @@ public class TwoFactorAuthenticationProvider
             TwoFactorWebAuthenticationDetails authDetails =
                 (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
-            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-
             // -------------------------------------------------------------------------
             // Check whether account is locked due to multiple failed login attempts
             // -------------------------------------------------------------------------
@@ -109,6 +101,7 @@ public class TwoFactorAuthenticationProvider
             }
 
             String ip = authDetails.getIp();
+            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
             if ( securityService.isLocked( ip ) )
             {

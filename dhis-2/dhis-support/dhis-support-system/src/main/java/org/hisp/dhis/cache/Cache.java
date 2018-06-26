@@ -28,6 +28,7 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -73,6 +74,13 @@ public interface Cache<V>
      * @throws IllegalArgumentException if the specified mappingFunction is null
      */
     Optional<V> get( String key, Function<String, V> mappingFunction );
+
+    /**
+     * Returns a collection of all the values in the cache
+     *
+     * @return collection with all cached values
+     */
+    Collection<V> getAll();
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
