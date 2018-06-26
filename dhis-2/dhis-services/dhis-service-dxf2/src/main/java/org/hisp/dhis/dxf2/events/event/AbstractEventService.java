@@ -97,6 +97,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -214,7 +215,7 @@ public abstract class AbstractEventService
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
-    
+
     @Autowired
     protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
@@ -482,6 +483,11 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, null );
+        }
+
         if ( event.getGeometry() != null )
         {
             if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
@@ -489,8 +495,6 @@ public abstract class AbstractEventService
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid()  );
             }
         }
-
-        validateExpiryDays( event, program, null );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
@@ -538,9 +542,9 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         for ( Event event : eventList )
         {
         	if ( trackerOwnershipAccessManager.hasAccess( user, event.getTrackedEntityInstance(), event.getProgram() ) )
@@ -554,7 +558,7 @@ public abstract class AbstractEventService
 
     @Override
     public Grid getEventsGrid( EventSearchParams params )
-    {    	
+    {
     	User user = currentUserService.getCurrentUser();
 
         if ( params.getProgramStage() == null || params.getProgramStage().getProgram() == null )
@@ -627,11 +631,11 @@ public abstract class AbstractEventService
         for ( Map<String, String> event : events )
         {
             grid.addRow();
-            
+
             if ( params.getProgramStage().getProgram().isRegistration() && user != null || !user.isSuper())
             {
             	ProgramInstance enrollment = programInstanceService.getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
-            	
+
             	if ( enrollment != null && enrollment.getEntityInstance() != null )
             	{
             		if ( !trackerOwnershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), params.getProgramStage().getProgram() ) )
@@ -1141,7 +1145,10 @@ public abstract class AbstractEventService
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
-        validateExpiryDays( event, program, programStageInstance );
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, programStageInstance );
+        }
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
@@ -1868,7 +1875,6 @@ public abstract class AbstractEventService
     {
         if ( program != null )
         {
-
             if ( program.getCompleteEventsExpiryDays() > 0 )
             {
                 if ( event.getStatus() == EventStatus.COMPLETED
