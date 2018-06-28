@@ -115,7 +115,7 @@ public class GetSystemAuthoritiesAction
         // Custom App doesn't have translation for See App authority
         if ( auth.startsWith( App.SEE_APP_AUTHORITY_PREFIX ) )
         {
-            return auth.replace( "M_", "" ).replaceAll( "_", " " );
+            return auth.replace( App.SEE_APP_AUTHORITY_PREFIX, "" ).replaceAll( "_", " " ) + " app";
         }
         else
         {

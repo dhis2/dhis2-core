@@ -100,11 +100,6 @@
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
 
-    <set name="programRules" inverse="true">
-      <key column="programid" />
-      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
-    </set>
-
     <set name="programRuleVariables" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />

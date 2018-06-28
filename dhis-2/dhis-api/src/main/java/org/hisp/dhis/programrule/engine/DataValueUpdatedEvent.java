@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,26 +28,24 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
+
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @Author Zubair Asghar.
  */
-public enum Authorities
+public class DataValueUpdatedEvent extends ApplicationEvent
 {
-    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
-    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
-    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" ),
-    F_EDIT_EXPIRED( "F_EDIT_EXPIRED" );
-    
-    private String authority;
-    
-    Authorities( String authority )
+    private ProgramStageInstance programStageInstance;
+
+    public DataValueUpdatedEvent( Object source, ProgramStageInstance programStageInstance )
     {
-        this.authority = authority;
+        super( source );
+        this.programStageInstance = programStageInstance;
     }
-    
-    public String getAuthority()
+
+    public ProgramStageInstance getProgramStageInstance()
     {
-        return authority;
+        return programStageInstance;
     }
 }
