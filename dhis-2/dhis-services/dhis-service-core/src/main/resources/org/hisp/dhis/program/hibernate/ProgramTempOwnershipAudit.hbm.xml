@@ -4,25 +4,25 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-	<class name="org.hisp.dhis.program.ProgramTempOwnershipAudit" table="programtempownershipaudit">
-    
-        <id name="id" column="programtempownershipauditid">
-            <generator class="native"/>
-        </id>
+  <class name="org.hisp.dhis.program.ProgramTempOwnershipAudit"
+    table="programtempownershipaudit">
 
-        <many-to-one name="program" class="org.hisp.dhis.program.Program"
-            column="programid"
-            foreign-key="fk_programtempownershipaudit_programid"/>
-            
-    		 <many-to-one name="entityInstance"
-			class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
-			foreign-key="fk_programtempownershipaudit_trackedentityinstanceid"/>
+    <id name="id" column="programtempownershipauditid">
+      <generator class="native" />
+    </id>
 
-        <property name="created" type="timestamp"/>
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programtempownershipaudit_programid" />
 
-        <property name="accessedBy"/>
+    <many-to-one name="entityInstance"
+      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
+      foreign-key="fk_programtempownershipaudit_trackedentityinstanceid" />
 
-        <property name="reason" length="50000"/>
+    <property name="created" type="timestamp" />
 
-    </class>
+    <property name="accessedBy" />
+
+    <property name="reason" length="50000" />
+
+  </class>
 </hibernate-mapping>
