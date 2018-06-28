@@ -137,7 +137,7 @@
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
-    <sec:intercept-url pattern="/api/icons/**" method="GET" access="permitAll()" />
+    <sec:intercept-url pattern="/api/icons/*/icon.svg" method="GET" access="permitAll()" />
     <sec:intercept-url request-matcher-ref="analyticPluginResources"
       access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
       'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard,M_dhis-web-mapping')" />
