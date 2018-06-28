@@ -83,6 +83,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private static final String SMS_TEXT = DATA_ENTRY_COMMAND + " " + "de=sample";
     private static final String SMS_TEXT_FOR_CUSTOM_SEPARATOR = DATA_ENTRY_COMMAND + " " + "de.sample";
     private static final String SMS_TEXT_FOR_COMPULSORY = DATA_ENTRY_COMMAND + " " + "de=sample=deb=sample2";
+    private static final String SMS_TEXT_FOR_COMPULSORY2 = DATA_ENTRY_COMMAND + " " + "de=sample|deb=sample2";
     private static final String ORIGINATOR = "474000000";
     private static final String WRONG_FORMAT = "WRONG_FORMAT";
     private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
@@ -308,6 +309,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
     public void testIfMandatoryParameterMissing()
     {
         keyValueCommand.getCodes().add( smsCodeForcompulsory );
+        keyValueCommand.setSeparator( null );
+        keyValueCommand.setCodeValueSeparator( null );
         incomingSmsForCompulsoryCode.setText( SMS_TEXT );
 
         dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
@@ -315,6 +318,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
         assertEquals( message, SMSCommand.PARAMETER_MISSING );
 
         incomingSmsForCompulsoryCode.setText( SMS_TEXT_FOR_COMPULSORY );
+
+        dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
+
+        assertEquals( keyValueCommand.getSuccessMessage(), message );
+
+        incomingSmsForCompulsoryCode.setText( SMS_TEXT_FOR_COMPULSORY2 );
 
         dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
 
