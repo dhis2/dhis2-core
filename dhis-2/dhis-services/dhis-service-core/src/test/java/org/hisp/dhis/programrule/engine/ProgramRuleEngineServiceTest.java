@@ -221,7 +221,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         programRuleA = createProgramRule( 'R', programA );
         programRuleActionA = createProgramRuleAction( 'T' );
 
-        programA.getProgramRules().add( programRuleA );
+        programRuleA.setProgram( programA );
 
         programInstance = new ProgramInstance();
         programInstance.setProgram( programA );

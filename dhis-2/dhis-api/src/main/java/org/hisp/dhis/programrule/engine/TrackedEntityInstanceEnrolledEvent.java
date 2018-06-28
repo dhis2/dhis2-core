@@ -1,4 +1,4 @@
-package org.hisp.dhis.icon;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,51 +28,24 @@ package org.hisp.dhis.icon;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.core.io.Resource;
-
-import java.util.Collection;
-import java.util.Optional;
+import org.hisp.dhis.program.ProgramInstance;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Kristian Wærstad
+ * @Author Zubair Asghar.
  */
-public interface IconService
+public class TrackedEntityInstanceEnrolledEvent extends ApplicationEvent
 {
-    /**
-     * Gets data about all the icons in the system
-     *
-     * @return a collection of data about all the icons in the system
-     */
-    Collection<IconData> getIcons();
+    private ProgramInstance programInstance;
 
-    /**
-     * Gets info about the icons in the system tagged with all the keywords in a collection
-     *
-     * @param keywords collection of keywords
-     * @return a collection of matching icons
-     */
-    Collection<IconData> getIcons( Collection<String> keywords );
+    public TrackedEntityInstanceEnrolledEvent( Object source, ProgramInstance programInstance )
+    {
+        super( source );
+        this.programInstance = programInstance;
+    }
 
-    /**
-     * Gets the info of the icon associated with a specific key if there is one
-     *
-     * @param key key of the icon
-     * @return icon data associated with the key if there is one
-     */
-    Optional<IconData> getIcon( String key );
-
-    /**
-     * Gets the icon with the correct key if one exists
-     *
-     * @param key key of the icon
-     * @return the icon resource
-     */
-    Optional<Resource> getIconResource( String key );
-
-    /**
-     * Gets a collection of all unique keywords assigned to icons
-     *
-     * @return collection of uniquee keywords
-     */
-    Collection<String> getKeywords();
+    public ProgramInstance getProgramInstance()
+    {
+        return programInstance;
+    }
 }
