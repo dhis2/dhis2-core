@@ -51,6 +51,8 @@ public class OptionGroup
 {
     private Set<Option> members = new HashSet<>();
 
+    private OptionSet optionSet;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -90,6 +92,19 @@ public class OptionGroup
     public void setMembers( Set<Option> members )
     {
         this.members = members;
+    }
+
+    @JsonProperty( "optionSet" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    public void setOptionSet( OptionSet optionSet )
+    {
+        this.optionSet = optionSet;
     }
 
     // -------------------------------------------------------------------------
