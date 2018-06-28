@@ -28,6 +28,7 @@ package org.hisp.dhis.icon;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 public class DefaultIconService
     implements IconService
 {
-    private static final String ICON_PATH = "../../dhis-support/dhis-support-system/src/main/resources/SVGs";
+    private static final String ICON_PATH = "SVGs";
 
     private Map<String, IconData> icons = Arrays.stream( Icon.values() )
         .map( Icon::getVariants )
@@ -74,7 +75,7 @@ public class DefaultIconService
     @Override
     public Optional<Resource> getIconResource( String key )
     {
-        return Optional.ofNullable( new FileSystemResource( String.format( "%s/%s.%s", ICON_PATH, key, Icon.SUFFIX ) ) );
+        return Optional.ofNullable( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, Icon.SUFFIX ) ) );
     }
 
     @Override
