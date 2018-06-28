@@ -32,25 +32,35 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
+import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -60,9 +70,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,11 +91,25 @@ import java.util.Set;
 public class OrganisationUnitController
     extends AbstractCrudController<OrganisationUnit>
 {
+    /* static configurations for Distribution Chart */
+    private static final int DISTRIBUTION_CHART_HEIGHT = 600;
+    private static final int DISTRIBUTION_CHART_WIDTH = 800;
+    private static final String DISTRIBUTION_CHART_IMAGE_FORMAT = "png";
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private OrgUnitDistributionService distributionService;
+
+    @Autowired
     private VersionService versionService;
+
+    @Autowired
+    private ContextUtils contextUtils;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -293,6 +321,76 @@ public class OrganisationUnitController
         generator.writeEndObject();
 
         generator.close();
+    }
+
+    @RequestMapping( value = "/distributionReport", method = RequestMethod.GET )
+    public void getDistributionReport(
+        @RequestParam String ou,
+        @RequestParam String groupSetId,
+        HttpServletResponse response) throws IOException, WebMessageException
+    {
+        OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
+
+        if ( selectedOrgunit == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+        }
+
+        if ( selectedGroupSet == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Configure response
+        // ---------------------------------------------------------------------
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+
+        // ---------------------------------------------------------------------
+        // Assemble report
+        // ---------------------------------------------------------------------
+        Grid grid = distributionService.getOrganisationUnitDistribution( selectedGroupSet, selectedOrgunit, false );
+
+        // ---------------------------------------------------------------------
+        // Write response
+        // ---------------------------------------------------------------------
+        Writer output = response.getWriter();
+        GridUtils.toHtmlCss( grid, output );
+    }
+
+    @RequestMapping( value = "/distributionChart", method = RequestMethod.GET )
+    public @ResponseBody byte[] getDistributionChart(
+        @RequestParam String ou,
+        @RequestParam String groupSetId,
+        HttpServletResponse response) throws IOException, WebMessageException
+    {
+        OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
+
+        if ( selectedOrgunit == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+        }
+
+        if ( selectedGroupSet == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Assemble chart
+        // ---------------------------------------------------------------------
+        JFreeChart chart = distributionService.getOrganisationUnitDistributionChart( selectedGroupSet, selectedOrgunit );
+
+        // ---------------------------------------------------------------------
+        // Write response
+        // ---------------------------------------------------------------------
+        BufferedImage bufferedImage = chart.createBufferedImage(DISTRIBUTION_CHART_WIDTH, DISTRIBUTION_CHART_HEIGHT);
+        ByteArrayOutputStream bas = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, DISTRIBUTION_CHART_IMAGE_FORMAT, bas);
+
+        return bas.toByteArray();
     }
 
     public void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
