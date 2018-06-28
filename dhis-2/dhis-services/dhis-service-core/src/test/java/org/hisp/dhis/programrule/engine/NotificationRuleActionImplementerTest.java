@@ -314,7 +314,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         programRuleA = createProgramRule( 'R', programA );
 
-        programA.getProgramRules().add( programRuleA );
+        programRuleA.setProgram( programA );
 
         programInstance = new ProgramInstance();
         programInstance.setProgram( programA );

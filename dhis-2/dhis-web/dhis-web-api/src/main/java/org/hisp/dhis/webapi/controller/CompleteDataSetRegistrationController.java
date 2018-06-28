@@ -57,6 +57,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -280,10 +281,13 @@ public class CompleteDataSetRegistrationController
         // Check locked status
         // ---------------------------------------------------------------------
 
+        User user = currentUserService.getCurrentUser();
+
         List<String> lockedDataSets = new ArrayList<>();
+
         for ( DataSet dataSet : dataSets )
         {
-            if ( dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
+            if ( dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
             {
                 lockedDataSets.add( dataSet.getUid() );
             }

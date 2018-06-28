@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,26 +28,32 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @Author Zubair Asghar.
  */
-public enum Authorities
+public class ProgramRuleEngineListener
 {
-    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
-    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
-    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" ),
-    F_EDIT_EXPIRED( "F_EDIT_EXPIRED" );
-    
-    private String authority;
-    
-    Authorities( String authority )
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
+
+    @EventListener
+    public void listenEvent( TrackedEntityInstanceEnrolledEvent event )
     {
-        this.authority = authority;
+        programRuleEngineService.evaluate( event.getProgramInstance() );
     }
-    
-    public String getAuthority()
+
+    @EventListener
+    public void listenEvent( DataValueUpdatedEvent event )
     {
-        return authority;
+        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+    }
+
+    @EventListener
+    public void listenEvent( ProgramStageInstanceCompletedEvent event )
+    {
+        programRuleEngineService.evaluate( event.getProgramStageInstance() );
     }
 }

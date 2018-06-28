@@ -44,6 +44,11 @@ public class StringMethodType
     @Override
     public String getValueRegex( String format )
     {
+        if ( format.isEmpty() )
+        {
+            format = ".*";
+        }
+
         format = format.replaceAll( "\\^", "" );
         format = format.replaceAll( "\\$", "" );
         return format;
