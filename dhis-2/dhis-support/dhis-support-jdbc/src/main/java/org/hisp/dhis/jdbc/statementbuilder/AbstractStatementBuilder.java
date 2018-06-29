@@ -311,7 +311,7 @@ public abstract class AbstractStatementBuilder
                 String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
                 String columnName = "\"" + dataElementUid + "\"";
                 return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                    ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                    ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
                     ( programIndicator.getEndEventBoundary() != null ? ("and " + 
                     getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
                     " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 

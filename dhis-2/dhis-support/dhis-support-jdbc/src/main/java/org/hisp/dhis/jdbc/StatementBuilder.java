@@ -42,6 +42,8 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder
 {
     final String QUOTE = "'";
+    
+    final String ANALYTICS_TBL_ALIAS = "ax";
 
     //--------------------------------------------------------------------------
     // General
