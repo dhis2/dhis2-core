@@ -2160,7 +2160,7 @@ function registerCompleteDataSet()
 }
 
 function handleDataSetCompletenessResponse( data ){
-    var html = '<h3>' + i18n_dataset_completeness_errort + ' &nbsp;<img src="../images/warning_small.png"></h3>';
+    var html = '<h3>' + i18n_dataset_completeness_error + ' &nbsp;<img src="../images/warning_small.png"></h3>';
                     
     if( data && data.conflicts && data.conflicts.length > 0 )
     {

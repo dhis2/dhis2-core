@@ -100,11 +100,6 @@
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
 
-    <set name="programRules" inverse="true">
-      <key column="programid" />
-      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
-    </set>
-
     <set name="programRuleVariables" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
@@ -118,13 +113,6 @@
     <property name="selectEnrollmentDatesInFuture" />
 
     <property name="selectIncidentDatesInFuture" />
-
-    <property name="relationshipText" />
-
-    <many-to-one name="relationshipType" class="org.hisp.dhis.relationship.RelationshipType"
-      column="relationshiptypeid" foreign-key="fk_program_relationshipid" />
-
-    <property name="relationshipFromA" />
 
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />

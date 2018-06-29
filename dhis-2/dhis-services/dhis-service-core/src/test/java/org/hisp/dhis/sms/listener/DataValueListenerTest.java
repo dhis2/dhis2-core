@@ -83,6 +83,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private static final String SMS_TEXT = DATA_ENTRY_COMMAND + " " + "de=sample";
     private static final String SMS_TEXT_FOR_CUSTOM_SEPARATOR = DATA_ENTRY_COMMAND + " " + "de.sample";
     private static final String SMS_TEXT_FOR_COMPULSORY = DATA_ENTRY_COMMAND + " " + "de=sample=deb=sample2";
+    private static final String SMS_TEXT_FOR_COMPULSORY2 = DATA_ENTRY_COMMAND + " " + "de=sample|deb=sample2";
     private static final String ORIGINATOR = "474000000";
     private static final String WRONG_FORMAT = "WRONG_FORMAT";
     private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
@@ -201,7 +202,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         // Mock for dataSetService
-        when( dataSetService.isLocked( any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( locked );
+        when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( locked );
 
         // Mock for incomingSmsService
         doAnswer( invocation -> {
@@ -249,11 +250,11 @@ public class DataValueListenerTest extends DhisConvenienceTest
     public void testIfDataSetIsLocked() throws Exception
     {
         incomingSms.setUser( user );
-        when( dataSetService.isLocked( any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
+        when( dataSetService.isLocked( any(), any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         dataValueSMSListener.receive( incomingSms );
 
         verify( smsCommandService, times( 1 ) ).getSMSCommand( anyString(), any() );
-        verify( dataSetService, times( 1 ) ).isLocked( any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, times( 1 ) ).isLocked( user, any(DataSet.class ), any(), any(), any(), any() );
         verify( incomingSmsService, never() ).update( any() );
     }
 
@@ -266,7 +267,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.NO_USER_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
     }
 
     @Test
@@ -279,7 +280,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
         dataValueSMSListener.receive( incomingSms );
@@ -295,7 +296,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setWrongFormatMessage( WRONG_FORMAT );
         dataValueSMSListener.receive( incomingSmsForCustomSeparator );
@@ -308,6 +309,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
     public void testIfMandatoryParameterMissing()
     {
         keyValueCommand.getCodes().add( smsCodeForcompulsory );
+        keyValueCommand.setSeparator( null );
+        keyValueCommand.setCodeValueSeparator( null );
         incomingSmsForCompulsoryCode.setText( SMS_TEXT );
 
         dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
@@ -315,6 +318,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
         assertEquals( message, SMSCommand.PARAMETER_MISSING );
 
         incomingSmsForCompulsoryCode.setText( SMS_TEXT_FOR_COMPULSORY );
+
+        dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
+
+        assertEquals( keyValueCommand.getSuccessMessage(), message );
+
+        incomingSmsForCompulsoryCode.setText( SMS_TEXT_FOR_COMPULSORY2 );
 
         dataValueSMSListener.receive( incomingSmsForCompulsoryCode );
 

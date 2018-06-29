@@ -105,12 +105,6 @@ public class Program
 
     private Boolean selectIncidentDatesInFuture = false;
 
-    private String relationshipText;
-
-    private RelationshipType relationshipType;
-
-    private Boolean relationshipFromA = false;
-
     private Program relatedProgram;
 
     private TrackedEntityType trackedEntityType;
@@ -543,20 +537,6 @@ public class Program
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
-    public void setProgramRules( Set<ProgramRule> programRules )
-    {
-        this.programRules = programRules;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRuleVariable> getProgramRuleVariables()
@@ -620,31 +600,6 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getRelationshipText()
-    {
-        return relationshipText;
-    }
-
-    public void setRelationshipText( String relationshipText )
-    {
-        this.relationshipText = relationshipText;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
-    }
-
-    public void setRelationshipType( RelationshipType relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getRelatedProgram()
@@ -655,18 +610,6 @@ public class Program
     public void setRelatedProgram( Program relatedProgram )
     {
         this.relatedProgram = relatedProgram;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getRelationshipFromA()
-    {
-        return relationshipFromA;
-    }
-
-    public void setRelationshipFromA( Boolean relationshipFromA )
-    {
-        this.relationshipFromA = relationshipFromA;
     }
 
     @JsonProperty( "programTrackedEntityAttributes" )

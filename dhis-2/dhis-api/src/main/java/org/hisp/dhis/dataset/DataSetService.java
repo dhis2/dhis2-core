@@ -256,7 +256,7 @@ public interface DataSetService
      * @param now              the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
+    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -269,7 +269,7 @@ public interface DataSetService
      * @param now                  the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -283,7 +283,7 @@ public interface DataSetService
      * @param useOrgUnitChildren   whether to check children of the given org unit or the org unit only.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -296,7 +296,7 @@ public interface DataSetService
      * @param now                  the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Return a list of LockException with given filter list

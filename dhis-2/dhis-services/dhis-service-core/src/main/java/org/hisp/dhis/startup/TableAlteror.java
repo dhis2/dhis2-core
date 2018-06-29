@@ -717,6 +717,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-data-administration' WHERE authority='M_dhis-web-maintenance-dataadmin'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority = 'M_' ||  replace(regexp_replace(replace(authority, 'See ', '' ), '[^a-zA-Z0-9 ]', ''), ' ', '_') WHERE authority like 'See%'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );

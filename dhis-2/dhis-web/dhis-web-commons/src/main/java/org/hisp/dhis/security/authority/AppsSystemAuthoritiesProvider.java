@@ -52,7 +52,7 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
         appManager.getApps( null ).stream()
             .filter( app -> !StringUtils.isEmpty( app.getName() ) )
             .forEach( app -> {
-                authorities.add( "See " + app.getName().trim() );
+                authorities.add( app.getSeeAppAuthority() );
                 authorities.addAll( app.getAuthorities() );
             } );
 
