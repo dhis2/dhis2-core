@@ -42,6 +42,13 @@
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
     </set>
 
+    <!-- Object Translation -->
+    <set name="translations" table="maptranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="mapid" foreign-key="fk_objecttranslation_mapid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
     <!-- Access properties -->
     <property name="externalAccess" />
 
