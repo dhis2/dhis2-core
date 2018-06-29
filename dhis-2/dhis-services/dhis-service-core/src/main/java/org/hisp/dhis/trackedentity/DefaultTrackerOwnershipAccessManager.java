@@ -57,6 +57,8 @@ import javax.annotation.PostConstruct;
 public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAccessManager
 {
     private static final String COLON = ":";
+    
+    private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
     private static final Log log = LogFactory.getLog( DefaultTrackerOwnershipAccessManager.class );
 
@@ -87,27 +89,18 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
+    
     /**
      * Cache for storing temporary ownership grants.
      */
     private Cache<Boolean> temporaryTrackerOwnershipCache;
-
-    private String temporaryOwnershipTimeout;
-
-    public void setTemporaryOwnershipTimeout( String temporaryOwnershipTimeout )
-    {
-        this.temporaryOwnershipTimeout = temporaryOwnershipTimeout;
-    }
 
     @PostConstruct
     public void init()
     {
         temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "tempTrackerOwnership" ).withDefaultValue( false )
-            .expireAfterWrite( Long.parseLong( temporaryOwnershipTimeout ), TimeUnit.HOURS ).withMaximumSize( 10000 )
-            .build();
-
+            .expireAfterWrite( TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS, TimeUnit.HOURS ).withMaximumSize( 100000 ).build();
     }
 
     // -------------------------------------------------------------------------

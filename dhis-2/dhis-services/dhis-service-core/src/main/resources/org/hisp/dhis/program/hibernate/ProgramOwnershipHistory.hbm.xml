@@ -4,25 +4,25 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-	<class name="org.hisp.dhis.program.ProgramOwnershipHistory" table="programownershiphistory">
-    
-        <id name="id" column="programownershiphistoryid">
-            <generator class="native"/>
-        </id>
+  <class name="org.hisp.dhis.program.ProgramOwnershipHistory"
+    table="programownershiphistory">
 
-        <many-to-one name="program" class="org.hisp.dhis.program.Program"
-            column="programid"
-            foreign-key="fk_programownershiphistory_programid"/>
-            
-    		 <many-to-one name="entityInstance"
-			class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
-			foreign-key="fk_programownershiphistory_trackedentityinstanceid"/>
+    <id name="id" column="programownershiphistoryid">
+      <generator class="native" />
+    </id>
 
-        <property name="startDate" type="timestamp"/>
-        
-        <property name="endDate" type="timestamp"/>
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programownershiphistory_programid" />
 
-        <property name="createdBy"/>
+    <many-to-one name="entityInstance"
+      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
+      foreign-key="fk_programownershiphistory_trackedentityinstanceid" />
 
-    </class>
+    <property name="startDate" type="timestamp" />
+
+    <property name="endDate" type="timestamp" />
+
+    <property name="createdBy" />
+
+  </class>
 </hibernate-mapping>
