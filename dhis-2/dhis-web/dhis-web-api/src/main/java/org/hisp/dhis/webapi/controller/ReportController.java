@@ -28,9 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
+import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ServiceProvider;
@@ -60,6 +62,7 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -75,11 +78,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -117,6 +122,14 @@ public class ReportController
 
     @Resource(name="dataCompletenessServiceProvider")
     private ServiceProvider<DataSetCompletenessService> serviceProvider;
+
+    private Map<String, String> TYPE_TEMPLATE_MAP = ImmutableMap.<String, String>builder()
+        .put( "jasper", "jasper-report-template.jrxml" )
+        .put( "html", "html-report-template.html" ).build();
+
+    private Map<String, String> TYPE_CONTENT_TYPE_MAP = ImmutableMap.<String, String>builder()
+        .put( "jasper", ContextUtils.CONTENT_TYPE_XML )
+        .put( "html", ContextUtils.CONTENT_TYPE_HTML ).build();
 
     // -------------------------------------------------------------------------
     // CRUD
@@ -199,6 +212,28 @@ public class ReportController
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML, false );
+    }
+
+    // -------------------------------------------------------------------------
+    // Templates
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/templates/{type}", method = RequestMethod.GET )
+    public void getReportTemplate( @PathVariable( "type" ) String type,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( type != null & TYPE_TEMPLATE_MAP.containsKey( type ) )
+        {
+            String template = TYPE_TEMPLATE_MAP.get( type );
+            String contentType = TYPE_CONTENT_TYPE_MAP.get( type );
+
+            contextUtils.configureResponse( response, contentType, CacheStrategy.NO_CACHE, filenameEncode(template) ,
+                true );
+
+            String content = IOUtils.toString( new ClassPathResource(template).getInputStream(), StandardCharsets.UTF_8 );
+
+            response.getWriter().write( content );
+        }
     }
 
     // -------------------------------------------------------------------------

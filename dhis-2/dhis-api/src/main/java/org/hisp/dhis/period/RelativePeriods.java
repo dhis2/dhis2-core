@@ -280,45 +280,55 @@ public class RelativePeriods
         boolean thisWeek, boolean lastWeek, boolean thisBiWeek, boolean lastBiWeek, boolean last4Weeks, boolean last4BiWeeks,
         boolean last12Weeks, boolean last52Weeks )
     {
+        // Days
         this.thisDay = thisDay;
         this.yesterday = yesterday;
         this.last3Days = last3Days;
         this.last7Days = last7Days;
         this.last14Days = last14Days;
+        // Weeks
+        this.thisWeek = thisWeek;
+        this.lastWeek = lastWeek;
+        this.last4Weeks = last4Weeks;
+        this.last12Weeks = last12Weeks;
+        this.last52Weeks = last52Weeks;
+        this.weeksThisYear = weeksThisYear;
+        // Months
         this.thisMonth = thisMonth;
         this.lastMonth = lastMonth;
+        this.last3Months = last3Months;
+        this.last6Months = last6Months;
+        this.last12Months = last12Months;
+        this.monthsThisYear = monthsThisYear;
+        // Bi-Months
         this.thisBimonth = thisBimonth;
         this.lastBimonth = lastBimonth;
+        this.last6BiMonths = last6BiMonths;
+        this.biMonthsThisYear = biMonthsThisYear;
+        // Quarters
         this.thisQuarter = thisQuarter;
         this.lastQuarter = lastQuarter;
+        this.last4Quarters = last4Quarters;
+        this.quartersThisYear = quartersThisYear;
+        //Six-Months
         this.thisSixMonth = thisSixMonth;
         this.lastSixMonth = lastSixMonth;
-        this.weeksThisYear = weeksThisYear;
-        this.monthsThisYear = monthsThisYear;
-        this.biMonthsThisYear = biMonthsThisYear;
-        this.quartersThisYear = quartersThisYear;
-        this.thisYear = thisYear;
-        this.monthsLastYear = monthsLastYear;
-        this.quartersLastYear = quartersLastYear;
-        this.lastYear = lastYear;
-        this.last5Years = last5Years;
-        this.last12Months = last12Months;
-        this.last6Months = last6Months;
-        this.last3Months = last3Months;
-        this.last6BiMonths = last6BiMonths;
-        this.last4Quarters = last4Quarters;
         this.last2SixMonths = last2SixMonths;
+        // Financial Year
         this.thisFinancialYear = thisFinancialYear;
         this.lastFinancialYear = lastFinancialYear;
         this.last5FinancialYears = last5FinancialYears;
-        this.thisWeek = thisWeek;
-        this.lastWeek = lastWeek;
+        // Year
+        this.thisYear = thisYear;
+        this.lastYear = lastYear;
+        this.last5Years = last5Years;
+
+        this.monthsLastYear = monthsLastYear;
+        this.quartersLastYear = quartersLastYear;
+
         this.thisBiWeek = thisBiWeek;
         this.lastBiWeek = lastBiWeek;
-        this.last4Weeks = last4Weeks;
         this.last4BiWeeks = last4BiWeeks;
-        this.last12Weeks = last12Weeks;
-        this.last52Weeks = last52Weeks;
     }
 
     // -------------------------------------------------------------------------
