@@ -334,20 +334,22 @@ public abstract class AbstractStatementBuilder
         
         Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
         
+        final SimpleDateFormat format = new SimpleDateFormat();
+        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+        
         String sql = "";
-        SqlHelper helper = new SqlHelper();
         for ( String programStage : map.keySet() )
         {
             Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );
             
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            sql += helper.havingAnd() + " (select count(*) from " + eventTableName + " where " + eventTableName +
+            sql +=  " (select count(*) from " + eventTableName + " where " + eventTableName +
                 ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and executiondate is not null ";
-                
+              
             for ( AnalyticsPeriodBoundary boundary : boundaries )
             {
                 sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">" : "<" ) +
-                    boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
+                    " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
             }
             
             sql += ") > 0";
