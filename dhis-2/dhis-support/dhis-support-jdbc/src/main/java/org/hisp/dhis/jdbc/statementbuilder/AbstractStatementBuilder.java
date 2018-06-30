@@ -28,7 +28,6 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -313,9 +312,9 @@ public abstract class AbstractStatementBuilder
                 return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                     ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
                     ( programIndicator.getEndEventBoundary() != null ? ("and " + 
-                    getCohortBoundaryCondition( programIndicator.getEndEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) + 
+                        getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
                     " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
-                        getCohortBoundaryCondition( programIndicator.getStartEventBoundary(), reportingStartDate, reportingEndDate, programIndicator ) +
+                        getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
                     " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
             }
             else
@@ -329,18 +328,31 @@ public abstract class AbstractStatementBuilder
         }
     }
     
-    public String getProgramIndicatorHavingEventInProgramStageAndPeriodSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
+    private String getProgramIndicatorEventInProgramStageSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
-        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(), "Can not get evend date cohort boundaries for program indicator:" + programIndicator.getUid() );
+        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(), "Can not get event date cohort boundaries for program indicator:" + programIndicator.getUid() );
         
         Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
         
         String sql = "";
-        SqlHelper sqlHelper = new SqlHelper();
+        SqlHelper helper = new SqlHelper();
         for ( String programStage : map.keySet() )
         {
-            throw new NotImplementedException();
+            Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );
+            
+            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+            sql += helper.havingAnd() + " (select count(*) from " + eventTableName + " where " + eventTableName +
+                ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and executiondate is not null ";
+                
+            for ( AnalyticsPeriodBoundary boundary : boundaries )
+            {
+                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">" : "<" ) +
+                    boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
+            }
+            
+            sql += ") > 0";
         }
+        
         return sql;
     }
     
@@ -369,7 +381,28 @@ public abstract class AbstractStatementBuilder
         return columnSql;
     }
     
-    public String getCohortBoundaryCondition( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
+    public String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, SqlHelper sqlHelper )
+    {
+        String sql = "";
+        
+        for ( AnalyticsPeriodBoundary boundary : programIndicator.getAnalyticsPeriodBoundaries() )
+        {
+            if ( boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
+            {
+                sql += sqlHelper.whereAnd() + " " + getBoundaryCondition( boundary, programIndicator, reportingStartDate, reportingEndDate );
+            }
+        }
+        
+        if ( programIndicator.hasEventDateCohortBoundary() )
+        {
+            sql += sqlHelper.whereAnd() + " " + getProgramIndicatorEventInProgramStageSql( programIndicator, reportingStartDate, reportingEndDate );
+        }
+        
+        return sql;
+    }
+    
+    public String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, 
+        Date reportingStartDate, Date reportingEndDate )
     {
         String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE : 
             boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE : 
