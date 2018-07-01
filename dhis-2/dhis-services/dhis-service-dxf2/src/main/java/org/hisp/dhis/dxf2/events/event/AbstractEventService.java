@@ -89,6 +89,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
@@ -1613,9 +1614,22 @@ public abstract class AbstractEventService
             }
         }
 
+        sendProgramNotification( programStageInstance, importOptions );
+
         importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
 
         return importSummary;
+    }
+
+    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
+    {
+        if ( programStageInstance.isCompleted() )
+        {
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+            }
+        }
     }
 
     private void saveDataValue( ProgramStageInstance programStageInstance, String storedBy, DataElement dataElement,
