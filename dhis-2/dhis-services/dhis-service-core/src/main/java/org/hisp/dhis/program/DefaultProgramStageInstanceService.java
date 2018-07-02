@@ -32,7 +32,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -79,9 +78,6 @@ public class DefaultProgramStageInstanceService
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
-
-    @Autowired
-    private ProgramNotificationPublisher programNotificationPublisher;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -192,11 +188,6 @@ public class DefaultProgramStageInstanceService
         if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
         {
             programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
-        }
-
-        if ( !skipNotifications )
-        {
-            programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
         }
 
         // ---------------------------------------------------------------------

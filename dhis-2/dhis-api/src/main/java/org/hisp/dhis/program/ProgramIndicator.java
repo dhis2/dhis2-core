@@ -366,7 +366,11 @@ public class ProgramIndicator
                 Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
                 String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
                 Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
-
+                if ( !map.containsKey( programStage ) )
+                {
+                    map.put( programStage, new HashSet<AnalyticsPeriodBoundary>() );
+                }
+                map.get( programStage ).add( boundary );
             }
         }
         
