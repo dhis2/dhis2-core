@@ -32,7 +32,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -76,13 +75,6 @@ public class DefaultProgramStageInstanceService
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    private ProgramNotificationService programNotificationService;
-
-    public void setProgramNotificationService( ProgramNotificationService programNotificationService )
-    {
-        this.programNotificationService = programNotificationService;
     }
 
     @Autowired
@@ -192,11 +184,6 @@ public class DefaultProgramStageInstanceService
         if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
         {
             programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
-        }
-
-        if ( !skipNotifications )
-        {
-            programNotificationService.sendCompletionNotifications( programStageInstance );
         }
 
         // ---------------------------------------------------------------------
