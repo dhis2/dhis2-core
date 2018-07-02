@@ -139,7 +139,7 @@
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
     <sec:intercept-url request-matcher-ref="analyticPluginResources"
       access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
-      'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard,M_dhis-web-mapping')" />
+      'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard-integration,M_dhis-web-mapping')" />
 
     <!-- Apps -->
 
@@ -164,7 +164,7 @@
   </sec:http>
 
   <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
-        <constructor-arg name="pattern" value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)"/>
+        <constructor-arg name="pattern" value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js).*"/>
         <constructor-arg name="httpMethod" value="GET"/>
   </bean>
 
