@@ -1130,6 +1130,8 @@ public abstract class AbstractEventService
             if ( !importOptions.isSkipNotifications() )
             {
                 enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
+
+                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
