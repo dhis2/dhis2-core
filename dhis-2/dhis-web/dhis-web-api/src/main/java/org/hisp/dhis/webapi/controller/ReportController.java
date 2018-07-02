@@ -227,8 +227,7 @@ public class ReportController
             String template = TYPE_TEMPLATE_MAP.get( type );
             String contentType = TYPE_CONTENT_TYPE_MAP.get( type );
 
-            contextUtils.configureResponse( response, contentType, CacheStrategy.NO_CACHE, filenameEncode(template) ,
-                true );
+            contextUtils.configureResponse( response, contentType, CacheStrategy.NO_CACHE, template ,true );
 
             String content = IOUtils.toString( new ClassPathResource(template).getInputStream(), StandardCharsets.UTF_8 );
 
