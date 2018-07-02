@@ -271,8 +271,6 @@ public class DefaultPreheatService implements PreheatService
     {
         objects.forEach( ( klass, list ) -> list.forEach( object ->
         {
-
-
             object.getUserAccesses().forEach( ua ->
             {
                 User user = null;

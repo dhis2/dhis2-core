@@ -293,7 +293,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null || manager.get( object.getUser().getUid() ) == null )
+        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
         {
             object.setUser( bundle.getUser() );
         }
