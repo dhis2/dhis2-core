@@ -103,7 +103,7 @@ public class GridHeader
     /**
      * @param name name
      * @param column column
-     * @param valueType valueType
+     * @param valueType value type
      * @param type type
      * @param hidden hidden
      * @param meta meta
@@ -120,6 +120,7 @@ public class GridHeader
     /**
      * @param name name
      * @param column column
+     * @param valueType value type
      * @param type type
      * @param hidden hidden
      * @param meta meta

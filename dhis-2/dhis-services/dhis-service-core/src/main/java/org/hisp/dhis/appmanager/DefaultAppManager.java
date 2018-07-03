@@ -28,12 +28,10 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
@@ -87,6 +85,7 @@ public class DefaultAppManager
     public void initCache()
     {
         appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
+        reloadApps();
     }
 
     @Override
@@ -287,7 +286,7 @@ public class DefaultAppManager
 
         return userCredentials.getAllAuthorities().contains( "ALL" ) ||
             userCredentials.getAllAuthorities().contains( "M_dhis-web-maintenance-appmanager" ) ||
-            userCredentials.getAllAuthorities().contains( "See " + app.getName().trim() );
+            userCredentials.getAllAuthorities().contains( app.getSeeAppAuthority() );
     }
 
     @Override

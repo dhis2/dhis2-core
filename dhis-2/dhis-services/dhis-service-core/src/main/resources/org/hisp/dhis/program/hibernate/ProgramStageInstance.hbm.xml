@@ -54,13 +54,11 @@
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
-    <property name="longitude" />
-
-    <property name="latitude" />
-
     <property name="completedBy" />
 
     <property name="completedDate" />
+
+    <property name="geometry" />
 
     <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
       <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
@@ -72,6 +70,11 @@
     <set name="dataValues" inverse="true" lazy="true">
       <key column="programstageinstanceid" />
       <one-to-many class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
+    </set>
+
+    <set name="relationshipItems" inverse="true">
+      <key column="programstageinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
   </class>

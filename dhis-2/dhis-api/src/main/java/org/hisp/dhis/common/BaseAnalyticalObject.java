@@ -132,6 +132,8 @@ public abstract class BaseAnalyticalObject
     protected AggregationType aggregationType;
 
     protected boolean completedOnly;
+    
+    protected String timeField;
 
     protected String title;
 
@@ -774,7 +776,7 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Clear or set to false all persistent dimensional (not option) properties for this object.
+     * Clear or set to false all persistent dimensional (not property) properties for this object.
      */
     public void clear()
     {
@@ -1066,6 +1068,18 @@ public abstract class BaseAnalyticalObject
     public void setCompletedOnly( boolean completedOnly )
     {
         this.completedOnly = completedOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTimeField()
+    {
+        return timeField;
+    }
+
+    public void setTimeField( String timeField )
+    {
+        this.timeField = timeField;
     }
 
     @JsonProperty

@@ -28,60 +28,53 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * @author Abyot Asalefew
  */
 public class HibernateRelationshipStore
-    extends HibernateGenericStore<Relationship>
+    extends HibernateIdentifiableObjectStore<Relationship>
     implements RelationshipStore
 {
     @Override
-    public List<Relationship> getForTrackedEntityInstance( TrackedEntityInstance instance )
+    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root ->  builder.or(
-                builder.equal( root.get( "entityInstanceA" ), instance ),
-                builder.equal( root.get( "entityInstanceB" ), instance ) ) ) );
+        return getCriteria(
+            Restrictions.eq( "from.trackedEntityInstance", tei )
+        )
+            .createAlias( "from", "from" )
+            .list();
+
     }
 
     @Override
-    public List<Relationship> getByRelationshipType( RelationshipType relationshipType )
+    public List<Relationship> getByProgramInstance( ProgramInstance pi )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "relationshipType" ), relationshipType ) ) );
-    }
-
-    public Collection<Relationship> get( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "entityInstanceA" ), entityInstanceA ) )
-            .addPredicate( root -> builder.equal( root.get( "relationshipType" ), relationshipType ) ) );
+        return getCriteria(
+            Restrictions.eq( "from.programInstance", pi )
+        )
+            .createAlias( "from", "from" )
+            .list();
     }
 
     @Override
-    public Relationship get( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType )
+    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "entityInstanceA" ), entityInstanceA ) )
-            .addPredicate( root -> builder.equal( root.get( "entityInstanceB" ), entityInstanceB ) )
-            .addPredicate( root -> builder.equal( root.get( "relationshipType" ), relationshipType ) ));
+        return getCriteria(
+            Restrictions.eq( "from.programStageInstance", psi )
+        )
+            .createAlias( "from", "from" )
+            .list();
     }
 }

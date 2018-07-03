@@ -105,12 +105,6 @@ public class Program
 
     private Boolean selectIncidentDatesInFuture = false;
 
-    private String relationshipText;
-
-    private RelationshipType relationshipType;
-
-    private Boolean relationshipFromA = false;
-
     private Program relatedProgram;
 
     private TrackedEntityType trackedEntityType;
@@ -233,7 +227,11 @@ public class Program
      */
     public List<String> getSearchableAttributeIds()
     {        
-        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getAttribute ).map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+        return programAttributes.stream()
+            .filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() )
+            .map( ProgramTrackedEntityAttribute::getAttribute )
+            .map( TrackedEntityAttribute::getUid )
+            .collect( Collectors.toList() );
     }
     
     /**
@@ -241,7 +239,10 @@ public class Program
      */
     public List<TrackedEntityAttribute> getDisplayInListAttributes()
     {
-        return programAttributes.stream().filter( pa -> pa.isDisplayInList() ).map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );        
+        return programAttributes.stream()
+            .filter( pa -> pa.isDisplayInList() )
+            .map( ProgramTrackedEntityAttribute::getAttribute )
+            .collect( Collectors.toList() );        
     }
 
     /**
@@ -266,23 +267,20 @@ public class Program
      */
     public Set<DataElement> getDataElements()
     {
-        Set<DataElement> elements = new HashSet<>();
-
-        for ( ProgramStage stage : programStages )
-        {
-            elements.addAll( stage.getAllDataElements() );
-        }
-
-        return elements;
+        return programStages.stream()
+            .flatMap( ps -> ps.getAllDataElements().stream() )
+            .collect( Collectors.toSet() );
     }
-
+    
     /**
      * Returns data elements which are part of the stages of this program which
      * have a legend set and is of numeric value type.
      */
     public Set<DataElement> getDataElementsWithLegendSet()
     {
-        return getDataElements().stream().filter( e -> e.hasLegendSet() && e.isNumericType() ).collect( Collectors.toSet() );
+        return getDataElements().stream()
+            .filter( de -> de.hasLegendSet() && de.isNumericType() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -291,14 +289,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        List<TrackedEntityAttribute> attributes = new ArrayList<>();
-
-        for ( ProgramTrackedEntityAttribute attribute : programAttributes )
-        {
-            attributes.add( attribute.getAttribute() );
-        }
-
-        return attributes;
+        return programAttributes.stream()
+            .map( at -> at.getAttribute() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -307,7 +300,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
     {
-        return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() ).collect( Collectors.toList() );
+        return getTrackedEntityAttributes().stream()
+            .filter( a -> !a.isConfidentialBool() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -316,7 +311,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
     {
-        return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
+        return getTrackedEntityAttributes().stream()
+            .filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -540,20 +537,6 @@ public class Program
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
-    public void setProgramRules( Set<ProgramRule> programRules )
-    {
-        this.programRules = programRules;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRuleVariable> getProgramRuleVariables()
@@ -617,31 +600,6 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getRelationshipText()
-    {
-        return relationshipText;
-    }
-
-    public void setRelationshipText( String relationshipText )
-    {
-        this.relationshipText = relationshipText;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
-    }
-
-    public void setRelationshipType( RelationshipType relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getRelatedProgram()
@@ -652,18 +610,6 @@ public class Program
     public void setRelatedProgram( Program relatedProgram )
     {
         this.relatedProgram = relatedProgram;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getRelationshipFromA()
-    {
-        return relationshipFromA;
-    }
-
-    public void setRelationshipFromA( Boolean relationshipFromA )
-    {
-        this.relationshipFromA = relationshipFromA;
     }
 
     @JsonProperty( "programTrackedEntityAttributes" )

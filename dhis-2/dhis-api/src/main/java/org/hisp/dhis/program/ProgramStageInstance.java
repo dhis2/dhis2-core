@@ -29,11 +29,13 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
@@ -75,17 +77,17 @@ public class ProgramStageInstance
 
     private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
 
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
+
     private EventStatus status = EventStatus.ACTIVE;
-
-    private Double longitude;
-
-    private Double latitude;
 
     private String completedBy;
 
     private Date completedDate;
 
     private Date lastSynchronized = new Date( 0 );
+
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -251,26 +253,6 @@ public class ProgramStageInstance
         this.messageConversations = messageConversations;
     }
 
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
-    }
-
     public List<TrackedEntityComment> getComments()
     {
         return comments;
@@ -315,5 +297,25 @@ public class ProgramStageInstance
     public void setLastSynchronized( Date lastSynchronized )
     {
         this.lastSynchronized = lastSynchronized;
+    }
+
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
+
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
+
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
     }
 }

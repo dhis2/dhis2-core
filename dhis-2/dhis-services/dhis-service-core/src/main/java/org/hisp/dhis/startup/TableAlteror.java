@@ -212,6 +212,11 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET dataelementid = 0 WHERE dataelementid IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
+
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -711,6 +716,8 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-data-administration' WHERE authority='M_dhis-web-maintenance-dataadmin'" );
+
+        executeSql( "UPDATE userroleauthorities SET authority = 'M_' ||  replace(regexp_replace(replace(authority, 'See ', '' ), '[^a-zA-Z0-9 ]', ''), ' ', '_') WHERE authority like 'See%'" );
 
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );

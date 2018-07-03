@@ -170,6 +170,12 @@ public class DefaultUserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uids )
+    {
+        return userStore.getByUid( uids );
+    }
+
+    @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -217,12 +223,12 @@ public class DefaultUserService
         boolean canGrantOwnRoles = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
         params.setDisjointRoles( !canGrantOwnRoles );
 
-        if ( params.getUser() == null )
+        if ( !params.hasUser() )
         {
             params.setUser( currentUserService.getCurrentUser() );
         }
 
-        if ( params.getUser() != null && params.getUser().isSuper() )
+        if ( params.hasUser() && params.getUser().isSuper() )
         {
             params.setCanManage( false );
             params.setAuthSubset( false );
@@ -234,6 +240,11 @@ public class DefaultUserService
             Calendar cal = PeriodType.createCalendarInstance();
             cal.add( Calendar.MONTH, (params.getInactiveMonths() * -1) );
             params.setInactiveSince( cal.getTime() );
+        }
+        
+        if ( params.isUserOrgUnits() && params.hasUser() )
+        {
+            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
         }
     }
 
@@ -576,7 +587,7 @@ public class DefaultUserService
         {
             if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
-                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser, ur ) );
+                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName() ) );
             }
         } );
 

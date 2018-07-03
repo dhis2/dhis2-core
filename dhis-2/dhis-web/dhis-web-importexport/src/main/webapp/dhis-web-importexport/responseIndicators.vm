@@ -1,9 +1,0 @@
-#set( $size = $indicators.size() )
-{ "indicators": [
-#foreach ( $indicator in $indicators )
-  {
-    "id": $!{indicator.id},
-    "name": "$!{indicator.name}"
-  }#if( $velocityCount < $size ),#end
-#end
-] }

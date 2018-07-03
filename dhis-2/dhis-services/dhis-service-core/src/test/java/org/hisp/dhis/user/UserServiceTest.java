@@ -65,6 +65,7 @@ public class UserServiceTest
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     private OrganisationUnit unitD;
+    private OrganisationUnit unitE;
 
     private UserAuthorityGroup roleA;
     private UserAuthorityGroup roleB;
@@ -78,11 +79,13 @@ public class UserServiceTest
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C', unitA );
         unitD = createOrganisationUnit( 'D', unitB );
+        unitE = createOrganisationUnit( 'E' );
 
         organisationUnitService.addOrganisationUnit( unitA );
         organisationUnitService.addOrganisationUnit( unitB );
         organisationUnitService.addOrganisationUnit( unitC );
         organisationUnitService.addOrganisationUnit( unitD );
+        organisationUnitService.addOrganisationUnit( unitE );
         
         roleA = createUserAuthorityGroup( 'A' );
         roleB = createUserAuthorityGroup( 'B' );
@@ -213,6 +216,73 @@ public class UserServiceTest
         assertEquals( 2, users.size() );
         assertTrue( users.contains( userA ) );
         assertTrue( users.contains( userC ) );
+    }
+    
+    @Test
+    public void testGetUserOrgUnits()
+    {
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        
+        User currentUser = createUser( 'Z' );
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        User userC = createUser( 'C' );
+        User userD = createUser( 'D' );
+        User userE = createUser( 'E' );
+
+        currentUser.getOrganisationUnits().add( unitA );
+        currentUser.getOrganisationUnits().add( unitB );
+        userA.addOrganisationUnit( unitA );
+        userB.addOrganisationUnit( unitB );
+        userC.addOrganisationUnit( unitC );
+        userD.addOrganisationUnit( unitD );
+        userE.addOrganisationUnit( unitE );
+        
+        UserCredentials currentCredentials = createUserCredentials( 'Z', currentUser );
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+        UserCredentials credentialsD = createUserCredentials( 'D', userD );
+        UserCredentials credentialsE = createUserCredentials( 'E', userE );
+
+        userService.addUser( currentUser );
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userService.addUser( userC );
+        userService.addUser( userD );
+        userService.addUser( userE );
+
+        userService.addUserCredentials( currentCredentials );
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+        userService.addUserCredentials( credentialsC );
+        userService.addUserCredentials( credentialsD );
+        userService.addUserCredentials( credentialsE );
+
+        UserQueryParams params = new UserQueryParams()
+            .setUser( currentUser )
+            .setUserOrgUnits( true );
+        
+        List<User> users = userService.getUsers( params );
+        
+        assertEquals( 3, users.size() );
+        assertTrue( users.contains( currentUser ) );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );
+        
+        params = new UserQueryParams()
+            .setUser( currentUser )
+            .setUserOrgUnits( true )
+            .setIncludeOrgUnitChildren( true );
+        
+        users = userService.getUsers( params );
+
+        assertEquals( 5, users.size() );
+        assertTrue( users.contains( currentUser ) );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );
+        assertTrue( users.contains( userC ) );     
+        assertTrue( users.contains( userD) );        
     }
     
     @Test

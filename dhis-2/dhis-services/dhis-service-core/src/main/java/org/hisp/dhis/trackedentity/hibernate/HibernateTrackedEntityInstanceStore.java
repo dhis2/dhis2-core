@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.user.User;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getTokens;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
@@ -199,7 +201,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasLastUpdatedEndDate() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( params.getLastUpdatedEndDate() ) + "'";
+            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
         }
 
         if ( params.isSynchronizationQuery() )
@@ -680,6 +682,14 @@ public class HibernateTrackedEntityInstanceStore
         query.setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs );
 
         query.executeUpdate();
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    {
+        return getSharingCriteria( user )
+            .add( Restrictions.in( "uid", uids ) )
+            .list();
     }
 
     @Override

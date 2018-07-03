@@ -29,6 +29,13 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Sets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -67,6 +74,8 @@ import static org.hisp.dhis.commons.util.TextUtils.*;
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore
 {
+    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -424,7 +433,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             where += sqlHelper.whereAnd() + "dv.deleted is false";
         }
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql + where );
+        sql += where;
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         List<DeflatedDataValue> result = new ArrayList<>();
 
@@ -446,6 +457,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 organisationUnitId, categoryOptionComboId, attributeOptionComboId,
                 value, storedBy, created, lastUpdated, comment, followup ) );
         }
+
+        log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
 
         return result;
     }

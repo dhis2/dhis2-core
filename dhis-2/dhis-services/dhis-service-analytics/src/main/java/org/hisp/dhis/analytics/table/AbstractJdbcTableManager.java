@@ -70,6 +70,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -267,27 +270,7 @@ public abstract class AbstractJdbcTableManager
     {
         return getAnalyticsTableType().getTableName();
     }
-    
-    /**
-     * Quotes the given column name.
-     * 
-     * @param column the column name.
-     */
-    protected String quote( String column )
-    {
-        return quote( column );
-    }
-    
-    /**
-     * Remove quotes from the given column name.
-     * 
-     * @param column the column name.
-     */
-    private String removeQuote( String column )
-    {
-        return column != null ? column.replaceAll( statementBuilder.getColumnQuote(), StringUtils.EMPTY ) : null;
-    }
-    
+
     /**
      * Shortens the given table name.
      * 

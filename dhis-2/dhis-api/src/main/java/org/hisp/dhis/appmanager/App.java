@@ -46,6 +46,8 @@ public class App
      */
     private static final long serialVersionUID = -6638197841892194228L;
 
+    public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
+
     /**
      * Required.
      */
@@ -298,7 +300,7 @@ public class App
         return appState;
     }
 
-    public void setAppState( AppStatus AppState )
+    public void setAppState( AppStatus appState )
     {
          this.appState = appState;
     }
@@ -361,5 +363,10 @@ public class App
         result = result.replaceAll(" ", "-");
 
         return result;
+    }
+
+    public String getSeeAppAuthority()
+    {
+        return  SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
     }
 }

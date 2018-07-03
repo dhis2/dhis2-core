@@ -70,11 +70,11 @@ public class EventSynchronization
         this.renderService = renderService;
     }
 
-    public void syncEventProgramData()
+    public SynchronizationResult syncEventProgramData()
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return;
+            return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed. Remote server is unavailable." );
         }
 
         log.info( "Starting anonymous event program data synchronization job." );
@@ -90,7 +90,7 @@ public class EventSynchronization
         if ( objectsToSync == 0 )
         {
             log.info( "Skipping sync, no new or updated events found" );
-            return;
+            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization skipped. No new or updated events found." );
         }
 
         log.info( objectsToSync + " anonymous Events to sync were found." );
@@ -109,12 +109,12 @@ public class EventSynchronization
         for ( int i = 1; i <= pages; i++ )
         {
             Events events = eventService.getAnonymousEventsForSync( eventSyncPageSize );
-
+            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
             log.info( String.format( "Syncing page %d, page size is: %d", i, eventSyncPageSize ) );
 
             if ( log.isDebugEnabled() )
             {
-                log.debug( "Events that are going to be synced are: " + events );
+                log.debug( "Events that are going to be synchronized are: " + events );
             }
 
             if ( sendEventsSyncRequest( events, username, password ) )
@@ -135,6 +135,21 @@ public class EventSynchronization
         {
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Events sync was successfully done! It took " + syncDuration + " ms." );
+            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization done. It took " + syncDuration + " ms." );
+        }
+
+        return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );
+    }
+
+    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
+    {
+        for ( Event event : events.getEvents() )
+        {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter( dv -> !dv.isSkipSynchronization() )
+                    .collect( Collectors.toList() )
+            );
         }
     }
 

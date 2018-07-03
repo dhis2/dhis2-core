@@ -41,7 +41,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
+import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -97,7 +98,7 @@ public class DefaultProgramInstanceService
     private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private ProgramRuleEnginePublisher enginePublisher;
     
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;    
@@ -448,7 +449,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
 
-        programRuleEngineService.evaluate( programInstance );
+        enginePublisher.publishProgramRuleEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -489,7 +490,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
 
-        programRuleEngineService.evaluate( programInstance );
+        enginePublisher.publishProgramRuleEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance
@@ -567,7 +568,7 @@ public class DefaultProgramInstanceService
     
     private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
     {        
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() == AccessLevel.AUDITED && accessedBy != null )
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
         {
             ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
                 

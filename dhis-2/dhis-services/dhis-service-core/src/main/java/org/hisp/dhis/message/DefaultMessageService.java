@@ -158,6 +158,13 @@ public class DefaultMessageService
     }
 
     @Override
+    public MessageConversationParams.Builder createSystemMessage( Collection<User> recipients, String subject, String text )
+    {
+        return new MessageConversationParams.Builder( recipients, null, subject, text,
+            MessageType.SYSTEM );
+    }
+
+    @Override
     public MessageConversationParams.Builder createValidationResultMessage( Collection<User> receivers, String subject,
         String text )
     {
@@ -359,10 +366,10 @@ public class DefaultMessageService
     }
 
     @Override
-    public List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids )
+    public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
-            .getMessageConversations( messageConversationUids );
+            .getMessageConversations( uid );
 
         // Set transient properties
 

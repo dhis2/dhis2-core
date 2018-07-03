@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -67,12 +68,18 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -130,6 +137,9 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+    
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private ContextUtils contextUtils;
@@ -157,6 +167,9 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private SchedulingManager schedulingManager;
+    
+    @Autowired
+    private ProgramService programService;
 
     // -------------------------------------------------------------------------
     // READ
@@ -267,6 +280,11 @@ public class TrackedEntityInstanceController
         if ( joined.contains( "events" ) )
         {
             params.setIncludeEvents( true );
+        }
+        
+        if ( joined.contains( "programOwners" ) )
+        {
+            params.setIncludeProgramOwners( true );
         }
 
         return params;
@@ -609,8 +627,9 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody RootNode getTrackedEntityInstanceById( @PathVariable( "id" ) String pvId )
-        throws NotFoundException
+    public @ResponseBody RootNode getTrackedEntityInstanceById( 
+    		@PathVariable( "id" ) String pvId,
+    		@RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -620,7 +639,7 @@ public class TrackedEntityInstanceController
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
-            new FieldFilterParams( Lists.newArrayList( getTrackedEntityInstance( pvId, fields ) ), fields ) );
+            new FieldFilterParams( Lists.newArrayList( getTrackedEntityInstance( pvId, program, fields ) ), fields ) );
 
         RootNode rootNode = new RootNode( collectionNode.getChildren().get( 0 ) );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
@@ -799,15 +818,59 @@ public class TrackedEntityInstanceController
         webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( String id, List<String> fields )
-        throws NotFoundException
+    private TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
+        throws NotFoundException, WebMessageException
     {
+        TrackedEntityInstanceParams trackedEntityInstanceParams =  getTrackedEntityInstanceParams( fields ) ;
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
-            getTrackedEntityInstanceParams( fields ) );
+            trackedEntityInstanceParams );
 
         if ( trackedEntityInstance == null )
         {
             throw new NotFoundException( "TrackedEntityInstance", id );
+        }
+        
+        User user = currentUserService.getCurrentUser();
+        
+        if ( pr != null )
+        {
+            Program program = programService.getProgram( pr );
+
+            if ( program == null )
+            {
+                throw new NotFoundException( "Program", pr );
+            }
+
+            List<String> errors = trackerAccessManager.canRead( user,
+                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program );
+
+            if ( !errors.isEmpty() )
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.unathorized( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED ) );
+            }
+            
+            if (trackedEntityInstanceParams.isIncludeProgramOwners())
+            {
+                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream().filter( tei-> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
+                trackedEntityInstance.setProgramOwners( filteredProgramOwners );
+            }
+        }
+        else
+        {
+            // return only tracked entity type attributes
+
+            TrackedEntityType trackedEntityType = trackedEntityTypeService
+                .getTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
+
+            if ( trackedEntityType != null )
+            {
+                List<String> tetAttributes = trackedEntityType.getTrackedEntityAttributes().stream()
+                    .map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+
+                trackedEntityInstance.setAttributes( trackedEntityInstance.getAttributes().stream()
+                    .filter( att -> tetAttributes.contains( att.getAttribute() ) ).collect( Collectors.toList() ) );
+            }
         }
 
         return trackedEntityInstance;
@@ -842,7 +905,6 @@ public class TrackedEntityInstanceController
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
         {
-
             return Arrays.asList( order.split( "," ) );
         }
 
