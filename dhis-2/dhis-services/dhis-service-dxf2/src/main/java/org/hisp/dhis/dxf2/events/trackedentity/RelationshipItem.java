@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 
@@ -38,6 +40,7 @@ import java.util.Objects;
 /**
  * @author Stian Sandvold
  */
+@JacksonXmlRootElement( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
 public class RelationshipItem
 {
     private TrackedEntityInstance trackedEntityInstance;
@@ -52,7 +55,7 @@ public class RelationshipItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityInstance getTrackedEntityInstance()
     {
         return trackedEntityInstance;
@@ -64,7 +67,7 @@ public class RelationshipItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Enrollment getEnrollment()
     {
         return enrollment;
@@ -76,7 +79,7 @@ public class RelationshipItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Event getEvent()
     {
         return event;

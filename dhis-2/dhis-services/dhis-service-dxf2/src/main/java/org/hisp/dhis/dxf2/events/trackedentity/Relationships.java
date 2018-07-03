@@ -30,15 +30,17 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 import java.util.List;
 
 /**
  * @author Stian Sandvold
  */
+@JacksonXmlRootElement( localName = "relationships", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationships
 {
-
     private List<Relationship> relationships;
 
     public Relationships()
@@ -47,7 +49,7 @@ public class Relationships
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Relationship> getRelationships()
     {
         return relationships;
