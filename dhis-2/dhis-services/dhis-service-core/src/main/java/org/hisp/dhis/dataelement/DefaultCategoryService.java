@@ -139,7 +139,7 @@ public class DefaultCategoryService
     {
         this.aclService = aclService;
     }
-        
+
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
@@ -641,7 +641,7 @@ public class DefaultCategoryService
             {
                 try
                 {
-                    deleteCategoryOptionCombo( optionCombo );
+                    idObjectManager.delete( optionCombo );
                 }
                 catch ( Exception ex )
                 {
