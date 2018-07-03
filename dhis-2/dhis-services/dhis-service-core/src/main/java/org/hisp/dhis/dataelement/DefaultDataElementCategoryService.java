@@ -646,7 +646,7 @@ public class DefaultDataElementCategoryService
             {
                 try
                 {
-                    deleteDataElementCategoryOptionCombo( optionCombo );
+                    idObjectManager.delete( optionCombo );
                 }
                 catch ( Exception ex )
                 {

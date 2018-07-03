@@ -1907,6 +1907,10 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.dimension.DataDimensionItemDeletionHandler" class="org.hisp.dhis.dimension.DataDimensionItemDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" class="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
