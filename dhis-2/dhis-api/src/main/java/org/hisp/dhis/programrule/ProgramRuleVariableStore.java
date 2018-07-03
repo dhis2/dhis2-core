@@ -39,8 +39,6 @@ import org.hisp.dhis.program.Program;
 public interface ProgramRuleVariableStore
     extends IdentifiableObjectStore<ProgramRuleVariable>
 {
-    String ID = ProgramRuleVariableStore.class.getName();
-
     /**
      * Get programRuleVariable by program
      *
