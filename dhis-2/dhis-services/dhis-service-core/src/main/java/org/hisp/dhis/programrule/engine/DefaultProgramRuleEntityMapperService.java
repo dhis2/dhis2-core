@@ -49,7 +49,8 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
-public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
+public class DefaultProgramRuleEntityMapperService 
+    implements ProgramRuleEntityMapperService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramRuleEntityMapperService.class );
 
