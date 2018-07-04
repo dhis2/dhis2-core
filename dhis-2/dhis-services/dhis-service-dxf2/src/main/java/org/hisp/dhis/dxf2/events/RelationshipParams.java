@@ -40,9 +40,9 @@ public class RelationshipParams
 
     private boolean includeTo;
 
+    @SuppressWarnings("unused")
     private RelationshipParams()
     {
-
     }
 
     public RelationshipParams( boolean includeFrom, boolean includeTo )

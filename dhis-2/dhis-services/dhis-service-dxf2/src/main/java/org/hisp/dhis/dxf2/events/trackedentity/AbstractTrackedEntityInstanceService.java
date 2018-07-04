@@ -60,7 +60,6 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
@@ -88,9 +87,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
@@ -175,18 +171,18 @@ public abstract class AbstractTrackedEntityInstanceService
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
             .getTrackedEntityInstances( queryParams, skipAccessValidation );
 
-        List<TrackedEntityInstance> dtoTEIItems = new ArrayList<>();
+        List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
         {
             if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
             {
-                dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+                dtoTeis.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
             }
         }
 
-        return dtoTEIItems;
+        return dtoTeis;
     }
 
     @Override
