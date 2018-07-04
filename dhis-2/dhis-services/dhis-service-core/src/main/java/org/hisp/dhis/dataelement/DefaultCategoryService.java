@@ -60,7 +60,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -605,75 +604,7 @@ public class DefaultCategoryService
         }
     }
 
-    @Override
-    public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
-    {
-        if ( categoryCombo == null || !categoryCombo.isValid() )
-        {
-            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
-            return;
-        }
 
-        List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<CategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
-
-        boolean modified = false;
-
-        for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
-        {
-            if ( !persistedOptionCombos.contains( optionCombo ) )
-            {
-                categoryCombo.getOptionCombos().add( optionCombo );
-                addCategoryOptionCombo( optionCombo );
-
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    idObjectManager.delete( optionCombo );
-                }
-                catch ( Exception ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-                    continue;
-                }
-
-                iterator.remove();
-                categoryCombo.getOptionCombos().remove( optionCombo );
-                deleteCategoryOptionCombo( optionCombo );
-
-                log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        if ( modified )
-        {
-            updateCategoryCombo( categoryCombo );
-        }
-    }
-
-    @Override
-    public void addAndPruneAllOptionCombos()
-    {
-        List<CategoryCombo> categoryCombos = getAllCategoryCombos();
-
-        for ( CategoryCombo categoryCombo : categoryCombos )
-        {
-            addAndPruneOptionCombos( categoryCombo );
-        }
-    }
 
     @Override
     public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
