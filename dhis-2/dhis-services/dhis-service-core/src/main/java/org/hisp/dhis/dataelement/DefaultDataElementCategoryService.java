@@ -126,7 +126,7 @@ public class DefaultDataElementCategoryService
     {
         this.aclService = aclService;
     }
-        
+
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
@@ -610,75 +610,7 @@ public class DefaultDataElementCategoryService
         }
     }
 
-    @Override
-    public void addAndPruneOptionCombos( DataElementCategoryCombo categoryCombo )
-    {
-        if ( categoryCombo == null || !categoryCombo.isValid() )
-        {
-            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
-            return;
-        }
 
-        List<DataElementCategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<DataElementCategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
-
-        boolean modified = false;
-
-        for ( DataElementCategoryOptionCombo optionCombo : generatedOptionCombos )
-        {
-            if ( !persistedOptionCombos.contains( optionCombo ) )
-            {
-                categoryCombo.getOptionCombos().add( optionCombo );
-                addDataElementCategoryOptionCombo( optionCombo );
-
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        Iterator<DataElementCategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            DataElementCategoryOptionCombo optionCombo = iterator.next();
-
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    idObjectManager.delete( optionCombo );
-                }
-                catch ( Exception ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-                    continue;
-                }
-
-                iterator.remove();
-                categoryCombo.getOptionCombos().remove( optionCombo );
-                deleteDataElementCategoryOptionCombo( optionCombo );
-
-                log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        if ( modified )
-        {
-            updateDataElementCategoryCombo( categoryCombo );
-        }
-    }
-
-    @Override
-    public void addAndPruneAllOptionCombos()
-    {
-        List<DataElementCategoryCombo> categoryCombos = getAllDataElementCategoryCombos();
-
-        for ( DataElementCategoryCombo categoryCombo : categoryCombos )
-        {
-            addAndPruneOptionCombos( categoryCombo );
-        }
-    }
 
     @Override
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )

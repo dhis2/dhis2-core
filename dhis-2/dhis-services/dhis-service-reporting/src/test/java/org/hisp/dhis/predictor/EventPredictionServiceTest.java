@@ -33,7 +33,7 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.mock.MockAnalyticsService;
+import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -46,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -153,6 +154,9 @@ public class EventPredictionServiceTest
     private CurrentUserService currentUserService;
 
     private DataElementCategoryOptionCombo defaultCombo;
+
+    @Autowired
+    private CategoryManager categoryManager;
 
     private OrganisationUnit orgUnitA;
 
@@ -283,7 +287,7 @@ public class EventPredictionServiceTest
         programStageInstanceService.addProgramStageInstance( stageInstanceA );
         programStageInstanceService.addProgramStageInstance( stageInstanceB );
 
-        categoryService.addAndPruneAllOptionCombos();
+        categoryManager.addAndPruneAllOptionCombos();
 
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );

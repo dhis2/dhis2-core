@@ -673,14 +673,14 @@
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramExpression" />
     <property name="sessionFactory" ref="sessionFactory" />
-  </bean>  
-  
+  </bean>
+
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" class="org.hisp.dhis.trackedentityfilter.hibernate.HibernateTrackedEntityInstanceFilterStore">
     <property name="clazz" value="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstance" />
@@ -763,7 +763,7 @@
 
   <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
 
-  
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
@@ -833,7 +833,7 @@
     <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
     <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -976,6 +976,8 @@
     <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
     <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
   </bean>
+
+  <bean id="org.hisp.dhis.category.CategoryManager" class="org.hisp.dhis.category.DefaultCategoryManager"/>
 
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
@@ -1356,7 +1358,7 @@
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
 
   <!-- SMS Services -->
@@ -1521,10 +1523,10 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
-    
+
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
-  </bean>  
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
@@ -1827,7 +1829,7 @@
     <property name="runlevel" value="13" />
     <property name="skipInTests" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.startup.SettingUpgrader" class="org.hisp.dhis.startup.SettingUpgrader">
     <property name="name" value="SettingUpgrader" />
     <property name="runlevel" value="14" />
