@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.system.util.DateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
