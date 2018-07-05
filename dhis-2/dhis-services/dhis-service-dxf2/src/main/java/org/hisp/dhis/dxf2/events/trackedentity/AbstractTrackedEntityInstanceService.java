@@ -759,7 +759,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
-                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user );
+                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user.getUsername() );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
@@ -971,14 +971,13 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary,
-        User fallbackUser )
+    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary, String fallbackUsername )
     {
         String storedBy = attributeValue.getStoredBy();
 
         if ( StringUtils.isEmpty( storedBy ) )
         {
-            storedBy = User.getSafeUsername( fallbackUser );
+            storedBy = User.getSafeUsername( fallbackUsername );
         }
         else if ( storedBy.length() >= 31 )
         {
@@ -988,7 +987,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     storedBy + " is more than 31 characters, using current username instead" ) );
             }
 
-            storedBy = User.getSafeUsername( fallbackUser );
+            storedBy = User.getSafeUsername( fallbackUsername );
         }
 
         return storedBy;

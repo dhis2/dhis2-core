@@ -74,9 +74,28 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
@@ -258,8 +277,9 @@ public class JdbcEventStore
             if ( rowSet.getString( "psinote_value" ) != null && !notes.contains( rowSet.getString( "psinote_id" ) ) )
             {
                 Note note = new Note();
+                note.setNote( rowSet.getString( "psinote_uid" ) );
                 note.setValue( rowSet.getString( "psinote_value" ) );
-                note.setStoredDate( rowSet.getString( "psinote_storeddate" ) );
+                note.setStoredDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psinote_storeddate" ) ) );
                 note.setStoredBy( rowSet.getString( "psinote_storedby" ) );
 
                 event.getNotes().add( note );
@@ -404,8 +424,9 @@ public class JdbcEventStore
             if ( rowSet.getString( "psinote_value" ) != null && !notes.contains( rowSet.getString( "psinote_id" ) ) )
             {
                 Note note = new Note();
+                note.setNote( rowSet.getString( "psinote_uid" ) );
                 note.setValue( rowSet.getString( "psinote_value" ) );
-                note.setStoredDate( rowSet.getString( "psinote_storeddate" ) );
+                note.setStoredDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psinote_storeddate" ) ) );
                 note.setStoredBy( rowSet.getString( "psinote_storedby" ) );
 
                 eventRow.getNotes().add( note );
@@ -472,7 +493,7 @@ public class JdbcEventStore
             + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
             + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
             + "psi.status as " + EVENT_STATUS_ID + ", "
-            + "pi.uid as " +  EVENT_ENROLLMENT_ID + ", "
+            + "pi.uid as " + EVENT_ENROLLMENT_ID + ", "
             + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
             + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as " + EVENT_DELETED + ", "
             + "psi.geometry as " + EVENT_GEOMETRY + ", ";
@@ -885,7 +906,7 @@ public class JdbcEventStore
     private String getCommentQuery()
     {
         String sql = "select psic.programstageinstanceid as psic_id, psinote.trackedentitycommentid as psinote_id, psinote.commenttext as psinote_value, "
-            + "psinote.createddate as psinote_storeddate, psinote.creator as psinote_storedby "
+            + "psinote.created as psinote_storeddate, psinote.creator as psinote_storedby, psinote.uid as psinote_uid "
             + "from programstageinstancecomments psic "
             + "inner join trackedentitycomment psinote on psic.trackedentitycommentid=psinote.trackedentitycommentid ";
 

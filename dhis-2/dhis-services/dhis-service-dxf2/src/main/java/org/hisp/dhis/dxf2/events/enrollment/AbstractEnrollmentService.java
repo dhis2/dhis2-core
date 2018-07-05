@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -126,7 +127,7 @@ public abstract class AbstractEnrollmentService
 
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
-    
+
     @Autowired
     protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
@@ -325,13 +326,10 @@ public abstract class AbstractEnrollmentService
         {
             Note note = new Note();
 
+            note.setNote( comment.getUid() );
             note.setValue( comment.getCommentText() );
             note.setStoredBy( comment.getCreator() );
-
-            if ( comment.getCreatedDate() != null )
-            {
-                note.setStoredDate( comment.getCreatedDate().toString() );
-            }
+            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
 
             enrollment.getNotes().add( note );
         }
@@ -431,8 +429,9 @@ public abstract class AbstractEnrollmentService
     {
         importOptions = updateImportOptions( importOptions );
 
-        String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ?
-            enrollment.getStoredBy() : (importOptions.getUser() != null ? importOptions.getUser().getUsername() : "system-process");
+        String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31 ?
+            enrollment.getStoredBy() : (
+            StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
 
         if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
         {
@@ -482,10 +481,10 @@ public abstract class AbstractEnrollmentService
         programInstance.setStoredBy( storedBy );
 
         programInstanceService.updateProgramInstance( programInstance );
-        
+
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
-        saveTrackedEntityComment( programInstance, enrollment );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -707,7 +706,7 @@ public abstract class AbstractEnrollmentService
         programInstanceService.updateProgramInstance( programInstance );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
-        saveTrackedEntityComment( programInstance, enrollment );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
@@ -734,7 +733,7 @@ public abstract class AbstractEnrollmentService
             return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
         }
 
-        saveTrackedEntityComment( programInstance, enrollment );
+        saveTrackedEntityComment( programInstance, enrollment, currentUserService.getCurrentUsername() );
 
         importSummary.setReference( enrollment.getEnrollment() );
         importSummary.getImportCount().incrementUpdated();
@@ -970,6 +969,8 @@ public abstract class AbstractEnrollmentService
 
             if ( mandatory && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
             {
+
+
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
                     + trackedEntityAttribute.getUid() ) );
                 continue;
@@ -1107,23 +1108,29 @@ public abstract class AbstractEnrollmentService
         return importConflicts;
     }
 
-    private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment )
+    private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment, String storedBy )
     {
-        //TODO: Possible performance improvement: Use UserInfo class instead  //Will fix in one of the following commits
-        String storedBy = currentUserService.getCurrentUsername();
-
         for ( Note note : enrollment.getNotes() )
         {
-            TrackedEntityComment comment = new TrackedEntityComment();
-            comment.setCreator( storedBy );
-            comment.setCreatedDate( new Date() );
-            comment.setCommentText( note.getValue() );
+            String noteUid = CodeGenerator.isValidUid( note.getNote() ) ? note.getNote() : CodeGenerator.generateUid();
 
-            commentService.addTrackedEntityComment( comment );
+            if ( !commentService.trackedEntityCommentExists( noteUid ) && !StringUtils.isEmpty( note.getValue() ) )
+            {
+                TrackedEntityComment comment = new TrackedEntityComment();
+                comment.setUid( noteUid );
+                comment.setCommentText( note.getValue() );
+                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
 
-            programInstance.getComments().add( comment );
+                Date created = DateUtils.parseDate( note.getStoredDate() );
+                comment.setCreated( created );
 
-            programInstanceService.updateProgramInstance( programInstance );
+                commentService.addTrackedEntityComment( comment );
+
+                programInstance.getComments().add( comment );
+
+                programInstanceService.updateProgramInstance( programInstance );
+                teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+            }
         }
     }
 
