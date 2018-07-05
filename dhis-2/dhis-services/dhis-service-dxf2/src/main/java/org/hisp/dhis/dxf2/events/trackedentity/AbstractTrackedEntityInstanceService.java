@@ -1077,7 +1077,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 }
             }
         }
-        
+
         if ( params.isIncludeProgramOwners() )
         {
             for ( TrackedEntityProgramOwner programOwner : daoTrackedEntityInstance.getProgramOwners() )
@@ -1088,7 +1088,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes();
+            .getAllUserReadableTrackedEntityAttributes( user );
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {

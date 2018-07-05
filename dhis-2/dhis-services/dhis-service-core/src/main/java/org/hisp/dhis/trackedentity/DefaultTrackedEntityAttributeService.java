@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -50,15 +51,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableSet;
-
+import javax.imageio.ImageIO;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
 
 /**
  * @author Abyot Asalefew
@@ -70,7 +68,7 @@ public class DefaultTrackedEntityAttributeService
     private static final int VALUE_MAX_LENGTH = 50000;
 
     public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
-            ImageIO.getReaderFormatNames() ).build();
+        ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -93,10 +91,10 @@ public class DefaultTrackedEntityAttributeService
 
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -280,19 +278,24 @@ public class DefaultTrackedEntityAttributeService
 
         return null;
     }
-    
+
+    @Override
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
     {
+        return getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
+    {
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
-        
-        User user = currentUserService.getCurrentUser();        
-        
+
         attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
-            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );                
-        
+            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+
         attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );        
-        
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
+
         return attributes;
     }
 
