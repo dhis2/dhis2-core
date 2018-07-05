@@ -101,8 +101,16 @@ public class Note
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
         Note that = (Note) o;
         return Objects.equals( note, that.note ) &&
             Objects.equals( storedDate, that.storedDate ) &&

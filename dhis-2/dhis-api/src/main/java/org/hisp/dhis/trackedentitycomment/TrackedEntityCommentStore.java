@@ -35,8 +35,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface TrackedEntityCommentStore
     extends IdentifiableObjectStore<TrackedEntityComment>
 {
-    //I don't need more methods than exists(), as the comments can be only added. Never updated or deleted. So I am trying to keep it simple.
-
     /**
      * Checks for the existence of a TrackedEntityComment by UID
      *
