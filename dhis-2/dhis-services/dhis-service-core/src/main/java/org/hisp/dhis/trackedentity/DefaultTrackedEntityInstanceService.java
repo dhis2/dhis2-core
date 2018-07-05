@@ -138,7 +138,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Autowired
     private AclService aclService;
-    
+
     @Autowired
     private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
@@ -157,7 +157,6 @@ public class DefaultTrackedEntityInstanceService
         }
 
         decideAccess( params );
-        
         //AccessValidation should be skipped only and only if it is internal service that runs the task (for example sync job)
         if ( !skipAccessValidation )
         {
@@ -170,22 +169,32 @@ public class DefaultTrackedEntityInstanceService
         {
             params.setDefaultPaging();
         }
-        
-        List<TrackedEntityAttribute> readableAttributes = getAttributes( params );
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
 
+        List<TrackedEntityAttribute> readableAttributes = new ArrayList<>();
+        if ( !params.isSynchronizationQuery() )
+        {
+            readableAttributes = getAttributes( params );
+        }
+
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
             addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
 
-            tei.setTrackedEntityAttributeValues(
-                tei.getTrackedEntityAttributeValues().stream()
-                    .filter( av -> readableAttributes.contains( av.getAttribute() ) )
-                    .collect( Collectors.toSet() )
-            );
+            if ( !params.isSynchronizationQuery() )
+            {
+                //variable used in lambda has to be final or effectively final
+                final List<TrackedEntityAttribute> readableAttributesForLambda = readableAttributes;
+
+                tei.setTrackedEntityAttributeValues(
+                    tei.getTrackedEntityAttributeValues().stream()
+                        .filter( av -> readableAttributesForLambda.contains( av.getAttribute() ) )
+                        .collect( Collectors.toSet() )
+                );
+            }
         }
 
         return trackedEntityInstances;
@@ -222,7 +231,7 @@ public class DefaultTrackedEntityInstanceService
         handleAttributes( params );
 
         User user = currentUserService.getCurrentUser();
-        
+
         params.setUser( user );
 
         // ---------------------------------------------------------------------
@@ -279,18 +288,18 @@ public class DefaultTrackedEntityInstanceService
 
         for ( Map<String, String> entity : entities )
         {
-        	if ( user != null && !user.isSuper() && params.hasProgram() && 
-            		( params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) || 
-            				params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED ) ) )
-            {            	
-            	TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
-            	
-            	if ( !trackerOwnershipAccessManager.hasAccess( user, tei, params.getProgram() ) )
-            	{
-            		continue;
-            	}
+            if ( user != null && !user.isSuper() && params.hasProgram() &&
+                (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
+                    params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
+            {
+                TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+
+                if ( !trackerOwnershipAccessManager.hasAccess( user, tei, params.getProgram() ) )
+                {
+                    continue;
+                }
             }
-        	
+
             grid.addRow();
             grid.addValue( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
             grid.addValue( entity.get( CREATED_ID ) );
@@ -305,7 +314,7 @@ public class DefaultTrackedEntityInstanceService
                 grid.addValue( entity.get( DELETED ) );
             }
 
-            tes.add( entity.get( TRACKED_ENTITY_ID ) );            
+            tes.add( entity.get( TRACKED_ENTITY_ID ) );
 
             TrackedEntityType te = trackedEntityTypes.get( entity.get( TRACKED_ENTITY_ID ) );
 
@@ -959,24 +968,24 @@ public class DefaultTrackedEntityInstanceService
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
     }
-    
+
     private List<TrackedEntityAttribute> getAttributes( TrackedEntityInstanceQueryParams params )
     {
-    	
-    	//return attributeService.getAllUserReadableTrackedEntityAttributes();
-    	
-    	List<TrackedEntityAttribute> attributes = new ArrayList<>();
-        
+
+        //return attributeService.getAllUserReadableTrackedEntityAttributes();
+
+        List<TrackedEntityAttribute> attributes = new ArrayList<>();
+
         if ( params.hasTrackedEntityType() )
         {
-        	attributes = params.getTrackedEntityType().getTrackedEntityAttributes();
+            attributes = params.getTrackedEntityType().getTrackedEntityAttributes();
         }
-        
+
         if ( params.hasProgram() )
         {
-        	attributes = params.getProgram().getTrackedEntityAttributes();
+            attributes = params.getProgram().getTrackedEntityAttributes();
         }
-        
+
         return attributes;
     }
 }

@@ -31,8 +31,6 @@ package org.hisp.dhis.trackedentitycomment;
 
 /**
  * @author Chau Thu Tran
- * 
- * @version TrackedEntityCommentService.java 9:27:31 AM Aug 17, 2012 $
  */
 public interface TrackedEntityCommentService
 {
@@ -40,32 +38,38 @@ public interface TrackedEntityCommentService
 
     /**
      * Adds an {@link TrackedEntityComment}
-     * 
+     *
      * @param comment The to TrackedEntityComment add.
-     * 
      * @return A generated unique id of the added {@link TrackedEntityComment}.
      */
     int addTrackedEntityComment( TrackedEntityComment comment );
 
     /**
      * Deletes a {@link TrackedEntityComment}.
-     * 
+     *
      * @param comment the TrackedEntityComment to delete.
      */
     void deleteTrackedEntityComment( TrackedEntityComment comment );
 
     /**
+     * Checks for the existence of a TrackedEntityComment by UID.
+     *
+     * @param uid TrackedEntityComment UID to check for
+     * @return true/false depending on result
+     */
+    boolean trackedEntityCommentExists( String uid );
+
+    /**
      * Updates an {@link TrackedEntityComment}.
-     * 
+     *
      * @param comment the TrackedEntityComment to update.
      */
     void updateTrackedEntityComment( TrackedEntityComment comment );
 
     /**
      * Returns a {@link TrackedEntityComment}.
-     * 
+     *
      * @param id the id of the TrackedEntityComment to return.
-     * 
      * @return the TrackedEntityComment with the given id
      */
     TrackedEntityComment getTrackedEntityComment( int id );
