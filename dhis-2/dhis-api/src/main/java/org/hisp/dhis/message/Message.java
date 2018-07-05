@@ -35,9 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -65,6 +67,11 @@ public class Message
      * Internal message flag. Can only be seen by users in "FeedbackRecipients" group.
      */
     private Boolean internal;
+
+    /**
+     * Attached fileresources
+     */
+    private Set<FileResource> attachments;
 
     public Message()
     {
@@ -152,5 +159,13 @@ public class Message
     public void setInternal( boolean internal )
     {
         this.internal = internal;
+    }
+
+    @JsonProperty
+    //@JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty
+    public Set<FileResource> getAttachments()
+    {
+        return attachments;
     }
 }
