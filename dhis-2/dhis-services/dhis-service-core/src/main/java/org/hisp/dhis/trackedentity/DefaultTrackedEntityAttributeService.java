@@ -288,12 +288,21 @@ public class DefaultTrackedEntityAttributeService
     @Override
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
     {
+        List<Program> programs = programService.getAllPrograms();
+        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+
+        return getAllUserReadableTrackedEntityAttributes( user, programs, trackedEntityTypes );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes )
+    {
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
-        attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
+        attributes = programs.stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
             .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
 
-        attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
+        attributes.addAll( trackedEntityTypes.stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
             .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
 
         return attributes;

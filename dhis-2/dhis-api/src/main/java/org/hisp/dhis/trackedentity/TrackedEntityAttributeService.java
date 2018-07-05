@@ -103,6 +103,8 @@ public interface TrackedEntityAttributeService
 
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user );
 
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes );
+
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
