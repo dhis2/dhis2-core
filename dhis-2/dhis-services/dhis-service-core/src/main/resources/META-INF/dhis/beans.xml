@@ -904,6 +904,8 @@
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
 
+  <bean id="org.hisp.dhis.category.CategoryManager" class="org.hisp.dhis.category.DefaultCategoryManager"/>
+
   <bean id="org.hisp.dhis.category.CategoryService" class="org.hisp.dhis.dataelement.DefaultCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.category.CategoryStore" />
     <property name="categoryOptionStore" ref="org.hisp.dhis.category.CategoryOptionStore" />
@@ -1655,6 +1657,10 @@
   <bean id="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" class="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" />
 
   <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dimension.DataDimensionItemDeletionHandler" class="org.hisp.dhis.dimension.DataDimensionItemDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
