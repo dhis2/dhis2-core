@@ -430,8 +430,8 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
 
         String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31 ?
-            enrollment.getStoredBy() : (
-            StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
+            enrollment.getStoredBy() :
+            (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
 
         if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
         {
@@ -484,7 +484,7 @@ public abstract class AbstractEnrollmentService
 
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -706,7 +706,7 @@ public abstract class AbstractEnrollmentService
         programInstanceService.updateProgramInstance( programInstance );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
