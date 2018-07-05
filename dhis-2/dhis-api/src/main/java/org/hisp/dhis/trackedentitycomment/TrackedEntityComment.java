@@ -31,21 +31,19 @@ package org.hisp.dhis.trackedentitycomment;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Date;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement( localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityComment
+    extends BaseIdentifiableObject
 {
     private int id;
 
     private String commentText;
-
-    private Date createdDate;
 
     private String creator;
 
@@ -57,14 +55,11 @@ public class TrackedEntityComment
     {
     }
 
-    public TrackedEntityComment( String commentText, String creator, Date createdDate )
+    public TrackedEntityComment( String commentText, String creator )
     {
         this.commentText = commentText;
         this.creator = creator;
-        this.createdDate = createdDate;
     }
-
-    //TODO implement hashCode and equals
 
     // -------------------------------------------------------------------------
     // Getters/Setters
@@ -81,7 +76,7 @@ public class TrackedEntityComment
     }
 
     @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCommentText()
     {
         return commentText;
@@ -93,19 +88,7 @@ public class TrackedEntityComment
     }
 
     @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public Date getCreatedDate()
-    {
-        return createdDate;
-    }
-
-    public void setCreatedDate( Date createdDate )
-    {
-        this.createdDate = createdDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCreator()
     {
         return creator;

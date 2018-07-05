@@ -28,15 +28,13 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.Date;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Chau Thu Tran
@@ -54,8 +52,8 @@ public class TrackedEntityCommentServiceTest
     @Override
     public void setUpTest()
     {
-        commentA = new TrackedEntityComment( "A", "Test", new Date() );
-        commentB = new TrackedEntityComment( "B", "Test", new Date() );
+        commentA = new TrackedEntityComment( "A", "Test" );
+        commentB = new TrackedEntityComment( "B", "Test" );
     }
 
     @Test
@@ -98,7 +96,7 @@ public class TrackedEntityCommentServiceTest
         commentA.setCommentText( "B" );
         commentService.updateTrackedEntityComment( commentA );
 
-        assertEquals( "B", commentService.getTrackedEntityComment( idA ).getCommentText());
+        assertEquals( "B", commentService.getTrackedEntityComment( idA ).getCommentText() );
     }
 
     @Test

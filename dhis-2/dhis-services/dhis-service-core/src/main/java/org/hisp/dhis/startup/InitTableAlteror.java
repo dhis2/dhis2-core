@@ -154,10 +154,14 @@ public class InitTableAlteror
         // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
         executeSql( "UPDATE programstagedataelement SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
         executeSql( "ALTER TABLE programstagedataelement ALTER COLUMN skipsynchronization SET NOT NULL" );
-        
+
         executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
         executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramStageInstanceCoordinates();
+
+        //Remove createddate column from trackedentitycomment table
+        executeSql( "UPDATE trackedentitycomment SET created = createddate WHERE created IS NOT NULL;" );
+        executeSql( "ALTER TABLE trackedentitycomment DROP COLUMN createddate;" );
     }
 
     private void updateAndRemoveOldProgramStageInstanceCoordinates()
@@ -166,7 +170,7 @@ public class InitTableAlteror
             "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
             "WHERE longitude IS NOT NULL " +
             "AND latitude IS NOT NULL" +
-            "AND geometry IS NULL");
+            "AND geometry IS NULL" );
 
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );

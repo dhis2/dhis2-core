@@ -231,10 +231,18 @@ public class Attribute
         return result;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return "Attribute{" + "displayName='" + displayName + '\'' + ", attribute='" + attribute + '\'' + ", type='"
-            + valueType + '\'' + ", code='" + code + '\'' + ", value='" + value + '\'' + '}';
+        return "Attribute{" +
+            "displayName='" + displayName + '\'' +
+            ", attribute='" + attribute + '\'' +
+            ", created='" + created + '\'' +
+            ", lastUpdated='" + lastUpdated + '\'' +
+            ", valueType=" + valueType +
+            ", code='" + code + '\'' +
+            ", value='" + value + '\'' +
+            ", storedBy='" + storedBy + '\'' +
+            ", skipSynchronization=" + skipSynchronization +
+            '}';
     }
 }
