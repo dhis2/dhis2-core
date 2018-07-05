@@ -447,20 +447,6 @@ public interface DataElementCategoryService
     void updateOptionCombos( DataElementCategoryCombo categoryCombo );
 
     /**
-     * Generates the complete set of category option combos for the given
-     * category combo. Removes obsolete category option combos.
-     * 
-     * @param categoryCombo the DataElementCategoryCombo.
-     */
-    void addAndPruneOptionCombos( DataElementCategoryCombo categoryCombo );
-
-    /**
-     * Generates the complete set of category option combos for all category
-     * combos.
-     */
-    void addAndPruneAllOptionCombos();
-
-    /**
      * Returns the category option combo with the given uid. Respects access control
      * by only returning objects which all category options are accessible.
      *
