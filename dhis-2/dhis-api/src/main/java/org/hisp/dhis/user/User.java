@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -393,9 +394,9 @@ public class User
         return false;
     }
 
-    public static String getSafeUsername( User user )
+    public static String getSafeUsername( String username )
     {
-        return user != null && user.getUsername() != null ? user.getUsername() : "[Unknown]";
+        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
     }
 
     public boolean hasEmail()

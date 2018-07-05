@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
@@ -52,7 +51,7 @@ public class ProgramOwner
     public ProgramOwner()
     {
     }
-   
+
     public ProgramOwner( TrackedEntityProgramOwner programOwner )
     {
         this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
@@ -119,13 +118,12 @@ public class ProgramOwner
             && Objects.equals( this.ownerOrgUnit, other.ownerOrgUnit );
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "trackedEntityInstance", trackedEntityInstance )
-            .add( "program", program )
-            .add( "ownerOrgUnit", ownerOrgUnit )
-            .toString();
+        return "ProgramOwner{" +
+            "ownerOrgUnit='" + ownerOrgUnit + '\'' +
+            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", program='" + program + '\'' +
+            '}';
     }
 }

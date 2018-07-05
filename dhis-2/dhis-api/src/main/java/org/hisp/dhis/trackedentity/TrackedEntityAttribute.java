@@ -444,4 +444,28 @@ public class TrackedEntityAttribute
         this.skipSynchronization = skipSynchronization;
     }
 
+    @Override public String toString()
+    {
+        return "TrackedEntityAttribute{" +
+            "description='" + description + '\'' +
+            ", formName='" + formName + '\'' +
+            ", valueType=" + valueType +
+            ", inherit=" + inherit +
+            ", optionSet=" + optionSet +
+            ", expression='" + expression + '\'' +
+            ", displayOnVisitSchedule=" + displayOnVisitSchedule +
+            ", sortOrderInVisitSchedule=" + sortOrderInVisitSchedule +
+            ", displayInListNoProgram=" + displayInListNoProgram +
+            ", sortOrderInListNoProgram=" + sortOrderInListNoProgram +
+            ", confidential=" + confidential +
+            ", unique=" + unique +
+            ", generated=" + generated +
+            ", pattern='" + pattern + '\'' +
+            ", textPattern=" + textPattern +
+            ", style=" + style +
+            ", orgunitScope=" + orgunitScope +
+            ", programScope=" + programScope +
+            ", skipSynchronization=" + skipSynchronization +
+            '}';
+    }
 }

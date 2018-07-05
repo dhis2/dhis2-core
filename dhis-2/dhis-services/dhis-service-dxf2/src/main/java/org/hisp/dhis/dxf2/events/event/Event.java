@@ -103,7 +103,7 @@ public class Event
     private String completedBy;
 
     private String completedDate;
-    
+
     private int optionSize;
 
     private Geometry geometry;
@@ -432,14 +432,16 @@ public class Event
     {
         this.deleted = deleted;
     }
-    
-    public int getOptionSize() {
-		return optionSize;
-	}
 
-	public void setOptionSize(int optionSize) {
-		this.optionSize = optionSize;
-	}
+    public int getOptionSize()
+    {
+        return optionSize;
+    }
+
+    public void setOptionSize( int optionSize )
+    {
+        this.optionSize = optionSize;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -465,7 +467,7 @@ public class Event
         this.geometry = geometry;
     }
 
-	@Override
+    @Override
     public boolean equals( Object o )
     {
         if ( this == o ) return true;
@@ -484,25 +486,38 @@ public class Event
         return event != null ? event.hashCode() : 0;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "Event{" +
-            "event='" + event + '\'' +
+            "uid='" + uid + '\'' +
+            ", event='" + event + '\'' +
             ", status=" + status +
             ", program='" + program + '\'' +
             ", programStage='" + programStage + '\'' +
+            ", enrollment='" + enrollment + '\'' +
+            ", enrollmentStatus=" + enrollmentStatus +
             ", orgUnit='" + orgUnit + '\'' +
+            ", orgUnitName='" + orgUnitName + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", relationships=" + relationships +
             ", eventDate='" + eventDate + '\'' +
             ", dueDate='" + dueDate + '\'' +
             ", storedBy='" + storedBy + '\'' +
+            ", coordinate=" + coordinate +
             ", dataValues=" + dataValues +
-            ", attributeOptionCombo=" + attributeOptionCombo +
-            ", attributeCategoryOptions=" + attributeCategoryOptions +
-            ", completedBy=" + completedBy +
-            ", completedDate=" + completedDate +
+            ", notes=" + notes +
+            ", followup=" + followup +
             ", deleted=" + deleted +
+            ", created='" + created + '\'' +
+            ", lastUpdated='" + lastUpdated + '\'' +
+            ", createdAtClient='" + createdAtClient + '\'' +
+            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
+            ", attributeOptionCombo='" + attributeOptionCombo + '\'' +
+            ", attributeCategoryOptions='" + attributeCategoryOptions + '\'' +
+            ", completedBy='" + completedBy + '\'' +
+            ", completedDate='" + completedDate + '\'' +
+            ", optionSize=" + optionSize +
+            ", geometry=" + geometry +
             '}';
     }
 }
