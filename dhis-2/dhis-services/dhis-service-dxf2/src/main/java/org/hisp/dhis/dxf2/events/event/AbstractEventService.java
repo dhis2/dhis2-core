@@ -1102,10 +1102,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, null, importOptions.getUser().getUsername() );
+        String storedBy = getStoredBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getCompletedBy( event, null, importOptions.getUser().getUsername() );
+        String completedBy = getCompletedBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1280,7 +1280,7 @@ public abstract class AbstractEventService
         User currentUser = currentUserService.getCurrentUser();
 
         saveTrackedEntityComment( programStageInstance, event,
-            getStoredBy( event, null, currentUser.getUsername() ) );
+            getStoredBy( event, null, currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser );
     }
@@ -1536,8 +1536,8 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, importSummary, importOptions.getUser().getUsername() );
-        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser().getUsername() );
+        String storedBy = getStoredBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         CategoryOptionCombo aoc = null;
 
