@@ -135,7 +135,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
@@ -458,16 +458,17 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        
+
         User user = currentUserService.getCurrentUser();
 
         if ( entityInstance != null )
         {
-            if( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-            {                
-                return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
+            if ( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities
+                    .F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
             }
-            
+
             teiService.deleteTrackedEntityInstance( entityInstance );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
         }
@@ -844,14 +845,14 @@ public abstract class AbstractTrackedEntityInstanceService
         FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
         return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
     }
-    
+
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
         TrackedEntityInstanceParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
             return null;
-        }        
+        }
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
@@ -905,7 +906,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes( user );
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {

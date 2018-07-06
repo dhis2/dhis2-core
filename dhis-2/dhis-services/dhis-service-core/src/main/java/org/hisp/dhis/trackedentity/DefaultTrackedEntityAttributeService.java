@@ -86,10 +86,10 @@ public class DefaultTrackedEntityAttributeService
 
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -285,19 +285,23 @@ public class DefaultTrackedEntityAttributeService
 
         return null;
     }
-    
+
+    @Override
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
     {
+        return getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() );
+    }
+
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
+    {
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
-        
-        User user = currentUserService.getCurrentUser();        
-        
+
         attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
-            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );                
-        
+            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+
         attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );        
-        
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
+
         return attributes;
     }
 
