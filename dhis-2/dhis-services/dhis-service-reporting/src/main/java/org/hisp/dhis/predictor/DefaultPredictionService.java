@@ -159,7 +159,7 @@ public class DefaultPredictionService
         Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
         Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
 
-        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroupss(), jobId );
+        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), jobId );
     }
 
     @Override

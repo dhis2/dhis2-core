@@ -29,7 +29,6 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.List;
@@ -96,7 +95,7 @@ public class PredictorJobParameters
         this.predictors = predictors;
     }
 
-    public List<String> getPredictorGroupss()
+    public List<String> getPredictorGroups()
     {
         return predictorGroups;
     }
