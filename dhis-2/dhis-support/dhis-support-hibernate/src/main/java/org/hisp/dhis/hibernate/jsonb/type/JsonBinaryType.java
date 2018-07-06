@@ -58,7 +58,6 @@ public class JsonBinaryType implements UserType, ParameterizedType
     static
     {
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-        MAPPER.enableDefaultTyping();
     }
 
     private ObjectWriter writer;
@@ -190,6 +189,8 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     private void init( Class klass )
     {
+        MAPPER.enableDefaultTyping();
+
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );

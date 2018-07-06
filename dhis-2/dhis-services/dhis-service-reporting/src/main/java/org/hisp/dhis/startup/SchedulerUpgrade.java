@@ -35,17 +35,30 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.transaction.Transactional;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.hisp.dhis.scheduling.JobType.*;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.META_DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.PROGRAM_NOTIFICATIONS;
+import static org.hisp.dhis.scheduling.JobType.PUSH_ANALYSIS;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.hisp.dhis.scheduling.JobType.SEND_SCHEDULED_MESSAGE;
 
 /**
  * Handles porting from the old scheduler to the new.
@@ -63,6 +76,9 @@ public class SchedulerUpgrade
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private JobConfigurationService jobConfigurationService;
 
@@ -83,9 +99,16 @@ public class SchedulerUpgrade
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
             .getSystemSetting( "keySchedTasks" );
 
-        if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
+        if ( scheduledSystemSettings != null && ( scheduledSystemSettings.containsKey( "ported" ) || scheduledSystemSettings.containsKey( "portedV31" ) ) )
         {
-            log.info( "Scheduler ported" );
+            if ( scheduledSystemSettings.containsKey( "portedV31" ) )
+            {
+                log.info( "Scheduler ported" );
+            }
+            else
+            {
+                v31upgrade();
+            }
             return;
         }
 
@@ -180,5 +203,61 @@ public class SchedulerUpgrade
             log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
             systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
         }
+    }
+
+    private void v31upgrade()
+    {
+        log.info( "Running V31 scheduler upgrade" );
+
+        List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
+
+        jobConfigurations.forEach(jobConfiguration -> {
+            byte[] jobParametersByte = jdbcTemplate.queryForObject(
+                "select jobparameters from jobconfiguration where jobconfigurationid=" + jobConfiguration.getId(),
+                (rs, rowNum) -> rs.getBytes(1));
+
+            if ( jobParametersByte != null )
+            {
+                Object jParaB = null;
+                try
+                {
+                    jParaB = toObject( jobParametersByte );
+                }
+                catch ( IOException | ClassNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+
+                JobParameters jobParameters = jobConfiguration.getJobType().getJobParameters().cast( jParaB );
+                jobConfiguration.setJobParameters( jobParameters );
+
+                jobConfigurationService.updateJobConfiguration( jobConfiguration );
+            }
+        });
+
+        ListMap<String, String> emptySystemSetting = new ListMap<>();
+        emptySystemSetting.putValue( "portedV31", "" );
+
+        log.info( "Upgrade to V31 scheduler finished. Setting system settings key 'keySchedTasks' to 'portedV31'." );
+        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
+    }
+
+    public static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
     }
 }

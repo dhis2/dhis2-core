@@ -1331,6 +1331,9 @@ public class TableAlteror
         executeSql( "alter table relativeperiods alter column last4Weeks set not null" );
         executeSql( "alter table relativeperiods alter column last12Weeks set not null" );
         executeSql( "alter table relativeperiods alter column last52Weeks set not null" );
+
+        // Remove old serialized jobparameters column for job configuration object
+        executeSql( "alter table jobconfiguration drop column jobparameters" );
     }
 
     private void updateNameColumnLengths()
