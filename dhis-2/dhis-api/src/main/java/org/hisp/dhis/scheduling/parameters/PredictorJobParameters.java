@@ -38,7 +38,7 @@ import java.util.List;
  * @author Henning Håkonsen
  */
 public class PredictorJobParameters
-    implements JobParameters
+    extends JobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
@@ -104,11 +104,5 @@ public class PredictorJobParameters
     public void setPredictorGroups( List<String> predictorGroups )
     {
         this.predictorGroups = predictorGroups;
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return null;
     }
 }

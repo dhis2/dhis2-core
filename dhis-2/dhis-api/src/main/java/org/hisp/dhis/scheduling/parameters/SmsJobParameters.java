@@ -38,7 +38,7 @@ import java.util.List;
  * @author Henning Håkonsen
  */
 public class SmsJobParameters
-    implements JobParameters
+    extends JobParameters
 {
     private static final long serialVersionUID = -6116489359345047961L;
 
@@ -90,11 +90,5 @@ public class SmsJobParameters
     public void setMessage( String message )
     {
         this.message = message;
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return null;
     }
 }

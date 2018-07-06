@@ -37,8 +37,11 @@ import java.io.Serializable;
  *
  * @author Henning Håkonsen
  */
-public interface JobParameters
-    extends Serializable
+public abstract class JobParameters
+    implements Serializable
 {
-    ErrorReport validate();
+    public ErrorReport validate()
+    {
+        return null;
+    }
 }
