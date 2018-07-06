@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.user.User;
 
 import java.util.List;
 import java.util.Set;
@@ -148,6 +149,8 @@ public interface TrackedEntityAttributeService
      * @return
      */
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
+
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user );
 
     /**
      * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
