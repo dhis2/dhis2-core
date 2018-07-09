@@ -30,8 +30,8 @@ package org.hisp.dhis.dimension;
  *
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -63,7 +63,7 @@ public class DataDimensionItemDeletionHandler
     }
 
     @Override
-    public String allowDataElementDeleteCategoryOptionCombo( DataElementCategoryCombo optionCombo )
+    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo optionCombo )
     {
         String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid=" + optionCombo.getId();
 

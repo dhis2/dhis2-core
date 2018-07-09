@@ -981,9 +981,4 @@ public abstract class DeletionHandler
     {
         return null;
     }
-
-    public String allowDataElementDeleteCategoryOptionCombo( DataElementCategoryCombo optionCombo )
-    {
-        return null;
-    }
 }
