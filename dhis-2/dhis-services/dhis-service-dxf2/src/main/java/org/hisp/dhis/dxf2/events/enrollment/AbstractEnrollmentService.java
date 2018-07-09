@@ -934,6 +934,11 @@ public abstract class AbstractEnrollmentService
         }
     }
 
+    private boolean doValidationOfMandatoryAttributes( User user )
+    {
+        return !( user != null && user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() ) );
+    }
+
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
@@ -967,10 +972,8 @@ public abstract class AbstractEnrollmentService
         {
             Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
 
-            if ( mandatory && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
+            if ( mandatory && doValidationOfMandatoryAttributes( importOptions.getUser() ) && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
             {
-
-
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
                     + trackedEntityAttribute.getUid() ) );
                 continue;
