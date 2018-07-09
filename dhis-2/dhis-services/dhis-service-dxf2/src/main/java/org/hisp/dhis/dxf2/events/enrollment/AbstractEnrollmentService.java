@@ -936,12 +936,7 @@ public abstract class AbstractEnrollmentService
 
     private boolean doValidationOfMandatoryAttributes( User user )
     {
-        if ( user != null && user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() ) )
-        {
-            return false;
-        }
-
-        return true;
+        return !( user != null && user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() ) );
     }
 
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )

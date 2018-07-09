@@ -1040,12 +1040,6 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, User user )
-    {
-        return getTei( daoTrackedEntityInstance, params, manager.getAll( Program.class ), manager.getAll( TrackedEntityType.class ), user );
-    }
-
-    private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
         TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes, User user )
     {
         if ( daoTrackedEntityInstance == null )
