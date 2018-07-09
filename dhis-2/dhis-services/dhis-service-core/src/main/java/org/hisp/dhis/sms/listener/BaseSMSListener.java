@@ -55,6 +55,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 11.08.17.
@@ -173,8 +174,15 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     protected Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
     {
+        User user = getUser( sms );
+
+        if ( user == null )
+        {
+            return new HashSet<>();
+        }
+
         return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
-            Collections.singleton( getUser( sms ) ) );
+            Collections.singleton( user ) ).get( user.getUid() );
     }
 
     protected User getUser( IncomingSms sms )
@@ -323,21 +331,17 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     {
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
-        if ( orgUnits == null || orgUnits.isEmpty() )
-        {
-            return false;
-        }
+        return !( orgUnits == null || orgUnits.isEmpty() );
 
-        return true;
     }
 
     private boolean hasMultipleOrganisationUnits( IncomingSms sms, SMSCommand smsCommand )
     {
-        if ( getOrganisationUnits( sms ).size() > 1 )
-        {
-            return true;
-        }
+        List<User> users = userService.getUsersByPhoneNumber( sms.getOriginator() );
 
-        return false;
+        Set<OrganisationUnit> organisationUnits = users.stream().flatMap( user -> user.getOrganisationUnits().stream() )
+            .collect( Collectors.toSet() );
+
+        return organisationUnits.size() > 1;
     }
 }
