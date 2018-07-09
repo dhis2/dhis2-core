@@ -408,7 +408,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         userC = createUser( 'C' );
         userC.setPhoneNumber( ORIGINATOR );
-        userC.setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+        userC.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
         userWithNoOu = createUser( 'V' );
         userWithNoOu.setPhoneNumber( null );
