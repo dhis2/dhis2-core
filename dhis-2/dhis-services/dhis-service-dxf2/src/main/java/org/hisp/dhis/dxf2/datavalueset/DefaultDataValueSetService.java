@@ -85,7 +85,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
