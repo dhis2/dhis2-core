@@ -50,6 +50,7 @@ public class SecurityUtils
     /**
      * Generates a QR URL using Google chart API.
      *
+     * @param appName the name of the DHIS 2 instance.
      * @param user the user to generate the URL for.
      * @return a QR URL.
      */
