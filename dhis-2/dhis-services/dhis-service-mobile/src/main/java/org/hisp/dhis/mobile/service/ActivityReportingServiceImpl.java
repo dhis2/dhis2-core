@@ -239,7 +239,7 @@ public class ActivityReportingServiceImpl
         MessageConversation conversation = messageService
             .getMessageConversation( Integer.parseInt( message.getSubject() ) );
 
-        messageService.sendReply( conversation, message.getText(), metaData, false );
+        messageService.sendReply( conversation, message.getText(), metaData, false, null );
 
         return MESSAGE_SENT;
     }

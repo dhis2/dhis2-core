@@ -69,7 +69,7 @@ public class Message
     private Boolean internal;
 
     /**
-     * Attached fileresources
+     * Attached files
      */
     private Set<FileResource> attachments;
 
@@ -167,5 +167,10 @@ public class Message
     public Set<FileResource> getAttachments()
     {
         return attachments;
+    }
+
+    public void setAttachments( Set<FileResource> attachments )
+    {
+        this.attachments = attachments;
     }
 }

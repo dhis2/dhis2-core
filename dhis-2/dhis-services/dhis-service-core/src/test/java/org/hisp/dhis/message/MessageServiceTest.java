@@ -202,7 +202,7 @@ public class MessageServiceTest
         message.addMessage( new Message( "TextA", "MetaA", sender) );
         int id = messageService.saveMessageConversation( message );
         
-        messageService.sendReply( message, "TextB", "MetaB", false );
+        messageService.sendReply( message, "TextB", "MetaB", false, null );
         
         message = messageService.getMessageConversation( id );
         

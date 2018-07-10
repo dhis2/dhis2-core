@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -218,11 +219,13 @@ public class DefaultMessageService
     }
 
     @Override
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 
         Message message = new Message( text, metaData, sender, internal );
+
+        message.setAttachments( attachments );
 
         conversation.markReplied( sender, message );
 

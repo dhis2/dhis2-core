@@ -34,6 +34,8 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.MessageConversationPriority;
@@ -55,6 +57,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -103,6 +106,9 @@ public class MessageConversationController
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Override
     protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
@@ -297,6 +303,7 @@ public class MessageConversationController
         @PathVariable( "uid" ) String uid,
         @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
+        @RequestParam( value = "attachments", required = false ) Set<String> attachments,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -314,7 +321,7 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, message, metaData, internal );
+        messageService.sendReply( conversation, message, metaData, internal, getFileResources( attachments ) );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
@@ -903,5 +910,24 @@ public class MessageConversationController
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
+    }
+
+    private Set<FileResource> getFileResources( Set<String> ids ) throws NotFoundException
+    {
+        if ( ids == null )
+        {
+            return null;
+        }
+
+        Set<FileResource> files = ids.stream()
+            .map( fileResourceService::getFileResource )
+            .collect( Collectors.toSet() );
+
+        if ( files.contains( null ) )
+        {
+            throw new NotFoundException();
+        }
+
+        return files;
     }
 }

@@ -100,9 +100,9 @@ public class MessageConversationStoreTest
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        messageService.sendReply( mc, "Message 1", "Meta", false );
-        messageService.sendReply( mc, "Message 2", "Meta", false );
-        messageService.sendReply( mc, "Message 3", "Meta", false );
+        messageService.sendReply( mc, "Message 1", "Meta", false, null );
+        messageService.sendReply( mc, "Message 2", "Meta", false, null );
+        messageService.sendReply( mc, "Message 3", "Meta", false, null );
 
         int conversationB = messageService.sendMessage( messageService.createPrivateMessage( usersA, "Subject2", "Text", "Meta" ).build() );
         mc = messageService.getMessageConversation( conversationB );
