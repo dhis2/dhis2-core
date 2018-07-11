@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -59,6 +60,7 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -83,6 +85,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.configureFileResourceResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -821,6 +825,22 @@ public class MessageConversationController
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
+    }
+
+
+    @RequestMapping( value = "/{mcUid}/{msgUid}/attachment/{fileUid}", method = RequestMethod.GET )
+    public void getAttchment(
+        @PathVariable( value = "mcUid" ) String mcUid,
+        @PathVariable( value = "msgUid" ) String msgUid,
+        @PathVariable( value = "fileUid" ) String fileUid,
+        HttpServletResponse response )
+        throws WebMessageException
+    {
+        /* TODO: check auth */
+
+        fileResourceService.getFileResource( fileUid );
+
+        configureFileResourceResponse( response, fileResourceService.getFileResource( fileUid ), fileResourceService);
     }
 
     //--------------------------------------------------------------------------

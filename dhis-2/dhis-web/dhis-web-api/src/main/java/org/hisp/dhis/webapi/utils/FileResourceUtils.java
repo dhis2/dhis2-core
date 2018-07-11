@@ -30,11 +30,22 @@ package org.hisp.dhis.webapi.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 
+import com.google.common.io.ByteSource;
+import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Lars Helge Overland
@@ -76,5 +87,54 @@ public class FileResourceUtils
         }
 
         return true;
+    }
+
+    public static void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource, FileResourceService fileResourceService )
+        throws WebMessageException
+    {
+        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+
+        if ( content == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "The referenced file could not be found" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Attempt to build signed URL request for content and redirect
+        // ---------------------------------------------------------------------
+
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+
+        if ( signedGetUri != null )
+        {
+            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
+            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------
+        // Build response and return
+        // ---------------------------------------------------------------------
+
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        // ---------------------------------------------------------------------
+        // Request signing is not available, stream content back to client
+        // ---------------------------------------------------------------------
+
+        try (InputStream in = content.openStream())
+        {
+            IOUtils.copy( in, response.getOutputStream() );
+        }
+        catch ( IOException e )
+        {
+            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. " +
+                    "Depending on the provider the root cause could be network or file system related." ) );
+        }
     }
 }
