@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.security;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -55,6 +57,9 @@ public class SecurityController
 {
     @Autowired
     private CurrentUserService currentUserService;
+    
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
@@ -66,7 +71,9 @@ public class SecurityController
             throw new BadCredentialsException( "No current user" );
         }
 
-        String url = SecurityUtils.generateQrUrl( currentUser );
+        String appName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        
+        String url = SecurityUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", url );
