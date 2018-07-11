@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.List;
@@ -37,7 +38,7 @@ import java.util.List;
  * @author Henning Håkonsen
  */
 public class PredictorJobParameters
-    extends JobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
@@ -103,5 +104,11 @@ public class PredictorJobParameters
     public void setPredictorGroups( List<String> predictorGroups )
     {
         this.predictorGroups = predictorGroups;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
     }
 }

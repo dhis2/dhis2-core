@@ -37,7 +37,7 @@ import org.hisp.dhis.scheduling.JobParameters;
  * @author Henning Håkonsen
  */
 public class PushAnalysisJobParameters
-    extends JobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 

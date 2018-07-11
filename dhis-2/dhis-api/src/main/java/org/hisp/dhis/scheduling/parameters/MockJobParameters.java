@@ -37,7 +37,7 @@ import org.hisp.dhis.scheduling.JobParameters;
  * @author Henning Håkonsen
  */
 public class MockJobParameters
-    extends JobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 3600315605964091689L;
 
@@ -63,5 +63,11 @@ public class MockJobParameters
     public void setMessage( String message )
     {
         this.message = message;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
     }
 }

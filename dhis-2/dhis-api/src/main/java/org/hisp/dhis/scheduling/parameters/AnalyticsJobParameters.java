@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.HashSet;
@@ -39,7 +40,7 @@ import java.util.Set;
  * @author Henning Håkonsen
  */
 public class AnalyticsJobParameters
-    extends JobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 4613054056442242637L;
 
@@ -76,5 +77,11 @@ public class AnalyticsJobParameters
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
     }
 }

@@ -1,13 +1,7 @@
-package org.hisp.dhis.scheduling.parameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import java.util.List;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,67 +28,46 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Properties;
+
 /**
  * @author Henning Håkonsen
  */
-public class SmsJobParameters
-    implements JobParameters
+@SuppressWarnings("rawtypes")
+public class JsonJobParametersType extends JsonBinaryType
 {
-    private static final long serialVersionUID = -6116489359345047961L;
-
-    @JsonProperty
-    private String smsSubject;
-
-    @JsonProperty
-    private List<String> recipientsList;
-
-    @JsonProperty
-    private String message;
-
-    public SmsJobParameters()
-    {
-    }
-
-    public SmsJobParameters( String smsSubject, String message, List<String> recipientsList )
-    {
-        this.smsSubject = smsSubject;
-        this.recipientsList = recipientsList;
-        this.message = message;
-    }
-
-    public String getSmsSubject()
-    {
-        return smsSubject;
-    }
-
-    public void setSmsSubject( String smsSubject )
-    {
-        this.smsSubject = smsSubject;
-    }
-
-    public List<String> getRecipientsList()
-    {
-        return recipientsList;
-    }
-
-    public void setRecipientsList( List<String> recipientsList )
-    {
-        this.recipientsList = recipientsList;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
     @Override
-    public ErrorReport validate()
+    public void setParameterValues( Properties parameters )
     {
-        return null;
+        final String clazz = (String) parameters.get( "clazz" );
+
+        if ( clazz == null )
+        {
+            throw new IllegalArgumentException(
+                String.format( "Required parameter '%s' is not configured", "clazz" ) );
+        }
+
+        try
+        {
+            init( classForName( clazz ) );
+        }
+        catch ( ClassNotFoundException e )
+        {
+            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
+        }
+    }
+
+    private void init( Class klass )
+    {
+        ObjectMapper MAPPER = new ObjectMapper();
+        MAPPER.enableDefaultTyping();
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+
+        returnedClass = klass;
+        reader = MAPPER.readerFor( klass );
+        writer = MAPPER.writerFor( klass );
     }
 }

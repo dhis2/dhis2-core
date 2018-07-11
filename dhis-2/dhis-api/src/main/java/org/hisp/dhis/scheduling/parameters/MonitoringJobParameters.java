@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @author Stian Sandvold
  */
 public class MonitoringJobParameters
-    extends JobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = -1683853240301569669L;
 
