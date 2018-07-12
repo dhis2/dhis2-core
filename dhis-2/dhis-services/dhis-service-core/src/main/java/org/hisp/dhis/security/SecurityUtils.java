@@ -1,6 +1,13 @@
 package org.hisp.dhis.security;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.jboss.aerogear.security.otp.Totp;
+import org.springframework.util.Assert;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,15 +37,6 @@ import org.apache.commons.lang3.StringUtils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.jboss.aerogear.security.otp.Totp;
-import org.springframework.util.Assert;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 /**
  * @author Henning Håkonsen
  */
@@ -58,7 +56,7 @@ public class SecurityUtils
     {
         Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
         
-        String app = APP_NAME_PREFIX + StringUtils.stripToEmpty( appName );
+        String app = "";//APP_NAME_PREFIX + StringUtils.stripToEmpty( appName );
 
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
             app, user.getUsername(), user.getUserCredentials().getSecret(), app );
