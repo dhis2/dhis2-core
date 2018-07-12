@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -39,11 +38,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.message.MessageConversationPriority;
-import org.hisp.dhis.message.MessageConversationStatus;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.message.UserMessage;
+import org.hisp.dhis.message.*;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -58,9 +53,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -325,7 +318,7 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, message, metaData, internal, getFileResources( attachments ) );
+        messageService.sendReply( conversation, message, metaData, internal, validateFileResources( attachments ) );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
@@ -828,7 +821,7 @@ public class MessageConversationController
     }
 
 
-    @RequestMapping( value = "/{mcUid}/{msgUid}/attachment/{fileUid}", method = RequestMethod.GET )
+    @RequestMapping( value = "/{mcUid}/{msgUid}/attachments/{fileUid}", method = RequestMethod.GET )
     public void getAttchment(
         @PathVariable( value = "mcUid" ) String mcUid,
         @PathVariable( value = "msgUid" ) String msgUid,
@@ -836,11 +829,52 @@ public class MessageConversationController
         HttpServletResponse response )
         throws WebMessageException
     {
-        /* TODO: check auth */
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( mcUid );
 
-        fileResourceService.getFileResource( fileUid );
+        User user = currentUserService.getCurrentUser();
 
-        configureFileResourceResponse( response, fileResourceService.getFileResource( fileUid ), fileResourceService);
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+        }
+
+        if ( !canReadMessageConversation( user, conversation ) )
+        {
+            throw new AccessDeniedException( "Not authorized to access this conversation." );
+
+        }
+
+         List<FileResource> file = conversation.getMessages().stream()
+             .filter( msg -> msg.getUid().equals( msgUid ) )
+             .map( Message::getAttachments )
+             .flatMap( Collection::stream )
+             .filter( fr -> fr.getUid().equals( fileUid ) )
+             .collect( Collectors.toList() );
+
+        if ( file.size() < 1 )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No file attachment '%s' found in message '%s'", fileUid, msgUid ) ) );
+
+        }
+
+        configureFileResourceResponse( response, file.get( 0 ), fileResourceService );
+    }
+
+    //--------------------------------------------------------------------------
+    // Hooks
+    //--------------------------------------------------------------------------
+
+    @Override
+    protected void preDeleteEntity( org.hisp.dhis.message.MessageConversation conversation ) throws Exception
+    {
+        //TODO: make a bulk operation to avoid the update loop
+        conversation.getMessages().stream()
+            .map( Message::getAttachments )
+            .flatMap( Collection::stream )
+            .forEach( fr -> {
+                fr.setAssigned( false );
+                fileResourceService.updateFileResource( fr );
+            } );
     }
 
     //--------------------------------------------------------------------------
@@ -932,7 +966,7 @@ public class MessageConversationController
         return responseNode;
     }
 
-    private Set<FileResource> getFileResources( Set<String> ids ) throws NotFoundException
+    private Set<FileResource> validateFileResources( Set<String> ids ) throws WebMessageException
     {
         if ( ids == null )
         {
@@ -945,7 +979,7 @@ public class MessageConversationController
 
         if ( files.contains( null ) )
         {
-            throw new NotFoundException();
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "'%s' contains invalid file ids", ids.toString() ) ) );
         }
 
         return files;

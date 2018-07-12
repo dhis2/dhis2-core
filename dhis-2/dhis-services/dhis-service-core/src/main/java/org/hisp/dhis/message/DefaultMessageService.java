@@ -227,6 +227,8 @@ public class DefaultMessageService
 
         message.setAttachments( attachments );
 
+        attachments.stream().forEach( fr -> fr.setAssigned( true ) );
+
         conversation.markReplied( sender, message );
 
         updateMessageConversation( conversation );
