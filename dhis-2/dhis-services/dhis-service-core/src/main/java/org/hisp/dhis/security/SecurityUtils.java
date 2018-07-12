@@ -56,9 +56,8 @@ public class SecurityUtils
     public static String generateQrUrl( String appName, User user )
     {
         Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
-        
-        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
 
+        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
             app, user.getUsername(), user.getUserCredentials().getSecret(), app );
 
