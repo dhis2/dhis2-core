@@ -1,5 +1,6 @@
 package org.hisp.dhis.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.jboss.aerogear.security.otp.Totp;
@@ -56,7 +57,7 @@ public class SecurityUtils
     {
         Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
         
-        String app = "";//APP_NAME_PREFIX + StringUtils.stripToEmpty( appName );
+        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "" );
 
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
             app, user.getUsername(), user.getUserCredentials().getSecret(), app );
