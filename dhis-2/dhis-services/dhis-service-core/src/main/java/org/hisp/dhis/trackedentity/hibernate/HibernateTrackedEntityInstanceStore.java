@@ -200,7 +200,7 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( params.hasProgramStatus() )
             {
-                hql += hlp.whereAnd() + "pi.status = " + params.getProgramStatus();
+                hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
             }
 
             if ( params.hasFollowUp() )

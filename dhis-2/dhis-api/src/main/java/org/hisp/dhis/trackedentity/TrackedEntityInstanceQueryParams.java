@@ -203,6 +203,11 @@ public class TrackedEntityInstanceQueryParams
      */
     private List<String> orders;
 
+    /**
+     * All readable TrackedEntityAttribute of current User
+     */
+    private Set<TrackedEntityAttribute> readableAttributes = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -939,5 +944,15 @@ public class TrackedEntityInstanceQueryParams
     public void setOrders( List<String> orders )
     {
         this.orders = orders;
+    }
+
+    public Set<TrackedEntityAttribute> getReadableAttributes()
+    {
+        return this.readableAttributes;
+    }
+
+    public void setReadableAttributes( Set<TrackedEntityAttribute> readableAttributes )
+    {
+        this.readableAttributes = readableAttributes;
     }
 }
