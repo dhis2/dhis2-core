@@ -95,6 +95,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
+        entry.setAllowMultiple( true );
         notificationLoggingService.save( entry );
     }
 
@@ -125,6 +126,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
+        entry.setAllowMultiple( true );
         notificationLoggingService.save( entry );
 
     }
