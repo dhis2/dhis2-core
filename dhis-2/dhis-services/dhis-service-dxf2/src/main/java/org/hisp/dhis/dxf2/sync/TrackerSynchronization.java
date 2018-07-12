@@ -108,6 +108,7 @@ public class TrackerSynchronization
 
         queryParams.setPageSize( trackerSyncPageSize );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
+        params.setIncludeDeleted( true );
         boolean syncResult = true;
 
         for ( int i = 1; i <= pages; i++ )
