@@ -57,7 +57,7 @@ public class SecurityUtils
     {
         Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
         
-        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "" );
+        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
 
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
             app, user.getUsername(), user.getUserCredentials().getSecret(), app );
