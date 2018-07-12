@@ -52,6 +52,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -398,9 +399,6 @@ public abstract class AbstractTrackedEntityInstanceService
         updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
-        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
-        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
-
         teiService.updateTrackedEntityInstance( daoEntityInstance );
 
         importSummary.setReference( daoEntityInstance.getUid() );
@@ -484,8 +482,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
-        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
-        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
+        daoEntityInstance.setGeometry( dtoEntityInstance.getGeometry() );
 
         removeAttributeValues( daoEntityInstance );
 
@@ -1058,9 +1055,14 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance
             .setLastUpdatedAtClient( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
-        trackedEntityInstance.setFeatureType( daoTrackedEntityInstance.getFeatureType() );
-        trackedEntityInstance.setCoordinates( daoTrackedEntityInstance.getCoordinates() );
+        trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
+
+        if ( daoTrackedEntityInstance.getGeometry() != null )
+        {
+            trackedEntityInstance.setFeatureType( FeatureType.getTypeFromName( daoTrackedEntityInstance.getGeometry().getGeometryType() ) );
+            trackedEntityInstance.setCoordinates( daoTrackedEntityInstance.getGeometry().getCoordinate().x + "," + daoTrackedEntityInstance.getGeometry().getCoordinate().y );
+        }
 
         if ( params.isIncludeRelationships() )
         {
