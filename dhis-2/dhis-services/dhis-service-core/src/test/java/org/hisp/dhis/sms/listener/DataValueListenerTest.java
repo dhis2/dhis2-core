@@ -64,6 +64,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import static org.junit.Assert.*;
@@ -137,6 +138,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private DataSet dataSet;
     private Period period;
     private User user;
+    private User userB;
+    private User userC;
     private User userWithNoOu;
     private User userwithMultipleOu;
 
@@ -274,13 +277,36 @@ public class DataValueListenerTest extends DhisConvenienceTest
     public void testIfUserHasMultipleOUs()
     {
         incomingSms.setUser( userwithMultipleOu );
+
         when( userService.getUser( anyString() ) ).thenReturn( userwithMultipleOu );
+        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( userwithMultipleOu ) );
 
         dataValueSMSListener.receive( incomingSms );
 
         assertEquals( message, SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
         assertNull( updatedIncomingSms );
         verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
+
+        keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
+        dataValueSMSListener.receive( incomingSms );
+
+        // system will use custom message
+        assertEquals( message, MORE_THAN_ONE_OU );
+    }
+
+    @Test
+    public void testIfDiffUsersHasSameOU()
+    {
+        incomingSms.setUser( user );
+
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( user, userB ) );
+
+        dataValueSMSListener.receive( incomingSms );
+
+        assertEquals( message, SUCCESS_MESSAGE );
+
+        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( user, userC ) );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
         dataValueSMSListener.receive( incomingSms );
@@ -374,7 +400,15 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         user = createUser( 'U' );
         user.setPhoneNumber( ORIGINATOR );
-        user.setOrganisationUnits( Sets.newHashSet(organisationUnitA) );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        userB = createUser( 'B' );
+        userB.setPhoneNumber( ORIGINATOR );
+        userB.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        userC = createUser( 'C' );
+        userC.setPhoneNumber( ORIGINATOR );
+        userC.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
         userWithNoOu = createUser( 'V' );
         userWithNoOu.setPhoneNumber( null );
