@@ -1112,7 +1112,10 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Validation result notification';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
-        
+
+        // Remove old serialized jobparameters column for job configuration object
+        executeSql( "alter table jobconfiguration drop column jobparameters" );
+
         log.info( "Tables updated" );
 
     }
@@ -1331,9 +1334,6 @@ public class TableAlteror
         executeSql( "alter table relativeperiods alter column last4Weeks set not null" );
         executeSql( "alter table relativeperiods alter column last12Weeks set not null" );
         executeSql( "alter table relativeperiods alter column last52Weeks set not null" );
-
-        // Remove old serialized jobparameters column for job configuration object
-        executeSql( "alter table jobconfiguration drop column jobparameters" );
     }
 
     private void updateNameColumnLengths()
