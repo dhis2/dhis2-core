@@ -1,5 +1,9 @@
 package org.hisp.dhis.fileresource;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.message.Message;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -29,27 +33,39 @@ package org.hisp.dhis.fileresource;
  */
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Kristian Wærstad
  */
-public enum FileResourceDomain
+public class MessageAttachment
+    extends BaseIdentifiableObject implements MetadataObject
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" );
+    private FileResource attachment;
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    /* Avoiding unidirectional one-to-many mapping */
+    private Message message;
 
-    FileResourceDomain( String containerName )
+    public MessageAttachment( Message message, FileResource attachment)
     {
-        this.containerName = containerName;
+        this.message = message;
+        this.attachment = attachment;
     }
 
-    public String getContainerName()
+    public FileResource getAttachment()
     {
-        return containerName;
+        return attachment;
+    }
+
+    public void setFileResource( FileResource fileResource )
+    {
+        this.attachment = fileResource;
+    }
+
+    public Message getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage( Message message )
+    {
+        this.message = message;
     }
 }

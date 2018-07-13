@@ -29,27 +29,20 @@ package org.hisp.dhis.fileresource;
  */
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Kristian Wærstad
  */
-public enum FileResourceDomain
+public interface MessageAttachmentService
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" );
+    /**
+     * Retrieves the MessageAttachment with the given uid
+     * @param uid uid of the MessageAttachment to retrieve
+     * @return MessageAttachment, null if not found
+     */
+    MessageAttachment getMessagettachment( String uid );
 
     /**
-     * Container name to use when storing blobs of this FileResourceDomain
+     * Persists the MessageAttachment object
+     * @param messageAttachment object to persist
      */
-    private String containerName;
-
-    FileResourceDomain( String containerName )
-    {
-        this.containerName = containerName;
-    }
-
-    public String getContainerName()
-    {
-        return containerName;
-    }
+    void saveMessageAttachment( MessageAttachment messageAttachment );
 }

@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
@@ -71,7 +72,7 @@ public class Message
     /**
      * Attached files
      */
-    private Set<FileResource> attachments;
+    private Set<MessageAttachment> attachments;
 
     public Message()
     {
@@ -164,12 +165,12 @@ public class Message
     @JsonProperty
     //@JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty
-    public Set<FileResource> getAttachments()
+    public Set<MessageAttachment> getAttachments()
     {
         return attachments;
     }
 
-    public void setAttachments( Set<FileResource> attachments )
+    public void setAttachments( Set<MessageAttachment> attachments )
     {
         this.attachments = attachments;
     }
