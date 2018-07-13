@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,8 +44,10 @@ public class TrackedEntityInstanceParams
     private boolean includeEnrollments;
 
     private boolean includeEvents;
-    
+
     private boolean includeProgramOwners;
+
+    private boolean includeDeleted = false;
 
     public TrackedEntityInstanceParams()
     {
@@ -58,7 +59,7 @@ public class TrackedEntityInstanceParams
         this.includeEnrollments = includeEnrollments;
         this.includeEvents = includeEvents;
     }
-    
+
     public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
         boolean includeProgramOwners )
     {
@@ -100,7 +101,7 @@ public class TrackedEntityInstanceParams
     {
         this.includeEvents = includeEvents;
     }
-    
+
     @JsonProperty
     public boolean isIncludeProgramOwners()
     {
@@ -112,13 +113,25 @@ public class TrackedEntityInstanceParams
         this.includeProgramOwners = includeProgramOwners;
     }
 
-    @Override
-    public String toString()
+    @JsonProperty
+    public boolean isIncludeDeleted()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "includeRelationships", includeRelationships )
-            .add( "includeEnrollments", includeEnrollments )
-            .add( "includeEvents", includeEvents )
-            .toString();
+        return includeDeleted;
+    }
+
+    public void setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+    }
+
+    @Override public String toString()
+    {
+        return "TrackedEntityInstanceParams{" +
+            "includeRelationships=" + includeRelationships +
+            ", includeEnrollments=" + includeEnrollments +
+            ", includeEvents=" + includeEvents +
+            ", includeProgramOwners=" + includeProgramOwners +
+            ", includeDeleted=" + includeDeleted +
+            '}';
     }
 }
