@@ -151,8 +151,6 @@ public class Relationship
             ", relationship='" + relationship + '\'' +
             ", from=" + from +
             ", to=" + to +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
             '}';
     }
 }

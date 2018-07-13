@@ -393,28 +393,18 @@ public class Enrollment
     {
         return "Enrollment{" +
             "enrollment='" + enrollment + '\'' +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
-            ", createdAtClient='" + createdAtClient + '\'' +
-            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
             ", trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", program='" + program + '\'' +
             ", status=" + status +
             ", orgUnit='" + orgUnit + '\'' +
-            ", orgUnitName='" + orgUnitName + '\'' +
             ", enrollmentDate=" + enrollmentDate +
             ", incidentDate=" + incidentDate +
             ", events=" + events +
             ", relationships=" + relationships +
             ", attributes=" + attributes +
             ", notes=" + notes +
-            ", followup=" + followup +
-            ", completedBy='" + completedBy + '\'' +
-            ", completedDate=" + completedDate +
-            ", coordinate=" + coordinate +
             ", deleted=" + deleted +
-            ", storedBy='" + storedBy + '\'' +
             '}';
     }
 }
