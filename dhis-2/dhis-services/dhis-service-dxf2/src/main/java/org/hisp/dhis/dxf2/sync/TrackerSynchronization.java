@@ -107,8 +107,7 @@ public class TrackerSynchronization
         log.info( "Tracker sync job has " + pages + " pages to sync. With page size: " + trackerSyncPageSize );
 
         queryParams.setPageSize( trackerSyncPageSize );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
-        params.setIncludeDeleted( true );
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.DATA_SYNCHRONIZATION;
         boolean syncResult = true;
 
         for ( int i = 1; i <= pages; i++ )
