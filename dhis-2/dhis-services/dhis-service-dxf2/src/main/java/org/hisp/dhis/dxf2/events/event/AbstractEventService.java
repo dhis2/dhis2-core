@@ -93,7 +93,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
-import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -778,10 +777,7 @@ public abstract class AbstractEventService
             return null;
         }
 
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
-
         Event event = new Event();
-
         event.setEvent( programStageInstance.getUid() );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
@@ -859,6 +855,7 @@ public abstract class AbstractEventService
             value.setValue( dataValue.getValue() );
             value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
             value.setStoredBy( dataValue.getStoredBy() );
+            value.setSkipSynchronization( dataValue.isSkipSynchronization() );
 
             event.getDataValues().add( value );
         }
@@ -1144,6 +1141,8 @@ public abstract class AbstractEventService
             if ( !importOptions.isSkipNotifications() )
             {
                 enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
+
+                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1639,14 +1638,12 @@ public abstract class AbstractEventService
 
     private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
     {
-        if ( !importOptions.isSkipNotifications() )
+        if ( programStageInstance.isCompleted() )
         {
-            if ( programStageInstance.isCompleted() )
+            if ( !importOptions.isSkipNotifications() )
             {
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
-
-            enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
         }
     }
 
