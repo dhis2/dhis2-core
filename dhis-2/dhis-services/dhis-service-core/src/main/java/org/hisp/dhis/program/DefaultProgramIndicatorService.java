@@ -329,33 +329,35 @@ public class DefaultProgramIndicatorService
 
             if ( func != null && arguments != null )
             {
-                String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
-
-                for ( int i = 0; i < args.length; i++ )
-                {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
-                        reportingStartDate, reportingEndDate );
-                    args[i] = arg;
-                }
-
                 String result = "";
                 
-                SqlFunction sqlFunction = SQL_FUNC_MAP.get( func );
+                String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
 
-                if ( sqlFunction != null )
+                ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
+                
+                if ( piFunction != null )
                 {
-                    result = sqlFunction.evaluate( args );
+                    result = piFunction.evaluate( programIndicator, reportingStartDate, reportingEndDate, args );
                 }
                 else
                 {
-                    ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
-                    
-                    if ( piFunction == null )
+                    SqlFunction sqlFunction = SQL_FUNC_MAP.get( func );
+    
+                    if ( sqlFunction != null )
+                    {
+                        for ( int i = 0; i < args.length; i++ )
+                        {
+                            String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
+                                reportingStartDate, reportingEndDate );
+                            args[i] = arg;
+                        }
+                        
+                        result = sqlFunction.evaluate( args );
+                    }
+                    else
                     {
                         throw new IllegalStateException( "Function not recognized: " + func );
                     }
-                    
-                    result = piFunction.evaluate( programIndicator, reportingStartDate, reportingEndDate, args );
                 }
 
                 matcher.appendReplacement( buffer, result );

@@ -3,8 +3,6 @@ package org.hisp.dhis.program;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.apache.commons.lang3.StringUtils;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.

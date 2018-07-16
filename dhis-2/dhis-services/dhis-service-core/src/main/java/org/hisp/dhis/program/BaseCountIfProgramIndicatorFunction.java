@@ -11,7 +11,7 @@ public abstract class BaseCountIfProgramIndicatorFunction
 
     public static final String PROGRAM_STAGE_REGEX_GROUP = "p";
     public static final String DATA_ELEMENT_REGEX_GROUP = "de";
-    public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11})_(?<"+ DATA_ELEMENT_REGEX_GROUP + ">\\w{11})"; 
+    public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "#\\{(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11}).(?<"+ DATA_ELEMENT_REGEX_GROUP + ">\\w{11})\\}"; 
     public static final Pattern COHORT_HAVING_DATA_ELEMENT_PATTERN = Pattern.compile( COHORT_HAVING_DATA_ELEMENT_REGEX );
 
     public String countWhereCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String element, String condition )
