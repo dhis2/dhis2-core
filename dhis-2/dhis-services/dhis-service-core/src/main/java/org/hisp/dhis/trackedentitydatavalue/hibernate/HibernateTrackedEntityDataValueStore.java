@@ -76,7 +76,6 @@ public class HibernateTrackedEntityDataValueStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( ProgramStageInstance programStageInstance )
     {
         List<TrackedEntityDataValue> dataValues = new ArrayList<>();
