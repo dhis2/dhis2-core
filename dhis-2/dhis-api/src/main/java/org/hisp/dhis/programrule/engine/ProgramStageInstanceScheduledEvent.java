@@ -28,38 +28,24 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class ProgramRuleEngineListener
+public class ProgramStageInstanceScheduledEvent extends ApplicationEvent
 {
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private ProgramStageInstance programStageInstance;
 
-    @EventListener
-    public void listenEvent( TrackedEntityInstanceEnrolledEvent event )
+    public ProgramStageInstanceScheduledEvent( Object source, ProgramStageInstance programStageInstance )
     {
-        programRuleEngineService.evaluate( event.getProgramInstance() );
+        super( source );
+        this.programStageInstance = programStageInstance;
     }
 
-    @EventListener
-    public void listenEvent( DataValueUpdatedEvent event )
+    public ProgramStageInstance getProgramStageInstance()
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
-    }
-
-    @EventListener
-    public void listenEvent( ProgramStageInstanceCompletedEvent event )
-    {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
-    }
-
-    @EventListener
-    public void listenEvent( ProgramStageInstanceScheduledEvent event )
-    {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        return programStageInstance;
     }
 }
