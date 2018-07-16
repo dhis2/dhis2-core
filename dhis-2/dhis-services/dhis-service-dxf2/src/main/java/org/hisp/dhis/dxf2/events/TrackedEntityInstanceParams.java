@@ -39,6 +39,8 @@ public class TrackedEntityInstanceParams
 
     public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false );
 
+    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true, true, true, true );
+
     private boolean includeRelationships;
 
     private boolean includeEnrollments;
@@ -53,13 +55,6 @@ public class TrackedEntityInstanceParams
     {
     }
 
-    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents )
-    {
-        this.includeRelationships = includeRelationships;
-        this.includeEnrollments = includeEnrollments;
-        this.includeEvents = includeEvents;
-    }
-
     public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
         boolean includeProgramOwners )
     {
@@ -67,6 +62,16 @@ public class TrackedEntityInstanceParams
         this.includeEnrollments = includeEnrollments;
         this.includeEvents = includeEvents;
         this.includeProgramOwners = includeProgramOwners;
+    }
+
+    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
+        boolean includeProgramOwners, boolean includeDeleted )
+    {
+        this.includeRelationships = includeRelationships;
+        this.includeEnrollments = includeEnrollments;
+        this.includeEvents = includeEvents;
+        this.includeProgramOwners = includeProgramOwners;
+        this.includeDeleted = includeDeleted;
     }
 
     @JsonProperty
