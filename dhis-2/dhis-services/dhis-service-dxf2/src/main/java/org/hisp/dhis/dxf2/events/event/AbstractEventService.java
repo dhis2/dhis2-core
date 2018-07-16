@@ -777,10 +777,7 @@ public abstract class AbstractEventService
             return null;
         }
 
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
-
         Event event = new Event();
-
         event.setEvent( programStageInstance.getUid() );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
@@ -858,6 +855,7 @@ public abstract class AbstractEventService
             value.setValue( dataValue.getValue() );
             value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
             value.setStoredBy( dataValue.getStoredBy() );
+            value.setSkipSynchronization( dataValue.isSkipSynchronization() );
 
             event.getDataValues().add( value );
         }

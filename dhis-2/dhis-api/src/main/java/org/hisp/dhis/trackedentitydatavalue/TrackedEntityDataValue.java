@@ -72,6 +72,8 @@ public class TrackedEntityDataValue
 
     private transient String auditValue;
 
+    private transient boolean skipSynchronization = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -161,14 +163,6 @@ public class TrackedEntityDataValue
         return true;
     }
 
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityDataValue{" + "dataElement=" + dataElement + ", programStageInstance=" + programStageInstance
-            + ", lastUpdated=" + lastUpdated + ", value='" + value + '\'' + ", providedElsewhere=" + providedElsewhere
-            + ", storedBy='" + storedBy + '\'' + '}';
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -254,5 +248,29 @@ public class TrackedEntityDataValue
     public String getAuditValue()
     {
         return auditValue;
+    }
+
+    public Boolean isSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( Boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
+    }
+
+    @Override public String toString()
+    {
+        return "TrackedEntityDataValue{" +
+            "dataElement=" + dataElement +
+            ", programStageInstance=" + programStageInstance.getUid() +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", value='" + value + '\'' +
+            ", providedElsewhere=" + providedElsewhere +
+            ", storedBy='" + storedBy + '\'' +
+            ", skipSynchronization='" + skipSynchronization + '\'' +
+            '}';
     }
 }

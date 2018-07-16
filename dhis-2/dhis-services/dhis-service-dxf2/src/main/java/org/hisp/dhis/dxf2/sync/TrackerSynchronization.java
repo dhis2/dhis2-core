@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
@@ -116,6 +118,7 @@ public class TrackerSynchronization
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
             filterOutAttributesMarkedWithSkipSynchronizationFlag( dtoTeis );
+            filterOutDataValuesMarkedWithSkipSynchronizationFlag( dtoTeis );
             log.info( String.format( "Syncing page %d, page size is: %d", i, trackerSyncPageSize ) );
 
             if ( log.isDebugEnabled() )
@@ -156,6 +159,22 @@ public class TrackerSynchronization
                     .filter( attr -> !attr.isSkipSynchronization() )
                     .collect( Collectors.toList() )
             );
+        }
+    }
+
+    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( List<TrackedEntityInstance> dtoTeis )
+    {
+        for ( TrackedEntityInstance tei : dtoTeis )
+        {
+            for ( Enrollment enrollment : tei.getEnrollments() )
+            {
+                for ( Event event : enrollment.getEvents() )
+                {
+                    event.setDataValues( event.getDataValues().stream()
+                        .filter( dv -> !dv.isSkipSynchronization() )
+                        .collect( Collectors.toList() ) );
+                }
+            }
         }
     }
 
