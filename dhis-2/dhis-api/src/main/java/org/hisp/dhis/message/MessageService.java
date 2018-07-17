@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
@@ -57,7 +57,7 @@ public interface MessageService
 
     int sendSystemErrorNotification( String subject, Throwable t );
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean interna, Set<FileResource> attachemnts );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean interna, Set<MessageAttachment> attachemnts );
 
     int saveMessageConversation( MessageConversation conversation );
 

@@ -34,8 +34,7 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.*;
@@ -54,6 +53,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -68,9 +68,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,8 +80,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.configureFileResourceResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -106,6 +106,12 @@ public class MessageConversationController
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
+
+    @Autowired
+    private MessageAttachmentService messageAttachmentService;
 
     @Override
     protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
@@ -318,7 +324,7 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, message, metaData, internal, validateFileResources( attachments ) );
+        messageService.sendReply( conversation, message, metaData, internal, getAttachments( attachments ) );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
@@ -820,6 +826,20 @@ public class MessageConversationController
         return responseNode;
     }
 
+    @RequestMapping( value = "/attachments", method = RequestMethod.POST )
+    public @ResponseBody
+    MessageAttachment uploadAttachment( @RequestParam MultipartFile file )
+        throws WebMessageException, IOException
+    {
+        FileResource fr = fileResourceUtils.saveFile( file, FileResourceDomain.MESSAGE_ATTACHMENT );
+
+        MessageAttachment attachment = new MessageAttachment( null, fr );
+
+        messageAttachmentService.saveMessageAttachment( attachment );
+
+        return attachment;
+    }
+
 
     @RequestMapping( value = "/{mcUid}/{msgUid}/attachments/{fileUid}", method = RequestMethod.GET )
     public void getAttchment(
@@ -848,33 +868,16 @@ public class MessageConversationController
              .filter( msg -> msg.getUid().equals( msgUid ) )
              .map( Message::getAttachments )
              .flatMap( Collection::stream )
-             .filter( fr -> fr.getUid().equals( fileUid ) )
+             .filter( attachment -> attachment.getUid().equals( fileUid ) )
+             .map( MessageAttachment::getAttachment )
              .collect( Collectors.toList() );
 
         if ( file.size() < 1 )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No file attachment '%s' found in message '%s'", fileUid, msgUid ) ) );
-
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No attachment '%s' found in message '%s'", fileUid, msgUid ) ) );
         }
 
-        configureFileResourceResponse( response, file.get( 0 ), fileResourceService );
-    }
-
-    //--------------------------------------------------------------------------
-    // Hooks
-    //--------------------------------------------------------------------------
-
-    @Override
-    protected void preDeleteEntity( org.hisp.dhis.message.MessageConversation conversation ) throws Exception
-    {
-        //TODO: make a bulk operation to avoid the update loop
-        conversation.getMessages().stream()
-            .map( Message::getAttachments )
-            .flatMap( Collection::stream )
-            .forEach( fr -> {
-                fr.setAssigned( false );
-                fileResourceService.updateFileResource( fr );
-            } );
+        fileResourceUtils.configureFileResourceResponse( response, file.get( 0 ) );
     }
 
     //--------------------------------------------------------------------------
@@ -966,22 +969,22 @@ public class MessageConversationController
         return responseNode;
     }
 
-    private Set<FileResource> validateFileResources( Set<String> ids ) throws WebMessageException
+    private Set<MessageAttachment> getAttachments( Set<String> ids ) throws WebMessageException
     {
         if ( ids == null )
         {
             return null;
         }
 
-        Set<FileResource> files = ids.stream()
-            .map( fileResourceService::getFileResource )
-            .collect( Collectors.toSet() );
+        Set<MessageAttachment> attachments = ids.stream()
+            .map( messageAttachmentService::getMessagettachment )
+            .collect( Collectors.toSet());
 
-        if ( files.contains( null ) )
+        if ( attachments.contains( null ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( String.format( "'%s' contains invalid file ids", ids.toString() ) ) );
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "'%s' contains invalid attachment ids", ids.toString() ) ) );
         }
 
-        return files;
+        return attachments;
     }
 }

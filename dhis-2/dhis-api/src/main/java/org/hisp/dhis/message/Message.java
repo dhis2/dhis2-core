@@ -40,6 +40,7 @@ import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**

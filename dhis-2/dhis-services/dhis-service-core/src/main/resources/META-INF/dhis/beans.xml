@@ -794,6 +794,11 @@
     <property name="locationManager" ref="locationManager" />
   </bean>
 
+  <bean id="org.hisp.dhis.fileresource.MessageAttachmentStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.fileresource.MessageAttachment" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
     <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -986,6 +991,7 @@
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="messageAttachmentService" ref="org.hisp.dhis.fileresource.MessageAttachmentService" />
   </bean>
 
   <bean id="emailMessageSender" class="org.hisp.dhis.message.EmailMessageSender">
@@ -1129,6 +1135,10 @@
   <bean id="org.hisp.dhis.icon.IconService" class="org.hisp.dhis.icon.DefaultIconService" />
 
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
+
+  <bean id="org.hisp.dhis.fileresource.MessageAttachmentService" class="org.hisp.dhis.fileresource.DefaultMessageAttachmentService">
+          <property name="messageAttachmentStore" ref="org.hisp.dhis.fileresource.MessageAttachmentStore" />
+  </bean>
 
   <!-- SMS Services -->
 

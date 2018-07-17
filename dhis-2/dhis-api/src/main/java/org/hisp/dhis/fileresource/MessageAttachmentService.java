@@ -28,6 +28,10 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.message.Message;
+
+import java.util.Set;
+
 /**
  * @author Kristian Wærstad
  */
@@ -45,4 +49,11 @@ public interface MessageAttachmentService
      * @param messageAttachment object to persist
      */
     void saveMessageAttachment( MessageAttachment messageAttachment );
+
+    /**
+     * Do the necessary updates to link a set of messageAttachments to a message
+     * @param attachments attachments to link
+     * @param message message to link attachments to
+     */
+    void linkAttachments( Set<MessageAttachment> attachments, Message message );
 }

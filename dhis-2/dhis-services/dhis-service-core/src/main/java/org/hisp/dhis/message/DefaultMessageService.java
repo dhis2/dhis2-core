@@ -36,7 +36,8 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.MessageAttachment;
+import org.hisp.dhis.fileresource.MessageAttachmentService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -124,6 +125,13 @@ public class DefaultMessageService
         this.messageSenders = messageSenders;
 
         log.info( "Found the following message senders: " + messageSenders );
+    }
+
+    private MessageAttachmentService messageAttachmentService;
+
+    public void setMessageAttachmentService( MessageAttachmentService messageAttachmentService )
+    {
+        this.messageAttachmentService = messageAttachmentService;
     }
 
     // -------------------------------------------------------------------------
@@ -219,15 +227,14 @@ public class DefaultMessageService
     }
 
     @Override
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<MessageAttachment> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 
         Message message = new Message( text, metaData, sender, internal );
 
         message.setAttachments( attachments );
-
-        attachments.stream().forEach( fr -> fr.setAssigned( true ) );
+        messageAttachmentService.linkAttachments( attachments, message );
 
         conversation.markReplied( sender, message );
 

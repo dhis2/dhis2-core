@@ -15,9 +15,16 @@
         </id>
         &identifiableProperties;
 
-        <one-to-one name="attachment" class="org.hisp.dhis.fileresource.FileResource" constrained="true" />
+        <many-to-one name="attachment"
+                     class="org.hisp.dhis.fileresource.FileResource"
+                     column="fileresourceid" foreign-key="fk_messageattachment_fileresource"
+                     not-null="true" />
 
-        <many-to-one name="message" class="org.hisp.dhis.message.Message" column="messageid" foreign-key="fk_messageattachment_message" not-null="true" unique="true" />
+        <many-to-one name="message"
+                     class="org.hisp.dhis.message.Message"
+                     column="messageid"
+                     foreign-key="fk_messageattachment_message"
+                     not-null="false" />
 
     </class>
 </hibernate-mapping>

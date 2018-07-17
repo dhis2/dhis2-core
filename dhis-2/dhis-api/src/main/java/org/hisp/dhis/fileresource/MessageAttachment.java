@@ -43,8 +43,14 @@ public class MessageAttachment
     /* Avoiding unidirectional one-to-many mapping */
     private Message message;
 
+    public MessageAttachment()
+    {
+
+    }
+
     public MessageAttachment( Message message, FileResource attachment)
     {
+        super.setAutoFields();
         this.message = message;
         this.attachment = attachment;
     }
@@ -54,7 +60,7 @@ public class MessageAttachment
         return attachment;
     }
 
-    public void setFileResource( FileResource fileResource )
+    public void setAttachment( FileResource fileResource )
     {
         this.attachment = fileResource;
     }
