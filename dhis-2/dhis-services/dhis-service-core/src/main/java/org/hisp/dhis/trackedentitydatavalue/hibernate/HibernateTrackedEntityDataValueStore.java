@@ -76,14 +76,21 @@ public class HibernateTrackedEntityDataValueStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( ProgramStageInstance programStageInstance )
+    {
+        return getCriteria( Restrictions.eq( "programStageInstance", programStageInstance ) ).list();
+    }
+
+    @Override
+    public List<TrackedEntityDataValue> getTrackedEntityDataValuesForSynchronization( ProgramStageInstance programStageInstance )
     {
         List<TrackedEntityDataValue> dataValues = new ArrayList<>();
 
-        String sql = "SELECT tedv.*, psde.skipsynchronization " +
-            "FROM trackedentitydatavalue tedv LEFT JOIN programstageinstance psi on tedv.programstageinstanceid = psi.programstageinstanceid " +
+        String sql = "SELECT tedv.* FROM trackedentitydatavalue tedv " +
+            "LEFT JOIN programstageinstance psi on tedv.programstageinstanceid = psi.programstageinstanceid " +
             "LEFT JOIN programstagedataelement psde ON tedv.dataelementid = psde.dataelementid AND psi.programstageid = psde.programstageid " +
-            "WHERE tedv.programstageinstanceid = " + programStageInstance.getId();
+            "WHERE tedv.programstageinstanceid = " + programStageInstance.getId() + " AND psde.skipsynchronization = false";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -93,7 +100,6 @@ public class HibernateTrackedEntityDataValueStore
 
             tedv.setCreated( rowSet.getDate( "created" ) );
             tedv.setLastUpdated( rowSet.getDate( "lastupdated" ) );
-            tedv.setSkipSynchronization( rowSet.getBoolean( "skipsynchronization" ) );
             tedv.setProgramStageInstance( programStageInstance );
             tedv.setValue( rowSet.getString( "value" ) );
             tedv.setStoredBy( rowSet.getString( "storedby" ) );

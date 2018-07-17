@@ -69,6 +69,8 @@ public interface EventService
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
+    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery );
+
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;

@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -64,9 +63,6 @@ import static org.junit.Assert.assertTrue;
 public class TrackedEntityDataValueStoreTest
     extends DhisSpringTest
 {
-    @Autowired
-    private SessionFactory sessionFactory;
-
     @Autowired
     private TrackedEntityDataValueStore dataValueStore;
 
@@ -188,9 +184,6 @@ public class TrackedEntityDataValueStoreTest
         dataValueStore.saveVoid( dataValueB );
         dataValueStore.saveVoid( dataValueC );
         dataValueStore.saveVoid( dataValueD );
-
-        sessionFactory.getCurrentSession().flush();
-        sessionFactory.getCurrentSession().clear();
 
         List<TrackedEntityDataValue> dataValues = dataValueStore.get( stageInstanceA );
 
