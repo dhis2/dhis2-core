@@ -81,8 +81,8 @@ public class HibernateTrackedEntityDataValueStore
         List<TrackedEntityDataValue> dataValues = new ArrayList<>();
 
         String sql = "SELECT tedv.*, psde.skipsynchronization " +
-            "FROM trackedentitydatavalue tedv JOIN programstageinstance psi on tedv.programstageinstanceid = psi.programstageinstanceid " +
-            "JOIN programstagedataelement psde ON tedv.dataelementid = psde.dataelementid AND psi.programstageid = psde.programstageid " +
+            "FROM trackedentitydatavalue tedv LEFT JOIN programstageinstance psi on tedv.programstageinstanceid = psi.programstageinstanceid " +
+            "LEFT JOIN programstagedataelement psde ON tedv.dataelementid = psde.dataelementid AND psi.programstageid = psde.programstageid " +
             "WHERE tedv.programstageinstanceid = " + programStageInstance.getId();
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
