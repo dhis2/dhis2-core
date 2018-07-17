@@ -28,16 +28,7 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -57,12 +48,25 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Chau Thu Tran
  */
 public class TrackedEntityDataValueStoreTest
     extends DhisSpringTest
 {
+    @Autowired
+    private SessionFactory sessionFactory;
+
     @Autowired
     private TrackedEntityDataValueStore dataValueStore;
 
@@ -185,7 +189,11 @@ public class TrackedEntityDataValueStoreTest
         dataValueStore.saveVoid( dataValueC );
         dataValueStore.saveVoid( dataValueD );
 
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
+
         List<TrackedEntityDataValue> dataValues = dataValueStore.get( stageInstanceA );
+
         assertEquals( 2, dataValues.size() );
         assertTrue( dataValues.contains( dataValueA ) );
         assertTrue( dataValues.contains( dataValueB ) );
