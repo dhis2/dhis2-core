@@ -338,7 +338,7 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( !programStageInstance.isDeleted() && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
+                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
                 {
                     enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
                 }
@@ -936,7 +936,7 @@ public abstract class AbstractEnrollmentService
 
     private boolean doValidationOfMandatoryAttributes( User user )
     {
-        return !( user != null && user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() ) );
+        return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
     }
 
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
