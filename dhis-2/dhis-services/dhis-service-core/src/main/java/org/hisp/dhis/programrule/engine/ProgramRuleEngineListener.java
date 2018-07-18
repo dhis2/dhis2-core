@@ -56,4 +56,10 @@ public class ProgramRuleEngineListener
     {
         programRuleEngineService.evaluate( event.getProgramStageInstance() );
     }
+
+    @EventListener
+    public void listenEvent( ProgramStageInstanceScheduledEvent event )
+    {
+        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+    }
 }
