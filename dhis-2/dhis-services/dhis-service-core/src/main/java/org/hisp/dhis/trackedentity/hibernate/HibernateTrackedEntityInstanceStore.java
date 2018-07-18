@@ -187,7 +187,7 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( !params.isIncludeDeleted() )
             {
-                hql += hlp.whereAnd() + "pi.deleted is false";
+                hql += hlp.whereAnd() + "pi.deleted is false ";
             }
 
         }
