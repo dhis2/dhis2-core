@@ -140,7 +140,7 @@ public class DefaultTrackedEntityInstanceService
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
-        
+
         decideAccess( params );
         validate( params );
         
@@ -150,16 +150,16 @@ public class DefaultTrackedEntityInstanceService
         {
             params.setDefaultPaging();
         }
-        
-        Set<TrackedEntityAttribute> readableAttributes = attributeService.getAllUserReadableTrackedEntityAttributes();
-            
+
+        Set<TrackedEntityAttribute> readableAttributes = params.getReadableAttributes();
+
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
- 
+
         for( TrackedEntityInstance tei : trackedEntityInstances )
         {             
             tei.setTrackedEntityAttributeValues( tei.getTrackedEntityAttributeValues().stream().filter( av -> readableAttributes.contains( av.getAttribute() ) ).collect( Collectors.toSet() ) );
         }
-        
+
         return trackedEntityInstances;
         
     }
