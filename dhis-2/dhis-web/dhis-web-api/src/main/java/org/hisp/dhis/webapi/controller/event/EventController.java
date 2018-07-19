@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import com.vividsolutions.jts.io.ParseException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -106,10 +107,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -496,6 +499,7 @@ public class EventController
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -511,14 +515,16 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-
+        
+        Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
+        
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null, false,
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ), false, eventIds, filter, dataElementOrders.keySet(), false,
             includeDeleted );
 
         Events events = eventService.getEvents( params );
@@ -580,6 +586,8 @@ public class EventController
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
@@ -588,13 +596,19 @@ public class EventController
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        List<Order> schemaOrders = getOrderParams( order );
+        
+        Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
+        
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null, false,
+            idSchemes, page, pageSize, totalPages, skipPaging, schemaOrders, getGridOrderParams( order, dataElementOrders ), false, eventIds, filter, dataElementOrders.keySet(), false,
             includeDeleted );
 
         Events events = eventService.getEvents( params );
@@ -1013,6 +1027,30 @@ public class EventController
     // Helpers
     // -------------------------------------------------------------------------
 
+    private Map<String,String> getDataElementsFromOrder( String allOrders )
+    {
+        Map<String,String> dataElements = new HashMap<String, String>();
+        
+        if ( allOrders != null )
+        {
+            for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
+            {
+                String[] orderParts = order.split( ":" );
+                DataElement de = dataElementService.getDataElement( orderParts[0] );
+                if ( de != null )
+                {
+                    String direction = "asc";
+                    if ( orderParts.length == 2 && orderParts[1].toLowerCase().equals( "desc" ) )
+                    {
+                        direction = "desc";
+                    }
+                    dataElements.put( de.getUid(), direction );
+                }
+            }
+        }
+        return dataElements;
+    }
+    
     /**
      * Starts an asynchronous import task.
      *
@@ -1065,11 +1103,31 @@ public class EventController
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
         {
-
             return Arrays.asList( order.split( "," ) );
         }
 
         return null;
+    }
+    
+    private List<String> getGridOrderParams( String order, Map<String,String> dataElementOrders )
+    {
+        List<String> dataElementOrderList = new ArrayList<String>();
+        
+        if ( order != null && !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
+        {
+            List<String> orders = Arrays.asList( order.split( ";" ) );
+            
+            for ( String orderItem : orders )
+            {
+                String dataElementCandidate = orderItem.split( ":" )[0];
+                if( dataElementOrders.keySet().contains( dataElementCandidate ) )
+                {
+                    dataElementOrderList.add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
+                }
+            }
+        }
+        
+        return dataElementOrderList;
     }
 
     private Map<Object, Object> getMetaData( Program program )
