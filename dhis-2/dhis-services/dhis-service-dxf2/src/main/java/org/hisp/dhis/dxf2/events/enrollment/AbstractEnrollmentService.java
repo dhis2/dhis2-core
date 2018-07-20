@@ -340,7 +340,7 @@ public abstract class AbstractEnrollmentService
             {
                 if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
                 {
-                    enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery() ) );
                 }
             }
         }

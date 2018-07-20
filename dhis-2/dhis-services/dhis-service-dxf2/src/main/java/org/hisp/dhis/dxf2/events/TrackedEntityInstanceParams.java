@@ -39,7 +39,7 @@ public class TrackedEntityInstanceParams
 
     public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true, true, true, true );
+    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true, true, true, true, true );
 
     private boolean includeRelationships;
 
@@ -50,6 +50,8 @@ public class TrackedEntityInstanceParams
     private boolean includeProgramOwners;
 
     private boolean includeDeleted = false;
+
+    private boolean dataSynchronizationQuery = false;
 
     public TrackedEntityInstanceParams()
     {
@@ -65,13 +67,14 @@ public class TrackedEntityInstanceParams
     }
 
     public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
-        boolean includeProgramOwners, boolean includeDeleted )
+        boolean includeProgramOwners, boolean includeDeleted, boolean dataSynchronizationQuery )
     {
         this.includeRelationships = includeRelationships;
         this.includeEnrollments = includeEnrollments;
         this.includeEvents = includeEvents;
         this.includeProgramOwners = includeProgramOwners;
         this.includeDeleted = includeDeleted;
+        this.dataSynchronizationQuery = dataSynchronizationQuery;
     }
 
     @JsonProperty
@@ -129,6 +132,17 @@ public class TrackedEntityInstanceParams
         this.includeDeleted = includeDeleted;
     }
 
+    @JsonProperty
+    public boolean isDataSynchronizationQuery()
+    {
+        return dataSynchronizationQuery;
+    }
+
+    public void setDataSynchronizationQuery( boolean dataSynchronizationQuery )
+    {
+        this.dataSynchronizationQuery = dataSynchronizationQuery;
+    }
+
     @Override public String toString()
     {
         return "TrackedEntityInstanceParams{" +
@@ -137,6 +151,7 @@ public class TrackedEntityInstanceParams
             ", includeEvents=" + includeEvents +
             ", includeProgramOwners=" + includeProgramOwners +
             ", includeDeleted=" + includeDeleted +
+            ", dataSynchronizationQuery=" + dataSynchronizationQuery +
             '}';
     }
 }

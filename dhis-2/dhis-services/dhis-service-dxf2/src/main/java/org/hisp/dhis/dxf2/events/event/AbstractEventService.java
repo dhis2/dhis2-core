@@ -773,15 +773,18 @@ public abstract class AbstractEventService
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
+        return getEvent( programStageInstance, false );
+    }
+
+    @Override
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery )
+    {
         if ( programStageInstance == null )
         {
             return null;
         }
 
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
-
         Event event = new Event();
-
         event.setEvent( programStageInstance.getUid() );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
@@ -841,7 +844,15 @@ public abstract class AbstractEventService
             event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
         }
 
-        Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
+        Collection<TrackedEntityDataValue> dataValues;
+        if ( !isSynchronizationQuery )
+        {
+            dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
+        }
+        else
+        {
+            dataValues = dataValueService.getTrackedEntityDataValuesForSynchronization( programStageInstance );
+        }
 
         for ( TrackedEntityDataValue dataValue : dataValues )
         {
