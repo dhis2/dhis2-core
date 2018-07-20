@@ -28,13 +28,13 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -46,47 +46,54 @@ public interface TrackedEntityDataValueService
 
     /**
      * Adds an {@link TrackedEntityDataValue}
-     * 
+     *
      * @param dataValue The to TrackedEntityDataValue add.
      */
     void saveTrackedEntityDataValue( TrackedEntityDataValue dataValue );
 
     /**
      * Updates an {@link TrackedEntityDataValue}.
-     * 
+     *
      * @param dataValue the TrackedEntityDataValue to update.
      */
     void updateTrackedEntityDataValue( TrackedEntityDataValue dataValue );
 
     /**
      * Deletes a {@link TrackedEntityDataValue}.
-     * 
+     *
      * @param dataValue the TrackedEntityDataValue to delete.
      */
     void deleteTrackedEntityDataValue( TrackedEntityDataValue dataValue );
 
     /**
      * Deletes all {@link TrackedEntityDataValue} of {@link ProgramStageInstance}
-     * 
+     *
      * @param programStageInstance The {@link ProgramStageInstance}.
      */
     void deleteTrackedEntityDataValue( ProgramStageInstance programStageInstance );
 
     /**
      * Retrieve data values of a event
-     * 
+     *
      * @param programStageInstance ProgramStageInstance
-     * 
      * @return TrackedEntityDataValue list
      */
     List<TrackedEntityDataValue> getTrackedEntityDataValues( ProgramStageInstance programStageInstance );
 
     /**
-     * Retrieve data values of a event with data elements specified
-     * 
+     * Retrieve data values of an event that should be synchronized by ProgramDataSynchronizationJob
+     * (so with skipsynchronization=false in programstagedataelement table)
+     *
      * @param programStageInstance ProgramStageInstance
-     * @param dataElement DataElement List
-     * 
+     * @return TrackedEntityDataValue list
+     */
+    List<TrackedEntityDataValue> getTrackedEntityDataValuesForSynchronization( ProgramStageInstance programStageInstance );
+
+    /**
+     * Retrieve data values of a event with data elements specified
+     *
+     * @param programStageInstance ProgramStageInstance
+     * @param dataElement          DataElement List
      * @return TrackedEntityDataValue list
      */
     List<TrackedEntityDataValue> getTrackedEntityDataValues( ProgramStageInstance programStageInstance,
@@ -94,18 +101,16 @@ public interface TrackedEntityDataValueService
 
     /**
      * Retrieve data values of many events
-     * 
+     *
      * @param programStageInstances the collection of ProgramStageInstances
-     * 
      * @return TrackedEntityDataValue list
      */
     List<TrackedEntityDataValue> getTrackedEntityDataValues( Collection<ProgramStageInstance> programStageInstances );
 
     /**
      * Retrieve data values of a data element
-     * 
+     *
      * @param dataElement DataElement
-     * 
      * @return TrackedEntityDataValue list
      */
     List<TrackedEntityDataValue> getTrackedEntityDataValues( DataElement dataElement );
@@ -113,12 +118,11 @@ public interface TrackedEntityDataValueService
     /**
      * Retrieve data values of a instance on data elements specified from
      * a certain period
-     * 
-     * @param instance TrackedEntityInstance
+     *
+     * @param instance     TrackedEntityInstance
      * @param dataElements DataElement List
-     * @param after Optional date the instance should be on or after.
-     * @param before Optional date the instance should be on or before.
-     * 
+     * @param after        Optional date the instance should be on or after.
+     * @param before       Optional date the instance should be on or before.
      * @return TrackedEntityDataValue list
      */
     List<TrackedEntityDataValue> getTrackedEntityDataValues( TrackedEntityInstance instance, Collection<DataElement> dataElements,
@@ -126,10 +130,9 @@ public interface TrackedEntityDataValueService
 
     /**
      * Retrieve a data value on an event and a data element
-     * 
+     *
      * @param programStageInstance ProgramStageInstance
-     * @param dataElement DataElement
-     * 
+     * @param dataElement          DataElement
      * @return TrackedEntityDataValue
      */
     TrackedEntityDataValue getTrackedEntityDataValue( ProgramStageInstance programStageInstance, DataElement dataElement );
