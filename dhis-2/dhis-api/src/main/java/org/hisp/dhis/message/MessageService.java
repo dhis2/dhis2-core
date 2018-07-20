@@ -57,7 +57,7 @@ public interface MessageService
 
     int sendSystemErrorNotification( String subject, Throwable t );
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean interna, Set<MessageAttachment> attachemnts );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<MessageAttachment> attachments );
 
     int saveMessageConversation( MessageConversation conversation );
 

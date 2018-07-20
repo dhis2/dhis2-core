@@ -34,10 +34,18 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.MessageAttachment;
+import org.hisp.dhis.fileresource.MessageAttachmentService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.message.*;
+import org.hisp.dhis.message.Message;
+import org.hisp.dhis.message.MessageConversationPriority;
+import org.hisp.dhis.message.MessageConversationStatus;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -103,9 +111,6 @@ public class MessageConversationController
 
     @Autowired
     private ConfigurationService configurationService;
-
-    @Autowired
-    private FileResourceService fileResourceService;
 
     @Autowired
     private FileResourceUtils fileResourceUtils;
@@ -849,28 +854,14 @@ public class MessageConversationController
         HttpServletResponse response )
         throws WebMessageException
     {
-        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( mcUid );
-
         User user = currentUserService.getCurrentUser();
 
-        if ( conversation == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
-        }
+        Message message = getMessage( mcUid, msgUid, user );
 
-        if ( !canReadMessageConversation( user, conversation ) )
-        {
-            throw new AccessDeniedException( "Not authorized to access this conversation." );
-
-        }
-
-         List<FileResource> file = conversation.getMessages().stream()
-             .filter( msg -> msg.getUid().equals( msgUid ) )
-             .map( Message::getAttachments )
-             .flatMap( Collection::stream )
-             .filter( attachment -> attachment.getUid().equals( fileUid ) )
-             .map( MessageAttachment::getAttachment )
-             .collect( Collectors.toList() );
+        List<FileResource> file = message.getAttachments().stream()
+            .filter( attachment -> attachment.getUid().equals( fileUid ) )
+            .map( MessageAttachment::getAttachment )
+            .collect( Collectors.toList() );
 
         if ( file.size() < 1 )
         {
@@ -986,5 +977,40 @@ public class MessageConversationController
         }
 
         return attachments;
+    }
+
+    /* Returns the specified message after making sure the user has access to it */
+    private Message getMessage( String mcUid, String msgUid, User user )
+        throws WebMessageException
+    {
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( mcUid );
+
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+        }
+
+        if ( !canReadMessageConversation( user, conversation ) )
+        {
+            throw new AccessDeniedException( "Not authorized to access this conversation." );
+        }
+
+        List<Message> messages = conversation.getMessages().stream()
+            .filter( msg -> msg.getUid().equals( msgUid ) )
+            .collect( Collectors.toList() );
+
+        if ( messages.size() < 1 )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
+        }
+
+        Message message = messages.get( 0 );
+
+        if ( message.isInternal() && !configurationService.isUserInFeedbackRecipientUserGroup( user ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Not authorized to access this message" ) );
+        }
+
+        return message;
     }
 }

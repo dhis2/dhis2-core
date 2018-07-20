@@ -233,7 +233,6 @@ public class DefaultMessageService
 
         Message message = new Message( text, metaData, sender, internal );
 
-        message.setAttachments( attachments );
         messageAttachmentService.linkAttachments( attachments, message );
 
         conversation.markReplied( sender, message );

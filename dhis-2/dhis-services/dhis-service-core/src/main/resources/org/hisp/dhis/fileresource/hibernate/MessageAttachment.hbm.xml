@@ -17,7 +17,7 @@
 
         <many-to-one name="attachment"
                      class="org.hisp.dhis.fileresource.FileResource"
-                     column="fileresourceid" foreign-key="fk_messageattachment_fileresource"
+                     column="fileresourceid"
                      not-null="true" />
 
         <many-to-one name="message"

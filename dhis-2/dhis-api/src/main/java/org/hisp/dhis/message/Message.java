@@ -35,12 +35,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -164,7 +162,7 @@ public class Message
     }
 
     @JsonProperty
-    //@JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty
     public Set<MessageAttachment> getAttachments()
     {

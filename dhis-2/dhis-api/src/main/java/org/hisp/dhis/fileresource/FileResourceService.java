@@ -32,9 +32,7 @@ import com.google.common.io.ByteSource;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author Halvdan Hoem Grelland
