@@ -584,15 +584,12 @@ public class JdbcEventStore
             sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
         }
         
-        if ( params.getDataElementsAndFilters() != null )
+        for ( QueryItem item : params.getDataElementsAndFilters() )
         {
-            for ( QueryItem item : params.getDataElementsAndFilters() )
-            {
-                final String col = statementBuilder.columnQuote( item.getItemId() );
-                final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
-                    : "lower(" + col + ".value)";
-                sql += queryCol + " as " + col + ", ";
-            }
+            final String col = statementBuilder.columnQuote( item.getItemId() );
+            final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                : "lower(" + col + ".value)";
+            sql += queryCol + " as " + col + ", ";
         }
 
         sql += "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
@@ -613,74 +610,33 @@ public class JdbcEventStore
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
-        if ( params.getDataElementsAndFilters() != null )
+        Set<String> joinedColumns = new HashSet<>();
+        
+        for ( QueryItem item : params.getDataElementsAndFilters() )
         {
-            for ( QueryItem item : params.getDataElementsAndFilters() )
+            final String col = statementBuilder.columnQuote( item.getItemId() );
+            
+            if ( !joinedColumns.contains( col ) )
             {
-                final String col = statementBuilder.columnQuote( item.getItemId() );
                 sql += ( item.hasFilter() ? "inner" : "left" ) + " join trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-    
-                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
-                        : "lower(" + col + ".value)";
-    
-                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                        + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter : 
-                            filter.getSqlFilter( encodedFilter ) ) + " ";
-                }
+                
+                joinedColumns.add( col );
+            }
+            
+            for ( QueryFilter filter : item.getFilters() )
+            {
+                final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+
+                final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                    : "lower(" + col + ".value)";
+
+                sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
+                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter : 
+                        filter.getSqlFilter( encodedFilter ) ) + " ";
             }
         }
-        
-        /*if ( params.getDataElementsAndFilters() != null )
-        {
-            for ( String dataElementOrder : params.getGridOrders() )
-            {
-                String dataElementUid = dataElementOrder.split( ":" )[0];
-                final String col = statementBuilder.columnQuote( dataElementUid );
-    
-                Iterator<QueryItem> itermIterator = params.getDataElements().iterator();
-    
-                while ( itermIterator.hasNext() )
-                {
-                    QueryItem item = itermIterator.next();
-    
-                    if ( dataElementUid.equals( item.getItemId() ) )
-                    {
-                        sql += "left join trackedentitydatavalue as " + col + " " + "on " + col
-                            + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
-                            + item.getItem().getId() + " ";
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if ( params.getFilters() != null )
-        {
-            for ( QueryItem item : params.getFilters() )
-            {
-                final String col = statementBuilder.columnQuote( item.getItemId() );
-    
-                sql += "inner join trackedentitydatavalue as " + col + " " + "on " + col
-                    + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
-                    + item.getItem().getId() + " ";
-    
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-    
-                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
-                        : "lower(" + col + ".value)";
-    
-                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                        + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
-                }
-            }
-        }*/
         
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
         {
@@ -810,15 +766,22 @@ public class JdbcEventStore
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
 
+        Set<String> joinedColumns = new HashSet<>();
+        
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-
-            final String joinClause = item.hasFilter() ? "inner join" : "left join";
-
-            sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
-                + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
-                + item.getItem().getId() + " ";
+            
+            if ( !joinedColumns.contains( col ) )
+            {
+                final String joinClause = item.hasFilter() ? "inner join" : "left join";
+    
+                sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
+                    + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
+                    + item.getItem().getId() + " ";
+                
+                joinedColumns.add( col );
+            }
 
             if ( item.hasFilter() )
             {
@@ -999,13 +962,13 @@ public class JdbcEventStore
         if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
             && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
         {
-            ArrayList<String> orderFields = new ArrayList<String>();
+            List<String> orderFields = new ArrayList<>();
 
             for ( String order : params.getGridOrders() )
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
                 {
                     if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
                     {
@@ -1013,12 +976,10 @@ public class JdbcEventStore
                     }
                     else
                     {
-                        Iterator<QueryItem> itermIterator = params.getDataElements().iterator();
+                        Set<QueryItem> queryItems = params.getDataElements();
 
-                        while ( itermIterator.hasNext() )
+                        for ( QueryItem item : queryItems )
                         {
-                            QueryItem item = itermIterator.next();
-
                             if ( prop[0].equals( item.getItemId() ) )
                             {
                                 orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );

@@ -217,7 +217,7 @@ public class EventSearchParams
 
         for ( QueryItem de : dataElements )
         {
-            if ( items != null && !items.contains( de ) )
+            if ( !items.contains( de ) )
             {
                 items.add( de );
             }

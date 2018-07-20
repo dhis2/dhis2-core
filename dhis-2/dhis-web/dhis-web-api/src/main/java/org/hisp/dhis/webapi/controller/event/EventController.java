@@ -34,7 +34,6 @@ import com.google.common.io.ByteSource;
 import com.vividsolutions.jts.io.ParseException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -98,6 +97,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -1029,7 +1029,7 @@ public class EventController
 
     private Map<String,String> getDataElementsFromOrder( String allOrders )
     {
-        Map<String,String> dataElements = new HashMap<String, String>();
+        Map<String,String> dataElements = new HashMap<>();
         
         if ( allOrders != null )
         {
@@ -1113,7 +1113,7 @@ public class EventController
     {
         List<String> dataElementOrderList = new ArrayList<String>();
         
-        if ( order != null && !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
+        if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
         {
             List<String> orders = Arrays.asList( order.split( ";" ) );
             
