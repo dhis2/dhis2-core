@@ -1011,12 +1011,10 @@ public class JdbcEventStore
     
                 if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
                 {
-                    Iterator<QueryItem> itermIterator = params.getDataElements().iterator();
+                    Set<QueryItem> items = params.getDataElements();
     
-                    while ( itermIterator.hasNext() )
+                    for ( QueryItem item : items )
                     {
-                        QueryItem item = itermIterator.next();
-    
                         if ( prop[0].equals( item.getItemId() ) )
                         {
                             orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
