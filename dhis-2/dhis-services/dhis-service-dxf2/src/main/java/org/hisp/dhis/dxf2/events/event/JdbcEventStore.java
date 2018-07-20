@@ -1001,7 +1001,7 @@ public class JdbcEventStore
 
     private String getOrderQuery( EventSearchParams params )
     {
-        ArrayList<String> orderFields = new ArrayList<String>();
+        List<String> orderFields = new ArrayList<>();
         
         if ( params.getGridOrders() != null )
         {
