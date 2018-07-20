@@ -541,7 +541,7 @@ public class JdbcEventStore
 
         sql += getEventSelectQuery( params, organisationUnits, user );
 
-        sql += getOrderQuery( params.getOrders() );
+        sql += getOrderQuery( params );
 
         sql += getEventPagingQuery( params );
 
@@ -562,7 +562,7 @@ public class JdbcEventStore
 
         sql += ") as cm on event.psi_id=cm.psic_id ";
 
-        sql += getOrderQuery( params.getOrders() );
+        sql += getOrderQuery( params );
 
         return sql;
     }
@@ -583,6 +583,14 @@ public class JdbcEventStore
         {
             sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
         }
+        
+        for ( QueryItem item : params.getDataElementsAndFilters() )
+        {
+            final String col = statementBuilder.columnQuote( item.getItemId() );
+            final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                : "lower(" + col + ".value)";
+            sql += queryCol + " as " + col + ", ";
+        }
 
         sql += "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
             + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
@@ -602,6 +610,34 @@ public class JdbcEventStore
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
+        Set<String> joinedColumns = new HashSet<>();
+        
+        for ( QueryItem item : params.getDataElementsAndFilters() )
+        {
+            final String col = statementBuilder.columnQuote( item.getItemId() );
+            
+            if ( !joinedColumns.contains( col ) )
+            {
+                sql += ( item.hasFilter() ? "inner" : "left" ) + " join trackedentitydatavalue as " + col + " " + "on " + col
+                    + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
+                    + item.getItem().getId() + " ";
+                
+                joinedColumns.add( col );
+            }
+            
+            for ( QueryFilter filter : item.getFilters() )
+            {
+                final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+
+                final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                    : "lower(" + col + ".value)";
+
+                sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
+                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter : 
+                        filter.getSqlFilter( encodedFilter ) ) + " ";
+            }
+        }
+        
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
         {
             sql += getCategoryOptionSharingForUser( user );
@@ -730,15 +766,22 @@ public class JdbcEventStore
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
 
+        Set<String> joinedColumns = new HashSet<>();
+        
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-
-            final String joinClause = item.hasFilter() ? "inner join" : "left join";
-
-            sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
-                + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
-                + item.getItem().getId() + " ";
+            
+            if ( !joinedColumns.contains( col ) )
+            {
+                final String joinClause = item.hasFilter() ? "inner join" : "left join";
+    
+                sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
+                    + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
+                    + item.getItem().getId() + " ";
+                
+                joinedColumns.add( col );
+            }
 
             if ( item.hasFilter() )
             {
@@ -919,13 +962,13 @@ public class JdbcEventStore
         if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
             && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
         {
-            ArrayList<String> orderFields = new ArrayList<String>();
+            List<String> orderFields = new ArrayList<>();
 
             for ( String order : params.getGridOrders() )
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
                 {
                     if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
                     {
@@ -933,12 +976,10 @@ public class JdbcEventStore
                     }
                     else
                     {
-                        Iterator<QueryItem> itermIterator = params.getDataElements().iterator();
+                        Set<QueryItem> queryItems = params.getDataElements();
 
-                        while ( itermIterator.hasNext() )
+                        for ( QueryItem item : queryItems )
                         {
-                            QueryItem item = itermIterator.next();
-
                             if ( prop[0].equals( item.getItemId() ) )
                             {
                                 orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
@@ -947,7 +988,6 @@ public class JdbcEventStore
                         }
                     }
                 }
-
             }
 
             if ( !orderFields.isEmpty() )
@@ -959,13 +999,35 @@ public class JdbcEventStore
         return "order by lastUpdated desc ";
     }
 
-    private String getOrderQuery( List<Order> orders )
+    private String getOrderQuery( EventSearchParams params )
     {
-        if ( orders != null )
+        ArrayList<String> orderFields = new ArrayList<String>();
+        
+        if ( params.getGridOrders() != null )
         {
-            ArrayList<String> orderFields = new ArrayList<String>();
-
-            for ( Order order : orders )
+            for ( String order : params.getGridOrders() )
+            {
+                String[] prop = order.split( ":" );
+    
+                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
+                {
+                    Set<QueryItem> items = params.getDataElements();
+    
+                    for ( QueryItem item : items )
+                    {
+                        if ( prop[0].equals( item.getItemId() ) )
+                        {
+                            orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if ( params.getOrders() != null )
+        {
+            for ( Order order : params.getOrders() )
             {
                 if ( QUERY_PARAM_COL_MAP.containsKey( order.getProperty().getName() ) )
                 {
@@ -974,14 +1036,16 @@ public class JdbcEventStore
                     orderFields.add( orderText );
                 }
             }
-
-            if ( !orderFields.isEmpty() )
-            {
-                return "order by " + StringUtils.join( orderFields, ',' ) + " ";
-            }
         }
 
-        return "order by psi_lastupdated desc ";
+        if ( !orderFields.isEmpty() )
+        {
+            return "order by " + StringUtils.join( orderFields, ',' ) + " ";
+        }
+        else
+        {
+            return "order by psi_lastupdated desc ";
+        }
     }
 
     private String getAttributeValueQuery()
