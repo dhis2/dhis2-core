@@ -29,6 +29,7 @@ package org.hisp.dhis.importexport.action.dxf2;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
@@ -138,6 +139,13 @@ public class MetaDataImportAction
         this.classKey = classKey;
     }
 
+    private MergeMode mergeMode;
+
+    public void setMergeMode( String mergeMode )
+    {
+        this.mergeMode = MergeMode.valueOf( mergeMode );
+    }
+
     // -------------------------------------------------------------------------
     // Action Implementation
     // -------------------------------------------------------------------------
@@ -155,7 +163,7 @@ public class MetaDataImportAction
 
         InputStream in = StreamUtils.wrapAndCheckCompressionFormat( new FileInputStream( upload ) );
 
-        MetadataImportParams importParams = createMetadataImportParams( jobId, strategy, atomicMode, dryRun )
+        MetadataImportParams importParams = createMetadataImportParams( jobId, strategy, atomicMode, dryRun, mergeMode )
             .setFilename( uploadFileName );
 
         if ( "csv".equals( importFormat ) )
@@ -179,13 +187,15 @@ public class MetaDataImportAction
         return SUCCESS;
     }
 
-    private MetadataImportParams createMetadataImportParams( JobConfiguration jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
+    private MetadataImportParams createMetadataImportParams( JobConfiguration jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun,
+        MergeMode mergeMode )
     {
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setId( jobId );
         importParams.setImportMode( dryRun ? ObjectBundleMode.VALIDATE : ObjectBundleMode.COMMIT );
         importParams.setAtomicMode( atomicMode );
         importParams.setImportStrategy( strategy );
+        importParams.setMergeMode( mergeMode );
 
         return importParams;
     }

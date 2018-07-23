@@ -45,6 +45,15 @@
 		<option value="UPDATES">$i18n.getString( "updates_only" )</option>
     </select></td>
 </tr>
+  <tr>
+    <td>$i18n.getString( "merge_mode" )</td>
+    <td>
+      <select id="mergeMode" name="mergeMode" style="width:100%">
+        <option value="REPLACE">$i18n.getString( "replace" )</option>
+        <option value="MERGE">$i18n.getString( "merge" )</option>
+      </select>
+    </td>
+  </tr>
 <tr>
 	<td></td>
 	<td><a href="javascript:toggleOptions()">$i18n.getString( "more_options" )</a></td>
