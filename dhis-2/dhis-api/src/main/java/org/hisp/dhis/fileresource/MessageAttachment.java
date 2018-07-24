@@ -82,7 +82,7 @@ public class MessageAttachment
         return attachment.getContentLength();
     }
 
-    @JsonProperty
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return attachment.getName();
