@@ -28,20 +28,25 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueStore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -50,12 +55,18 @@ public class HibernateTrackedEntityDataValueStore
     extends HibernateGenericStore<TrackedEntityDataValue>
     implements TrackedEntityDataValueStore
 {
+    @Autowired
+    DataElementStore dataElementStore;
+
+    @Resource( name = "readOnlyJdbcTemplate" )
+    private JdbcTemplate jdbcTemplate;
+
     @Override
     public void saveVoid( TrackedEntityDataValue dataValue )
     {
         sessionFactory.getCurrentSession().save( dataValue );
     }
-   
+
     @Override
     public int delete( ProgramStageInstance programStageInstance )
     {
@@ -72,6 +83,36 @@ public class HibernateTrackedEntityDataValueStore
     }
 
     @Override
+    public List<TrackedEntityDataValue> getTrackedEntityDataValuesForSynchronization( ProgramStageInstance programStageInstance )
+    {
+        List<TrackedEntityDataValue> dataValues = new ArrayList<>();
+
+        String sql = "SELECT tedv.* FROM trackedentitydatavalue tedv " +
+            "LEFT JOIN programstageinstance psi on tedv.programstageinstanceid = psi.programstageinstanceid " +
+            "LEFT JOIN programstagedataelement psde ON tedv.dataelementid = psde.dataelementid AND psi.programstageid = psde.programstageid " +
+            "WHERE tedv.programstageinstanceid = " + programStageInstance.getId() + " AND psde.skipsynchronization = false";
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        while ( rowSet.next() )
+        {
+            TrackedEntityDataValue tedv = new TrackedEntityDataValue();
+
+            tedv.setCreated( rowSet.getDate( "created" ) );
+            tedv.setLastUpdated( rowSet.getDate( "lastupdated" ) );
+            tedv.setProgramStageInstance( programStageInstance );
+            tedv.setValue( rowSet.getString( "value" ) );
+            tedv.setStoredBy( rowSet.getString( "storedby" ) );
+            tedv.setProvidedElsewhere( rowSet.getBoolean( "providedelsewhere" ) );
+            tedv.setDataElement( dataElementStore.get( rowSet.getInt( "dataelementid" ) ) );
+
+            dataValues.add( tedv );
+        }
+
+        return dataValues;
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( ProgramStageInstance programStageInstance,
         Collection<DataElement> dataElements )
@@ -80,7 +121,7 @@ public class HibernateTrackedEntityDataValueStore
         {
             return new ArrayList<>();
         }
-        
+
         return getCriteria( Restrictions.in( "dataElement", dataElements ), Restrictions.eq( "programStageInstance", programStageInstance ) ).list();
     }
 
@@ -107,12 +148,12 @@ public class HibernateTrackedEntityDataValueStore
     @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( TrackedEntityInstance entityInstance, Collection<DataElement> dataElements, Date startDate,
         Date endDate )
-     {
+    {
         if ( dataElements == null || dataElements.isEmpty() )
         {
             return new ArrayList<>();
         }
-        
+
         Criteria criteria = getCriteria();
         criteria.createAlias( "programStageInstance", "programStageInstance" );
         criteria.createAlias( "programStageInstance.programInstance", "programInstance" );

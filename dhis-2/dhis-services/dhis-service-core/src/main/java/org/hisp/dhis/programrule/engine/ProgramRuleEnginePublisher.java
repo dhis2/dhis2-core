@@ -53,4 +53,9 @@ public class ProgramRuleEnginePublisher
     {
         eventPublisher.publishEvent( event );
     }
+
+    public void publishProgramRuleEvent( ProgramStageInstanceScheduledEvent event )
+    {
+        eventPublisher.publishEvent( event );
+    }
 }
