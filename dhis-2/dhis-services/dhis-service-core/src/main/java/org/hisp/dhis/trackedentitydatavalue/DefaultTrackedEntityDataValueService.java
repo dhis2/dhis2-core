@@ -40,11 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -170,6 +170,12 @@ public class DefaultTrackedEntityDataValueService
     public List<TrackedEntityDataValue> getTrackedEntityDataValues( ProgramStageInstance programStageInstance )
     {
         return dataValueStore.get( programStageInstance );
+    }
+
+    @Override
+    public List<TrackedEntityDataValue> getTrackedEntityDataValuesForSynchronization( ProgramStageInstance programStageInstance )
+    {
+        return dataValueStore.getTrackedEntityDataValuesForSynchronization( programStageInstance );
     }
 
     @Override

@@ -514,4 +514,25 @@ public class ProgramInstance
     {
         this.relationshipItems = relationshipItems;
     }
+
+
+    @Override public String toString()
+    {
+        return "ProgramInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", status=" + status +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", incidentDate=" + incidentDate +
+            ", enrollmentDate=" + enrollmentDate +
+            ", entityInstance=" + entityInstance.getUid() +
+            ", program=" + program +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
+    }
 }
