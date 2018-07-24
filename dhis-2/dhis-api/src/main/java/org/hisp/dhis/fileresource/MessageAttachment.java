@@ -1,5 +1,6 @@
 package org.hisp.dhis.fileresource;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.message.Message;
@@ -73,5 +74,17 @@ public class MessageAttachment
     public void setMessage( Message message )
     {
         this.message = message;
+    }
+
+    @JsonProperty
+    public long getSize()
+    {
+        return attachment.getContentLength();
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return attachment.getName();
     }
 }
