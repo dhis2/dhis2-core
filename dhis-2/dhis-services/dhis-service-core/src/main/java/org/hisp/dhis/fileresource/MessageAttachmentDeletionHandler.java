@@ -1,10 +1,5 @@
 package org.hisp.dhis.fileresource;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.message.Message;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,58 +28,42 @@ import org.hisp.dhis.message.Message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Kristian Wærstad
- */
-public class MessageAttachment
-    extends BaseIdentifiableObject implements MetadataObject
+
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class MessageAttachmentDeletionHandler
+    extends DeletionHandler
 {
-    private FileResource attachment;
+    private JdbcTemplate jdbcTemplate;
 
-    /* Avoiding unidirectional one-to-many mapping */
-    private Message message;
-
-    public MessageAttachment()
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
-
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public MessageAttachment( Message message, FileResource attachment)
+    @Override
+    public String getClassName()
     {
-        super.setAutoFields();
-        this.message = message;
-        this.attachment = attachment;
+        return ExternalFileResource.class.getSimpleName();
     }
 
-    public FileResource getAttachment()
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
     {
-        return attachment;
+        String sql = "SELECT COUNT(*) FROM messageattachment WHERE fileresourceid=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
     }
 
-    public void setAttachment( FileResource fileResource )
+    @Override
+    public void deleteFileResource( FileResource fileResource )
     {
-        this.attachment = fileResource;
+        String sql = "DELETE FROM messageattachment WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
     }
 
-    public Message getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( Message message )
-    {
-        this.message = message;
-    }
-
-    @JsonProperty
-    public long getSize()
-    {
-        return attachment.getContentLength();
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return attachment.getName();
-    }
 }
