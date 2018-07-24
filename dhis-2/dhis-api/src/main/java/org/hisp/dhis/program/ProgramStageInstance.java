@@ -318,4 +318,23 @@ public class ProgramStageInstance
     {
         this.geometry = geometry;
     }
+
+    @Override public String toString()
+    {
+        return "ProgramStageInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", displayName='" + displayName + '\'' +
+            ", programInstance=" + programInstance.getUid() +
+            ", programStage=" + programStage.getUid() +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", status=" + status +
+            ", lastSynchronized=" + lastSynchronized +
+            '}';
+    }
 }

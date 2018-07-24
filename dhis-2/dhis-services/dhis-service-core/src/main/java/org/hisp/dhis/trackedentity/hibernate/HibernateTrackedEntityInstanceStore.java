@@ -120,6 +120,13 @@ public class HibernateTrackedEntityInstanceStore
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         String hql = buildTrackedEntityInstanceHql( params );
+
+        //If it is a sync job running a query, I need to adjust an HQL a bit, because I am adding 2 joins and don't want duplicates in results
+        if ( params.isSynchronizationQuery() )
+        {
+            hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
+        }
+
         Query query = getQuery( hql );
 
         if ( params.isPaging() )
@@ -184,9 +191,19 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( !params.isIncludeDeleted() )
             {
-                hql += hlp.whereAnd() + "pi.deleted is false";
+                hql += hlp.whereAnd() + "pi.deleted is false ";
             }
 
+        }
+
+        //If it is a sync job that runs the query, fetch only TEAVs that are supposed to be synchronized
+        if ( params.isSynchronizationQuery() )
+        {
+
+            hql += "left join tei.trackedEntityAttributeValues teav1 " +
+                "left join teav1.attribute as attr";
+
+            hql += hlp.whereAnd() + " attr.skipSynchronization = false";
         }
 
         if ( params.hasTrackedEntityType() )

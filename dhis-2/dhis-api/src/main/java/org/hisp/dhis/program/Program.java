@@ -45,9 +45,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -92,8 +90,6 @@ public class Program
     private Set<UserAuthorityGroup> userRoles = new HashSet<>();
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
-
-    private Set<ProgramRule> programRules = new HashSet<>();
 
     private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 

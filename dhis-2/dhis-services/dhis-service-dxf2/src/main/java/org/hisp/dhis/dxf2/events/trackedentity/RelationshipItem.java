@@ -94,9 +94,9 @@ public class RelationshipItem
     public String toString()
     {
         return "RelationshipItem{" +
-            "trackedEntityInstance=" + trackedEntityInstance +
-            ", enrollment=" + enrollment +
-            ", event=" + event +
+            "trackedEntityInstance=" + trackedEntityInstance.getTrackedEntityInstance() +
+            ", enrollment=" + enrollment.getEnrollment() +
+            ", event=" + event.getEvent() +
             '}';
     }
 

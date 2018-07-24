@@ -49,7 +49,8 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
-public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
+public class DefaultProgramRuleEntityMapperService 
+    implements ProgramRuleEntityMapperService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramRuleEntityMapperService.class );
 
@@ -174,7 +175,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
-        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate(),
+        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
          psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
             .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
             .collect( Collectors.toList() ), psi.getProgramStage().getName() );
@@ -185,7 +186,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     {
         return programStageInstances.stream()
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
-            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
+            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
                 .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );

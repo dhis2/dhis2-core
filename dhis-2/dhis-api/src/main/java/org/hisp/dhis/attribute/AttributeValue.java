@@ -118,17 +118,18 @@ public class AttributeValue
         return result;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + id + "\", " +
-            "\"created\":\"" + created + "\", " +
-            "\"attribute\":" + attribute + ", " +
-            "\"value\":\"" + value + "\" " +
-            "}";
+        return "AttributeValue{" +
+            "class=" + getClass() +
+            ", id=" + id +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", attribute=" + attribute +
+            ", value='" + value + '\'' +
+            '}';
     }
+
 
     @JsonIgnore
     public int getId()

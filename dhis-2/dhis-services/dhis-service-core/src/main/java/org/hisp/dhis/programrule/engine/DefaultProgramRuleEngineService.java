@@ -31,7 +31,6 @@ package org.hisp.dhis.programrule.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -46,7 +45,8 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
-public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
+public class DefaultProgramRuleEngineService 
+    implements ProgramRuleEngineService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramRuleEngineService.class );
 
