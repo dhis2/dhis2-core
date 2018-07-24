@@ -186,9 +186,12 @@ public class DefaultMessageService
 
         // Create MessageConversation based on params
         MessageConversation conversation = params.createMessageConversation();
+        int id = saveMessageConversation( conversation );
 
         // Initial message of the conversation
-        conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
+        Message message = new Message( params.getText(), params.getMetadata(), params.getSender() );
+        messageAttachmentService.linkAttachments( params.getAttachments(), message );
+        conversation.addMessage(  message );
 
         // Add UserMessages
         params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
@@ -206,7 +209,7 @@ public class DefaultMessageService
         invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
             params.getRecipients(), params.isForceNotification() );
 
-        return saveMessageConversation( conversation );
+        return id;
     }
 
     @Override

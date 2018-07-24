@@ -162,7 +162,7 @@ public class Message
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    //@JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty
     public Set<MessageAttachment> getAttachments()
     {

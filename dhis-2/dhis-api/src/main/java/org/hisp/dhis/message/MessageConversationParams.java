@@ -28,9 +28,11 @@ package org.hisp.dhis.message;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -65,6 +67,8 @@ public class MessageConversationParams
     private MessageConversationStatus status;
 
     private boolean forceNotification;
+
+    private Set<MessageAttachment> attachments;
 
     private MessageConversationParams( Collection<User> recipients, User sender, String subject, String text,
         MessageType messageType )
@@ -131,6 +135,8 @@ public class MessageConversationParams
         return forceNotification;
     }
 
+    public Set<MessageAttachment> getAttachments() { return attachments; }
+
     public MessageConversation createMessageConversation()
     {
         MessageConversation conversation = new MessageConversation( subject, sender, messageType );
@@ -180,6 +186,12 @@ public class MessageConversationParams
         public Builder withForceNotification( boolean forceNotification )
         {
             this.params.forceNotification = forceNotification;
+            return this;
+        }
+
+        public Builder withAttachments( Set<MessageAttachment> attachments )
+        {
+            this.params.attachments = attachments;
             return this;
         }
 

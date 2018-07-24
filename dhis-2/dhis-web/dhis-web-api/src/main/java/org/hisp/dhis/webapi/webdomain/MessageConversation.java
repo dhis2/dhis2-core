@@ -58,6 +58,8 @@ public class MessageConversation
 
     private Set<UserGroup> userGroups = new HashSet<>();
 
+    private Set<String> attachments = new HashSet();
+
     public MessageConversation()
     {
     }
@@ -144,5 +146,17 @@ public class MessageConversation
             ", users=" + users +
             ", userGroups=" + userGroups +
             '}';
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAttachments()
+    {
+        return attachments;
+    }
+
+    public void setAttachments( Set<String> attachments )
+    {
+        this.attachments = attachments;
     }
 }

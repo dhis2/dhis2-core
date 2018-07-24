@@ -292,8 +292,10 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
+        Set<MessageAttachment> attachments = getAttachments( messageConversation.getAttachments() );
+
         int id = messageService.sendMessage( messageService.createPrivateMessage( messageConversation.getUsers(),
-            messageConversation.getSubject(), messageConversation.getText(), metaData ).build() );
+            messageConversation.getSubject(), messageConversation.getText(), metaData ).withAttachments( attachments ).build() );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
