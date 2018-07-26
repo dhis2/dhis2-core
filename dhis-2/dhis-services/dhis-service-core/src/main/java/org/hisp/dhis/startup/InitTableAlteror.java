@@ -28,11 +28,11 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,6 +133,11 @@ public class InitTableAlteror
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
         updateTrackedEntityAttributePatternAndTextPattern();
 
+        //Remove entries for authorities that no longer exist
+        executeSql( "delete from userroleauthorities where authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
+            "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
+            "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
+            "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
@@ -178,32 +183,32 @@ public class InitTableAlteror
         // Transfer all existing references from dataelement to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO dataelementlegendsets (dataelementid, sort_order, legendsetid) SELECT dataelementid, 0, legendsetid FROM dataelement WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO datasetlegendsets (datasetid, sort_order, legendsetid) SELECT datasetid, 0, legendsetid FROM dataset WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO indicatorlegendsets (indicatorid, sort_order, legendsetid) SELECT indicatorid, 0, legendsetid FROM indicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO trackedentityattributelegendsets (trackedentityattributeid, sort_order, legendsetid) SELECT trackedentityattributeid, 0, legendsetid FROM trackedentityattribute WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid " );
     }
 
     private void updateMessageConversationMessageCount()
