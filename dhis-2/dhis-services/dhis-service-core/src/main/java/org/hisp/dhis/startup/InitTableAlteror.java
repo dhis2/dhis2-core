@@ -134,7 +134,7 @@ public class InitTableAlteror
         updateTrackedEntityAttributePatternAndTextPattern();
 
         //Remove entries for authorities that no longer exist
-        executeSql( "delete from userroleauthorities where authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
+        executeSql( "DELETE FROM userroleauthorities WHERE authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
             "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
             "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
             "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
