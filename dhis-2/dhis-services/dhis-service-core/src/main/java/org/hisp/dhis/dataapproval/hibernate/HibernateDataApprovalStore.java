@@ -401,7 +401,7 @@ public class HibernateDataApprovalStore
 
             readyBelowSubquery = "not exists (select 1 from organisationunit dao " +
                 "where exists (select 1 from organisationunit child " +
-                    "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0" +
+                    "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0 " +
                     "and child.organisationunitid in (select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + ")) " +
                 "and not exists (select 1 from dataapproval da " +
                     "join period p on p.periodid = da.periodid " +
@@ -514,8 +514,14 @@ public class HibernateDataApprovalStore
                             accepted ?
                                 ACCEPTED_HERE :
                                 APPROVED_HERE );
-    
+
                 statusList.add( new DataApprovalStatus( state, approvedLevel, approvedOrgUnitId, actionLevel, ouUid, ouName, aocUid, accepted, null ) );
+                if ( state == DataApprovalState.UNAPPROVABLE )
+                {
+                    System.out.println( "Get approval SQL: " + sql );
+                    try{ Thread.sleep(300); } catch ( Exception ex ) {}
+                    return statusList;
+                }
             }
         }
 
