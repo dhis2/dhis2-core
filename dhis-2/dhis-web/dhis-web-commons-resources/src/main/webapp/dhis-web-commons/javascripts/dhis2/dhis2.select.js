@@ -1,5 +1,7 @@
+"use strict";
+
 /*
- * Copyright (c) 2004-2013, University of Oslo
+ * Copyright (c) 2004-2014, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,184 +28,232 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dhis2.util.namespace( 'dhis2.select' );
-
 /**
- * Return a hidden select with id $select + '_ghost'. This is usually used for
- * temporary hiding options, since these can't be hidden using 'display: none'
- * or other similar techniques.
- * 
- * @param $select {jQuery} The select to ghost
- * 
- * @returns The ghost for a given select
+ * Simple plugin for keeping two <select /> elements in sync.
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-dhis2.select.getGhost = function( $select )
-{
-    var select_ghost_id = $select.attr( 'id' ) + '_ghost';
-    var $select_ghost = $( '#' + select_ghost_id );
+!(function( $, window, document, undefined ) {
+  var methods = {
+    create: function( options ) {
+      var context = {};
+      $.extend(context, $.fn.selected.defaults, options);
 
-    if ( $select_ghost.size() === 0 )
-    {
-        $select_ghost = $( '<select id="' + select_ghost_id + '" multiple="multiple"></select>' );
-        $select_ghost.hide();
-        $select_ghost.appendTo( 'body' );
+      if( context.target === undefined ) {
+        $.error('selected: Missing options.target, please add your target box either as a jqEl or as a query.');
+      } else if( context.url === undefined ) {
+        $.error('selected: Missing options.url, please give URL of where to find the source data.');
+      } else if( !$.isFunction(context.handler) ) {
+        $.error('selected: Invalid options.handler.');
+      }
+
+      // pass-through if jqEl, query if string
+      context.source = this;
+      context.target = $(context.target);
+      context.search = $(context.search);
+
+      if( !(context.source instanceof $) ) {
+        $.error('selected: Invalid source.');
+      } else if( !(context.target instanceof $) ) {
+        $.error('selected: Invalid target.');
+      }
+
+      context.source.data('selected', context);
+      context.target.data('selected', context);
+      context.fields = context.fields ? context.fields : 'id,displayName';
+
+      context.source.on('dblclick', 'option', context.defaultSourceDblClickHandler);
+      context.target.on('dblclick', 'option', context.defaultTargetDblClickHandler);
+      context.source.on('scroll', context.makeScrollHandler(context));
+
+      context.source.on('move-all', function() {
+        context.defaultLoader(context).then(function() {
+          context.source.find('option').prop('selected', true).trigger('dblclick');
+          context.page = undefined;
+        });
+      });
+
+      context.target.on('move-all', function() {
+        context.target.find('option').prop('selected', true).trigger('dblclick');
+      });
+
+      if( context.search instanceof $ ) {
+        context.search.on('keypress', context.makeSearchHandler(context));
+        context.searchButton = $("#" + context.search.attr('id') + "Button");
+
+        context.searchButton.on('click', function() {
+          context.search.trigger({type: 'keypress', which: 13, keyCode: 13});
+        });
+      }
+
+      context.page = 1;
+      context.defaultProgressiveLoader(context);
     }
+  };
 
-    return $select_ghost;
-};
+  methods.defaultMethod = methods.create;
 
-/**
- * Filter a select on a given key. Options that are not matched, are moved to
- * ghost.
- * 
- * NOTE: Both selects should already be in sorted order.
- * 
- * @param $select {jQuery} The select to search within
- * @param key {String} Key to search for
- * @param caseSensitive {Boolean} Case sensitive search (defaults to false, so
- *            this parameter only needed if you want case sensitive search)
- */
-dhis2.select.filterWithKey = function( $select, key, caseSensitive )
-{
-    $select_ghost = dhis2.select.getGhost( $select );
-    caseSensitive = caseSensitive || false;
+  // method dispatcher
+  $.fn.selected = function( method ) {
+    var args = Array.prototype.slice.call(arguments, 1);
 
-    if ( key.length === 0 )
-    {
-        dhis2.select.moveSorted( $select, $select_ghost.children() );
+    if( $.isFunction(methods[method]) ) {
+      return methods[method].apply(this, args);
+    } else if( $.isPlainObject(method) || $.type(method) === 'undefined' ) {
+      return methods.defaultMethod.apply(this, arguments);
+    } else {
+      $.error('selected: Unknown method');
     }
-    else
-    {
-        var $select_options = $select.children();
-        var $select_ghost_options = $select_ghost.children();
-        var $select_ghost_matched;
-        var $select_not_matched;
+  };
 
-        if ( caseSensitive )
-        {
-            $select_ghost_matched = $select_ghost_options.filter( dhis2.util.jqTextFilterCaseSensitive( key, false ) );
-            $select_not_matched = $select_options.filter( dhis2.util.jqTextFilterCaseSensitive( key, true ) );
+  $.fn.selected.defaults = {
+    iterator: 'objects',
+    handler: function( item ) {
+      return $('<option/>').val(item.id).text(item.displayName);
+    },
+    defaultMoveSelected: function( sel ) {
+      $(sel).find(':selected').trigger('dblclick');
+    },
+    defaultMoveAll: function( sel ) {
+      $(sel).trigger('move-all');
+    },
+    defaultSourceDblClickHandler: function() {
+      var $this = $(this);
+      var $selected = $this.parent().data('selected');
+
+      if( $selected === undefined ) {
+        $.error('selected: Invalid source.parent, does not contain selected object.');
+      }
+
+      $this.removeAttr('selected');
+      $selected.target.append($this);
+    },
+    defaultTargetDblClickHandler: function() {
+      var $this = $(this);
+      var $selected = $this.parent().data('selected');
+
+      if( $selected === undefined ) {
+        $.error('selected: Invalid target.parent, does not contain selected object.');
+      }
+
+      $this.removeAttr('selected');
+      $selected.source.append($this);
+    },
+    makeSearchHandler: function( context ) {
+      return function( e ) {
+        if( e.keyCode == 13 ) {
+          context.page = 1;
+          context.like = $(this).val();
+          context.defaultProgressiveLoader(context);
+          e.preventDefault();
+          return false;
         }
-        else
-        {
-            $select_ghost_matched = $select_ghost_options.filter( dhis2.util.jqTextFilter( key, false ) );
-            $select_not_matched = $select_options.filter( dhis2.util.jqTextFilter( key, true ) );
+      }
+    },
+    makeScrollHandler: function( context ) {
+      return function() {
+        if( context.source[0].offsetHeight + context.source.scrollTop() >= context.source[0].scrollHeight ) {
+          context.defaultProgressiveLoader(context);
+        }
+      }
+    },
+    defaultProgressiveLoader: function( context ) {
+      if( context.page === undefined ) {
+        return;
+      }
+
+      var request = {
+        url: context.url,
+        data: {
+          paging: true,
+          pageSize: 100 + context.target.children().length,
+          page: context.page,
+          translate: true,
+          fields: context.fields
+        },
+        dataType: 'json'
+      };
+
+      if( context.like !== undefined && context.like.length > 0 ) {
+        request.data.filter = 'displayName:ilike:' + context.like;
+      }
+
+      context.searchButton.find('i').removeClass('fa-search');
+      context.searchButton.find('i').addClass('fa-spinner fa-spin');
+      context.searchButton.attr('disabled', true);
+
+      return $.ajax(request).done(function( data ) {
+        if( data.pager ) {
+          if( data.pager.page == 1 ) {
+            context.source.children().remove();
+          }
+
+          context.page++;
         }
 
-        dhis2.select.moveSorted( $select_ghost, $select_not_matched );
-        dhis2.select.moveSorted( $select, $select_ghost_matched );
-    }
-};
-
-/**
- * Moves an array of child elements into a select, these will be moved in a
- * sorted fashion. Both the select and array is assumed to be sorted to start
- * with.
- * 
- * @param $select {jQuery} A select which acts as the target
- * @param $array {jQuery} An array of child elements to move
- */
-dhis2.select.moveSorted = function( $select, $array )
-{
-    if ( $select.children().size() === 0 )
-    {
-        $select.append( $array );
-    }
-    else
-    {
-        var array = $array.get();
-        var array_idx = 0;
-        var current = array.shift();
-        var $children = $select.children();
-
-        while ( current !== undefined )
-        {
-            var $current = $( current );
-
-            if ( dhis2.comparator.htmlNoCaseComparator( $children.eq( array_idx ), $current ) > 0 )
-            {
-                $( current ).insertBefore( $children.eq( array_idx ) );
-                current = array.shift();
-            }
-            else
-            {
-                array_idx++;
-            }
-
-            if ( $children.size() < array_idx )
-            {
-                break;
-            }
+        if( typeof data.pager === 'undefined' ) {
+          context.source.children().remove();
         }
 
-        if ( current !== undefined )
-        {
-            $select.append( current );
+        if( typeof data.pager === 'undefined' || context.page > data.pager.pageCount ) {
+          delete context.page;
         }
 
-        $select.append( array );
+        if( data[context.iterator] === undefined ) {
+          return;
+        }
+
+        $.each(data[context.iterator], function() {
+          if( context.target.find('option[value=' + this.id + ']').length == 0 ) {
+            context.source.append(context.handler(this));
+          }
+        });
+      }).fail(function() {
+        context.source.children().remove();
+      }).always(function() {
+        context.searchButton.find('i').removeClass('fa-spinner fa-spin');
+        context.searchButton.find('i').addClass('fa-search');
+        context.searchButton.removeAttr('disabled');
+      });
+    },
+    defaultLoader: function( context ) {
+      context.source.children().remove();
+
+      var request = {
+        url: context.url,
+        data: {
+          paging: false,
+          translate: true,
+          fields: context.fields
+        },
+        dataType: 'json'
+      };
+
+      if( context.like !== undefined && context.like.length > 0 ) {
+        request.data.filter = 'displayName:like:' + context.like;
+      }
+
+      context.searchButton.find('i').removeClass('fa-search');
+      context.searchButton.find('i').addClass('fa-spinner fa-spin');
+      context.searchButton.attr('disabled', true);
+
+      return $.ajax(request).done(function( data ) {
+        if( data[context.iterator] === undefined ) {
+          return;
+        }
+
+        $.each(data[context.iterator], function() {
+          if( context.target.find('option[value=' + this.id + ']').length == 0 ) {
+            context.source.append(context.handler(this));
+          }
+        });
+      }).fail(function() {
+        context.source.children().remove();
+      }).always(function() {
+        context.searchButton.find('i').removeClass('fa-spinner fa-spin');
+        context.searchButton.find('i').addClass('fa-search');
+        context.searchButton.removeAttr('disabled');
+      });
     }
-};
+  };
 
-/**
- * Moves an array of child elements into a select.
- * 
- * @param $select {jQuery} Select which acts as the target
- * @param $array An array of child elements to move
- */
-dhis2.select.move = function( $select, $array )
-{
-    $select.append( $array );
-};
-
-/**
- * Mark all options in a select as selected.
- * 
- * @param $select {jQuery} The select
- */
-dhis2.select.selectAll = function( $select )
-{
-    $select.children().attr( 'selected', true );
-};
-
-/**
- * Mark all options as not selected.
- * 
- * @param $select {jQuery} The select
- */
-dhis2.select.selectNone = function( $select )
-{
-    $select.children().attr( 'selected', false );
-};
-
-/**
- * Sort options in a select. Based on their html() content. This version is case
- * sensitive.
- * 
- * @param $options Array of the options to sort
- * 
- * @return Sorted array of options
- */
-dhis2.select.sort = function( $options )
-{
-    return $.makeArray( $options ).sort( function( a, b )
-    {
-        return dhis2.comparator.htmlComparator( $( a ), $( b ) );
-    } );
-};
-
-/**
- * Sort options in a select. Based on their html() content. This version is case
- * insensitive
- * 
- * @param $options Array of the options to sort
- * 
- * @return Sorted array of options
- */
-dhis2.select.sortNC = function( $options )
-{
-    return $( $.makeArray( $options ).sort( function( a, b )
-    {
-        return dhis2.comparator.htmlNoCaseComparator( $( a ), $( b ) );
-    } ) );
-};
+})(jQuery, window, document);
