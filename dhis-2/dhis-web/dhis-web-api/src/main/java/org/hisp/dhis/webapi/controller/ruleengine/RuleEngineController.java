@@ -88,16 +88,14 @@ public class RuleEngineController
 
         if ( programInstance == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramInstance with id:%s not found", programInstanceId ),
-    "ProgramInstance not found") );
+            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramInstance with id:%s not found", programInstanceId ), "ProgramInstance not found") );
         }
 
         ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
 
         if ( programRule == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramRule with id:%s not found", programRuleId ),
-    "ProgramRule not found") );
+            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramRule with id:%s not found", programRuleId ), "ProgramRule not found") );
         }
 
         List<RuleEffect> ruleEffectList = programRuleEngineService.evaluate( programInstance );
@@ -113,16 +111,14 @@ public class RuleEngineController
 
         if ( programStageInstance == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramStageInstance with id:%s not found", programStageInstanceId ),
-    "ProgramStageInstance not found") );
+            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramStageInstance with id:%s not found", programStageInstanceId ), "ProgramStageInstance not found") );
         }
 
         ProgramRule programRule = programRuleService.getProgramRule( programRuleId );
 
         if ( programRule == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramRule with id:%s not found", programRuleId ),
-    "ProgramRule not found") );
+            throw new WebMessageException( WebMessageUtils.conflict( String.format( "ProgramRule with id:%s not found", programRuleId ), "ProgramRule not found") );
         }
 
         List<RuleEffect> ruleEffectList = programRuleEngineService.evaluate( programStageInstance );
