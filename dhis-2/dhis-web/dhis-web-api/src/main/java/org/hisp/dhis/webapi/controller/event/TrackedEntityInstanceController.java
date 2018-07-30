@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
@@ -846,6 +847,11 @@ public class TrackedEntityInstanceController
 
             if ( !errors.isEmpty() )
             {
+                if ( program.getAccessLevel() == AccessLevel.CLOSED )
+                {
+                   throw new WebMessageException(
+                        WebMessageUtils.unathorized( TrackerOwnershipAccessManager.PROGRAM_ACCESS_CLOSED ) );
+                }
                 throw new WebMessageException(
                     WebMessageUtils.unathorized( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED ) );
             }
