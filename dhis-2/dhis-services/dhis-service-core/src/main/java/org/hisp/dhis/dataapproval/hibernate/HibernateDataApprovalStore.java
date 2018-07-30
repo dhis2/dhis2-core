@@ -516,12 +516,6 @@ public class HibernateDataApprovalStore
                                 APPROVED_HERE );
 
                 statusList.add( new DataApprovalStatus( state, approvedLevel, approvedOrgUnitId, actionLevel, ouUid, ouName, aocUid, accepted, null ) );
-                if ( state == DataApprovalState.UNAPPROVABLE )
-                {
-                    System.out.println( "Get approval SQL: " + sql );
-                    try{ Thread.sleep(300); } catch ( Exception ex ) {}
-                    return statusList;
-                }
             }
         }
 
