@@ -164,6 +164,12 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentitycomment DROP COLUMN createddate;" );
 
         addGenerateUidFunction();
+
+        //Remove entries for authorities that no longer exist
+        executeSql( "DELETE FROM userroleauthorities WHERE authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
+            "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
+            "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
+            "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
     }
 
     private void addGenerateUidFunction()
