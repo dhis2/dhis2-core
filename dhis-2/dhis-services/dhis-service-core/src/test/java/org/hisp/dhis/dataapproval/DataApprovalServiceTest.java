@@ -155,6 +155,8 @@ public class DataApprovalServiceTest
     private DataApprovalWorkflow workflow12A_H;
     private DataApprovalWorkflow workflow3;
     private DataApprovalWorkflow workflow1234;
+    private DataApprovalWorkflow workflow13;
+    private DataApprovalWorkflow workflow24;
 
     private DataSet dataSetA;
     private DataSet dataSetB;
@@ -164,6 +166,8 @@ public class DataApprovalServiceTest
     private DataSet dataSetF;
     private DataSet dataSetG;
     private DataSet dataSetH;
+    private DataSet dataSetI;
+    private DataSet dataSetJ;
 
     private User userA;
     private User userB;
@@ -294,6 +298,8 @@ public class DataApprovalServiceTest
         workflow12B = new DataApprovalWorkflow( "workflow12B", periodType, newHashSet( level1, level2 ) );
         workflow3 = new DataApprovalWorkflow( "workflow3", periodType, newHashSet( level3 ) );
         workflow1234 = new DataApprovalWorkflow( "workflow1234", periodType, newHashSet( level1, level2, level3, level4 ) );
+        workflow13 = new DataApprovalWorkflow( "workflow13", periodType, newHashSet( level1, level3 ) );
+        workflow24 = new DataApprovalWorkflow( "workflow24", periodType, newHashSet( level2, level4 ) );
 
         workflow0.setUid( "workflow000" );
         workflow1.setUid( "workflow001" );
@@ -302,6 +308,8 @@ public class DataApprovalServiceTest
         workflow12B.setUid( "workflow12B" );
         workflow3.setUid( "workflow003" );
         workflow1234.setUid( "workflo1234" );
+        workflow13.setUid( "workflow013" );
+        workflow24.setUid( "workflow024" );
 
         dataApprovalService.addWorkflow( workflow0 );
         dataApprovalService.addWorkflow( workflow1 );
@@ -310,6 +318,8 @@ public class DataApprovalServiceTest
         dataApprovalService.addWorkflow( workflow12B );
         dataApprovalService.addWorkflow( workflow3 );
         dataApprovalService.addWorkflow( workflow1234 );
+        dataApprovalService.addWorkflow( workflow13 );
+        dataApprovalService.addWorkflow( workflow24 );
 
         dataSetA = createDataSet( 'A', periodType, defaultCategoryCombo );
         dataSetB = createDataSet( 'B', periodType, defaultCategoryCombo );
@@ -318,6 +328,8 @@ public class DataApprovalServiceTest
         dataSetE = createDataSet( 'E', periodType, defaultCategoryCombo );
         dataSetF = createDataSet( 'F', periodType, defaultCategoryCombo );
         dataSetG = createDataSet( 'G', periodType, defaultCategoryCombo );
+        dataSetI = createDataSet( 'I', periodType, defaultCategoryCombo );
+        dataSetJ = createDataSet( 'J', periodType, defaultCategoryCombo );
 
         dataSetA.setWorkflow( workflow0 );
         dataSetB.setWorkflow( workflow1 );
@@ -326,6 +338,8 @@ public class DataApprovalServiceTest
         dataSetE.setWorkflow( workflow12B );
         dataSetF.setWorkflow( workflow3 );
         dataSetG.setWorkflow( workflow1234 );
+        dataSetI.setWorkflow( workflow13 );
+        dataSetJ.setWorkflow( workflow24 );
 
         dataSetA.addOrganisationUnit( organisationUnitA );
         dataSetA.addOrganisationUnit( organisationUnitB );
@@ -354,6 +368,20 @@ public class DataApprovalServiceTest
         dataSetG.addOrganisationUnit( organisationUnitE );
         dataSetG.addOrganisationUnit( organisationUnitF );
 
+        dataSetI.addOrganisationUnit( organisationUnitA );
+        dataSetI.addOrganisationUnit( organisationUnitB );
+        dataSetI.addOrganisationUnit( organisationUnitC );
+        dataSetI.addOrganisationUnit( organisationUnitD );
+        dataSetI.addOrganisationUnit( organisationUnitE );
+        dataSetI.addOrganisationUnit( organisationUnitF );
+
+        dataSetJ.addOrganisationUnit( organisationUnitA );
+        dataSetJ.addOrganisationUnit( organisationUnitB );
+        dataSetJ.addOrganisationUnit( organisationUnitC );
+        dataSetJ.addOrganisationUnit( organisationUnitD );
+        dataSetJ.addOrganisationUnit( organisationUnitE );
+        dataSetJ.addOrganisationUnit( organisationUnitF );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
@@ -361,6 +389,8 @@ public class DataApprovalServiceTest
         dataSetService.addDataSet( dataSetE );
         dataSetService.addDataSet( dataSetF );
         dataSetService.addDataSet( dataSetG );
+        dataSetService.addDataSet( dataSetI );
+        dataSetService.addDataSet( dataSetJ );
 
         userA = createUser( 'A' );
         userB = createUser( 'B' );
@@ -688,6 +718,15 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
+        // Skip levels.
+
+        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
         Date date = new Date();
 
         // Approved for organisation unit F
@@ -701,9 +740,18 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
+        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
         // Also approved also for organisation unit E
-        DataApproval dataApprovalE = new DataApproval( level3, workflow1234, periodA, organisationUnitE, defaultOptionCombo, NOT_ACCEPTED, date, userA );
-        dataApprovalService.approveData( newArrayList( dataApprovalE ) );
+        DataApproval dataApprovalE1 = new DataApproval( level3, workflow1234, periodA, organisationUnitE, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalE2 = new DataApproval( level3, workflow13, periodA, organisationUnitE, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        dataApprovalService.approveData( newArrayList( dataApprovalE1 ) );
+        dataApprovalService.approveData( newArrayList( dataApprovalE2 ) );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getState() );
@@ -712,20 +760,36 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
+        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
         // Also approved for organisation unit D
         DataApproval dataApprovalD = new DataApproval( level4, workflow1234, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA );
         dataApprovalService.approveData( newArrayList( dataApprovalD ) );
 
-        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
-        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getState() );
-        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitC, defaultOptionCombo ).getState() );
-        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitD, defaultOptionCombo ).getState() );
-        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
-        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
+        assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
         // Also approved for organisation unit C
-        DataApproval dataApprovalC = new DataApproval( level3, workflow1234, periodA, organisationUnitC, defaultOptionCombo, NOT_ACCEPTED, date, userA );
-        dataApprovalService.approveData( newArrayList( dataApprovalC ) );
+        DataApproval dataApprovalC1 = new DataApproval( level3, workflow1234, periodA, organisationUnitC, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalC2 = new DataApproval( level3, workflow13, periodA, organisationUnitC, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        dataApprovalService.approveData( newArrayList( dataApprovalC1 ) );
+        dataApprovalService.approveData( newArrayList( dataApprovalC2 ) );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getState() );
@@ -733,6 +797,13 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitD, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
         // Also approved for organisation unit B
         DataApproval dataApprovalB = new DataApproval( level2, workflow1234, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA );
@@ -745,9 +816,18 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
 
+        assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.UNAPPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
         // Also approved for organisation unit A
-        DataApproval dataApprovalA = new DataApproval( level1, workflow1234, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA );
-        dataApprovalService.approveData( newArrayList( dataApprovalA ) );
+        DataApproval dataApprovalA1 = new DataApproval( level1, workflow1234, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalA2 = new DataApproval( level1, workflow13, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        dataApprovalService.approveData( newArrayList( dataApprovalA1 ) );
+        dataApprovalService.approveData( newArrayList( dataApprovalA2 ) );
 
         assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getState() );
@@ -755,6 +835,13 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitD, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+
+        assertEquals( DataApprovalState.APPROVED_HERE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitA, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitB, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitC, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
+        assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
     }
 
     @Test
@@ -899,7 +986,7 @@ public class DataApprovalServiceTest
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
+        CurrentUserService currentUserService = new MockCurrentUserService( false, units, null, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
         User currentUser = currentUserService.getCurrentUser();
         userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
@@ -907,11 +994,17 @@ public class DataApprovalServiceTest
         Date date = new Date();
 
         // Level 4 (organisationUnitD and organisationUnitF ready)
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitC, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitD, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getPermissions().isMayApprove());
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitF, defaultOptionCombo) );
+
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitF, defaultOptionCombo) );
 
         // Level 3 (organisationUnitC) and Level 4 (organisationUnitF) ready
         try
@@ -925,11 +1018,28 @@ public class DataApprovalServiceTest
         }
         dataApprovalStore.addDataApproval( new DataApproval( level4, workflow1234, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA ), currentUser );
 
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitB, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitC, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitD, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitE, defaultOptionCombo ).getPermissions().isMayApprove());
-        assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getPermissions().isMayApprove());
+        try
+        {
+            dataApprovalService.approveData( newArrayList( new DataApproval( level4, workflow24, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+            fail( "User should not have permission to approve org unit C." );
+        }
+        catch ( DataMayNotBeApprovedException ex )
+        {
+            // Expected error, so add the data through dataApprovalStore:
+        }
+        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA ) );
+
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "APPROVED_HERE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitF, defaultOptionCombo) );
+
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "APPROVED_HERE level=level4 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitF, defaultOptionCombo) );
 
         // Level 2 (organisationUnitB) ready
         try
@@ -942,6 +1052,17 @@ public class DataApprovalServiceTest
             // Expected error, so add the data through dataApprovalStore:
         }
         dataApprovalStore.addDataApproval( new DataApproval( level4, workflow1234, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA ), currentUser );
+
+        try
+        {
+            dataApprovalService.approveData( newArrayList( new DataApproval( level4, workflow24, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+            fail( "User should not have permission to approve org unit F." );
+        }
+        catch ( DataMayNotBeApprovedException ex )
+        {
+            // Expected error, so add the data through dataApprovalStore:
+        }
+        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA ) );
 
         try
         {
@@ -971,18 +1092,42 @@ public class DataApprovalServiceTest
         assertEquals( "APPROVED_HERE level=level3 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitE, defaultOptionCombo) );
         assertEquals( "APPROVED_ABOVE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitF, defaultOptionCombo) );
 
+        assertEquals( "UNAPPROVED_READY level=null approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "APPROVED_HERE level=level4 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "APPROVED_HERE level=level4 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitF, defaultOptionCombo) );
+
         // Level 1 (organisationUnitA) ready
         dataApprovalService.approveData( newArrayList( new DataApproval( level2, workflow1234, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+        dataApprovalService.approveData( newArrayList( new DataApproval( level2, workflow24, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+
         assertEquals( "APPROVED_HERE level=level2 approve=F unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitB, defaultOptionCombo) );
         assertEquals( "APPROVED_ABOVE level=level3 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo) );
         assertEquals( "APPROVED_ABOVE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitD, defaultOptionCombo) );
         assertEquals( "APPROVED_ABOVE level=level3 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitE, defaultOptionCombo) );
         assertEquals( "APPROVED_ABOVE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitF, defaultOptionCombo ) );
 
+        assertEquals( "APPROVED_HERE level=level2 approve=F unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitB, defaultOptionCombo) );
+        assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitC, defaultOptionCombo) );
+        assertEquals( "APPROVED_ABOVE level=level4 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitD, defaultOptionCombo) );
+        assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitE, defaultOptionCombo) );
+        assertEquals( "APPROVED_ABOVE level=level4 approve=T unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow24, periodA, organisationUnitF, defaultOptionCombo) );
+
         // Level 1 (organisationUnitA) try to approve
         try
         {
             dataApprovalService.approveData( newArrayList( new DataApproval( level1, workflow1234, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+            fail( "User should not have permission to approve org unit A." );
+        }
+        catch ( DataMayNotBeApprovedException ex )
+        {
+            // Expected
+        }
+
+        try
+        {
+            dataApprovalService.approveData( newArrayList( new DataApproval( level1, workflow24, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
             fail( "User should not have permission to approve org unit A." );
         }
         catch ( DataMayNotBeApprovedException ex )
@@ -1574,7 +1719,7 @@ public class DataApprovalServiceTest
 
         assertEquals( "APPROVED_HERE level=level4 approve=T unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo ) );
         assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitC, defaultOptionCombo ) );
-        assertEquals( "APPROVED_HERE level=level3 approve=T unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow3, periodA, organisationUnitC, defaultOptionCombo ) );
+        assertEquals( "APPROVED_HERE level=level3 approve=F unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow3, periodA, organisationUnitC, defaultOptionCombo ) );
     }
 
     @Test
