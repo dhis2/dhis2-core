@@ -41,9 +41,7 @@ import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +58,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER =
         new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
         .put( ProgramRuleActionType.ASSIGN, pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-        .put( ProgramRuleActionType.CREATEEVENT, pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
+        .put( ProgramRuleActionType.CREATEEVENT, pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getProgramStage() != null ? pra.getUid() : "" ) )
         .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, this::getLocationBasedDisplayRuleAction )
         .put( ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction )
         .put( ProgramRuleActionType.HIDEFIELD, pra -> RuleActionHideField.create( pra.getContent(), getAssignedParameter( pra ) ) )
@@ -124,7 +122,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public List<Rule> toMappedProgramRules( List<ProgramRule> programRules )
     {
-        return programRules.stream().map( this::toRule ).collect( Collectors.toList() );
+        return programRules.stream().map( this::toRule ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -146,7 +144,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        return programRuleVariables.stream().map( this::toRuleVariable ).collect( Collectors.toList() );
+        return programRuleVariables.stream().map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -199,7 +197,18 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     {
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
-        List<RuleAction> ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+        List<RuleAction> ruleActions = new ArrayList<>();
+
+        try
+        {
+            ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid rule action" );
+
+            return null;
+        }
 
         return Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions );
     }
@@ -212,7 +221,18 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private RuleVariable toRuleVariable( ProgramRuleVariable programRuleVariable )
     {
-        return VARIABLE_MAPPER_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+        RuleVariable ruleVariable = null;
+
+        try
+        {
+            ruleVariable = VARIABLE_MAPPER_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid rule variable" );
+        }
+
+        return ruleVariable;
     }
 
     private RuleValueType toMappedValueType( ProgramRuleVariable programRuleVariable )

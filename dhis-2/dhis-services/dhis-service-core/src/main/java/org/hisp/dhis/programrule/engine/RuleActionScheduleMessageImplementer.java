@@ -50,6 +50,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplementer
 {
+    private static final Log log = LogFactory.getLog( RuleActionScheduleMessageImplementer.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -92,6 +94,8 @@ public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplemen
 
         programNotificationInstanceStore.save( notificationInstance );
 
+        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         notificationLoggingService.save( entry );
@@ -122,6 +126,8 @@ public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplemen
 
         programNotificationInstanceStore.save( notificationInstance );
 
+        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         notificationLoggingService.save( entry );
@@ -149,6 +155,7 @@ public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplemen
             }
         }
 
+        log.warn( "Invalid date: " + date );
         return false;
     }
 }
