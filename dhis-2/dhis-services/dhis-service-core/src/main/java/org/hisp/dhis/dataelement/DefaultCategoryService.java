@@ -51,6 +51,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -126,7 +127,7 @@ public class DefaultCategoryService
     }
 
     private CurrentUserService currentUserService;
-    
+
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -490,6 +491,9 @@ public class DefaultCategoryService
 
         addCategoryOption( categoryOption );
 
+        categoryOption.setPublicAccess( AccessStringHelper.CATEGORY_DEFAULT );
+        updateCategoryOption( categoryOption );
+
         // ---------------------------------------------------------------------
         // Category
         // ---------------------------------------------------------------------
@@ -501,6 +505,9 @@ public class DefaultCategoryService
 
         category.addCategoryOption( categoryOption );
         addCategory( category );
+
+        category.setPublicAccess( AccessStringHelper.CATEGORY_DEFAULT );
+        updateCategory( category );
 
         // ---------------------------------------------------------------------
         // CategoryCombo
@@ -514,6 +521,9 @@ public class DefaultCategoryService
         categoryCombo.addCategory( category );
         addCategoryCombo( categoryCombo );
 
+        categoryCombo.setPublicAccess( AccessStringHelper.CATEGORY_DEFAULT );
+        updateCategoryCombo( categoryCombo );
+
         // ---------------------------------------------------------------------
         // CategoryOptionCombo
         // ---------------------------------------------------------------------
@@ -526,6 +536,9 @@ public class DefaultCategoryService
         categoryOptionCombo.addCategoryOption( categoryOption );
 
         addCategoryOptionCombo( categoryOptionCombo );
+
+        categoryOptionCombo.setPublicAccess( AccessStringHelper.CATEGORY_DEFAULT );
+        updateCategoryOptionCombo( categoryOptionCombo );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
         categoryOptionCombos.add( categoryOptionCombo );
@@ -605,25 +618,24 @@ public class DefaultCategoryService
     }
 
 
-
     @Override
     public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
-        
+
         if ( coc != null )
-        {            
+        {
             User user = currentUserService.getCurrentUser();
-            
+
             for ( CategoryOption categoryOption : coc.getCategoryOptions() )
-            {                
+            {
                 if ( !aclService.canRead( user, categoryOption ) )
                 {
                     return null;
                 }
             }
         }
-        
+
         return coc;
     }
 
@@ -651,14 +663,14 @@ public class DefaultCategoryService
         for ( DataElement dataElement : dataElements )
         {
             Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
-            
+
             boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
-            
+
             if ( includeTotals && !anyIsDefault )
             {
                 operands.add( new DataElementOperand( dataElement ) );
             }
-            
+
             for ( CategoryCombo categoryCombo : categoryCombos )
             {
                 operands.addAll( getOperands( dataElement, categoryCombo ) );
@@ -672,34 +684,34 @@ public class DefaultCategoryService
     public List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-                
+
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
             CategoryCombo categoryCombo = element.getResolvedCategoryCombo();
-            
+
             if ( includeTotals && !categoryCombo.isDefault() )
             {
                 operands.add( new DataElementOperand( element.getDataElement() ) );
             }
-            
+
             operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo() ) );
         }
-        
+
         return operands;
     }
 
     private List<DataElementOperand> getOperands( DataElement dataElement, CategoryCombo categoryCombo )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-        
+
         for ( CategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }
-        
+
         return operands;
     }
-    
+
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
