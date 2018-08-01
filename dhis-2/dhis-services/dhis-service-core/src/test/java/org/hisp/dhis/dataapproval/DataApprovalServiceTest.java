@@ -1027,7 +1027,7 @@ public class DataApprovalServiceTest
         {
             // Expected error, so add the data through dataApprovalStore:
         }
-        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA ) );
+        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA ), currentUser );
 
         assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitB, defaultOptionCombo) );
         assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo) );
@@ -1062,7 +1062,7 @@ public class DataApprovalServiceTest
         {
             // Expected error, so add the data through dataApprovalStore:
         }
-        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA ) );
+        dataApprovalStore.addDataApproval( new DataApproval( level4, workflow24, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA ), currentUser );
 
         try
         {
