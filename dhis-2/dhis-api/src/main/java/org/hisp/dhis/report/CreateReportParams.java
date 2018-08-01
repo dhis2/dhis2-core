@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.report;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,38 +28,46 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.reporttable.ReportParams;
 
-import java.io.File;
-import java.net.URI;
 import java.util.List;
 
 /**
- * @author Halvdan Hoem Grelland
+ * Objected used to return processed report parameters accordingly with request mode (report or/and periods used as
+ * response to create a standard report.
  */
-public interface FileResourceService
+public class CreateReportParams
 {
-    FileResource getFileResource( String uid );
+    private List<IdentifiableObject> periods;
+    private ReportParams params;
 
-    FileResource getFileResourceByName( String name );
+    public CreateReportParams( List<IdentifiableObject> periods, ReportParams params )
+    {
+        this.periods = periods;
+        this.params = params;
+    }
 
-    List<FileResource> getFileResources( List<String> uids );
+    @JsonProperty
+    public List<IdentifiableObject> getPeriods()
+    {
+        return periods;
+    }
 
-    List<FileResource> getOrphanedFileResources();
+    public void setPeriods( List<IdentifiableObject> periods )
+    {
+        this.periods = periods;
+    }
 
-    String saveFileResource( FileResource fileResource, File file );
+    @JsonProperty
+    public ReportParams getParams()
+    {
+        return params;
+    }
 
-    String saveFileResource( FileResource fileResource, byte[] bytes );
-
-    void deleteFileResource( String uid );
-
-    void deleteFileResource( FileResource fileResource );
-
-    ByteSource getFileResourceContent( FileResource fileResource );
-    
-    boolean fileResourceExists( String uid );
-    
-    void updateFileResource( FileResource fileResource );
-
-    URI getSignedGetFileResourceContentUri( String uid );
+    public void setParams( ReportParams params )
+    {
+        this.params = params;
+    }
 }

@@ -33,10 +33,15 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.completeness.DataSetCompletenessResult;
 import org.hisp.dhis.completeness.DataSetCompletenessService;
 import org.hisp.dhis.dataset.DataSet;
@@ -49,13 +54,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.report.CreateReportParams;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
+import org.hisp.dhis.reporttable.ReportParams;
+import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
+import org.hisp.dhis.system.filter.PastAndCurrentPeriodFilter;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -71,6 +83,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.annotation.Resource;
@@ -81,6 +94,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -88,6 +102,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.reporttable.ReportTableService.MODE_REPORT;
+import static org.hisp.dhis.reporttable.ReportTableService.MODE_REPORT_TABLE;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
@@ -120,7 +136,10 @@ public class ReportController
     @Autowired
     private ContextUtils contextUtils;
 
-    @Resource(name="dataCompletenessServiceProvider")
+    @Autowired
+    private ReportTableService reportTableService;
+
+    @Resource( name = "dataCompletenessServiceProvider" )
     private ServiceProvider<DataSetCompletenessService> serviceProvider;
 
     private Map<String, String> TYPE_TEMPLATE_MAP = ImmutableMap.<String, String>builder()
@@ -140,7 +159,8 @@ public class ReportController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateReportDesign( @PathVariable( "uid" ) String uid,
         @RequestBody String designContent,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
 
@@ -154,7 +174,8 @@ public class ReportController
     }
 
     @RequestMapping( value = "/{uid}/design", method = RequestMethod.GET )
-    public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
+    public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
 
@@ -170,11 +191,13 @@ public class ReportController
 
         if ( report.isTypeHtml() )
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE, filenameEncode( report.getName() ) + ".html", true );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE,
+                filenameEncode( report.getName() ) + ".html", true );
         }
         else
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE, filenameEncode( report.getName() ) + ".jrxml", true );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE,
+                filenameEncode( report.getName() ) + ".jrxml", true );
         }
 
         response.getWriter().write( report.getDesignContent() );
@@ -189,9 +212,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF, false );
+        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF,
+            false );
     }
 
     @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
@@ -199,9 +224,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL, true );
+        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL,
+            true );
     }
 
     @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
@@ -209,9 +236,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML, false );
+        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML,
+            false );
     }
 
     // -------------------------------------------------------------------------
@@ -220,19 +249,102 @@ public class ReportController
 
     @RequestMapping( value = "/templates/{type}", method = RequestMethod.GET )
     public void getReportTemplate( @PathVariable( "type" ) String type,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         if ( type != null & TYPE_TEMPLATE_MAP.containsKey( type ) )
         {
             String template = TYPE_TEMPLATE_MAP.get( type );
             String contentType = TYPE_CONTENT_TYPE_MAP.get( type );
 
-            contextUtils.configureResponse( response, contentType, CacheStrategy.NO_CACHE, template ,true );
+            contextUtils.configureResponse( response, contentType, CacheStrategy.NO_CACHE, template, true );
 
-            String content = IOUtils.toString( new ClassPathResource(template).getInputStream(), StandardCharsets.UTF_8 );
+            String content = IOUtils
+                .toString( new ClassPathResource( template ).getInputStream(), StandardCharsets.UTF_8 );
 
             response.getWriter().write( content );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Report Parameters
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{id}/parameters", method = RequestMethod.GET, produces = "application/json" )
+    @ResponseStatus( HttpStatus.OK )
+    public @ResponseBody
+    CreateReportParams getReportParams( @PathVariable( "id" ) String id,
+        @RequestParam( value = "mode" ) String mode )
+        throws Exception
+    {
+        RelativePeriods relatives = null;
+        ReportParams reportParams = new ReportParams();
+        List<IdentifiableObject> processedPeriods = new ArrayList<>();
+
+        if ( MODE_REPORT_TABLE.equals( mode ) )
+        {
+            ReportTable reportTable = reportTableService.getReportTable( id );
+
+            if ( reportTable != null )
+            {
+                reportParams = reportTable.getReportParams();
+                relatives = reportTable.getRelatives();
+            }
+        }
+        else if ( MODE_REPORT.equals( mode ) )
+        {
+            Report report = reportService.getReport( id );
+
+            if ( report != null && report.isTypeReportTable() )
+            {
+                reportParams = report.getReportTable().getReportParams();
+                relatives = report.getReportTable().getRelatives();
+            }
+            else if ( report != null && (report.isTypeJdbc() || report.isTypeHtml()) )
+            {
+                reportParams = report.getReportParams();
+                relatives = report.getRelatives();
+            }
+        }
+
+        if ( reportParams == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Report Parameters not found for identifier: "
+                + id + " and mode: " + mode ) );
+        }
+
+        if ( reportParams != null && reportParams.isParamReportingMonth() && relatives != null )
+        {
+            CalendarPeriodType periodType = (CalendarPeriodType) relatives.getPeriodType();
+            List<Period> periods = periodType.generateLast5Years( new Date() );
+            Collections.reverse( periods );
+            FilterUtils.filter( periods, new PastAndCurrentPeriodFilter() );
+
+            Calendar calendar = PeriodType.getCalendar();
+
+            for ( Period period_ : periods )
+            {
+                BaseIdentifiableObject period = new BaseIdentifiableObject();
+
+                if ( calendar.isIso8601() )
+                {
+                    period.setUid( period_.getIsoDate() );
+                    period.setDisplayName( i18nManager.getI18nFormat().formatPeriod( period_ ) );
+                    period.setName( i18nManager.getI18nFormat().formatPeriod( period_ ) );
+                }
+                else
+                {
+                    DateTimeUnit dateTimeUnit = calendar.fromIso( period_.getStartDate() );
+                    period.setUid( period_.getPeriodType().getIsoDate( dateTimeUnit ) );
+                    period.setDisplayName( i18nManager.getI18nFormat().formatPeriod( period_ ) );
+                    period.setName( i18nManager.getI18nFormat().formatPeriod( period_ ) );
+                }
+
+                processedPeriods.add( period );
+            }
+        }
+
+        return new CreateReportParams( processedPeriods, reportParams );
     }
 
     // -------------------------------------------------------------------------
@@ -246,7 +358,8 @@ public class ReportController
      */
     @RequestMapping( value = "/jasperReports/img", method = RequestMethod.GET )
     public void getJasperImage( @RequestParam String image,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         new ImageServlet().service( request, response );
     }
@@ -258,7 +371,8 @@ public class ReportController
         @RequestParam String ou,
         @RequestParam String criteria,
         @RequestParam( required = false ) Set<String> groupUids,
-        HttpServletResponse response) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
         DataSet selectedDataSet = dataSetService.getDataSet( ds );
@@ -280,7 +394,8 @@ public class ReportController
         // Configure response
         // ---------------------------------------------------------------------
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
         // ---------------------------------------------------------------------
         // Assemble report
@@ -289,25 +404,34 @@ public class ReportController
         List<DataSetCompletenessResult> footerResults = new ArrayList<>();
         DataSetCompletenessService completenessService = serviceProvider.provide( criteria );
 
-        Set<Integer> groupIds = new HashSet<>(  );
-        if ( groupUids != null ) {
-            for( String groupUid : groupUids ) {
-                OrganisationUnitGroup organisationUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
-                if ( organisationUnitGroup != null ) {
+        Set<Integer> groupIds = new HashSet<>();
+        if ( groupUids != null )
+        {
+            for ( String groupUid : groupUids )
+            {
+                OrganisationUnitGroup organisationUnitGroup = organisationUnitGroupService
+                    .getOrganisationUnitGroup( groupUid );
+                if ( organisationUnitGroup != null )
+                {
                     groupIds.add( organisationUnitGroup.getId() );
-                    System.out.println( "GroupId: " +  organisationUnitGroup.getId());
+                    System.out.println( "GroupId: " + organisationUnitGroup.getId() );
                 }
             }
         }
 
-        if ( selectedDataSet != null ) {
+        if ( selectedDataSet != null )
+        {
             mainResults = new ArrayList<>( completenessService.getDataSetCompleteness(
-                selectedPeriod.getId(), getIdentifiers( selectedOrgunit.getChildren() ), selectedDataSet.getId(), groupIds ) );
+                selectedPeriod.getId(), getIdentifiers( selectedOrgunit.getChildren() ), selectedDataSet.getId(),
+                groupIds ) );
 
             footerResults = new ArrayList<>(
-                completenessService.getDataSetCompleteness( selectedPeriod.getId(), Arrays.asList( selectedOrgunit.getId() ),
-                    selectedDataSet.getId(), groupIds ) );
-        } else {
+                completenessService
+                    .getDataSetCompleteness( selectedPeriod.getId(), Arrays.asList( selectedOrgunit.getId() ),
+                        selectedDataSet.getId(), groupIds ) );
+        }
+        else
+        {
             mainResults = new ArrayList<>( completenessService.getDataSetCompleteness(
                 selectedPeriod.getId(), selectedOrgunit.getId(), groupIds ) );
         }
@@ -319,9 +443,9 @@ public class ReportController
         // FIXME move it a util method
         I18n i18n = i18nManager.getI18n();
         String title =
-            ( selectedOrgunit != null ? selectedOrgunit.getName() : "" ) +
-                ( selectedDataSet != null ? "-" + selectedDataSet.getName() : "" ) +
-                ( selectedPeriod != null ? "-" + i18nManager.getI18nFormat().formatPeriod( selectedPeriod ) : "" );
+            (selectedOrgunit != null ? selectedOrgunit.getName() : "") +
+                (selectedDataSet != null ? "-" + selectedDataSet.getName() : "") +
+                (selectedPeriod != null ? "-" + i18nManager.getI18nFormat().formatPeriod( selectedPeriod ) : "");
 
         Grid grid = new ListGrid().setTitle( title );
 
@@ -369,10 +493,14 @@ public class ReportController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid, String organisationUnitUid, String isoPeriod,
-        Date date, String type, String contentType, boolean attachment ) throws Exception
+    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid,
+        String organisationUnitUid, String isoPeriod,
+        Date date, String type, String contentType, boolean attachment )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
+        date = date != null ? date : isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ).getStartDate
+            () : null;
 
         if ( report == null )
         {
@@ -395,13 +523,17 @@ public class ReportController
         {
             date = date != null ? date : new DateTime().minusMonths( 1 ).toDate();
 
-            Period period = isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ) : new MonthlyPeriodType().createPeriod( date );
+            Period period = isoPeriod != null ?
+                PeriodType.getPeriodFromIsoString( isoPeriod ) :
+                new MonthlyPeriodType().createPeriod( date );
 
             String filename = CodecUtils.filenameEncode( report.getName() ) + "." + type;
 
-            contextUtils.configureResponse( response, contentType, report.getCacheStrategy(), filename, attachment );
+            contextUtils
+                .configureResponse( response, contentType, report.getCacheStrategy(), filename, attachment );
 
-            JasperPrint print = reportService.renderReport( response.getOutputStream(), uid, period, organisationUnitUid, type );
+            JasperPrint print = reportService
+                .renderReport( response.getOutputStream(), uid, period, organisationUnitUid, type );
 
             if ( "html".equals( type ) )
             {

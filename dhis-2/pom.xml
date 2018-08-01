@@ -1211,7 +1211,8 @@
     <jackson.version>2.9.5</jackson.version>
     <slf4j.version>1.7.5</slf4j.version>
     <geotools.version>18.0</geotools.version>
-    <jasperreports.version>6.3.1</jasperreports.version>
+    <!--<jasperreports.version>6.3.1</jasperreports.version>-->
+    <jasperreports.version>6.6.0</jasperreports.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
   </properties>
 </project>

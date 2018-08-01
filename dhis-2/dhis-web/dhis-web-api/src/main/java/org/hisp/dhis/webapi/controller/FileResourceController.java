@@ -108,6 +108,13 @@ public class FileResourceController
     {
         String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
 
+        FileResource fileExists = fileResourceService.getFileResourceByName( filename );
+
+        if ( fileExists != null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "File already exists: " + filename ) );
+        }
+
         String contentType = file.getContentType();
         contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
 

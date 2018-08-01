@@ -105,6 +105,13 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional
+    public FileResource getFileResourceByName( String name )
+    {
+        return fileResourceStore.getByName( name );
+    }
+
+    @Override
+    @Transactional
     public List<FileResource> getFileResources( List<String> uids )
     {
         return fileResourceStore.getByUid( uids );
