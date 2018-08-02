@@ -59,6 +59,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -177,6 +178,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     private CalendarService calendarService;
+    
+    @Autowired
+    private DataValueService dataValueService;
 
     @Autowired
     private FileResourceService fileResourceService;
@@ -1200,18 +1204,20 @@ public class DefaultDataValueSetService
 
                     if ( !dryRun )
                     {
-                        dataValueBatchHandler.updateObject( internalValue );
-
-                        auditBatchHandler.addObject( auditValue );
-
                         if ( dataElement.isFileType() )
                         {
-                            FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+                            DataValue actualDataValue = dataValueService.getDataValue( dataElement, period, internalValue.getSource(), categoryOptionCombo, internalValue.getAttributeOptionCombo() );
+
+                            FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
                             fr.setAssigned( false );
 
                             fileResourceService.updateFileResource( fr );
                         }
+                     
+                        dataValueBatchHandler.updateObject( internalValue );
+
+                        auditBatchHandler.addObject( auditValue );
                     }
                 }
             }
