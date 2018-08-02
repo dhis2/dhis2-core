@@ -77,7 +77,7 @@ public class TrackerOwnershipController
     // 2. Break the glass and override ownership.
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/transfer", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @RequestMapping( value = "/transfer", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE )
     public void updateTrackerProgramOwner( @RequestParam String trackedEntityInstance, @RequestParam String program,
         @RequestParam String ou, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -87,13 +87,13 @@ public class TrackerOwnershipController
         webMessageService.send( WebMessageUtils.ok( "Ownership transferred" ), response, request );
     }
 
-    @RequestMapping( value = "/override", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @RequestMapping( value = "/override", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
         @RequestParam String program, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        trackerOwnershipAccessManager.grantTemporaryOwnership( trackedEntityInstance, program, currentUserService.getCurrentUser(),
-            reason );
+        trackerOwnershipAccessManager.grantTemporaryOwnership( trackedEntityInstance, program,
+            currentUserService.getCurrentUser(), reason );
 
         webMessageService.send( WebMessageUtils.ok( "Temporary Ownership granted" ), response, request );
     }

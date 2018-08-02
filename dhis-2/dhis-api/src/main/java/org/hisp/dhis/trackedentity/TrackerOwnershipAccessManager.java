@@ -40,6 +40,8 @@ public interface TrackerOwnershipAccessManager
     String ID = TrackerOwnershipAccessManager.class.getName();
 
     public static final String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
+    
+    public static final String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
 
     /**
      * Check whether the user is part of the owner org unit for the tracked

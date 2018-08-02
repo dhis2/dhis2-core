@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections.ListUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -42,6 +41,8 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,7 @@ public class RelationshipTypeObjectBundleHook
     {
         if ( !RelationshipType.class.isInstance( object ) )
         {
-            return ListUtils.EMPTY_LIST;
+            return Lists.newArrayList();
         }
 
         return validateRelationshipType( (RelationshipType) object );
@@ -133,12 +134,14 @@ public class RelationshipTypeObjectBundleHook
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
             relationshipConstraint.setTrackedEntityType( trackedEntityType );
         }
-        else if ( program != null )
+
+        if ( program != null )
         {
             program = programService.getProgram( program.getUid() );
             relationshipConstraint.setProgram( program );
         }
-        else if ( programStage != null )
+
+        if ( programStage != null )
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
             relationshipConstraint.setProgramStage( programStage );

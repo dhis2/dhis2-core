@@ -29,9 +29,10 @@ package org.hisp.dhis.cache;
  */
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
+
+import com.google.common.collect.Sets;
 
 /**
  * A No operation implementation of {@link Cache}. The implementation will not
@@ -74,7 +75,7 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public Collection<V> getAll()
     {
-        return Collections.EMPTY_SET;
+        return Sets.newHashSet();
     }
 
     @Override

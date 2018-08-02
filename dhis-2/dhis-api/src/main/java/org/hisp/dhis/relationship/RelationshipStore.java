@@ -30,7 +30,6 @@ package org.hisp.dhis.relationship;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;

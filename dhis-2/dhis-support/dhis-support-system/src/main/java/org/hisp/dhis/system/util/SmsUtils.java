@@ -28,14 +28,7 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.text.SimpleDateFormat;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
@@ -81,20 +74,20 @@ public class SmsUtils
         return commandString;
     }
 
-    public static Set<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
+    public static Map<String, Set<OrganisationUnit>> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )
     {
-        Set<OrganisationUnit> orgUnits = new HashSet<>();
+        Map<String, Set<OrganisationUnit>> userOrgUnitMap = new HashMap<>();
 
         for ( User u : users )
         {
             if ( u.getOrganisationUnits() != null )
             {
-                orgUnits.addAll( u.getOrganisationUnits() );
+                userOrgUnitMap.put( u.getUid(), u.getOrganisationUnits() );
             }
         }
 
-        return orgUnits;
+        return userOrgUnitMap;
     }
 
     public static Date lookForDate( String message )
@@ -162,14 +155,8 @@ public class SmsUtils
                 }
                 else
                 {
-                    if ( StringUtils.isEmpty( smsCommand.getMoreThanOneOrgUnitMessage() ) )
-                    {
-                        throw new SMSParserException( SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
-                    }
-                    else
-                    {
-                        throw new SMSParserException( smsCommand.getMoreThanOneOrgUnitMessage() );
-                    }
+                    throw new SMSParserException( StringUtils.defaultIfBlank( smsCommand.getMoreThanOneOrgUnitMessage(),
+                        SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ) );
                 }
             }
 

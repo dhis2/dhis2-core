@@ -128,7 +128,7 @@ public class ProgramIndicator
     private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
-    private static final Set<AnalyticsPeriodBoundary> defaultErollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+    private static final Set<AnalyticsPeriodBoundary> defaultEnrollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
@@ -290,7 +290,7 @@ public class ProgramIndicator
         return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
             !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.containsAll( defaultErollmentTypeBoundaries ) );
+            !this.analyticsPeriodBoundaries.containsAll( defaultEnrollmentTypeBoundaries ) );
     }
     
     /**
@@ -366,7 +366,11 @@ public class ProgramIndicator
                 Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
                 String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
                 Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
-
+                if ( !map.containsKey( programStage ) )
+                {
+                    map.put( programStage, new HashSet<AnalyticsPeriodBoundary>() );
+                }
+                map.get( programStage ).add( boundary );
             }
         }
         

@@ -41,15 +41,14 @@ import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
-public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
+public class DefaultProgramRuleEntityMapperService 
+    implements ProgramRuleEntityMapperService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramRuleEntityMapperService.class );
 
@@ -124,7 +123,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public List<Rule> toMappedProgramRules( List<ProgramRule> programRules )
     {
-        return programRules.stream().map( this::toRule ).collect( Collectors.toList() );
+        return programRules.stream().map( this::toRule ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -146,7 +145,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        return programRuleVariables.stream().map( this::toRuleVariable ).collect( Collectors.toList() );
+        return programRuleVariables.stream().map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -174,7 +173,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     @Override
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
-        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate(),
+        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
          psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
             .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
             .collect( Collectors.toList() ), psi.getProgramStage().getName() );
@@ -185,7 +184,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     {
         return programStageInstances.stream()
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
-            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
+            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
                 .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
@@ -199,7 +198,18 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     {
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
-        List<RuleAction> ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+        List<RuleAction> ruleActions = new ArrayList<>();
+
+        try
+        {
+            ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid rule action" );
+
+            return null;
+        }
 
         return Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions );
     }
@@ -212,7 +222,18 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private RuleVariable toRuleVariable( ProgramRuleVariable programRuleVariable )
     {
-        return VARIABLE_MAPPER_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+        RuleVariable ruleVariable = null;
+
+        try
+        {
+            ruleVariable = VARIABLE_MAPPER_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid rule variable" );
+        }
+
+        return ruleVariable;
     }
 
     private RuleValueType toMappedValueType( ProgramRuleVariable programRuleVariable )

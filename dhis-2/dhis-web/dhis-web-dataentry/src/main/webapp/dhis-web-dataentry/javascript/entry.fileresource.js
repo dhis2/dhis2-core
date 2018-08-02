@@ -27,7 +27,7 @@
         var periodId = $( '#selectedPeriodId' ).val();
         var dataSetId = $( '#selectedDataSetId' ).val();
         var cc = dhis2.de.getCurrentCategoryCombo();
-        var cp = dhis2.de.getCurrentCategoryOptionsQueryValue
+        var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
 
         var formData = {
             'de': dataElementId,
@@ -44,11 +44,20 @@
         }
 
         var deleteFileDataValue = function() {
-            var postData = formData;
-            postData.value = '';
 
+          var params = 'de=' + formData.de + '&ou=' + formData.ou + '&pe=' + formData.pe;
+
+          if ( cc )
+            {
+                params += '&cc=' + cc;
+            }
+
+            if ( cp )
+            {
+                params += '&cp=' + cp;
+            }
             $.ajax( {
-                url: '../api/dataValues?de=' + formData.de + '&ou=' + formData.ou + '&pe=' + formData.pe,
+                url: '../api/dataValues?' + params,
                 type: 'DELETE',
                 success: function() {
                     $fileinfoName.text( '' );

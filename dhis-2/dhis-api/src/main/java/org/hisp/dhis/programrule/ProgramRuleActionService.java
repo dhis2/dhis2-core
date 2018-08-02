@@ -35,8 +35,6 @@ import java.util.List;
  */
 public interface ProgramRuleActionService
 {
-    String ID = ProgramRuleActionService.class.getName();
-
     /**
      * Adds a {@link ProgramRuleAction}.
      *

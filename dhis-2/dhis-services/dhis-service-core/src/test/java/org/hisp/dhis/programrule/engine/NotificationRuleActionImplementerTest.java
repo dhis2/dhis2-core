@@ -59,8 +59,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 
 import javax.annotation.Nonnull;
@@ -93,18 +91,13 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate template;
 
-    private ProgramNotificationTemplate spyTemplate = null;
-
     private ProgramNotificationEventType eventType;
 
     private ExternalNotificationLogEntry logEntry;
 
     private RuleEffect ruleEffectWithActionSendMessage;
-    private RuleEffect ruleEffectWithActionSendMessageWithDate;
-    private RuleEffect ruleEffectWithActionSetMandatoryField;
 
     private RuleAction ruleActionSendMessage;
-    private RuleAction ruleActionSendMessageWithDate;
 
     private RuleAction setMandatoryFieldFalse;
 
@@ -114,11 +107,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramRule programRuleA;
 
-    private String data = "today";
-
-    private SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd" );
-
-
     @Before
     public void initTest()
     {
@@ -127,11 +115,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         // stub for templateStore;
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
-        doAnswer( invocation ->
-        {
-            spyTemplate = (ProgramNotificationTemplate) invocation.getArguments()[0];
-            return 0;
-        }).when( templateStore ).update( any() );
+        doAnswer( invocation -> 0 ).when( templateStore ).update( any() );
 
         // stub for publisher
 
@@ -273,28 +257,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
 
-        ruleActionSendMessageWithDate = new RuleActionSendMessage()
-        {
-            @Nonnull
-            @Override
-            public String notification()
-            {
-                return NOTIFICATION_UID;
-            }
-
-            @Nonnull
-            @Override
-            public String data()
-            {
-                return data;
-            }
-        };
-
-
-        data = format.format( new Date() );
-
-        ruleEffectWithActionSendMessageWithDate = RuleEffect.create( ruleActionSendMessageWithDate,  data );
-
         setMandatoryFieldFalse = new RuleActionSetMandatoryField()
         {
             @Nonnull
@@ -305,8 +267,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             }
         };
 
-        ruleEffectWithActionSetMandatoryField = RuleEffect.create( setMandatoryFieldFalse );
-
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
         Program programA = createProgram('A', new HashSet<>(), organisationUnitA );
@@ -314,7 +274,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         programRuleA = createProgramRule( 'R', programA );
 
-        programA.getProgramRules().add( programRuleA );
+        programRuleA.setProgram( programA );
 
         programInstance = new ProgramInstance();
         programInstance.setProgram( programA );

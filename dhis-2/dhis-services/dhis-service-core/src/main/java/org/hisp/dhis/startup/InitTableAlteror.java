@@ -154,10 +154,42 @@ public class InitTableAlteror
         // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
         executeSql( "UPDATE programstagedataelement SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
         executeSql( "ALTER TABLE programstagedataelement ALTER COLUMN skipsynchronization SET NOT NULL" );
-        
+
         executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
         executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramStageInstanceCoordinates();
+
+        //Remove createddate column from trackedentitycomment table
+        executeSql( "UPDATE trackedentitycomment SET created = createddate WHERE created IS NOT NULL;" );
+        executeSql( "ALTER TABLE trackedentitycomment DROP COLUMN createddate;" );
+
+        addGenerateUidFunction();
+
+        //Remove entries for authorities that no longer exist
+        executeSql( "DELETE FROM userroleauthorities WHERE authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
+            "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
+            "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
+            "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
+    }
+
+    private void addGenerateUidFunction()
+    {
+        executeSql(
+            "create or replace function generate_uid()\n" +
+                "  returns text as\n" +
+                "$$\n" +
+                "declare\n" +
+                "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n" +
+                "  result text := chars [11 + random() * (array_length(chars, 1) - 11)];\n" +
+                "begin\n" +
+                "  for i in 1..10 loop\n" +
+                "    result := result || chars [1 + random() * (array_length(chars, 1) - 1)];\n" +
+                "  end loop;\n" +
+                "  return result;\n" +
+                "end;\n" +
+                "$$\n" +
+                "language plpgsql;"
+        );
     }
 
     private void updateAndRemoveOldProgramStageInstanceCoordinates()
@@ -166,7 +198,7 @@ public class InitTableAlteror
             "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
             "WHERE longitude IS NOT NULL " +
             "AND latitude IS NOT NULL" +
-            "AND geometry IS NULL");
+            "AND geometry IS NULL" );
 
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );
