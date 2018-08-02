@@ -343,7 +343,7 @@ public class DefaultInterpretationService
         switch ( interpretation.getType() )
         {
         case MAP:
-            path = "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
+            path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
         case REPORT_TABLE:

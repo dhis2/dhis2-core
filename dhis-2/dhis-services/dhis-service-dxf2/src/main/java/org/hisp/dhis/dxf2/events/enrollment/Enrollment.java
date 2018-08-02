@@ -388,4 +388,23 @@ public class Enrollment
     {
         this.relationships = relationships;
     }
+
+    @Override public String toString()
+    {
+        return "Enrollment{" +
+            "enrollment='" + enrollment + '\'' +
+            ", trackedEntityType='" + trackedEntityType + '\'' +
+            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", program='" + program + '\'' +
+            ", status=" + status +
+            ", orgUnit='" + orgUnit + '\'' +
+            ", enrollmentDate=" + enrollmentDate +
+            ", incidentDate=" + incidentDate +
+            ", events=" + events +
+            ", relationships=" + relationships +
+            ", attributes=" + attributes +
+            ", notes=" + notes +
+            ", deleted=" + deleted +
+            '}';
+    }
 }

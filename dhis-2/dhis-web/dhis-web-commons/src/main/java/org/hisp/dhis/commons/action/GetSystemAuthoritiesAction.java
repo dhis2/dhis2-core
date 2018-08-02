@@ -112,14 +112,14 @@ public class GetSystemAuthoritiesAction
 
     private String getAuthName( String auth )
     {
+        auth = i18n.getString( auth );
+
         // Custom App doesn't have translation for See App authority
         if ( auth.startsWith( App.SEE_APP_AUTHORITY_PREFIX ) )
         {
-            return auth.replace( App.SEE_APP_AUTHORITY_PREFIX, "" ).replaceAll( "_", " " ) + " app";
+            auth = auth.replace( App.SEE_APP_AUTHORITY_PREFIX, "" ).replaceAll( "_", " " ) + " app";
         }
-        else
-        {
-            return i18n.getString( auth );
-        }
+
+        return auth;
     }
 }

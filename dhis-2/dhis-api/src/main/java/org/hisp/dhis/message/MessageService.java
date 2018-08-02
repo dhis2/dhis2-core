@@ -39,8 +39,6 @@ import java.util.List;
  */
 public interface MessageService
 {
-    String ID = MessageService.class.getName();
-
     String META_USER_AGENT = "User-agent: ";
 
     MessageConversationParams.Builder createPrivateMessage( Collection<User> recipients, String subject, String text, String metaData );

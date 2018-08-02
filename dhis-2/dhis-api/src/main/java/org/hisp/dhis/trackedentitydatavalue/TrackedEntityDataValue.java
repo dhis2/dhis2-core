@@ -161,14 +161,6 @@ public class TrackedEntityDataValue
         return true;
     }
 
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityDataValue{" + "dataElement=" + dataElement + ", programStageInstance=" + programStageInstance
-            + ", lastUpdated=" + lastUpdated + ", value='" + value + '\'' + ", providedElsewhere=" + providedElsewhere
-            + ", storedBy='" + storedBy + '\'' + '}';
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -254,5 +246,18 @@ public class TrackedEntityDataValue
     public String getAuditValue()
     {
         return auditValue;
+    }
+
+    @Override public String toString()
+    {
+        return "TrackedEntityDataValue{" +
+            "dataElement=" + dataElement +
+            ", programStageInstance=" + programStageInstance.getUid() +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", value='" + value + '\'' +
+            ", providedElsewhere=" + providedElsewhere +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
     }
 }

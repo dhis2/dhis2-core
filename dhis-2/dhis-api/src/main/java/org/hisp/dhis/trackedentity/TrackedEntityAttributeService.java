@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.user.User;
 
 import java.util.List;
 import java.util.Set;
@@ -98,8 +99,12 @@ public interface TrackedEntityAttributeService
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
-    
-    
+
+
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user );
+
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes );
+
     /**
      * Returns all {@link TrackedEntityAttribute}
      *

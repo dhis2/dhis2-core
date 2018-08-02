@@ -355,7 +355,7 @@ public class DefaultPushAnalysisService
         switch ( item.getType() )
         {
             case MAP:
-                result += "/dhis-web-mapping/index.html?id=" + item.getMap().getUid();
+                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
             case REPORT_TABLE:
                 result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
