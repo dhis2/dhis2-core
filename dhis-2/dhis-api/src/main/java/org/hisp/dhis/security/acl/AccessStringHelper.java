@@ -71,7 +71,8 @@ public class AccessStringHelper
     public static final String DEFAULT = "--------";
 
     //This should be used only when creating a default DataElementCategoryOption, DataElementCategory, DataElementCategoryCombo and DataElementCategoryOptionCombo
-    public static final String CATEGORY_DEFAULT = "rwrw----";
+    public static final String CATEGORY_OPTION_DEFAULT = "rwrw----";
+    public static final String CATEGORY_NO_DATA_SHARING_DEFAULT = "rw------";
 
     public static final String READ = AccessStringHelper.newInstance()
         .enable( Permission.READ )
