@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
@@ -268,34 +267,6 @@ public class MetadataSyncPreProcessor
             }
         }
 
-    }
-
-    private void handleEventImportSummary( ImportSummaries importSummary, MetadataRetryContext context )
-    {
-        if ( importSummary != null )
-        {
-            boolean isImportError = false;
-            StringBuilder summaryDescription = new StringBuilder();
-
-            for ( ImportSummary summary : importSummary.getImportSummaries() )
-            {
-
-                if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
-                {
-                    isImportError = true;
-                    summaryDescription.append( summary.getDescription() );
-                    summaryDescription.append( "\n" );
-                }
-
-            }
-
-            if ( isImportError )
-            {
-                log.error( "Import Summary description: " + summaryDescription.toString() );
-                context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, summaryDescription.toString(), null, null );
-                throw new MetadataSyncServiceException( "The Event Data Push was not successful. " );
-            }
-        }
     }
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )

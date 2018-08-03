@@ -28,14 +28,10 @@ package org.hisp.dhis.icon;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.google.common.net.MediaType;
 
 /**
  * @author Kristian Wærstad

@@ -179,15 +179,5 @@
       <result name="success" type="chart"></result>
     </action>
 
-    <!-- Data mart -->
-
-    <action name="displayDataMartForm" class="org.hisp.dhis.reporting.action.NoAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-reporting/viewDataMartForm.vm</param>
-      <param name="menu">/dhis-web-reporting/menu.vm</param>
-      <param name="javascripts">javascript/dataMart.js</param>
-      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
-    </action>
-
   </package>
 </struts>

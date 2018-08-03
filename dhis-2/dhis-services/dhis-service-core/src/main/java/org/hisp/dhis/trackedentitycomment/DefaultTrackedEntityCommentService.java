@@ -28,8 +28,6 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
-
 /**
  * @author Chau Thu Tran
  */
@@ -40,9 +38,9 @@ public class DefaultTrackedEntityCommentService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericStore<TrackedEntityComment> commentStore;
+    private TrackedEntityCommentStore commentStore;
 
-    public void setCommentStore( GenericStore<TrackedEntityComment> commentStore )
+    public void setCommentStore( TrackedEntityCommentStore commentStore )
     {
         this.commentStore = commentStore;
     }
@@ -63,6 +61,11 @@ public class DefaultTrackedEntityCommentService
     public void deleteTrackedEntityComment( TrackedEntityComment comment )
     {
         commentStore.delete( comment );
+    }
+
+    @Override public boolean trackedEntityCommentExists( String uid )
+    {
+        return commentStore.exists( uid );
     }
 
     @Override

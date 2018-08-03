@@ -72,7 +72,7 @@ public class ProgramTrackedEntityAttribute
 
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
-    
+
     private Boolean searchable = false;
 
     // -------------------------------------------------------------------------
@@ -163,21 +163,27 @@ public class ProgramTrackedEntityAttribute
         return attribute != null ? attribute.getValueType() : null;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + id + "\", " +
-            "\"uid\":\"" + uid + "\", " +
-            "\"program\":" + program + ", " +
-            "\"attribute\":" + attribute + ", " +
-            "\"created\":\"" + created + "\", " +
-            "\"lastUpdated\":\"" + lastUpdated + "\" " +
-            "}";
+        return "ProgramTrackedEntityAttribute{" +
+            "class=" + getClass() +
+            ", program=" + program +
+            ", attribute=" + attribute +
+            ", displayInList=" + displayInList +
+            ", sortOrder=" + sortOrder +
+            ", mandatory=" + mandatory +
+            ", allowFutureDate=" + allowFutureDate +
+            ", renderOptionsAsRadio=" + renderOptionsAsRadio +
+            ", renderType=" + renderType +
+            ", groups=" + groups +
+            ", searchable=" + searchable +
+            ", id=" + id +
+            ", uid='" + uid + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            '}';
     }
-
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // Getters && Setters
     // -------------------------------------------------------------------------
 
@@ -211,11 +217,11 @@ public class ProgramTrackedEntityAttribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isMandatory()
     {
-        if ( mandatory != null )    
-        { 
+        if ( mandatory != null )
+        {
             return mandatory;
         }
-        
+
         return false;
     }
 
