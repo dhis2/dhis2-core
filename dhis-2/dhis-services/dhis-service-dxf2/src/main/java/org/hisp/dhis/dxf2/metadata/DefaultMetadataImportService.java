@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -62,7 +63,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
