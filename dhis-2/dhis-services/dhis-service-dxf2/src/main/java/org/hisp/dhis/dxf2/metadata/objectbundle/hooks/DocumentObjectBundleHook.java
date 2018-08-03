@@ -113,6 +113,11 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
     @Override
     public void preDelete( IdentifiableObject persistedObject, ObjectBundle bundle )
     {
+        if ( !Document.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
         Document persistedDocument = (Document) persistedObject;
         if ( !persistedDocument.isExternal() )
         {
