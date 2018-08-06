@@ -35,6 +35,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -128,6 +129,11 @@ public class MetadataImportParams
      * Name of file that was used for import (if available).
      */
     private String filename;
+
+    /**
+     * Metadata Class name for importing using CSV
+     */
+    private CsvImportClass csvImportClass;
 
     /**
      * Job id to use for threaded imports.
@@ -328,6 +334,18 @@ public class MetadataImportParams
     {
         this.filename = filename;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CsvImportClass getCsvImportClass()
+    {
+        return this.csvImportClass;
+    }
+
+    public void setCsvImportClass( CsvImportClass csvImportClass )
+    {
+        this.csvImportClass = csvImportClass;
     }
 
     public JobConfiguration getId()
