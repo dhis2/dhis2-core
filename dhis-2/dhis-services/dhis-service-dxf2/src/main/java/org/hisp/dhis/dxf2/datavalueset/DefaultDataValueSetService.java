@@ -1118,7 +1118,7 @@ public class DefaultDataValueSetService
             }
 
             DataValue actualDataValue = null;
-            if ( strategy.isDelete() && !dryRun && dataElement.isFileType() )
+            if ( strategy.isDelete() && dataElement.isFileType() )
             {
                 actualDataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attrOptionCombo );
                 if ( actualDataValue == null )
