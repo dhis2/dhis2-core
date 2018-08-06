@@ -1117,6 +1117,17 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            DataValue actualDataValue = null;
+            if ( strategy.isDelete() && !dryRun && dataElement.isFileType() )
+            {
+                actualDataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attrOptionCombo );
+                if ( actualDataValue == null )
+                {
+                    summary.getConflicts().add( new ImportConflict( dataElement.getUid(), "No data value for file resource exist for the given combination" ) );
+                    continue;
+                }
+            }
+            
             // -----------------------------------------------------------------
             // Create data value
             // -----------------------------------------------------------------
@@ -1206,8 +1217,6 @@ public class DefaultDataValueSetService
                     {
                         if ( dataElement.isFileType() )
                         {
-                            DataValue actualDataValue = dataValueService.getDataValue( dataElement, period, internalValue.getSource(), categoryOptionCombo, internalValue.getAttributeOptionCombo() );
-
                             FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
                             fr.setAssigned( false );
