@@ -160,6 +160,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
 
+    boolean isDefault( IdentifiableObject object );
+
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------

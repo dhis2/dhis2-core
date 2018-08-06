@@ -64,6 +64,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
 /**
  * Note that it is required for nameable object stores to have concrete implementation
  * classes, not rely on the HibernateIdentifiableObjectStore class, in order to
@@ -958,6 +960,23 @@ public class DefaultIdentifiableObjectManager
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
+
+    @Override
+    public boolean isDefault( IdentifiableObject object )
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
+        if ( object == null )
+        {
+            return false;
+        }
+        Class<?> realClass = getRealClass( object.getClass() );
+        if ( !defaults.containsKey( realClass ) )
+        {
+            return false;
+        }
+        IdentifiableObject defaultObject = defaults.get( realClass );
+        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
 
     @SuppressWarnings( "unchecked" )
     private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
