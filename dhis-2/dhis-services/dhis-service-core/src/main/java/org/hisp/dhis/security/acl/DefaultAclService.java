@@ -559,9 +559,7 @@ public class DefaultAclService implements AclService
 
         errorReports.addAll( verifyImplicitSharing( user, object ) );
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() )
-            || AccessStringHelper.CATEGORY_OPTION_DEFAULT.equals( object.getPublicAccess() )
-            || AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
             if ( canMakePublic || canMakePrivate )
             {
