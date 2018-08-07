@@ -38,14 +38,14 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -957,30 +957,26 @@ public class DefaultIdentifiableObjectManager
             .build();
     }
 
+    //--------------------------------------------------------------------------
+    // Supportive methods
+    //--------------------------------------------------------------------------
+
     @Override
     public boolean isDefault( IdentifiableObject object )
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
-
         if ( object == null )
         {
             return false;
         }
-
         Class<?> realClass = getRealClass( object.getClass() );
-
         if ( !defaults.containsKey( realClass ) )
         {
             return false;
         }
-
         IdentifiableObject defaultObject = defaults.get( realClass );
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
-
-    //--------------------------------------------------------------------------
-    // Supportive methods
-    //--------------------------------------------------------------------------
 
     @SuppressWarnings( "unchecked" )
     private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
