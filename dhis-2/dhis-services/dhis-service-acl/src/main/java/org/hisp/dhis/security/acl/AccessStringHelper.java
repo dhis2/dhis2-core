@@ -70,6 +70,9 @@ public class AccessStringHelper
 
     public static final String DEFAULT = "--------";
 
+    //This should be used only when creating a default CategoryOption, Category, CategoryCombo and CategoryOptionCombo
+    public static final String CATEGORY_DEFAULT = "rwrw----";
+
     public static final String READ = AccessStringHelper.newInstance()
         .enable( Permission.READ )
         .build();
