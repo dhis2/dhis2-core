@@ -50,13 +50,17 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
@@ -169,6 +173,12 @@ public class MetadataImportController
             ImportReport importReport = metadataImportService.importMetadata( params );
             renderService.toXml( response.getOutputStream(), importReport );
         }
+    }
+
+    @GetMapping( "/csvImportClasses" )
+    public @ResponseBody List<CsvImportClass> getCsvImportClasses()
+    {
+        return  Arrays.asList( CsvImportClass.values() );
     }
 
     private void startAsync( MetadataImportParams params, HttpServletRequest request, HttpServletResponse response )
