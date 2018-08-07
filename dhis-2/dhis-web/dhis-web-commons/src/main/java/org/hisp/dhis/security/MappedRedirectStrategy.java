@@ -30,7 +30,6 @@ package org.hisp.dhis.security;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.security.web.DefaultRedirectStrategy;
 
@@ -41,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
-import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_MOBILE_VERSION;
 
 /**
  * @author mortenoh
@@ -109,19 +107,7 @@ public class MappedRedirectStrategy
         // Redirect to mobile start pages
         // ---------------------------------------------------------------------
 
-        Device device = deviceResolver.resolveDevice( request );
-
-        String mobileVersion = (String) request.getAttribute( PARAM_MOBILE_VERSION );
-        mobileVersion = mobileVersion == null ? "desktop" : mobileVersion;
-
-        if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "basic" ) )
-        {
-            url = getRootPath( request ) + "/light/index.action";
-        }
-        else if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "desktop" ) )
-        {
-            url = getRootPath( request ) + "/";
-        }
+        url = getRootPath( request ) + "/";
 
         log.debug( "Redirecting to " + url );
 
