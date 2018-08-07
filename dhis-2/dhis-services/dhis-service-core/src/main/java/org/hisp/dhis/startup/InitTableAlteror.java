@@ -138,6 +138,10 @@ public class InitTableAlteror
             "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
             "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
             "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
+
+        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
+        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
+        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()

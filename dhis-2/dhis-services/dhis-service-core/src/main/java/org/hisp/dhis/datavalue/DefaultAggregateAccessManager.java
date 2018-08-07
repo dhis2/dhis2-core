@@ -89,7 +89,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         }
 
         options.forEach( option -> {
-            if ( !option.isDefault() && !aclService.canDataWrite( user, option ) )
+            if ( !aclService.canDataWrite( user, option ) )
             {
                 errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
             }
@@ -133,7 +133,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
 
         options.forEach( option -> {
 
-            if ( !option.isDefault() && !aclService.canDataRead( user, option ) )
+            if ( !aclService.canDataRead( user, option ) )
             {
                 errors.add( "User has no data read access for CategoryOption: " + option.getUid() );
             }
@@ -191,7 +191,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         Set<DataElementCategoryOption> options = optionCombo.getCategoryOptions();
 
         options.forEach( attrOption -> {
-            if ( !attrOption.isDefault() && !aclService.canDataWrite( user, attrOption ) )
+            if ( !aclService.canDataWrite( user, attrOption ) )
             {
                 errors.add( "User has no data write access for CategoryOption: " + attrOption.getUid() );
             }
@@ -256,7 +256,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         }
 
         options.forEach( option -> {
-            if ( !option.isDefault() && !aclService.canDataWrite( user, option ) )
+            if ( !aclService.canDataWrite( user, option ) )
             {
                 errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
             }
