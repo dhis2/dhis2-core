@@ -32,8 +32,7 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Henning Håkonsen
