@@ -31,12 +31,6 @@
 	<p style="text-align: left;">
 		<label for="j_username">Username</label> <input type="text" id="j_username" name="j_username" size="24"> <br />
 		<label for="j_password">Password</label> <input type="password" id="j_password" name="j_password" size="24"> <br /> <br />
-        <label for="mobileVersion">Mobile Version</label><br />
-        <select id="mobileVersion" name="mobileVersion" style="width: 100%;">
-            <option value="basic">Basic</option>
-            <option value="smartphone">Smartphone</option>
-            <option value="desktop">Desktop</option>
-        </select>
 	</p>
 </div>
 
