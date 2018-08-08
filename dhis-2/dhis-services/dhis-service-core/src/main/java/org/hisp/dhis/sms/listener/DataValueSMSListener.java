@@ -101,7 +101,13 @@ public class DataValueSMSListener
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
 
-        OrganisationUnit orgUnit = getOrganisationUnits( sms ).iterator().next();
+        OrganisationUnit orgUnit = null;
+
+        if ( getOrganisationUnits( sms ).iterator().hasNext() )
+        {
+           orgUnit  = getOrganisationUnits( sms ).iterator().next();
+        }
+
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 

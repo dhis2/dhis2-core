@@ -93,6 +93,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
+import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -772,15 +773,18 @@ public abstract class AbstractEventService
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
+        return getEvent( programStageInstance, false );
+    }
+
+    @Override
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery )
+    {
         if ( programStageInstance == null )
         {
             return null;
         }
 
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
-
         Event event = new Event();
-
         event.setEvent( programStageInstance.getUid() );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
@@ -840,7 +844,15 @@ public abstract class AbstractEventService
             event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
         }
 
-        Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
+        Collection<TrackedEntityDataValue> dataValues;
+        if ( !isSynchronizationQuery )
+        {
+            dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
+        }
+        else
+        {
+            dataValues = dataValueService.getTrackedEntityDataValuesForSynchronization( programStageInstance );
+        }
 
         for ( TrackedEntityDataValue dataValue : dataValues )
         {
@@ -1102,10 +1114,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, null, importOptions.getUser().getUsername() );
+        String storedBy = getStoredBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getCompletedBy( event, null, importOptions.getUser().getUsername() );
+        String completedBy = getCompletedBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1143,8 +1155,6 @@ public abstract class AbstractEventService
             if ( !importOptions.isSkipNotifications() )
             {
                 enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
-
-                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1280,7 +1290,7 @@ public abstract class AbstractEventService
         User currentUser = currentUserService.getCurrentUser();
 
         saveTrackedEntityComment( programStageInstance, event,
-            getStoredBy( event, null, currentUser.getUsername() ) );
+            getStoredBy( event, null, currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser );
     }
@@ -1536,8 +1546,8 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, importSummary, importOptions.getUser().getUsername() );
-        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser().getUsername() );
+        String storedBy = getStoredBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         CategoryOptionCombo aoc = null;
 
@@ -1640,12 +1650,14 @@ public abstract class AbstractEventService
 
     private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
     {
-        if ( programStageInstance.isCompleted() )
+        if ( !importOptions.isSkipNotifications() )
         {
-            if ( !importOptions.isSkipNotifications() )
+            if ( programStageInstance.isCompleted() )
             {
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
+
+            enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
         }
     }
 

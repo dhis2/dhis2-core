@@ -93,6 +93,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceStore.save( notificationInstance );
 
+        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         notificationLoggingService.save( entry );
@@ -123,6 +125,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceStore.save( notificationInstance );
 
+        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
         notificationLoggingService.save( entry );
@@ -139,7 +143,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             }
         }
 
-        log.error( "Date provided in expression is not valid.");
+        log.error( "Invalid date: " + date );
         return false;
     }
 }

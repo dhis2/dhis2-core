@@ -134,12 +134,14 @@ public class RelationshipTypeObjectBundleHook
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
             relationshipConstraint.setTrackedEntityType( trackedEntityType );
         }
-        else if ( program != null )
+
+        if ( program != null )
         {
             program = programService.getProgram( program.getUid() );
             relationshipConstraint.setProgram( program );
         }
-        else if ( programStage != null )
+
+        if ( programStage != null )
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
             relationshipConstraint.setProgramStage( programStage );

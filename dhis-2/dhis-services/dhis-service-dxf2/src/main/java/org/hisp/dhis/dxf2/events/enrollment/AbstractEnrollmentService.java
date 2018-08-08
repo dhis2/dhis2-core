@@ -338,9 +338,9 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( !programStageInstance.isDeleted() && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
+                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
                 {
-                    enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery() ) );
                 }
             }
         }
@@ -430,8 +430,8 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
 
         String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31 ?
-            enrollment.getStoredBy() : (
-            StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
+            enrollment.getStoredBy() :
+            (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
 
         if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
         {
@@ -484,7 +484,7 @@ public abstract class AbstractEnrollmentService
 
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -706,7 +706,7 @@ public abstract class AbstractEnrollmentService
         programInstanceService.updateProgramInstance( programInstance );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser().getUsername() );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
@@ -934,6 +934,11 @@ public abstract class AbstractEnrollmentService
         }
     }
 
+    private boolean doValidationOfMandatoryAttributes( User user )
+    {
+        return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+    }
+
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
@@ -967,10 +972,8 @@ public abstract class AbstractEnrollmentService
         {
             Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
 
-            if ( mandatory && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
+            if ( mandatory && doValidationOfMandatoryAttributes( importOptions.getUser() ) && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
             {
-
-
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
                     + trackedEntityAttribute.getUid() ) );
                 continue;

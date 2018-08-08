@@ -78,6 +78,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,6 +97,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 /**
  * @author Jim Grace
  */
+@Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
@@ -897,7 +899,14 @@ public class DefaultPredictionService
 
                 summary.incrementInserted();
 
-                dataValueBatchHandler.addObject( newValue );
+                /*
+                 * NOTE: BatchHandler is not used for inserts. When run under
+                 * the scheduler, this code needs this to be @Transactional,
+                 * but the new data value might be in a new period (just added
+                 * to the database within this transaction). In this case
+                 * BatchHandler would not see the new period.
+                 */
+                dataValueService.addDataValue( newValue );
             }
             else
             {

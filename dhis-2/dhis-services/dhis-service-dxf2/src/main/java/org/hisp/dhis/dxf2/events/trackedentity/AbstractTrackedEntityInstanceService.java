@@ -80,8 +80,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -759,7 +759,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
-                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user.getUsername() );
+                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user == null ? "[Unknown]" : user.getUsername() );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
@@ -1037,12 +1037,6 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importConflicts;
-    }
-
-    private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, User user )
-    {
-        return getTei( daoTrackedEntityInstance, params, manager.getAll( Program.class ), manager.getAll( TrackedEntityType.class ), user );
     }
 
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,

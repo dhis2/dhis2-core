@@ -1,4 +1,4 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,43 +28,24 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Henning Håkonsen
+ * @Author Zubair Asghar.
  */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
+public class ProgramStageInstanceScheduledEvent extends ApplicationEvent
 {
-    private UserService userService;
+    private ProgramStageInstance programStageInstance;
 
-    public void setUserService( UserService userService )
+    public ProgramStageInstanceScheduledEvent( Object source, ProgramStageInstance programStageInstance )
     {
-        this.userService = userService;
+        super( source );
+        this.programStageInstance = programStageInstance;
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    public ProgramStageInstance getProgramStageInstance()
     {
-        this.currentUserService = currentUserService;
-    }
-
-    @Override
-    public void execute()
-        throws Exception
-    {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        userService.getUsers( userQueryParams ).forEach( user -> {
-            user.getUserCredentials().setSecret( null );
-            userService.updateUser( user );
-        } );
+        return programStageInstance;
     }
 }

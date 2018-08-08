@@ -28,10 +28,9 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -57,13 +56,11 @@ import java.util.Set;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
-    private final IdentifiableObjectManager manager;
     private final TrackerOwnershipAccessManager ownershipAccessManager;
 
-    public DefaultTrackerAccessManager( AclService aclService, IdentifiableObjectManager manager, TrackerOwnershipAccessManager ownershipAccessManager )
+    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipAccessManager ownershipAccessManager )
     {
         this.aclService = aclService;
-        this.manager = manager;
         this.ownershipAccessManager = ownershipAccessManager;
     }
 
@@ -158,7 +155,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         // check for ownership access
-        if ( !ownershipAccessManager.hasAccess( user,trackedEntityInstance, program ) )
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
             errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -195,7 +192,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         // check for ownership access
-        if ( !ownershipAccessManager.hasAccess( user,trackedEntityInstance, program ) )
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
             errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -315,14 +312,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
-        
+
         if ( isNull( programStage ) )
         {
-        	return errors;
+            return errors;
         }
-        
+
         Program program = programStage.getProgram();
-        
+
         if ( !aclService.canDataRead( user, program ) )
         {
             errors.add( "User has no data read access to program: " + program.getUid() );
@@ -374,12 +371,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
-        
+
         if ( isNull( programStage ) )
         {
-        	return errors;
+            return errors;
         }
-        
+
         Program program = programStage.getProgram();
 
         if ( program.isWithoutRegistration() )
@@ -537,14 +534,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null )
         {
             return errors;
         }
 
         for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataRead( user, categoryOption ) && !manager.isDefault( categoryOption ) )
+            if ( !aclService.canDataRead( user, categoryOption ) )
             {
                 errors.add( "User has no read access to category option: " + categoryOption.getUid() );
             }
@@ -558,14 +555,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null )
         {
             return errors;
         }
 
         for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataWrite( user, categoryOption ) && !manager.isDefault( categoryOption ) )
+            if ( !aclService.canDataWrite( user, categoryOption ) )
             {
                 errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
@@ -578,9 +575,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
     }
-    
+
     private boolean isNull( ProgramStage programStage )
     {
-    	return programStage == null || programStage.getProgram() == null;     	
-    }    
+        return programStage == null || programStage.getProgram() == null;
+    }
 }
