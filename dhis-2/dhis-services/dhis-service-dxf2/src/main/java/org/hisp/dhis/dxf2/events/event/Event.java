@@ -489,35 +489,19 @@ public class Event
     @Override public String toString()
     {
         return "Event{" +
-            "uid='" + uid + '\'' +
-            ", event='" + event + '\'' +
+            "event='" + event + '\'' +
             ", status=" + status +
             ", program='" + program + '\'' +
             ", programStage='" + programStage + '\'' +
             ", enrollment='" + enrollment + '\'' +
-            ", enrollmentStatus=" + enrollmentStatus +
             ", orgUnit='" + orgUnit + '\'' +
-            ", orgUnitName='" + orgUnitName + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", relationships=" + relationships +
             ", eventDate='" + eventDate + '\'' +
             ", dueDate='" + dueDate + '\'' +
-            ", storedBy='" + storedBy + '\'' +
-            ", coordinate=" + coordinate +
             ", dataValues=" + dataValues +
             ", notes=" + notes +
-            ", followup=" + followup +
             ", deleted=" + deleted +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
-            ", createdAtClient='" + createdAtClient + '\'' +
-            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
-            ", attributeOptionCombo='" + attributeOptionCombo + '\'' +
-            ", attributeCategoryOptions='" + attributeCategoryOptions + '\'' +
-            ", completedBy='" + completedBy + '\'' +
-            ", completedDate='" + completedDate + '\'' +
-            ", optionSize=" + optionSize +
-            ", geometry=" + geometry +
             '}';
     }
 }

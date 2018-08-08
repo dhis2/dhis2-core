@@ -236,12 +236,9 @@ public class Attribute
         return "Attribute{" +
             "displayName='" + displayName + '\'' +
             ", attribute='" + attribute + '\'' +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
             ", valueType=" + valueType +
             ", code='" + code + '\'' +
             ", value='" + value + '\'' +
-            ", storedBy='" + storedBy + '\'' +
             ", skipSynchronization=" + skipSynchronization +
             '}';
     }
