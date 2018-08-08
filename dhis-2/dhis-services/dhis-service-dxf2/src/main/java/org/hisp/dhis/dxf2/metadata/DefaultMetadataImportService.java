@@ -240,6 +240,10 @@ public class DefaultMetadataImportService implements MetadataImportService
             {
                 throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
             }
+            else
+            {
+                params.setOverrideUser( overrideUser );
+            }
         }
 
         return params;
