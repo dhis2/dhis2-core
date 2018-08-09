@@ -39,6 +39,8 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -153,8 +155,8 @@ public class DefaultProgramRuleEntityMapperService
     {
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
             enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getOrganisationUnit() != null ? enrollment.getOrganisationUnit().getUid() : "",
-            enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
-            .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), attr.getValue() ) )
+            enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream().filter( Objects::nonNull )
+            .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), getTrackedEntityAttributeValue( attr ) ) )
             .collect( Collectors.toList() ), enrollment.getProgram().getName() );
     }
 
@@ -165,8 +167,8 @@ public class DefaultProgramRuleEntityMapperService
             .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
              RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
-                ps.getDataValues().stream()
-                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                ps.getDataValues().stream().filter( Objects::nonNull )
+                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
@@ -174,8 +176,8 @@ public class DefaultProgramRuleEntityMapperService
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
-         psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
-            .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+         psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream().filter( Objects::nonNull )
+            .map( dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
             .collect( Collectors.toList() ), psi.getProgramStage().getName() );
     }
 
@@ -185,8 +187,8 @@ public class DefaultProgramRuleEntityMapperService
         return programStageInstances.stream()
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
-                ps.getDataValues().stream()
-                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                ps.getDataValues().stream().filter( Objects::nonNull )
+                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
@@ -310,5 +312,39 @@ public class DefaultProgramRuleEntityMapperService
 
             return RuleActionDisplayKeyValuePair.createForFeedback( programRuleAction.getContent(), programRuleAction.getData() );
         }
+    }
+
+    private String getTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        ValueType valueType = attributeValue.getAttribute().getValueType();
+
+        if ( valueType.isBoolean() )
+        {
+            return attributeValue.getValue() != null ? attributeValue.getValue() : "false";
+        }
+
+        if ( valueType.isNumeric() )
+        {
+            return attributeValue.getValue() != null ? attributeValue.getValue() : "0";
+        }
+
+        return attributeValue.getValue() != null ? attributeValue.getValue() : "";
+    }
+
+    private String getTrackedEntityDataValue( TrackedEntityDataValue dataValue )
+    {
+        ValueType valueType = dataValue.getDataElement().getValueType();
+
+        if ( valueType.isBoolean() )
+        {
+            return dataValue.getValue() != null ? dataValue.getValue() : "false";
+        }
+
+        if ( valueType.isNumeric() )
+        {
+            return dataValue.getValue() != null ? dataValue.getValue() : "0";
+        }
+
+        return dataValue.getValue() != null ? dataValue.getValue() : "";
     }
 }
