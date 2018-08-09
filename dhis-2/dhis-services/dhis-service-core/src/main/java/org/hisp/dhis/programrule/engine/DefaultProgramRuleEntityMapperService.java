@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
+
 public class DefaultProgramRuleEntityMapperService 
     implements ProgramRuleEntityMapperService
 {
@@ -200,7 +201,7 @@ public class DefaultProgramRuleEntityMapperService
     {
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
-        List<RuleAction> ruleActions = new ArrayList<>();
+        List<RuleAction> ruleActions;
 
         try
         {
