@@ -13,7 +13,7 @@ try {
     console.log('target dir:', targetDir)
 } catch (err) {
     console.log('no target dir!')
-    process.exit(1)
+    fs.ensureDirSync(targetDir)
 }
 
 console.log('here we go', pkg.dependencies)
@@ -22,6 +22,7 @@ for (let name in pkg.dependencies) {
     console.log(name)
     let src = path.join('./node_modules', name)
     let dest = path.join(targetDir, name)
+
     fs.copySync(src, dest)
     console.log('copied', src, dest)
 }
