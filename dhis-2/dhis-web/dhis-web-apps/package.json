@@ -1,0 +1,17 @@
+{
+  "name": "dhis-web-apps",
+  "version": "1.0.0",
+  "description": "Wrapper for all frontend application apps",
+  "main": "''",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Viktor Varland",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "maintenance-app": "^24.0.34"
+  },
+  "devDependencies": {
+    "fs-extra": "^7.0.0"
+  }
+}
