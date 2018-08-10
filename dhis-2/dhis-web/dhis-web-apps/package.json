@@ -9,6 +9,7 @@
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "core-resource-app-test": "^30.0.0",
     "maintenance-app-test": "30.0.0"
   },
   "devDependencies": {

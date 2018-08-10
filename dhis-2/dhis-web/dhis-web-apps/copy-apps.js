@@ -19,7 +19,9 @@ try {
 console.log('here we go', pkg.dependencies)
 
 for (let name in pkg.dependencies) {
-    const targetName = 'dhis-web-' + name.replace('-test', '')
+    const targetName = 'dhis-web-' + name
+        .replace('-app', '')
+        .replace('-test', '')
     const src = path.join('./node_modules', name, 'build')
     const dest = path.join(targetDir, targetName)
 

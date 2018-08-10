@@ -29,7 +29,7 @@ try {
 
         for (let name in pkg.dependencies) {
             let truncName = name
-                .replace('-app')      // strip the trailing `-app` from name
+                .replace('-app', '')      // strip the trailing `-app` from name
                 .replace('-test', '') // just for testing purposes for the PoC
 
             res.struts.package.push(
