@@ -60,7 +60,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     private List<RuleActionImplementer> ruleActionImplementers;
 
     @Override
-    public List<RuleEffect> evaluate(ProgramInstance programInstance )
+    public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
         if ( !containsImplementableActions( programInstance ) )
         {
