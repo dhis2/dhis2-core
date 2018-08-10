@@ -156,6 +156,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes( user );
 
+        queryParams.setReadableAttributes( readableAttributes );
+
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService.getTrackedEntityInstances( queryParams );
 
         List<TrackedEntityInstance> dtoTEIItems = new ArrayList<>();

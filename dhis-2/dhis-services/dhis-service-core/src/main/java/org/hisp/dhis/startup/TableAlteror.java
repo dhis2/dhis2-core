@@ -1072,6 +1072,8 @@ public class TableAlteror
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
         
         updateDimensionFilterToText();
+
+        renameAnalyticsPeriodBoundaryTableToPeriodBoundary();
         
         insertDefaultBoundariesForBoundlessProgramIndicators();
         
@@ -1089,6 +1091,22 @@ public class TableAlteror
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
 
         log.info( "Tables updated" );
+
+    }
+
+    /**
+     * Moves existing data in "analyticsperiodboundary" table to new and renamed table "periodboundary"
+     */
+    private void renameAnalyticsPeriodBoundaryTableToPeriodBoundary()
+    {
+
+        String sql =
+            "INSERT INTO periodboundary(periodboundaryid, uid, code, created, lastupdated, lastupdatedby, boundarytarget, analyticsperiodboundarytype, offsetperiods, offsetperiodtypeid, programindicatorid) " +
+                "SELECT analyticsperiodboundaryid, uid, code, created, lastupdated, lastupdatedby, boundarytarget, analyticsperiodboundarytype, offsetperiods, offsetperiodtypeid, programindicatorid " +
+                "FROM analyticsperiodboundary; " +
+                "DROP TABLE analyticsperiodboundary;";
+
+        executeSql( sql );
 
     }
 
@@ -1737,21 +1755,27 @@ public class TableAlteror
     {
         String findBoundlessAndInsertDefaultBoundaries = 
             "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
+
             "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
-            "from programindicator pi left join analyticsperiodboundary apb on apb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " + 
-            "having count(apb.*) = 0;" +
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from programindicator pi left join periodboundary pb on pb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " +
+            "having count(pb.*) = 0;" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
+
         executeSql( findBoundlessAndInsertDefaultBoundaries );
         
     }

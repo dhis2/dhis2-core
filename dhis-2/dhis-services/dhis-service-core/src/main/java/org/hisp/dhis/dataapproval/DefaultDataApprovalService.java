@@ -239,6 +239,13 @@ public class DefaultDataApprovalService
             {
                 da.setDataApprovalLevel( status.getActionLevel() );
             }
+            else if ( status.getActionLevel() == null )
+            {
+                log.info( "approveData: unapproved data in workflow " + da.getWorkflow().getName()
+                    + " does not have actionable level. " );
+
+                throw new DataMayNotBeApprovedException();
+            }
             else if ( da.getDataApprovalLevel().getLevel() != status.getActionLevel().getLevel() )
             {
                 log.info( "approveData: unapproved data in workflow " + da.getWorkflow().getName()

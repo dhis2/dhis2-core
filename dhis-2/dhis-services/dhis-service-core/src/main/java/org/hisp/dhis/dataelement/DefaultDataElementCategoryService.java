@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -114,7 +114,7 @@ public class DefaultDataElementCategoryService
     }
 
     private CurrentUserService currentUserService;
-    
+
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -496,6 +496,9 @@ public class DefaultDataElementCategoryService
 
         addDataElementCategoryOption( categoryOption );
 
+        categoryOption.setPublicAccess( AccessStringHelper.CATEGORY_OPTION_DEFAULT );
+        updateDataElementCategoryOption( categoryOption );
+
         // ---------------------------------------------------------------------
         // DataElementCategory
         // ---------------------------------------------------------------------
@@ -507,6 +510,9 @@ public class DefaultDataElementCategoryService
 
         category.addCategoryOption( categoryOption );
         addDataElementCategory( category );
+
+        category.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateDataElementCategory( category );
 
         // ---------------------------------------------------------------------
         // DataElementCategoryCombo
@@ -520,6 +526,9 @@ public class DefaultDataElementCategoryService
         categoryCombo.addDataElementCategory( category );
         addDataElementCategoryCombo( categoryCombo );
 
+        categoryCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateDataElementCategoryCombo( categoryCombo );
+
         // ---------------------------------------------------------------------
         // DataElementCategoryOptionCombo
         // ---------------------------------------------------------------------
@@ -532,6 +541,9 @@ public class DefaultDataElementCategoryService
         categoryOptionCombo.addDataElementCategoryOption( categoryOption );
 
         addDataElementCategoryOptionCombo( categoryOptionCombo );
+
+        categoryOptionCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateDataElementCategoryOptionCombo( categoryOptionCombo );
 
         Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
         categoryOptionCombos.add( categoryOptionCombo );
@@ -611,25 +623,24 @@ public class DefaultDataElementCategoryService
     }
 
 
-
     @Override
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, property, id );
-        
+
         if ( coc != null )
-        {            
+        {
             User user = currentUserService.getCurrentUser();
-            
+
             for ( DataElementCategoryOption categoryOption : coc.getCategoryOptions() )
-            {                
+            {
                 if ( !aclService.canRead( user, categoryOption ) )
                 {
                     return null;
                 }
             }
         }
-        
+
         return coc;
     }
 
@@ -657,14 +668,14 @@ public class DefaultDataElementCategoryService
         for ( DataElement dataElement : dataElements )
         {
             Set<DataElementCategoryCombo> categoryCombos = dataElement.getCategoryCombos();
-            
+
             boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
-            
+
             if ( includeTotals && !anyIsDefault )
             {
                 operands.add( new DataElementOperand( dataElement ) );
             }
-            
+
             for ( DataElementCategoryCombo categoryCombo : categoryCombos )
             {
                 operands.addAll( getOperands( dataElement, categoryCombo ) );
@@ -678,34 +689,34 @@ public class DefaultDataElementCategoryService
     public List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-                
+
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
             DataElementCategoryCombo categoryCombo = element.getResolvedCategoryCombo();
-            
+
             if ( includeTotals && !categoryCombo.isDefault() )
             {
                 operands.add( new DataElementOperand( element.getDataElement() ) );
             }
-            
+
             operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo() ) );
         }
-        
+
         return operands;
     }
 
     private List<DataElementOperand> getOperands( DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-        
+
         for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }
-        
+
         return operands;
     }
-    
+
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
