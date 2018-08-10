@@ -9,7 +9,7 @@
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "maintenance-app": "^24.0.34"
+    "maintenance-app-test": "30.0.0"
   },
   "devDependencies": {
     "fs-extra": "^7.0.0"
