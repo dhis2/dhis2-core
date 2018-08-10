@@ -36,6 +36,19 @@
 						</goals>
 					</execution>
 					<execution>
+						<id>exec-struts-config</id>
+						<phase>process-resources</phase>
+						<configuration>
+							<executable>node</executable>
+							<arguments>
+								<argument>./write-struts-xml.js</argument>
+							</arguments>
+						</configuration>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+					<execution>
 						<id>exec-copy-sources</id>
 						<phase>prepare-package</phase>
 						<configuration>
@@ -55,7 +68,6 @@
 	</build>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -94,7 +106,6 @@
 			<groupId>org.hisp.dhis</groupId>
 			<artifactId>dhis-service-analytics</artifactId>
 		</dependency>
-
 	</dependencies>
 
 	<properties>

@@ -19,9 +19,9 @@ try {
 console.log('here we go', pkg.dependencies)
 
 for (let name in pkg.dependencies) {
-    console.log(name)
-    let src = path.join('./node_modules', name)
-    let dest = path.join(targetDir, name)
+    const targetName = 'dhis-web-' + name.replace('-test', '')
+    const src = path.join('./node_modules', name, 'build')
+    const dest = path.join(targetDir, targetName)
 
     fs.copySync(src, dest)
     console.log('copied', src, dest)
