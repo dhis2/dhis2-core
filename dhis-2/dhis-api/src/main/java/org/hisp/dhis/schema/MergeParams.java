@@ -41,7 +41,7 @@ public final class MergeParams<T>
 
     private final T target;
 
-    private MergeMode mergeMode = MergeMode.REPLACE;
+    private MergeMode mergeMode = MergeMode.MERGE;
 
     private boolean skipSharing;
 
