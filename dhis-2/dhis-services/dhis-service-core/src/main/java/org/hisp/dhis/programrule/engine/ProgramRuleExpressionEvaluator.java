@@ -35,6 +35,8 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.rules.RuleExpressionEvaluator;
 
+import javax.annotation.Nonnull;
+
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
@@ -50,8 +52,9 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
      * @return string value of boolean true/false.
      */
 
+    @Nonnull
     @Override
-    public String evaluate( String expression )
+    public String evaluate( @Nonnull String expression )
     {
         String result = "";
 
@@ -63,7 +66,6 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
         {
             result = "false";
 
-            log.error( DebugUtils.getStackTrace( je ) );
             log.error( DebugUtils.getStackTrace( je.getCause() ) );
         }
 
