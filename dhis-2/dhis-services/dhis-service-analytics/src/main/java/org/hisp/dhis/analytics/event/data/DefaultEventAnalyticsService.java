@@ -170,8 +170,8 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Create a grid with table layout for downloading event reports.
-     * The grid is dynamically made from rows and columns input, which refers to the dimensions requested.
+     * Create a grid with table layout for downloading event reports. The grid is dynamically 
+     * made from rows and columns input, which refers to the dimensions requested.
      *
      * For event reports each option for a dimension will be an {@link EventAnalyticsDimensionalItem} and all permutations
      * will be added to the grid.
@@ -336,7 +336,8 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventAnalyticsDimensionalItem} parameter.
+     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from
+     * {@link EventAnalyticsDimensionalItem} parameter.
      *
      * @param eventDimensionalItemObject object to get properties from
      * @param objects the list with objects. We are adding objects to this list as well.
@@ -432,10 +433,8 @@ public class DefaultEventAnalyticsService
             else
             {
                 for ( QueryItem item : params.getItems() )
-                {
-                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-    
-                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), legendSet ) );
+                {    
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
             
@@ -548,7 +547,7 @@ public class DefaultEventAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), item.getLegendSetUid() ) );
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
         }
 
         // ---------------------------------------------------------------------
