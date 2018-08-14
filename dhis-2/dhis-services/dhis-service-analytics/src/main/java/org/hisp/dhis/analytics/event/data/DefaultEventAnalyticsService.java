@@ -197,7 +197,7 @@ public class DefaultEventAnalyticsService
         {
             for ( String dimension : columns )
             {
-                getEventDataObjects( grid, params, tableColumns, dimension );
+                addEventDataObjects( grid, params, tableColumns, dimension );
             }
         }
 
@@ -209,7 +209,7 @@ public class DefaultEventAnalyticsService
             for ( String dimension : rows )
             {
                 rowDimensions.add( dimension );
-                getEventDataObjects( grid, params, tableRows, dimension );
+                addEventDataObjects( grid, params, tableRows, dimension );
             }
         }
 
@@ -310,7 +310,7 @@ public class DefaultEventAnalyticsService
      * @param table the map to add elements to
      * @param dimension the requested dimension
      */
-    private void getEventDataObjects( Grid grid, EventQueryParams params,
+    private void addEventDataObjects( Grid grid, EventQueryParams params,
         Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension ) throws Exception
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
