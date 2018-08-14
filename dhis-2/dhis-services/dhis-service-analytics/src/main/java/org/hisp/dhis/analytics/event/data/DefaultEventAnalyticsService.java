@@ -164,9 +164,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
         throws Exception
     {
-        boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
-
-        return tableLayout ?
+        return AnalyticsUtils.isTableLayout( columns, rows ) ?
             getAggregatedEventDataTableLayout( params, columns, rows ) :
             getAggregatedEventData( params );
     }
@@ -194,22 +192,24 @@ public class DefaultEventAnalyticsService
         ListUtils.removeEmptys( rows );
 
         Map<String, List<EventAnalyticsDimensionalItem>> tableColumns = new LinkedHashMap<>();
+        
         if ( columns != null )
         {
             for ( String dimension : columns )
             {
-                getEventDataObjects( grid, params, tableColumns, dimension );
+                addEventDataObjects( grid, params, tableColumns, dimension );
             }
         }
 
         Map<String, List<EventAnalyticsDimensionalItem>> tableRows = new LinkedHashMap<>();
         List<String> rowDimensions = new ArrayList<>();
+        
         if ( rows != null )
         {
             for ( String dimension : rows )
             {
                 rowDimensions.add( dimension );
-                getEventDataObjects( grid, params, tableRows, dimension );
+                addEventDataObjects( grid, params, tableRows, dimension );
             }
         }
 
@@ -243,8 +243,7 @@ public class DefaultEventAnalyticsService
             String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
-            outputGrid
-                .addHeader( new GridHeader( name, col, ValueType.TEXT, String.class.getName(), false, true ) );
+            outputGrid.addHeader( new GridHeader( name, col, ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         columnPermutations.forEach( permutation -> {
@@ -311,12 +310,12 @@ public class DefaultEventAnalyticsService
      * @param table the map to add elements to
      * @param dimension the requested dimension
      */
-    private void getEventDataObjects( Grid grid, EventQueryParams params,
+    private void addEventDataObjects( Grid grid, EventQueryParams params,
         Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension ) throws Exception
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
-        if ( objects.size() == 0 )
+        if ( objects.isEmpty() )
         {
             ValueTypedDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
 
@@ -381,7 +380,7 @@ public class DefaultEventAnalyticsService
 
                 for ( Legend legend : legends )
                 {
-                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue().intValue(); i++ )
                     {
                         objects.add( new EventAnalyticsDimensionalItem( new Option( 
                             String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
