@@ -39,8 +39,14 @@ public class GridHeader
     private static final ImmutableSet<String> NUMERIC_TYPES = 
         ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
+    /**
+     * Format header key name.
+     */
     private String name;
 
+    /**
+     * Readable pretty header title.
+     */
     private String column;
 
     private ValueType valueType;
@@ -64,7 +70,7 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
+     * @param name formal header name.
      */
     public GridHeader( String name )
     {
@@ -75,8 +81,8 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
+     * @param name formal header name.
+     * @param column readable header title.
      */
     public GridHeader( String name, String column )
     {
@@ -88,9 +94,9 @@ public class GridHeader
      * Sets the column property to the name value. Sets the type property to
      * String.
      *
-     * @param name name
-     * @param hidden hidden
-     * @param meta meta
+     * @param name formal header name.
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
      */
     public GridHeader( String name, boolean hidden, boolean meta )
     {
@@ -101,12 +107,12 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
-     * @param valueType valueType
-     * @param type type
-     * @param hidden hidden
-     * @param meta meta
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param type header type (deprecated).
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
      */
     public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta )
     {
@@ -118,13 +124,14 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
-     * @param type type
-     * @param hidden hidden
-     * @param meta meta
-     * @param optionSet optionSet
-     * @param legendSet legendSet
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param type header type (deprecated).
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
+     * @param optionSet option set identifier.
+     * @param legendSet legend set identifier.
      */
     public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
     {
