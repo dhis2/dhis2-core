@@ -1794,6 +1794,7 @@
   <bean id="org.hisp.dhis.program.ProgramStageDeletionHandler"
     class="org.hisp.dhis.program.ProgramStageDeletionHandler">
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleDeletionHandler"
