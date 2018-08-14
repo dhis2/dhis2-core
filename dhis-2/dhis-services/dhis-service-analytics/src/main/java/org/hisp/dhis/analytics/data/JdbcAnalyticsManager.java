@@ -511,8 +511,6 @@ public class JdbcAnalyticsManager
             {
                 String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
-                
-                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
                 cols.add( col );
             }
             else
