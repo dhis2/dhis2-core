@@ -380,7 +380,7 @@ public class DefaultEventAnalyticsService
 
                 for ( Legend legend : legends )
                 {
-                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue().intValue(); i++ )
                     {
                         objects.add( new EventAnalyticsDimensionalItem( new Option( 
                             String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
