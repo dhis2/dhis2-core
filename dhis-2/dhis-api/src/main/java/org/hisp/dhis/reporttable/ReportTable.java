@@ -586,7 +586,7 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ),
+            grid.addHeader( new GridHeader( getColumnName( column ), getPrettyColumnName( column, displayProperty ),
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 

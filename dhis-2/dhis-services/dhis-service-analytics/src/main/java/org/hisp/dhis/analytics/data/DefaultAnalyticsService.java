@@ -221,7 +221,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDimensionConstraints( params );
 
         queryValidator.validate( params );
-        
+
         return getRawDataGrid( params );
     }
 
@@ -236,7 +236,7 @@ public class DefaultAnalyticsService
             .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
-                
+
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
     
