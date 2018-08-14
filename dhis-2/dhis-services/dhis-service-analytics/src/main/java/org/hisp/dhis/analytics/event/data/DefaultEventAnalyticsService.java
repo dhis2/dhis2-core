@@ -315,7 +315,7 @@ public class DefaultEventAnalyticsService
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
-        if ( objects.size() == 0 )
+        if ( objects.isEmpty() )
         {
             ValueTypedDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
 
