@@ -5,7 +5,7 @@
         <thead>
             <tr>
                 #foreach( $header in $grid.getVisibleHeaders() )
-                    <th style="background-color: #f3f3f3;font-weight: bold;padding: 8px 4px 7px 4px;border: 1px solid #e7e7e7;#if( $header.meta ) text-align:left #end">$!encoder.htmlEncode( $header.name )</th>
+                    <th style="background-color: #f3f3f3;font-weight: bold;padding: 8px 4px 7px 4px;border: 1px solid #e7e7e7;#if( $header.meta ) text-align:left #end">$!encoder.htmlEncode( $header.column )</th>
                 #end
             </tr>
         </thead>
