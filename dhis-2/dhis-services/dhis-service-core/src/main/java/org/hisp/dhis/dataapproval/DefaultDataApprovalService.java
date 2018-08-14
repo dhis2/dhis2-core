@@ -523,6 +523,8 @@ public class DefaultDataApprovalService
             orgUnit == null ? 0 : orgUnit.getHierarchyLevel(),
             attributeCombo, null );
 
+        //TODO reuse or remove
+        
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
         for ( DataApprovalStatus status : statusList )
