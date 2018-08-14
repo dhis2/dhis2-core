@@ -973,7 +973,7 @@ public class DefaultAnalyticsService
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the indicators for which formulas to scan for organisation
-     *        unit groups.
+     *         unit groups.
      * @return a map of maps.
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
