@@ -4,7 +4,8 @@
   "description": "Wrapper for all frontend application apps",
   "main": "''",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "generate-struts": "node write-struts-xml.js",
+    "copy-apps": "node copy-apps.js"
   },
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",

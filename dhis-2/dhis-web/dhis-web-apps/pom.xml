@@ -18,52 +18,58 @@
 
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.6</version>
 				<executions>
+
 					<execution>
-						<id>exec-npm-install</id>
-						<phase>generate-sources</phase>
-						<configuration>
-							<executable>npm</executable>
-							<arguments>
-								<argument>install</argument>
-							</arguments>
-						</configuration>
+						<id>install node and npm</id>
+						<phase>generate-resources</phase>
 						<goals>
-							<goal>exec</goal>
+							<goal>install-node-and-npm</goal>
 						</goals>
+						<configuration>
+							<nodeVersion>v8.11.1</nodeVersion>
+							<npmVersion>5.6.0</npmVersion>
+						</configuration>
 					</execution>
+
 					<execution>
-						<id>exec-struts-config</id>
+						<id>npm install</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
 						<phase>process-resources</phase>
 						<configuration>
-							<executable>node</executable>
-							<arguments>
-								<argument>./write-struts-xml.js</argument>
-							</arguments>
+							<arguments>install</arguments>
 						</configuration>
-						<goals>
-							<goal>exec</goal>
-						</goals>
 					</execution>
+
 					<execution>
-						<id>exec-copy-sources</id>
+						<id>node generate struts xml config</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>process-resources</phase>
+						<configuration>
+							<arguments>run generate-struts</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>node copy apps to target</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
 						<phase>prepare-package</phase>
 						<configuration>
-							<executable>node</executable>
-							<arguments>
-								<argument>./copy-apps.js</argument>
-								<argument>${project.build.directory}/${project.artifactId}</argument>
-							</arguments>
+							<arguments>run copy-apps -- ${project.build.directory}/${project.artifactId}</arguments>
 						</configuration>
-						<goals>
-							<goal>exec</goal>
-						</goals>
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 
