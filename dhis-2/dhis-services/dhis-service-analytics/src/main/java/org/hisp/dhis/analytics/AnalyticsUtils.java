@@ -735,4 +735,16 @@ public class AnalyticsUtils
         
         return matches.size() == 1 ? Integer.valueOf( matches.iterator().next() ) : -1;
     }
+
+    /**
+     * Indicates whether table layout is specified.
+     * 
+     * @param columns the list of column dimensions.
+     * @param rows the list of row dimensions.
+     * @return true or false.
+     */
+    public static boolean isTableLayout( List<String> columns, List<String> rows )
+    {
+        return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
+    }
 }
