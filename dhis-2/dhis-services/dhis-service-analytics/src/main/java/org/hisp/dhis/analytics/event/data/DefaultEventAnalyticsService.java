@@ -164,7 +164,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
         throws Exception
     {
-        return isTableLayout( columns, rows ) ?
+        return AnalyticsUtils.isTableLayout( columns, rows ) ?
             getAggregatedEventDataTableLayout( params, columns, rows ) :
             getAggregatedEventData( params );
     }
@@ -787,17 +787,5 @@ public class DefaultEventAnalyticsService
         }
 
         return dimensionItems;
-    }
-
-    /**
-     * Indicates whether table layout is specified.
-     * 
-     * @param columns the list of column dimensions.
-     * @param rows the list of row dimensions.
-     * @return true or false.
-     */
-    private boolean isTableLayout( List<String> columns, List<String> rows )
-    {
-        return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
     }
 }
