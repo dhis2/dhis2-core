@@ -114,8 +114,14 @@ public final class SchemaUtils
                     min = 0d;
                 }
 
-                property.setMax( max );
-                property.setMin( min );
+                if ( property.getMax() == null || max < property.getMax() )
+                {
+                    property.setMax( max );
+                }
+                if ( property.getMin() == null || min > property.getMin() )
+                {
+                    property.setMin( min );
+                }
             }
 
             if ( property.getMin() == null )
