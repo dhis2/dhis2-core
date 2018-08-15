@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.gml;
  */
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
 import java.io.InputStream;
 
@@ -42,11 +43,10 @@ public interface GmlImportService
 {
     /**
      * Import the geospatial data from a GML document.
-     *
-     * @param inputStream   the GML document.
-     * @param userUid       the UID of the user performing the import.
+     *  @param userUid       the UID of the user performing the import.
      * @param importOptions the ImportOptions. ImportStrategy is always overridden to UPDATE.
      * @param taskId        the TaskId of the import process.
+     * @param inputStream   the GML document.
      */
-    void importGml( InputStream inputStream, MetadataImportParams importParams );
+    ImportReport importGml( InputStream inputStream, MetadataImportParams importParams );
 }
