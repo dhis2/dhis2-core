@@ -37,10 +37,7 @@ import java.util.Collection;
  */
 public class MessageConversationParams
 {
-
-    /*
-        Required properties
-     */
+    /* Required properties */
 
     private ImmutableSet<User> recipients;
 
@@ -52,9 +49,7 @@ public class MessageConversationParams
 
     private MessageType messageType;
 
-    /*
-        Optional properties
-     */
+    /* Optional properties */
 
     private String metadata;
 
@@ -145,12 +140,45 @@ public class MessageConversationParams
 
     public static class Builder
     {
-
         private MessageConversationParams params;
 
+        public Builder()
+        {
+        }
+        
         public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType )
         {
             this.params = new MessageConversationParams( recipients, sender, subject, text, messageType );
+        }
+        
+        public Builder withRecipients( Collection<User> recipients )
+        {
+            this.params.recipients = ImmutableSet.copyOf( recipients );
+            return this;
+        }
+        
+        public Builder withSender( User sender )
+        {
+            this.params.sender = sender;
+            return this;
+        }
+        
+        public Builder withSubject( String subject )
+        {
+            this.params.subject = subject;
+            return this;
+        }
+        
+        public Builder withText( String text )
+        {
+            this.params.text = text;
+            return this;
+        }
+        
+        public Builder withMessageType( MessageType messageType )
+        {
+            this.params.messageType = messageType;
+            return this;
         }
 
         public Builder withMetaData( String metaData )
@@ -187,6 +215,5 @@ public class MessageConversationParams
         {
             return this.params;
         }
-
     }
 }

@@ -39,7 +39,6 @@ import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -235,7 +234,7 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private MessageConversationParams getNotificationMessage(
+    private int sendNotificationMessage(
         Set<User> users,
         Interpretation interpretation,
         InterpretationComment comment,
@@ -287,7 +286,7 @@ public class DefaultInterpretationService
             String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
         ) );
         
-        return messageService.createSystemMessage( users, subject, fullBody ).build();
+        return messageService.sendSystemMessage( users, subject, fullBody );
     }
 
     private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
@@ -300,9 +299,10 @@ public class DefaultInterpretationService
             SubscribableObject object = (SubscribableObject) interpretableObject;
             Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
-            if ( !subscribers.isEmpty() ){
-                MessageConversationParams message = getNotificationMessage( subscribers, interpretation, comment, notificationType );
-                messageService.sendMessage( message );
+            
+            if ( !subscribers.isEmpty() ) 
+            {
+                sendNotificationMessage( subscribers, interpretation, comment, notificationType );
             }
         }
     }
@@ -333,8 +333,8 @@ public class DefaultInterpretationService
         User user = currentUserService.getCurrentUser();
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-        messageService.sendMessage( messageService
-            .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
+        
+        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" );
     }
 
     private String getInterpretationLink( Interpretation interpretation ) {
