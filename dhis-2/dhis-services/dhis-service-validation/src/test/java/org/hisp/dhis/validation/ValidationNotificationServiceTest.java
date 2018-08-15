@@ -109,7 +109,7 @@ public class ValidationNotificationServiceTest
     {
         sentMessages = new ArrayList<>();
 
-        // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
+        // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our list
         when(
             messageService.sendMessage( any() )
         ).then( invocation ->
@@ -125,12 +125,6 @@ public class ValidationNotificationServiceTest
             {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 42;
-                /*
-                builder = new MessageConversationParams.Builder( (Set<User>) invocation.getArguments()[0] , null,
-                    invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
-                    MessageType.VALIDATION_RESULT );
-                return builder;
-                */
             }
         );
 
