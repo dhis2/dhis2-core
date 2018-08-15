@@ -125,7 +125,10 @@ public class ValidationNotificationServiceTest
 
         when(
             messageService
-                .createValidationResultMessage( anyListOf( User.class ), anyString(), anyString() )
+                .sendMessage( new MessageConversationParams.Builder()
+                    .withRecipients( anyListOf( User.class ) )
+                    .withSubject( anyString() )
+                    .withText( anyString() ).build() )
         ).then( invocation ->
             {
                 builder = new MessageConversationParams.Builder( (Set<User>) invocation.getArguments()[0] , null,
