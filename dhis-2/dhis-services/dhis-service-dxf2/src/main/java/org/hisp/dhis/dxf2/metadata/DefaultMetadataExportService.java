@@ -94,8 +94,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -808,7 +808,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDashboardItem( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DashboardItem dashboardItem )
     {
         if ( dashboardItem == null ) return metadata;
-        metadata.putValue( DashboardItem.class, dashboardItem );
         handleAttributes( metadata, dashboardItem );
 
         handleChart( metadata, dashboardItem.getChart() );
@@ -819,7 +818,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );
-
         dashboardItem.getResources().forEach( document -> handleDocument( metadata, document ) );
 
         return metadata;
