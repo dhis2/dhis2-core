@@ -34,10 +34,8 @@ import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
-import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -107,7 +105,6 @@ public class ValidationNotificationServiceTest
      * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
      */
     @Before
-    @SuppressWarnings("unchecked")
     public void initTest()
     {
         sentMessages = new ArrayList<>();
