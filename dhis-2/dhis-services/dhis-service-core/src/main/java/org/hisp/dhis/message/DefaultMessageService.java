@@ -148,7 +148,7 @@ public class DefaultMessageService
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        MessageConversationParams params =  new MessageConversationParams.Builder()
+        MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
             .withSender( currentUser )
             .withSubject( subject )
@@ -162,11 +162,27 @@ public class DefaultMessageService
     @Override
     public int sendSystemMessage( Collection<User> recipients, String subject, String text )
     {
-        return sendMessage( new MessageConversationParams.Builder()
+        MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
             .withSubject( subject )
             .withText( text )
-            .withMessageType( MessageType.SYSTEM ).build() );
+            .withMessageType( MessageType.SYSTEM ).build();
+        
+        return sendMessage( params );
+    }
+
+    @Override
+    public int sendValidationMessage( Collection<User> recipients, String subject, String text, MessageConversationPriority priority )
+    {
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.VALIDATION_RESULT )
+            .withStatus( MessageConversationStatus.OPEN )
+            .withPriority( priority ).build();
+
+        return sendMessage( params );
     }
     
     @Override

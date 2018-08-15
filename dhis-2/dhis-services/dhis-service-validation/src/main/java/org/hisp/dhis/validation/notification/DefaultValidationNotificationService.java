@@ -37,11 +37,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageConversationPriority;
-import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.SendStrategy;
@@ -85,8 +82,7 @@ public class DefaultValidationNotificationService
 
     private NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    public void setNotificationMessageRenderer(
-        NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
+    public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
     {
         this.notificationMessageRenderer = notificationMessageRenderer;
     }
@@ -398,15 +394,7 @@ public class DefaultValidationNotificationService
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        MessageConversationParams params = new MessageConversationParams.Builder()
-            .withRecipients( users )
-            .withSubject( notificationMessage.getSubject() )
-            .withText( notificationMessage.getMessage() )
-            .withMessageType( MessageType.VALIDATION_RESULT )
-            .withStatus( MessageConversationStatus.OPEN )
-            .withPriority( notificationMessage.getPriority() ).build();
-
-        messageService.sendMessage( params );
+        messageService.sendValidationMessage( users, notificationMessage.getSubject(), notificationMessage.getMessage(), notificationMessage.getPriority() );
     }
 
 // -------------------------------------------------------------------------

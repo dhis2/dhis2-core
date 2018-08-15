@@ -35,6 +35,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.message.MessageConversationParams;
+import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -101,8 +102,6 @@ public class ValidationNotificationServiceTest
 
     private List<MockMessage> sentMessages;
 
-    private MessageConversationParams.Builder builder;
-
     /**
      * We mock the sending of messages to write to a local List (which we can inspect).
      * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
@@ -124,17 +123,17 @@ public class ValidationNotificationServiceTest
         );
 
         when(
-            messageService
-                .sendMessage( new MessageConversationParams.Builder()
-                    .withRecipients( anyListOf( User.class ) )
-                    .withSubject( anyString() )
-                    .withText( anyString() ).build() )
+            messageService.sendValidationMessage( anyListOf( User.class ), anyString(), anyString(), any( MessageConversationPriority.class ) )
         ).then( invocation ->
             {
+                sentMessages.add( new MockMessage( invocation.getArguments() ) );
+                return 42;
+                /*
                 builder = new MessageConversationParams.Builder( (Set<User>) invocation.getArguments()[0] , null,
                     invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
                     MessageType.VALIDATION_RESULT );
                 return builder;
+                */
             }
         );
 
@@ -269,7 +268,7 @@ public class ValidationNotificationServiceTest
         service.sendNotifications( Sets.newHashSet( validationResult ) );
 
         assertEquals( 1, sentMessages.size() );
-        assertEquals( 2, sentMessages.get( 0 ).users.size() );
+        assertEquals( 2, sentMessages.get( 0 ).recipients.size() );
     }
 
     @Test
@@ -340,7 +339,7 @@ public class ValidationNotificationServiceTest
 
         assertEquals( 1, sentMessages.size() );
 
-        Set<User> rcpt = sentMessages.iterator().next().users;
+        Collection<User> rcpt = sentMessages.iterator().next().recipients;
 
         assertEquals( 1, rcpt.size() );
     }
@@ -412,18 +411,18 @@ public class ValidationNotificationServiceTest
 
         // Perform tests
 
-        // Uno
+        // One
 
         service.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
 
         assertEquals( 1, sentMessages.size() );
 
-        Set<User> rcpt = sentMessages.iterator().next().users;
+        Collection<User> rcpt = sentMessages.iterator().next().recipients;
 
         assertEquals( 2, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uB, uC ) ) );
 
-        // Dos
+        // Two
 
         sentMessages = new ArrayList<>();
 
@@ -433,17 +432,17 @@ public class ValidationNotificationServiceTest
         service.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
 
         assertEquals( 1, sentMessages.size() );
-        rcpt = sentMessages.iterator().next().users;
+        rcpt = sentMessages.iterator().next().recipients;
 
         // We now expect user A, which is on the root org unit and in group B to also be among the recipients
         assertEquals( 3, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uA, uB, uC ) ) );
 
-        // Tres
+        // Three
 
         sentMessages = new ArrayList<>();
 
-        // Keep the hierarchy as is, but emanate the validation result from the bottom left of the tree
+        // Keep the hierarchy as is, but spread out the validation result from the bottom left of the tree
 
         final ValidationResult resultFromBottomLeft = createValidationResult( lvlTwoLeftLeft, rule );
 
@@ -451,7 +450,7 @@ public class ValidationNotificationServiceTest
 
         assertEquals( 1, sentMessages.size() );
 
-        rcpt = sentMessages.iterator().next().users;
+        rcpt = sentMessages.iterator().next().recipients;
 
         assertEquals( 4, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uA, uB, uC, uF ) ) );
@@ -466,27 +465,21 @@ public class ValidationNotificationServiceTest
      */
     static class MockMessage
     {
-        final String subject, text, metaData;
+        final Collection<User> recipients;
 
-        final Set<User> users;
-
-        final User sender;
-
-        final boolean includeFeedbackRecipients, forceNotifications;
+        final String subject;
+        
+        final String text;
 
         /**
          * Danger danger! Will break if MessageService API changes.
          */
+        @SuppressWarnings("unchecked")
         MockMessage( Object[] args )
         {
-            MessageConversationParams params = (MessageConversationParams) args[0];
-            this.subject = params.getSubject();
-            this.text = params.getText();
-            this.metaData = params.getMetadata();
-            this.users = params.getRecipients();
-            this.sender = params.getSender();
-            this.includeFeedbackRecipients = false;
-            this.forceNotifications = params.isForceNotification();
+            this.recipients = (Collection<User>) args[0];
+            this.subject = (String) args[1];
+            this.text = (String) args[2];
         }
     }
 }

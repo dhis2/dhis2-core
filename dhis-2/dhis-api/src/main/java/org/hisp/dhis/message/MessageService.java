@@ -47,6 +47,8 @@ public interface MessageService
     
     int sendSystemMessage( Collection<User> recipients, String subject, String text );
     
+    int sendValidationMessage( Collection<User> recipients, String subject, String text, MessageConversationPriority priority );
+    
     int sendMessage( MessageConversationParams params );
 
     int sendSystemErrorNotification( String subject, Throwable t );
