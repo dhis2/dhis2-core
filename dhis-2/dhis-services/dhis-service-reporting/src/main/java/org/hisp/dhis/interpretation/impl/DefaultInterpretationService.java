@@ -234,12 +234,7 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private int sendNotificationMessage(
-        Set<User> users,
-        Interpretation interpretation,
-        InterpretationComment comment,
-        NotificationType notificationType
-    )
+    private int sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
         String currentUsername = currentUserService.getCurrentUser().getUsername();

@@ -62,6 +62,10 @@ public class MessageConversationParams
     private MessageConversationStatus status = MessageConversationStatus.NONE;
 
     private boolean forceNotification;
+    
+    private MessageConversationParams()
+    {
+    }
 
     private MessageConversationParams( Collection<User> recipients, User sender, String subject, String text,
         MessageType messageType )
@@ -144,6 +148,7 @@ public class MessageConversationParams
 
         public Builder()
         {
+            this.params = new MessageConversationParams();
         }
         
         public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType )
@@ -151,7 +156,7 @@ public class MessageConversationParams
             this.params = new MessageConversationParams( recipients, sender, subject, text, messageType );
         }
         
-        public Builder withRecipients( Collection<User> recipients )
+        public Builder withRecipients( Set<User> recipients )
         {
             this.params.recipients = new HashSet<>( recipients );
             return this;

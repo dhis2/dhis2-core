@@ -144,7 +144,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public int sendPrivateMessage( Collection<User> recipients, String subject, String text, String metaData )
+    public int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData )
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -160,8 +160,9 @@ public class DefaultMessageService
     }
     
     @Override
-    public int sendSystemMessage( Collection<User> recipients, String subject, String text )
+    public int sendSystemMessage( Set<User> recipients, String subject, String text )
     {
+        System.out.println( "Recipients " + recipients );
         MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
             .withSubject( subject )
@@ -172,7 +173,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public int sendValidationMessage( Collection<User> recipients, String subject, String text, MessageConversationPriority priority )
+    public int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority )
     {
         MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )

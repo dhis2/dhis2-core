@@ -120,7 +120,7 @@ public class ValidationNotificationServiceTest
         );
 
         when(
-            messageService.sendValidationMessage( anyListOf( User.class ), anyString(), anyString(), any( MessageConversationPriority.class ) )
+            messageService.sendValidationMessage( anySetOf( User.class ), anyString(), anyString(), any( MessageConversationPriority.class ) )
         ).then( invocation ->
             {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );

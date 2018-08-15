@@ -1,11 +1,5 @@
 package org.hisp.dhis.message;
 
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,6 +28,13 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.user.User;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
@@ -43,11 +44,11 @@ public interface MessageService
 
     int sendTicketMessage( String subject, String text, String metaData );
     
-    int sendPrivateMessage( Collection<User> recipients, String subject, String text, String metaData );
+    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData );
     
-    int sendSystemMessage( Collection<User> recipients, String subject, String text );
+    int sendSystemMessage( Set<User> recipients, String subject, String text );
     
-    int sendValidationMessage( Collection<User> recipients, String subject, String text, MessageConversationPriority priority );
+    int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
     
     int sendMessage( MessageConversationParams params );
 
