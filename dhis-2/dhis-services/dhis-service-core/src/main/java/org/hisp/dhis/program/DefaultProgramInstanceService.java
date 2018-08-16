@@ -41,7 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
 import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -50,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -98,8 +98,8 @@ public class DefaultProgramInstanceService
     private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
-    private ProgramRuleEnginePublisher enginePublisher;
-    
+    private ApplicationEventPublisher eventPublisher;
+
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;    
 
@@ -448,8 +448,8 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
-
-        enginePublisher.publishProgramRuleEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -490,7 +490,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
 
-        enginePublisher.publishProgramRuleEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance
