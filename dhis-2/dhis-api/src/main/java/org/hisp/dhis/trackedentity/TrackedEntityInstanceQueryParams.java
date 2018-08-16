@@ -191,6 +191,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
+    
+    /**
+     * Indicates whether to include all TEI attributes
+     */
+    private boolean includeAllAttributes;
 
     /**
      * Indicates whether the search is internal triggered by the system.
@@ -912,6 +917,17 @@ public class TrackedEntityInstanceQueryParams
         this.includeDeleted = includeDeleted;
         return this;
     }
+    
+    public boolean isIncludeAllAttributes()
+    {
+        return includeAllAttributes;
+    }
+
+    public TrackedEntityInstanceQueryParams setIncludeAllAttributes( boolean includeAllAttributes )
+    {
+        this.includeAllAttributes = includeAllAttributes;
+        return this;
+    }    
 
     public boolean isInternalSearch()
     {
