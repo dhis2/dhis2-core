@@ -8,7 +8,7 @@ $( document ).ready( function() {
         method: 'POST',
         type: "json",
         success: function(data, status, xhr) {
-            jobID = data['id'];
+            jobID = data.response['id'];
             pollDataIntegrityCheckFinished()
         },
         error: function( xhr, txtStatus, err ) {
@@ -132,8 +132,8 @@ function populateIntegrityItems( json ) {
     displayViolation( json.organisationUnitsViolatingExclusiveGroupSets, "organisationUnitsViolatingExclusiveGroupSets", true, asMapList );
     displayViolation( json.organisationUnitGroupsWithoutGroupSets, "organisationUnitGroupsWithoutGroupSets", false, asList );
     displayViolation( json.validationRulesWithoutGroups, "validationRulesWithoutGroups", false, asList );
-    displayViolation( json.invalidValidationRuleLeftSideExpressions, "invalidValidationRuleLeftSideExpressions", true, asMapList );
-    displayViolation( json.invalidValidationRuleRightSideExpressions, "invalidValidationRuleRightSideExpressions", true, asMapList );
+    displayViolation( json.invalidValidationRuleLeftSideExpressions, "invalidValidationRuleLeftSideExpressions", true, asMap );
+    displayViolation( json.invalidValidationRuleRightSideExpressions, "invalidValidationRuleRightSideExpressions", true, asMap );
     displayViolation( json.invalidProgramIndicatorExpressions, "invalidProgramIndicatorExpressions", true, asMap );
     displayViolation( json.invalidProgramIndicatorFilters, "invalidProgramIndicatorFilters", true, asMap );
 }
