@@ -1238,9 +1238,6 @@
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
 
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher"
-    class="org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher" />
-
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener"
     class="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" />
 
