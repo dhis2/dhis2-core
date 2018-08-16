@@ -688,45 +688,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableStore"
-    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleVariableStore">
-    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRuleVariable" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleStore"
-    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleStore">
-    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRule" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleActionStore"
-    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleActionStore">
-    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRuleAction" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <!-- ProgramRule Engine -->
-
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngine" class="org.hisp.dhis.programrule.engine.ProgramRuleEngine" />
-
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineService"
-    class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService" />
-
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService"
-    class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEntityMapperService" />
-
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator"
-    class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
-
-  <bean id="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer"
-    class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
-
-  <bean id="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer"
-    class="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" />
-
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
@@ -1237,21 +1198,6 @@
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
-
-  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener"
-    class="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" />
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
-    <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleService" class="org.hisp.dhis.programrule.DefaultProgramRuleService">
-    <property name="programRuleStore" ref="org.hisp.dhis.programrule.ProgramRuleStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleActionService" class="org.hisp.dhis.programrule.DefaultProgramRuleActionService">
-    <property name="programRuleActionStore" ref="org.hisp.dhis.programrule.ProgramRuleActionStore" />
-  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageSectionService" class="org.hisp.dhis.program.DefaultProgramStageSectionService">
     <property name="programStageSectionStore" ref="org.hisp.dhis.program.ProgramStageSectionStore" />
@@ -1792,16 +1738,6 @@
     class="org.hisp.dhis.program.ProgramStageDeletionHandler">
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleDeletionHandler"
-    class="org.hisp.dhis.programrule.ProgramRuleDeletionHandler">
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler"
-    class="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler">
-    <property name="programRuleVariableService" ref="org.hisp.dhis.programrule.ProgramRuleVariableService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
