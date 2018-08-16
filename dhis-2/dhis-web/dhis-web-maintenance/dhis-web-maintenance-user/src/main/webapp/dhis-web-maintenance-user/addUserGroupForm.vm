@@ -17,7 +17,11 @@
       url: '../api/users.json',
       target: $('#usersSelected'),
       search: $('#usersAvailableSearch'),
-      iterator: 'users'
+      iterator: 'users',
+      fields: "id,displayName,userCredentials[username]",
+      handler : function(item){
+        return $('<option/>').val(item.id).text( item.displayName + ' (' + item.userCredentials.username + ')');
+      }
     });
 
     $('#userGroupsAvailable').selected({

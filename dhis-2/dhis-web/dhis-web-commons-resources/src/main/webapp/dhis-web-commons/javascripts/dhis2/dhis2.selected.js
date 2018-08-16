@@ -59,6 +59,7 @@
 
       context.source.data('selected', context);
       context.target.data('selected', context);
+      context.fields = context.fields ? context.fields : 'id,displayName';
 
       context.source.on('dblclick', 'option', context.defaultSourceDblClickHandler);
       context.target.on('dblclick', 'option', context.defaultTargetDblClickHandler);
@@ -167,7 +168,7 @@
           pageSize: 100 + context.target.children().length,
           page: context.page,
           translate: true,
-          fields: 'id,displayName'
+          fields: context.fields
         },
         dataType: 'json'
       };
@@ -222,7 +223,7 @@
         data: {
           paging: false,
           translate: true,
-          fields: 'id,displayName'
+          fields: context.fields
         },
         dataType: 'json'
       };
