@@ -496,6 +496,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -511,8 +512,8 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails ).eventStatus( eventStatus ).programStatus( programStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).eventStatus( eventStatus ).programStatus( programStatus )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
    
@@ -538,6 +539,8 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean completedOnly,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -553,7 +556,8 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
@@ -581,6 +585,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean completedOnly,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -596,7 +601,7 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
@@ -624,6 +629,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean completedOnly,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -639,7 +645,7 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
@@ -667,6 +673,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean completedOnly,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -682,7 +689,7 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
@@ -710,6 +717,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean completedOnly,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
@@ -725,7 +733,7 @@ public class EventAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).stage( stage )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
