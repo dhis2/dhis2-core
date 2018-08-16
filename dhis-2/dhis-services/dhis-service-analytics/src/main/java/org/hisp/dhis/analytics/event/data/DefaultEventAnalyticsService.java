@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
@@ -581,6 +582,15 @@ public class DefaultEventAnalyticsService
         addMetadata( params, grid );
 
         // ---------------------------------------------------------------------
+        // Data ID scheme
+        // ---------------------------------------------------------------------
+
+        if ( params.hasDataIdScheme() )
+        {
+            substituteData( params, grid );
+        }
+        
+        // ---------------------------------------------------------------------
         // Paging
         // ---------------------------------------------------------------------
 
@@ -594,6 +604,25 @@ public class DefaultEventAnalyticsService
         return grid;
     }
 
+    private void substituteData( EventQueryParams params, Grid grid )
+    {
+        for ( int i = 0; i < grid.getHeaders().size(); i++ )
+        {
+            GridHeader header = grid.getHeaders().get( i );
+            
+            if ( header.hasOptionSet() )
+            {                
+                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( IdScheme.NAME );                
+                grid.substituteMetaData( i, i, optionMap );
+            }
+            else if ( header.hasLegendSet() )
+            {
+                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( IdScheme.NAME );
+                grid.substituteMetaData( i, i, legendMap );
+            }
+        }
+    }
+    
     @Override
     public Grid getEventClusters( EventQueryParams params )
     {
