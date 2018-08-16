@@ -173,6 +173,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    
     @Autowired
     protected ProgramService programService;
 
@@ -1153,7 +1154,7 @@ public abstract class AbstractEventService
                 importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
 
             if ( !importOptions.isSkipNotifications() )
-            {                
+            {
                 eventPublisher.publishEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
             }
         }
