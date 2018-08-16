@@ -191,6 +191,13 @@ public class EventQueryParams
      * Indicates whether to include metadata details to response
      */
     protected boolean includeMetadataDetails;
+    
+    /**
+     * Identifier scheme to use for data and attribute values. Applies to data
+     * elements with option sets and legend sets, which are stored as codes and
+     * UIDs respectively.
+     */
+    protected IdScheme dataIdScheme;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,6 +255,7 @@ public class EventQueryParams
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
         params.includeMetadataDetails = this.includeMetadataDetails;
+        params.dataIdScheme = this.dataIdScheme;
 
         params.periodType = this.periodType;
 
@@ -639,6 +647,11 @@ public class EventQueryParams
     {
         return bbox != null && !bbox.isEmpty();
     }
+    
+    public boolean hasDataIdScheme()
+    {
+        return dataIdScheme != null;
+    }
 
     /**
      * Returns a negative integer in case of ascending sort order, a positive in
@@ -792,7 +805,12 @@ public class EventQueryParams
     {
         return includeMetadataDetails;
     }
-    
+
+    public IdScheme getDataIdScheme()
+    {
+        return dataIdScheme;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -1107,6 +1125,12 @@ public class EventQueryParams
         public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
         {
             this.params.includeMetadataDetails = includeMetadataDetails;
+            return this;
+        }
+        
+        public Builder withDataIdScheme( IdScheme dataIdScheme )
+        {
+            this.params.dataIdScheme = dataIdScheme;
             return this;
         }
         
