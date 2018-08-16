@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.SortOrder;
@@ -54,7 +53,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -176,7 +174,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toXml( substituteMetaData( grid ), response.getOutputStream() );
+        GridUtils.toXml( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.xls", method = RequestMethod.GET )
@@ -225,7 +223,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toXls( substituteMetaData( grid ), response.getOutputStream() );
+        GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.csv", method = RequestMethod.GET )
@@ -274,7 +272,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toCsv( substituteMetaData( grid ), response.getWriter() );
+        GridUtils.toCsv( grid, response.getWriter() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html", method = RequestMethod.GET )
@@ -323,7 +321,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toHtml( substituteMetaData( grid ), response.getWriter() );
+        GridUtils.toHtml( grid, response.getWriter() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html+css", method = RequestMethod.GET )
@@ -372,7 +370,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        GridUtils.toHtmlCss( substituteMetaData( grid ), response.getWriter() );
+        GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
     // -------------------------------------------------------------------------
@@ -564,7 +562,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXml( substituteMetaData( grid ), response.getOutputStream() );
+        GridUtils.toXml( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xls", method = RequestMethod.GET )
@@ -607,7 +605,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXls( substituteMetaData( grid ), response.getOutputStream() );
+        GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
@@ -650,7 +648,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toCsv( substituteMetaData( grid ), response.getWriter() );
+        GridUtils.toCsv( grid, response.getWriter() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html", method = RequestMethod.GET )
@@ -693,7 +691,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toHtml( substituteMetaData( grid ), response.getWriter() );
+        GridUtils.toHtml( grid, response.getWriter() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html+css", method = RequestMethod.GET )
@@ -736,21 +734,6 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toHtmlCss( substituteMetaData( grid ), response.getWriter() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    @SuppressWarnings( "unchecked" )
-    private Grid substituteMetaData( Grid grid )
-    {
-        if ( grid.getMetaData() != null && grid.getMetaData().containsKey( AnalyticsMetaDataKey.NAMES.getKey() ) )
-        {
-            grid.substituteMetaData( (Map<Object, Object>) grid.getMetaData().get( AnalyticsMetaDataKey.NAMES.getKey() ) );
-        }
-
-        return grid;
+        GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 }
