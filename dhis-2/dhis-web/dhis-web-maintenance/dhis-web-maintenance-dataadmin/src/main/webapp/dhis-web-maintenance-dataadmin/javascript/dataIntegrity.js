@@ -8,7 +8,7 @@ $( document ).ready( function() {
         method: 'POST',
         type: "json",
         success: function(data, status, xhr) {
-            jobID = data['id'];
+            jobID = data.response['id'];
             pollDataIntegrityCheckFinished()
         },
         error: function( xhr, txtStatus, err ) {
