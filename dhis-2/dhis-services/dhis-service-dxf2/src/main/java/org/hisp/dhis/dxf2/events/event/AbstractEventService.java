@@ -1262,7 +1262,7 @@ public abstract class AbstractEventService
             }
 
             if ( !importOptions.isSkipNotifications() )
-            {                
+            {
                 eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
@@ -1657,7 +1657,7 @@ public abstract class AbstractEventService
             {
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
-            
+
             eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
         }
     }
