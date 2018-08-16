@@ -179,37 +179,25 @@ public abstract class AbstractTrackedEntityInstanceService
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
         
+        List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
+        
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
         
-        if ( queryParams.hasProgram() || queryParams.hasTrackedEntityType() )
+        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            attributes = queryParams.hasProgram() ? new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) : new HashSet<>( queryParams.getTrackedEntityType().getTrackedEntityAttributes() );
-            
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
-                {
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                }
-            }
-        }
-        else
-        {
-            List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
-            
-            Set<TrackedEntityAttribute> tetAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
-                .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
-            
             List<Program> programs = manager.getAll( Program.class );
             
             for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
             {
-                attributes = new HashSet<>( tetAttributes );
+                attributes = new HashSet<>( trackedEntityTypeAttributes );
                 
                 // check if user can read the TEI
                 if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
                 {
-                    // pick only those program attributes that a user is owner
+                    // pick only those program attributes that user is the owner
                     for ( Program program : programs )
                     {
                         if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) ) 
@@ -221,6 +209,23 @@ public abstract class AbstractTrackedEntityInstanceService
                     dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
                 }
             }
+        }
+        else
+        {
+            attributes = new HashSet<>( trackedEntityTypeAttributes );
+            
+            if ( queryParams.hasProgram() )
+            {
+                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
+            }
+            
+            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
+            {
+                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
+                {
+                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+                }
+            }            
         }
 
         return dtoTeis;
