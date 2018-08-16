@@ -91,7 +91,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
-import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
@@ -118,6 +117,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -243,7 +243,7 @@ public abstract class AbstractEventService
     protected AclService aclService;
 
     @Autowired
-    protected ProgramRuleEnginePublisher enginePublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     protected ProgramNotificationPublisher programNotificationPublisher;
@@ -1153,8 +1153,8 @@ public abstract class AbstractEventService
                 importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
 
             if ( !importOptions.isSkipNotifications() )
-            {
-                enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
+            {                
+                eventPublisher.publishEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1261,8 +1261,8 @@ public abstract class AbstractEventService
             }
 
             if ( !importOptions.isSkipNotifications() )
-            {
-                enginePublisher.publishProgramRuleEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
+            {                
+                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
 
@@ -1656,8 +1656,8 @@ public abstract class AbstractEventService
             {
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
-
-            enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            
+            eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
         }
     }
 
