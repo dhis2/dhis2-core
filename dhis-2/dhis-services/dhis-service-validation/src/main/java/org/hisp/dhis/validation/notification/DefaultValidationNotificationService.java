@@ -37,9 +37,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageConversationPriority;
-import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
@@ -84,8 +82,7 @@ public class DefaultValidationNotificationService
 
     private NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    public void setNotificationMessageRenderer(
-        NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
+    public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
     {
         this.notificationMessageRenderer = notificationMessageRenderer;
     }
@@ -397,15 +394,7 @@ public class DefaultValidationNotificationService
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        MessageConversationParams.Builder builder = messageService.createValidationResultMessage(
-            users,
-            notificationMessage.getSubject(),
-            notificationMessage.getMessage()
-        )
-            .withStatus( MessageConversationStatus.OPEN )
-            .withPriority( notificationMessage.getPriority() );
-
-        messageService.sendMessage( builder.build() );
+        messageService.sendValidationMessage( users, notificationMessage.getSubject(), notificationMessage.getMessage(), notificationMessage.getPriority() );
     }
 
 // -------------------------------------------------------------------------

@@ -1866,7 +1866,7 @@ function insertDataValues( json )
                 };
 
                 var cc = dhis2.de.getCurrentCategoryCombo();
-                var cp = dhis2.de.getCurrentCategoryOptionsQueryValue;
+                var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
 
                 if( cc && cp )
                 {

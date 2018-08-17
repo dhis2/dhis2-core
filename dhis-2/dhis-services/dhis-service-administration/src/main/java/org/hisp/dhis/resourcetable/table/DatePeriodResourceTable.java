@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -91,23 +92,25 @@ public class DatePeriodResourceTable
 
         Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO
         Date endDate = new Cal( 2025, 1, 1, true ).time();
+        
+        List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
-        List<Period> days = new UniqueArrayList<>( new DailyPeriodType().generatePeriods( startDate, endDate ) );
+        List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
 
         Calendar calendar = PeriodType.getCalendar();
 
-        for ( Period day : days )
+        for ( Date day : days )
         {
             List<Object> values = new ArrayList<>();
 
-            final int year = PeriodType.getCalendar().fromIso( day.getStartDate() ).getYear();
+            final int year = PeriodType.getCalendar().fromIso( day ).getYear();
             
-            values.add( day.getStartDate() );
+            values.add( day );
             values.add( year );
 
             for ( PeriodType periodType : periodTypes )
             {
-                values.add( periodType.createPeriod( day.getStartDate(), calendar ).getIsoDate() );
+                values.add( periodType.createPeriod( day, calendar ).getIsoDate() );
             }
 
             batchArgs.add( values.toArray() );
