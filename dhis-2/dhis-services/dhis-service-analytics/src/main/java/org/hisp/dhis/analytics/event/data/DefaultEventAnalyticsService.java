@@ -434,9 +434,7 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-    
-                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), legendSet ) );
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
             
@@ -549,7 +547,7 @@ public class DefaultEventAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), item.getLegendSetUid() ) );
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
         }
 
         // ---------------------------------------------------------------------

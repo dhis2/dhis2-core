@@ -160,16 +160,6 @@ public class QueryItem
         return optionSet != null;
     }
 
-    public String getLegendSetUid()
-    {
-        return legendSet != null ? legendSet.getUid() : null;
-    }
-
-    public String getOptionSetUid()
-    {
-        return optionSet != null ? optionSet.getUid() : null;
-    }
-
     public boolean hasFilter()
     {
         return filters != null && !filters.isEmpty();

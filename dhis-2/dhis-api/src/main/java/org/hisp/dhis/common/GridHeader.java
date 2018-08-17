@@ -1,5 +1,10 @@
 package org.hisp.dhis.common;
 
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -57,9 +62,9 @@ public class GridHeader
 
     private boolean meta;
 
-    private String optionSet;
+    private OptionSet optionSet;
 
-    private String legendSet;
+    private LegendSet legendSet;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -133,7 +138,7 @@ public class GridHeader
      * @param optionSet option set identifier.
      * @param legendSet legend set identifier.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, OptionSet optionSet, LegendSet legendSet )
     {
         this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;
@@ -180,20 +185,10 @@ public class GridHeader
         return column;
     }
 
-    public void setColumn( String column )
-    {
-        this.column = column;
-    }
-
     @JsonProperty
     public ValueType getValueType()
     {
         return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
     }
 
     @JsonProperty
@@ -213,44 +208,36 @@ public class GridHeader
         return hidden;
     }
 
-    public void setHidden( boolean hidden )
-    {
-        this.hidden = hidden;
-    }
-
     @JsonProperty
     public boolean isMeta()
     {
         return meta;
     }
 
-    public void setMeta( boolean meta )
-    {
-        this.meta = meta;
-    }
-
     @JsonProperty
     public String getOptionSet()
     {
-        return optionSet;
+        return optionSet != null ? optionSet.getUid() : null;
     }
-
-    public void setOptionSet( String optionSet )
+    
+    @JsonIgnore
+    public OptionSet getOptionSetObject()
     {
-        this.optionSet = optionSet;
+        return optionSet;
     }
 
     @JsonProperty
     public String getLegendSet()
     {
+        return legendSet != null ? legendSet.getUid() : null;
+    }
+
+    @JsonIgnore
+    public LegendSet getLegendSetObject()
+    {
         return legendSet;
     }
-
-    public void setLegendSet( String legendSet )
-    {
-        this.legendSet = legendSet;
-    }
-
+    
     // -------------------------------------------------------------------------
     // hashCode, equals, toString
     // -------------------------------------------------------------------------
