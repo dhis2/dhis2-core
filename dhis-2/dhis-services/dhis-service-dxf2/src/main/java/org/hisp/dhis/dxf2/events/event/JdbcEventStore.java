@@ -73,28 +73,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
@@ -441,7 +422,18 @@ public class JdbcEventStore
     {
         User user = currentUserService.getCurrentUser();
 
-        String sql = "";
+        boolean isSuperUser = isSuper( user );
+
+        if ( !isSuperUser )
+        {
+            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
+        String sql;
 
         if ( params.hasFilters() )
         {
@@ -582,7 +574,7 @@ public class JdbcEventStore
         {
             sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
         }
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
@@ -610,20 +602,20 @@ public class JdbcEventStore
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
         Set<String> joinedColumns = new HashSet<>();
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             if ( !joinedColumns.contains( col ) )
             {
-                sql += ( item.hasFilter() ? "inner" : "left" ) + " join trackedentitydatavalue as " + col + " " + "on " + col
+                sql += (item.hasFilter() ? "inner" : "left") + " join trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
-                
+
                 joinedColumns.add( col );
             }
-            
+
             for ( QueryFilter filter : item.getFilters() )
             {
                 final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
@@ -632,11 +624,11 @@ public class JdbcEventStore
                     : "lower(" + col + ".value)";
 
                 sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter : 
-                        filter.getSqlFilter( encodedFilter ) ) + " ";
+                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                    filter.getSqlFilter( encodedFilter ) ) + " ";
             }
         }
-        
+
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
         {
             sql += getCategoryOptionSharingForUser( user );
@@ -766,19 +758,19 @@ public class JdbcEventStore
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
 
         Set<String> joinedColumns = new HashSet<>();
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             if ( !joinedColumns.contains( col ) )
             {
                 final String joinClause = item.hasFilter() ? "inner join" : "left join";
-    
+
                 sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
-                
+
                 joinedColumns.add( col );
             }
 
@@ -967,7 +959,7 @@ public class JdbcEventStore
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
+                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
                     if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
                     {
@@ -1001,17 +993,17 @@ public class JdbcEventStore
     private String getOrderQuery( EventSearchParams params )
     {
         ArrayList<String> orderFields = new ArrayList<String>();
-        
+
         if ( params.getGridOrders() != null )
         {
             for ( String order : params.getGridOrders() )
             {
                 String[] prop = order.split( ":" );
-    
-                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
+
+                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
                     Set<QueryItem> items = params.getDataElements();
-    
+
                     for ( QueryItem item : items )
                     {
                         if ( prop[0].equals( item.getItemId() ) )
@@ -1023,7 +1015,7 @@ public class JdbcEventStore
                 }
             }
         }
-        
+
         if ( params.getOrders() != null )
         {
             for ( Order order : params.getOrders() )
