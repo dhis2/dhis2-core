@@ -33,6 +33,7 @@ package org.hisp.dhis.category;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -64,6 +65,7 @@ public class DefaultCategoryManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     public void addAndPruneOptionCombos( DataElementCategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
