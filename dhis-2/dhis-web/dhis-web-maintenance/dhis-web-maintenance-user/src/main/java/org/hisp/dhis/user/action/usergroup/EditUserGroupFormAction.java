@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
@@ -130,7 +131,7 @@ public class EditUserGroupFormAction
 
         groupMembers = new ArrayList<>( group.getMembers() );
 
-        groupMembers.forEach( m -> m.setDisplayName( m.getName() + " (" + m.getUserCredentials().getUsername() + ")"  ) );
+        groupMembers.forEach( m -> m.setDisplayName( m.getName() + ( !Objects.isNull( m.getUserCredentials() ) ? " (" + m.getUserCredentials().getUsername() + ")" : "" ) ) );
 
         managedGroups = new ArrayList<>( group.getManagedGroups() );
 
