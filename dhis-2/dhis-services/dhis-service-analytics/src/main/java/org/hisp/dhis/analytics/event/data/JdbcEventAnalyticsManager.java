@@ -105,7 +105,7 @@ public class JdbcEventAnalyticsManager
 
         try
         {
-            getEvents( grid, params, sql );
+            getEvents( params, grid, sql );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsManager
         return grid;
     }
 
-    private void getEvents( Grid grid, EventQueryParams params, String sql )
+    private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
         
