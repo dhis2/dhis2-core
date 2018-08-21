@@ -173,28 +173,10 @@ public class DefaultTrackedEntityInstanceService
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
-
-        List<TrackedEntityAttribute> readableAttributes = new ArrayList<>();
-        if ( !params.isSynchronizationQuery() )
-        {
-            readableAttributes = getAttributes( params );
-        }
-
+        
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-
-            if ( !params.isSynchronizationQuery() )
-            {
-                //variable used in lambda has to be final or effectively final
-                final List<TrackedEntityAttribute> readableAttributesForLambda = readableAttributes;
-
-                tei.setTrackedEntityAttributeValues(
-                    tei.getTrackedEntityAttributeValues().stream()
-                        .filter( av -> readableAttributesForLambda.contains( av.getAttribute() ) )
-                        .collect( Collectors.toSet() )
-                );
-            }
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );            
         }
 
         return trackedEntityInstances;
@@ -638,7 +620,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -704,14 +686,14 @@ public class DefaultTrackedEntityInstanceService
 
         if ( trackedEntityType != null && te == null )
         {
-            throw new IllegalQueryException( "Tracked entity does not exist: " + program );
+            throw new IllegalQueryException( "Tracked entity type does not exist: " + trackedEntityType );
         }
 
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
         {
             params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }
-
+        }        
+        
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -733,6 +715,7 @@ public class DefaultTrackedEntityInstanceService
             .setTotalPages( totalPages )
             .setSkipPaging( skipPaging )
             .setIncludeDeleted( includeDeleted )
+            .setIncludeAllAttributes( includeAllAttributes )
             .setOrders( orders );
 
         return params;
@@ -962,30 +945,10 @@ public class DefaultTrackedEntityInstanceService
 
     private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, AuditType auditType )
     {
-        if ( trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() && user != null )
+        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
-    }
-
-    private List<TrackedEntityAttribute> getAttributes( TrackedEntityInstanceQueryParams params )
-    {
-
-        //return attributeService.getAllUserReadableTrackedEntityAttributes();
-
-        List<TrackedEntityAttribute> attributes = new ArrayList<>();
-
-        if ( params.hasTrackedEntityType() )
-        {
-            attributes = params.getTrackedEntityType().getTrackedEntityAttributes();
-        }
-
-        if ( params.hasProgram() )
-        {
-            attributes = params.getProgram().getTrackedEntityAttributes();
-        }
-
-        return attributes;
     }
 }

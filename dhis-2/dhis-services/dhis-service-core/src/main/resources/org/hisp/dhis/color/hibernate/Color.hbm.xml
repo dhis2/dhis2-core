@@ -15,6 +15,8 @@
     </id>
     &identifiableProperties;
 
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
     <property name="color" column="color" />
 
     <!-- Object Translation -->

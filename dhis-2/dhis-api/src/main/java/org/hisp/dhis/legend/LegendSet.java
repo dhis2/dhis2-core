@@ -35,11 +35,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,6 +92,11 @@ public class LegendSet
     public List<Legend> getSortedLegends()
     {
         return legends.stream().sorted( LegendValueComparator.INSTANCE ).collect( Collectors.toList() );
+    }
+    
+    public Map<String, String> getLegendUidPropertyMap( IdScheme idScheme )
+    {
+        return legends.stream().collect( Collectors.toMap( Legend::getUid, l -> l.getPropertyValue( idScheme ) ) );
     }
 
     // -------------------------------------------------------------------------
