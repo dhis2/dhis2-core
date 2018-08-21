@@ -130,7 +130,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -552,12 +569,12 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
-        
-        if( params.getProgramStage() == null )
+
+        if ( params.getProgramStage() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null." );
-        }        
-        
+        }
+
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
@@ -865,15 +882,15 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
-        
+
         if ( attributeOptionCombo != null && !userCredentials.isSuper() )
         {
             List<String> errors = trackerAccessManager.canRead( user, attributeOptionCombo );
-            
+
             if ( !errors.isEmpty() )
             {
                 throw new IllegalQueryException( errors.toString() );
-            }            
+            }
         }
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
@@ -881,7 +898,7 @@ public abstract class AbstractEventService
         if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
         {
             throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
-        }        
+        }
 
         if ( events != null && filters != null )
         {
@@ -1278,7 +1295,7 @@ public abstract class AbstractEventService
                 .incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event: " + uid )
+        return new ImportSummary( ImportStatus.SUCCESS, "Event " + uid + " cannot be deleted as it is not present in the system" )
             .incrementIgnored();
     }
 
@@ -1413,7 +1430,7 @@ public abstract class AbstractEventService
         {
             aoc = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
         }
-        
+
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo." ) );

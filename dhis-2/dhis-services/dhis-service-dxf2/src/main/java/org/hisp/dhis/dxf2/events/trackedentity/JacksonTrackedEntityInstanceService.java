@@ -187,13 +187,20 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
                 }
                 else
                 {
-                    if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+                    if ( trackedEntityInstance.isDeleted() )
                     {
-                        create.add( trackedEntityInstance );
+                        delete.add( trackedEntityInstance.getTrackedEntityInstance() );
                     }
                     else
                     {
-                        update.add( trackedEntityInstance );
+                        if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+                        {
+                            create.add( trackedEntityInstance );
+                        }
+                        else
+                        {
+                            update.add( trackedEntityInstance );
+                        }
                     }
                 }
             }
