@@ -441,6 +441,17 @@ public class JdbcEventStore
     {
         User user = currentUserService.getCurrentUser();
 
+        boolean isSuperUser = isSuper( user );
+
+        if ( !isSuperUser )
+        {
+            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
         String sql = "";
 
         if ( params.hasFilters() )
@@ -582,7 +593,7 @@ public class JdbcEventStore
         {
             sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
         }
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
@@ -610,20 +621,20 @@ public class JdbcEventStore
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
         Set<String> joinedColumns = new HashSet<>();
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             if ( !joinedColumns.contains( col ) )
             {
-                sql += ( item.hasFilter() ? "inner" : "left" ) + " join trackedentitydatavalue as " + col + " " + "on " + col
+                sql += (item.hasFilter() ? "inner" : "left") + " join trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
-                
+
                 joinedColumns.add( col );
             }
-            
+
             for ( QueryFilter filter : item.getFilters() )
             {
                 final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
@@ -632,11 +643,11 @@ public class JdbcEventStore
                     : "lower(" + col + ".value)";
 
                 sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter : 
-                        filter.getSqlFilter( encodedFilter ) ) + " ";
+                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                    filter.getSqlFilter( encodedFilter ) ) + " ";
             }
         }
-        
+
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
         {
             sql += getCategoryOptionSharingForUser( user );
@@ -766,19 +777,19 @@ public class JdbcEventStore
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
 
         Set<String> joinedColumns = new HashSet<>();
-        
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             if ( !joinedColumns.contains( col ) )
             {
                 final String joinClause = item.hasFilter() ? "inner join" : "left join";
-    
+
                 sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
-                
+
                 joinedColumns.add( col );
             }
 
@@ -967,7 +978,7 @@ public class JdbcEventStore
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
+                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
                     if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
                     {
@@ -1001,17 +1012,17 @@ public class JdbcEventStore
     private String getOrderQuery( EventSearchParams params )
     {
         List<String> orderFields = new ArrayList<>();
-        
+
         if ( params.getGridOrders() != null )
         {
             for ( String order : params.getGridOrders() )
             {
                 String[] prop = order.split( ":" );
-    
-                if ( prop.length == 2 && ( prop[1].equals( "desc" ) || prop[1].equals( "asc" ) ) )
+
+                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
                     Set<QueryItem> items = params.getDataElements();
-    
+
                     for ( QueryItem item : items )
                     {
                         if ( prop[0].equals( item.getItemId() ) )
@@ -1023,7 +1034,7 @@ public class JdbcEventStore
                 }
             }
         }
-        
+
         if ( params.getOrders() != null )
         {
             for ( Order order : params.getOrders() )
