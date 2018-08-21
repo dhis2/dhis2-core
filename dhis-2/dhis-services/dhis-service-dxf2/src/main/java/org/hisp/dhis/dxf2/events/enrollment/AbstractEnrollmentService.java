@@ -165,7 +165,7 @@ public abstract class AbstractEnrollmentService
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            
+
             enrollments.setPager( pager );
         }
 
@@ -526,8 +526,8 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
-        
-        if ( enrollment.getOrgUnit() != null ) 
+
+        if ( enrollment.getOrgUnit() != null )
         {
             OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );
@@ -632,7 +632,7 @@ public abstract class AbstractEnrollmentService
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid enrollment" ).incrementIgnored();
+        return new ImportSummary( ImportStatus.SUCCESS, "Enrollment " + uid + " cannot be deleted as it is not present in the system" ).incrementIgnored();
     }
 
     @Override

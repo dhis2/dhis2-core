@@ -232,15 +232,22 @@ public class JacksonEventService extends AbstractEventService
                 }
                 else
                 {
-                    ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
-
-                    if ( programStageInstance == null )
+                    if ( event.isDeleted() )
                     {
-                        create.add( event );
+                        delete.add( event.getEvent() );
                     }
                     else
                     {
-                        update.add( event );
+                        ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
+
+                        if ( programStageInstance == null )
+                        {
+                            create.add( event );
+                        }
+                        else
+                        {
+                            update.add( event );
+                        }
                     }
                 }
             }
