@@ -532,7 +532,7 @@ public abstract class AbstractTrackedEntityInstanceService
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
+        return new ImportSummary( ImportStatus.SUCCESS, "Tracked entity instance " + uid + " cannot be deleted as it is not present in the system" ).incrementIgnored();
     }
 
     @Override

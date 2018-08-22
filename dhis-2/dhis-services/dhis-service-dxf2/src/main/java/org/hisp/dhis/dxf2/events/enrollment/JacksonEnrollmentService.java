@@ -187,13 +187,20 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
                 }
                 else
                 {
-                    if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+                    if ( enrollment.getDeleted() )
                     {
-                        create.add( enrollment );
+                        delete.add( enrollment.getEnrollment() );
                     }
                     else
                     {
-                        update.add( enrollment );
+                        if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+                        {
+                            create.add( enrollment );
+                        }
+                        else
+                        {
+                            update.add( enrollment );
+                        }
                     }
                 }
             }
