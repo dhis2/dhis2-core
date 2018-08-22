@@ -411,8 +411,8 @@ public class DataQueryParams
         params.dimensions = DimensionalObjectUtils.getCopies( this.dimensions );
         params.filters = DimensionalObjectUtils.getCopies( this.filters );
         params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
-        params.measureCriteria = this.measureCriteria;
-        params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
+        params.measureCriteria = new HashMap<>( this.measureCriteria );
+        params.preAggregateMeasureCriteria = new HashMap<>( this.preAggregateMeasureCriteria );
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.skipMeta = this.skipMeta;

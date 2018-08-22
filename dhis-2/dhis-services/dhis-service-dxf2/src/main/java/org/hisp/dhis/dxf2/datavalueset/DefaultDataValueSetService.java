@@ -59,6 +59,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -178,6 +179,9 @@ public class DefaultDataValueSetService
     @Autowired
     private CalendarService calendarService;
 
+    @Autowired
+    private DataValueService dataValueService;
+    
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -1112,6 +1116,17 @@ public class DefaultDataValueSetService
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
             }
+            
+            DataValue actualDataValue = null;
+            if ( strategy.isDelete() && dataElement.isFileType() )
+            {
+                actualDataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attrOptionCombo );
+                if ( actualDataValue == null )
+                {
+                    summary.getConflicts().add( new ImportConflict( dataElement.getUid(), "No data value for file resource exist for the given combination" ) );
+                    continue;
+                }
+            }
 
             // -----------------------------------------------------------------
             // Create data value
@@ -1200,18 +1215,18 @@ public class DefaultDataValueSetService
 
                     if ( !dryRun )
                     {
-                        dataValueBatchHandler.updateObject( internalValue );
-
-                        auditBatchHandler.addObject( auditValue );
-
                         if ( dataElement.isFileType() )
                         {
-                            FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+                            FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
                             fr.setAssigned( false );
 
                             fileResourceService.updateFileResource( fr );
                         }
+                        
+                        dataValueBatchHandler.updateObject( internalValue );
+
+                        auditBatchHandler.addObject( auditValue );
                     }
                 }
             }

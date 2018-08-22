@@ -74,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -150,6 +151,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
+    
+    @Autowired
+    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
     @Autowired
     protected Notifier notifier;
@@ -174,15 +178,54 @@ public abstract class AbstractTrackedEntityInstanceService
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
-        List<Program> programs = manager.getAll( Program.class );
+        
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
-
-        for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
+        
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        
+        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        
+        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
+            List<Program> programs = manager.getAll( Program.class );
+            
+            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
             {
-                dtoTeis.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, programs, trackedEntityTypes, user ) );
+                attributes = new HashSet<>( trackedEntityTypeAttributes );
+                
+                // check if user can read the TEI
+                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
+                {
+                    // pick only those program attributes that user is the owner
+                    for ( Program program : programs )
+                    {
+                        if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) ) 
+                        {
+                            attributes.addAll( program.getTrackedEntityAttributes() );
+                        }
+                    }
+                    
+                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+                }
             }
+        }
+        else
+        {
+            attributes = new HashSet<>( trackedEntityTypeAttributes );
+            
+            if ( queryParams.hasProgram() )
+            {
+                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
+            }
+            
+            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
+            {
+                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
+                {
+                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+                }
+            }            
         }
 
         return dtoTeis;
@@ -223,17 +266,8 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance(
-        org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, User user )
-    {
-        return getTrackedEntityInstance( daoTrackedEntityInstance, params, manager.getAll( Program.class ),
-            manager.getAll( TrackedEntityType.class ), user );
-    }
-
-    @Override
     public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes, User user )
+        TrackedEntityInstanceParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
@@ -246,8 +280,10 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             throw new IllegalQueryException( errors.toString() );
         }
+        
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
 
-        return getTei( daoTrackedEntityInstance, params, programs, trackedEntityTypes, user );
+        return getTei( daoTrackedEntityInstance, readableAttributes, params, user );
     }
 
     public org.hisp.dhis.trackedentity.TrackedEntityInstance createDAOTrackedEntityInstance(
@@ -1040,7 +1076,7 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes, User user )
+        Set<TrackedEntityAttribute> readableAttributes, TrackedEntityInstanceParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
@@ -1095,10 +1131,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 trackedEntityInstance.getProgramOwners().add( new ProgramOwner( programOwner ) );
             }
 
-        }
-
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes( user, programs, trackedEntityTypes );
+        }        
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {

@@ -36,7 +36,6 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -77,9 +76,6 @@ public class MaintenanceController
 
     @Autowired
     private MaintenanceService maintenanceService;
-
-    @Autowired
-    private CategoryService categoryService;
 
     @Autowired
     private HibernateCacheManager cacheManager;
