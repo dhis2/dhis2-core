@@ -165,7 +165,7 @@ public abstract class AbstractEnrollmentService
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            
+
             enrollments.setPager( pager );
         }
 
@@ -526,8 +526,8 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
-        
-        if ( enrollment.getOrgUnit() != null ) 
+
+        if ( enrollment.getOrgUnit() != null )
         {
             OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );
