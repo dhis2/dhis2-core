@@ -102,7 +102,7 @@ public class SharingObject
         this.publicAccess = publicAccess;
     }
 
-    @JsonProperty
+    @JsonProperty( "externalAccess" )
     public boolean hasExternalAccess()
     {
         return externalAccess;
