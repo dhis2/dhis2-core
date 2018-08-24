@@ -14,6 +14,7 @@
     "maintenance-app-test": "30.0.0"
   },
   "devDependencies": {
+    "@vardevs/log": "^1.0.0",
     "fs-extra": "^7.0.0",
     "xml2js": "^0.4.19"
   }

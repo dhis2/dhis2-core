@@ -3,6 +3,7 @@ const path = require('path')
 const xml2js = require('xml2js')
 
 const pkg =  require('./package.json')
+const deps = pkg.dependencies
 
 const strutsXMLPath = path.join('src', 'main', 'resources', 'struts.xml')
 const targetXML = path.join('target', 'classes', 'struts.xml')
@@ -27,7 +28,7 @@ try {
             process.exit(1)
         }
 
-        for (let name in pkg.dependencies) {
+        for (let name in deps) {
             let truncName = name
                 .replace('-app', '')      // strip the trailing `-app` from name
                 .replace('-test', '') // just for testing purposes for the PoC

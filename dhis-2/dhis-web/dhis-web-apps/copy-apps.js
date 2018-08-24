@@ -3,28 +3,34 @@
 const fs = require('fs-extra')
 const path = require('path')
 
+const log = require('@vardevs/log')({
+    level: 2,
+    prefix: 'WEBAPPS'
+})
+
 const pkg =  require('./package.json')
 
-console.log('process args', process.argv)
+const deps = pkg.dependencies
+
+log.info('process args', process.argv)
 const targetDir = process.argv[2]
 
 try {
     fs.accessSync(targetDir)
-    console.log('target dir:', targetDir)
+    log.info('target dir:', targetDir)
 } catch (err) {
-    console.log('no target dir!')
+    log.error('no target dir!')
     fs.ensureDirSync(targetDir)
 }
 
-console.log('here we go', pkg.dependencies)
-
-for (let name in pkg.dependencies) {
+for (let name in deps) {
     const targetName = 'dhis-web-' + name
         .replace('-app', '')
-        .replace('-test', '')
+        .replace('-test', '') // remove when we can publish apps for real
+
     const src = path.join('./node_modules', name, 'build')
     const dest = path.join(targetDir, targetName)
 
     fs.copySync(src, dest)
-    console.log('copied', src, dest)
+    log.info('copied', src, dest)
 }
