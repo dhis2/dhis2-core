@@ -510,4 +510,21 @@ public class AnalyticsUtilsTest
         assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "notalevel" ) );
         assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel" ) );
     }
+    
+    @Test
+    public void testGetIntegerOrValue()
+    {
+        ProgramIndicator pi = new ProgramIndicator();
+        pi.setUid( CodeGenerator.generateUid() );
+        pi.setDimensionItemType( DimensionItemType.PROGRAM_INDICATOR );
+        pi.setDecimals( 0 );
+        
+        DataElement de = new DataElement();
+        de.setUid( CodeGenerator.generateUid() );
+        de.setDimensionItemType( DimensionItemType.DATA_ELEMENT );
+        de.setValueType( ValueType.TEXT );
+                
+        assertEquals( new Integer( 5 ), AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
+        assertEquals( "Male", AnalyticsUtils.getIntegerOrValue( "Male", de ) );
+    }
 }
