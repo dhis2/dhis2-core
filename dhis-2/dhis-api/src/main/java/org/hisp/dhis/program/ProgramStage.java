@@ -90,6 +90,8 @@ public class ProgramStage
 
     private Boolean validCompleteOnly = false;
 
+    private Validation validation;
+
     private Boolean displayGenerateEventBox = true;
 
     private FeatureType featureType;
@@ -374,6 +376,18 @@ public class ProgramStage
     public void setValidCompleteOnly( Boolean validCompleteOnly )
     {
         this.validCompleteOnly = validCompleteOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Validation getValidation()
+    {
+        return validation;
+    }
+
+    public void setValidation( Validation validation )
+    {
+        this.validation = validation;
     }
 
     @JsonProperty
