@@ -180,6 +180,7 @@ public class InitTableAlteror
         executeSql( "UPDATE programstage SET validationstrategy = 'NONE' WHERE validcompleteonly = false" );
         executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true" );
         executeSql( "ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL" );
+        executeSql( "ALTER TABLE programstage DROP COLUMN IF EXISTS validation" );
     }
 
     private void addGenerateUidFunction()

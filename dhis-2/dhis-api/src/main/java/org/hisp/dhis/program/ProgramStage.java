@@ -90,7 +90,7 @@ public class ProgramStage
 
     private Boolean validCompleteOnly = false;
 
-    private ValidationStrategy validationStrategy;
+    private ValidationStrategy validationStrategy = ValidationStrategy.NONE;
 
     private Boolean displayGenerateEventBox = true;
 
