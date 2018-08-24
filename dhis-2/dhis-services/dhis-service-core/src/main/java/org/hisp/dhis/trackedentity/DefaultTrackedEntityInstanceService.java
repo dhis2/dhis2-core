@@ -527,7 +527,7 @@ public class DefaultTrackedEntityInstanceService
             {             
                 maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
                 
-                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch() ) )
+                if ( isProgramMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
                 }
@@ -537,7 +537,7 @@ public class DefaultTrackedEntityInstanceService
             {   
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
                 
-                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch() ) )
+                if ( isTeTypeMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
                 }
@@ -548,6 +548,17 @@ public class DefaultTrackedEntityInstanceService
                 throw new IllegalQueryException( "maxteicountreached" );                
             }
         }
+    }
+    
+    private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
+    {
+        return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+            || (params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+    }
+     private boolean isTeTypeMinAttributesViolated( TrackedEntityInstanceQueryParams params )
+    {
+        return (!params.hasFilters() && params.getTrackedEntityType().getMinAttributesRequiredToSearch() > 0)
+            || (params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
     }
 
     @Override
