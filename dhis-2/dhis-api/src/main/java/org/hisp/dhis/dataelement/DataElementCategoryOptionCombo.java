@@ -302,6 +302,15 @@ public class DataElementCategoryOptionCombo
         return earliestEndDate;
     }
 
+    public DataElementCategoryOptionCombo eagerLoadCollections()
+    {
+        getTranslations();
+        getAttributeValues();
+        getOrganisationUnits();
+        getCategoryOptions();
+        return this;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
