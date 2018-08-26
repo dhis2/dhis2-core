@@ -1202,7 +1202,7 @@ public class DefaultIdentifiableObjectManager
             .put( DataElementCategory.class, DEFAULT_OBJECT_CACHE.get( DataElementCategory.class, key -> getByName( DataElementCategory.class, "default" ) ) )
             .put( DataElementCategoryCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryCombo.class, key -> getByName( DataElementCategoryCombo.class, "default" ) ) )
             .put( DataElementCategoryOption.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOption.class, key -> getByName( DataElementCategoryOption.class, "default" ) ) )
-            .put( DataElementCategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOptionCombo.class, key -> getByName( DataElementCategoryOptionCombo.class, "default" ) ) )
+            .put( DataElementCategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOptionCombo.class, key -> getByName( DataElementCategoryOptionCombo.class, "default" ).eagerLoadCollections() ) )
             .build();
     }
 
