@@ -565,5 +565,36 @@ public class PredictionServiceTest
 
         assertEquals( 0, predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 8 ) ) );
     }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictMedian()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 1 ), sourceA, 50 );
+        useDataValue( dataElementA, makeMonth( 2001, 2 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 3 ), sourceA, 40 );
+        useDataValue( dataElementA, makeMonth( 2001, 4 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 5 ), sourceA, 20 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expressionM = new Expression("median(#{" + dataElementA.getUid() + "})", "median" );
+        expressionService.addExpression( expressionM );
+
+        Predictor predictorM = createPredictor( dataElementY, defaultCombo, "M", expressionM, null,
+            periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
+
+        predictorService.addPredictor( predictorM );
+
+        predictionService.predict( predictorM, monthStart( 2001, 6 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( "Pred 1 Ins 5 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values 10, 20, 30, 40, 50
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+    }
 }
 
