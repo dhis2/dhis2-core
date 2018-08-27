@@ -29,9 +29,8 @@ try {
         }
 
         for (let name in deps) {
-            let truncName = name
+            let truncName = 'dhis-web-' + name
                 .replace('-app', '')      // strip the trailing `-app` from name
-                .replace('-test', '') // just for testing purposes for the PoC
 
             res.struts.package.push(
                 { '$':
