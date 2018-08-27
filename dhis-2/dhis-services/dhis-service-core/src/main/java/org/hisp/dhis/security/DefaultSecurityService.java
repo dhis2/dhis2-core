@@ -309,6 +309,7 @@ public class DefaultSecurityService
         vars.put( "token", result[0] );
         vars.put( "code", result[1] );
         vars.put( "username", credentials.getUsername() );
+        vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
         User user = credentials.getUserInfo();
         Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, user );
