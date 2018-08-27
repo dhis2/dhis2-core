@@ -30,9 +30,9 @@ package org.hisp.dhis.program;
 /**
  * @author David Katuscak
  */
-public enum Validation
+public enum ValidationStrategy
 {
-    NO_VALIDATION,
-    VALIDATION_ON_COMPLETE,
-    VALIDATION_ON_UPDATE_AND_INSERT;
+    NONE,
+    ON_COMPLETE,
+    ON_UPDATE_AND_INSERT;
 }

@@ -108,6 +108,7 @@ public class SharingObject
         return externalAccess;
     }
 
+    @JsonProperty( "externalAccess" )
     public void setExternalAccess( boolean externalAccess )
     {
         this.externalAccess = externalAccess;
