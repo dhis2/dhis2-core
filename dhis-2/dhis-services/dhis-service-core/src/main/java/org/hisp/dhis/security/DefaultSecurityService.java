@@ -245,7 +245,7 @@ public class DefaultSecurityService
     {
         if ( credentials == null )
         {
-            log.warn( "Could not send invite message as user does is null" );
+            log.warn( "Could not send invite message as user does not exist" );
             return "no_user_credentials";
         }
 
@@ -291,6 +291,7 @@ public class DefaultSecurityService
         vars.put( "token", result[0] );
         vars.put( "code", result[1] );
         vars.put( "username", credentials.getUsername() );
+        vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
         User user = credentials.getUserInfo();
         Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, user );
@@ -307,11 +308,11 @@ public class DefaultSecurityService
 
         VelocityManager vm = new VelocityManager();
 
-        String text1 = vm.render( vars, restoreType.getEmailTemplate() + "1" ),
-            text2 = vm.render( vars, restoreType.getEmailTemplate() + "2" );
+        String text1 = vm.render( vars, restoreType.getEmailTemplate() + "1" );
+        String text2 = vm.render( vars, restoreType.getEmailTemplate() + "2" );
 
-        String subject1 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 1 / 2)",
-            subject2 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 2 / 2)";
+        String subject1 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 1 / 2)";
+        String subject2 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 2 / 2)";
 
         // -------------------------------------------------------------------------
         // Send emails

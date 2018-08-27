@@ -61,7 +61,7 @@ public class I18n
      *
      * @param key the key for a given translation
      * @return a translated String for a given key, or the key if no translation
-     *         is found
+     *          is found.
      */
     public String getString( String key )
     {
