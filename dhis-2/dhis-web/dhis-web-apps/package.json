@@ -10,8 +10,8 @@
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "core-resource-app-test": "^30.0.0",
-    "maintenance-app-test": "30.0.0"
+    "core-resource-app": "dhis2/core-resource-app-builds#remove-maven",
+    "maintenance-app": "dhis2/maintenance-app-builds#mvn-npm-prepare"
   },
   "devDependencies": {
     "@vardevs/log": "^1.0.0",

@@ -26,9 +26,8 @@ try {
 for (let name in deps) {
     const targetName = 'dhis-web-' + name
         .replace('-app', '')
-        .replace('-test', '') // remove when we can publish apps for real
 
-    const src = path.join('./node_modules', name, 'build')
+    const src = path.join('./node_modules', name)
     const dest = path.join(targetDir, targetName)
 
     fs.copySync(src, dest)
