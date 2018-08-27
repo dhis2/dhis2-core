@@ -45,6 +45,8 @@
     <property name="interests" type="text" />
 
     <property name="languages" type="text" />
+    
+    <property name="welcomeMessage" type="text" />
 
     <property name="lastCheckedInterpretations" type="timestamp" />
 
