@@ -55,9 +55,9 @@ import java.util.Date;
 /**
  * @author David Katuscak
  */
-public class DataValuesSynchronization
+public class DataValueSynchronization
 {
-    private static final Log log = LogFactory.getLog( DataValuesSynchronization.class );
+    private static final Log log = LogFactory.getLog( DataValueSynchronization.class );
 
     private final DataValueService dataValueService;
 
@@ -69,7 +69,7 @@ public class DataValuesSynchronization
 
 
     @Autowired
-    public DataValuesSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService, SystemSettingManager systemSettingManager, RestTemplate restTemplate )
+    public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService, SystemSettingManager systemSettingManager, RestTemplate restTemplate )
     {
         this.dataValueService = dataValueService;
         this.dataValueSetService = dataValueSetService;
@@ -88,76 +88,65 @@ public class DataValuesSynchronization
 
     public SynchronizationResult syncDataValuesData()
     {
-        try
+        if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
-            {
-                return SynchronizationResult.newFailureResultWithMessage( "DataValues synchronization failed. Remote server is unavailable." );
-            }
-
-            log.info( "Starting DataValues synchronization job." );
-
-            // ---------------------------------------------------------------------
-            // Set time for last success to start of process to make data saved
-            // subsequently part of next synch process without being ignored
-            // ---------------------------------------------------------------------
-
-            final Date startTime = new Date();
-            final Date lastSuccessTime = getLastDataSynchSuccessFallback();
-            final int objectsToSync = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
-
-            if ( objectsToSync == 0 )
-            {
-                log.debug( "Skipping synchronization, no new or updated DataValues" );
-                return SynchronizationResult.newSuccessResultWithMessage( "Skipping synchronization, no new or updated DataValues" );
-            }
-
-            log.info( "Values: " + objectsToSync + " since last synchronization success: " + lastSuccessTime );
-
-            final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.DATA_VALUE_SETS.getPath();
-            final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-            final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-
-            final SystemInstance instance = new SystemInstance( syncUrl, username, password );
-
-            log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
-
-            final int syncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
-            final int pages = (objectsToSync / syncPageSize) + ((objectsToSync % syncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
-
-            log.info( "DataValues sync job has " + pages + " pages to sync. With page size: " + syncPageSize );
-
-            boolean syncResult = true;
-
-            for ( int i = 1; i <= pages; i++ )
-            {
-                log.info( String.format( "Syncing page %d, page size is: %d", i, syncPageSize ) );
-
-                if ( !sendDataValuesSyncRequest( instance, lastSuccessTime, syncPageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
-                {
-                    syncResult = false;
-                }
-                //TODO: Possible improvement is to update lastSuccessTime timestamp to those that were just synced. But it will require more effort
-            }
-
-            if ( syncResult )
-            {
-                long syncDuration = System.currentTimeMillis() - startTime.getTime();
-                log.info( "SUCCESS! DataValues synchronization was successfully done! It took " + syncDuration + " ms." );
-                setLastDataValuesSynchronizationSuccess( startTime );
-                return SynchronizationResult.newSuccessResultWithMessage( "DataValues synchronization done. It took " + syncDuration + " ms." );
-            }
-
-            return SynchronizationResult.newFailureResultWithMessage( "DataValues synchronization failed." );
+            return SynchronizationResult.newFailureResultWithMessage( "DataValues synchronization failed. Remote server is unavailable." );
         }
-        catch ( Exception e )
+
+        log.info( "Starting DataValues synchronization job." );
+
+        // ---------------------------------------------------------------------
+        // Set time for last success to start of process to make data saved
+        // subsequently part of next synch process without being ignored
+        // ---------------------------------------------------------------------
+
+        final Date startTime = new Date();
+        final Date lastSuccessTime = getLastDataSynchSuccessFallback();
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+
+        if ( objectsToSynchronize == 0 )
         {
-            log.error( "Exception: " + e, e );
-            return SynchronizationResult.newFailureResultWithMessage( "DataValues synchronization failed." );
+            log.debug( "Skipping synchronization, no new or updated DataValues" );
+            return SynchronizationResult.newSuccessResultWithMessage( "Skipping synchronization, no new or updated DataValues" );
         }
+
+        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.DATA_VALUE_SETS.getPath();
+        final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        final SystemInstance instance = new SystemInstance( syncUrl, username, password );
+
+        final int syncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
+        final int pages = (objectsToSynchronize / syncPageSize) + ((objectsToSynchronize % syncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
+
+        log.info( objectsToSynchronize + " DataValues to synchronize were found." );
+        log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
+        log.info( "DataValueSynchronization job has " + pages + " pages to sync. With page size: " + syncPageSize );
+
+        boolean syncResult = true;
+
+        for ( int i = 1; i <= pages; i++ )
+        {
+            log.info( String.format( "Syncing page %d, page size is: %d", i, syncPageSize ) );
+
+            if ( !sendDataValueSyncRequest( instance, lastSuccessTime, syncPageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
+            {
+                syncResult = false;
+            }
+            //TODO: Possible improvement is to update lastSuccessTime timestamp to those that were just synced. But it will require more effort
+        }
+
+        if ( syncResult )
+        {
+            long syncDuration = System.currentTimeMillis() - startTime.getTime();
+            log.info( "SUCCESS! DataValueSynchronization was successfully done! It took " + syncDuration + " ms." );
+            setLastDataValueSynchronizationSuccess( startTime );
+            return SynchronizationResult.newSuccessResultWithMessage( "DataValueSynchronization done. It took " + syncDuration + " ms." );
+        }
+
+        return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
 
-    private boolean sendDataValuesSyncRequest( SystemInstance instance, Date lastSuccessTime, int syncPageSize, int page, SyncEndpoint endpoint )
+    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastSuccessTime, int syncPageSize, int page, SyncEndpoint endpoint )
     {
         final RequestCallback requestCallback = request ->
         {
@@ -236,7 +225,7 @@ public class DataValuesSynchronization
     /**
      * Sets the time of the last successful data synchronization operation.
      */
-    private void setLastDataValuesSynchronizationSuccess( Date time )
+    private void setLastDataValueSynchronizationSuccess( Date time )
     {
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC, time );
     }

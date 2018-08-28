@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.dxf2.sync.DataValuesSynchronization;
+import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
@@ -68,7 +68,7 @@ public class MetadataSyncPreProcessor
     private final MetadataVersionDelegate metadataVersionDelegate;
     private final TrackerSynchronization trackerSync;
     private final EventSynchronization eventSync;
-    private final DataValuesSynchronization dataValuesSync;
+    private final DataValueSynchronization dataValueSync;
 
     @Autowired
     public MetadataSyncPreProcessor(
@@ -77,14 +77,14 @@ public class MetadataSyncPreProcessor
         MetadataVersionDelegate metadataVersionDelegate,
         TrackerSynchronization trackerSync,
         EventSynchronization eventSync,
-        DataValuesSynchronization dataValuesSync )
+        DataValueSynchronization dataValueSync )
     {
         this.systemSettingManager = systemSettingManager;
         this.metadataVersionService = metadataVersionService;
         this.metadataVersionDelegate = metadataVersionDelegate;
         this.trackerSync = trackerSync;
         this.eventSync = eventSync;
-        this.dataValuesSync = dataValuesSync;
+        this.dataValueSync = dataValueSync;
     }
 
 
@@ -95,7 +95,7 @@ public class MetadataSyncPreProcessor
 
     public void handleAggregateDataPush( MetadataRetryContext context )
     {
-        SynchronizationResult dataValuesSynchronizationResult = dataValuesSync.syncDataValuesData();
+        SynchronizationResult dataValuesSynchronizationResult = dataValueSync.syncDataValuesData();
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {

@@ -96,15 +96,15 @@ public class TrackerSynchronization
             return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization skipped. No new or updated events found." );
         }
 
-        log.info( objectsToSynchronize + " TEIs to sync were found." );
-
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
-        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
         final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TRACKED_ENTITY_INSTANCES.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
         final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
+        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
+        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+
+        log.info( objectsToSynchronize + " TEIs to sync were found." );
         log.info( "Remote server URL for Tracker POST synchronization: " + syncUrl );
         log.info( "Tracker synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
 
