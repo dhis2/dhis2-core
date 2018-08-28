@@ -46,11 +46,11 @@ try {
     try {
         fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
     } catch (err) {
-        console.error('Failed to write', err)
+        log.error('Failed to write', err)
         process.exit(1)
     }
 } catch (err) {
-    console.error('Failed to write', err)
+    log.error('Failed to write', err)
     process.exit(1)
 }
 

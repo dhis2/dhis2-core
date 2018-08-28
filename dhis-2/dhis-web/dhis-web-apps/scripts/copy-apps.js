@@ -10,7 +10,7 @@ const log = require('@vardevs/log')({
 
 const { appName } = require('./lib/sanitize')
 
-console.log('cwd', process.cwd())
+log.info('cwd', process.cwd())
 const root = process.cwd()
 
 const pkg =  require(path.join(root, 'package.json'))

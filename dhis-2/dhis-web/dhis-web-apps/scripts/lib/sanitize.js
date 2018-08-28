@@ -1,6 +1,6 @@
 
 function scrub(id = '') {
-    return name
+    return id
         .replace('@dhis2/')
         .replace('-app', '') 
 }

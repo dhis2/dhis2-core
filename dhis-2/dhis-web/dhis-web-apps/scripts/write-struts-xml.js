@@ -2,6 +2,11 @@ const fs = require('fs-extra')
 const path = require('path')
 const xml2js = require('xml2js')
 
+const log = require('@vardevs/log')({
+    level: 2,
+    prefix: 'WEBAPPS'
+})
+
 const { appName } = require('./lib/sanitize')
 
 const root = process.cwd()
@@ -10,6 +15,15 @@ const deps = pkg.dependencies
 
 const strutsXMLPath = path.join(root, 'src', 'main', 'resources', 'struts.xml')
 const targetXML = path.join(root, 'target', 'classes', 'struts.xml')
+
+/**
+ * The blacklist contains package names (from package.json) which should
+ * not have struts definitions generated.
+ */
+const blacklist = [
+    'core-resource-app',
+    'user-profile-app'
+]
 
 try {
     const xml = fs.readFileSync(strutsXMLPath, 'utf8')
@@ -27,11 +41,15 @@ try {
     })
     parser.parseString(xml, function (err, res) {
         if (err) {
-            console.error('Error parsing XML')
+            log.error('Error parsing XML')
             process.exit(1)
         }
 
         for (let name in deps) {
+            if (blacklist.includes(name)) {
+                log.info('Skip blacklisted app', name)
+                continue
+            }
             let truncName = appName(name)
 
             res.struts.package.push(
@@ -48,7 +66,7 @@ try {
                                 class: 'org.hisp.dhis.commons.action.NoAction'
                             },
                             result: [
-                                { _: '#', '$': { name: 'success', type: 'redirect' } }
+                                { _: 'index.html', '$': { name: 'success', type: 'redirect' } }
                             ]
                         }
                     ]
@@ -60,11 +78,11 @@ try {
         try {
             fs.writeFileSync(targetXML, moddedXML, { encoding: 'utf8' })
         } catch (err) {
-            console.error('Failed to write', err)
+            log.error('Failed to write', err)
             process.exit(1)
         }
     })
 } catch (err) {
-    console.error('Failed to read', strutsXMLPath)
+    log.error('Failed to read', strutsXMLPath, err)
     process.exit(1)
 }
