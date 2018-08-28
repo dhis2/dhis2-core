@@ -8,6 +8,8 @@ const log = require('@vardevs/log')({
     prefix: 'WEBAPPS'
 })
 
+const { appName } = require('./lib/sanitize')
+
 console.log('cwd', process.cwd())
 const root = process.cwd()
 
@@ -26,8 +28,7 @@ try {
 }
 
 for (let name in deps) {
-    const targetName = 'dhis-web-' + name
-        .replace('-app', '')
+    const targetName = appName(name)
 
     const src = path.join(root, './node_modules', name)
     const dest = path.join(targetDir, targetName)

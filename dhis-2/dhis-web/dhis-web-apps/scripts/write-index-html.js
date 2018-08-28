@@ -6,6 +6,8 @@ const log = require('@vardevs/log')({
     prefix: 'WEBAPPS'
 })
 
+const { appName } = require('./lib/sanitize')
+
 const root = process.cwd()
 const pkg =  require(path.join(root, 'package.json'))
 const deps = pkg.dependencies
@@ -36,10 +38,7 @@ try {
 
     const apps = []
     for (let name in deps) {
-        let truncName = 'dhis-web-' + name
-            .replace('-app', '')      // strip the trailing `-app` from name
-
-        apps.push(listEl(truncName))
+        apps.push(listEl(appName(name)))
     }
 
     const targetHtml = html.replace('<!-- INJECT HTML HERE -->', apps.join('\n'))

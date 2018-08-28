@@ -2,6 +2,8 @@ const fs = require('fs-extra')
 const path = require('path')
 const xml2js = require('xml2js')
 
+const { appName } = require('./lib/sanitize')
+
 const root = process.cwd()
 const pkg =  require(path.join(root, 'package.json'))
 const deps = pkg.dependencies
@@ -30,8 +32,7 @@ try {
         }
 
         for (let name in deps) {
-            let truncName = 'dhis-web-' + name
-                .replace('-app', '')      // strip the trailing `-app` from name
+            let truncName = appName(name)
 
             res.struts.package.push(
                 { '$':
