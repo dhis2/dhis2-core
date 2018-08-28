@@ -58,6 +58,17 @@
 					</execution>
 
 					<execution>
+						<id>node generate index to target</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<arguments>run generate-index</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
 						<id>node copy apps to target</id>
 						<goals>
 							<goal>npm</goal>

@@ -2,11 +2,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const xml2js = require('xml2js')
 
-const pkg =  require('./package.json')
+const root = process.cwd()
+const pkg =  require(path.join(root, 'package.json'))
 const deps = pkg.dependencies
 
-const strutsXMLPath = path.join('src', 'main', 'resources', 'struts.xml')
-const targetXML = path.join('target', 'classes', 'struts.xml')
+const strutsXMLPath = path.join(root, 'src', 'main', 'resources', 'struts.xml')
+const targetXML = path.join(root, 'target', 'classes', 'struts.xml')
 
 try {
     const xml = fs.readFileSync(strutsXMLPath, 'utf8')

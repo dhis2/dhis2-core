@@ -8,8 +8,10 @@ const log = require('@vardevs/log')({
     prefix: 'WEBAPPS'
 })
 
-const pkg =  require('./package.json')
+console.log('cwd', process.cwd())
+const root = process.cwd()
 
+const pkg =  require(path.join(root, 'package.json'))
 const deps = pkg.dependencies
 
 log.info('process args', process.argv)
@@ -27,7 +29,7 @@ for (let name in deps) {
     const targetName = 'dhis-web-' + name
         .replace('-app', '')
 
-    const src = path.join('./node_modules', name)
+    const src = path.join(root, './node_modules', name)
     const dest = path.join(targetDir, targetName)
 
     fs.copySync(src, dest)

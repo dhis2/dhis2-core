@@ -2,10 +2,10 @@
   "name": "dhis-web-apps",
   "version": "1.0.0",
   "description": "Wrapper for all frontend application apps",
-  "main": "''",
   "scripts": {
-    "generate-struts": "node write-struts-xml.js",
-    "copy-apps": "node copy-apps.js"
+    "copy-apps": "node ./scripts/copy-apps.js",
+    "generate-struts": "node ./scripts/write-struts-xml.js",
+    "generate-index": "node ./scripts/write-index-html.js"
   },
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",
