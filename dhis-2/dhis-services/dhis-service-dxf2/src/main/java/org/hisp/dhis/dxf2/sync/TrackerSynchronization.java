@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
+import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -87,26 +88,27 @@ public class TrackerSynchronization
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
 
-        final int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+        final int objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
-        if ( objectsToSync == 0 )
+        if ( objectsToSynchronize == 0 )
         {
-            log.info( "Skipping sync. No new tracker data to sync were found." );
+            log.info( "Skipping synchronization. No new tracker data to synchronize were found." );
             return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization skipped. No new or updated events found." );
         }
 
-        log.info( objectsToSync + " TEIs to sync were found." );
+        log.info( objectsToSynchronize + " TEIs to sync were found." );
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        final int trackerSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
-        final int pages = (objectsToSync / trackerSyncPageSize) + ((objectsToSync % trackerSyncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
-        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TEIS_ENDPOINT.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
+        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TRACKED_ENTITY_INSTANCES.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+        final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
-        log.info( "Remote server URL for Tracker POST sync: " + syncUrl );
-        log.info( "Tracker sync job has " + pages + " pages to sync. With page size: " + trackerSyncPageSize );
+        log.info( "Remote server URL for Tracker POST synchronization: " + syncUrl );
+        log.info( "Tracker synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
 
-        queryParams.setPageSize( trackerSyncPageSize );
+        queryParams.setPageSize( pageSize );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.DATA_SYNCHRONIZATION;
         boolean syncResult = true;
 
@@ -115,14 +117,14 @@ public class TrackerSynchronization
             queryParams.setPage( i );
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
-            log.info( String.format( "Syncing page %d, page size is: %d", i, trackerSyncPageSize ) );
+            log.info( String.format( "Syncing page %d, page size is: %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
             {
-                log.debug( "TEIs that are going to be synced are: " + dtoTeis );
+                log.debug( "TEIs that are going to be synchronized are: " + dtoTeis );
             }
 
-            if ( sendTrackerSyncRequest( dtoTeis, username, password ) )
+            if ( sendTrackerSyncRequest( dtoTeis, instance ) )
             {
                 List<String> teiUIDs = dtoTeis.stream()
                     .map( TrackedEntityInstance::getTrackedEntityInstance )
@@ -147,7 +149,7 @@ public class TrackerSynchronization
     }
 
 
-    private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, String username, String password )
+    private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, SystemInstance instance )
     {
         TrackedEntityInstances teis = new TrackedEntityInstances();
         teis.setTrackedEntityInstances( dtoTeis );
@@ -155,10 +157,10 @@ public class TrackerSynchronization
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
             renderService.toJson( request.getBody(), teis );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, SyncEndpoint.TEIS_ENDPOINT );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
     }
 }

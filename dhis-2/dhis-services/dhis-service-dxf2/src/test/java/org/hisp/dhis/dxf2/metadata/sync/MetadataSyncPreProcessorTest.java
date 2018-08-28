@@ -61,6 +61,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -123,10 +125,11 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.ERROR );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
+        doThrow( MetadataSyncServiceException.class )
+            .when( metadataSyncPreProcessor )
+            .handleAggregateDataPush( mockRetryContext );
 
-        ImportSummary actualSummary = metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getStatus(), actualSummary.getStatus() );
+        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
     }
 
     @Test
@@ -137,10 +140,10 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
+        doNothing().when( metadataSyncPreProcessor ).handleAggregateDataPush( mockRetryContext );
 
-        ImportSummary actualSummary = metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getStatus(), actualSummary.getStatus() );
+        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( mockRetryContext );
     }
 
     @Test

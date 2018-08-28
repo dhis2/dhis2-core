@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -85,39 +86,40 @@ public class EventSynchronization
         // ---------------------------------------------------------------------
 
         final Date startTime = new Date();
-        final int objectsToSync = eventService.getAnonymousEventReadyForSynchronizationCount();
+        final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount();
 
-        if ( objectsToSync == 0 )
+        if ( objectsToSynchronize == 0 )
         {
-            log.info( "Skipping sync, no new or updated events found" );
+            log.info( "Skipping synchronization, no new or updated events found" );
             return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization skipped. No new or updated events found." );
         }
 
-        log.info( objectsToSync + " anonymous Events to sync were found." );
+        log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        final int eventSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_SYNC_PAGE_SIZE );
-        final int pages = (objectsToSync / eventSyncPageSize) + ((objectsToSync % eventSyncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
-        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.EVENTS_ENDPOINT.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_SYNC_PAGE_SIZE );
+        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.EVENTS.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+        final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
-        log.info( "Remote server URL for Events POST sync: " + syncUrl );
-        log.info( "Events sync job has " + pages + " pages to sync. With page size: " + eventSyncPageSize );
+        log.info( "Remote server URL for Events POST synchronization: " + syncUrl );
+        log.info( "Events synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
 
         boolean syncResult = true;
 
         for ( int i = 1; i <= pages; i++ )
         {
-            Events events = eventService.getAnonymousEventsForSync( eventSyncPageSize );
+            Events events = eventService.getAnonymousEventsForSync( pageSize );
             filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
-            log.info( String.format( "Syncing page %d, page size is: %d", i, eventSyncPageSize ) );
+            log.info( String.format( "Syncing page %d, page size is: %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
             {
                 log.debug( "Events that are going to be synchronized are: " + events );
             }
 
-            if ( sendEventsSyncRequest( events, username, password ) )
+            if ( sendEventsSyncRequest( events, instance ) )
             {
                 List<String> eventsUIDs = events.getEvents().stream()
                     .map( Event::getEvent )
@@ -153,15 +155,15 @@ public class EventSynchronization
         }
     }
 
-    private boolean sendEventsSyncRequest( Events events, String username, String password )
+    private boolean sendEventsSyncRequest( Events events, SystemInstance instance )
     {
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
             renderService.toJson( request.getBody(), events );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, SyncEndpoint.EVENTS_ENDPOINT );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS );
     }
 }
