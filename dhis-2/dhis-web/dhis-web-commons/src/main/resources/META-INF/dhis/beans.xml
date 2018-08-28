@@ -43,7 +43,7 @@
         <value>dhis-web-validationrule</value>
         <value>dhis-web-reporting</value>
         <value>dhis-web-sms</value>
-        <value>dhis-web-dashboard</value>
+        <value>dhis-web-dashboards</value>
       </list>
     </property>
   </bean>

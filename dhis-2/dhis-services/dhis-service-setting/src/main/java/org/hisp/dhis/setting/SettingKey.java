@@ -66,7 +66,7 @@ public enum SettingKey
     APPLICATION_RIGHT_FOOTER( "keyApplicationRightFooter" ),
     FLAG( "keyFlag", "dhis2", String.class ),
     FLAG_IMAGE( "keyFlagImage" ),
-    START_MODULE( "startModule", "dhis-web-dashboard", String.class ),
+    START_MODULE( "startModule", "dhis-web-dashboards", String.class ),
     FACTOR_OF_DEVIATION( "factorDeviation", 2d, Double.class ),
     EMAIL_HOST_NAME( "keyEmailHostName" ),
     EMAIL_PORT( "keyEmailPort", 587, Integer.class ),
