@@ -317,4 +317,33 @@ public class CategoryServiceTest
 
         assertEquals( 1, categoryService.getDisaggregationCategoryCombos().size() );
     }
+
+    @Test
+    public void testGetDisaggregationCategoryOptionGroupSetsNoAcl()
+    {
+        CategoryOptionGroup groupA = createCategoryOptionGroup( 'A' );
+        groupA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupB = createCategoryOptionGroup( 'B' );
+        groupB.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupC = createCategoryOptionGroup( 'C' );
+        groupC.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupA.getMembers().add( categoryOptionA );
+        groupA.getMembers().add( categoryOptionB );
+        groupB.getMembers().add( categoryOptionC );
+
+        categoryService.saveCategoryOptionGroup( groupA );
+        categoryService.saveCategoryOptionGroup( groupB );
+        categoryService.saveCategoryOptionGroup( groupC );
+
+        CategoryOptionGroupSet groupSetA = createCategoryOptionGroupSet( 'A' );
+        groupSetA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupSetA.getMembers().add( groupA );
+        groupSetA.getMembers().add( groupB );
+        groupSetA.getMembers().add( groupC );
+        categoryService.saveCategoryOptionGroupSet( groupSetA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size() );
+    }
 }
