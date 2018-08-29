@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,6 +70,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -83,6 +85,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -182,7 +185,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
             {
-                dtoTeis.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, programs, trackedEntityTypes, user ) );
+                dtoTeis.add(
+                    getTrackedEntityInstance( daoTrackedEntityInstance, params, programs, trackedEntityTypes, user ) );
             }
         }
 
@@ -233,8 +237,10 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes, User user )
+    public TrackedEntityInstance getTrackedEntityInstance(
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
+        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes,
+        User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
@@ -283,6 +289,38 @@ public abstract class AbstractTrackedEntityInstanceService
             importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
                 "Invalid tracked entity ID: " + dtoEntityInstance.getTrackedEntityType() ) );
             return null;
+        }
+
+        if ( dtoEntityInstance.getGeometry() != null )
+        {
+            FeatureType featureType = trackedEntityType.getFeatureType();
+
+            if ( featureType.equals( FeatureType.NONE ) || !featureType
+                .equals( FeatureType.getTypeFromName( dtoEntityInstance.getGeometry().getGeometryType() ) ) )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Geometry does not conform to feature type '" + featureType + "'" ) );
+                importSummary.incrementIgnored();
+                return null;
+            }
+            else
+            {
+                daoEntityInstance.setGeometry( dtoEntityInstance.getGeometry() );
+            }
+        }
+        else if ( !FeatureType.NONE.equals( dtoEntityInstance.getFeatureType() ) && dtoEntityInstance.getCoordinates() != null )
+        {
+            try
+            {
+                daoEntityInstance.setGeometry( GeoUtils.getGeometryFromCoordinatesAndType( dtoEntityInstance.getFeatureType(), dtoEntityInstance.getCoordinates() ) );
+            }
+            catch ( IOException e )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Could not parse coordinates" ) );
+
+                importSummary.incrementIgnored();
+                return null;
+            }
         }
 
         daoEntityInstance.setTrackedEntityType( trackedEntityType );
@@ -482,7 +520,38 @@ public abstract class AbstractTrackedEntityInstanceService
 
         daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
-        daoEntityInstance.setGeometry( dtoEntityInstance.getGeometry() );
+
+        if ( dtoEntityInstance.getGeometry() != null )
+        {
+            FeatureType featureType = daoEntityInstance.getTrackedEntityType().getFeatureType();
+            if ( featureType.equals( FeatureType.NONE ) || !featureType
+                .equals( FeatureType.getTypeFromName( dtoEntityInstance.getGeometry().getGeometryType() ) ) )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Geometry does not conform to feature type '" + featureType + "'" ) );
+
+                importSummary.getImportCount().incrementIgnored();
+                return importSummary;
+            }
+            else
+            {
+                daoEntityInstance.setGeometry( dtoEntityInstance.getGeometry() );
+            }
+        }
+        else if ( !FeatureType.NONE.equals( dtoEntityInstance.getFeatureType() ) && dtoEntityInstance.getCoordinates() != null )
+        {
+            try
+            {
+                daoEntityInstance.setGeometry( GeoUtils.getGeometryFromCoordinatesAndType( dtoEntityInstance.getFeatureType(), dtoEntityInstance.getCoordinates() ) );
+            }
+            catch ( IOException e )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Could not parse coordinates" ) );
+
+                importSummary.getImportCount().incrementIgnored();
+                return importSummary;
+            }
+        }
 
         removeAttributeValues( daoEntityInstance );
 
@@ -756,7 +825,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
-                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user == null ? "[Unknown]" : user.getUsername() );
+                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(),
+                    user == null ? "[Unknown]" : user.getUsername() );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
@@ -968,7 +1038,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary, String fallbackUsername )
+    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary,
+        String fallbackUsername )
     {
         String storedBy = attributeValue.getStoredBy();
 
@@ -1037,7 +1108,8 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
-        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes, User user )
+        TrackedEntityInstanceParams params, List<Program> programs, List<TrackedEntityType> trackedEntityTypes,
+        User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
@@ -1060,8 +1132,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( daoTrackedEntityInstance.getGeometry() != null )
         {
-            trackedEntityInstance.setFeatureType( FeatureType.getTypeFromName( daoTrackedEntityInstance.getGeometry().getGeometryType() ) );
-            trackedEntityInstance.setCoordinates( daoTrackedEntityInstance.getGeometry().getCoordinate().x + "," + daoTrackedEntityInstance.getGeometry().getCoordinate().y );
+            Geometry geometry = daoTrackedEntityInstance.getGeometry();
+            FeatureType featureType = FeatureType.getTypeFromName( geometry.getGeometryType() );
+            trackedEntityInstance.setFeatureType( featureType );
+            trackedEntityInstance.setCoordinates( GeoUtils.getCoordinatesFromGeometry( geometry ) );
         }
 
         if ( params.isIncludeRelationships() )
