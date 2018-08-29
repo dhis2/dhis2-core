@@ -301,4 +301,20 @@ public class CategoryServiceTest
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
     }
+
+    @Test
+    public void testGetDisaggregationCategoryCombos()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+
+        categoryService.addCategoryCombo( ccA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryCombos().size() );
+    }
 }

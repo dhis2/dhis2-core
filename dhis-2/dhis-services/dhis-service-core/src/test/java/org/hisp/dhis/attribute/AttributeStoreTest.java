@@ -118,4 +118,18 @@ public class AttributeStoreTest
 
         assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ).size() );
     }
+
+    @Test
+    public void testGetUniqueAttributes()
+    {
+        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
+        attribute.setDataElementAttribute( true );
+        attribute.setUnique( true );
+
+        attributeStore.save( attribute );
+
+        assertEquals( 1, attributeStore.getUniqueAttributes( DataElement.class ).size() );
+
+
+    }
 }
