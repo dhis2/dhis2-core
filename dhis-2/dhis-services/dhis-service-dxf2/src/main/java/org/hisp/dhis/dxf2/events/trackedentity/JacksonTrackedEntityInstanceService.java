@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -116,8 +117,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( module );
+        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
+        XML_MAPPER.registerModules( module, new JtsModule(  ) );
     }
 
     // -------------------------------------------------------------------------
