@@ -32,6 +32,7 @@ import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.common.NameableObject;
 
 import java.util.Collection;
 import java.util.List;
@@ -94,10 +95,15 @@ public class DefaultQueryParser implements QueryParser
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
-    {
-        disjunction.add( getRestriction( schema, "displayName", operator, arg ) );
+    {        
         disjunction.add( getRestriction( schema, "id", operator, arg ) );
         disjunction.add( getRestriction( schema, "code", operator, arg ) );
+        disjunction.add( getRestriction( schema, "name", operator, arg ) );
+        
+        if( schema.haveProperty( "shortName" ) )
+        {
+            disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
+        }
     }
 
     @Override
@@ -195,11 +201,11 @@ public class DefaultQueryParser implements QueryParser
             }
             case "token":
             {
-                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
             }
             case "!token":
             {
-                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
             }
             case "endsWith":
             case "ilike$":
