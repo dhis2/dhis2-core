@@ -304,6 +304,15 @@ public class CategoryOptionCombo
         return earliestEndDate;
     }
 
+    public CategoryOptionCombo eagerLoadCollections()
+    {
+        getTranslations();
+        getAttributeValues();
+        getOrganisationUnits();
+        getCategoryOptions();
+        return this;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

@@ -953,7 +953,7 @@ public class DefaultIdentifiableObjectManager
             .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
             .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
             .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ).eagerLoadCollections() ) )
             .build();
     }
 
