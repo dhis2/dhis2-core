@@ -116,6 +116,6 @@ public class AttributeStoreTest
 
         attributeStore.save( attribute );
 
-        assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ) );
+        assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ).size() );
     }
 }
