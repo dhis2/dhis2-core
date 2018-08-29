@@ -271,6 +271,8 @@ public class TableAlteror
         updateTrackedEntityProgramOwners();
 
         updateTrackedEntityInstanceGeometry();
+
+        executeSql( "update trackedentitytype set featuretype = 'NONE' where featuretype is null" );
     }
 
     // -------------------------------------------------------------------------
