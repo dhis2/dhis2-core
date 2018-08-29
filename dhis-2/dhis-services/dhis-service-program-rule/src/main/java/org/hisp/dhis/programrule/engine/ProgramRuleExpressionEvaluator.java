@@ -28,34 +28,47 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.apache.commons.jexl2.JexlException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.rules.RuleExpressionEvaluator;
+
+import javax.annotation.Nonnull;
 
 /**
- * @Author Zubair Asghar.
+ * Created by zubair@dhis2.org on 11.10.17.
  */
-public class ProgramRuleEnginePublisher
+public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
 {
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private static final Log log = LogFactory.getLog( ProgramRuleExpressionEvaluator.class );
 
-    public void publishProgramRuleEvent( TrackedEntityInstanceEnrolledEvent event )
-    {
-        eventPublisher.publishEvent( event );
-    }
+    /**
+     * Return string value of boolean output. False will be returned in case
+     * of wrongly created expression
+     *
+     * @param expression to be evaluated.
+     * @return string value of boolean true/false.
+     */
 
-    public void publishProgramRuleEvent( DataValueUpdatedEvent event )
+    @Nonnull
+    @Override
+    public String evaluate( @Nonnull String expression )
     {
-        eventPublisher.publishEvent( event );
-    }
+        String result = "";
 
-    public void publishProgramRuleEvent( ProgramStageInstanceCompletedEvent event )
-    {
-        eventPublisher.publishEvent( event );
-    }
+        try
+        {
+            result = ExpressionUtils.evaluate( expression ).toString();
+        }
+        catch ( JexlException je )
+        {
+            result = "false";
 
-    public void publishProgramRuleEvent( ProgramStageInstanceScheduledEvent event )
-    {
-        eventPublisher.publishEvent( event );
+            log.error( DebugUtils.getStackTrace( je.getCause() ) );
+        }
+
+       return result;
     }
 }

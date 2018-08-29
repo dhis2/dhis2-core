@@ -83,6 +83,7 @@ public enum JobType
     DATAVALUE_IMPORT( null, false, null, null ),
     ANALYTICSTABLE_UPDATE( null, false, null, null ),
     METADATA_IMPORT( null, false, null, null ),
+    GML_IMPORT( null, false, null, null ),
     DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
     EVENT_IMPORT( null, false, null, null ),
     ENROLLMENT_IMPORT( null, false, null, null ),

@@ -184,7 +184,7 @@ public class GridUtils
 
         for ( GridHeader header : grid.getVisibleHeaders() )
         {
-            table.addCell( getItalicCell( header.getName() ) );
+            table.addCell( getItalicCell( header.getColumn() ) );
         }
 
         table.addCell( getEmptyCell( grid.getVisibleWidth(), 10 ) );
@@ -282,7 +282,7 @@ public class GridUtils
 
         for ( GridHeader header : headers )
         {
-            sheet.addCell( new Label( columnIndex++, rowNumber, header.getName(), XLS_FORMAT_LABEL ) );
+            sheet.addCell( new Label( columnIndex++, rowNumber, header.getColumn(), XLS_FORMAT_LABEL ) );
         }
 
         rowNumber++;

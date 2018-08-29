@@ -1,5 +1,4 @@
-package org.hisp.dhis.programrule.engine;
-
+package org.hisp.dhis.program;
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,44 +27,12 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.jexl2.JexlException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.commons.util.ExpressionUtils;
-import org.hisp.dhis.rules.RuleExpressionEvaluator;
-
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * @author David Katuscak
  */
-public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
+public enum ValidationStrategy
 {
-    private static final Log log = LogFactory.getLog( ProgramRuleExpressionEvaluator.class );
-
-    /**
-     * Return string value of boolean output. False will be returned in case
-     * of wrongly created expression
-     *
-     * @param expression to be evaluated.
-     * @return string value of boolean true/false.
-     */
-
-    @Override
-    public String evaluate( String expression )
-    {
-        String result = "";
-
-        try
-        {
-            result = ExpressionUtils.evaluate( expression ).toString();
-        }
-        catch ( JexlException je )
-        {
-            result = "false";
-
-            log.error( DebugUtils.getStackTrace( je.getCause() ) );
-        }
-
-       return result;
-    }
+    NONE,
+    ON_COMPLETE,
+    ON_UPDATE_AND_INSERT;
 }

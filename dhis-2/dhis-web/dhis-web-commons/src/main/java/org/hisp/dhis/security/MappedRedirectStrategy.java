@@ -30,6 +30,7 @@ package org.hisp.dhis.security;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.security.web.DefaultRedirectStrategy;
 
@@ -107,7 +108,12 @@ public class MappedRedirectStrategy
         // Redirect to mobile start pages
         // ---------------------------------------------------------------------
 
-        url = getRootPath( request ) + "/";
+        Device device = deviceResolver.resolveDevice( request );
+
+        if ( (device.isMobile() || device.isTablet()) )
+        {
+            url = getRootPath( request ) + "/";
+        }
 
         log.debug( "Redirecting to " + url );
 

@@ -207,9 +207,7 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
-
-        return tableLayout ?
+        return AnalyticsUtils.isTableLayout( columns, rows ) ?
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
@@ -223,7 +221,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDimensionConstraints( params );
 
         queryValidator.validate( params );
-        
+
         return getRawDataGrid( params );
     }
 
@@ -238,7 +236,7 @@ public class DefaultAnalyticsService
             .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
-                
+
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
     
@@ -975,7 +973,7 @@ public class DefaultAnalyticsService
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the indicators for which formulas to scan for organisation
-     *        unit groups.
+     *         unit groups.
      * @return a map of maps.
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )

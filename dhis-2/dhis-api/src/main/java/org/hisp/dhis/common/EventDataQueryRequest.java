@@ -83,6 +83,8 @@ public class EventDataQueryRequest
     protected boolean aggregateData;
 
     protected boolean includeMetadataDetails;
+    
+    protected IdScheme dataIdScheme;
 
     protected DisplayProperty displayProperty;
 
@@ -216,6 +218,11 @@ public class EventDataQueryRequest
     public boolean isIncludeMetadataDetails()
     {
         return includeMetadataDetails;
+    }
+
+    public IdScheme getDataIdScheme()
+    {
+        return dataIdScheme;
     }
 
     public DisplayProperty getDisplayProperty()
@@ -480,6 +487,12 @@ public class EventDataQueryRequest
         public EventDataQueryRequestBuilder includeMetadataDetails( boolean includeMetadataDetails )
         {
             this.request.includeMetadataDetails = includeMetadataDetails;
+            return this;
+        }
+        
+        public EventDataQueryRequestBuilder dataIdScheme( IdScheme dataIdScheme )
+        {
+            this.request.dataIdScheme = dataIdScheme;
             return this;
         }
 

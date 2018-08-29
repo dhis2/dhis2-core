@@ -56,8 +56,15 @@
 
     <property name="validCompleteOnly" />
 
-    <property name="displayGenerateEventBox" />
+    <property name="validationStrategy" column="validationstrategy" length="32">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ValidationStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
+    <property name="displayGenerateEventBox" />
 
     <property name="generatedByEnrollmentDate" />
 

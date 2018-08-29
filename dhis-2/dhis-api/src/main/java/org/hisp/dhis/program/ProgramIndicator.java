@@ -177,6 +177,11 @@ public class ProgramIndicator
         return decimals != null && decimals >= 0;
     }
 
+    public boolean hasZeroDecimals()
+    {
+        return decimals != null && decimals == 0;
+    }
+
     /**
      * Returns aggregation type, if not exists returns AVERAGE.
      */
