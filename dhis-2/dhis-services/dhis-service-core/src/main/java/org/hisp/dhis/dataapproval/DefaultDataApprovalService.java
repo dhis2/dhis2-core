@@ -529,7 +529,7 @@ public class DefaultDataApprovalService
 
         for ( DataApprovalStatus status : statusList )
         {
-            makePermissionsEvaluator().evaluatePermissions( status, workflow );
+            permissionsEvaluator.evaluatePermissions( status, workflow );
         }
 
         return statusList;
