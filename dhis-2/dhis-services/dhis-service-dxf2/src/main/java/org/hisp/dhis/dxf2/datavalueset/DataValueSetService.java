@@ -52,7 +52,7 @@ public interface DataValueSetService
     /**
      * Returns a data export object for the given parameters.
      *
-     * @param dataSets  data sets.
+     * @param dataSets data sets.
      * @param dataElementGroups the data element groups.
      * @param periods the periods.
      * @param startDate the start date.
