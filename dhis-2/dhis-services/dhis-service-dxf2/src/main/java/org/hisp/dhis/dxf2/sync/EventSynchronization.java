@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -78,14 +79,12 @@ public class EventSynchronization
             return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed. Remote server is unavailable." );
         }
 
-        log.info( "Starting anonymous event program data synchronization job." );
-
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
         // subsequently part of next synch process without being ignored
         // ---------------------------------------------------------------------
 
-        final Date startTime = new Date();
+        final Clock clock = new Clock( log ).startClock().logTime( "Starting anonymous event program data synchronization job." );
         final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount();
 
         if ( objectsToSynchronize == 0 )
@@ -112,7 +111,7 @@ public class EventSynchronization
         {
             Events events = eventService.getAnonymousEventsForSync( pageSize );
             filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
-            log.info( String.format( "Syncing page %d, page size is: %d", i, pageSize ) );
+            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
             {
@@ -125,7 +124,7 @@ public class EventSynchronization
                     .map( Event::getEvent )
                     .collect( Collectors.toList() );
                 log.info( "The lastSynchronized flag of these Events will be updated: " + eventsUIDs );
-                eventService.updateEventsSyncTimestamp( eventsUIDs, startTime );
+                eventService.updateEventsSyncTimestamp( eventsUIDs, new Date( clock.getStartTime() ) );
             }
             else
             {
@@ -135,9 +134,8 @@ public class EventSynchronization
 
         if ( syncResult )
         {
-            long syncDuration = System.currentTimeMillis() - startTime.getTime();
-            log.info( "SUCCESS! Events sync was successfully done! It took " + syncDuration + " ms." );
-            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization done. It took " + syncDuration + " ms." );
+            clock.logTime( "SUCCESS! Events sync was successfully done! It took " );
+            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization done. It took " + clock.getTime() + " ms." );
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );

@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -90,17 +91,17 @@ public class DataValueSynchronization
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return SynchronizationResult.newFailureResultWithMessage( "DataValues synchronization failed. Remote server is unavailable." );
+            return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed. Remote server is unavailable." );
         }
 
-        log.info( "Starting DataValues synchronization job." );
+        log.info( "Starting DataValueSynchronization job." );
 
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
         // subsequently part of next synch process without being ignored
         // ---------------------------------------------------------------------
 
-        final Date startTime = new Date();
+        final Clock clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
         final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
 
@@ -115,20 +116,20 @@ public class DataValueSynchronization
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
-        final int syncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
-        final int pages = (objectsToSynchronize / syncPageSize) + ((objectsToSynchronize % syncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
+        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
+        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " DataValues to synchronize were found." );
         log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
-        log.info( "DataValueSynchronization job has " + pages + " pages to sync. With page size: " + syncPageSize );
+        log.info( "DataValueSynchronization job has " + pages + " pages to sync. With page size: " + pageSize );
 
         boolean syncResult = true;
 
         for ( int i = 1; i <= pages; i++ )
         {
-            log.info( String.format( "Syncing page %d, page size is: %d", i, syncPageSize ) );
+            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
-            if ( !sendDataValueSyncRequest( instance, lastSuccessTime, syncPageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
+            if ( !sendDataValueSyncRequest( instance, lastSuccessTime, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
             {
                 syncResult = false;
             }
@@ -137,10 +138,9 @@ public class DataValueSynchronization
 
         if ( syncResult )
         {
-            long syncDuration = System.currentTimeMillis() - startTime.getTime();
-            log.info( "SUCCESS! DataValueSynchronization was successfully done! It took " + syncDuration + " ms." );
-            setLastDataValueSynchronizationSuccess( startTime );
-            return SynchronizationResult.newSuccessResultWithMessage( "DataValueSynchronization done. It took " + syncDuration + " ms." );
+            clock.logTime( "SUCCESS! DataValueSynchronization job is done. It took" );
+            setLastDataValueSynchronizationSuccess( new Date( clock.getStartTime() ) );
+            return SynchronizationResult.newSuccessResultWithMessage( "DataValueSynchronization done. It took " + clock.getTime() + " ms." );
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );

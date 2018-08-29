@@ -151,7 +151,7 @@ public class SpringDataValueSetStore
                 "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
                 "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
                 "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
-                "ORDER BY pe.startdate ASC, dv.created ASC, deid ASC LIMIT " + pageSize + " OFFSET " + offset;
+                "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
 
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
@@ -266,8 +266,7 @@ public class SpringDataValueSetStore
         //----------------------------------------------------------------------
 
         String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " +
-                ouSql + ", " + cocSql + ", " + aocSql + ", " +
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", " + aocSql + ", " +
                 "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
                 "from datavalue dv " +
                 "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +

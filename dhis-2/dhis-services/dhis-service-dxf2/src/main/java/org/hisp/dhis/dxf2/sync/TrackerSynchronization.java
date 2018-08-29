@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +81,7 @@ public class TrackerSynchronization
             return SynchronizationResult.newFailureResultWithMessage( "Tracker synchronization failed. Remote server is unavailable." );
         }
 
-        log.info( "Starting Tracker program data synchronization job." );
-
-        final Date startTime = new Date();
+        final Clock clock = new Clock( log ).startClock().logTime( "Starting Tracker program data synchronization job." );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
@@ -117,7 +116,7 @@ public class TrackerSynchronization
             queryParams.setPage( i );
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
-            log.info( String.format( "Syncing page %d, page size is: %d", i, pageSize ) );
+            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
             {
@@ -130,7 +129,7 @@ public class TrackerSynchronization
                     .map( TrackedEntityInstance::getTrackedEntityInstance )
                     .collect( Collectors.toList() );
                 log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
-                teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, startTime );
+                teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, new Date( clock.getStartTime() ) );
             }
             else
             {
@@ -140,9 +139,8 @@ public class TrackerSynchronization
 
         if ( syncResult )
         {
-            long syncDuration = System.currentTimeMillis() - startTime.getTime();
-            log.info( "SUCCESS! Tracker synchronization was successfully done! It took " + syncDuration + " ms." );
-            return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization done. It took " + syncDuration + " ms." );
+            clock.logTime( "SUCCESS! Tracker synchronization was successfully done! It took " );
+            return SynchronizationResult.newSuccessResultWithMessage( "Tracker synchronization done. It took " + clock.getTime() + " ms." );
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "Tracker synchronization failed." );
