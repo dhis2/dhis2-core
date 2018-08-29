@@ -38,6 +38,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -669,5 +670,18 @@ public class AnalyticsController
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
+    }
+
+    // -------------------------------------------------------------------------
+    // Dimensions
+    // -------------------------------------------------------------------------
+
+    public @ResponseBody RootNode getRecommendedDimensions(
+        @RequestParam Set<String> dimension,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        
     }
 }
