@@ -109,6 +109,7 @@ public class MetadataImportController
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
 
         if ( params.hasJobId() )
         {
@@ -128,7 +129,7 @@ public class MetadataImportController
 
         String classKey = request.getParameter( "classKey" );
 
-        if ( StringUtils.isEmpty( classKey )  || !CsvImportClass.classExists( classKey ) )
+        if ( StringUtils.isEmpty( classKey ) || !CsvImportClass.classExists( classKey ) )
         {
             webMessageService.send( WebMessageUtils.conflict( "Cannot find Csv import class:  " + classKey ), response, request );
             return;
@@ -173,6 +174,7 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         Metadata metadata = renderService.fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+        response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
         if ( params.hasJobId() )
         {
@@ -188,7 +190,7 @@ public class MetadataImportController
     @GetMapping( "/csvImportClasses" )
     public @ResponseBody List<CsvImportClass> getCsvImportClasses()
     {
-        return  Arrays.asList( CsvImportClass.values() );
+        return Arrays.asList( CsvImportClass.values() );
     }
 
     private void startAsyncMetadata( MetadataImportParams params, HttpServletRequest request, HttpServletResponse response )

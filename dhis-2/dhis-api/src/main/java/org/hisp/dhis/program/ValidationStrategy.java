@@ -1,5 +1,4 @@
-package org.hisp.dhis.organisationunit;
-
+package org.hisp.dhis.program;
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,50 +27,12 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author David Katuscak
  */
-@JacksonXmlRootElement( localName = "featureType", namespace = DxfNamespaces.DXF_2_0 )
-public enum FeatureType
+public enum ValidationStrategy
 {
-    NONE( "None" ),
-    MULTI_POLYGON( "MultiPolygon" ),
-    POLYGON( "Polygon" ),
-    POINT( "Point" ),
-    SYMBOL( "Symbol" );
-
-    String value;
-
-    FeatureType( String value )
-    {
-        this.value = value;
-    }
-
-    public String value()
-    {
-        return value;
-    }
-
-    public boolean isPolygon()
-    {
-        return this == POLYGON || this == MULTI_POLYGON;
-    }
-
-    public static FeatureType getTypeFromName( String type )
-    {
-        switch ( type )
-        {
-        case "Point":
-            return POINT;
-        case "Polygon":
-            return POLYGON;
-        case "MultiPolygon":
-            return MULTI_POLYGON;
-        default:
-            return NONE;
-        }
-    }
+    NONE,
+    ON_COMPLETE,
+    ON_UPDATE_AND_INSERT;
 }

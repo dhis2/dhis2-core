@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -55,7 +56,6 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
     extends BaseIdentifiableObject
-    implements CoordinateObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
@@ -81,9 +81,7 @@ public class TrackedEntityInstance
 
     private Boolean deleted = false;
 
-    private FeatureType featureType = FeatureType.NONE;
-
-    private String coordinates;
+    private Geometry geometry;
 
     private Date lastSynchronized = new Date( 0 );
 
@@ -254,49 +252,6 @@ public class TrackedEntityInstance
         this.deleted = deleted;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-        return featureType;
-    }
-
-    @Override
-    public boolean hasFeatureType()
-    {
-        return getFeatureType() != null;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
-    public String getCoordinates()
-    {
-        return coordinates;
-    }
-
-    @Override
-    public boolean hasCoordinates()
-    {
-        return getCoordinates() != null;
-    }
-
-    @Override
-    public boolean hasDescendantsWithCoordinates()
-    {
-        return false;
-    }
-
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
-    }
-
     @JsonIgnore
     public Date getLastSynchronized()
     {
@@ -321,6 +276,18 @@ public class TrackedEntityInstance
         this.relationshipItems = relationshipItems;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
     @Override public String toString()
     {
         return "TrackedEntityInstance{" +
@@ -332,7 +299,6 @@ public class TrackedEntityInstance
             ", trackedEntityType=" + trackedEntityType +
             ", inactive=" + inactive +
             ", deleted=" + deleted +
-            ", featureType=" + featureType +
             ", lastSynchronized=" + lastSynchronized +
             '}';
     }
