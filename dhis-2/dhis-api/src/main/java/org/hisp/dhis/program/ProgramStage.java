@@ -90,7 +90,7 @@ public class ProgramStage
 
     private Boolean validCompleteOnly = false;
 
-    private Validation validation;
+    private ValidationStrategy validationStrategy = ValidationStrategy.NONE;
 
     private Boolean displayGenerateEventBox = true;
 
@@ -380,14 +380,14 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Validation getValidation()
+    public ValidationStrategy getValidationStrategy()
     {
-        return validation;
+        return validationStrategy;
     }
 
-    public void setValidation( Validation validation )
+    public void setValidationStrategy( ValidationStrategy validationStrategy )
     {
-        this.validation = validation;
+        this.validationStrategy = validationStrategy;
     }
 
     @JsonProperty

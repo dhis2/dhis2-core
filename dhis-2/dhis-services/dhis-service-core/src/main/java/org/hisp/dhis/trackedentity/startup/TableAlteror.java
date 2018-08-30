@@ -269,11 +269,74 @@ public class TableAlteror
         executeSql( "update program set accesslevel = 'OPEN' where accesslevel is null" );
         
         updateTrackedEntityProgramOwners();
+
+        updateTrackedEntityInstanceGeometry();
+
+        executeSql( "update trackedentitytype set featuretype = 'NONE' where featuretype is null" );
     }
 
     // -------------------------------------------------------------------------
     // Supporting methods
     // -------------------------------------------------------------------------
+
+    private void updateTrackedEntityInstanceGeometry()
+    {
+        StatementHolder holder = statementManager.getHolder();
+
+        try
+        {
+            Statement statement = holder.getStatement();
+
+            ResultSet resultSet = statement
+                .executeQuery( "SELECT count(column_name) > 0 FROM information_schema.columns WHERE table_name='trackedentityinstance' AND column_name='featuretype'" );
+
+            resultSet.next();
+
+            if ( !resultSet.getBoolean( 1 ) )
+            {
+                return;
+            }
+
+            executeSql( "UPDATE trackedentityinstance" +
+                " SET geometry = st_geomfromgeojson(concat('{\"type\":\"Point\",\"coordinates\":', coordinates, '}'))," +
+                " featuretype = NULL" +
+                " WHERE featuretype = 'POINT'" +
+                " AND coordinates NOTNULL" +
+                " AND coordinates LIKE '[%]'" );
+
+            executeSql( "UPDATE trackedentityinstance" +
+                " SET geometry = st_geomfromgeojson(concat('{\"type\":\"Polygon\",\"coordinates\":', coordinates, '}'))," +
+                " featuretype = NULL" +
+                " WHERE featuretype = 'POLYGON'" +
+                " AND coordinates NOTNULL" +
+                " AND coordinates LIKE '[[[[%]]]]'" );
+
+            executeSql( "UPDATE trackedentityinstance" +
+                " SET geometry = st_geomfromgeojson(concat('{\"type\":\"MultiPolygon\",\"coordinates\":', coordinates, '}'))," +
+                " featuretype = NULL" +
+                " WHERE featuretype = 'MULTI_POLYGON'" +
+                " AND coordinates NOTNULL" +
+                " AND coordinates LIKE '[[[[%]]]]'" );
+
+            resultSet = statement
+                .executeQuery( "SELECT count(featuretype) > 0 FROM trackedentityinstance WHERE featuretype != 'NONE' AND featuretype NOTNULL " );
+
+            resultSet.next();
+
+            if ( resultSet.getBoolean( 1 ) )
+            {
+                log.warn( "trackedentityinstances table contains invalid coordinates values. 'featuretype' and 'coordinates' columns will not be dropped." );
+                return;
+            }
+
+            executeSql( "ALTER TABLE trackedentityinstance DROP COLUMN \"featuretype\", DROP COLUMN \"coordinates\"" );
+
+        }
+        catch ( Exception ex )
+        {
+        }
+
+    }
 
     private void updateProgramStageSectionDataElements()
     {

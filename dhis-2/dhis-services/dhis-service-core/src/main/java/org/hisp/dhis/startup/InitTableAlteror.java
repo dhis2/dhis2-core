@@ -177,9 +177,10 @@ public class InitTableAlteror
         executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
 
         //New enum column was added into ProgramStage. I need to fill default values and make it NOT NULL
-        executeSql( "UPDATE programstage SET validation = 'NO_VALIDATION' WHERE validcompleteonly = false" );
-        executeSql( "UPDATE programstage SET validation = 'VALIDATION_ON_COMPLETE' WHERE validcompleteonly = true" );
-        executeSql( "ALTER TABLE programstage ALTER COLUMN validation SET NOT NULL" );
+        executeSql( "UPDATE programstage SET validationstrategy = 'NONE' WHERE validcompleteonly = false" );
+        executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true" );
+        executeSql( "ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL" );
+        executeSql( "ALTER TABLE programstage DROP COLUMN IF EXISTS validation" );
     }
 
     private void addGenerateUidFunction()

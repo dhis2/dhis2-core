@@ -74,7 +74,6 @@ public class Category
 
     public Category()
     {
-
     }
 
     public Category( String name, DataDimensionType dataDimensionType )
