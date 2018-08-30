@@ -133,12 +133,12 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
 
-        dropTempTables( tables );
+        dropTempTables( tables, params.isPartialUpdate() );
 
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
 
-        createTables( tables, params.isSkipMasterTable() );
+        createTables( tables, params.isPartialUpdate() );
         
         clock.logTime( "Created analytics tables" );
         notifier.notify( jobId, "Populating analytics tables" );
@@ -168,7 +168,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Analyzed tables" );
         notifier.notify( jobId, "Swapping analytics tables" );
         
-        swapTables( tables, params.isSkipMasterTable() );
+        swapTables( tables, params.isPartialUpdate() );
         
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
@@ -202,10 +202,11 @@ public class DefaultAnalyticsTableService
      * Drops the given temporary analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
+     * @param skipMasterTable whether to skip dropping the master analytics table.
      */
-    private void dropTempTables( List<AnalyticsTable> tables )
+    private void dropTempTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
-        tables.forEach( table -> tableManager.dropTempTable( table ) );
+        tables.forEach( table -> tableManager.dropTempTable( table, skipMasterTable ) );
     }
 
     /**
@@ -364,7 +365,7 @@ public class DefaultAnalyticsTableService
      * Swaps the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param skipMasterTable whether to skip swapping the master analtyics table.
+     * @param skipMasterTable whether to skip swapping the master analytics table.
      */
     private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {

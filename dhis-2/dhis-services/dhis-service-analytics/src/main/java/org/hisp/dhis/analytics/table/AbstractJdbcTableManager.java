@@ -174,10 +174,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void swapTable( AnalyticsTable table, boolean skipMasterTable )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {
-            swapTable( partition.getTempTableName(), partition.getTableName() );
-        }
+        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
         if ( !skipMasterTable )
         {
@@ -186,11 +183,14 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void dropTempTable( AnalyticsTable table )
+    public void dropTempTable( AnalyticsTable table, boolean skipMasterTable )
     {
         table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
         
-        dropTableCascade( table.getTempTableName() );
+        if ( !skipMasterTable )
+        {
+            dropTableCascade( table.getTempTableName() );
+        }        
     }
     
     @Override

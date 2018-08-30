@@ -121,8 +121,9 @@ public interface AnalyticsTableManager
      * Drops the given {@link AnalyticsTable}.
      * 
      * @param table the analytics table.
+     * @param skipMasterTable whether to skip dropping the master analytics table.
      */
-    void dropTempTable( AnalyticsTable table );
+    void dropTempTable( AnalyticsTable table, boolean skipMasterTable );
     
     /**
      * Drops the given table.
