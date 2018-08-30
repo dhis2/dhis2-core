@@ -101,7 +101,7 @@ public class DefaultAnalyticsTableService
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
         
-        log.info( "Analytics table update parameters: " + params.toString() );
+        log.info( String.format( "Analytics table update parameters: %s", params ) );
         
         AnalyticsTableType tableType = tableManager.getAnalyticsTableType();
         
