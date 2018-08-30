@@ -61,7 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -174,7 +173,7 @@ public abstract class AbstractJdbcTableManager
         
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
         boolean skipMasterTable = partialUpdate && tableExists;
-        
+
         if ( !skipMasterTable )
         {
             swapTable( table.getTempTableName(), table.getTableName() );
@@ -182,7 +181,7 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void dropTempTable( AnalyticsTable table )
+    public void dropTempTable( AnalyticsTable table, boolean skipMasterTable )
     {
         dropTableCascade( table.getTempTableName() );        
     }

@@ -85,15 +85,6 @@ public class AnalyticsTableUpdateParams
     }
     
     /**
-     * Indicates whether this is a partial update, i.e. only certain partitions
-     * is to be updated and not the main table including all partitions.
-     */
-    public boolean isPartialUpdate()
-    {
-        return lastYears != null;
-    }
-
-    /**
      * Indicates whether this is a partial update of analytics tables, i.e.
      * if only certain partitions are to be updated and not all partitions
      * and the main analytics tables.

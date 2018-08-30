@@ -134,7 +134,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
 
-        dropTempTables( tables );
+        dropTempTables( tables, params.isPartialUpdate() );
 
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
@@ -205,9 +205,9 @@ public class DefaultAnalyticsTableService
      * @param tables the list of {@link AnalyticsTable}.
      * @param skipMasterTable whether to skip dropping the master analytics table.
      */
-    private void dropTempTables( List<AnalyticsTable> tables )
+    private void dropTempTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
-        tables.forEach( table -> tableManager.dropTempTable( table ) );
+        tables.forEach( table -> tableManager.dropTempTable( table, skipMasterTable ) );
     }
 
     /**
