@@ -181,7 +181,7 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void dropTempTable( AnalyticsTable table, boolean skipMasterTable )
+    public void dropTempTable( AnalyticsTable table )
     {
         dropTableCascade( table.getTempTableName() );        
     }
