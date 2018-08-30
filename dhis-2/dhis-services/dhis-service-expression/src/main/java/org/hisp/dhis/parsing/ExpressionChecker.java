@@ -261,8 +261,11 @@ public class ExpressionChecker extends ExpressionBaseVisitor<Object>
             // Aggregation functions
             // -----------------------------------------------------------------
 
+            case FIRST:
+                return firstOrLast( ctx, true );
+
             case LAST:
-                return last( ctx );
+                return firstOrLast( ctx, false );
 
             case COUNT:
                 return evalAll( ctx ).size();
@@ -941,19 +944,19 @@ public class ExpressionChecker extends ExpressionBaseVisitor<Object>
         return Arrays.asList( visit( ctx.expr( 0 ) ) );
     }
 
-    private Object last( ExprContext ctx )
+    private Object firstOrLast( ExprContext ctx, boolean isFirst )
     {
         MultiPeriodValues mpv = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
 
         if ( ctx.a0_1().expr() == null )
         {
-            List<Object> values = mpv.last( 1 ).getValues();
+            List<Object> values = mpv.firstOrLast( 1, isFirst ).getValues();
 
             return values.isEmpty() ? null : values.get( 0 );
         }
         else
         {
-            return mpv.last( castInteger( visit( ctx.a0_1().expr() ) ) );
+            return mpv.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
         }
     }
 

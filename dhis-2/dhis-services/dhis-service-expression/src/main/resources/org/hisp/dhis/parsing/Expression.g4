@@ -25,6 +25,7 @@ expr
     |   expr '.' fun='stddev' a0
     |   expr '.' fun='variance' a0
     |   expr '.' fun='median' a0
+    |   expr '.' fun='first' a0_1
     |   expr '.' fun='last' a0_1
     |   expr '.' fun='percentile' a1
     |   expr '.' fun='rankHigh' a1
@@ -217,6 +218,7 @@ COALESCE: 'coalesce';
 
 SUM: 'sum';
 AVERAGE: 'average';
+FIRST: 'first';
 LAST: 'last';
 COUNT: 'count';
 STDDEV: 'stddev';

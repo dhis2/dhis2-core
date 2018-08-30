@@ -77,9 +77,10 @@ public class MultiPeriodValues extends MultiValues
         }
     }
 
-    public MultiPeriodValues last( int limit )
+    public MultiPeriodValues firstOrLast( int limit, boolean isFirst )
     {
-        SortedMap<String, List<Object>> sortedValues = new TreeMap<>( Collections.reverseOrder() );
+        SortedMap<String, List<Object>> sortedValues = isFirst ? new TreeMap<>()
+            : new TreeMap<>( Collections.reverseOrder() );
 
         for ( int i = 0; i < periods.size(); i++ )
         {
@@ -91,7 +92,7 @@ public class MultiPeriodValues extends MultiValues
             sortedValues.get( periods.get( i ) ).add( getValues().get( i ) );
         }
 
-        MultiPeriodValues lastValues = new MultiPeriodValues();
+        MultiPeriodValues selectedValues = new MultiPeriodValues();
 
         int count = 0;
 
@@ -101,14 +102,14 @@ public class MultiPeriodValues extends MultiValues
             {
                 if ( ++count > limit )
                 {
-                    return lastValues;
+                    return selectedValues;
                 }
 
-                lastValues.addPeriodValue( o, period );
+                selectedValues.addPeriodValue( o, period );
             }
         }
 
-        return lastValues;
+        return selectedValues;
     }
 
     // -------------------------------------------------------------------------
