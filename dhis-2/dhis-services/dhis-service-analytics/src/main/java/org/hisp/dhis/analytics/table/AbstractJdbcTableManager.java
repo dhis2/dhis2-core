@@ -170,10 +170,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void swapTable( AnalyticsTable table, boolean partialUpdate )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {
-            swapTable( partition.getTempTableName(), partition.getTableName() );
-        }
+        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
         boolean skipMasterTable = partialUpdate && tableExists;
@@ -187,9 +184,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTempTable( AnalyticsTable table )
     {
-        table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
-        
-        dropTableCascade( table.getTempTableName() );
+        dropTableCascade( table.getTempTableName() );        
     }
     
     @Override

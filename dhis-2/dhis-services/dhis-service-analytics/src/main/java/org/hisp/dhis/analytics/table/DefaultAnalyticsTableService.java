@@ -203,6 +203,7 @@ public class DefaultAnalyticsTableService
      * Drops the given temporary analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
+     * @param skipMasterTable whether to skip dropping the master analytics table.
      */
     private void dropTempTables( List<AnalyticsTable> tables )
     {
