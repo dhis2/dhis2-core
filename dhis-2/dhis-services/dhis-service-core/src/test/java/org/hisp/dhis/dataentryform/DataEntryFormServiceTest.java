@@ -37,11 +37,19 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.mock.MockI18n;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -63,7 +71,17 @@ public class DataEntryFormServiceTest
 
     @Autowired
     private CategoryService categoryService;
-    
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+
     private PeriodType periodType;
     
     private DataElement dataElement;
@@ -75,6 +93,7 @@ public class DataEntryFormServiceTest
     private String dataElementUid;
     
     private String categoryOptionComboUid;
+
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -226,5 +245,42 @@ public class DataEntryFormServiceTest
         String actual = dataEntryFormService.prepareDataEntryFormForEdit( dfA, dsA, i18n );
 
         assertEquals( expected.length(), actual.length() );
+    }
+
+    @Test
+    public void testListDistinctDataEntryFormByProgramStageIds()
+    {
+        DataSet dataSetA = createDataSet( 'A', periodType );
+
+        dataSetService.addDataSet( dataSetA );
+
+        DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
+
+        int dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
+
+        dataEntryFormA = dataEntryFormService.getDataEntryForm( dataEntryFormAid );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
+
+        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
+        programService.addProgram( program );
+
+        ProgramStage stageA = new ProgramStage( "A", program );
+        stageA.setUid( "UID-A" );
+        stageA.setDataEntryForm( dataEntryFormA );
+
+        ProgramStage stageB = new ProgramStage( "B", program );
+        stageB.setUid( "UID-B" );
+        stageA.setDataEntryForm( dataEntryFormA );
+
+
+        int idA = programStageService.saveProgramStage( stageA );
+        int idB = programStageService.saveProgramStage( stageB );
+
+        List<Integer> stageIds = new ArrayList<>();
+        stageIds.add( idA );
+        stageIds.add( idB );
+
+        assertEquals( 1, dataEntryFormService.listDistinctDataEntryFormByProgramStageIds( stageIds ).size() );
     }
 }
