@@ -108,7 +108,7 @@ public enum SettingKey
     DATABASE_SERVER_CPUS( "keyDatabaseServerCpus", 0, Integer.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME( "keyLastSuccessfulAnalyticsTablesRuntime" ),
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
-    LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", Date.class ),
+    LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
@@ -154,6 +154,7 @@ public enum SettingKey
     FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class ),
     TRACKER_SYNC_PAGE_SIZE( "syncTrackerPageSize", 20, Integer.class ),
     EVENT_SYNC_PAGE_SIZE( "syncEventsPageSize", 60, Integer.class ),
+    DATA_VALUES_SYNC_PAGE_SIZE( "syncDataValuesPageSize", 10000, Integer.class ),
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class );
