@@ -67,6 +67,9 @@ public class CategoryServiceTest
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryStore categoryStore;
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -345,5 +348,22 @@ public class CategoryServiceTest
         categoryService.saveCategoryOptionGroupSet( groupSetA );
 
         assertEquals( 1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size() );
+    }
+
+    @Test
+    public void testGetDisaggregationCategories()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        categoryService.addCategory( categoryA );
+
+        // Default Category is created so count should be equal 2
+        assertEquals( 2, categoryService.getDisaggregationCategories().size() );
+
+        assertEquals( 1, categoryStore.getCategories( DataDimensionType.DISAGGREGATION, true ).size() );
+
+        assertEquals( 1, categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
+
     }
 }

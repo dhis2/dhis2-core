@@ -442,8 +442,6 @@ public class DataValueServiceTest
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
         dataValueService.addDataValue( dataValueC );
-
-        System.out.println( "dataValueService = " + dataValueService.getAllDataValues() );
         
         assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
         assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );

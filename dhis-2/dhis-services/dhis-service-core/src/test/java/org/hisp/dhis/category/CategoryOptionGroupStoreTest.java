@@ -31,7 +31,6 @@ package org.hisp.dhis.category;
  */
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -164,22 +163,4 @@ public class CategoryOptionGroupStoreTest
         assertTrue( groupsB.contains( cogC ) );
         assertTrue( groupsB.contains( cogD ) );        
     }
-
-    @Test
-    public void testGetCategoryOptionGroupsNoAcl()
-    {
-        CategoryOptionGroup cogA = createCategoryOptionGroup( 'A', coA, coB );
-        CategoryOptionGroup cogB = createCategoryOptionGroup( 'B', coC, coD );
-
-        categoryOptionGroupStore.save( cogA );
-        categoryOptionGroupStore.save( cogB );
-
-        CategoryOptionGroupSet cogsA = createCategoryOptionGroupSet( 'A', cogA, cogB );
-        cogsA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
-
-        categoryService.saveCategoryOptionGroupSet( cogsA );
-
-        assertEquals( 1,categoryOptionGroupStore.getCategoryOptionGroupsNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
-    }
 }
-
