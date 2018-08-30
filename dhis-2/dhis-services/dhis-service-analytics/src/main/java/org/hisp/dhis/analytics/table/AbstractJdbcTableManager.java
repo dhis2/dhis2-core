@@ -133,13 +133,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    public void createTable( AnalyticsTable table )
     {
-        if ( !skipMasterTable )
-        {
-            createTempTable( table );
-        }
-        
+        createTempTable( table );        
         createTempTablePartitions( table );
     }
     
@@ -172,12 +168,15 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean skipMasterTable )
+    public void swapTable( AnalyticsTable table, boolean partialUpdate )
     {
         for ( AnalyticsTablePartition partition : table.getPartitionTables() )
         {
             swapTable( partition.getTempTableName(), partition.getTableName() );
         }
+        
+        boolean tableExists = partitionManager.tableExists( table.getTableName() );
+        boolean skipMasterTable = partialUpdate && tableExists;
         
         if ( !skipMasterTable )
         {

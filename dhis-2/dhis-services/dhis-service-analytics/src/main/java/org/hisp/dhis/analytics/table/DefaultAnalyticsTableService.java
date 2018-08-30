@@ -99,10 +99,11 @@ public class DefaultAnalyticsTableService
 
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
+        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
+        
+        log.info( "Analytics table update parameters: " + params.toString() );
         
         AnalyticsTableType tableType = tableManager.getAnalyticsTableType();
-
-        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
         
         Clock clock = new Clock( log )
             .startClock()
@@ -138,7 +139,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
 
-        createTables( tables, params.isSkipMasterTable() );
+        createTables( tables );
         
         clock.logTime( "Created analytics tables" );
         notifier.notify( jobId, "Populating analytics tables" );
@@ -168,7 +169,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Analyzed tables" );
         notifier.notify( jobId, "Swapping analytics tables" );
         
-        swapTables( tables, params.isSkipMasterTable() );
+        swapTables( tables, params.isPartialUpdate() );
         
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
@@ -212,11 +213,10 @@ public class DefaultAnalyticsTableService
      * Creates the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param skipMasterTable whether to skip creating the master analytics table.
      */
-    private void createTables( List<AnalyticsTable> tables, boolean skipMasterTable )
+    private void createTables( List<AnalyticsTable> tables )
     {
-        tables.forEach( table -> tableManager.createTable( table, skipMasterTable ) );
+        tables.forEach( table -> tableManager.createTable( table ) );
     }
     
     /**
@@ -364,13 +364,13 @@ public class DefaultAnalyticsTableService
      * Swaps the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param skipMasterTable whether to skip swapping the master analtyics table.
+     * @param partialUpdate whether this is a partial analytics table update.
      */
-    private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
+    private void swapTables( List<AnalyticsTable> tables, boolean partialUpdate )
     {
         resourceTableService.dropAllSqlViews();
         
-        tables.forEach( table -> tableManager.swapTable( table, skipMasterTable ) );
+        tables.forEach( table -> tableManager.swapTable( table, partialUpdate ) );
         
         resourceTableService.createAllSqlViews();
     }

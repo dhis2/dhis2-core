@@ -46,11 +46,6 @@ public class AnalyticsTableUpdateParams
     private Integer lastYears;
     
     /**
-     * Indicates whether to skip update of the master analytics table.
-     */
-    private boolean skipMasterTable;
-    
-    /**
      * Indicates whether to skip update of resource tables.
      */
     boolean skipResourceTables;
@@ -74,11 +69,6 @@ public class AnalyticsTableUpdateParams
         return lastYears;
     }
 
-    public boolean isSkipMasterTable()
-    {
-        return skipMasterTable;
-    }
-
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
@@ -93,6 +83,15 @@ public class AnalyticsTableUpdateParams
     {
         return jobId;
     }
+    
+    /**
+     * Indicates whether this is a partial update, i.e. only certain partitions
+     * is to be updated and not the main table including all partitions.
+     */
+    public boolean isPartialUpdate()
+    {
+        return lastYears != null;
+    }
 
     // -------------------------------------------------------------------------
     // toString
@@ -103,7 +102,6 @@ public class AnalyticsTableUpdateParams
     {
         return MoreObjects.toStringHelper( this )
             .add( "last years", lastYears )
-            .add( "skip master table", skipMasterTable )
             .add( "skip resource tables", skipResourceTables )
             .add( "skip table types", skipTableTypes )
             .toString();
@@ -135,13 +133,7 @@ public class AnalyticsTableUpdateParams
             this.params.lastYears = lastYears;
             return this;
         }
-        
-        public Builder withSkipMasterTable( boolean skipMasterTable )
-        {
-            this.params.skipMasterTable = true;
-            return this;
-        }
-        
+                
         public Builder withSkipResourceTables( boolean skipResourceTables )
         {
             this.params.skipResourceTables = skipResourceTables;
