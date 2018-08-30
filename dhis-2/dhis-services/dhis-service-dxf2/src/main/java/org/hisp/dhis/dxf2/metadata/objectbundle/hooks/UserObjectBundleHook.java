@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
@@ -66,7 +67,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         if ( user.getWhatsapp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsapp() ) )
         {
-            errorReports.add( new ErrorReport( User.class, "Value '" + user.getWhatsapp() + "' is not a valid Whatsapp handle." ) );
+            errorReports.add( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsapp(), "Whatsapp" ) );
         }
 
         return errorReports;
