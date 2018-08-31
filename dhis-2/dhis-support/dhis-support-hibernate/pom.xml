@@ -41,10 +41,6 @@
       <artifactId>hibernate-ehcache</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.mihaicostin</groupId>
-      <artifactId>hibernate-l2-memcached</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-jta_1.1_spec</artifactId>
     </dependency>
