@@ -342,7 +342,8 @@ public class DefaultHibernateConfigurationProvider
         String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
         
-        //Split using comma delimiter along with possible spaces in between.
+        // Split using comma delimiter along with possible spaces in between
+        
         String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
         
         List<String> cacheNames = getCacheNames();
