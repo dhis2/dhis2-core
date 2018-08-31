@@ -170,8 +170,6 @@ public class DefaultSystemService
 
     private SystemInfo getFixedSystemInfo()
     {
-        System.out.println( "DB info " + databaseInfo );
-        
         SystemInfo info = new SystemInfo();
 
         // ---------------------------------------------------------------------
