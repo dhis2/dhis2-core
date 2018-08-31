@@ -118,7 +118,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
@@ -181,7 +183,7 @@ public class DefaultDataValueSetService
 
     @Autowired
     private DataValueService dataValueService;
-    
+
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -225,7 +227,7 @@ public class DefaultDataValueSetService
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
                 DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
-        
+
         if ( periods != null && !periods.isEmpty() )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
@@ -248,10 +250,10 @@ public class DefaultDataValueSetService
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
                 OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
         }
-        
+
         if ( attributeOptionCombos != null )
         {
-            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
+            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
                 CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
@@ -365,6 +367,12 @@ public class DefaultDataValueSetService
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
+    }
+
+    @Override
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    {
+        dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes, pageSize, page );
     }
 
     @Override
@@ -763,7 +771,7 @@ public class DefaultDataValueSetService
 
         if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
         {
-            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid()) );
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid() ) );
             summary.setStatus( ImportStatus.ERROR );
         }
 
@@ -1116,7 +1124,7 @@ public class DefaultDataValueSetService
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
             }
-            
+
             DataValue actualDataValue = null;
             if ( strategy.isDelete() && dataElement.isFileType() )
             {
@@ -1223,7 +1231,7 @@ public class DefaultDataValueSetService
 
                             fileResourceService.updateFileResource( fr );
                         }
-                        
+
                         dataValueBatchHandler.updateObject( internalValue );
 
                         auditBatchHandler.addObject( auditValue );

@@ -39,4 +39,6 @@ public interface DatabaseInfoProvider
     DatabaseInfo getDatabaseInfo();
     
     boolean isInMemory();
+    
+    String getNameFromConnectionUrl( String url );
 }

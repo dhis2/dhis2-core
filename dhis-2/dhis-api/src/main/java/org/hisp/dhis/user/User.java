@@ -87,6 +87,8 @@ public class User
     private String interests;
 
     private String languages;
+    
+    private String welcomeMessage;
 
     private Date lastCheckedInterpretations;
 
@@ -564,6 +566,18 @@ public class User
     public void setLanguages( String languages )
     {
         this.languages = languages;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getWelcomeMessage()
+    {
+        return welcomeMessage;
+    }
+
+    public void setWelcomeMessage( String welcomeMessage )
+    {
+        this.welcomeMessage = welcomeMessage;
     }
 
     @JsonProperty

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,8 @@ public class TrackedEntityType
     extends BaseNameableObject implements MetadataObject
 {
     private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+
+    private FeatureType featureType = FeatureType.NONE;
 
     private ObjectStyle style;
 
@@ -191,5 +194,17 @@ public class TrackedEntityType
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
     }
 }

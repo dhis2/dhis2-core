@@ -94,6 +94,21 @@ public class JdbcPartitionManager
         
         return partitions;
     }
+
+    @Override
+    public boolean tableExists( String table )
+    {
+        final String sql = 
+            "select count(table_name) from information_schema.tables " +
+            "where table_name = '" + table + "' " +
+            "and table_type = 'BASE TABLE'";
+        
+        log.info( "Table exists SQL: " + sql );
+        
+        int count = jdbcTemplate.queryForObject( sql, Integer.class );
+        
+        return count > 0;
+    }
     
     @Override
     public void clearCaches()
