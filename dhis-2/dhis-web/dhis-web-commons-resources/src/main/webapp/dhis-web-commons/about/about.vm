@@ -23,6 +23,7 @@
   #end
 
   #if ( $currentUserIsSuper )
+  <dt>$i18n.getString( "system_id" ):</dt><dd>$!info.systemId</dd>
   <dt>$i18n.getString( "external_configuration_directory" ):</dt><dd>$!info.externalDirectory</dd>
   <dt>$i18n.getString( "file_store_provider" ):</dt><dd>$!info.fileStoreProvider</dd>
   <dt>$i18n.getString( "node_id" ):</dt><dd>$!info.nodeId</dd>
