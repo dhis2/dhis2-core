@@ -107,22 +107,18 @@ public class TokenUtils
                             break;
                         case ANYWHERE:
                             found = s3.contains( s );
+                            break;
                         }
 
                         if ( found )
                         {
-                            break;
+                            return true;
                         }
-                    }
-
-                    if ( !found )
-                    {
-                        return false;
                     }
                 }
             }
         }
 
-        return true;
+        return false;
     }
 }
