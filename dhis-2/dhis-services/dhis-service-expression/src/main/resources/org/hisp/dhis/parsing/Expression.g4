@@ -35,10 +35,9 @@ expr
     // Aggregation scope functions
 
     |   expr '.' fun='period' a1_n
-    |   expr '.' fun='ouLevel' a1_2
     |   expr '.' fun='ouAncestor' a1
-    |   expr '.' fun='ouDescendant' a1_2
-    |   expr '.' fun='ouPeer' a1_2
+    |   expr '.' fun='ouLevel' a1
+    |   expr '.' fun='ouPeer' a1
     |   expr '.' fun='ouGroup' a1_n
 
     // Operators (in precidence order)
@@ -234,9 +233,8 @@ RANK_PERCENTILE: 'rankPercentile';
 // Aggregation scope functions
 
 PERIOD: 'period';
-OU_LEVEL: 'ouLevel';
 OU_ANCESTOR : 'ouAncestor';
-OU_DESCENDANT: 'ouDescendant';
+OU_LEVEL: 'ouLevel';
 OU_PEER: 'ouPeer';
 OU_GROUP: 'ouGroup';
 

@@ -28,56 +28,81 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
 import java.util.Map;
 
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
- * Evaluates expressions using the ANTLR parser, using the ANTLR visitor pattern.
+ * ANTLR parse tree visitor to evaluates expressions.
  *
  * @author Jim Grace
  */
-public class ExpressionEvaluator extends ExpressionChecker
+public class EvaluationVisitor extends AbstractVisitor
 {
-    private Map<String, Double> valueMap;
+    private MapMapMap<OrganisationUnit, Period, String, Double> valueMap;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Integer> orgUnitCountMap;
 
-    //TODO: This goes away when we finish the TODOs.
-    private final static Double PLACEHOLDER = Double.valueOf( 2. );
+    private int days;
 
-    public ExpressionEvaluator( Map<String, Double> valueMap, Map<String, Double> constantMap )
+    public Double getExpressionValue( ParseTree parseTree, OrganisationUnit orgUnit, Period period,
+        MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days )
     {
-        this.valueMap = valueMap;
+        currentOrgUnit = orgUnit;
+        currentPeriod = period;
         this.constantMap = constantMap;
+        this.orgUnitCountMap = orgUnitCountMap;
+        this.days = days;
+
+        this.valueMap = new MapMapMap<>();
+
+        for ( Map.Entry<OrganisationUnit, MapMap<Period, DimensionalItemObject, Double>> entry1 : valueMap.entrySet() )
+        {
+            for ( Map.Entry<Period, Map<DimensionalItemObject, Double>> entry2 : entry1.getValue().entrySet() )
+            {
+                for ( Map.Entry<DimensionalItemObject, Double> entry3 : entry2.getValue().entrySet() )
+                {
+                    this.valueMap.putEntry( entry1.getKey(), entry2.getKey(), entry3.getKey().getDimensionItem(), entry3.getValue() );
+                }
+            }
+        }
+
+        return castDouble( visit( parseTree ) );
     }
+
+    // -------------------------------------------------------------------------
+    // Visitor methods that are implemented here
+    // -------------------------------------------------------------------------
 
     @Override
-    public Object visitConstant( ConstantContext ctx )
+    public Object visitDimensionItemObject( DimensionItemObjectContext ctx )
     {
-        return constantMap.get( ctx.getToken( UID, 0 ).getText() );
-    }
+        return valueMap.getValue( currentOrgUnit, currentPeriod, ctx.getText() );
+    };
 
     @Override
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
     {
-        //TODO: write the real OrgUnitCount code
-        return PLACEHOLDER;
-    }
-
-    @Override
-    public Object visitReportingRate( ReportingRateContext ctx )
-    {
-        //TODO: write the real ReportingRate code
-        return PLACEHOLDER;
+        return orgUnitCountMap.get( ctx.getText() );
     }
 
     @Override
     public Object visitDays( DaysContext ctx )
     {
-        //TODO: write the real Days-in-the-month code
-        return 31.;
+        return days;
     }
+
+    // -------------------------------------------------------------------------
+    // Logical methods implemented here
+    // -------------------------------------------------------------------------
 
     @Override
     protected Object functionAnd( ExprContext ctx )
@@ -107,11 +132,20 @@ public class ExpressionEvaluator extends ExpressionChecker
         for ( ExprContext c : ctx.a1_n().expr() )
         {
             Object val = visit( c );
+
             if ( val != null )
             {
                 return val;
             }
         }
         return null;
+    }
+
+    @Override
+    protected final Object functionExcept( ExprContext ctx )
+    {
+        return castBoolean( visit( ctx.a1().expr() ) )
+            ? null
+            : visit( ctx.expr( 0 ) );
     }
 }

@@ -28,47 +28,22 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 /**
- * Holds multiple values for expression evaluation.
+ * Listens to ANTLR parsing errors and throws them (instead of printing them
+ * on the console, which is ANTLR's default behaviour.)
  *
  * @author Jim Grace
  */
-public class MultiValues
+public class AntlrErrorListener extends BaseErrorListener
 {
-    private List<Object> values = new ArrayList<>();
-
-    // -------------------------------------------------------------------------
-    // Business logic
-    // -------------------------------------------------------------------------
-
-    public void addValue( Object value )
+    @Override
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+        int line, int charPositionInLine, String msg, RecognitionException e)
     {
-        if ( value != null )
-        {
-            if ( value instanceof MultiPeriodValues )
-            {
-                values.addAll( ( (MultiValues) value ).values );
-            }
-            else if ( value instanceof MultiValues )
-            {
-                values.addAll( ( (MultiValues) value ).values );
-            }
-            else
-            {
-                values.add( value );
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter
-    // -------------------------------------------------------------------------
-
-    public List<Object> getValues()
-    {
-        return values;
+        throw new ParsingException( msg );
     }
 }

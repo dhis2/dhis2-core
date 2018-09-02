@@ -11,7 +11,7 @@
   
   <artifactId>dhis-service-expression</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Expression Services</name>
+  <name>DHIS Expression Service</name>
   
   <dependencies>
     

@@ -28,6 +28,8 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.period.Period;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,13 +43,13 @@ import java.util.TreeMap;
  */
 public class MultiPeriodValues extends MultiValues
 {
-    private List<String> periods = new ArrayList<>(); //TODO: Change to DHIS2 periods
+    private List<Period> periods = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
 
-    public void addPeriodValue( Object value, String period )
+    public void addPeriodValue( Object value, Period period )
     {
         if ( value != null )
         {
@@ -79,7 +81,7 @@ public class MultiPeriodValues extends MultiValues
 
     public MultiPeriodValues firstOrLast( int limit, boolean isFirst )
     {
-        SortedMap<String, List<Object>> sortedValues = isFirst ? new TreeMap<>()
+        SortedMap<Period, List<Object>> sortedValues = isFirst ? new TreeMap<>()
             : new TreeMap<>( Collections.reverseOrder() );
 
         for ( int i = 0; i < periods.size(); i++ )
@@ -96,7 +98,7 @@ public class MultiPeriodValues extends MultiValues
 
         int count = 0;
 
-        for ( String period : sortedValues.keySet() )
+        for ( Period period : sortedValues.keySet() )
         {
             for ( Object o : sortedValues.get( period ) )
             {
@@ -116,7 +118,7 @@ public class MultiPeriodValues extends MultiValues
     // Getter
     // -------------------------------------------------------------------------
 
-    public List<String> getPeriods()
+    public List<Period> getPeriods()
     {
         return periods;
     }

@@ -28,15 +28,142 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.ListMapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.expression.DefaultExpressionService;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.parsing.generated.ExpressionLexer;
+import org.hisp.dhis.parsing.generated.ExpressionParser;
+import org.hisp.dhis.period.Period;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Parses expressions using the ANTLR parser.
  *
  * @author Jim Grace
  */
 public class DefaultParsingService
+    implements ParsingService
 {
+    private static final Log log = LogFactory.getLog( DefaultExpressionService.class );
 
-    public List<DataQueryParams> getQueryParams( DataQueryParams )
+    @Autowired
+    private ConstantService constantService;
 
+    private static Cache<String, ParseTree> EXPRESSION_PARSE_TREES = Caffeine.newBuilder()
+        .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
+        .maximumSize( 50000 ).build();
 
+    @Override
+    public ListMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
+        List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
+    {
+        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new ListMapMap<>();
+
+        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+
+        for ( Expression expression : expressions )
+        {
+            ParseTree parseTree = getParseTree( expression.getExpression(), true );
+
+            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items );
+        }
+
+        return items;
+    }
+
+    @Override
+    public Double getExpressionValue( Expression expression, OrganisationUnit orgUnit, Period period,
+        MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days )
+    {
+        EvaluationVisitor evaluationVisitor = new EvaluationVisitor();
+
+        ParseTree parseTree = getParseTree( expression.getExpression(), true );
+
+        return evaluationVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
+            constantMap, orgUnitCountMap, days );
+    }
+
+    @Override
+    public String getExpressionDescription( String expr )
+    {
+        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+
+        ParseTree parseTree = getParseTree( expr, false );
+
+        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new ListMapMap<>();
+
+        return expressionItemsVisitor.getExpressionDescription( parseTree, expr );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private ParseTree getParseTree( String expr, boolean logWarnings )
+    {
+        ParseTree parseTree = null;
+
+        try
+        {
+            parseTree = EXPRESSION_PARSE_TREES.get( expr, e -> parse( e ) );
+        }
+        catch ( ParsingException ex )
+        {
+            if ( logWarnings )
+            {
+                log.warn( "Parsing error '" + ex.getMessage() + "' in expression '" + expr + "'" );
+            }
+            else
+            {
+                throw ex;
+            }
+        }
+
+        return parseTree;
+    }
+
+    /**
+     * Parses an expression into an ANTLR ParseTree.
+     *
+     * @param expr the expression text to parse.
+     * @return the ANTLR parse tree.
+     */
+    private ParseTree parse( String expr )
+    {
+        AntlrErrorListener errorListener = new AntlrErrorListener(); // Custom error listener.
+
+        CharStream input = CharStreams.fromString( expr ); // Form an ANTLR lexer input stream.
+
+        ExpressionLexer lexer = new ExpressionLexer( input ); // Create a lexer for the input.
+
+        lexer.removeErrorListeners(); // Remove default lexer error listener (prints to console).
+        lexer.addErrorListener( errorListener ); // Add custom error listener to throw any errors.
+
+        CommonTokenStream tokens = new CommonTokenStream( lexer ); // Parse the input into a token stream.
+
+        ExpressionParser parser = new ExpressionParser( tokens ); // Create a parser for the token stream.
+
+        parser.removeErrorListeners(); // Remove the default parser error listener (prints to console).
+        parser.addErrorListener( errorListener ); // Add custom error listener to throw any errors.
+
+        return parser.expr(); // Parse the expression and return the parse tree.
+    }
 }
