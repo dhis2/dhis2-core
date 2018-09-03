@@ -754,7 +754,14 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 if ( fromUid.equals( daoEntityInstance.getUid() ) )
                 {
-                    update.add( relationship );
+                    if ( _relationshipService.relationshipExists( relationship.getRelationship() ))
+                    {
+                        update.add( relationship );
+                    }
+                    else
+                    {
+                        create.add( relationship );
+                    }
                 }
                 else
                 {
