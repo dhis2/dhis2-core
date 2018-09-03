@@ -50,7 +50,7 @@
 
     <property name="lastCheckedInterpretations" type="timestamp" />
 
-    <property name="whatsapp" />
+    <property name="whatsApp" />
 
     <property name="skype" />
 

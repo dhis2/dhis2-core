@@ -96,7 +96,7 @@ public class User
 
     private Set<UserGroup> groups = new HashSet<>();
 
-    private String whatsapp;
+    private String whatsApp;
 
     private String facebookMessenger;
 
@@ -684,14 +684,14 @@ public class User
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
 
-    public String getWhatsapp()
+    public String getWhatsApp()
     {
-        return whatsapp;
+        return whatsApp;
     }
 
     public void setWhatsapp( String whatsapp )
     {
-        this.whatsapp = whatsapp;
+        this.whatsApp = whatsapp;
     }
 
     @JsonProperty
