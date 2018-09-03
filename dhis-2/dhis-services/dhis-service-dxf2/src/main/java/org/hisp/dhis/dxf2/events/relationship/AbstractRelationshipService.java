@@ -655,6 +655,11 @@ public abstract class AbstractRelationshipService
 
         daoRelationship.setRelationshipType( relationshipType );
 
+        if ( relationship.getRelationship() != null )
+        {
+            daoRelationship.setUid( relationship.getRelationship() );
+        }
+
         // FROM
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
