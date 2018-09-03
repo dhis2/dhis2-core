@@ -65,9 +65,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         ArrayList<ErrorReport> errorReports = new ArrayList<>(  );
         User user = (User) object;
 
-        if ( user.getWhatsapp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsapp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
-            errorReports.add( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsapp(), "Whatsapp" ) );
+            errorReports.add( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
         }
 
         return errorReports;

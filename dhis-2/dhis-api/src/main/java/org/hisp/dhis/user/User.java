@@ -689,7 +689,7 @@ public class User
         return whatsApp;
     }
 
-    public void setWhatsapp( String whatsapp )
+    public void setWhatsApp( String whatsapp )
     {
         this.whatsApp = whatsapp;
     }
