@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
@@ -129,7 +130,7 @@ public class DefaultSynchronizationManager
             return null;
         }
 
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "/api/dataValueSets";
+        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.DATA_VALUE_SETS.getPath();
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
@@ -154,18 +155,15 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
-        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
 
-        log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
-
-        if ( lastUpdatedCount == 0 )
+        if ( objectsToSynchronize == 0 )
         {
             log.debug( "Skipping synch, no new or updated data values" );
             return null;
         }
 
-        log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
-
+        log.info( "Values: " + objectsToSynchronize + " since last synchronization success: " + lastSuccessTime );
         log.info( "Remote server POST URL: " + instance.getUrl() );
 
         final RequestCallback requestCallback = request ->

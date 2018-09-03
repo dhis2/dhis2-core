@@ -171,6 +171,8 @@
 
   <bean id="eventSynchronization" class="org.hisp.dhis.dxf2.sync.EventSynchronization" />
 
+  <bean id="dataValuesSynchronization" class="org.hisp.dhis.dxf2.sync.DataValueSynchronization" />
+
   <!-- Scheduling -->
   <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob" />
 

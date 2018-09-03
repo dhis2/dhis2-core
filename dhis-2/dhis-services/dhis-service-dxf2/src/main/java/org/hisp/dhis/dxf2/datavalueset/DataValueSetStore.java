@@ -47,4 +47,6 @@ public interface DataValueSetStore
     void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
 
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+
+    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page );
 }

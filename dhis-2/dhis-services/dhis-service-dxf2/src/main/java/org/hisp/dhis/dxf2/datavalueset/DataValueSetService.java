@@ -82,6 +82,8 @@ public interface DataValueSetService
 
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
+    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page );
+
     void writeDataValueSetCsv( DataExportParams params, Writer writer );
 
     RootNode getDataValueSetTemplate( DataSet dataSet, Period period, List<String> orgUnits, boolean writeComments, String ouScheme, String deScheme );
