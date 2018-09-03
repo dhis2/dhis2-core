@@ -107,7 +107,7 @@ public class DataValueSynchronization
 
         if ( objectsToSynchronize == 0 )
         {
-            log.debug( "Skipping synchronization, no new or updated DataValues" );
+            log.info( "Skipping synchronization, no new or updated DataValues" );
             return SynchronizationResult.newSuccessResultWithMessage( "Skipping synchronization, no new or updated DataValues" );
         }
 

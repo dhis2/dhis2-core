@@ -30,14 +30,18 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +53,26 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 {
     @Autowired
     private UserService userService;
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( !(object instanceof User) )
+        {
+            return new ArrayList<>();
+        }
+
+        ArrayList<ErrorReport> errorReports = new ArrayList<>(  );
+        User user = (User) object;
+
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        {
+            errorReports.add( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
+        }
+
+        return errorReports;
+    }
+
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )

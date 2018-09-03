@@ -96,6 +96,16 @@ public class User
 
     private Set<UserGroup> groups = new HashSet<>();
 
+    private String whatsApp;
+
+    private String facebookMessenger;
+
+    private String skype;
+
+    private String telegram;
+
+    private String twitter;
+
     /**
      * Organisation units for data input and data capture / write operations.
      * TODO move to UserCredentials.
@@ -669,6 +679,70 @@ public class User
     public void setApps( List<String> apps )
     {
         this.apps = apps;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
+    public String getWhatsApp()
+    {
+        return whatsApp;
+    }
+
+    public void setWhatsApp( String whatsapp )
+    {
+        this.whatsApp = whatsapp;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFacebookMessenger()
+    {
+        return facebookMessenger;
+    }
+
+    public void setFacebookMessenger( String facebookMessenger )
+    {
+        this.facebookMessenger = facebookMessenger;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSkype()
+    {
+        return skype;
+    }
+
+    public void setSkype( String skype )
+    {
+        this.skype = skype;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTelegram()
+    {
+        return telegram;
+    }
+
+    public void setTelegram( String telegram )
+    {
+        this.telegram = telegram;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTwitter()
+    {
+        return twitter;
+    }
+
+    public void setTwitter( String twitter )
+    {
+        this.twitter = twitter;
     }
 
     @Override
