@@ -31,11 +31,9 @@ package org.hisp.dhis.common;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -46,10 +44,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -63,7 +59,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,8 +78,6 @@ public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
     private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
-
-    private static final ImmutableSet<Class> DEFAULT_OBJECT_CLASSES = ImmutableSet.of( Category.class, CategoryOption.class, CategoryCombo.class, CategoryOptionCombo.class );
 
     /**
      * Cache for default category objects. Disabled during test phase.
@@ -956,10 +949,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getDefaultObject( Category.class, false ) ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getDefaultObject( CategoryCombo.class, false ) ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getDefaultObject( CategoryOption.class, false ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getDefaultObject( CategoryOptionCombo.class, false ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
             .build();
     }
 
@@ -1048,81 +1041,5 @@ public class DefaultIdentifiableObjectManager
         {
             dimensionalObjectStoreMap.put( store.getClazz(), store );
         }
-    }
-
-    private <T extends IdentifiableObject> T getDefaultObject( Class<T> clazz, boolean lazy )
-    {
-        T object = getByName( clazz, "default" );
-
-        if ( lazy )
-        {
-            return object;
-        }
-
-        eagerLoad( clazz, object, DEFAULT_OBJECT_CLASSES );
-
-        return object;
-    }
-
-    private void eagerLoad( Class<?> clazz, Object object, Set<Class> skipClasses )
-    {
-        if ( object == null )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( clazz );
-
-        if ( schema == null || !schema.isPersisted() )
-        {
-            return;
-        }
-
-        Hibernate.initialize( object );
-
-        Map<String, Property> persistedPropertyMap = schema.getPersistedProperties();
-
-        Iterator<?> persistedItr = persistedPropertyMap.keySet().iterator();
-
-        while ( persistedItr.hasNext() )
-        {
-            Property p = persistedPropertyMap.get( persistedItr.next() );
-            String pName = p.isCollection() ? p.getCollectionName() : p.getName();
-
-            if ( p.isSimple() || !p.isPersisted() )
-            {
-                continue;
-            }
-
-            Object propertyObject = ReflectionUtils.invokeGetterMethod( pName, object );
-
-            if ( propertyObject == null )
-            {
-                continue;
-            }
-
-            if ( p.isCollection() && !isAssignableFromClasses( p.getItemKlass(), skipClasses ) )
-            {
-                Collection propertyCollection = ( Collection ) propertyObject;
-
-                propertyCollection.forEach( element -> eagerLoad( p.getItemKlass(), element, skipClasses ) );
-            }
-            else if ( !isAssignableFromClasses( p.getKlass(), skipClasses ) )
-            {
-                Hibernate.initialize( propertyObject );
-            }
-        }
-    }
-
-    private boolean isAssignableFromClasses( Class clazz, Set<Class> fromClasses )
-    {
-        for ( Class fromClass : fromClasses )
-        {
-            if ( clazz.isAssignableFrom( fromClass ) )
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }
