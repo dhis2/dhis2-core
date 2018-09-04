@@ -55,6 +55,7 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -116,7 +117,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,24 +130,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -264,17 +247,11 @@ public abstract class AbstractEventService
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
+    private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
-
-    @PostConstruct
-    private void init()
-    {
-        defaults = manager.getDefaults();
-    }
 
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
@@ -286,27 +263,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, events );
 
             for ( Event event : _events )
             {
@@ -977,27 +934,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, events );
 
             for ( Event event : _events )
             {
@@ -1428,7 +1365,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
+            aoc = (DataElementCategoryOptionCombo) defaultObjectsCache.get( DataElementCategoryOptionCombo.class );
         }
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
@@ -1907,6 +1844,7 @@ public abstract class AbstractEventService
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
+        defaultObjectsCache.clear();
 
         dbmsManager.clearSession();
     }
@@ -2017,7 +1955,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
+            attrOptCombo = (DataElementCategoryOptionCombo) defaultObjectsCache.get( DataElementCategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )
@@ -2026,5 +1964,31 @@ public abstract class AbstractEventService
         }
 
         return attrOptCombo;
+    }
+
+    private void prepareCaches( User user, List<Event> events )
+    {
+        Collection<String> orgUnits = events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
+
+        if ( !orgUnits.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", orgUnits ) );
+            queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+        }
+
+        Collection<String> dataElements = new HashSet<>();
+        events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
+
+        if ( !dataElements.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", dataElements ) );
+            queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
+        }
+
+        defaultObjectsCache.put( DataElementCategoryOptionCombo.class, manager.getByName( DataElementCategoryOptionCombo.class , "default" ) );
     }
 }
