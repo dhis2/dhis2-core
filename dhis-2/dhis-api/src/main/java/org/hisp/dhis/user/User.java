@@ -769,10 +769,6 @@ public class User
             "\"languages\":\"" + languages + "\", " +
             "\"lastCheckedInterpretations\":\"" + lastCheckedInterpretations + "\", " +
             "\"userCredentials\":\"" + userCredentials + "\", " +
-            "\"groups\":\"" + groups + "\", " +
-            "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
-            "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }
 }
