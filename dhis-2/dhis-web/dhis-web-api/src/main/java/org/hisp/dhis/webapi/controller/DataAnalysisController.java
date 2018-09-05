@@ -110,7 +110,7 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
 public class DataAnalysisController
 {
-    public static final String RESOURCE_PATH = "/analysis";
+    public static final String RESOURCE_PATH = "/dataAnalysis";
 
     private static final Log log = LogFactory.getLog( DataAnalysisController.class );
 
@@ -174,14 +174,14 @@ public class DataAnalysisController
         I18nFormat format = i18nManager.getI18nFormat();
 
         ValidationRuleGroup group = null;
-        if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null )
+        if ( validationRulesAnalysisParams.getVrg() != null )
         {
             group = validationRuleService
-                .getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
+                .getValidationRuleGroup( validationRulesAnalysisParams.getVrg() );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( validationRulesAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( validationRulesAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -254,7 +254,7 @@ public class DataAnalysisController
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( stdDevOutlierAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( stdDevOutlierAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -266,7 +266,7 @@ public class DataAnalysisController
 
         Set<DataElement> dataElements = new HashSet<>();
 
-        for ( String uid : stdDevOutlierAnalysisParams.getDataSetIds() )
+        for ( String uid : stdDevOutlierAnalysisParams.getDs() )
         {
             dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
         }
@@ -303,7 +303,7 @@ public class DataAnalysisController
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( params.getOrganisationUnitId() );
+            .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -315,9 +315,9 @@ public class DataAnalysisController
 
         Set<DataElement> dataElements = new HashSet<>();
 
-        if ( params.getDataSetIds() != null )
+        if ( params.getDs() != null )
         {
-            for ( String uid : params.getDataSetIds() )
+            for ( String uid : params.getDs() )
             {
                 dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
             }
