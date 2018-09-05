@@ -505,7 +505,7 @@ public class DataValidationTask
             {
                 value = Double.parseDouble( valueString );
             }
-            catch ( NumberFormatException e )
+            catch ( NumberFormatException | NullPointerException e )
             {
                 continue;
             }
