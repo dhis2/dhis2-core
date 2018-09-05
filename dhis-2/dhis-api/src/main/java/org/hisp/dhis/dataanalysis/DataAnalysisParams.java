@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public class StdDevOutlierAnalysisParams
+public class DataAnalysisParams
 {
     private String startDate;
 
@@ -44,11 +44,11 @@ public class StdDevOutlierAnalysisParams
 
     private String organisationUnitId;
 
-    public StdDevOutlierAnalysisParams()
+    public DataAnalysisParams()
     {
     }
 
-    public StdDevOutlierAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
+    public DataAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
         Double standardDeviation, String organisationUnitId )
     {
         this.startDate = startDate;
