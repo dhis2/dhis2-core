@@ -50,11 +50,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -65,7 +68,7 @@ import java.util.Date;
 /**
  * @author Halvdan Hoem Grelland
  */
-@Controller
+@RestController
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
@@ -81,15 +84,12 @@ public class FileResourceController
     @Autowired
     private FileResourceService fileResourceService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
     // -------------------------------------------------------------------------
     // Controller methods
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    public @ResponseBody FileResource getFileResource( @PathVariable String uid )
+    @GetMapping( value = "/{uid}" )
+    public FileResource getFileResource( @PathVariable String uid )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -102,11 +102,24 @@ public class FileResourceController
         return fileResource;
     }
 
-    @RequestMapping( method = RequestMethod.POST )
-    public @ResponseBody WebMessage saveFileResource( @RequestParam MultipartFile file )
+    @PostMapping
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
+    public WebMessage saveFileResource( @RequestParam MultipartFile file )
         throws WebMessageException, IOException
     {
-        String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
+        return saveAnyFileResource( file, FileResourceDomain.DATA_VALUE );
+    }
+
+    @PostMapping
+    @ApiVersion( exclude = { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
+    public WebMessage saveAnyFileResource(
+        @RequestParam MultipartFile file,
+        @RequestParam FileResourceDomain domain
+    )
+        throws WebMessageException, IOException
+    {
+        String filename = StringUtils
+            .defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
 
         String contentType = file.getContentType();
         contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
@@ -122,10 +135,7 @@ public class FileResourceController
 
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
-        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, FileResourceDomain.DATA_VALUE );
-        fileResource.setAssigned( false );
-        fileResource.setCreated( new Date() );
-        fileResource.setUser( currentUserService.getCurrentUser() );
+        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
         File tmpFile = FileResourceUtils.toTempFile( file );
 
@@ -157,7 +167,8 @@ public class FileResourceController
         }
 
         @Override
-        public InputStream openStream() throws IOException
+        public InputStream openStream()
+            throws IOException
         {
             try
             {
