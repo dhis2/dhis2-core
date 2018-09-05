@@ -113,12 +113,6 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        if ( !checkSharing( fileResource ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.unathorized( "You don't have access to fileResource '" + uid + "'." ) );
-        }
-
         return fileResource;
     }
 
