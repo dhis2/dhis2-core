@@ -73,6 +73,8 @@ public class ImportOptions
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
+    
+    private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
 
@@ -118,6 +120,7 @@ public class ImportOptions
         options.skipNotifications = this.skipNotifications;
         options.datasetAllowsPeriods = this.datasetAllowsPeriods;
         options.strictPeriods = this.strictPeriods;
+        options.strictDataElements = this.strictDataElements;
         options.strictCategoryOptionCombos = this.strictCategoryOptionCombos;
         options.strictAttributeOptionCombos = this.strictAttributeOptionCombos;
         options.strictOrganisationUnits = this.strictOrganisationUnits;
@@ -270,6 +273,13 @@ public class ImportOptions
     public boolean isStrictPeriods()
     {
         return strictPeriods;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStrictDataElements()
+    {
+        return strictDataElements;
     }
 
     @JsonProperty
@@ -457,6 +467,12 @@ public class ImportOptions
         this.strictPeriods = strictPeriods;
         return this;
     }
+    
+    public ImportOptions setStrictDataElements( boolean strictDataElements )
+    {
+        this.strictDataElements = strictDataElements;
+        return this;
+    }
 
     public ImportOptions setStrictCategoryOptionCombos( boolean strictCategoryOptionCombos )
     {
@@ -521,6 +537,7 @@ public class ImportOptions
             .add( "skipNotifications", skipNotifications )
             .add( "datasetAllowsPeriods", datasetAllowsPeriods )
             .add( "strictPeriods", strictPeriods )
+            .add( "strictDataElements", strictDataElements )
             .add( "strictCategoryOptionCombos", strictCategoryOptionCombos )
             .add( "strictAttributeOptionCombos", strictAttributeOptionCombos )
             .add( "strictOrganisationUnits", strictOrganisationUnits )
