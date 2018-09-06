@@ -31,23 +31,21 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dataanalysis.FollowupParams;
-import org.hisp.dhis.dataanalysis.DataAnalysisParams;
-import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
-import org.hisp.dhis.webapi.webdomain.ValidationResultView;
-import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
-import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
-import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisService;
+import org.hisp.dhis.dataanalysis.FollowupParams;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
 import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
+import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
+import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -76,6 +74,7 @@ import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -344,7 +343,7 @@ public class DataAnalysisController
     @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody FollowupAnalysisParams params,
+    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
         HttpSession session )
         throws WebMessageException
     {
@@ -353,24 +352,29 @@ public class DataAnalysisController
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( params.getOrganisationUnitId() );
+            .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        Date startDate = null;
-        Date endDate = null;
+        Collection<Period> periods = periodService
+            .getPeriodsBetweenDates( format.parseDate( params.getStartDate() ),
+                format.parseDate( params.getEndDate() ) );
 
-        if ( params.getStartDate() != null && params.getEndDate() != null )
+        Set<DataElement> dataElements = new HashSet<>();
+
+        if ( params.getDs() != null )
         {
-            startDate = new DateTime( format.parseDate( params.getStartDate() ) ).toDate();
-            endDate = new DateTime( format.parseDate( params.getEndDate() ) ).toDate();
+            for ( String uid : params.getDs() )
+            {
+                dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
+            }
         }
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
-            .getFollowupDataValuesBetweenInterval( organisationUnit, params.getDataSetId(),
-                DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
+            .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
+                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
