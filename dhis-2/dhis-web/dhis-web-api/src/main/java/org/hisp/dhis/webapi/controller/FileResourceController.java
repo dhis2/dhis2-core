@@ -114,7 +114,7 @@ public class FileResourceController
     @ApiVersion( exclude = { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     public WebMessage saveAnyFileResource(
         @RequestParam MultipartFile file,
-        @RequestParam FileResourceDomain domain
+        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain
     )
         throws WebMessageException, IOException
     {
