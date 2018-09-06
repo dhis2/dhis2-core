@@ -79,6 +79,11 @@ public class ProgramRuleEngine
         
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+        if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
+        {
+            return ruleEffects;
+        }
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
@@ -115,6 +120,11 @@ public class ProgramRuleEngine
         ProgramInstance enrollment = programStageInstance.getProgramInstance();
 
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
+
+        if ( implementableProgramRules.isEmpty() )
+        {
+            return ruleEffects;
+        }
 
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
