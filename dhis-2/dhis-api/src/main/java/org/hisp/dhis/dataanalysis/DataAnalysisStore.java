@@ -30,6 +30,7 @@ package org.hisp.dhis.dataanalysis;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -91,14 +92,12 @@ public interface DataAnalysisStore
      * Returns a collection of DeflatedDataValues which are marked for followup and
      * whose source OrganisationUnit is equal or subordinate to the given OrganisationUnit.
      *
-     * @param dataElements         the data elements.
-     * @param categoryOptionCombos the category option combos.
+     * @param dataSets             the data sets.
      * @param periods              the periods.
-     * @param parents              the parent OrganisationUnit units.
-     * @param limit            the maximum number of DeflatedDataValues to return.
+     * @param organisationUnit     the parent OrganisationUnit unit.
+     * @param limit                the maximum number of DeflatedDataValues to return.
      * @return a list of DeflatedDataValues.
      */
-    List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
-        Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
-        Collection<OrganisationUnit> parents, int limit );
+    List<DeflatedDataValue> getFollowupDataValues( Collection<DataSet> dataSets, Collection<Period> periods,
+        OrganisationUnit organisationUnit, int limit );
 }

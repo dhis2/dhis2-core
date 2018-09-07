@@ -42,6 +42,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
+import org.hisp.dhis.system.objectmapper.DeflatedDataValueRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -256,47 +257,35 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
-        Collection<CategoryOptionCombo> categoryOptionCombos,
-        Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( Collection<DataSet> dataSets, Collection<Period> periods,
+        OrganisationUnit organisationUnit, int limit )
     {
 
-        if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
+        if ( dataSets.isEmpty() || periods.isEmpty() || organisationUnit == null )
         {
             return new ArrayList<>();
         }
 
-        String dataElementIds = getCommaDelimitedString( getIdentifiers( dataElements ) );
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
-        String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
+        String dataSetIds = getCommaDelimitedString( getIdentifiers( dataSets ) );
 
         String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
-                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-                "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, " +
+                "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, de.name AS dataelementname, " +
+                "pe.startdate, pe.enddate, pt.name AS periodtypename, ou.name AS sourcename, cc.name AS categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
                 "from datavalue dv " +
                 "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
                 "join dataelement de on dv.dataelementid = de.dataelementid " +
+                "join datasetelement dse on dse.dataelementid = de.dataelementid " +
                 "join period pe on dv.periodid = pe.periodid " +
                 "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "where dv.dataelementid in (" + dataElementIds + ") " +
-                "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
+                "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
+                "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " +
+                "where ou.path like '%" + organisationUnit.getUid() + "%' " +
                 "and dv.periodid in (" + periodIds + ") " +
-                "and ( " +
-                "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " +
-                "and (";
-
-
-        for ( OrganisationUnit parent : parents )
-        {
-            sql += "ou.path like '" + parent.getPath() + "%' or ";
-        }
-
-        sql = TextUtils.removeLastOr( sql ) + ") ";
-        sql += "and dv.followup = true and dv.deleted is false ";
+                "and dse.datasetid in (" + dataSetIds + ") " +
+                "and dv.followup = true " +
+                "and dv.deleted is false";
 
         sql += statementBuilder.limitRecord( 0, limit );
 

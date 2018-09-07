@@ -30,11 +30,10 @@ package org.hisp.dhis.dataanalysis;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -42,9 +41,7 @@ import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -54,7 +51,8 @@ public class DefaultFollowupAnalysisService
 {
     private static final Log log = LogFactory.getLog( DefaultFollowupAnalysisService.class );
 
-    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter( ValueType.NUMERIC_TYPES );
+    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter(
+        ValueType.NUMERIC_TYPES );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -72,27 +70,17 @@ public class DefaultFollowupAnalysisService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit,
+        Collection<DataSet> dataSets, Collection<Period> periods, int limit )
     {
-        if ( parents == null || parents.size() == 0 || limit < 1 )
+        if ( organisationUnit == null || limit < 1 )
         {
             return new ArrayList<>();
         }
 
-        Set<DataElement> elements = new HashSet<>( dataElements );
+        log.debug( "Starting followup analysis, no of data sets: " + dataSets.size() + ", for parent org unit: " +
+            organisationUnit.getUid() );
 
-        FilterUtils.filter( elements, DE_NUMERIC_FILTER );
-
-        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-        for ( DataElement dataElement : elements )
-        {
-            categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
-        }
-
-        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
-
-        return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
+        return dataAnalysisStore.getFollowupDataValues( dataSets, periods, organisationUnit, limit );
     }
 }
