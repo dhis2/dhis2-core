@@ -42,7 +42,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
-import org.hisp.dhis.system.objectmapper.DeflatedDataValueRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -261,7 +260,8 @@ public class JdbcDataAnalysisStore
         OrganisationUnit organisationUnit, int limit )
     {
 
-        if ( dataSets.isEmpty() || periods.isEmpty() || organisationUnit == null )
+        if ( dataSets == null || dataSets.isEmpty() || periods == null || periods.isEmpty() ||
+            organisationUnit == null )
         {
             return new ArrayList<>();
         }
@@ -286,6 +286,9 @@ public class JdbcDataAnalysisStore
                 "and dse.datasetid in (" + dataSetIds + ") " +
                 "and dv.followup = true " +
                 "and dv.deleted is false";
+
+        sql = TextUtils.removeLastOr( sql ) + ") ";
+        sql += "and dv.followup = true and dv.deleted is false ";
 
         sql += statementBuilder.limitRecord( 0, limit );
 

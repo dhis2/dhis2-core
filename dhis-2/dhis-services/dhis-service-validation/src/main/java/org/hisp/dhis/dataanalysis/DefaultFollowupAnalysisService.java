@@ -30,14 +30,10 @@ package org.hisp.dhis.dataanalysis;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,9 +46,6 @@ public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
     private static final Log log = LogFactory.getLog( DefaultFollowupAnalysisService.class );
-
-    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter(
-        ValueType.NUMERIC_TYPES );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -73,7 +66,7 @@ public class DefaultFollowupAnalysisService
     public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit,
         Collection<DataSet> dataSets, Collection<Period> periods, int limit )
     {
-        if ( organisationUnit == null || limit < 1 )
+        if ( organisationUnit == null || dataSets == null || dataSets.isEmpty() && limit < 1 )
         {
             return new ArrayList<>();
         }

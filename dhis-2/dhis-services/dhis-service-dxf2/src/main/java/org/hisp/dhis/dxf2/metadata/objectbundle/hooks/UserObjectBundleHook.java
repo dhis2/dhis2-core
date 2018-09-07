@@ -32,6 +32,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -53,6 +55,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
@@ -97,6 +102,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
         }
 
+        if ( user.getAvatar() != null )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+        }
+
         preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );
@@ -110,6 +122,19 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( !User.class.isInstance( object ) || ((User) object).getUserCredentials() == null ) return;
         User user = (User) object;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
+
+        User persisted = (User) persistedObject;
+
+        if ( persisted.getAvatar() != null && !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() ) )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
+            fileResource.setAssigned( false );
+            fileResourceService.updateFileResource( fileResource );
+
+            fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+        }
     }
 
     @Override
