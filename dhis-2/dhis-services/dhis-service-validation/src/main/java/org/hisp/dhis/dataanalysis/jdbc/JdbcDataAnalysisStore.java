@@ -274,7 +274,7 @@ public class JdbcDataAnalysisStore
                 "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, de.name AS dataelementname, " +
                 "pe.startdate, pe.enddate, pt.name AS periodtypename, ou.name AS sourcename, cc.name AS categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
                 "from datavalue dv " +
-                "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
+                "left join minmaxdataelement mm on (dv.sourceid = mm.sourceid and dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
                 "join dataelement de on dv.dataelementid = de.dataelementid " +
                 "join datasetelement dse on dse.dataelementid = de.dataelementid " +
                 "join period pe on dv.periodid = pe.periodid " +
@@ -287,11 +287,8 @@ public class JdbcDataAnalysisStore
                 "and dv.followup = true " +
                 "and dv.deleted is false";
 
-        sql = TextUtils.removeLastOr( sql ) + ") ";
-        sql += "and dv.followup = true and dv.deleted is false ";
-
         sql += statementBuilder.limitRecord( 0, limit );
 
-        return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( null, null ) );
+        return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );
     }
 }
