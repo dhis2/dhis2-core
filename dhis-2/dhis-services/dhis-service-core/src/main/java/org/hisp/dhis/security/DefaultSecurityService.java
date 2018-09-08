@@ -87,7 +87,6 @@ public class DefaultSecurityService
     private static final int INVITED_USER_PASSWORD_LENGTH = 40;
 
     private static final int RESTORE_TOKEN_LENGTH = 50;
-    private static final int RESTORE_CODE_LENGTH = 15;
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
 
@@ -307,7 +306,6 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", result[0] );
-        vars.put( "code", result[1] );
         vars.put( "username", credentials.getUsername() );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
@@ -327,17 +325,14 @@ public class DefaultSecurityService
         VelocityManager vm = new VelocityManager();
 
         String text1 = vm.render( vars, restoreType.getEmailTemplate() + "1" );
-        String text2 = vm.render( vars, restoreType.getEmailTemplate() + "2" );
 
-        String subject1 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 1 / 2)";
-        String subject2 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath + " (" + i18n.getString( "message" ).toLowerCase() + " 2 / 2)";
+        String subject1 = i18n.getString( restoreType.getEmailSubject() ) + " " + rootPath;
 
         // -------------------------------------------------------------------------
         // Send emails
         // -------------------------------------------------------------------------
 
         emailMessageSender.sendMessage( subject1, text1, null, null, users, true );
-        emailMessageSender.sendMessage( subject2, text2, null, null, users, true );
 
         return true;
     }
@@ -346,22 +341,19 @@ public class DefaultSecurityService
     public String[] initRestore( UserCredentials credentials, RestoreOptions restoreOptions )
     {
         String token = restoreOptions.getTokenPrefix() + CodeGenerator.generateCode( RESTORE_TOKEN_LENGTH );
-        String code = CodeGenerator.generateCode( RESTORE_CODE_LENGTH );
 
         String hashedToken = passwordManager.encode( token );
-        String hashedCode = passwordManager.encode( code );
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
         Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() ).time();
 
         credentials.setRestoreToken( hashedToken );
-        credentials.setRestoreCode( hashedCode );
         credentials.setRestoreExpiry( expiry );
 
         userService.updateUserCredentials( credentials );
 
-        return new String[]{ token, code };
+        return new String[]{ token };
     }
 
     @Override
@@ -371,15 +363,14 @@ public class DefaultSecurityService
     }
 
     @Override
-    public boolean restore( UserCredentials credentials, String token, String code, String newPassword, RestoreType restoreType )
+    public boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType )
     {
-        if ( credentials == null || token == null || code == null || newPassword == null
-            || !canRestore( credentials, token, code, restoreType ) )
+        if ( credentials == null || token == null || newPassword == null
+            || !canRestore( credentials, token, restoreType ) )
         {
             return false;
         }
 
-        credentials.setRestoreCode( null );
         credentials.setRestoreToken( null );
         credentials.setRestoreExpiry( null );
         credentials.setInvitation( false );
@@ -391,11 +382,11 @@ public class DefaultSecurityService
     }
 
     @Override
-    public boolean canRestore( UserCredentials credentials, String token, String code, RestoreType restoreType )
+    public boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType )
     {
         String logPrefix = "Restore user: " + credentials.getUid() + ", username: " + credentials.getUsername() + " ";
 
-        String errorMessage = verifyRestore( credentials, token, code, restoreType );
+        String errorMessage = verifyRestore( credentials, token, restoreType );
 
         if ( errorMessage != null )
         {
@@ -414,11 +405,10 @@ public class DefaultSecurityService
      *
      * @param credentials the user credentials.
      * @param token       the user supplied token.
-     * @param code        the user supplied code.
      * @param restoreType the restore type.
      * @return null if restore is valid, a descriptive error string otherwise.
      */
-    private String verifyRestore( UserCredentials credentials, String token, String code, RestoreType restoreType )
+    private String verifyRestore( UserCredentials credentials, String token, RestoreType restoreType )
     {
         String errorMessage = credentials.isRestorable();
 
@@ -434,13 +424,6 @@ public class DefaultSecurityService
             return errorMessage;
         }
 
-        errorMessage = verifyRestoreCode( credentials.getRestoreCode(), code );
-
-        if ( errorMessage != null )
-        {
-            return errorMessage;
-        }
-
         Date currentTime = new DateTime().toDate();
         Date restoreExpiry = credentials.getRestoreExpiry();
 
@@ -450,31 +433,6 @@ public class DefaultSecurityService
         }
 
         return null; // Success;
-    }
-
-    /**
-     * Verifies a user supplied restore code against the stored restore code.
-     * If the code cannot be verified a descriptive error string is returned.
-     *
-     * @param restoreCode the restore code to verify against.
-     * @param code        the user supplied code to verify.
-     * @return null on success, a descriptive error string otherwise.
-     */
-    private String verifyRestoreCode( String restoreCode, String code )
-    {
-        if ( code == null )
-        {
-            return "code_parameter_is_null";
-        }
-
-        if ( restoreCode == null )
-        {
-            return "account_restore_code_is_null";
-        }
-
-        boolean validCode = passwordManager.matches( code, restoreCode );
-
-        return validCode ? null : "code_does_not_match_restoreCode - code: '" + code + "' restoreCode: '" + restoreCode + "'";
     }
 
     /**
