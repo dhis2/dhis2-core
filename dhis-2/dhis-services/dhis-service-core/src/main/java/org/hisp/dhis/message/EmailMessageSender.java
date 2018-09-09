@@ -126,8 +126,8 @@ public class EmailMessageSender
         try
         {
             HtmlEmail email = getHtmlEmail( emailConfig.getHostName(), emailConfig.getPort(), emailConfig.getUsername(),
-                    emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
-            email.setSubject( customizeTitle( DEFAULT_SUBJECT_PREFIX ) + subject );
+                emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
+            email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( plainContent );
             email.setHtmlMsg( htmlContent );
 
@@ -207,8 +207,8 @@ public class EmailMessageSender
         try
         {
             HtmlEmail email = getHtmlEmail( emailConfig.getHostName(), emailConfig.getPort(), emailConfig.getUsername(),
-                    emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
-            email.setSubject( customizeTitle( DEFAULT_SUBJECT_PREFIX ) + subject );
+                emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
+            email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( text );
 
             boolean hasRecipients = false;
@@ -351,6 +351,12 @@ public class EmailMessageSender
         return new VelocityManager().render( content, MESSAGE_EMAIL_TEMPLATE );
     }
 
+    private String getPrefixedSubject( String subject )
+    {
+        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE, DEFAULT_APPLICATION_TITLE );
+        return "[" + title + "] " + subject;
+    }
+    
     private String customizeTitle( String title )
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
