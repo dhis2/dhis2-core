@@ -55,6 +55,7 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,13 +68,8 @@ public class EmailMessageSender
     private static final Log log = LogFactory.getLog( EmailMessageSender.class );
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
-
     private static final String DEFAULT_FROM_NAME = DEFAULT_APPLICATION_TITLE + " Message [No reply]";
-
-    private static final String DEFAULT_SUBJECT_PREFIX = "[" + DEFAULT_APPLICATION_TITLE + "] ";
-
     private static final String LB = System.getProperty( "line.separator" );
-
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
 
     // -------------------------------------------------------------------------
@@ -287,8 +283,7 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
 
     private HtmlEmail getHtmlEmail( String hostName, int port, String username, String password, boolean tls,
-        String sender )
-        throws EmailException
+        String sender ) throws EmailException
     {
         HtmlEmail email = new HtmlEmail();
         email.setHostName( hostName );
@@ -316,7 +311,7 @@ public class EmailMessageSender
 
     private String renderHtmlContent( String text, String footer, User sender )
     {
-        HashMap<String, Object> content = new HashMap<>();
+        Map<String, Object> content = new HashMap<>();
 
         if ( !Strings.isNullOrEmpty( text ) )
         {
