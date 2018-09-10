@@ -31,8 +31,11 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -43,10 +46,13 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.omg.CORBA.Current;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeTypeUtils;
@@ -60,10 +66,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -77,9 +86,14 @@ public class FileResourceController
 
     private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
+    private final static Log log = LogFactory.getLog( FileResourceController.class );
+
     // ---------------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------------
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private FileResourceService fileResourceService;
@@ -102,6 +116,71 @@ public class FileResourceController
         return fileResource;
     }
 
+    @GetMapping( value = "/{uid}/data" )
+    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response )
+        throws WebMessageException
+    {
+        FileResource fileResource = fileResourceService.getFileResource( uid );
+
+        if ( fileResource == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
+        }
+
+        if ( !checkSharing( fileResource ) )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.unathorized( "You don't have access to fileResource '" + uid + "' or this fileResource is not available from this endpoint" ) );
+        }
+
+        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+
+        if ( content == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "The referenced file could not be found" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Attempt to build signed URL request for content and redirect
+        // ---------------------------------------------------------------------
+
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+
+        if ( signedGetUri != null )
+        {
+            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
+            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------
+        // Build response and return
+        // ---------------------------------------------------------------------
+
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        // ---------------------------------------------------------------------
+        // Request signing is not available, stream content back to client
+        // ---------------------------------------------------------------------
+
+        try (InputStream in = content.openStream())
+        {
+            IOUtils.copy( in, response.getOutputStream() );
+        }
+        catch ( IOException e )
+        {
+            log.error( "Could not retrieve file.", e );
+            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. " +
+                    "Depending on the provider the root cause could be network or file system related." ) );
+        }
+
+    }
+
     @PostMapping
     @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
     public WebMessage saveFileResource( @RequestParam MultipartFile file )
@@ -114,7 +193,7 @@ public class FileResourceController
     @ApiVersion( exclude = { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     public WebMessage saveAnyFileResource(
         @RequestParam MultipartFile file,
-        @RequestParam FileResourceDomain domain
+        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain
     )
         throws WebMessageException, IOException
     {
@@ -150,6 +229,32 @@ public class FileResourceController
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
 
         return webMessage;
+    }
+
+    /**
+     * Checks is the current user has access to view the fileResource.
+     * @param fileResource
+     * @return true if user has access, false if not.
+     */
+    private boolean checkSharing( FileResource fileResource )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        /* Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint doesn't make sense
+         * So we will return false if the fileResource have either of these domains.
+         */
+
+        if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )
+        {
+            return currentUser.isAuthorized( "F_USER_VIEW" ) || currentUser.getAvatar().equals( fileResource );
+        }
+
+        if ( fileResource.getDomain().equals( FileResourceDomain.DOCUMENT ) )
+        {
+            return true;
+        }
+
+        return false;
     }
 
     // -------------------------------------------------------------------------

@@ -38,11 +38,11 @@ public class DataAnalysisParams
 
     private String endDate;
 
-    private List<String> dataSetIds;
+    private List<String> ds;
 
     private Double standardDeviation;
 
-    private String organisationUnitId;
+    private String ou;
 
     public DataAnalysisParams()
     {
@@ -53,9 +53,9 @@ public class DataAnalysisParams
     {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.dataSetIds = dataSetIds;
+        this.ds = dataSetIds;
         this.standardDeviation = standardDeviation;
-        this.organisationUnitId = organisationUnitId;
+        this.ou = organisationUnitId;
     }
 
     @JsonProperty
@@ -81,14 +81,14 @@ public class DataAnalysisParams
     }
 
     @JsonProperty
-    public List<String> getDataSetIds()
+    public List<String> getDs()
     {
-        return dataSetIds;
+        return ds;
     }
 
-    public void setDataSetIds( List<String> dataSetIds )
+    public void setDs( List<String> ds )
     {
-        this.dataSetIds = dataSetIds;
+        this.ds = ds;
     }
 
     @JsonProperty
@@ -103,14 +103,14 @@ public class DataAnalysisParams
     }
 
     @JsonProperty
-    public String getOrganisationUnitId()
+    public String getOu()
     {
-        return organisationUnitId;
+        return ou;
     }
 
-    public void setOrganisationUnitId( String organisationUnitId )
+    public void setOu( String ou )
     {
-        this.organisationUnitId = organisationUnitId;
+        this.ou = ou;
     }
 
     @Override
@@ -119,9 +119,9 @@ public class DataAnalysisParams
         return "StdDevOutlierAnalysisParams{" +
             "startDate='" + startDate + '\'' +
             ", endDate='" + endDate + '\'' +
-            ", dataSetIds=" + dataSetIds +
+            ", ds=" + ds +
             ", standardDeviation=" + standardDeviation +
-            ", organisationUnitId='" + organisationUnitId + '\'' +
+            ", ou='" + ou + '\'' +
             '}';
     }
 }
