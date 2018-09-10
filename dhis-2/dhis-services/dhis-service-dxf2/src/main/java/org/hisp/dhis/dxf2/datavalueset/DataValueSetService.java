@@ -28,11 +28,11 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -51,7 +51,7 @@ public interface DataValueSetService
 {
     /**
      * Returns a data export object for the given parameters.
-     * 
+     *
      * @param dataSets data sets.
      * @param dataElementGroups the data element groups.
      * @param periods the periods.
@@ -68,19 +68,21 @@ public interface DataValueSetService
      * @param idSchemes the identifier schemes.
      * @return
      */
-    DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate, 
+    DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
         Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, Set<String> attributeOptionCombos,
         boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes );
-    
+
     void validate( DataExportParams params );
-    
+
     void decideAccess( DataExportParams params );
-    
+
     void writeDataValueSetXml( DataExportParams params, OutputStream out );
 
     void writeDataValueSetJson( DataExportParams params, OutputStream out );
 
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+
+    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page );
 
     void writeDataValueSetCsv( DataExportParams params, Writer writer );
 

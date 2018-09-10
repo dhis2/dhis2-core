@@ -66,7 +66,6 @@ public class DefaultDhisConfigurationProvider
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
-    private static final String CACHE_PROVIDER_MEMCACHED = "memcached";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -235,12 +234,6 @@ public class DefaultDhisConfigurationProvider
     public boolean isClusterEnabled()
     {        
         return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
-    }
-
-    @Override
-    public boolean isMemcachedCacheProviderEnabled()
-    {
-        return CACHE_PROVIDER_MEMCACHED.equals( getProperty( ConfigurationKey.CACHE_PROVIDER ) );
     }
 
     @Override

@@ -48,6 +48,13 @@ public interface PartitionManager
     Set<String> getEventAnalyticsPartitions();
     
     /**
+     * Indicates whether the given analytics table exists.
+     * 
+     * @param table the analytics table name.
+     */
+    boolean tableExists( String table );
+    
+    /**
      * Clears the partition name caches.
      */
     void clearCaches();

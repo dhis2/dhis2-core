@@ -301,6 +301,8 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" ) );
         columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" ) );
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "created" ), "timestamp", "psi.created" ) );
+        columns.add( new AnalyticsTableColumn( quote( "lastupdated" ), "timestamp", "psi.lastupdated" ) );
         columns.add( new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "psi.geometry", false, "gist" ) );
