@@ -28,7 +28,7 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -41,6 +41,6 @@ import java.util.List;
  */
 public interface FollowupAnalysisService
 {
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit,
+        Collection<DataSet> dataSets, Collection<Period> periods, int limit );
 }

@@ -49,6 +49,7 @@ import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -362,18 +363,18 @@ public class DataAnalysisController
             .getPeriodsBetweenDates( format.parseDate( params.getStartDate() ),
                 format.parseDate( params.getEndDate() ) );
 
-        Set<DataElement> dataElements = new HashSet<>();
+        Set<DataSet> dataSets = new HashSet<>();
 
         if ( params.getDs() != null )
         {
             for ( String uid : params.getDs() )
             {
-                dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
+                dataSets.add( dataSetService.getDataSet( uid ) );
             }
         }
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
-            .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
+            .getFollowupDataValues( organisationUnit, dataSets,
                 periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
