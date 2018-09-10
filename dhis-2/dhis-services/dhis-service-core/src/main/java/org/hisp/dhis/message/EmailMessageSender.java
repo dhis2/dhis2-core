@@ -54,11 +54,13 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -94,26 +96,19 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
-
-    /**
-     * Note this methods is invoked asynchronously.
-     */
-    @Async
+    
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
-        boolean forceSend )
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
@@ -140,16 +135,13 @@ public class EmailMessageSender
                     if ( isEmailValid( user.getEmail() ) )
                     {
                         email.addBcc( user.getEmail() );
-
-                        log.info( "Sending email to user: " + user.getUsername() + " with email address: "
-                            + user.getEmail() + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
-
                         hasRecipients = true;
+
+                        log.info( "Sending email to user: " + user.getUsername() + " with email address: " + user.getEmail() );
                     }
                     else
                     {
                         log.warn( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
-
                         errorMessage = "No valid email address found";
                     }
                 }
@@ -160,7 +152,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 status = new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -171,27 +162,32 @@ public class EmailMessageSender
         catch ( Exception ex )
         {
             log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
+    @Async
+    @Override
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    {
+        OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
+        return new AsyncResult<OutboundMessageResponse>( response );
+    }
+    
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
@@ -209,15 +205,13 @@ public class EmailMessageSender
                 if ( isEmailValid( recipient ) )
                 {
                     email.addBcc( recipient );
-
                     hasRecipients = true;
 
-                    log.info( "Sending email to : " + recipient + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
+                    log.info( "Sending email to : " + recipient );
                 }
                 else
                 {
                     log.warn( recipient + " is not a valid email" );
-
                     errorMessage = "No valid email address found";
                 }
             }
@@ -227,7 +221,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 return new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -238,7 +231,6 @@ public class EmailMessageSender
         catch ( Exception ex )
         {
             log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 

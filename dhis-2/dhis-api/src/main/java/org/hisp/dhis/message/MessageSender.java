@@ -34,6 +34,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
 
 import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -46,13 +47,13 @@ public interface MessageSender
      * 
      * @param subject the message subject.
      * @param text the message text.
-     * @param footer the message footer. Optionally included by the
-     *        implementation.
+     * @param footer the message footer. Optionally included by the implementation.
      * @param users the users to send the message to.
-     * @param forceSend force sending the message despite potential user
-     *        settings.
+     * @param forceSend force sending the message despite user settings.
      */
     OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
+    
+    Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
 
     OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient );
 
