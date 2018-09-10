@@ -430,12 +430,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public boolean emailNotificationsEnabled()
-    {
-        return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
-    }
-
-    @Override
     public boolean emailConfigured()
     {
         return StringUtils.isNotBlank( getEmailHostName() )
