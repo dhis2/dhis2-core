@@ -147,7 +147,7 @@ public class EmailMessageSender
                     }
                     else
                     {
-                        log.error( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
+                        log.warn( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
 
                         errorMessage = "No valid email address found";
                     }
@@ -167,15 +167,9 @@ public class EmailMessageSender
                 status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
-        catch ( EmailException ex )
+        catch ( Exception ex )
         {
-            log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
-            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
-        }
-        catch ( RuntimeException ex )
-        {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
+            log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
@@ -221,7 +215,7 @@ public class EmailMessageSender
                 }
                 else
                 {
-                    log.error( recipient + " is not a valid email" );
+                    log.warn( recipient + " is not a valid email" );
 
                     errorMessage = "No valid email address found";
                 }
@@ -240,15 +234,9 @@ public class EmailMessageSender
                 status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
-        catch ( EmailException ex )
+        catch ( Exception ex )
         {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
-            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
-        }
-        catch ( RuntimeException ex )
-        {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
+            log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
