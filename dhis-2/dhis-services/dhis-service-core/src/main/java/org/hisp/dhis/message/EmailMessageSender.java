@@ -38,6 +38,7 @@ import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,6 +52,7 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.HashMap;
@@ -68,7 +70,6 @@ public class EmailMessageSender
     private static final Log log = LogFactory.getLog( EmailMessageSender.class );
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
-    private static final String DEFAULT_FROM_NAME = DEFAULT_APPLICATION_TITLE + " Message [No reply]";
     private static final String LB = System.getProperty( "line.separator" );
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
 
@@ -275,10 +276,10 @@ public class EmailMessageSender
     {
         HtmlEmail email = new HtmlEmail();
         email.setHostName( hostName );
-        email.setFrom( sender, customizeTitle( DEFAULT_FROM_NAME ) );
+        email.setFrom( sender, getEmailName() );
         email.setSmtpPort( port );
         email.setStartTLSEnabled( tls );
-
+        
         if ( username != null && password != null )
         {
             email.setAuthenticator( new DefaultAuthenticator( username, password ) );
@@ -340,16 +341,16 @@ public class EmailMessageSender
         return "[" + title + "] " + subject;
     }
     
-    private String customizeTitle( String title )
+    private String getEmailName()
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-
-        if ( appTitle != null && !appTitle.isEmpty() )
-        {
-            title = title.replace( DEFAULT_APPLICATION_TITLE, appTitle );
-        }
-
-        return title;
+        appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ), DEFAULT_APPLICATION_TITLE );
+        return appTitle + " message [No reply]";
+    }
+    
+    private String emailNameEncode( String name )
+    {
+        return name != null ? TextUtils.removeNewlines( name ) : null;
     }
 
     private boolean isEmailValid( String email )
