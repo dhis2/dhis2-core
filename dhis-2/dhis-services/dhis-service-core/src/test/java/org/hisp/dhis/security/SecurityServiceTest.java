@@ -128,13 +128,11 @@ public class SecurityServiceTest
     {
         String[] result = securityService.initRestore( credentials, RestoreOptions.RECOVER_PASSWORD_OPTION );
 
-        assertEquals( 2, result.length );
+        assertEquals( 1, result.length );
 
         String token = result[0];
-        String code = result[1];
 
         assertNotNull( token );
-        assertNotNull( code );
         assertNotNull( credentials.getRestoreToken() );
         assertNotNull( credentials.getRestoreExpiry() );
 
@@ -171,11 +169,14 @@ public class SecurityServiceTest
         //
         String password = "NewPassword1";
 
-        assertFalse( securityService.restore( otherCredentials, token, password, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( securityService.restore( otherCredentials, token, password, RestoreType.INVITE ) );
 
-        assertFalse( securityService.restore( credentials, "wrongToken", password, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( securityService.restore( credentials, "wrongToken", password, RestoreType.INVITE ) );
 
         assertFalse( securityService.restore( credentials, token, password, RestoreType.INVITE ) );
+
+        assertTrue( securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD ) );
+
 
 
         //
@@ -190,13 +191,11 @@ public class SecurityServiceTest
     {
         String[] result = securityService.initRestore( credentials, RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
 
-        assertEquals( 2, result.length );
+        assertEquals( 1, result.length );
 
         String token = result[0];
-        String code = result[1];
 
         assertNotNull( token );
-        assertNotNull( code );
         assertNotNull( credentials.getRestoreToken() );
         assertNotNull( credentials.getRestoreExpiry() );
 
@@ -253,7 +252,7 @@ public class SecurityServiceTest
     {
         String[] result = securityService.initRestore( credentials, RestoreOptions.INVITE_WITH_USERNAME_CHOICE );
 
-        assertEquals( 2, result.length );
+        assertEquals( 1, result.length );
 
         String token = result[0];
 

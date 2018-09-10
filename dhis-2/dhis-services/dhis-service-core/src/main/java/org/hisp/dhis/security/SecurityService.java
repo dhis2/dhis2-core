@@ -118,7 +118,7 @@ public interface SecurityService
     boolean sendRestoreMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken and restoreCode property of the given
+     * Populates the restoreToken property of the given
      * credentials with a hashed version of auto-generated values. Sets the
      * restoreExpiry property with a date time some interval from now depending
      * on the restore type. Changes are persisted.
