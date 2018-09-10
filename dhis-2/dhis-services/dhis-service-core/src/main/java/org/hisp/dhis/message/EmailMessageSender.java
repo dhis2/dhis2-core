@@ -54,11 +54,13 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -94,14 +96,9 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
-
-    /**
-     * Note this methods is invoked asynchronously.
-     */
-    @Async
+    
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
-        boolean forceSend )
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
         OutboundMessageResponse status = new OutboundMessageResponse();
@@ -171,6 +168,14 @@ public class EmailMessageSender
         return status;
     }
 
+    @Async
+    @Override
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    {
+        OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
+        return new AsyncResult<OutboundMessageResponse>( response );
+    }
+    
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {

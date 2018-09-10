@@ -442,7 +442,7 @@ public class DefaultMessageService
         {
             log.debug( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 
-            messageSender.sendMessage( subject, text, footer, sender, new HashSet<>( users ), forceSend );
+            messageSender.sendMessageAsync( subject, text, footer, sender, new HashSet<>( users ), forceSend );
         }
     }
 
