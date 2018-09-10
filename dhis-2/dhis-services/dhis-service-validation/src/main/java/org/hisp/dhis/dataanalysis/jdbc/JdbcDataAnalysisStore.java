@@ -275,7 +275,7 @@ public class JdbcDataAnalysisStore
                 "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
                 "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
                 "from datavalue dv " +
-                "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
+                "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
                 "join dataelement de on dv.dataelementid = de.dataelementid " +
                 "join period pe on dv.periodid = pe.periodid " +
                 "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
@@ -284,9 +284,6 @@ public class JdbcDataAnalysisStore
                 "where dv.dataelementid in (" + dataElementIds + ") " +
                 "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
                 "and dv.periodid in (" + periodIds + ") " +
-                "and ( " +
-                "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " +
                 "and (";
 
 
