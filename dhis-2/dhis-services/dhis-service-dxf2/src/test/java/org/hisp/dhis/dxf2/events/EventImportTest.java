@@ -1,5 +1,14 @@
 package org.hisp.dhis.dxf2.events;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.HashSet;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -31,15 +40,10 @@ package org.hisp.dhis.dxf2.events;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -60,18 +64,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -101,14 +95,6 @@ public class EventImportTest extends DhisSpringTest
 
     @Autowired
     private UserService _userService;
-
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
-
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
-
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
-
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -146,20 +132,11 @@ public class EventImportTest extends DhisSpringTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( 'B', organisationUnitB );
-        femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
-        femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', organisationUnitA );
 
         maleA.setTrackedEntityType( trackedEntityType );
-        maleB.setTrackedEntityType( trackedEntityType );
-        femaleA.setTrackedEntityType( trackedEntityType );
-        femaleB.setTrackedEntityType( trackedEntityType );
 
         manager.save( maleA );
-        manager.save( maleB );
-        manager.save( femaleA );
-        manager.save( femaleB );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
