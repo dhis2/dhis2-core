@@ -113,7 +113,6 @@ public class EmailMessageSender
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
@@ -160,7 +159,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 status = new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -227,7 +225,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 return new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -238,7 +235,6 @@ public class EmailMessageSender
         catch ( Exception ex )
         {
             log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
