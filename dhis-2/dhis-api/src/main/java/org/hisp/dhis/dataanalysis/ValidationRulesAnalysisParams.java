@@ -32,9 +32,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ValidationRulesAnalysisParams
 {
-    private String validationRuleGroupId;
+    private String vrg;
 
-    private String organisationUnitId;
+    private String ou;
 
     private String startDate;
 
@@ -51,8 +51,8 @@ public class ValidationRulesAnalysisParams
     public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate,
         String endDate, boolean persist, boolean notification )
     {
-        this.validationRuleGroupId = validationRuleGroupId;
-        this.organisationUnitId = organisationUnitId;
+        this.vrg = validationRuleGroupId;
+        this.ou = organisationUnitId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.persist = persist;
@@ -60,25 +60,25 @@ public class ValidationRulesAnalysisParams
     }
 
     @JsonProperty
-    public String getValidationRuleGroupId()
+    public String getVrg()
     {
-        return validationRuleGroupId;
+        return vrg;
     }
 
-    public void setValidationRuleGroupId( String validationRuleGroupId )
+    public void setVrg( String vrg )
     {
-        this.validationRuleGroupId = validationRuleGroupId;
+        this.vrg = vrg;
     }
 
     @JsonProperty
-    public String getOrganisationUnitId()
+    public String getOu()
     {
-        return organisationUnitId;
+        return ou;
     }
 
-    public void setOrganisationUnitId( String organisationUnitId )
+    public void setOu( String ou )
     {
-        this.organisationUnitId = organisationUnitId;
+        this.ou = ou;
     }
 
     @JsonProperty
@@ -129,8 +129,8 @@ public class ValidationRulesAnalysisParams
     public String toString()
     {
         return "ValidationRulesAnalysisParams{" +
-            "validationRuleGroupId='" + validationRuleGroupId + '\'' +
-            ", organisationUnitId='" + organisationUnitId + '\'' +
+            "validationRuleGroupId='" + vrg + '\'' +
+            ", organisationUnitId='" + ou + '\'' +
             ", startDate='" + startDate + '\'' +
             ", endDate='" + endDate + '\'' +
             ", persist=" + persist +
