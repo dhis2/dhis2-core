@@ -104,10 +104,9 @@ public class EmailMessageSender
         boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
@@ -139,16 +138,13 @@ public class EmailMessageSender
                     if ( isEmailValid( user.getEmail() ) )
                     {
                         email.addBcc( user.getEmail() );
-
-                        log.info( "Sending email to user: " + user.getUsername() + " with email address: "
-                            + user.getEmail() + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
-
                         hasRecipients = true;
+
+                        log.info( "Sending email to user: " + user.getUsername() + " with email address: " + user.getEmail() );
                     }
                     else
                     {
                         log.warn( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
-
                         errorMessage = "No valid email address found";
                     }
                 }
@@ -169,7 +165,6 @@ public class EmailMessageSender
         catch ( Exception ex )
         {
             log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
@@ -180,16 +175,14 @@ public class EmailMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
@@ -207,15 +200,13 @@ public class EmailMessageSender
                 if ( isEmailValid( recipient ) )
                 {
                     email.addBcc( recipient );
-
                     hasRecipients = true;
 
-                    log.info( "Sending email to : " + recipient + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
+                    log.info( "Sending email to : " + recipient );
                 }
                 else
                 {
                     log.warn( recipient + " is not a valid email" );
-
                     errorMessage = "No valid email address found";
                 }
             }
