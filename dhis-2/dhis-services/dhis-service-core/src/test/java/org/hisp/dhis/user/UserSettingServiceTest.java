@@ -30,10 +30,13 @@ package org.hisp.dhis.user;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
+
+import java.util.Locale;
 
 /**
  * @author Kiran Prakash
@@ -43,6 +46,9 @@ public class UserSettingServiceTest
 {
     @Autowired
     private UserSettingService userSettingService;
+    
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private UserService userService;
@@ -109,4 +115,30 @@ public class UserSettingServiceTest
         
         assertEquals( 2, userSettingService.getUserSettings( userA ).size() );
     }
+
+    @Test
+    public void testFallbackToDefaultValue()
+    {
+        Boolean emailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA );
+        
+        assertEquals( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION.getDefaultValue(), emailNotification );
+        
+        userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, new Boolean( false ), userA );
+        
+        emailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA );
+
+        assertEquals( new Boolean( false ), emailNotification );        
+    }
+    
+    @Test
+    public void testFallbackToSystemSetting()
+    {
+        Locale expected = Locale.FRANCE;
+
+        systemSettingManager.saveSystemSetting( SettingKey.UI_LOCALE, expected );
+        
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, userA );
+        
+        assertEquals( expected, locale );
+    }    
 }

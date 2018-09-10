@@ -45,8 +45,22 @@
     <property name="interests" type="text" />
 
     <property name="languages" type="text" />
+    
+    <property name="welcomeMessage" type="text" />
 
     <property name="lastCheckedInterpretations" type="timestamp" />
+
+    <property name="whatsApp" />
+
+    <property name="skype" />
+
+    <property name="facebookMessenger" />
+
+    <property name="telegram" />
+
+    <property name="twitter" />
+
+    <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
 
     <one-to-one name="userCredentials" class="org.hisp.dhis.user.UserCredentials" foreign-key="fk_userinfo_userid" />
 

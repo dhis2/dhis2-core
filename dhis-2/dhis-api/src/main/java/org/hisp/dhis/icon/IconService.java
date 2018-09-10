@@ -28,6 +28,8 @@ package org.hisp.dhis.icon;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.core.io.Resource;
+
 import java.util.Collection;
 import java.util.Optional;
 
@@ -58,6 +60,14 @@ public interface IconService
      * @return icon data associated with the key if there is one
      */
     Optional<IconData> getIcon( String key );
+
+    /**
+     * Gets the icon with the correct key if one exists
+     *
+     * @param key key of the icon
+     * @return the icon resource
+     */
+    Optional<Resource> getIconResource( String key );
 
     /**
      * Gets a collection of all unique keywords assigned to icons

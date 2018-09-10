@@ -51,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
@@ -470,6 +471,10 @@ public class AnalyticsUtils
             {
                 value = ((Double) value).intValue();
             }
+            else if ( DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType() && ((ProgramIndicator) item).hasZeroDecimals() )
+            {
+                value = ((Double) value).intValue();
+            }
         }
         
         return value;        
@@ -736,5 +741,17 @@ public class AnalyticsUtils
         Set<String> matches = RegexUtils.getMatches( OU_LEVEL_PATTERN, dimensionName, 1 );
         
         return matches.size() == 1 ? Integer.valueOf( matches.iterator().next() ) : -1;
+    }
+
+    /**
+     * Indicates whether table layout is specified.
+     * 
+     * @param columns the list of column dimensions.
+     * @param rows the list of row dimensions.
+     * @return true or false.
+     */
+    public static boolean isTableLayout( List<String> columns, List<String> rows )
+    {
+        return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
     }
 }

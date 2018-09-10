@@ -1,11 +1,5 @@
 package org.hisp.dhis.program;
 
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,9 +28,14 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Date;
+import java.util.List;
+
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramStageInstanceService
 {

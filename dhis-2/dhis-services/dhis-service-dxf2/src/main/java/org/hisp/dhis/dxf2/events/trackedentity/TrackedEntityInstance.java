@@ -32,13 +32,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.system.util.DateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +69,7 @@ public class TrackedEntityInstance
     private List<Attribute> attributes = new ArrayList<>();
 
     private List<Enrollment> enrollments = new ArrayList<>();
-    
+
     private List<ProgramOwner> programOwners = new ArrayList<>();
 
     private Boolean inactive;
@@ -79,6 +79,8 @@ public class TrackedEntityInstance
     private FeatureType featureType = FeatureType.NONE;
 
     private String coordinates;
+
+    private Geometry geometry;
 
     public TrackedEntityInstance()
     {
@@ -228,7 +230,7 @@ public class TrackedEntityInstance
     {
         this.enrollments = enrollments;
     }
-    
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
@@ -292,6 +294,18 @@ public class TrackedEntityInstance
         this.coordinates = coordinates;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -318,18 +332,24 @@ public class TrackedEntityInstance
             relationships, attributes, enrollments, inactive );
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "TrackedEntityInstance{" +
             "trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", orgUnit='" + orgUnit + '\'' +
             ", created='" + created + '\'' +
+            ", lastUpdated='" + lastUpdated + '\'' +
+            ", createdAtClient='" + createdAtClient + '\'' +
+            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
             ", relationships=" + relationships +
             ", attributes=" + attributes +
+            ", enrollments=" + enrollments +
+            ", programOwners=" + programOwners +
             ", inactive=" + inactive +
             ", deleted=" + deleted +
+            ", featureType=" + featureType +
+            ", coordinates='" + coordinates + '\'' +
             '}';
     }
 }

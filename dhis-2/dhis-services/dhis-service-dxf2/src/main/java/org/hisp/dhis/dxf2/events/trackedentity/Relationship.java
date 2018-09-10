@@ -31,10 +31,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,7 +59,7 @@ public class Relationship
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelationshipType()
     {
         return relationshipType;
@@ -74,7 +71,7 @@ public class Relationship
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelationship()
     {
         return relationship;
@@ -86,7 +83,7 @@ public class Relationship
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RelationshipItem getFrom()
     {
         return from;
@@ -98,7 +95,7 @@ public class Relationship
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RelationshipItem getTo()
     {
         return to;
@@ -110,7 +107,7 @@ public class Relationship
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelationshipName()
     {
         return relationshipName;
@@ -154,8 +151,6 @@ public class Relationship
             ", relationship='" + relationship + '\'' +
             ", from=" + from +
             ", to=" + to +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
             '}';
     }
 }

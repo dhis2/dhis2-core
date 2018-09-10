@@ -47,9 +47,22 @@ public class TokenUtils
     public static StringBuilder createRegex( String value )
     {
         StringBuilder regex = new StringBuilder();
-
-        TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
-
+        
+        List<String> tokens = TokenUtils.getTokens( value );
+        
+        if ( tokens == null || tokens.isEmpty() )
+        {
+            return regex;
+        }
+        
+        TokenUtils.getTokens( value ).forEach( token -> regex.append( token ).append( "|.*" ) );
+        
+        regex.delete( Math.max( regex.length() - 3, 0 ), regex.length() );
+        
+        regex.insert( 0, "(?=.*" );
+        
+        regex.append( ")" );
+                
         return regex;
     }
 
@@ -94,22 +107,18 @@ public class TokenUtils
                             break;
                         case ANYWHERE:
                             found = s3.contains( s );
+                            break;
                         }
 
                         if ( found )
                         {
-                            break;
+                            return true;
                         }
-                    }
-
-                    if ( !found )
-                    {
-                        return false;
                     }
                 }
             }
         }
 
-        return true;
+        return false;
     }
 }

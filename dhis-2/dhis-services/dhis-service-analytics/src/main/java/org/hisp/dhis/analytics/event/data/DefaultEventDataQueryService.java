@@ -199,6 +199,8 @@ public class DefaultEventDataQueryService
             .withCompletedOnly( request.isCompletedOnly() )
             .withHierarchyMeta( request.isHierarchyMeta() )
             .withCoordinatesOnly( request.isCoordinatesOnly() )
+            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
+            .withDataIdScheme( request.getDataIdScheme() )
             .withEventStatus( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
@@ -206,7 +208,6 @@ public class DefaultEventDataQueryService
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withProgramStatus( request.getProgramStatus() )
-            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withApiVersion( request.getApiVersion() )
             .build();
     

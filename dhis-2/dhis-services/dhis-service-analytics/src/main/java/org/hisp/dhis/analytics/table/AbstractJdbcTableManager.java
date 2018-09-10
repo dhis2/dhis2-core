@@ -61,7 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -133,13 +132,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    public void createTable( AnalyticsTable table )
     {
-        if ( !skipMasterTable )
-        {
-            createTempTable( table );
-        }
-        
+        createTempTable( table );        
         createTempTablePartitions( table );
     }
     
@@ -172,13 +167,13 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean skipMasterTable )
+    public void swapTable( AnalyticsTable table, boolean partialUpdate )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {
-            swapTable( partition.getTempTableName(), partition.getTableName() );
-        }
+        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
+        boolean tableExists = partitionManager.tableExists( table.getTableName() );
+        boolean skipMasterTable = partialUpdate && tableExists;
+
         if ( !skipMasterTable )
         {
             swapTable( table.getTempTableName(), table.getTableName() );
@@ -188,9 +183,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTempTable( AnalyticsTable table )
     {
-        table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
-        
-        dropTableCascade( table.getTempTableName() );
+        dropTableCascade( table.getTempTableName() );        
     }
     
     @Override

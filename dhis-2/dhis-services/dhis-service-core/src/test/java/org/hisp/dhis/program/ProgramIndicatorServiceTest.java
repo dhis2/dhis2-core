@@ -589,7 +589,7 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "coalesce((select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " + 
             "where analytics_event_" + indicatorF.getProgram().getUid() + 
-            ".pi = enrollmenttable.pi and \"" + deA.getUid() + "\" is not null " + 
+            ".pi = ax.pi and \"" + deA.getUid() + "\" is not null " + 
             "and executiondate < cast( '2018-03-11' as date ) and "+
             "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 )::numeric,0)";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
@@ -603,7 +603,7 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "(select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " +
             "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " + 
-            "= enrollmenttable.pi and \"" + deA.getUid() + "\" is not null and executiondate < cast( '2018-03-11' as date ) and " + 
+            "= ax.pi and \"" + deA.getUid() + "\" is not null and executiondate < cast( '2018-03-11' as date ) and " + 
             "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();

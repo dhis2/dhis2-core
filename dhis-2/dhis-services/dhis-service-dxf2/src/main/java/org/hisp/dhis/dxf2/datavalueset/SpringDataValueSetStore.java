@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvWriter;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
@@ -41,6 +40,7 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -128,6 +128,34 @@ public class SpringDataValueSetStore
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
 
+    @Override
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    {
+        String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
+        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
+        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+
+        DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
+
+        int offset = (page - 1) * pageSize;
+
+        final String sql =
+            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
+            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
+            "from datavalue dv " +
+            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
+            "join period pe on (dv.periodid=pe.periodid) " +
+            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
+            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
+            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
+            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
+            "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
+            "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
+
+        writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
+    }
+
     private void writeDataValueSet( String sql, DataExportParams params, Date completeDate, final DataValueSet dataValueSet )
     {
         if ( params.isSingleDataValueSet() )
@@ -135,7 +163,7 @@ public class SpringDataValueSetStore
             IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
             IdScheme ouScheme = idScheme.getOrgUnitIdScheme();
             IdScheme dataSetScheme = idScheme.getDataSetIdScheme();
-            
+
             dataValueSet.setDataSet( params.getFirstDataSet().getPropertyValue( dataSetScheme ) );
             dataValueSet.setCompleteDate( getLongGmtDateString( completeDate ) );
             dataValueSet.setPeriod( params.getFirstPeriod().getIsoDate() );
@@ -169,7 +197,7 @@ public class SpringDataValueSetStore
                 {
                     dataValue.setDeleted( deleted );
                 }
-                
+
                 dataValue.close();
             }
         } );
@@ -197,7 +225,7 @@ public class SpringDataValueSetStore
         // Identifier schemes
         //----------------------------------------------------------------------
 
-        String deSql = idScheme.getDataElementIdScheme().isAttribute() ? 
+        String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as deid from attributevalue av " +
             "inner join dataelementattributevalues deav on av.attributevalueid=deav.attributevalueid " +
@@ -205,8 +233,8 @@ public class SpringDataValueSetStore
             "where dv.dataelementid=deav.dataelementid " +
             "limit 1), de.uid) as deid" :
             "de." + deScheme + " as deid";
-        
-        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ? 
+
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as ouid from attributevalue av " +
             "inner join organisationunitattributevalues ouav on av.attributevalueid=ouav.attributevalueid " +
@@ -214,7 +242,7 @@ public class SpringDataValueSetStore
             "where dv.sourceid=ouav.organisationunitid " +
             "limit 1), ou.uid) as ouid" :
             "ou." + ouScheme + " as ouid";
-        
+
         String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as cocid from attributevalue av " +
@@ -238,8 +266,7 @@ public class SpringDataValueSetStore
         //----------------------------------------------------------------------
 
         String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + 
-            ouSql + ", " + cocSql + ", " + aocSql + ", " +
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", " + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -292,7 +319,7 @@ public class SpringDataValueSetStore
 
             sql += ") ";
         }
-        
+
         if ( !params.isIncludeDeleted() )
         {
             sql += "and dv.deleted is false ";

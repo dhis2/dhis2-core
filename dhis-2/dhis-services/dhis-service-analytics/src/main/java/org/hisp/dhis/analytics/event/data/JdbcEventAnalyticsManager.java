@@ -105,7 +105,7 @@ public class JdbcEventAnalyticsManager
 
         try
         {
-            getEvents( grid, params, sql );
+            getEvents( params, grid, sql );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsManager
         return grid;
     }
 
-    private void getEvents( Grid grid, EventQueryParams params, String sql )
+    private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
         
@@ -300,7 +300,8 @@ public class JdbcEventAnalyticsManager
         {
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
-                sql += sqlHelper.whereAnd() + " " + statementBuilder.getCohortBoundaryCondition( boundary, params.getEarliestStartDate(), params.getLatestEndDate(), params.getProgramIndicator() ) + " ";
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
+                    params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
             }
         }
         else if ( params.hasStartEndDate() )

@@ -1,11 +1,5 @@
 package org.hisp.dhis.message;
 
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,25 +28,28 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.user.User;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
 public interface MessageService
 {
-    String ID = MessageService.class.getName();
-
     String META_USER_AGENT = "User-agent: ";
 
-    MessageConversationParams.Builder createPrivateMessage( Collection<User> recipients, String subject, String text, String metaData );
-
-    MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData );
-
-    MessageConversationParams.Builder createSystemMessage( String subject, String text );
-
-    MessageConversationParams.Builder createSystemMessage( Collection<User> user, String subject, String text );
-
-    MessageConversationParams.Builder createValidationResultMessage( Collection<User> users, String subject, String text );
-
+    int sendTicketMessage( String subject, String text, String metaData );
+    
+    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData );
+    
+    int sendSystemMessage( Set<User> recipients, String subject, String text );
+    
+    int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
+    
     int sendMessage( MessageConversationParams params );
 
     int sendSystemErrorNotification( String subject, Throwable t );

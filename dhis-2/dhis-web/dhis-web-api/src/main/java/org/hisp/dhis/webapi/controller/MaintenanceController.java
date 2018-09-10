@@ -34,8 +34,8 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -78,9 +78,6 @@ public class MaintenanceController
     private MaintenanceService maintenanceService;
 
     @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
     private HibernateCacheManager cacheManager;
 
     @Autowired
@@ -103,6 +100,9 @@ public class MaintenanceController
 
     @Autowired
     private List<AnalyticsTableService> analyticsTableService;
+
+    @Autowired
+    private CategoryManager categoryManager;
 
     @Autowired
     private AppManager appManager;
@@ -208,7 +208,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCategoryOptionCombos()
     {
-        categoryService.addAndPruneAllOptionCombos();
+        categoryManager.addAndPruneAllOptionCombos();
     }
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )

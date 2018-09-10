@@ -62,6 +62,7 @@ public class ValidationUtils
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile( "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" );
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+    private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9]●?){6,14}[0-9]$" );
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "f", "F", "0" );
 
@@ -619,5 +620,26 @@ public class ValidationUtils
         }
 
         return false;
+    }
+
+    /**
+     * Validates a whatsapp handle
+     * @param whatsapp
+     * @return
+     */
+    public static boolean validateWhatsapp( String whatsapp )
+    {
+        // Whatsapp uses international phonenumbers to identify users
+        return validateInternationalPhoneNumber( whatsapp );
+    }
+
+    /**
+     * Validate an international phone number
+     * @param phoneNumber
+     * @return
+     */
+    public static boolean validateInternationalPhoneNumber( String phoneNumber )
+    {
+        return INTERNATIONAL_PHONE_PATTERN.matcher( phoneNumber ).matches();
     }
 }

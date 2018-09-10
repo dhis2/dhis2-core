@@ -26,6 +26,8 @@
         foreign-key="fk_optiongroupmembers_optiongroupid" />
     </set>
 
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroup_optionsetid" />
+
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="optiongroupattributevalues" cascade="all-delete-orphan">
