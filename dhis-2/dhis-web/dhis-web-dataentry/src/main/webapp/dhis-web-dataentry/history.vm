@@ -1,6 +1,7 @@
 <script type="text/javascript">
 var currentDataElementId = '$!{dataElementId}';
 var currentOptionComboId = '$!{optionComboId}';
+var currentAttributeOptionComboId = '$!{attributeOptionComboId}';
 
 $( document ).ready( function() {
     dhis2.de.insertCommentOptionSet( '$!{commentOptionSet.uid}' );
