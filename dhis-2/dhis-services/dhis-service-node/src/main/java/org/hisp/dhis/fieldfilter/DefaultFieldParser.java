@@ -49,8 +49,12 @@ public class DefaultFieldParser implements FieldParser
 
         StringBuilder builder = new StringBuilder();
 
-        for ( String c : fields.split( "" ) )
+        String[] fieldSplit = fields.split( "" );
+
+        for ( int i = 0; i < fieldSplit.length; i++ )
         {
+            String c = fieldSplit[i];
+
             if ( c.equals( "," ) )
             {
                 putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
