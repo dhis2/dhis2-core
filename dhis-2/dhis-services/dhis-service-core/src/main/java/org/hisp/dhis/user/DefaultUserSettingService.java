@@ -346,11 +346,6 @@ public class DefaultUserSettingService implements UserSettingService
             }
         } );
 
-        System.out.println( ".." );
-        System.out.println( "setting " + setting );
-        System.out.println( "key " + key );
-        System.out.println( "def " + key.getDefaultValue() );
-        
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
         
         return Optional.ofNullable( value );
