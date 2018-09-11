@@ -68,7 +68,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     //--------------------------------------------------------------------------
     // Id scheme parameters
