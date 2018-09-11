@@ -94,7 +94,6 @@ public class DefaultSystemSettingManager
     @Autowired
     private CacheProvider cacheProvider;
 
-
     public void setSystemSettingStore( SystemSettingStore systemSettingStore )
     {
         this.systemSettingStore = systemSettingStore;
@@ -110,16 +109,13 @@ public class DefaultSystemSettingManager
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-
     
     @PostConstruct
     public void init()
     {
         settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
- 
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build(); 
     }
-
 
     // -------------------------------------------------------------------------
     // SystemSettingManager implementation
@@ -427,12 +423,6 @@ public class DefaultSystemSettingManager
     public boolean selfRegistrationNoRecaptcha()
     {
         return (Boolean) getSystemSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
-    }
-
-    @Override
-    public boolean emailNotificationsEnabled()
-    {
-        return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
     }
 
     @Override

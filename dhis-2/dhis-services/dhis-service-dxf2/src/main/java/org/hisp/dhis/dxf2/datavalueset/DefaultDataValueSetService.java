@@ -118,7 +118,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
@@ -181,7 +183,7 @@ public class DefaultDataValueSetService
 
     @Autowired
     private DataValueService dataValueService;
-    
+
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -225,7 +227,7 @@ public class DefaultDataValueSetService
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
                 DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
-        
+
         if ( periods != null && !periods.isEmpty() )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
@@ -248,10 +250,10 @@ public class DefaultDataValueSetService
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
                 OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
         }
-        
+
         if ( attributeOptionCombos != null )
         {
-            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
+            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
                 CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
@@ -365,6 +367,12 @@ public class DefaultDataValueSetService
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
+    }
+
+    @Override
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    {
+        dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes, pageSize, page );
     }
 
     @Override
@@ -672,6 +680,7 @@ public class DefaultDataValueSetService
         boolean dryRun = dataValueSet.getDryRun() != null ? dataValueSet.getDryRun() : importOptions.isDryRun();
         boolean skipExistingCheck = importOptions.isSkipExistingCheck();
         boolean strictPeriods = importOptions.isStrictPeriods() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+        boolean strictDataElements = importOptions.isStrictDataElements() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS );
         boolean strictCategoryOptionCombos = importOptions.isStrictCategoryOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
         boolean strictAttrOptionCombos = importOptions.isStrictAttributeOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
         boolean strictOrgUnits = importOptions.isStrictOrganisationUnits() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
@@ -741,6 +750,8 @@ public class DefaultDataValueSetService
         CategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         CategoryOptionCombo outerAttrOptionCombo = null;
+        
+        Set<DataElement> dataSetDataElements = dataSet != null ? dataSet.getDataElements() : new HashSet<>();
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
@@ -763,8 +774,14 @@ public class DefaultDataValueSetService
 
         if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
         {
-            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid()) );
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid() ) );
             summary.setStatus( ImportStatus.ERROR );
+        }
+        
+        if ( dataSet == null && strictDataElements )
+        {
+            summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid datset is required" ) );
+            summary.setStatus( ImportStatus.ERROR );            
         }
 
         if ( outerOrgUnit == null && trimToNull( dataValueSet.getOrgUnit() ) != null )
@@ -994,6 +1011,13 @@ public class DefaultDataValueSetService
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
                 continue;
             }
+            
+            if ( strictDataElements && !dataSetDataElements.contains( dataElement ) )
+            {
+                summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS",
+                    "Data element: " + dataValue.getDataElement() + " is not part of dataset: " + dataSet.getUid() ) );
+                continue;
+            }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
                 () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
@@ -1116,7 +1140,7 @@ public class DefaultDataValueSetService
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
             }
-            
+
             DataValue actualDataValue = null;
             if ( strategy.isDelete() && dataElement.isFileType() )
             {
@@ -1223,7 +1247,7 @@ public class DefaultDataValueSetService
 
                             fileResourceService.updateFileResource( fr );
                         }
-                        
+
                         dataValueBatchHandler.updateObject( internalValue );
 
                         auditBatchHandler.addObject( auditValue );

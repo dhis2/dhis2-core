@@ -91,8 +91,6 @@ public interface SystemSettingManager
     boolean accountRecoveryEnabled();
 
     boolean selfRegistrationNoRecaptcha();
-
-    boolean emailNotificationsEnabled();
     
     boolean emailConfigured();
 

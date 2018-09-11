@@ -38,6 +38,7 @@ import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,11 +52,15 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -67,13 +72,7 @@ public class EmailMessageSender
     private static final Log log = LogFactory.getLog( EmailMessageSender.class );
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
-
-    private static final String DEFAULT_FROM_NAME = DEFAULT_APPLICATION_TITLE + " Message [No reply]";
-
-    private static final String DEFAULT_SUBJECT_PREFIX = "[" + DEFAULT_APPLICATION_TITLE + "] ";
-
     private static final String LB = System.getProperty( "line.separator" );
-
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
 
     // -------------------------------------------------------------------------
@@ -97,26 +96,19 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
-
-    /**
-     * Note this methods is invoked asynchronously.
-     */
-    @Async
+    
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
-        boolean forceSend )
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
@@ -126,8 +118,8 @@ public class EmailMessageSender
         try
         {
             HtmlEmail email = getHtmlEmail( emailConfig.getHostName(), emailConfig.getPort(), emailConfig.getUsername(),
-                    emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
-            email.setSubject( customizeTitle( DEFAULT_SUBJECT_PREFIX ) + subject );
+                emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
+            email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( plainContent );
             email.setHtmlMsg( htmlContent );
 
@@ -143,16 +135,13 @@ public class EmailMessageSender
                     if ( isEmailValid( user.getEmail() ) )
                     {
                         email.addBcc( user.getEmail() );
-
-                        log.info( "Sending email to user: " + user.getUsername() + " with email address: "
-                            + user.getEmail() + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
-
                         hasRecipients = true;
+
+                        log.info( "Sending email to user: " + user.getUsername() + " with email address: " + user.getEmail() );
                     }
                     else
                     {
-                        log.error( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
-
+                        log.warn( user.getEmail() + " is not a valid email for user: " + user.getUsername() );
                         errorMessage = "No valid email address found";
                     }
                 }
@@ -163,7 +152,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 status = new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -171,44 +159,43 @@ public class EmailMessageSender
                 status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
-        catch ( EmailException ex )
+        catch ( Exception ex )
         {
-            log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
-            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
-        }
-        catch ( RuntimeException ex )
-        {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
+            log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
+    @Async
+    @Override
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    {
+        OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
+        return new AsyncResult<OutboundMessageResponse>( response );
+    }
+    
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
-
-        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
             status.setResponseObject( EmailResponse.NOT_CONFIGURED );
-
             return status;
         }
 
         try
         {
             HtmlEmail email = getHtmlEmail( emailConfig.getHostName(), emailConfig.getPort(), emailConfig.getUsername(),
-                    emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
-            email.setSubject( customizeTitle( DEFAULT_SUBJECT_PREFIX ) + subject );
+                emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
+            email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( text );
 
             boolean hasRecipients = false;
@@ -218,15 +205,13 @@ public class EmailMessageSender
                 if ( isEmailValid( recipient ) )
                 {
                     email.addBcc( recipient );
-
                     hasRecipients = true;
 
-                    log.info( "Sending email to : " + recipient + " to host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() );
+                    log.info( "Sending email to : " + recipient );
                 }
                 else
                 {
-                    log.error( recipient + " is not a valid email" );
-
+                    log.warn( recipient + " is not a valid email" );
                     errorMessage = "No valid email address found";
                 }
             }
@@ -236,7 +221,6 @@ public class EmailMessageSender
                 email.send();
 
                 log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
-
                 return new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -244,16 +228,9 @@ public class EmailMessageSender
                 status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
-        catch ( EmailException ex )
+        catch ( Exception ex )
         {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
-            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
-        }
-        catch ( RuntimeException ex )
-        {
-            log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
-
+            log.error( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
@@ -287,15 +264,14 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
 
     private HtmlEmail getHtmlEmail( String hostName, int port, String username, String password, boolean tls,
-        String sender )
-        throws EmailException
+        String sender ) throws EmailException
     {
         HtmlEmail email = new HtmlEmail();
         email.setHostName( hostName );
-        email.setFrom( sender, customizeTitle( DEFAULT_FROM_NAME ) );
+        email.setFrom( sender, getEmailName() );
         email.setSmtpPort( port );
         email.setStartTLSEnabled( tls );
-
+        
         if ( username != null && password != null )
         {
             email.setAuthenticator( new DefaultAuthenticator( username, password ) );
@@ -316,7 +292,7 @@ public class EmailMessageSender
 
     private String renderHtmlContent( String text, String footer, User sender )
     {
-        HashMap<String, Object> content = new HashMap<>();
+        Map<String, Object> content = new HashMap<>();
 
         if ( !Strings.isNullOrEmpty( text ) )
         {
@@ -351,16 +327,22 @@ public class EmailMessageSender
         return new VelocityManager().render( content, MESSAGE_EMAIL_TEMPLATE );
     }
 
-    private String customizeTitle( String title )
+    private String getPrefixedSubject( String subject )
+    {
+        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE, DEFAULT_APPLICATION_TITLE );
+        return "[" + title + "] " + subject;
+    }
+    
+    private String getEmailName()
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-
-        if ( appTitle != null && !appTitle.isEmpty() )
-        {
-            title = title.replace( DEFAULT_APPLICATION_TITLE, appTitle );
-        }
-
-        return title;
+        appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ), DEFAULT_APPLICATION_TITLE );
+        return appTitle + " message [No reply]";
+    }
+    
+    private String emailNameEncode( String name )
+    {
+        return name != null ? TextUtils.removeNewlines( name ) : null;
     }
 
     private boolean isEmailValid( String email )

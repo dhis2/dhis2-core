@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.analytics.dimension;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,28 +28,18 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionalObject;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Lars Helge Overland
  */
-public enum FileResourceDomain
+public interface AnalyticsDimensionService
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    USER_AVATAR( "userAvatar");
-
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
-
-    FileResourceDomain( String containerName )
-    {
-        this.containerName = containerName;
-    }
-
-    public String getContainerName()
-    {
-        return containerName;
-    }
+    List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request );
+    
+    List<DimensionalObject> getRecommendedDimensions( DataQueryParams params );
 }

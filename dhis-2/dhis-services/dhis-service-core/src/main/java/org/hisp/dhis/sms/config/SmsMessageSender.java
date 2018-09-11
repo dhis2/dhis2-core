@@ -42,9 +42,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -106,11 +109,20 @@ public class SmsMessageSender
         }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
+        
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
         return sendMessage( subject, text, SmsUtils.getRecipientsPhoneNumber( toSendList ) );
     }
 
+    @Async
+    @Override
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    {
+        OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
+        return new AsyncResult<OutboundMessageResponse>( response );
+    }
+    
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {

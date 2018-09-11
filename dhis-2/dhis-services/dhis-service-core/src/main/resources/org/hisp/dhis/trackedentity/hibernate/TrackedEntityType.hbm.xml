@@ -29,6 +29,14 @@
     
     <property name="allowAuditLog" />
 
+    <property name="featureType" column="featuretype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <list name="trackedEntityTypeAttributes" cascade="all-delete-orphan">
       <key column="trackedentitytypeid" />
       <list-index column="sort_order" base="1" />

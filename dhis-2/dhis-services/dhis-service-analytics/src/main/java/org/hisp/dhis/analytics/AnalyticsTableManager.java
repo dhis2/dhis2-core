@@ -82,9 +82,8 @@ public interface AnalyticsTableManager
      * Attempts to drop and then create analytics table.
      * 
      * @param table the analytics table.
-     * @param skipMasterTable whether to skip creating the master analytics table.
      */
-    void createTable( AnalyticsTable table, boolean skipMasterTable );
+    void createTable( AnalyticsTable table );
     
     /**
      * Creates single indexes on the given columns of the analytics table with
@@ -100,8 +99,9 @@ public interface AnalyticsTableManager
      * table.
      * 
      * @param table the analytics table.
+     * @param partialUpdate indicates whether this is a partial table update.
      */
-    void swapTable( AnalyticsTable table, boolean skipMasterTable );
+    void swapTable( AnalyticsTable table, boolean partialUpdate );
     
     /**
      * Copies and denormalizes rows from data value table into analytics table.
