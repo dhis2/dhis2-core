@@ -28,15 +28,23 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -44,6 +52,10 @@ import java.util.List;
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
+    private static final Log log = LogFactory.getLog( DefaultFollowupAnalysisService.class );
+
+    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter( ValueType.NUMERIC_TYPES );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -55,39 +67,32 @@ public class DefaultFollowupAnalysisService
         this.dataAnalysisStore = dataAnalysisStore;
     }
 
-    @Autowired
-    private DataSetService dataSetService;
-
     // -------------------------------------------------------------------------
     // FollowupAnalysisService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId,
-        int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
+        Collection<DataElement> dataElements, Collection<Period> periods, int limit )
     {
-        if ( organisationUnit == null || limit < 1 )
+        if ( parents == null || parents.size() == 0 || limit < 1 )
         {
             return new ArrayList<>();
         }
 
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
+        Set<DataElement> elements = new HashSet<>( dataElements );
 
-        return dataAnalysisStore.getFollowupDataValues( organisationUnit, dataSet, limit );
-    }
+        FilterUtils.filter( elements, DE_NUMERIC_FILTER );
 
-    @Override
-    public List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit,
-        String dataSetId, int limit, Date startDate, Date endDate )
-    {
-        if ( organisationUnit == null || limit < 1 )
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+        for ( DataElement dataElement : elements )
         {
-            return new ArrayList<>();
+            categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
         }
 
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
+        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
 
-        return dataAnalysisStore
-            .getFollowupDataValuesBetweenInterval( organisationUnit, dataSet, limit, startDate, endDate );
+        return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
     }
 }

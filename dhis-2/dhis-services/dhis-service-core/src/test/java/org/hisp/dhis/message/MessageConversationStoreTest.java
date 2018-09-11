@@ -94,7 +94,7 @@ public class MessageConversationStoreTest
 
         conversationIds = new HashSet<>();
 
-        conversationA = messageService.sendMessage( messageService.createPrivateMessage( usersA,"Subject1", "Text", "Meta" ).build() );
+        conversationA = messageService.sendPrivateMessage( usersA,"Subject1", "Text", "Meta" );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );
@@ -104,13 +104,13 @@ public class MessageConversationStoreTest
         messageService.sendReply( mc, "Message 2", "Meta", false, null );
         messageService.sendReply( mc, "Message 3", "Meta", false, null );
 
-        int conversationB = messageService.sendMessage( messageService.createPrivateMessage( usersA, "Subject2", "Text", "Meta" ).build() );
+        int conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta" );
         mc = messageService.getMessageConversation( conversationB );
         mc.setFollowUp( true );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        int conversationC = messageService.sendMessage( messageService.createPrivateMessage( usersB, "Subject3", "Text", "Meta" ).build() );
+        int conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta" );
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );

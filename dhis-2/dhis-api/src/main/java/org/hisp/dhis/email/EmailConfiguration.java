@@ -1,5 +1,7 @@
 package org.hisp.dhis.email;
 
+import com.google.common.base.MoreObjects;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -59,6 +61,17 @@ public class EmailConfiguration
         this.tls = tls;
     }
 
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "Host name", hostName )
+            .add( "Username", username )
+            .add( "From", from )
+            .add( "Port", port )
+            .add( "TLS", tls ).toString();
+    }
+    
     public boolean isOk()
     {
         return hostName != null && username != null && password != null;

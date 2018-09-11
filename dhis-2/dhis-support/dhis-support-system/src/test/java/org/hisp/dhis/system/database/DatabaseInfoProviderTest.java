@@ -32,34 +32,25 @@ import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class DatabaseInfoProviderTest
     extends DhisSpringTest
 {
     @Autowired
-    private DatabaseInfoProvider databaseInfoProvider;
+    private DatabaseInfoProvider provider;
 
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetDatabaseInfo()
+    public void testGetNameFromConnectionUrl()
     {
-        DatabaseInfo info = databaseInfoProvider.getDatabaseInfo();
-        
-        assertNotNull( info );
-        assertNotNull( info.getType() );
-        assertNotNull( info.getName() );
-        assertNotNull( info.getUser() );
-        assertNotNull( info.getPassword() );
-        assertNotNull( info.getDialect() );
-        assertNotNull( info.getDriverClass() );
-        assertNotNull( info.getUrl() );
+        assertEquals( "dev", provider.getNameFromConnectionUrl( "jdbc:postgresql:dev" ) );
+        assertEquals( "dhis2", provider.getNameFromConnectionUrl( "jdbc:postgresql://some-org-db.g3t5g1r.eu-west-1.rds.amazonaws.com:5432/dhis2?sslmode=verify-full" ) );
     }
 }

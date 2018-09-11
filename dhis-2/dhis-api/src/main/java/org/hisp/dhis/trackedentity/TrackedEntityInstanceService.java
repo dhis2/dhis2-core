@@ -152,12 +152,13 @@ public interface TrackedEntityInstanceService
      * @param totalPages                 indicates whether to include the total number of pages.
      * @param skipPaging                 whether to skip paging.
      * @param includeDeleted             whether to include soft deleted items
+     * @param includeAllAttributes       whether to include all user attributes that user has access
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders );
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.

@@ -1,4 +1,5 @@
 package org.hisp.dhis.message;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,11 +28,11 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.fileresource.MessageAttachment;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -39,12 +40,9 @@ import java.util.Set;
  */
 public class MessageConversationParams
 {
+    /* Required properties */
 
-    /*
-        Required properties
-     */
-
-    private ImmutableSet<User> recipients;
+    private Set<User> recipients = new HashSet<>();
 
     private User sender;
 
@@ -54,26 +52,28 @@ public class MessageConversationParams
 
     private MessageType messageType;
 
-    /*
-        Optional properties
-     */
+    /* Optional properties */
 
     private String metadata;
 
     private User assignee;
 
-    private MessageConversationPriority priority;
+    private MessageConversationPriority priority = MessageConversationPriority.NONE;
 
-    private MessageConversationStatus status;
+    private MessageConversationStatus status = MessageConversationStatus.NONE;
 
     private boolean forceNotification;
+    
+    private MessageConversationParams()
+    {
+    }
 
     private Set<MessageAttachment> attachments;
 
     private MessageConversationParams( Collection<User> recipients, User sender, String subject, String text,
         MessageType messageType )
     {
-        this.recipients = ImmutableSet.copyOf( recipients );
+        this.recipients = new HashSet<>( recipients );
         this.sender = sender;
         this.subject = subject;
         this.text = text;
@@ -81,13 +81,12 @@ public class MessageConversationParams
 
         this.priority = MessageConversationPriority.NONE;
         this.status = MessageConversationStatus.NONE;
-
         this.forceNotification = false;
     }
 
-    public ImmutableSet<User> getRecipients()
+    public Set<User> getRecipients()
     {
-        return recipients;
+        return new HashSet<>( recipients );
     }
 
     public User getSender()
@@ -141,7 +140,6 @@ public class MessageConversationParams
     {
         MessageConversation conversation = new MessageConversation( subject, sender, messageType );
 
-        // Set all in case present in params
         conversation.setAssignee( assignee );
         conversation.setStatus( status );
         conversation.setPriority( priority );
@@ -151,12 +149,46 @@ public class MessageConversationParams
 
     public static class Builder
     {
-
         private MessageConversationParams params;
 
+        public Builder()
+        {
+            this.params = new MessageConversationParams();
+        }
+        
         public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType )
         {
             this.params = new MessageConversationParams( recipients, sender, subject, text, messageType );
+        }
+        
+        public Builder withRecipients( Set<User> recipients )
+        {
+            this.params.recipients = new HashSet<>( recipients );
+            return this;
+        }
+        
+        public Builder withSender( User sender )
+        {
+            this.params.sender = sender;
+            return this;
+        }
+        
+        public Builder withSubject( String subject )
+        {
+            this.params.subject = subject;
+            return this;
+        }
+        
+        public Builder withText( String text )
+        {
+            this.params.text = text;
+            return this;
+        }
+        
+        public Builder withMessageType( MessageType messageType )
+        {
+            this.params.messageType = messageType;
+            return this;
         }
 
         public Builder withMetaData( String metaData )
@@ -199,6 +231,5 @@ public class MessageConversationParams
         {
             return this.params;
         }
-
     }
 }

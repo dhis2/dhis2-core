@@ -294,8 +294,8 @@ public class MessageConversationController
 
         Set<MessageAttachment> attachments = getAttachments( messageConversation.getAttachments() );
 
-        int id = messageService.sendMessage( messageService.createPrivateMessage( messageConversation.getUsers(),
-            messageConversation.getSubject(), messageConversation.getText(), metaData ).withAttachments( attachments ).build() );
+        int id = messageService.sendPrivateMessage( messageConversation.getUsers(),
+            messageConversation.getSubject(), messageConversation.getText(), metaData );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
@@ -374,7 +374,7 @@ public class MessageConversationController
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendMessage( messageService.createTicketMessage( subject, body, metaData ).build() );
+        messageService.sendTicketMessage( subject, body, metaData );
 
         webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
     }

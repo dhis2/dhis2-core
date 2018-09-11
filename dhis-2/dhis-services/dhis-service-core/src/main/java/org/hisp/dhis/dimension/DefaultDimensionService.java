@@ -350,19 +350,19 @@ public class DefaultDimensionService
             ProgramDataElementDimensionItem programDataElement = null;
             ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
 
-            if ( (operand = getDataElementOperand( idScheme, id0, id1, id2 )) != null )
+            if ( ( operand = getDataElementOperand( idScheme, id0, id1, id2 ) ) != null )
             {
                 return operand;
             }
-            else if ( (reportingRate = getReportingRate( idScheme, id0, id1 )) != null )
+            else if ( ( reportingRate = getReportingRate( idScheme, id0, id1 ) ) != null )
             {
                 return reportingRate;
             }
-            else if ( (programDataElement = getProgramDataElementDimensionItem( idScheme, id0, id1 )) != null )
+            else if ( ( programDataElement = getProgramDataElementDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programDataElement;
             }
-            else if ( (programAttribute = getProgramAttributeDimensionItem( idScheme, id0, id1 )) != null )
+            else if ( ( programAttribute = getProgramAttributeDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programAttribute;
             }

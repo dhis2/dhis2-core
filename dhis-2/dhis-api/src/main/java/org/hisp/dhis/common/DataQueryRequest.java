@@ -29,7 +29,6 @@ package org.hisp.dhis.common;
  */
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -240,46 +239,6 @@ public class DataQueryRequest
         return allowAllPeriods;
     }
 
-    /**
-     * Copies all properties of this request onto the given request.
-     * 
-     * @param request the querequestry to copy properties onto.
-     * @return the given request with all properties of this request set.
-     */
-    public <T extends DataQueryRequest> T copyTo( T request )
-    {
-        request.dimension = new HashSet<>( this.dimension );
-        request.filter = new HashSet<>( this.filter );
-        request.aggregationType = this.aggregationType;
-        request.measureCriteria = this.measureCriteria;
-        request.preAggregationMeasureCriteria = this.preAggregationMeasureCriteria;
-        request.startDate = this.startDate;
-        request.endDate = this.endDate;
-        request.order = this.order;
-        request.skipMeta = this.skipMeta;
-        request.skipData = this.skipData;
-        request.skipRounding = this.skipRounding;
-        request.completedOnly = this.completedOnly;
-        request.hierarchyMeta = this.hierarchyMeta;
-        request.ignoreLimit = this.ignoreLimit;
-        request.hideEmptyRows = this.hideEmptyRows;
-        request.hideEmptyColumns = this.hideEmptyColumns;
-        request.showHierarchy = this.showHierarchy;
-        request.includeNumDen = this.includeNumDen;
-        request.includeMetadataDetails = this.includeMetadataDetails;
-        request.displayProperty = this.displayProperty;
-        request.outputIdScheme = this.outputIdScheme;
-        request.inputIdScheme = this.inputIdScheme;
-        request.approvalLevel = this.approvalLevel;
-        request.relativePeriodDate = this.relativePeriodDate;
-        request.userOrgUnit = this.userOrgUnit;
-        request.apiVersion = this.apiVersion;
-        request.allowAllPeriods = this.allowAllPeriods;
-        request.duplicatesOnly = this.duplicatesOnly;
-
-        return request;
-    }
-
     public static DataQueryRequestBuilder newBuilder()
     {
         return new DataQueryRequest.DataQueryRequestBuilder();
@@ -289,11 +248,6 @@ public class DataQueryRequest
     {
     }
 
-    protected DataQueryRequest instance()
-    {
-        return copyTo( new DataQueryRequest() );
-    }
-
     public static class DataQueryRequestBuilder
     {
         private DataQueryRequest request;
@@ -301,11 +255,6 @@ public class DataQueryRequest
         protected DataQueryRequestBuilder()
         {
             this.request = new DataQueryRequest();
-        }
-
-        protected DataQueryRequestBuilder( DataQueryRequest request )
-        {
-            this.request = request.instance();
         }
 
         public DataQueryRequestBuilder dimension( Set<String> dimension )

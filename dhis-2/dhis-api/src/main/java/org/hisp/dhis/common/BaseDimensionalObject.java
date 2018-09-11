@@ -87,6 +87,12 @@ public class BaseDimensionalObject
      */
     private String filter;
 
+    /**
+     * Indicates whether this dimension is fixed, meaning that the name of the
+     * dimension will be returned as is for all dimension items in the response.
+     */
+    private boolean fixed;
+
     //--------------------------------------------------------------------------
     // Persistent properties
     //--------------------------------------------------------------------------
@@ -95,12 +101,6 @@ public class BaseDimensionalObject
      * Indicates whether this object should be handled as a data dimension.
      */
     protected boolean dataDimension = true;
-
-    /**
-     * Indicates whether this dimension is fixed, meaning that the name of the
-     * dimension will be returned as is for all dimension items in the response.
-     */
-    private boolean fixed;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -324,6 +324,18 @@ public class BaseDimensionalObject
     }
 
     @Override
+    @JsonIgnore
+    public boolean isFixed()
+    {
+        return fixed;
+    }
+
+    public void setFixed( boolean fixed )
+    {
+        this.fixed = fixed;
+    }
+
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDataDimension()
@@ -334,18 +346,6 @@ public class BaseDimensionalObject
     public void setDataDimension( boolean dataDimension )
     {
         this.dataDimension = dataDimension;
-    }
-
-    @Override
-    @JsonIgnore
-    public boolean isFixed()
-    {
-        return fixed;
-    }
-
-    public void setFixed( boolean fixed )
-    {
-        this.fixed = fixed;
     }
 
     @Override

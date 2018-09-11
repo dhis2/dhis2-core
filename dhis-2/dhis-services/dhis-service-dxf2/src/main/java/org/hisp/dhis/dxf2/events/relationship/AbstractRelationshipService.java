@@ -62,8 +62,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -654,6 +654,11 @@ public abstract class AbstractRelationshipService
         RelationshipItem toItem = null;
 
         daoRelationship.setRelationshipType( relationshipType );
+
+        if ( relationship.getRelationship() != null )
+        {
+            daoRelationship.setUid( relationship.getRelationship() );
+        }
 
         // FROM
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )

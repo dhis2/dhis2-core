@@ -77,8 +77,7 @@ public class DefaultQueryParser implements QueryParser
 
                 if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
                 {
-                    query = Query.from( schema, Junction.Type.OR );
-                    handleIdentifiablePath( schema, split[1], filter.substring( index ), query );
+                    handleIdentifiablePath( schema, split[1], filter.substring( index ), query.addDisjunction() );
                 }
                 else
                 {
@@ -94,11 +93,16 @@ public class DefaultQueryParser implements QueryParser
         return query;
     }
 
-    private void handleIdentifiablePath( Schema schema, String operator, Object arg, Query query )
-    {
-        query.add( getRestriction( schema, "displayName", operator, arg ) );
-        query.add( getRestriction( schema, "id", operator, arg ) );
-        query.add( getRestriction( schema, "code", operator, arg ) );
+    private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
+    {        
+        disjunction.add( getRestriction( schema, "id", operator, arg ) );
+        disjunction.add( getRestriction( schema, "code", operator, arg ) );
+        disjunction.add( getRestriction( schema, "name", operator, arg ) );
+        
+        if( schema.haveProperty( "shortName" ) )
+        {
+            disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
+        }
     }
 
     @Override
@@ -196,11 +200,11 @@ public class DefaultQueryParser implements QueryParser
             }
             case "token":
             {
-                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
             }
             case "!token":
             {
-                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
             }
             case "endsWith":
             case "ilike$":

@@ -164,6 +164,23 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentitycomment DROP COLUMN createddate;" );
 
         addGenerateUidFunction();
+
+        //Remove entries for authorities that no longer exist
+        executeSql( "DELETE FROM userroleauthorities WHERE authority IN ('F_TRACKED_ENTITY_DATAVALUE_ADD', " +
+            "'F_TRACKED_ENTITY_DATAVALUE_DELETE', 'F_TRACKED_ENTITY_DATAVALUE_READ', 'F_VIEW_EVENT_ANALYTICS', " +
+            "'F_TRACKED_ENTITY_INSTANCE_SEARCH', 'F_TRACKED_ENTITY_INSTANCE_ADD', 'F_TRACKED_ENTITY_INSTANCE_DELETE'," +
+            "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
+
+        //Update publicaccess values for default categories to correct values (rwrw---- eventually rw------)
+        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
+        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
+        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
+
+        //New enum column was added into ProgramStage. I need to fill default values and make it NOT NULL
+        executeSql( "UPDATE programstage SET validationstrategy = 'NONE' WHERE validcompleteonly = false" );
+        executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true" );
+        executeSql( "ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL" );
+        executeSql( "ALTER TABLE programstage DROP COLUMN IF EXISTS validation" );
     }
 
     private void addGenerateUidFunction()
