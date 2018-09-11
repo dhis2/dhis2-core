@@ -273,7 +273,6 @@ public class DataEntryFormServiceTest
         stageB.setUid( "UID-B" );
         stageA.setDataEntryForm( dataEntryFormA );
 
-
         int idA = programStageService.saveProgramStage( stageA );
         int idB = programStageService.saveProgramStage( stageB );
 
