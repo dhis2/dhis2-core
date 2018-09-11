@@ -30,8 +30,9 @@ package org.hisp.dhis.sms.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.h2.util.IOUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
@@ -124,7 +125,7 @@ public class SimplisticHttpGetGateWay
             URL requestURL = new URL( uri.build().encode().toUriString() );
 
             HttpURLConnection httpConnection = (HttpURLConnection) requestURL.openConnection();
-            httpConnection .setRequestProperty( "Content-Type", CONTENT_TYPE );
+            httpConnection.setRequestProperty( "Content-Type", CONTENT_TYPE );
             httpConnection.setRequestMethod( HTTP_POST );
             httpConnection.setDoOutput( true );
 
@@ -163,8 +164,8 @@ public class SimplisticHttpGetGateWay
         }
         finally
         {
-            IOUtils.closeSilently( reader );
-            IOUtils.closeSilently( writer );
+            IOUtils.closeQuietly( reader );
+            IOUtils.closeQuietly( writer );
         }
 
         return status;

@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+
+import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
+import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -64,6 +67,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -81,6 +85,9 @@ public class DimensionController
 
     @Autowired
     private DimensionService dimensionService;
+    
+    @Autowired
+    private AnalyticsDimensionService analyticsDimensionService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
@@ -159,6 +166,25 @@ public class DimensionController
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensionConstraints, fields ) ) );
 
+        return rootNode;
+    }
+
+    @RequestMapping( value = "/recommendations", method = RequestMethod.GET )
+    public @ResponseBody RootNode getRecommendedDimensions( @RequestParam Set<String> dimension )
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.defaultPreset().getFields() );
+        }
+
+        List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
+        
         return rootNode;
     }
 

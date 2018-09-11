@@ -87,6 +87,8 @@ public enum ErrorCode
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together."),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
 
+    E4027( "Value `{0}` is not a valid for property `{1}`"),
+
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
     E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),

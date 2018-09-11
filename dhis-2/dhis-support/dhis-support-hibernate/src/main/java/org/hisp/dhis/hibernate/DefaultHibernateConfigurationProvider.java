@@ -74,14 +74,6 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remote.object.port";
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
 
-    private static final String PROP_MEMCACHED_CONNECTION_FACTORY = "hibernate.memcached.connectionFactory";
-    private static final String PROP_MEMCACHED_OPERATION_TIMEOUT = "hibernate.memcached.operationTimeout";
-    private static final String PROP_MEMCACHED_HASH_ALGORITHM = "hibernate.memcached.hashAlgorithm";
-    private static final String PROP_MEMCACHED_CLEAR_SUPPORTED = "hibernate.memcached.clearSupported";    
-    private static final String PROP_MEMCACHED_SERVERS = "hibernate.memcached.servers";
-    private static final String PROP_MEMCACHED_CACHE_TIME_SECONDS = "hibernate.memcached.cacheTimeSeconds";
-    
-
     // -------------------------------------------------------------------------
     // Property resources
     // -------------------------------------------------------------------------
@@ -186,17 +178,6 @@ public class DefaultHibernateConfigurationProvider
             }
         }
 
-        // ---------------------------------------------------------------------
-        // Second-level cache
-        // ---------------------------------------------------------------------
-        
-        if ( configurationProvider.isMemcachedCacheProviderEnabled() )
-        {
-            setMemcachedCacheProvider( config );
-            
-            log.info( String.format( "Memcached set as cache provider, using server: %s", config.getProperty( PROP_MEMCACHED_SERVERS ) ) );
-        }
-        
         // ---------------------------------------------------------------------
         // Handle cache replication
         // ---------------------------------------------------------------------
@@ -315,23 +296,6 @@ public class DefaultHibernateConfigurationProvider
     }
     
     /**
-     * Sets Hibernate configuration for using {@code memcached} as second-level 
-     * cache provider.
-     * 
-     * @param config the Hibernate configuration object.
-     */
-    private void setMemcachedCacheProvider( Configuration config )
-    {
-        config.setProperty( Environment.CACHE_REGION_FACTORY, "com.mc.hibernate.memcached.MemcachedRegionFactory" );
-        config.setProperty( PROP_MEMCACHED_CONNECTION_FACTORY, "KetamaConnectionFactory" );
-        config.setProperty( PROP_MEMCACHED_OPERATION_TIMEOUT, "5000" );
-        config.setProperty( PROP_MEMCACHED_HASH_ALGORITHM, "HashAlgorithm.FNV1_64_HASH" );
-        config.setProperty( PROP_MEMCACHED_CLEAR_SUPPORTED, "true" );
-        config.setProperty( PROP_MEMCACHED_SERVERS, configurationProvider.getProperty( ConfigurationKey.CACHE_SERVERS ) );
-        config.setProperty( PROP_MEMCACHED_CACHE_TIME_SECONDS, configurationProvider.getProperty( ConfigurationKey.CACHE_TIME ) );
-    }
-    
-    /**
      * Sets system properties to be resolved in the Ehcache cache replication 
      * configuration.
      */
@@ -342,7 +306,8 @@ public class DefaultHibernateConfigurationProvider
         String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
         
-        //Split using comma delimiter along with possible spaces in between.
+        // Split using comma delimiter along with possible spaces in between
+        
         String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
         
         List<String> cacheNames = getCacheNames();

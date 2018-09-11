@@ -38,7 +38,9 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -58,6 +60,9 @@ public class DefaultAnalyticsDimensionService
 
     @Autowired
     private CurrentUserService currentUserService;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     @Override
     public List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request )
@@ -94,8 +99,10 @@ public class DefaultAnalyticsDimensionService
             
             //TODO data set elements
         }
-        
-        //TODO org units
+
+        dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
+
+        //TODO filter org unit group sets
         
         return dimensions.stream()
             .filter( d -> aclService.canDataRead( user, d ) )

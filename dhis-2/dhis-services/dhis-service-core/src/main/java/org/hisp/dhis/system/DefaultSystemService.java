@@ -102,10 +102,9 @@ public class DefaultSystemService
 
         List<String> info = ImmutableList.<String>builder()
             .add( "Version: " + systemInfo.getVersion() )
-            .add( "revision: " + systemInfo.getRevision() )
-            .add( "build date: " + systemInfo.getBuildTime() )
-            .add( "database name: " + systemInfo.getDatabaseInfo().getName() )
-            .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
+            .add( "Revision: " + systemInfo.getRevision() )
+            .add( "Build date: " + systemInfo.getBuildTime() )
+            .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )
             .add( "Java version: " + systemInfo.getJavaVersion() )
             .build();
 
@@ -312,9 +311,9 @@ public class DefaultSystemService
         }
         else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
         {
-            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime );
         }
 
-        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 ) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
 }
