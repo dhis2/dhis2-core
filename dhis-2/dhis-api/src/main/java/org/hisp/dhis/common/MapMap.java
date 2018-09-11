@@ -68,11 +68,11 @@ public class MapMap<T, U, V>
     }
     
     @SafeVarargs
-    public static <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
+    public static <T, U, V> MapMap<T, U, V> ofEntries( Map.Entry<T, Map<U, V>>... entries )
     {
         MapMap<T, U, V> map = new MapMap<>();
 
-        for ( AbstractMap.SimpleEntry<T, Map<U, V>> entry : entries )
+        for ( Map.Entry<T, Map<U, V>> entry : entries )
         {
             map.put( entry.getKey(), entry.getValue() );
         }

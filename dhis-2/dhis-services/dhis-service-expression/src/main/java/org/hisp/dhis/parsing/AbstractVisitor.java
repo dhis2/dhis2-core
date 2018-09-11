@@ -123,11 +123,11 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     @Override
     public final Object visitConstant( ConstantContext ctx )
     {
-        Double value = constantMap.get( ctx.UID() );
+        Double value = constantMap.get( ctx.constantId().getText() );
 
         if ( value == null )
         {
-            throw new ParsingException( "No constant defined for " + ctx.UID() );
+            throw new ParsingException( "No constant defined for " + ctx.getText() );
         }
 
         return value;
@@ -159,9 +159,6 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     // Visitor methods that subclasses must implement to process the
     // data (for evaluation) or metadata (to find DimensionItemObjects.)
     // -------------------------------------------------------------------------
-
-    @Override
-    public abstract Object visitDimensionItemObject( DimensionItemObjectContext ctx );
 
     @Override
     public abstract Object visitOrgUnitCount( OrgUnitCountContext ctx );
@@ -456,24 +453,24 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
                 return visit( ctx.expr( 0 ) );
             }
 
-            currentPeriod = savedPeriod.getPeriodType().getPreviousPeriod( savedPeriod, -periodShift );
+            currentPeriod = getPreviousOrNextPeriod( savedPeriod, periodShift );
 
             returnValue = visit( ctx.expr( 0 ) );
         }
         else
         {
-            MultiPeriodValues values = new MultiPeriodValues();
+            MultiValues values = new MultiValues();
 
-            for ( int i = 0; i < argumentCount / 4 + 1; i++ )
+            for ( int i = 0; i < argumentCount; i += 4 )
             {
-                int periodShiftFrom = castInteger( visit( ctx.a1_n().expr( 0 ) ) );
+                int periodShiftFrom = castInteger( visit( ctx.a1_n().expr( i ) ) );
                 int periodShiftTo = evalIntDefault( ctx.a1_n().expr( i + 1 ), periodShiftFrom );
                 int yearShiftFrom = evalIntDefault( ctx.a1_n().expr( i + 2 ), 0 );
                 int yearShiftTo = evalIntDefault( ctx.a1_n().expr( i + 3 ), yearShiftFrom );
 
                 if ( savedPeriod == null ) // No period, syntax check only.
                 {
-                    values.addPeriodValue( visit( ctx.expr( 0 ) ), currentPeriod );
+                    values.addPeriodValue( currentPeriod, visit( ctx.expr( 0 ) ) );
                 }
                 else
                 {
@@ -485,9 +482,9 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
                         for ( int periodShift = periodShiftFrom; periodShift <= periodShiftTo; periodShift++ )
                         {
-                            currentPeriod = periodType.getPreviousPeriod( yearShiftPeriod, -periodShift );
+                            currentPeriod = getPreviousOrNextPeriod( yearShiftPeriod, periodShift );
 
-                            values.addPeriodValue( visit( ctx.expr( 0 ) ), currentPeriod );
+                            values.addPeriodValue( currentPeriod, visit( ctx.expr( 0 ) ) );
                         }
                     }
                 }
@@ -499,6 +496,13 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
         currentPeriod = savedPeriod;
 
         return returnValue;
+    }
+
+    private Period getPreviousOrNextPeriod( Period period, int periodShift )
+    {
+        return periodShift < 0
+            ? period.getPeriodType().getPreviousPeriod( period, -periodShift )
+            : period.getPeriodType().getNextPeriod( period, periodShift );
     }
 
     // -------------------------------------------------------------------------
@@ -735,6 +739,11 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected Integer castInteger( Object object )
     {
+        if ( object == null )
+        {
+            return null;
+        }
+
         Double d = castDouble( object );
 
         if ( d == null )
@@ -760,6 +769,11 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected Double castDouble( Object object )
     {
+        if ( object == null )
+        {
+            return null;
+        }
+
         try
         {
             if ( object.getClass() == String.class )
@@ -783,6 +797,11 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected Boolean castBoolean( Object object )
     {
+        if ( object == null )
+        {
+            return null;
+        }
+
         try
         {
             return (Boolean) object;
@@ -801,6 +820,11 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected String castString( Object object )
     {
+        if ( object == null )
+        {
+            return null;
+        }
+
         try
         {
             return (String) object;
@@ -819,28 +843,31 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected MultiValues castMultiValues( Object object )
     {
-        if ( !( object instanceof MultiValues ) )
+        if ( ! ( object instanceof MultiValues ) )
         {
-            throw new ParsingException( "multiple values expected at: '" + object.toString() + "'" );
+            throw new ParsingException( "multiple values expected at: '" +
+                ( object == null ? "" : object.toString() ) + "'" );
         }
 
         return (MultiValues) object;
     }
 
     /**
-     * Casts object as MultiPeriodValues, or throws exception if we can't.
+     * Casts object as MultiValues with periods, or throws exception if we can't.
      *
-     * @param object the value to cast as a MultiPeriodvalues.
-     * @return MultiPeriodvalues object.
+     * @param object the value to cast as a MultiValues.
+     * @return MultiValues object with periods.
      */
-    protected MultiPeriodValues castMultiPeriodvalues( Object object )
+    protected MultiValues castMultiPeriodvalues( Object object )
     {
-        if ( ! (object instanceof MultiPeriodValues ) )
-        {
-            throw new ParsingException( "multiple period values expected at: '" + object.toString() + "'" );
-        }
+        MultiValues multiValues = castMultiValues( object );
 
-        return (MultiPeriodValues) object;
+        if ( ! multiValues.hasPeriods() )
+        {
+            throw new ParsingException( "multiple period values expected at: '" +
+                ( object == null ? "" : object.toString() ) + "'" );
+        }
+        return multiValues;
     }
 
     /**
@@ -887,6 +914,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     {
         return ArrayUtils.toPrimitive( castMultiValues( visit( ctx.expr( 0 ) ) )
             .getValues().stream()
+            .filter( o -> o != null )
             .map( o -> castDouble( o ) ).collect( Collectors.toList() )
             .toArray( new Double[0] ) );
     }
@@ -907,17 +935,17 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
     private Object firstOrLast( ExprContext ctx, boolean isFirst )
     {
-        MultiPeriodValues mpv = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
+        MultiValues multiValues = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
 
         if ( ctx.a0_1().expr() == null )
         {
-            List<Object> values = mpv.firstOrLast( 1, isFirst ).getValues();
+            List<Object> values = multiValues.firstOrLast( 1, isFirst ).getValues();
 
             return values.isEmpty() ? null : values.get( 0 );
         }
         else
         {
-            return mpv.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
+            return multiValues.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
         }
     }
 

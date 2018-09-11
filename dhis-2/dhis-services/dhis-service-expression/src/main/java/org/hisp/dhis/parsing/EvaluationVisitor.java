@@ -29,14 +29,17 @@ package org.hisp.dhis.parsing;
  */
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
@@ -46,11 +49,7 @@ import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
  */
 public class EvaluationVisitor extends AbstractVisitor
 {
-    private MapMapMap<OrganisationUnit, Period, String, Double> valueMap;
-
-    private Map<String, Integer> orgUnitCountMap;
-
-    private int days;
+    private Map<String, Double> keyValueMap;
 
     public Double getExpressionValue( ParseTree parseTree, OrganisationUnit orgUnit, Period period,
         MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
@@ -62,18 +61,7 @@ public class EvaluationVisitor extends AbstractVisitor
         this.orgUnitCountMap = orgUnitCountMap;
         this.days = days;
 
-        this.valueMap = new MapMapMap<>();
-
-        for ( Map.Entry<OrganisationUnit, MapMap<Period, DimensionalItemObject, Double>> entry1 : valueMap.entrySet() )
-        {
-            for ( Map.Entry<Period, Map<DimensionalItemObject, Double>> entry2 : entry1.getValue().entrySet() )
-            {
-                for ( Map.Entry<DimensionalItemObject, Double> entry3 : entry2.getValue().entrySet() )
-                {
-                    this.valueMap.putEntry( entry1.getKey(), entry2.getKey(), entry3.getKey().getDimensionItem(), entry3.getValue() );
-                }
-            }
-        }
+        makeKeyValueMap( valueMap );
 
         return castDouble( visit( parseTree ) );
     }
@@ -83,10 +71,20 @@ public class EvaluationVisitor extends AbstractVisitor
     // -------------------------------------------------------------------------
 
     @Override
-    public Object visitDimensionItemObject( DimensionItemObjectContext ctx )
+    public Object visitDataElement( DataElementContext ctx )
     {
-        return valueMap.getValue( currentOrgUnit, currentPeriod, ctx.getText() );
-    };
+        String itemId = ctx.dataElementId().getText();
+
+        return getItemValue( DATA_ELEMENT, itemId );
+    }
+
+    @Override
+    public Object visitDataElementOperand( DataElementOperandContext ctx )
+    {
+        String itemId = ctx.dataElementOperandId().getText();
+
+        return getItemValue( DATA_ELEMENT_OPERAND, itemId );
+    }
 
     @Override
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
@@ -147,5 +145,42 @@ public class EvaluationVisitor extends AbstractVisitor
         return castBoolean( visit( ctx.a1().expr() ) )
             ? null
             : visit( ctx.expr( 0 ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void makeKeyValueMap( MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap )
+    {
+        keyValueMap = new HashMap<>();
+
+        for ( Map.Entry<OrganisationUnit, MapMap<Period, DimensionalItemObject, Double>> orgUnitEntry : valueMap.entrySet() )
+        {
+            for ( Map.Entry<Period, Map<DimensionalItemObject, Double>> periodEntry : orgUnitEntry.getValue().entrySet() )
+            {
+                for ( Map.Entry<DimensionalItemObject, Double> itemEntry : periodEntry.getValue().entrySet() )
+                {
+                    keyValueMap.put( getKey( orgUnitEntry.getKey(), periodEntry.getKey(),
+                        itemEntry.getKey().getDimensionItemType(), itemEntry.getKey().getDimensionItem() ), itemEntry.getValue() );
+                }
+            }
+        }
+    }
+
+    private Double getItemValue( DimensionItemType itemType, String itemId )
+    {
+        String key = getKey( currentOrgUnit, currentPeriod, itemType, itemId );
+
+        Double value = keyValueMap.get( key );
+
+        return value;
+    }
+
+    private String getKey( OrganisationUnit orgUnit, Period period,
+        DimensionItemType dimensionItemType, String itemId )
+    {
+        return orgUnit.getUid() + "-" + period.getIsoDate() + "-"
+            + dimensionItemType.name()  + "-" + itemId;
     }
 }

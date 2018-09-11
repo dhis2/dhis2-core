@@ -47,27 +47,43 @@ expr
     |   '+' expr // (Doesn't change the expression)
     |   expr fun=('*'|'/'|'%') expr
     |   expr fun=('+'|'-') expr
-    |   expr fun=('<=' | '>=' | '<' | '>') expr
+    |   expr fun=('<' | '>' | '<=' | '>=') expr
     |   expr fun=('==' | '!=') expr
     |   expr fun='&&' expr
     |   expr fun='||' expr
 
     // Other
 
-    |   value
-    |   programIndicatorExpr
-    ;
-
-value
-    :   dimensionItemObject
+    |   dataElement
+    |   dataElementOperand
+    |   programDataElement
+    |   programTrackedEntityAttribute
+    |   programIndicator
+//    |   dimensionItemObject
     |   orgUnitCount
     |   reportingRate
     |   constant
     |   days
+    |   programIndicatorExpr
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
     ;
+
+//dimensionItemObject
+//    :   '#{' id=dataElementId '}'
+//    |   '#{' id=dataElementOperandId '}'
+//    |   'D{' id=programDataElementId '}'
+//    |   'A{' id=programTrackedEntityAttributeId '}'
+//    |   'I{' id=programIndicatorId '}'
+//    ;
+
+//    :   dataElement
+//    |   dataElementOperand
+//    |   programDataElement
+//    |   programTrackedEntityAttribute
+//    |   programIndicator
+//    ;
 
 programIndicatorExpr
     :   'V{' programIndicatorVariable '}'
@@ -133,6 +149,74 @@ a3  // 3 arguments
     :   '(' expr ',' expr ',' expr ')'
     ;
 
+dataElement
+    :   '#{' dataElementId '}'
+    ;
+
+dataElementOperand
+    :   '#{' dataElementOperandId '}'
+    ;
+
+programDataElement
+    :   'D{' programDataElementId '}'
+    ;
+
+programTrackedEntityAttribute
+    :   'A{' programTrackedEntityAttributeId '}'
+    ;
+
+programIndicator
+    :   'I{' programIndicatorId '}'
+    ;
+
+orgUnitCount
+    :   'OUG{' orgUnitCountId '}'
+    ;
+
+reportingRate
+    :   'R{' reportingRateId '.REPORTING_RATE}'
+    ;
+
+constant
+    :   'C{' constantId '}'
+    ;
+
+days
+    :   '[days]'
+    ;
+
+dataElementId
+    :   UID
+    ;
+
+dataElementOperandId
+    :    UID '.' (UID | '*') ('.' (UID | '*'))?
+    ;
+
+programDataElementId
+    :   UID ('.' UID)?
+    ;
+
+programTrackedEntityAttributeId
+    :   UID '.' UID
+    ;
+
+programIndicatorId
+    :   UID
+    ;
+
+orgUnitCountId
+    :   UID
+    ;
+
+reportingRateId
+    :   UID
+    ;
+
+constantId
+    :   UID
+    ;
+
 numericLiteral
     :   NUMERIC_LITERAL
     ;
@@ -143,45 +227,6 @@ stringLiteral
 
 booleanLiteral
     :   BOOLEAN_LITERAL
-    ;
-
-dimensionItemObject
-    :   dataElementOperand
-    |   programDataElement
-    |   programTrackedEntityAttribute
-    |   programIndicator
-    ;
-
-dataElementOperand
-    :   '#{' UID ('.' UID ('.' UID)? )? '}'
-    ;
-
-programDataElement
-    :   'D{' UID ('.' UID)? '}'
-    ;
-
-programTrackedEntityAttribute
-    :   'A{' UID '.' UID '}'
-    ;
-
-programIndicator
-    :   'I{' UID '}'
-    ;
-
-orgUnitCount
-    :   'OUG{' UID '}'
-    ;
-
-reportingRate
-    :   'R{' UID '.REPORTING_RATE}'
-    ;
-
-constant
-    :   'C{' UID '}'
-    ;
-
-days
-    :   '[days]'
     ;
 
 // -----------------------------------------------------------------------------

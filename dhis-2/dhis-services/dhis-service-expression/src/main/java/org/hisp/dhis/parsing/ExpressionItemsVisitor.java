@@ -61,14 +61,14 @@ public class ExpressionItemsVisitor extends AbstractVisitor
      */
     private final static Double DUMMY_VALUE = Double.valueOf( 1. );
 
-    private ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items;
+    private ListMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded;
 
     public void getDimensionalItemObjects( ParseTree parseTree, List<OrganisationUnit> orgUnits,
         List<Period> periods, Map<String, Double> constantMap,
-        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items )
+        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded )
     {
         this.constantMap = constantMap;
-        this.items = items;
+        this.itemsNeeded = itemsNeeded;
 
         for ( OrganisationUnit orgUnit : orgUnits )
         {
@@ -85,13 +85,13 @@ public class ExpressionItemsVisitor extends AbstractVisitor
 
     public String getExpressionDescription( ParseTree parseTree, String expr )
     {
-        items = new ListMapMap<>();
+        itemsNeeded = new ListMapMap<>();
 
         castDouble( visit( parseTree ) );
 
         Map<String, String> nameMap = new HashMap<>();
 
-        for ( Map.Entry<OrganisationUnit, ListMap<Period, DimensionalItemObject>> entry1 : items.entrySet() )
+        for ( Map.Entry<OrganisationUnit, ListMap<Period, DimensionalItemObject>> entry1 : itemsNeeded.entrySet() )
         {
             for ( Map.Entry<Period, List<DimensionalItemObject>> entry2 : entry1.getValue().entrySet() )
             {
@@ -117,19 +117,49 @@ public class ExpressionItemsVisitor extends AbstractVisitor
     // -------------------------------------------------------------------------
 
     @Override
-    public Object visitDimensionItemObject( DimensionItemObjectContext ctx )
+    public Object visitDataElement ( DataElementContext ctx )
     {
-        DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( ctx.getText() );
+        return getDimensionalItem( ctx.dataElementId().getText() );
+    }
 
-        if ( item == null )
-        {
-            throw new ParsingException( "Can't find object matching '" + ctx.getText() + "'" );
-        }
+    @Override
+    public Object visitDataElementOperand ( DataElementOperandContext ctx )
+    {
+        return getDimensionalItem( ctx.dataElementOperandId().getText() );
+    }
 
-        items.putValue( currentOrgUnit, currentPeriod, item );
+    @Override
+    public Object visitProgramDataElement ( ProgramDataElementContext ctx )
+    {
+        return getDimensionalItem( ctx.programDataElementId().getText() );
+    }
 
-        return DUMMY_VALUE;
-    };
+    @Override
+    public Object visitProgramTrackedEntityAttribute ( ProgramTrackedEntityAttributeContext ctx )
+    {
+        return getDimensionalItem( ctx.programTrackedEntityAttributeId().getText() );
+    }
+
+    @Override
+    public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
+    {
+        return getDimensionalItem( ctx.programIndicatorId().getText() );
+    }
+
+//    @Override
+//    public Object visitDimensionItemObject( DimensionItemObjectContext ctx )
+//    {
+//        DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( ctx.getText() );
+//
+//        if ( item == null )
+//        {
+//            throw new ParsingException( "Can't find object matching '" + ctx.getText() + "'" );
+//        }
+//
+//        itemsNeeded.putValue( currentOrgUnit, currentPeriod, item );
+//
+//        return DUMMY_VALUE;
+//    };
 
     @Override
     public final Object visitOrgUnitCount( OrgUnitCountContext ctx )
@@ -208,5 +238,23 @@ public class ExpressionItemsVisitor extends AbstractVisitor
         castBoolean( visit( ctx.a1().expr() ) );
 
         return visit( ctx.expr( 0 ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Object getDimensionalItem( String itemId )
+    {
+        DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
+
+        if ( item == null )
+        {
+            throw new ParsingException( "Can't find object matching '" + itemId + "'" );
+        }
+
+        itemsNeeded.putValue( currentOrgUnit, currentPeriod, item );
+
+        return DUMMY_VALUE;
     }
 }

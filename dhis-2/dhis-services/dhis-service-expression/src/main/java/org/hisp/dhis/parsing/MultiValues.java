@@ -28,8 +28,13 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.period.Period;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Holds multiple values for expression evaluation.
@@ -40,6 +45,8 @@ public class MultiValues
 {
     private List<Object> values = new ArrayList<>();
 
+    private List<Period> periods = null;
+
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
@@ -48,19 +55,68 @@ public class MultiValues
     {
         if ( value != null )
         {
-            if ( value instanceof MultiPeriodValues )
+            if ( value instanceof MultiValues )
             {
-                values.addAll( ( (MultiValues) value ).values );
-            }
-            else if ( value instanceof MultiValues )
-            {
-                values.addAll( ( (MultiValues) value ).values );
+                MultiValues multiValues = (MultiValues) value;
+
+                if ( multiValues.hasPeriods() )
+                {
+                    for ( int i = 0; i < multiValues.periods.size(); i++ )
+                    {
+                        addPeriodValue( multiValues.periods.get( i ), multiValues.values.get( i ) );
+                    }
+                }
+                else
+                {
+                    values.addAll( multiValues.values );
+                }
             }
             else
             {
                 values.add( value );
             }
         }
+    }
+
+    public void addPeriodValue( Period period, Object value )
+    {
+        if ( value instanceof MultiValues )
+        {
+            MultiValues multiValues = (MultiValues) value;
+
+            if ( multiValues.hasPeriods() )
+            {
+                throw new ParsingException( "Can't chain two period functions with no aggregation function between." );
+            }
+
+            for ( int i = 0; i < multiValues.periods.size(); i++ )
+            {
+                addPeriodValue( multiValues.periods.get( i ), multiValues.values.get( i ) );
+            }
+        }
+        else
+        {
+            values.add( value );
+
+            if ( periods == null )
+            {
+                periods = new ArrayList<>();
+            }
+
+            periods.add( period );
+        }
+    }
+
+    public boolean hasPeriods()
+    {
+        return periods != null;
+    }
+
+    public MultiValues firstOrLast( int limit, boolean isFirst )
+    {
+        SortedMap<Period, List<Object>> sortedValues = buildSortedValues( isFirst );
+
+        return firstOrLastValues( sortedValues, limit );
     }
 
     // -------------------------------------------------------------------------
@@ -70,5 +126,49 @@ public class MultiValues
     public List<Object> getValues()
     {
         return values;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private SortedMap<Period, List<Object>> buildSortedValues( boolean isFirst )
+    {
+        SortedMap<Period, List<Object>> sortedValues = isFirst ? new TreeMap<>()
+            : new TreeMap<>( Collections.reverseOrder() );
+
+        for ( int i = 0; i < periods.size(); i++ )
+        {
+            if ( !sortedValues.containsKey( periods.get( i ) ) )
+            {
+                sortedValues.put( periods.get( i ), new ArrayList<Object>() );
+            }
+
+            sortedValues.get( periods.get( i ) ).add( values.get( i ) );
+        }
+
+        return sortedValues;
+    }
+
+    private MultiValues firstOrLastValues( SortedMap<Period, List<Object>> sortedValues, int limit )
+    {
+        MultiValues selectedValues = new MultiValues();
+
+        int count = 0;
+
+        for ( Period period : sortedValues.keySet() )
+        {
+            for ( Object value : sortedValues.get( period ) )
+            {
+                if ( ++count > limit )
+                {
+                    return selectedValues;
+                }
+
+                selectedValues.addPeriodValue( period, value );
+            }
+        }
+
+        return selectedValues;
     }
 }

@@ -17,12 +17,6 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr(ExpressionParser.ExprContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#value}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitValue(ExpressionParser.ValueContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programIndicatorExpr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -83,29 +77,11 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitA3(ExpressionParser.A3Context ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#numericLiteral}.
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNumericLiteral(ExpressionParser.NumericLiteralContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#stringLiteral}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitStringLiteral(ExpressionParser.StringLiteralContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#booleanLiteral}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBooleanLiteral(ExpressionParser.BooleanLiteralContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dimensionItemObject}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDimensionItemObject(ExpressionParser.DimensionItemObjectContext ctx);
+	T visitDataElement(ExpressionParser.DataElementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperand}.
 	 * @param ctx the parse tree
@@ -154,4 +130,70 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDays(ExpressionParser.DaysContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDataElementId(ExpressionParser.DataElementIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDataElementOperandId(ExpressionParser.DataElementOperandIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#programDataElementId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProgramDataElementId(ExpressionParser.ProgramDataElementIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#programTrackedEntityAttributeId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProgramTrackedEntityAttributeId(ExpressionParser.ProgramTrackedEntityAttributeIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#programIndicatorId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProgramIndicatorId(ExpressionParser.ProgramIndicatorIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#orgUnitCountId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOrgUnitCountId(ExpressionParser.OrgUnitCountIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#reportingRateId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReportingRateId(ExpressionParser.ReportingRateIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#constantId}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstantId(ExpressionParser.ConstantIdContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#numericLiteral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNumericLiteral(ExpressionParser.NumericLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringLiteral(ExpressionParser.StringLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#booleanLiteral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBooleanLiteral(ExpressionParser.BooleanLiteralContext ctx);
 }
