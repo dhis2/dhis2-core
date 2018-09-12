@@ -71,8 +71,6 @@ public class GetDataValuesForDataSetAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private String lastUpdatedBy;
-
     private DataValueService dataValueService;
 
     public void setDataValueService( DataValueService dataValueService )
@@ -214,7 +212,9 @@ public class GetDataValuesForDataSetAction
     {
         return storedBy;
     }
-    
+
+    private String lastUpdatedBy;
+
     public String getLastUpdatedBy() { return lastUpdatedBy; }
 
     private Map<String, FileResource> dataValueFileResourceMap = new HashMap<>();
