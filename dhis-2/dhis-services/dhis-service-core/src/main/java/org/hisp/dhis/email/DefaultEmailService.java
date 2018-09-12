@@ -83,12 +83,6 @@ public class DefaultEmailService
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean emailNotificationsEnabled()
-    {
-        return systemSettingManager.emailNotificationsEnabled();
-    }
-
-    @Override
     public boolean emailConfigured()
     {
         return systemSettingManager.emailConfigured();
@@ -117,7 +111,7 @@ public class DefaultEmailService
     }
 
     @Override
-    public OutboundMessageResponse sendSystemEmail(Email email )
+    public OutboundMessageResponse sendSystemEmail( Email email )
     {
         OutboundMessageResponse response = new OutboundMessageResponse();
 
