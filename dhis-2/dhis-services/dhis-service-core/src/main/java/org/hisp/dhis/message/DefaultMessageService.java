@@ -162,7 +162,6 @@ public class DefaultMessageService
     @Override
     public int sendSystemMessage( Set<User> recipients, String subject, String text )
     {
-        System.out.println( "Recipients " + recipients );
         MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
             .withSubject( subject )
