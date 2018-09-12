@@ -62,13 +62,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Override
     public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
-        if ( !containsImplementableActions( programInstance ) )
-        {
-            return new ArrayList<>();
-        }
-
-        log.info( "RuleEngine triggered" );
-
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         try
@@ -97,13 +90,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Override
     public List<RuleEffect> evaluate(ProgramStageInstance programStageInstance )
     {
-        if ( !containsImplementableActions( programStageInstance.getProgramInstance() ) )
-        {
-            return new ArrayList<>();
-        }
-
-        log.info( "RuleEngine triggered" );
-
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         try
@@ -127,31 +113,5 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
 
         return ruleEffects;
-    }
-
-    private boolean containsImplementableActions( ProgramInstance programInstance )
-    {
-        if ( programInstance == null )
-        {
-            return false;
-        }
-
-        Program program = programInstance.getProgram();
-
-        Set<ProgramRule> programRules = program.getProgramRules();
-
-        List<ProgramRuleAction> programRuleActions = programRules.stream().map( ProgramRule::getProgramRuleActions )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-
-        for ( ProgramRuleAction action : programRuleActions )
-        {
-            if ( action.getProgramRuleActionType().isImplementable() )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

@@ -755,6 +755,8 @@
 
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngine" class="org.hisp.dhis.programrule.engine.ProgramRuleEngine" />
 
+  <bean id="org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap" class="org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap" />
+
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService" />
 
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEntityMapperService" />
@@ -762,6 +764,8 @@
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
 
   <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
+
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" class="org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" />
 
   <bean id="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" class="org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" />
   
