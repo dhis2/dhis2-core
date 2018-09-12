@@ -52,6 +52,8 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private static final String REGEX = "\\w+";
 
+    private static final Pattern PATTERN = Pattern.compile( REGEX, Pattern.CASE_INSENSITIVE );
+
     @Autowired
     private RuleVariableInMemoryMap variableMap;
 
@@ -89,8 +91,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
         String variable = assign.field();
 
-        Pattern pattern = Pattern.compile( REGEX, Pattern.CASE_INSENSITIVE );
-        Matcher matcher = pattern.matcher( variable );
+        Matcher matcher = PATTERN.matcher( variable );
 
         while ( matcher.find() )
         {
