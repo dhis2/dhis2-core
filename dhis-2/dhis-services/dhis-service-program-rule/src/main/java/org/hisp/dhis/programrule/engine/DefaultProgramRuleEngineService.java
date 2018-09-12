@@ -33,14 +33,10 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -60,19 +56,9 @@ public class DefaultProgramRuleEngineService
     @Autowired
     private List<RuleActionImplementer> ruleActionImplementers;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
-
     @Override
     public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
-        if ( !containsImplementableActions( programInstance ) )
-        {
-            return new ArrayList<>();
-        }
-
-        log.info( "RuleEngine triggered" );
-
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         try
@@ -101,13 +87,6 @@ public class DefaultProgramRuleEngineService
     @Override
     public List<RuleEffect> evaluate( ProgramStageInstance programStageInstance )
     {
-        if ( !containsImplementableActions( programStageInstance.getProgramInstance() ) )
-        {
-            return new ArrayList<>();
-        }
-
-        log.info( "RuleEngine triggered" );
-
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         try
@@ -131,29 +110,5 @@ public class DefaultProgramRuleEngineService
         }
 
         return ruleEffects;
-    }
-
-    private boolean containsImplementableActions( ProgramInstance programInstance )
-    {
-        if ( programInstance == null )
-        {
-            return false;
-        }
-
-        List<ProgramRule> programRules = programRuleService.getProgramRule( programInstance.getProgram() );
-
-        List<ProgramRuleAction> programRuleActions = programRules.stream().map( ProgramRule::getProgramRuleActions )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-
-        for ( ProgramRuleAction action : programRuleActions )
-        {
-            if ( action.getProgramRuleActionType().isImplementable() )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

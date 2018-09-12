@@ -162,7 +162,6 @@ public class DefaultMessageService
     @Override
     public int sendSystemMessage( Set<User> recipients, String subject, String text )
     {
-        System.out.println( "Recipients " + recipients );
         MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
             .withSubject( subject )
@@ -442,7 +441,7 @@ public class DefaultMessageService
         {
             log.debug( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 
-            messageSender.sendMessage( subject, text, footer, sender, new HashSet<>( users ), forceSend );
+            messageSender.sendMessageAsync( subject, text, footer, sender, new HashSet<>( users ), forceSend );
         }
     }
 
