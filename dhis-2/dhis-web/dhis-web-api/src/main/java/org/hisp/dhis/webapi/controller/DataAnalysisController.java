@@ -168,8 +168,6 @@ public class DataAnalysisController
         @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-        log.info( "performValidationRulesAnalysis from DataAnalysisController input " + validationRulesAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         ValidationRuleGroup group = null;
@@ -248,8 +246,6 @@ public class DataAnalysisController
         @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-        log.info( "performStdDevOutlierAnalysis from DataAnalysisController input " + stdDevOutlierAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
@@ -297,8 +293,6 @@ public class DataAnalysisController
         @RequestBody DataAnalysisParams params, HttpSession session )
         throws WebMessageException
     {
-        log.info( "performMinMaxOutlierAnalysis from DataAnalysisController input " + params );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
@@ -347,8 +341,6 @@ public class DataAnalysisController
         HttpSession session )
         throws WebMessageException
     {
-        log.info( "performFollowupAnalysis from DataAnalysisController input " + params );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
