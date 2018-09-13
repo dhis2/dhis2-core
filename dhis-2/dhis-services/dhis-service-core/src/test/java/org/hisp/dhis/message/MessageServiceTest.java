@@ -171,7 +171,7 @@ public class MessageServiceTest
     @Test
     public void testSendMessage()
     {
-        int id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta" );
+        int id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         

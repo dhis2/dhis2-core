@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.fileresource.MessageAttachment;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
@@ -71,7 +71,7 @@ public class Message
     /**
      * Attached files
      */
-    private Set<MessageAttachment> attachments;
+    private Set<FileResource> attachments;
 
     public Message()
     {
@@ -163,12 +163,12 @@ public class Message
 
     @JsonProperty
     @JacksonXmlProperty
-    public Set<MessageAttachment> getAttachments()
+    public Set<FileResource> getAttachments()
     {
         return attachments;
     }
 
-    public void setAttachments( Set<MessageAttachment> attachments )
+    public void setAttachments( Set<FileResource> attachments )
     {
         this.attachments = attachments;
     }

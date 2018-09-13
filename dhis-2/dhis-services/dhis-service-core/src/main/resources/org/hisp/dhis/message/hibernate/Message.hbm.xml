@@ -25,10 +25,10 @@
     <many-to-one name="sender" class="org.hisp.dhis.user.User" column="userid"
       foreign-key="fk_message_userid" />
 
-    <set name="attachments" inverse="true" cascade="all-delete-orphan">
+    <set name="attachments" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="messageid" />
-      <one-to-many class="org.hisp.dhis.fileresource.MessageAttachment" />
+      <many-to-many column="fileresourceid" unique="true" class="org.hisp.dhis.fileresource.FileResource" />
     </set>
 
   </class>

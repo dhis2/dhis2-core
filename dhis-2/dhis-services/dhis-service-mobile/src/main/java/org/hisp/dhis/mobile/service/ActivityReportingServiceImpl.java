@@ -173,7 +173,7 @@ public class ActivityReportingServiceImpl
 
         }
 
-        messageService.sendPrivateMessage( users, subject, text, metaData );
+        messageService.sendPrivateMessage( users, subject, text, metaData, null );
 
         return MESSAGE_SENT;
     }
