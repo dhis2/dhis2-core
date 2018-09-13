@@ -141,7 +141,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     {
         List<Period> storedPeriods = new ArrayList<>();
 
-        if ( !periods.isEmpty() )
+        if ( periods != null && !periods.isEmpty() )
         {
             for ( Period period : periods )
             {
@@ -156,17 +156,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
         List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
 
-        if ( !dataElements.isEmpty() )
+        if ( dataElements != null && !dataElements.isEmpty() )
         {
             predicates.add( root -> root.get( "dataElement" ).in( dataElements ) );
         }
 
-        if ( !storedPeriods.isEmpty() )
+        if ( storedPeriods != null && !storedPeriods.isEmpty() )
         {
             predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
         }
 
-        if ( !organisationUnits.isEmpty() )
+        if ( organisationUnits != null && !organisationUnits.isEmpty() )
         {
             predicates.add( root -> root.get( "organisationUnit" ).in( organisationUnits ) );
         }
