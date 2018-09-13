@@ -61,6 +61,9 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
@@ -74,6 +77,7 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -1800,6 +1804,23 @@ public abstract class DhisConvenienceTest
                 Sets.newHashSet(),
                 days,
                 null, null
+        );
+    }
+
+    public static DataSetNotificationTemplate createDataSetNotificationTemplate(
+        String name, DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger,
+        Integer relativeScheduledDays, SendStrategy sendStrategy )
+    {
+        return new DataSetNotificationTemplate(
+            Sets.newHashSet(),
+            Sets.newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy
         );
     }
 
