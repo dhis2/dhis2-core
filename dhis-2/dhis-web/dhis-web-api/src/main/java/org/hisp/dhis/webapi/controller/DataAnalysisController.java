@@ -384,8 +384,7 @@ public class DataAnalysisController
 
     @RequestMapping( value = "/followup/mark", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public @ResponseBody
-    void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest params )
+    public @ResponseBody void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest params )
     {
         log.info( "markDataValues from DataAnalysisController input " + params );
 
