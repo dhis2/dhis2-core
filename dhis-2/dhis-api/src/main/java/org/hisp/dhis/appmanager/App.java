@@ -236,6 +236,7 @@ public class App
         this.activities = activities;
     }
 
+    @JsonProperty
     public String getFolderName()
     {
         return folderName;
@@ -341,7 +342,6 @@ public class App
             "}";
     }
 
-    @JsonProperty( "folderName")
     public String getUrlFriendlyName()
     {
         String result = name.replaceAll("[^A-Za-z0-9 -]", "");
