@@ -127,16 +127,16 @@ public class HibernateTrackedEntityDataValueAuditStore
     private CriteriaQuery getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
         AuditType auditType, CriteriaBuilder builder,  CriteriaQuery query, Root<TrackedEntityDataValueAudit> root )
     {
-        if ( !dataElements.isEmpty() )
+        if ( dataElements != null && !dataElements.isEmpty() )
         {
             Expression<DataElement> dataElementExpression = root.get( "dataElement" );
             Predicate dataElementPredicate = dataElementExpression.in( dataElements );
             query.where( dataElementPredicate );
         }
 
-        if ( !programStageInstances.isEmpty() )
+        if ( programStageInstances != null && !programStageInstances.isEmpty() )
         {
-            Expression<DataElement> psiExpression = root.get( "programStageInstances" );
+            Expression<DataElement> psiExpression = root.get( "programStageInstance" );
             Predicate psiPredicate = psiExpression.in( programStageInstances );
             query.where( psiPredicate );
         }

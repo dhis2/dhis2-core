@@ -28,13 +28,15 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
+import java.util.Locale;
+import java.util.Map;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 public class I18nLocaleServiceTest
     extends DhisSpringTest
@@ -53,5 +55,7 @@ public class I18nLocaleServiceTest
         assertNotNull( countries );
         assertFalse( languages.isEmpty() );
         assertFalse( countries.isEmpty() );
+
+        assertNotNull( localeService.getI18nLocale( Locale.ENGLISH ) );
     }
 }

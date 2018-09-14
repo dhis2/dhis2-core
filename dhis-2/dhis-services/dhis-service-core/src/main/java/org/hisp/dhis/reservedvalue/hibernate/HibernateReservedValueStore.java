@@ -37,6 +37,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,7 +49,7 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 /**
  * @author Stian Sandvold
  */
-@org.springframework.transaction.annotation.Transactional
+@Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
