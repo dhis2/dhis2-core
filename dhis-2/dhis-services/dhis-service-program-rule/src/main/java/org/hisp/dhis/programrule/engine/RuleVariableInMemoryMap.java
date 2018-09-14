@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,36 +28,35 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @Author Zubair Asghar.
  */
-public class OptionSchemaDescriptor implements SchemaDescriptor
+
+public class RuleVariableInMemoryMap
 {
-    public static final String SINGULAR = "option";
+    private Map<String, Map<String, String>> variables = new HashMap<>();
 
-    public static final String PLURAL = "options";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public void put( String key, Map<String, String> value )
     {
-        Schema schema = new Schema( Option.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1040 );
-        schema.setDataShareable( true );
+        variables.put( key, value );
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_OPTIONSET_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_OPTIONSET_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OPTIONSET_DELETE" ) ) );
+    public Map<String, String> get ( String key )
+    {
+        return variables.getOrDefault( key, new HashMap<>() );
+    }
 
-        return schema;
+    public boolean containsKey( String key )
+    {
+        return variables.containsKey( key );
+    }
+
+    public Map<String, Map<String, String>> getVariablesMap()
+    {
+        return this.variables;
     }
 }

@@ -42,6 +42,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -58,6 +60,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
@@ -90,6 +93,9 @@ public class DefaultDataIntegrityService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    @Autowired
+    private I18nManager i18nManager;
 
     private DataElementService dataElementService;
 
@@ -349,6 +355,7 @@ public class DefaultDataIntegrityService
     public SortedMap<Indicator, String> getInvalidIndicatorNumerators()
     {
         SortedMap<Indicator, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
@@ -356,7 +363,7 @@ public class DefaultDataIntegrityService
 
             if ( !result.isValid() )
             {
-                invalids.put( indicator, result.getKey() );
+                invalids.put( indicator, i18n.getString(result.getKey()) );
             }
         }
 
@@ -367,6 +374,7 @@ public class DefaultDataIntegrityService
     public SortedMap<Indicator, String> getInvalidIndicatorDenominators()
     {
         SortedMap<Indicator, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
@@ -374,7 +382,7 @@ public class DefaultDataIntegrityService
 
             if ( !result.isValid() )
             {
-                invalids.put( indicator, result.getKey() );
+                invalids.put( indicator, i18n.getString(result.getKey()) );
             }
         }
 
@@ -540,6 +548,7 @@ public class DefaultDataIntegrityService
     public SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
     {
         SortedMap<ValidationRule, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
@@ -547,7 +556,7 @@ public class DefaultDataIntegrityService
 
             if ( !result.isValid() )
             {
-                invalids.put( rule, result.getKey() );
+                invalids.put( rule, i18n.getString(result.getKey()) );
             }
         }
 
@@ -558,6 +567,7 @@ public class DefaultDataIntegrityService
     public SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
     {
         SortedMap<ValidationRule, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
@@ -565,7 +575,7 @@ public class DefaultDataIntegrityService
 
             if ( !result.isValid() )
             {
-                invalids.put( rule, result.getKey() );
+                invalids.put( rule, i18n.getString(result.getKey()) );
             }
         }
 
