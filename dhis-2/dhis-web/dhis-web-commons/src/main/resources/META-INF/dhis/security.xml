@@ -439,7 +439,6 @@
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_INSERT_CUSTOM_JS_CSS</value>
         <value>F_VIEW_UNAPPROVED_DATA</value>
-        <value>F_OVERRIDE_DATASET_LOCK</value>
         <!-- User -->
         <value>F_USER_VIEW</value>
         <value>F_REPLICATE_USER</value>
