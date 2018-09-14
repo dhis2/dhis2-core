@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,58 +28,35 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * @author Markus Bekken
+ * @Author Zubair Asghar.
  */
-public enum ProgramRuleActionType
+
+public class RuleVariableInMemoryMap
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" ),
-    HIDEOPTION( "hideoption" ),
-    SHOWOPTIONGROUP( "showoptiongroup" ),
-    HIDEOPTIONGROUP( "hideoptiongroup" );
+    private Map<String, Map<String, String>> variables = new HashMap<>();
 
-    final String value;
-
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
-
-    ProgramRuleActionType( String value )
+    public void put( String key, Map<String, String> value )
     {
-        this.value = value;
+        variables.put( key, value );
     }
 
-    public static ProgramRuleActionType fromValue( String value )
+    public Map<String, String> get ( String key )
     {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
+        return variables.getOrDefault( key, new HashMap<>() );
     }
 
-    public boolean isImplementable()
+    public boolean containsKey( String key )
     {
-        return IMPLEMENTED_ACTIONS.contains( this );
+        return variables.containsKey( key );
+    }
+
+    public Map<String, Map<String, String>> getVariablesMap()
+    {
+        return this.variables;
     }
 }
