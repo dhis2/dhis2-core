@@ -86,6 +86,8 @@ public class ImportOptions
 
     private boolean skipPatternValidation;
 
+    private boolean force;
+
     private String filename;
 
     private NotificationLevel notificationLevel;
@@ -123,6 +125,7 @@ public class ImportOptions
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
         options.skipPatternValidation = this.skipPatternValidation;
+        options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
 
@@ -300,6 +303,13 @@ public class ImportOptions
     public boolean isSkipPatternValidation()
     {
         return skipPatternValidation;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isForce()
+    {
+        return force;
     }
 
     @JsonProperty
@@ -482,6 +492,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setForce( boolean force )
+    {
+        this.force = force;
+        return this;
+    }
+
     public ImportOptions setFilename( String filename )
     {
         this.filename = filename;
@@ -514,6 +530,7 @@ public class ImportOptions
             .add( "strictOrganisationUnits", strictOrganisationUnits )
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
+            .add( "force", force )
             .toString();
     }
 }

@@ -8,6 +8,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -198,5 +199,18 @@ public class InputUtils
         }
 
         return attrOptCombo;
+    }
+
+    /**
+     * Checks if user is authorized to force data input.
+     * Having just the authority is not enough. User has to explicitly ask for it.
+     *
+     * @param currentUser the user attempting to force data input
+     * @param force request to force data input
+     * @return true if authorized and requested for it, otherwise false
+     */
+    public boolean canForceDataInput( User currentUser, boolean force )
+    {
+        return force && currentUser.isAuthorized( "ALL" );
     }
 }
