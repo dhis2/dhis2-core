@@ -211,6 +211,6 @@ public class InputUtils
      */
     public boolean canForceDataInput( User currentUser, boolean force )
     {
-        return force && currentUser.isAuthorized( "ALL" );
+        return force && currentUser.isSuper();
     }
 }
