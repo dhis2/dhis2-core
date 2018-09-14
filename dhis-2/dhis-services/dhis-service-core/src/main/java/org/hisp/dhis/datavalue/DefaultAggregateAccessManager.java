@@ -276,7 +276,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             return errors;
         }
 
-
         if ( !aclService.canDataWrite( user, option ) )
         {
             errors.add( "User doesn't have data write access for Option: " + option.getUid() );
