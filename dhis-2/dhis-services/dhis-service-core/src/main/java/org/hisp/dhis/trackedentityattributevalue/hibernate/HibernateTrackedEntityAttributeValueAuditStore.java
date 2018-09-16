@@ -147,12 +147,12 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     {
         List<Predicate> predicates = new ArrayList<>();
 
-        if ( !trackedEntityAttributes.isEmpty() )
+        if ( trackedEntityAttributes != null && !trackedEntityAttributes.isEmpty() )
         {
             predicates.add( root.get( "attribute" ).in( trackedEntityAttributes ) );
         }
 
-        if ( !trackedEntityInstances.isEmpty() )
+        if ( trackedEntityInstances != null && !trackedEntityInstances.isEmpty() )
         {
             predicates.add(  root.get( "entityInstance" ).in( trackedEntityInstances ) );
         }
