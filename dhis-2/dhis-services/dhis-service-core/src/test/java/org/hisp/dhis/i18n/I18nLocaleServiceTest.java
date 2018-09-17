@@ -56,6 +56,8 @@ public class I18nLocaleServiceTest
         assertFalse( languages.isEmpty() );
         assertFalse( countries.isEmpty() );
 
-        assertNotNull( localeService.getI18nLocale( Locale.ENGLISH ) );
+        localeService.addI18nLocale( "en", "US" );
+
+        assertNotNull( localeService.getI18nLocale( Locale.US ) );
     }
 }
