@@ -39,6 +39,4 @@ public interface CategoryOptionGroupStore
     extends IdentifiableObjectStore<CategoryOptionGroup>
 {
     List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
-    
-    List<CategoryOptionGroup> getCategoryOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }

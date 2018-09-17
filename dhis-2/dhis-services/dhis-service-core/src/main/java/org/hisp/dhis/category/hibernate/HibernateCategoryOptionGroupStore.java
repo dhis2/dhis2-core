@@ -33,7 +33,6 @@ package org.hisp.dhis.category.hibernate;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 
@@ -63,15 +62,5 @@ public class HibernateCategoryOptionGroupStore
             });
 
         return getList( builder, parameters );
-    }
-
-    @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }
