@@ -175,6 +175,8 @@ public class InitTableAlteror
         executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
         executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
         executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
+
+        executeSql( "UPDATE userroleauthorities SET authority = 'F_RELATIONSHIPTYPE_PUBLIC_ADD' WHERE authority = 'F_RELATIONSHIPTYPE_ADD'" );
     }
 
     private void addGenerateUidFunction()
