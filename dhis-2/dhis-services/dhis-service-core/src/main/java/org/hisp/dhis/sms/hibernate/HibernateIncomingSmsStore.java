@@ -61,7 +61,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE, false ) )
+        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
         .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
 
         if ( status != null )
@@ -123,7 +123,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameters = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE, false ) );
+        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
 
         if ( status != null )
         {

@@ -57,7 +57,7 @@ public class HibernateSMSCommandStore
 
         List<SMSCommand> list = getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "parserType" ), parserType ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "name" ), "%" + commandName + "%", JpaQueryUtils.StringSearchMode.LIKE, false ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName, JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
 
         if ( list != null && !list.isEmpty() )
         {

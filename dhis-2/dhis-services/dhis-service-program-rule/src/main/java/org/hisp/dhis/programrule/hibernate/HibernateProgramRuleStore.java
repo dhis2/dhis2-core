@@ -70,7 +70,7 @@ public class HibernateProgramRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaQueryUtils.StringSearchMode.LIKE, false ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 }

@@ -57,7 +57,36 @@ public class JpaQueryUtils
     }
 
     /**
-     *
+     * Generate a String comparision Predicate base on input parameters
+     * Example:  JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     * @param builder CriteriaBuilder
+     * @param path Property Path for query
+     * @param attrValue Value to check
+     * @param searchMode JpaQueryUtils.StringSearchMode
+     * @return
+     */
+    public static Predicate stringPredicateCaseSensitive( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
+    {
+        return  stringPredicate(  builder,  expressionPath, objectValue, searchMode, true );
+    }
+
+    /**
+     * Generate a String comparision Predicate base on input parameters
+     * Example:  JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     * @param builder CriteriaBuilder
+     * @param path Property Path for query
+     * @param attrValue Value to check
+     * @param searchMode JpaQueryUtils.StringSearchMode
+     * @return
+     */
+    public static Predicate stringPredicateIgnoreCase( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
+    {
+        return  stringPredicate(  builder,  expressionPath, objectValue, searchMode, false );
+    }
+
+    /**
+     * Generate a String comparision Predicate base on input parameters
+     * Example:  JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
      * @param builder CriteriaBuilder
      * @param path Property Path for query
      * @param attrValue Value to check
@@ -65,8 +94,11 @@ public class JpaQueryUtils
      * @param caseSesnitive is case sensitive
      * @return
      */
-    public static Predicate stringPredicate( CriteriaBuilder builder, Expression<String> path, Object attrValue, StringSearchMode searchMode, boolean caseSesnitive )
+    private static Predicate stringPredicate( CriteriaBuilder builder, Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
+        Expression<String> path = expressionPath;
+        Object attrValue = objectValue;
+
         if ( !caseSesnitive )
         {
             path = builder.lower( path );
@@ -90,6 +122,9 @@ public class JpaQueryUtils
         }
     }
 
+    /**
+     * Use for generating search String predicate in JPA criteria query
+     */
     public enum StringSearchMode
     {
         // Match exactly
@@ -133,6 +168,15 @@ public class JpaQueryUtils
         }
     }
 
+    /**
+     * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
+     * @param builder
+     * @param property
+     * @param path
+     * @param operator
+     * @param value
+     * @return
+     */
     public static Predicate getPredicate( CriteriaBuilder builder, Property property,  Path path, String operator, String value )
     {
         switch ( operator )
