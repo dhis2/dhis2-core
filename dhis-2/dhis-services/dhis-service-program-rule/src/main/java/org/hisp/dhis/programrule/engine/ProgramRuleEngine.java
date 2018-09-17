@@ -68,6 +68,9 @@ public class ProgramRuleEngine
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
 
+    @Autowired
+    private RuleVariableInMemoryMap inMemoryMap;
+
     public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
@@ -161,6 +164,7 @@ public class ProgramRuleEngine
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
             .supplementaryData( supplementaryData )
+            .calculatedValueMap( inMemoryMap.getVariablesMap() )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );

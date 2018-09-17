@@ -50,8 +50,6 @@ import java.util.Set;
  */
 public enum SettingKey
 {
-    MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", Boolean.FALSE, Boolean.class ),
-    MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", Boolean.FALSE, Boolean.class ),
     UI_LOCALE( "keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
     ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", "name", String.class ),
