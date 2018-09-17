@@ -1223,7 +1223,7 @@ public abstract class AbstractEventService
         Map<String, DataElement> newDataElements = new HashMap<>();
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
-            newDataElements, importSummary, importOptions );
+            newDataElements, importSummary, importOptions, singleValue );
 
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
@@ -1452,7 +1452,12 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    private Set<String> validatePresenceOfMandatoryDataElements(Event event, ProgramStageInstance programStageInstance, ImportSummary importSummary, boolean isUpdate) {
+    private boolean doValidationOfMandatoryAttributes( User user )
+    {
+        return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+    }
+
+    private Set<String> validatePresenceOfMandatoryDataElements(Event event, ProgramStageInstance programStageInstance, ImportSummary importSummary, boolean isSingleValueUpdate) {
         ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
         Set<String> mandatoryDataElements = new HashSet<>(  );
 
@@ -1469,9 +1474,10 @@ public abstract class AbstractEventService
                 .map( dv -> dv.getDataElement() )
                 .collect( Collectors.toSet());
 
-            // When the request is update, then only changes data values can be in the payload and so I should take into
-            // account also already stored data values in order to make correct decision
-            if ( isUpdate ) {
+            // When the request is update, then only changed data values can be in the payload and so I should take into
+            // account also already stored data values in order to make correct decision. Basically, this situation happens when
+            // only 1 dataValue is updated and /events/{uid}/{dataElementUid} endpoint is leveraged.
+            if ( isSingleValueUpdate ) {
                 presentDataElements.addAll(
                     programStageInstance.getDataValues().stream()
                         .filter( dv -> !StringUtils.isEmpty( dv.getValue() ))
@@ -1494,11 +1500,18 @@ public abstract class AbstractEventService
 
     private ImportSummary validateDataValues( Event event, ProgramStageInstance programStageInstance,
         Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements,
-        ImportSummary importSummary, ImportOptions importOptions )
+        ImportSummary importSummary, ImportOptions importOptions, boolean isSingleValueUpdate )
     {
-        Set<String> mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, true );
-        if ( importSummary.getStatus() == ImportStatus.ERROR ) {
-            return importSummary;
+        boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
+
+        Set<String> mandatoryDataElements = new HashSet<>(  );
+        if (validateMandatoryAttributes)
+        {
+            mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, isSingleValueUpdate );
+            if ( importSummary.getStatus() == ImportStatus.ERROR )
+            {
+                return importSummary;
+            }
         }
 
         // Loop through values, if only one validation problem occurs -> FAIL
@@ -1528,7 +1541,7 @@ public abstract class AbstractEventService
             }
 
             // Return error if one or more values fail validation
-            if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, importSummary ) )
+            if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, validateMandatoryAttributes, importSummary ) )
             {
                 return importSummary;
             }
@@ -1538,7 +1551,7 @@ public abstract class AbstractEventService
     }
 
     private boolean validateDataValue( ProgramStageInstance programStageInstance, User user, DataElement dataElement,
-        String value, EventStatus eventStatus, Set<String> mandatoryDataElements, ImportSummary importSummary )
+        String value, EventStatus eventStatus, Set<String> mandatoryDataElements, boolean validateMandatoryAttributes, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
 
@@ -1551,17 +1564,20 @@ public abstract class AbstractEventService
             return false;
         }
 
-        ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
-
-        if ( ( validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT ||
-            (validationStrategy == ValidationStrategy.ON_COMPLETE && eventStatus == EventStatus.COMPLETED) ) &&
-            (mandatoryDataElements.contains( dataElement.getUid() ) && (StringUtils.isEmpty( value ) || "null".equals( value ))))
+        if (validateMandatoryAttributes)
         {
-            importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), "value_required_but_not_provided" ) );
-            importSummary.incrementIgnored();
-            importSummary.setStatus( ImportStatus.ERROR );
+            ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
 
-            return false;
+            if ( (validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT ||
+                (validationStrategy == ValidationStrategy.ON_COMPLETE && eventStatus == EventStatus.COMPLETED)) &&
+                (mandatoryDataElements.contains( dataElement.getUid() ) && (StringUtils.isEmpty( value ) || "null".equals( value ))) )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), "value_required_but_not_provided" ) );
+                importSummary.incrementIgnored();
+                importSummary.setStatus( ImportStatus.ERROR );
+
+                return false;
+            }
         }
 
         List<String> errors = trackerAccessManager.canWrite( user,
@@ -1666,9 +1682,15 @@ public abstract class AbstractEventService
                 dataValueService.getTrackedEntityDataValues( programStageInstance ) );
         }
 
-        Set<String> mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, false );
-        if ( importSummary.getStatus() == ImportStatus.ERROR ) {
-            return importSummary;
+        boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
+        Set<String> mandatoryDataElements = new HashSet<>(  );
+        if (validateMandatoryAttributes)
+        {
+            mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, false );
+            if ( importSummary.getStatus() == ImportStatus.ERROR )
+            {
+                return importSummary;
+            }
         }
 
         for ( DataValue dataValue : event.getDataValues() )
@@ -1687,7 +1709,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, importSummary ) )
+                if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, validateMandatoryAttributes, importSummary ) )
                 {
                     String dataValueStoredBy = dataValue.getStoredBy() != null ? dataValue.getStoredBy() : storedBy;
 
