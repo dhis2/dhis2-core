@@ -1645,11 +1645,19 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setShortName( "AttributeShortName" + uniqueChar );
         attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
         attribute.setAggregationType( AggregationType.NONE );
 
+        return attribute;
+    }
+    
+    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
+    {
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
+        attribute.setValueType( valueType );
         return attribute;
     }
 
@@ -1659,24 +1667,6 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
-
-        return attribute;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return TrackedEntityAttribute
-     */
-    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
-    {
-        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
-        attribute.setAutoFields();
-
-        attribute.setName( "Attribute" + uniqueChar );
-        attribute.setCode( "AttributeCode" + uniqueChar );
-        attribute.setDescription( "Attribute" + uniqueChar );
-        attribute.setValueType( valueType );
-        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
