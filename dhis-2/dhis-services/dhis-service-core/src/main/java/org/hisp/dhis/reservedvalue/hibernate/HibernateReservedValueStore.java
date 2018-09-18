@@ -108,23 +108,26 @@ public class HibernateReservedValueStore
     @Override
     public int getNumberOfUsedValues( ReservedValue reservedValue )
     {
-        Long count = getQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key", Long.class )
-            .setParameter( "uid", reservedValue.getOwnerUid() )
+        Query<Long> query = getTypedQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" );
+
+        Long count = query.setParameter( "uid", reservedValue.getOwnerUid() )
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
+
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            count +=  getQuery(
-                "SELECT count(*) " +
-                    "FROM TrackedEntityAttributeValue " +
-                    "WHERE attribute = " +
-                    "( FROM TrackedEntityAttribute " +
-                    "WHERE uid = :uid ) " +
-                    "AND value LIKE :value ", Long.class )
-                .setParameter( "uid", reservedValue.getOwnerUid() )
-                .setParameter( "value", reservedValue.getValue() )
-                .getSingleResult();
+            Query<Long> attrQuery = getTypedQuery(
+            "SELECT count(*) " +
+                "FROM TrackedEntityAttributeValue " +
+                "WHERE attribute = " +
+                "( FROM TrackedEntityAttribute " +
+                "WHERE uid = :uid ) " +
+                "AND value LIKE :value " );
+
+            count += attrQuery.setParameter( "uid", reservedValue.getOwnerUid() )
+            .setParameter( "value", reservedValue.getValue() )
+            .getSingleResult();
         }
 
         return count.intValue();

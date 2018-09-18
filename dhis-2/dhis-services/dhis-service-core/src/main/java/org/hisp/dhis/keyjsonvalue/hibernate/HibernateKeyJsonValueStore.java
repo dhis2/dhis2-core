@@ -48,16 +48,16 @@ public class HibernateKeyJsonValueStore
     public List<String> getNamespaces()
     {
         String hql = "select distinct namespace from KeyJsonValue";
-        
-        return getQuery( hql, String.class ).list();
+        Query<String> query = getTypedQuery( hql );
+        return query.list();
     }
 
     @Override
     public List<String> getKeysInNamespace( String namespace )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
-
-        return getQuery( hql, String.class ).setParameter( "namespace", namespace ).list();
+        Query<String> query = getTypedQuery( hql );
+        return query.setParameter( "namespace", namespace ).list();
     }
 
     @Override
@@ -70,7 +70,8 @@ public class HibernateKeyJsonValueStore
             hql += " and lastupdated >= :lastUpdated ";
         }
         
-        Query<String> query = getQuery( hql, String.class ).setParameter( "namespace", namespace );
+        Query<String> query = getTypedQuery( hql );
+        query.setParameter( "namespace", namespace );
         
         if ( lastUpdated != null )
         {

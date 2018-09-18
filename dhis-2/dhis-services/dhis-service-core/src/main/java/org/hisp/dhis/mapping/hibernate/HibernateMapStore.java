@@ -43,9 +43,9 @@ public class HibernateMapStore
     @Override
     public int countMapViewMaps( MapView mapView )
     {
-        Query query = getQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
         query.setParameter( "mapView", mapView );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 }

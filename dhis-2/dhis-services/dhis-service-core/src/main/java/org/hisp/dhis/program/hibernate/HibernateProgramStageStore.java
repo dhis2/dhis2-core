@@ -69,6 +69,6 @@ public class HibernateProgramStageStore
 
         final String hql = "from ProgramStage p where p.dataEntryForm = :dataEntryForm";
 
-        return getQuery( hql, ProgramStage.class ).setParameter( "dataEntryForm", dataEntryForm ).list();
+        return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 }

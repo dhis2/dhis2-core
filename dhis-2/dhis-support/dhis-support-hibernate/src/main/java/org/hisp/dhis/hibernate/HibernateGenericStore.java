@@ -137,10 +137,10 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query.
-     *
+     * Creates a Query with given hql String
+     * Return type is auto cast to generic type T of the Store class
      * @param hql the hql query.
-     * @return a Query instance.
+     * @return a Query instance with return type is the object type T of the store class
      */
     protected final Query<T> getQuery( String hql )
     {
@@ -149,12 +149,12 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query.
-     *
+     * Creates a Query with given hql String
+     * Must specify the return type of the Query variable.
      * @param hql the hql query.
-     * @return a Query instance.
+     * @return a Query instance with return type specified in the Query<Y>
      */
-    protected final <Y> Query<Y> getQuery( String hql, Class<Y> returnClazz )
+    protected final <Y> Query<Y> getTypedQuery( String hql )
     {
         Query<Y> query = getSession().createQuery( hql );
         return query.setCacheable( cacheable );

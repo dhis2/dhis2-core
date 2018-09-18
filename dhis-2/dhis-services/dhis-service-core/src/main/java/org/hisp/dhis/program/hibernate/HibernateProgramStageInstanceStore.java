@@ -157,7 +157,7 @@ public class HibernateProgramStageInstanceStore
                 "and cast(:targetDate as date) = psi.dueDate " +
                 "and psi.deleted is false";
 
-        return getQuery( hql, ProgramStageInstance.class )
+        return getQuery( hql )
             .setParameter( "notificationTemplate", template )
             .setParameter( "skippedEventStatus", EventStatus.SKIPPED )
             .setParameter( "targetDate", targetDate ).list();

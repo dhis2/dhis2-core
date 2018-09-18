@@ -44,9 +44,9 @@ public class HibernateUserAuthorityGroupStore
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
-        Query query = getQuery( "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
         query.setParameter( "dataSet", dataSet );
 
-        return ( ( Long ) query.getSingleResult() ).intValue();
+        return  query.getSingleResult().intValue();
     }
 }

@@ -108,11 +108,9 @@ public class HibernateValidationResultStore
     @Override
     public int count( ValidationResultQuery validationResultQuery )
     {
-        Query<Long> hibernateQuery = getQuery(  "select count(*) from ValidationResult vr" + getRestrictions( "where" ), Long.class );
+        Query<Long> hibernateQuery = getTypedQuery(  "select count(*) from ValidationResult vr" + getRestrictions( "where" ) );
 
-        Long result = hibernateQuery.getSingleResult();
-
-        return result != null ? result.intValue() : 0;
+        return hibernateQuery.getSingleResult().intValue();
     }
 
     @Override

@@ -277,7 +277,7 @@ public class HibernateUserStore
     @Override
     public int getUserCount()
     {
-        return ( getQuery( "select count(*) from User", Long.class ).
-            uniqueResult() ).intValue();
+        Query<Long> query = getTypedQuery( "select count(*) from User" );
+        return query.uniqueResult().intValue();
     }
 }
