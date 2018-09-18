@@ -80,7 +80,13 @@ public class DefaultKeyJsonValueService
     {
         return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
-
+    
+    @Override
+    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
+    {
+        return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
+    }
+   
     @Override
     public int addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
