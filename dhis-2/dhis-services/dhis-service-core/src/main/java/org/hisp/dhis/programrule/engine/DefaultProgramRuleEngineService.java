@@ -88,7 +88,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    public List<RuleEffect> evaluate(ProgramStageInstance programStageInstance )
+    public List<RuleEffect> evaluate( ProgramStageInstance programStageInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 

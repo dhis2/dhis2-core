@@ -93,10 +93,12 @@ public class ProgramRuleEngine
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
@@ -135,10 +137,12 @@ public class ProgramRuleEngine
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
             
             ruleEffects.stream().map( RuleEffect::ruleAction )

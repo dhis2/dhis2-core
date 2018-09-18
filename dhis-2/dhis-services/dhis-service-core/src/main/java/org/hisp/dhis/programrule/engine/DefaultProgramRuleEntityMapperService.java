@@ -202,9 +202,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         List<RuleAction> ruleActions = new ArrayList<>();
 
+        Rule rule;
+
         try
         {
             ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+
+            rule = Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
         }
         catch ( Exception e )
         {
@@ -213,7 +217,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return null;
         }
 
-        return Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
+        return rule;
     }
 
     private RuleAction toRuleAction( ProgramRuleAction programRuleAction )

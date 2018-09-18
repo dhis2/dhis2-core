@@ -122,17 +122,6 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_whenNoImplementableActionExist_programInstance()
-    {
-        setProgramRuleActionType_ShowError();
-
-        List<RuleEffect> effects = service.evaluate( programInstance );
-
-        verify( programRuleEngine, never() ).evaluateEnrollment( programInstance );
-        assertEquals( 0, ruleEffects.size() );
-    }
-
-    @Test
     public void test_withImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_SendMessage();
@@ -162,16 +151,6 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_whenNoImplementableActionExist_programStageInstance()
-    {
-        setProgramRuleActionType_ShowError();
-        List<RuleEffect> ruleEffects = service.evaluate( programStageInstance );
-
-        verify( programRuleEngine, never() ).evaluateEvent( programStageInstance );
-        assertEquals( 0, ruleEffects.size() );
-    }
-
-    @Test
     public void test_withImplementableActionExist_programStageInstance()
     {
         setProgramRuleActionType_SendMessage();
@@ -190,17 +169,6 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
-    }
-
-    @Test
-    public void test_withProgramInstanceNull_programStageInstance()
-    {
-        setProgramRuleActionType_SendMessage();
-        programStageInstance.setProgramInstance( null );
-
-        List<RuleEffect> ruleEffects = service.evaluate( programStageInstance );
-
-        assertEquals( 0, ruleEffects.size() );
     }
 
     // -------------------------------------------------------------------------
