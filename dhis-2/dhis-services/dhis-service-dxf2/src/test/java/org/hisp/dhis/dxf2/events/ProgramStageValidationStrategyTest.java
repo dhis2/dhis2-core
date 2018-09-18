@@ -33,7 +33,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -45,14 +44,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,32 +65,22 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author David Katuscak
  */
-//public class ProgramStageValidationStrategyTest extends DhisTest
 public class ProgramStageValidationStrategyTest extends DhisSpringTest
 {
     @Autowired
     private EventService eventService;
 
     @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
 
     @Autowired
     private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
     private OrganisationUnit organisationUnitA;
@@ -109,55 +98,81 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     {
         userService = _userService;
 
+        createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD", "F_TRACKED_ENTITY_DATAVALUE_DELETE",
+            "F_UNCOMPLETE_EVENT", "F_PROGRAMSTAGE_ADD", "F_PROGRAMSTAGE_DELETE", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_PRIVATE_ADD",
+            "F_PROGRAM_DELETE", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE", "F_TRACKED_ENTITY_DELETE", "F_DATAELEMENT_PUBLIC_ADD",
+            "F_DATAELEMENT_PRIVATE_ADD", "F_DATAELEMENT_DELETE", "F_CATEGORY_COMBO_PUBLIC_ADD", "F_CATEGORY_COMBO_PRIVATE_ADD",
+            "F_CATEGORY_COMBO_DELETE"  );
+
+        User currentUser = currentUserService.getCurrentUser();
+        UserAccess userAccess1 = new UserAccess( currentUser, "rwrw----" );
+        UserAccess userAccess2 = new UserAccess( currentUser, "rwrw----" );
+        UserAccess userAccess3 = new UserAccess( currentUser, "rwrw----" );
+
         organisationUnitA = createOrganisationUnit( 'A' );
-        manager.save( organisationUnitA );
+        organisationUnitA.addUser( currentUser );
+        organisationUnitA.getUserAccesses().add( userAccess1 );
+        currentUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
+        userService.updateUser( currentUser );
+        manager.save( organisationUnitA, false );
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+        trackedEntityType.getUserAccesses().add( userAccess1 );
+        manager.save( trackedEntityType, false );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
-        manager.save( maleA );
+        maleA.getUserAccesses().add( userAccess1 );
+        maleA.setUser( currentUser );
+        manager.save( maleA, false );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
-        dataElementService.addDataElement( dataElementA );
+        dataElementA.getUserAccesses().add( userAccess1 );
+        manager.save( dataElementA, false );
 
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.TEXT );
-        dataElementService.addDataElement( dataElementB );
+        dataElementB.getUserAccesses().add( userAccess2 );
+        manager.save( dataElementB, false );
 
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
-        dataElementService.addDataElement( dataElementC );
+        dataElementC.getUserAccesses().add( userAccess3 );
+        manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
         programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.save( programStageA );
+        programStageA.getUserAccesses().add( userAccess1 );
+        manager.save( programStageA, false );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        manager.save( programA );
+        programA.getUserAccesses().add( userAccess1 );
+        manager.save( programA, false );
 
         ProgramStageDataElement programStageDataElementA = new ProgramStageDataElement();
         programStageDataElementA.setDataElement( dataElementA );
         programStageDataElementA.setProgramStage( programStageA );
         programStageDataElementA.setCompulsory( true );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElementA );
+        programStageDataElementA.getUserAccesses().add( userAccess1 );
+        manager.save( programStageDataElementA, false );
 
         ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();
         programStageDataElementB.setDataElement( dataElementB );
         programStageDataElementB.setProgramStage( programStageA );
         programStageDataElementB.setCompulsory( true );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
+        programStageDataElementB.getUserAccesses().add( userAccess1 );
+        manager.save( programStageDataElementB, false );
 
         ProgramStageDataElement programStageDataElementC = new ProgramStageDataElement();
         programStageDataElementC.setDataElement( dataElementC );
         programStageDataElementC.setProgramStage( programStageA );
         programStageDataElementC.setCompulsory( false );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElementC );
+        programStageDataElementC.getUserAccesses().add( userAccess1 );
+        manager.save( programStageDataElementC, false );
 
         programStageA.getProgramStageDataElements().add( programStageDataElementA );
         programStageA.getProgramStageDataElements().add( programStageDataElementB );
@@ -173,20 +188,24 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setEnrollmentDate( new Date() );
         programInstance.setEntityInstance( maleA );
+        programInstance.getUserAccesses().add( userAccess1 );
         maleA.getProgramInstances().add( programInstance );
 
-        programInstanceService.addProgramInstance( programInstance );
+        manager.save( programInstance, false );
         manager.update( maleA );
         manager.update( programA );
 
         Period periodA = createPeriod( "201803" );
-        manager.save( periodA );
+        periodA.getUserAccesses().add( userAccess1 );
+        manager.save( periodA, false );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
-        manager.save( categoryComboA );
-        manager.save( categoryOptionComboA );
+        categoryComboA.getUserAccesses().add( userAccess1 );
+        categoryOptionComboA.getUserAccesses().add( userAccess1 );
+        manager.save( categoryComboA, false );
+        manager.save( categoryOptionComboA, false );
 
         dataValueBMissing = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementB.getUid(), "");
         dataValueCMissing = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementC.getUid(), "");
@@ -194,8 +213,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         dataValueA = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementA.getUid(), "42");
         dataValueB = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementB.getUid(), "Ford Prefect");
         dataValueC = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementC.getUid(), "84");
-
-        createUserAndInjectSecurityContext( true );
     }
 
     /*

@@ -58,7 +58,6 @@ public class RelationshipTypeSchemaDescriptor implements SchemaDescriptor
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_RELATIONSHIPTYPE_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_RELATIONSHIPTYPE_PRIVATE_ADD" ) ) );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_RELATIONSHIPTYPE_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_RELATIONSHIPTYPE_DELETE" ) ) );
 
         return schema;
