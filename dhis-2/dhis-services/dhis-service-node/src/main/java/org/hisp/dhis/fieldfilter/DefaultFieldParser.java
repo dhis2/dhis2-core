@@ -49,8 +49,43 @@ public class DefaultFieldParser implements FieldParser
 
         StringBuilder builder = new StringBuilder();
 
-        for ( String c : fields.split( "" ) )
+        String[] fieldSplit = fields.split( "" );
+
+        for ( int i = 0; i < fieldSplit.length; i++ )
         {
+            String c = fieldSplit[i];
+
+            /*
+            if ( c.equals( ":" ) || c.equals( "~" ) )
+            {
+                boolean insideParameters = false;
+
+                for ( ; i < fieldSplit.length; i++ )
+                {
+                    c = fieldSplit[i];
+
+                    if ( StringUtils.isAlphanumeric( c ) || c.equals( ":" ) || c.equals( "~" ) )
+                    {
+                        builder.append( c );
+                    }
+                    else if ( c.equals( "(" ) )
+                    {
+                        insideParameters = true;
+                        builder.append( c );
+                    }
+                    else if ( insideParameters && c.equals( ")" ) )
+                    {
+                        insideParameters = false;
+                        builder.append( c );
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            */
+
             if ( c.equals( "," ) )
             {
                 putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
@@ -58,14 +93,14 @@ public class DefaultFieldParser implements FieldParser
                 continue;
             }
 
-            if ( c.equals( "[" ) )
+            if ( c.equals( "[" ) /* || c.equals( "(" ) */ )
             {
                 prefixList.add( builder.toString() );
                 builder = new StringBuilder();
                 continue;
             }
 
-            if ( c.equals( "]" ) )
+            if ( c.equals( "]" ) /* || c.equals( ")" ) */ )
             {
                 if ( !builder.toString().isEmpty() )
                 {
@@ -102,6 +137,7 @@ public class DefaultFieldParser implements FieldParser
 
         return fields.stream()
             .map( s -> s.replaceAll( "]", String.format( ",%s]", excludeFields.toString().replaceAll( "\\[|\\]", "" ) ) ) )
+            .map( s -> s.replaceAll( "\\)", String.format( ",%s)", excludeFields.toString().replaceAll( "\\(|\\)", "" ) ) ) )
             .collect( Collectors.toList() );
     }
 
