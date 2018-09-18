@@ -327,7 +327,7 @@ public class DefaultProgramNotificationService
 
         return new ProgramMessage(
                 message.getSubject(), message.getMessage(), resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(),
-                psi ), template.getDeliveryChannels(), psi );
+                psi ), Sets.newHashSet( template.getDeliveryChannels() ), psi );
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
@@ -337,7 +337,7 @@ public class DefaultProgramNotificationService
         return new ProgramMessage(
                 message.getSubject(), message.getMessage(),
                 resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
-                template.getDeliveryChannels(), programInstance );
+                Sets.newHashSet( template.getDeliveryChannels() ), programInstance );
     }
 
     private Set<User> resolveDhisMessageRecipients(
