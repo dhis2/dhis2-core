@@ -102,14 +102,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
         if ( !variableMap.containsKey( programInstance.getUid() ) )
         {
-            Map<String, String> valueMap = new HashMap<>();
-            valueMap.put( variable, value );
-
-            variableMap.put( programInstance.getUid(), valueMap );
-            return;
+            variableMap.put( programInstance.getUid(), new HashMap<>() );
         }
 
         variableMap.get( programInstance.getUid() ).put( variable, value );
-        return;
     }
 }
