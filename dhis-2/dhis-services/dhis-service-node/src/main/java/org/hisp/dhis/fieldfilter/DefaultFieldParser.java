@@ -55,6 +55,7 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
+            /*
             if ( c.equals( ":" ) || c.equals( "~" ) )
             {
                 boolean insideParameters = false;
@@ -83,6 +84,7 @@ public class DefaultFieldParser implements FieldParser
                     }
                 }
             }
+            */
 
             if ( c.equals( "," ) )
             {
@@ -91,14 +93,14 @@ public class DefaultFieldParser implements FieldParser
                 continue;
             }
 
-            if ( c.equals( "[" ) || c.equals( "(" ) )
+            if ( c.equals( "[" ) /* || c.equals( "(" ) */ )
             {
                 prefixList.add( builder.toString() );
                 builder = new StringBuilder();
                 continue;
             }
 
-            if ( c.equals( "]" ) || c.equals( ")" ) )
+            if ( c.equals( "]" ) /* || c.equals( ")" ) */ )
             {
                 if ( !builder.toString().isEmpty() )
                 {
