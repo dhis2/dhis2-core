@@ -55,6 +55,35 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
+            if ( c.equals( ":" ) || c.equals( "~" ) )
+            {
+                boolean insideParameters = false;
+
+                for ( ; i < fieldSplit.length; i++ )
+                {
+                    c = fieldSplit[i];
+
+                    if ( StringUtils.isAlphanumeric( c ) || c.equals( ":" ) || c.equals( "~" ) )
+                    {
+                        builder.append( c );
+                    }
+                    else if ( c.equals( "(" ) )
+                    {
+                        insideParameters = true;
+                        builder.append( c );
+                    }
+                    else if ( insideParameters && c.equals( ")" ) )
+                    {
+                        insideParameters = false;
+                        builder.append( c );
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
             if ( c.equals( "," ) )
             {
                 putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
