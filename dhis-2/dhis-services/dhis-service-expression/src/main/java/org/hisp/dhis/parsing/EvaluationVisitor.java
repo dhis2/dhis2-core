@@ -31,9 +31,11 @@ package org.hisp.dhis.parsing;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 
 import java.util.HashMap;
@@ -53,8 +55,12 @@ public class EvaluationVisitor extends AbstractVisitor
 
     public Double getExpressionValue( ParseTree parseTree, OrganisationUnit orgUnit, Period period,
         MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days )
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days,
+        OrganisationUnitService _organisationUnitService, IdentifiableObjectManager _manager)
     {
+        organisationUnitService = _organisationUnitService;
+        manager = _manager;
+
         currentOrgUnit = orgUnit;
         currentPeriod = period;
         this.constantMap = constantMap;

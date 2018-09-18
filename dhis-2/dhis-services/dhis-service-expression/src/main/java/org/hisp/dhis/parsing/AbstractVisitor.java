@@ -31,7 +31,9 @@ package org.hisp.dhis.parsing;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -45,6 +47,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.pow;
@@ -59,10 +63,10 @@ import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 {
     @Autowired
-    OrganisationUnitService organisationUnitService;
+    protected OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private IdentifiableObjectManager manager;
+    protected IdentifiableObjectManager manager;
 
     protected OrganisationUnit currentOrgUnit = null;
 
@@ -347,28 +351,28 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
                 return evalAll( ctx ).size();
 
             case SUM:
-                return StatUtils.sum( getDoubles( ctx ) );
+                return aggregate( StatUtils::sum, ctx );
 
             case MAX:
-                return StatUtils.max( getDoubles( ctx ) );
+                return aggregate( StatUtils::max, ctx );
 
             case MIN:
-                return StatUtils.min( getDoubles( ctx ) );
+                return aggregate( StatUtils::min, ctx );
 
             case AVERAGE:
-                return StatUtils.mean( getDoubles( ctx ) );
+                return aggregate( StatUtils::mean, ctx );
 
             case STDDEV:
-                return (new StandardDeviation()).evaluate( getDoubles( ctx ) );
+                return aggregate( (new StandardDeviation())::evaluate, ctx );
 
             case VARIANCE:
-                return StatUtils.variance( getDoubles( ctx ) );
+                return aggregate( StatUtils::variance, ctx );
 
             case MEDIAN:
-                return StatUtils.percentile( getDoubles( ctx ), 50 );
+                return aggregate2( StatUtils::percentile, 50.0, ctx );
 
             case PERCENTILE:
-                return StatUtils.percentile( getDoubles( ctx ), castDouble( visit( ctx.a1().expr() ) ) );
+                return aggregate2( StatUtils::percentile, castDouble( visit( ctx.a1().expr() ) ), ctx );
 
             case RANK_HIGH:
                 return rankHigh( getDoubles( ctx ), ctx );
@@ -390,6 +394,9 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
             case OU_ANCESTOR:
                 return ouAncestor( ctx );
 
+            case OU_DESCENDANT:
+                return ouDescendant( ctx );
+
             case OU_LEVEL:
                 return ouLevel( ctx );
 
@@ -398,6 +405,9 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
             case OU_GROUP:
                 return ouGroup( ctx );
+
+            case OU_DATA_SET:
+                return ouDataSet( ctx );
 
             default: // (Shouldn't happen, mismatch between expression grammer and here.)
                 throw new ParsingException( "fun=" + ctx.fun.getType() + " not recognized." );
@@ -463,7 +473,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
             for ( int i = 0; i < argumentCount; i += 4 )
             {
-                int periodShiftFrom = castInteger( visit( ctx.a1_n().expr( i ) ) );
+                int periodShiftFrom = evalIntDefault( ctx.a1_n().expr( i ), 0 );
                 int periodShiftTo = evalIntDefault( ctx.a1_n().expr( i + 1 ), periodShiftFrom );
                 int yearShiftFrom = evalIntDefault( ctx.a1_n().expr( i + 2 ), 0 );
                 int yearShiftTo = evalIntDefault( ctx.a1_n().expr( i + 3 ), yearShiftFrom );
@@ -511,14 +521,17 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Returns the expression value, evaluated at the orgUnit's ancestor.
+     * <p/>
+     * If a multi-value function is chained to our left, returns multiple
+     * values. Otherwise returns a single value.
      *
      * @param ctx the parsing context, containing the ancestor level
      *            (1=parent, 2=grandparent, etc.)
-     * @return the single value from the ancestor.
+     * @return the value from the ancestor.
      */
     private Object ouAncestor( ExprContext ctx )
     {
-        int parentLevels = castInteger( visit( ctx.a1() ) );
+        int parentLevels = castInteger( visit( ctx.a1().expr() ) );
 
         if ( currentOrgUnit == null )
         {
@@ -540,23 +553,65 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     }
 
     /**
-     * Interates over all orgUnits in the system at a given level.
+     * Returns the expression value, evaluated at the orgUnit's descendants.
      *
-     * @param ctx the parsing context, containing the orgUnit level.
-     * @return the multiple values from the orgUnits.
+     * @param ctx the parsing context, containing the descendant level(s)
+     *            (1=children, 2=grandchildren, etc.)
+     * @return the single value from the ancestor.
      */
-    private Object ouLevel( ExprContext ctx )
+    private Object ouDescendant( ExprContext ctx )
     {
-        int level = castInteger( visit( ctx.a1() ) );
+        Set<Integer> levels = new HashSet<>();
+
+        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        {
+            levels.add( castInteger( visit( ctx.a1_n().expr( i ) ) ) );
+        }
 
         if ( currentOrgUnit == null )
         {
             return visit( ctx.expr( 0 ) );
         }
 
-        List<OrganisationUnit> orgUnitsAtLevel = organisationUnitService.getOrganisationUnitsAtLevel( level );
+        Set<OrganisationUnit> descendants = new HashSet<>();
 
-        return ouVisitOrFilter( ctx, new HashSet<OrganisationUnit>( orgUnitsAtLevel ) );
+        for ( Integer i : levels )
+        {
+            descendants.addAll ( organisationUnitService.getOrganisationUnitsAtLevel( currentOrgUnit.getLevel() + i, currentOrgUnit ) );
+        }
+
+        return ouVisitOrFilter( ctx, descendants );
+
+    }
+
+    /**
+     * Interates over all orgUnits in the system at given level(s).
+     *
+     * @param ctx the parsing context, containing the orgUnit level.
+     * @return the multiple values from the orgUnits.
+     */
+    private Object ouLevel( ExprContext ctx )
+    {
+        Set<Integer> levels = new HashSet<>();
+
+        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        {
+            levels.add( castInteger( visit( ctx.a1_n().expr( i ) ) ) );
+        }
+
+        if ( currentOrgUnit == null )
+        {
+            return visit( ctx.expr( 0 ) );
+        }
+
+        Set<OrganisationUnit> orgUnitsAtLevels = new HashSet<>();
+
+        for ( Integer i : levels )
+        {
+            orgUnitsAtLevels.addAll ( organisationUnitService.getOrganisationUnitsAtLevel( i ) );
+        }
+
+        return ouVisitOrFilter( ctx, orgUnitsAtLevels );
     }
 
     /**
@@ -577,16 +632,12 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     protected Object ouPeer( ExprContext ctx )
     {
-        int peerFrom = castInteger( visit( ctx.a1().expr() ) );
-
         if ( currentOrgUnit == null )
         {
             return visit( ctx.expr( 0 ) );
         }
 
-        int levels = castInteger( visit( ctx.a1() ) );
-
-        OrganisationUnit ancestor = getOuAncestor( peerFrom );
+        OrganisationUnit ancestor = getOuAncestor( castInteger( visit( ctx.a1().expr() ) ) );
 
         List<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitsAtLevel( currentOrgUnit.getLevel(), ancestor );
 
@@ -603,15 +654,15 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     {
         Set<OrganisationUnit> orgUnitsInGroups = new HashSet<>();
 
-        for ( int i = 1; i < ctx.a1_n().expr().size(); i++ )
+        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
         {
             String groupName = castString( visit( ctx.a1_n().expr( i ) ) );
 
-            OrganisationUnitGroup group = manager.getByName( OrganisationUnitGroup.class, groupName );
+            OrganisationUnitGroup group = getIdentifiableObject( OrganisationUnitGroup.class, groupName );
 
             if ( group == null )
             {
-                throw new ParsingException( "Can't find organisation unit group named '" + groupName + "'" );
+                throw new ParsingException( "Can't find organisation unit group '" + groupName + "'" );
             }
 
             orgUnitsInGroups.addAll( group.getMembers() );
@@ -625,6 +676,38 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
         return ouVisitOrFilter( ctx, new HashSet<OrganisationUnit>( orgUnitsInGroups ) );
     }
 
+    /**
+     * Iterates over one or more orgUnits to which a data set has been assigned.
+     *
+     * @param ctx the parsing context, with the group(s) to iterate over.
+     * @return the multiple values from the orgUnits.
+     */
+    protected Object ouDataSet( ExprContext ctx )
+    {
+        Set<OrganisationUnit> orgUnitsInDataSets = new HashSet<>();
+
+        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        {
+            String dataSetName = castString( visit( ctx.a1_n().expr( i ) ) );
+
+            DataSet dataSet = getIdentifiableObject( DataSet.class, dataSetName );
+
+            if ( dataSet == null )
+            {
+                throw new ParsingException( "Can't find data set '" + dataSetName + "'" );
+            }
+
+            orgUnitsInDataSets.addAll( dataSet.getSources() );
+        }
+
+        if ( currentOrgUnit == null )
+        {
+            return visit( ctx.expr( 0 ) );
+        }
+
+        return ouVisitOrFilter( ctx, new HashSet<OrganisationUnit>( orgUnitsInDataSets ) );
+    }
+
     private OrganisationUnit getOuAncestor( int levels )
     {
         OrganisationUnit orgUnit = currentOrgUnit;
@@ -635,6 +718,25 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
         }
 
         return orgUnit;
+    }
+
+    private <T extends IdentifiableObject> T getIdentifiableObject( Class<T> clazz, String identifier )
+    {
+        T identifiableObject = manager.get( clazz, identifier );
+
+        if ( identifiableObject != null )
+        {
+            return identifiableObject;
+        }
+
+        identifiableObject = manager.getByCode( clazz, identifier );
+
+        if ( identifiableObject != null )
+        {
+            return identifiableObject;
+        }
+
+        return manager.getByName( clazz, identifier );
     }
 
     private Object ouVisitOrFilter( ExprContext ctx, Set<OrganisationUnit> orgUnits )
@@ -675,6 +777,30 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     // Other supportive functions
     // -------------------------------------------------------------------------
 
+    private Object aggregate( Function<double[], Double> func, ExprContext ctx )
+    {
+        double[] doubles = getDoubles( ctx );
+
+        if ( doubles.length == 0 )
+        {
+            return null;
+        }
+
+        return func.apply( doubles );
+    }
+
+    private Object aggregate2( BiFunction<double[], Double, Double> func, Double arg2, ExprContext ctx )
+    {
+        double[] doubles = getDoubles( ctx );
+
+        if ( doubles.length == 0 )
+        {
+            return null;
+        }
+
+        return func.apply( doubles, arg2 );
+    }
+
     /**
      * Returns the high rank of the argument within the set of multiple values.
      * n is the rank of the highest value, where n is the number of values.
@@ -688,7 +814,12 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     private Integer rankHigh( double[] values, ExprContext ctx )
     {
-        double test = castDouble( visit( ctx.a1().expr() ) );
+        Double test = castDouble( visit( ctx.a1().expr() ) );
+
+        if ( test == null || values.length == 0 )
+        {
+            return null;
+        }
 
         Integer rankHigh = 0;
 
@@ -716,7 +847,12 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      */
     private Integer rankLow( double[] values, ExprContext ctx )
     {
-        double test = castDouble( visit( ctx.a1().expr() ) );
+        Double test = castDouble( visit( ctx.a1().expr() ) );
+
+        if ( test == null || values.length == 0 )
+        {
+            return null;
+        }
 
         Integer rankLow = 1;
 
@@ -733,22 +869,19 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Casts object as Integer, or throw exception if we can't.
+     * <p/>
+     * The object must not be null.
      *
      * @param object the value to cast as an Integer.
      * @return Integer value.
      */
     protected Integer castInteger( Object object )
     {
-        if ( object == null )
-        {
-            return null;
-        }
-
         Double d = castDouble( object );
 
         if ( d == null )
         {
-            throw new ParsingException( "null found at: '" + object.toString() + "'" );
+            throw new ParsingException( "integer value missing" );
         }
 
         Integer i = (int) (double) d;
@@ -763,6 +896,8 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Casts object as Double, or throw exception if we can't.
+     * <p/>
+     * If the object is null, return null.
      *
      * @param object the value to cast as a Double.
      * @return Double value.

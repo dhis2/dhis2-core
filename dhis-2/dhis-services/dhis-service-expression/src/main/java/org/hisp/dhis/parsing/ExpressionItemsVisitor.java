@@ -29,10 +29,11 @@ package org.hisp.dhis.parsing;
  */
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ListMapMap;
+import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.SetMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
@@ -61,12 +64,15 @@ public class ExpressionItemsVisitor extends AbstractVisitor
      */
     private final static Double DUMMY_VALUE = Double.valueOf( 1. );
 
-    private ListMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded;
+    private SetMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded;
 
     public void getDimensionalItemObjects( ParseTree parseTree, List<OrganisationUnit> orgUnits,
         List<Period> periods, Map<String, Double> constantMap,
-        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded )
+        SetMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded,
+        DimensionService dimensionService )
     {
+        this.dimensionService = dimensionService;
+
         this.constantMap = constantMap;
         this.itemsNeeded = itemsNeeded;
 
@@ -85,15 +91,15 @@ public class ExpressionItemsVisitor extends AbstractVisitor
 
     public String getExpressionDescription( ParseTree parseTree, String expr )
     {
-        itemsNeeded = new ListMapMap<>();
+        itemsNeeded = new SetMapMap<>();
 
         castDouble( visit( parseTree ) );
 
         Map<String, String> nameMap = new HashMap<>();
 
-        for ( Map.Entry<OrganisationUnit, ListMap<Period, DimensionalItemObject>> entry1 : itemsNeeded.entrySet() )
+        for ( Map.Entry<OrganisationUnit, SetMap<Period, DimensionalItemObject>> entry1 : itemsNeeded.entrySet() )
         {
-            for ( Map.Entry<Period, List<DimensionalItemObject>> entry2 : entry1.getValue().entrySet() )
+            for ( Map.Entry<Period, Set<DimensionalItemObject>> entry2 : entry1.getValue().entrySet() )
             {
                 for ( DimensionalItemObject item : entry2.getValue() )
                 {
@@ -119,31 +125,31 @@ public class ExpressionItemsVisitor extends AbstractVisitor
     @Override
     public Object visitDataElement ( DataElementContext ctx )
     {
-        return getDimensionalItem( ctx.dataElementId().getText() );
+        return getDimensionalItem( DATA_ELEMENT, castString( ctx.dataElementId().getText() ) );
     }
 
     @Override
     public Object visitDataElementOperand ( DataElementOperandContext ctx )
     {
-        return getDimensionalItem( ctx.dataElementOperandId().getText() );
+        return getDimensionalItem( DATA_ELEMENT_OPERAND, castString( ctx.dataElementOperandId().getText() ) );
     }
 
     @Override
     public Object visitProgramDataElement ( ProgramDataElementContext ctx )
     {
-        return getDimensionalItem( ctx.programDataElementId().getText() );
+        return getDimensionalItem( PROGRAM_DATA_ELEMENT, castString( ctx.programDataElementId().getText() ) );
     }
 
     @Override
     public Object visitProgramTrackedEntityAttribute ( ProgramTrackedEntityAttributeContext ctx )
     {
-        return getDimensionalItem( ctx.programTrackedEntityAttributeId().getText() );
+        return getDimensionalItem( PROGRAM_ATTRIBUTE, castString( ctx.programTrackedEntityAttributeId().getText() ) );
     }
 
     @Override
     public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
     {
-        return getDimensionalItem( ctx.programIndicatorId().getText() );
+        return getDimensionalItem( PROGRAM_INDICATOR, castString( ctx.programIndicatorId().getText() ) );
     }
 
 //    @Override
@@ -244,13 +250,18 @@ public class ExpressionItemsVisitor extends AbstractVisitor
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Object getDimensionalItem( String itemId )
+    private Object getDimensionalItem( DimensionItemType type, String itemId )
     {
         DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
 
         if ( item == null )
         {
-            throw new ParsingException( "Can't find object matching '" + itemId + "'" );
+            throw new ParsingException( "Can't find " + type.name() + " matching '" + itemId + "'" );
+        }
+
+        if ( item.getDimensionItemType() != type )
+        {
+            throw new ParsingException( "Expected " + type.name() + " but found " + item.getDimensionItemType().name() + " " + itemId );
         }
 
         itemsNeeded.putValue( currentOrgUnit, currentPeriod, item );

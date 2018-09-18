@@ -36,13 +36,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMapMap;
 import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.SetMapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.DefaultExpressionService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parsing.generated.ExpressionLexer;
 import org.hisp.dhis.parsing.generated.ExpressionParser;
 import org.hisp.dhis.period.Period;
@@ -65,16 +69,25 @@ public class DefaultParsingService
     @Autowired
     private ConstantService constantService;
 
+    @Autowired
+    protected OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    protected IdentifiableObjectManager manager;
+
+    @Autowired
+    private DimensionService dimensionService;
+
     private static Cache<String, ParseTree> EXPRESSION_PARSE_TREES = Caffeine.newBuilder()
         .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
         .maximumSize( 50000 ).build();
 
     @Override
-    public ListMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
+    public SetMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
         List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
     {
-        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new ListMapMap<>();
+        SetMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new SetMapMap<>();
 
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
@@ -82,7 +95,7 @@ public class DefaultParsingService
         {
             ParseTree parseTree = getParseTree( expression.getExpression(), true );
 
-            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items );
+            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items, dimensionService );
         }
 
         return items;
@@ -97,8 +110,13 @@ public class DefaultParsingService
 
         ParseTree parseTree = getParseTree( expression.getExpression(), true );
 
+        if ( parseTree == null )
+        {
+            return null;
+        }
+
         return evaluationVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
-            constantMap, orgUnitCountMap, days );
+            constantMap, orgUnitCountMap, days, organisationUnitService, manager );
     }
 
     @Override

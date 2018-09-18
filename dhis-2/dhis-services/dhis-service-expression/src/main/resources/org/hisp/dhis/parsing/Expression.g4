@@ -36,9 +36,11 @@ expr
 
     |   expr '.' fun='period' a1_n
     |   expr '.' fun='ouAncestor' a1
-    |   expr '.' fun='ouLevel' a1
+    |   expr '.' fun='ouDescendant' a1_n
+    |   expr '.' fun='ouLevel' a1_n
     |   expr '.' fun='ouPeer' a1
     |   expr '.' fun='ouGroup' a1_n
+    |   expr '.' fun='ouDataSet' a1_n
 
     // Operators (in precidence order)
 
@@ -59,7 +61,6 @@ expr
     |   programDataElement
     |   programTrackedEntityAttribute
     |   programIndicator
-//    |   dimensionItemObject
     |   orgUnitCount
     |   reportingRate
     |   constant
@@ -69,21 +70,6 @@ expr
     |   stringLiteral
     |   booleanLiteral
     ;
-
-//dimensionItemObject
-//    :   '#{' id=dataElementId '}'
-//    |   '#{' id=dataElementOperandId '}'
-//    |   'D{' id=programDataElementId '}'
-//    |   'A{' id=programTrackedEntityAttributeId '}'
-//    |   'I{' id=programIndicatorId '}'
-//    ;
-
-//    :   dataElement
-//    |   dataElementOperand
-//    |   programDataElement
-//    |   programTrackedEntityAttribute
-//    |   programIndicator
-//    ;
 
 programIndicatorExpr
     :   'V{' programIndicatorVariable '}'
@@ -279,9 +265,11 @@ RANK_PERCENTILE: 'rankPercentile';
 
 PERIOD: 'period';
 OU_ANCESTOR : 'ouAncestor';
+OU_DESCENDANT : 'ouDescendant';
 OU_LEVEL: 'ouLevel';
 OU_PEER: 'ouPeer';
 OU_GROUP: 'ouGroup';
+OU_DATA_SET: 'ouDataSet';
 
 // Program indicator variables
 

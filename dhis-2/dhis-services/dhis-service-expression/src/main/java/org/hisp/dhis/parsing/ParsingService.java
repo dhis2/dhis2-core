@@ -29,8 +29,8 @@ package org.hisp.dhis.parsing;
  */
 
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.ListMapMap;
 import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.SetMapMap;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -70,7 +70,7 @@ public interface ParsingService
      *        and count of organisation units to use in the calculation.
      * @return orgUnits/periods/DimensionalItemObjects to fetch
      */
-    ListMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
+    SetMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
         List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
 

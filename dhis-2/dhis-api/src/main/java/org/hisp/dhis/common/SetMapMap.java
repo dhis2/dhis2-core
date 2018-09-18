@@ -1,4 +1,4 @@
-package org.hisp.dhis.parsing;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,22 +28,34 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 /**
- * Listens to ANTLR parsing errors and throws them (instead of printing them
- * on the console, which is ANTLR's default behaviour.)
- *
  * @author Jim Grace
  */
-public class AntlrErrorListener extends BaseErrorListener
+public class SetMapMap<T, U, V>
+    extends HashMap<T, SetMap<U, V>>
 {
-    @Override
-    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
-        int line, int charPositionInLine, String msg, RecognitionException e)
+    private static final long serialVersionUID = 5389478221828894988L;
+
+    public SetMapMap()
     {
-        throw new ParsingException( msg + " at character " + charPositionInLine );
+        super();
+    }
+
+    public SetMap<U, V> putValue( T key1, U key2, V value )
+    {
+        SetMap<U, V> setMap = this.get( key1 );
+        setMap = setMap == null ? new SetMap<>() : setMap;
+        setMap.putValue( key2, value );
+        super.put( key1, setMap );
+        return null;
+    }
+
+    public Set<V> getValues( T key1, U key2 )
+    {
+        return this.get( key1 ) == null ? null : this.get( key1 ).get( key2 );
     }
 }
