@@ -55,6 +55,7 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
+            /*
             if ( c.equals( ":" ) || c.equals( "~" ) )
             {
                 boolean insideParameters = false;
@@ -83,6 +84,7 @@ public class DefaultFieldParser implements FieldParser
                     }
                 }
             }
+            */
 
             if ( c.equals( "," ) )
             {
