@@ -54,7 +54,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -227,7 +226,6 @@ public class EventSecurityTest
      * status = ERROR
      */
     @Test
-    @Ignore // Fails with lazy load at DefaultTrackerAccessManager.java:563
     public void testAddEventSimpleUserFullAccess3()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
