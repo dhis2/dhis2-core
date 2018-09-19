@@ -84,6 +84,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
     private OrganisationUnit organisationUnitA;
+    private org.hisp.dhis.dxf2.events.event.DataValue dataValueAMissing;
     private org.hisp.dhis.dxf2.events.event.DataValue dataValueBMissing;
     private org.hisp.dhis.dxf2.events.event.DataValue dataValueCMissing;
     private org.hisp.dhis.dxf2.events.event.DataValue dataValueA;
@@ -207,6 +208,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( categoryComboA, false );
         manager.save( categoryOptionComboA, false );
 
+        dataValueAMissing = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementA.getUid(), "");
         dataValueBMissing = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementB.getUid(), "");
         dataValueCMissing = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementC.getUid(), "");
 
@@ -613,6 +615,30 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+    }
+
+    @Test
+    public void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
+    {
+        programStageA.setValidationStrategy( ValidationStrategy.NONE );
+        manager.update( programStageA );
+
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.getDataValues().addAll( Arrays.asList( dataValueAMissing, dataValueB, dataValueC ));
+        event.setEvent( "abcdefghijk" );
+
+        eventService.addEvent( event, null );
+
+        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
+        manager.update( programStageA );
+
+        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        updatedEvent.getDataValues().add( dataValueB );
+        updatedEvent.setEvent( "abcdefghijk" );
+
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
 
     @Test
