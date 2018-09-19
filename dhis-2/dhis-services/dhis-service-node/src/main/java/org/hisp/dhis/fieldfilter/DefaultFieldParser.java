@@ -55,7 +55,33 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
-            /*
+            if ( c.equals( "," ) )
+            {
+                putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
+                builder = new StringBuilder();
+                continue;
+            }
+
+            if ( c.equals( "[" ) || c.equals( "(" ) )
+            {
+                prefixList.add( builder.toString() );
+                builder = new StringBuilder();
+                continue;
+            }
+
+            if ( c.equals( "]" ) || c.equals( ")" ) )
+            {
+                if ( !builder.toString().isEmpty() )
+                {
+                    putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
+                }
+
+                prefixList.remove( prefixList.size() - 1 );
+                builder = new StringBuilder();
+                continue;
+            }
+
+            // if we reach a field transformer, parse it out here (necessary to allow for () to be used to handle transformer parameters)
             if ( c.equals( ":" ) || c.equals( "~" ) )
             {
                 boolean insideParameters = false;
@@ -68,12 +94,16 @@ public class DefaultFieldParser implements FieldParser
                     {
                         builder.append( c );
                     }
-                    else if ( c.equals( "(" ) )
+                    else if ( c.equals( "(" ) ) // start parameter
                     {
                         insideParameters = true;
                         builder.append( c );
                     }
-                    else if ( insideParameters && c.equals( ")" ) )
+                    else if ( insideParameters && c.equals( ";" ) ) // allow parameter separator
+                    {
+                        builder.append( c );
+                    }
+                    else if ( insideParameters && c.equals( ")" ) ) // end parameter
                     {
                         insideParameters = false;
                         builder.append( c );
@@ -83,32 +113,7 @@ public class DefaultFieldParser implements FieldParser
                         break;
                     }
                 }
-            }
-            */
 
-            if ( c.equals( "," ) )
-            {
-                putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
-                builder = new StringBuilder();
-                continue;
-            }
-
-            if ( c.equals( "[" ) /* || c.equals( "(" ) */ )
-            {
-                prefixList.add( builder.toString() );
-                builder = new StringBuilder();
-                continue;
-            }
-
-            if ( c.equals( "]" ) /* || c.equals( ")" ) */ )
-            {
-                if ( !builder.toString().isEmpty() )
-                {
-                    putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
-                }
-
-                prefixList.remove( prefixList.size() - 1 );
-                builder = new StringBuilder();
                 continue;
             }
 
