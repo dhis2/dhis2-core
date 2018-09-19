@@ -114,14 +114,13 @@ public final class SchemaUtils
                     min = 0d;
                 }
 
+                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max.
                 if ( property.getMax() == null || max < property.getMax() )
                 {
                     property.setMax( max );
                 }
-                if ( property.getMin() == null || min > property.getMin() )
-                {
-                    property.setMin( min );
-                }
+                //Min is not set by hibernate (always 0) hence the min from PropertyRange will always be applied.
+                property.setMin( min );
             }
 
             if ( property.getMin() == null )
