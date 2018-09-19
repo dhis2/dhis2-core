@@ -28,67 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.legend.LegendSet;
-
-import java.util.List;
-
-/**
-* @author Lars Helge Overland
-*/
-public interface DimensionalItemObject
-    extends NameableObject
+public enum TotalAggregationType
 {
-    /**
-     * Gets the dimension item identifier.
-     */
-    String getDimensionItem();
-    
-    /**
-     * Gets the dimension item identifier based on the given
-     * identifier scheme.
-     * 
-     * @param idScheme the identifier scheme.
-     */
-    String getDimensionItem( IdScheme idScheme );
-    
-    /**
-     * Gets the dimension type of this dimension item.
-     */
-    DimensionItemType getDimensionItemType();
-
-    /**
-     * Gets the legend sets.
-     */
-    List<LegendSet> getLegendSets();
-
-    /**
-     * Gets the first legend set in the legend set list. This
-     * field is derived from {@link DimensionalObject#getLegendSet()} and
-     * is not persisted.
-     * 
-     * Will be removed from serialization in 2.28.
-     */
-    LegendSet getLegendSet();
-
-    /**
-     * Indicates whether this dimension has a legend set.
-     */
-    boolean hasLegendSet();
-    
-    /**
-     * Gets the aggregation type.
-     */
-    AggregationType getAggregationType();
-    
-    /**
-     * Indicates whether this dimension has an aggregation type.
-     */
-    boolean hasAggregationType();
-    
-    /**
-     * Gets the total aggregation type, meaning how total values
-     * should be aggregated across multiple values.
-     */
-    TotalAggregationType getTotalAggregationType();
+    SUM,
+    AVERAGE
 }
