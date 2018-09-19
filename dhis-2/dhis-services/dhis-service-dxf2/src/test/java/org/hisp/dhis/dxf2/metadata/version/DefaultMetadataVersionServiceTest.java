@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
@@ -54,7 +53,6 @@ import static org.junit.Assert.*;
 /**
  * @author sultanm
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DefaultMetadataVersionServiceTest
     extends DhisSpringTest
 {
