@@ -2278,6 +2278,11 @@ public abstract class AbstractEventService
 
     protected void reloadUser( ImportOptions importOptions )
     {
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 }

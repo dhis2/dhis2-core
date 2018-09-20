@@ -1070,7 +1070,12 @@ public abstract class AbstractTrackedEntityInstanceService
 
     protected void reloadUser( ImportOptions importOptions )
     {
-        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
