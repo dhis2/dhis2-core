@@ -28,11 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.util.concurrent.ListenableFuture;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * Interface for scheduling jobs.
@@ -68,6 +69,23 @@ public interface SchedulingManager
     void jobConfigurationStarted( JobConfiguration jobConfiguration );
 
     /**
+     * Job of given JobType is going to be started. Add it into an internal memory if applicable.
+     * Method is NOT Thread Safe
+     *
+     * @param jobType JobType of the job instance that has started
+     */
+    void jobOfGivenJobTypeStarted(JobType jobType);
+
+    /**
+     * Checks whether job instance of given JobType can be started
+     * Method is NOT Thread Safe
+     *
+     * @param jobType JobType of the job instance that is going to start
+     * @return
+     */
+    boolean canJobOfGivenJobTypeBeStarted(JobType jobType);
+
+    /**
      * Set up default behavior for a finished job.
      * <p>
      * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
@@ -99,6 +117,14 @@ public interface SchedulingManager
      * Stops one job.
      */
     void stopJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Job of given JobType has stopped. Remove it from an internal memory if applicable.
+     * Method is Thread Safe.
+     *
+     * @param jobType JobType of the job instance that has been stopped
+     */
+    void jobOfGivenJobTypeStopped(JobType jobType);
 
     /**
      * Execute the job.

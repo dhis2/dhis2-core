@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -45,6 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
@@ -112,6 +114,39 @@ public class DefaultSchedulingManager
     // -------------------------------------------------------------------------
 
     private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>();
+
+    private final Set<JobType> runningSingleInstanceJobTypes = Sets.newConcurrentHashSet();
+
+    public boolean canJobOfGivenJobTypeBeStarted(JobType jobType) {
+        if ( !jobType.isMultipleInstancesAllowed() && runningSingleInstanceJobTypes.contains( jobType ) ) {
+            log.error( "New job instance of job type: " + jobType.name() + " cannot be started. Given job type can have only " +
+                "1 instance running at the time and there is already 1 instance running." );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public void jobOfGivenJobTypeStarted(JobType jobType) {
+        if ( !jobType.isMultipleInstancesAllowed() )
+        {
+            runningSingleInstanceJobTypes.add( jobType );
+        }
+    }
+
+    public void jobOfGivenJobTypeStopped(JobType jobType) {
+        if ( !jobType.isMultipleInstancesAllowed() ) {
+            synchronized ( this ){
+                if ( runningSingleInstanceJobTypes.contains( jobType ) ) {
+                    runningSingleInstanceJobTypes.remove( jobType );
+                }
+                else {
+                    log.error( "Job instance of job type: " + jobType + " cannot be stopped as there is no job (of given job type) running." );
+                }
+            }
+        }
+    }
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
@@ -284,6 +319,7 @@ public class DefaultSchedulingManager
                 log.error( DebugUtils.getStackTrace( e ) );
             }
         } );
+
         currentTasks.put( jobConfiguration.getUid(), future );
 
         log.info( "Scheduler initiated execute of job: " + jobConfiguration );

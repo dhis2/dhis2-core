@@ -46,14 +46,14 @@ public class DefaultJobInstance
     
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
     
-    public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
+    public void execute( JobConfiguration jobConfiguration, final SchedulingManager schedulingManager,
         MessageService messageService, LeaderManager leaderManager )
     {
         if ( !jobConfiguration.isEnabled() )
         {
             return;
         }
-        
+
         if ( jobConfiguration.isLeaderOnlyJob() && !leaderManager.isLeader() )
         {
             log.debug(
@@ -62,8 +62,30 @@ public class DefaultJobInstance
         }
         
         final Clock clock = new Clock().startClock();
+        boolean jobStarted = false;
         try
         {
+            synchronized ( schedulingManager ) {
+                if ( schedulingManager.canJobOfGivenJobTypeBeStarted( jobConfiguration.getJobType() ) ) {
+                    schedulingManager.jobOfGivenJobTypeStarted( jobConfiguration.getJobType() );
+                    jobStarted = true;
+                }
+                else {
+                    log.error(
+                        "Job '" + jobConfiguration.getName() + "' failed. Another instance of jobtype '" + jobConfiguration.getJobType() +
+                            "' is already running." );
+
+                    messageService.sendSystemErrorNotification(
+                        "Job '" + jobConfiguration.getName() + "' failed. Another instance of jobtype '" + jobConfiguration.getJobType() +
+                            "' is already running.",
+                        new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
+
+                    jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
+
+                    return;
+                }
+            }
+
             if ( jobConfiguration.isInMemoryJob() )
             {
                 executeJob( jobConfiguration, schedulingManager, clock );
@@ -102,6 +124,11 @@ public class DefaultJobInstance
         finally
         {
             setFinishingStatus( clock, schedulingManager, jobConfiguration );
+
+            if( jobStarted )
+            {
+                schedulingManager.jobOfGivenJobTypeStopped( jobConfiguration.getJobType() );
+            }
         }
     }
 
