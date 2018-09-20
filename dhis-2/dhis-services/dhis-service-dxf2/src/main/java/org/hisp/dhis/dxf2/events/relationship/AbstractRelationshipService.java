@@ -230,13 +230,13 @@ public abstract class AbstractRelationshipService
     @Override
     public ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<Relationship>> partitions = Lists.partition( relationships, FLUSH_FREQUENCY );
 
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Relationship> _relationships : partitions )
         {
+            importOptions = updateImportOptions( importOptions );
             prepareCaches( _relationships, importOptions.getUser() );
 
             for ( Relationship relationship : _relationships )
