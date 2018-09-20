@@ -37,11 +37,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ListMapMap;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.common.SetMapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.DefaultExpressionService;
 import org.hisp.dhis.expression.Expression;
@@ -52,8 +48,10 @@ import org.hisp.dhis.parsing.generated.ExpressionParser;
 import org.hisp.dhis.period.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,11 +81,11 @@ public class DefaultParsingService
         .maximumSize( 50000 ).build();
 
     @Override
-    public SetMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
+    public Set<ExpressionItem> getExpressionItems(
         List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
     {
-        SetMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new SetMapMap<>();
+        Set<ExpressionItem> items = new HashSet<>();
 
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
@@ -95,7 +93,8 @@ public class DefaultParsingService
         {
             ParseTree parseTree = getParseTree( expression.getExpression(), true );
 
-            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items, dimensionService );
+            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items,
+                organisationUnitService, manager, dimensionService );
         }
 
         return items;
@@ -103,10 +102,10 @@ public class DefaultParsingService
 
     @Override
     public Double getExpressionValue( Expression expression, OrganisationUnit orgUnit, Period period,
-        MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days )
+        Map<ExpressionItem, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap, int days )
     {
-        EvaluationVisitor evaluationVisitor = new EvaluationVisitor();
+        ExpressionValueVisitor expressionValueVisitor = new ExpressionValueVisitor();
 
         ParseTree parseTree = getParseTree( expression.getExpression(), true );
 
@@ -115,7 +114,7 @@ public class DefaultParsingService
             return null;
         }
 
-        return evaluationVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
+        return expressionValueVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
             constantMap, orgUnitCountMap, days, organisationUnitService, manager );
     }
 
@@ -125,8 +124,6 @@ public class DefaultParsingService
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expr, false );
-
-        ListMapMap<OrganisationUnit, Period, DimensionalItemObject> items = new ListMapMap<>();
 
         return expressionItemsVisitor.getExpressionDescription( parseTree, expr );
     }

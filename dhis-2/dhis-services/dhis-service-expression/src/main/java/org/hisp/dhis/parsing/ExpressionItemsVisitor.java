@@ -29,16 +29,18 @@ package org.hisp.dhis.parsing;
  */
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.common.SetMapMap;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,14 +49,13 @@ import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
- * ANTLR parse tree visitor to find the DimensionalItemObjects in an
- * expression, and find the periods and organisation units they are needed for.
+ * ANTLR parse tree visitor to find the expression items in an expression.
  * <p/>
  * Uses the ANTLR visitor partern.
  *
  * @author Jim Grace
  */
-public class ExpressionItemsVisitor extends AbstractVisitor
+public class ExpressionItemsVisitor extends ExpressionVisitor
 {
     @Autowired
     private DimensionService dimensionService;
@@ -64,14 +65,16 @@ public class ExpressionItemsVisitor extends AbstractVisitor
      */
     private final static Double DUMMY_VALUE = Double.valueOf( 1. );
 
-    private SetMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded;
+    private Set<ExpressionItem> itemsNeeded;
 
     public void getDimensionalItemObjects( ParseTree parseTree, List<OrganisationUnit> orgUnits,
-        List<Period> periods, Map<String, Double> constantMap,
-        SetMapMap<OrganisationUnit, Period, DimensionalItemObject> itemsNeeded,
-        DimensionService dimensionService )
+        List<Period> periods, Map<String, Double> constantMap, Set<ExpressionItem> itemsNeeded,
+        OrganisationUnitService _organisationUnitService, IdentifiableObjectManager _manager,
+        DimensionService _dimensionService )
     {
-        this.dimensionService = dimensionService;
+        organisationUnitService = _organisationUnitService;
+        manager = _manager;
+        dimensionService = _dimensionService;
 
         this.constantMap = constantMap;
         this.itemsNeeded = itemsNeeded;
@@ -91,21 +94,17 @@ public class ExpressionItemsVisitor extends AbstractVisitor
 
     public String getExpressionDescription( ParseTree parseTree, String expr )
     {
-        itemsNeeded = new SetMapMap<>();
+        itemsNeeded = new HashSet<ExpressionItem>();
 
         castDouble( visit( parseTree ) );
 
         Map<String, String> nameMap = new HashMap<>();
 
-        for ( Map.Entry<OrganisationUnit, SetMap<Period, DimensionalItemObject>> entry1 : itemsNeeded.entrySet() )
+        for ( ExpressionItem item : itemsNeeded )
         {
-            for ( Map.Entry<Period, Set<DimensionalItemObject>> entry2 : entry1.getValue().entrySet() )
-            {
-                for ( DimensionalItemObject item : entry2.getValue() )
-                {
-                    nameMap.put( item.getDimensionItem(), item.getName() );
-                }
-            }
+            DimensionalItemObject itemObject = item.getDimensionalItemObject();
+
+            nameMap.put( itemObject.getDimensionItem(), itemObject.getName() );
         }
 
         String description = expr;
@@ -125,31 +124,31 @@ public class ExpressionItemsVisitor extends AbstractVisitor
     @Override
     public Object visitDataElement ( DataElementContext ctx )
     {
-        return getDimensionalItem( DATA_ELEMENT, castString( ctx.dataElementId().getText() ) );
+        return getExpressionItem( DATA_ELEMENT, castString( ctx.dataElementId().getText() ) );
     }
 
     @Override
     public Object visitDataElementOperand ( DataElementOperandContext ctx )
     {
-        return getDimensionalItem( DATA_ELEMENT_OPERAND, castString( ctx.dataElementOperandId().getText() ) );
+        return getExpressionItem( DATA_ELEMENT_OPERAND, castString( ctx.dataElementOperandId().getText() ) );
     }
 
     @Override
     public Object visitProgramDataElement ( ProgramDataElementContext ctx )
     {
-        return getDimensionalItem( PROGRAM_DATA_ELEMENT, castString( ctx.programDataElementId().getText() ) );
+        return getExpressionItem( PROGRAM_DATA_ELEMENT, castString( ctx.programDataElementId().getText() ) );
     }
 
     @Override
     public Object visitProgramTrackedEntityAttribute ( ProgramTrackedEntityAttributeContext ctx )
     {
-        return getDimensionalItem( PROGRAM_ATTRIBUTE, castString( ctx.programTrackedEntityAttributeId().getText() ) );
+        return getExpressionItem( PROGRAM_ATTRIBUTE, castString( ctx.programTrackedEntityAttributeId().getText() ) );
     }
 
     @Override
     public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
     {
-        return getDimensionalItem( PROGRAM_INDICATOR, castString( ctx.programIndicatorId().getText() ) );
+        return getExpressionItem( PROGRAM_INDICATOR, castString( ctx.programIndicatorId().getText() ) );
     }
 
 //    @Override
@@ -250,7 +249,7 @@ public class ExpressionItemsVisitor extends AbstractVisitor
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Object getDimensionalItem( DimensionItemType type, String itemId )
+    private Object getExpressionItem( DimensionItemType type, String itemId )
     {
         DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
 
@@ -264,7 +263,9 @@ public class ExpressionItemsVisitor extends AbstractVisitor
             throw new ParsingException( "Expected " + type.name() + " but found " + item.getDimensionItemType().name() + " " + itemId );
         }
 
-        itemsNeeded.putValue( currentOrgUnit, currentPeriod, item );
+        AggregationType aggregationType = currentAggregationType != null ? currentAggregationType : item.getAggregationType();
+
+        itemsNeeded.add( new ExpressionItem( currentOrgUnit, currentPeriod, item, aggregationType ) );
 
         return DUMMY_VALUE;
     }

@@ -29,11 +29,10 @@ package org.hisp.dhis.parsing;
  */
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -45,16 +44,18 @@ import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
- * ANTLR parse tree visitor to evaluates expressions.
+ * ANTLR parse tree visitor to get an expression value.
+ * <p/>
+ * Uses the ANTLR visitor partern.
  *
  * @author Jim Grace
  */
-public class EvaluationVisitor extends AbstractVisitor
+public class ExpressionValueVisitor extends ExpressionVisitor
 {
     private Map<String, Double> keyValueMap;
 
     public Double getExpressionValue( ParseTree parseTree, OrganisationUnit orgUnit, Period period,
-        MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
+        Map<ExpressionItem, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days,
         OrganisationUnitService _organisationUnitService, IdentifiableObjectManager _manager)
     {
@@ -73,7 +74,7 @@ public class EvaluationVisitor extends AbstractVisitor
     }
 
     // -------------------------------------------------------------------------
-    // Visitor methods that are implemented here
+    // Visitor methods implemented here
     // -------------------------------------------------------------------------
 
     @Override
@@ -157,26 +158,36 @@ public class EvaluationVisitor extends AbstractVisitor
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void makeKeyValueMap( MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap )
+    private void makeKeyValueMap( Map<ExpressionItem, Double> valueMap )
     {
         keyValueMap = new HashMap<>();
 
-        for ( Map.Entry<OrganisationUnit, MapMap<Period, DimensionalItemObject, Double>> orgUnitEntry : valueMap.entrySet() )
+        for ( Map.Entry<ExpressionItem, Double> entry : valueMap.entrySet() )
         {
-            for ( Map.Entry<Period, Map<DimensionalItemObject, Double>> periodEntry : orgUnitEntry.getValue().entrySet() )
+            ExpressionItem eItem = entry.getKey();
+
+            DimensionalItemObject object = eItem.getDimensionalItemObject();
+
+            AggregationType aggregationType = currentAggregationType != null ? currentAggregationType : eItem.getAggregationType();
+
+            String key = getKey( eItem.getOrgUnit(), eItem.getPeriod(),
+                object.getDimensionItemType(), object.getDimensionItem(), aggregationType );
+
+            keyValueMap.put( key, entry.getValue() );
+
+            if ( aggregationType == eItem.getDimensionalItemObject().getAggregationType() )
             {
-                for ( Map.Entry<DimensionalItemObject, Double> itemEntry : periodEntry.getValue().entrySet() )
-                {
-                    keyValueMap.put( getKey( orgUnitEntry.getKey(), periodEntry.getKey(),
-                        itemEntry.getKey().getDimensionItemType(), itemEntry.getKey().getDimensionItem() ), itemEntry.getValue() );
-                }
+                key = getKey( eItem.getOrgUnit(), eItem.getPeriod(),
+                    object.getDimensionItemType(), object.getDimensionItem(), null );
+
+                keyValueMap.put( key, entry.getValue() );
             }
         }
     }
 
     private Double getItemValue( DimensionItemType itemType, String itemId )
     {
-        String key = getKey( currentOrgUnit, currentPeriod, itemType, itemId );
+        String key = getKey( currentOrgUnit, currentPeriod, itemType, itemId, currentAggregationType );
 
         Double value = keyValueMap.get( key );
 
@@ -184,9 +195,11 @@ public class EvaluationVisitor extends AbstractVisitor
     }
 
     private String getKey( OrganisationUnit orgUnit, Period period,
-        DimensionItemType dimensionItemType, String itemId )
+        DimensionItemType dimensionItemType, String itemId,
+        AggregationType aggregationType )
     {
         return orgUnit.getUid() + "-" + period.getIsoDate() + "-"
-            + dimensionItemType.name()  + "-" + itemId;
+            + dimensionItemType.name()  + "-" + itemId
+            + ( aggregationType == null ? "" : "-" + aggregationType.name() );
     }
 }

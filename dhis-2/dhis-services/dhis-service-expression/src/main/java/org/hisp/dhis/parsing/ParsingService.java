@@ -28,15 +28,13 @@ package org.hisp.dhis.parsing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.common.SetMapMap;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Parses expressions.
@@ -70,8 +68,8 @@ public interface ParsingService
      *        and count of organisation units to use in the calculation.
      * @return orgUnits/periods/DimensionalItemObjects to fetch
      */
-    SetMapMap<OrganisationUnit, Period, DimensionalItemObject> getItemsInExpression(
-        List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
+    Set<ExpressionItem> getExpressionItems( List<Expression> expressions,
+        List<OrganisationUnit> orgUnits, List<Period> periods,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
 
     /**
@@ -89,6 +87,6 @@ public interface ParsingService
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, OrganisationUnit orgUnit, Period period,
-        MapMapMap<OrganisationUnit, Period, DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days );
+        Map<ExpressionItem, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap, int days );
 }

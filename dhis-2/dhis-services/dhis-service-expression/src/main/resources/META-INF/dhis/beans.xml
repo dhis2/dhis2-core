@@ -6,6 +6,6 @@
 
   <bean id="org.hisp.dhis.parsing.ExpressionItemsVisitor" class="org.hisp.dhis.parsing.ExpressionItemsVisitor" />
 
-  <bean id="org.hisp.dhis.parsing.EvaluationVisitor" class="org.hisp.dhis.parsing.EvaluationVisitor" />
+  <bean id="org.hisp.dhis.parsing.EvaluationVisitor" class="org.hisp.dhis.parsing.ExpressionValueVisitor" />
 
 </beans>

@@ -31,6 +31,7 @@ package org.hisp.dhis.parsing;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -60,7 +61,7 @@ import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
  *
  * @author Jim Grace
  */
-public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
+public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 {
     @Autowired
     protected OrganisationUnitService organisationUnitService;
@@ -71,6 +72,8 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     protected OrganisationUnit currentOrgUnit = null;
 
     protected Period currentPeriod = null;
+
+    protected AggregationType currentAggregationType = null;
 
     protected Map<String, Double> constantMap = null;
 
@@ -342,31 +345,31 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
             // -----------------------------------------------------------------
 
             case FIRST:
-                return firstOrLast( ctx, true );
+                return firstOrLast( null, ctx, true );
 
             case LAST:
-                return firstOrLast( ctx, false );
+                return firstOrLast( AggregationType.LAST, ctx, false );
 
             case COUNT:
                 return evalAll( ctx ).size();
 
             case SUM:
-                return aggregate( StatUtils::sum, ctx );
+                return aggregate( StatUtils::sum, AggregationType.SUM, ctx );
 
             case MAX:
-                return aggregate( StatUtils::max, ctx );
+                return aggregate( StatUtils::max, AggregationType.MAX,  ctx );
 
             case MIN:
-                return aggregate( StatUtils::min, ctx );
+                return aggregate( StatUtils::min, AggregationType.MIN, ctx );
 
             case AVERAGE:
-                return aggregate( StatUtils::mean, ctx );
+                return aggregate( StatUtils::mean, AggregationType.AVERAGE, ctx );
 
             case STDDEV:
-                return aggregate( (new StandardDeviation())::evaluate, ctx );
+                return aggregate( (new StandardDeviation())::evaluate, AggregationType.STDDEV, ctx );
 
             case VARIANCE:
-                return aggregate( StatUtils::variance, ctx );
+                return aggregate( StatUtils::variance, AggregationType.VARIANCE, ctx );
 
             case MEDIAN:
                 return aggregate2( StatUtils::percentile, 50.0, ctx );
@@ -375,14 +378,14 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
                 return aggregate2( StatUtils::percentile, castDouble( visit( ctx.a1().expr() ) ), ctx );
 
             case RANK_HIGH:
-                return rankHigh( getDoubles( ctx ), ctx );
+                return rankHigh( getDoubles( null, ctx ), ctx );
 
             case RANK_LOW:
-                return rankLow( getDoubles( ctx ), ctx );
+                return rankLow( getDoubles( null, ctx ), ctx );
 
             case RANK_PERCENTILE:
-                double[] vals = getDoubles( ctx );
-                return vals.length == 0 ? 0 : (int)Math.round( 100.0 * rankHigh( vals, ctx ) / vals.length );
+                double[] vals = getDoubles( null, ctx );
+                return vals.length == 0 ? null : (double) Math.round( 100.0 * rankHigh( vals, ctx ) / vals.length );
 
             // -----------------------------------------------------------------
             // Aggregation scope functions
@@ -774,12 +777,12 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
     }
 
     // -------------------------------------------------------------------------
-    // Other supportive functions
+    // Aggregation functions
     // -------------------------------------------------------------------------
 
-    private Object aggregate( Function<double[], Double> func, ExprContext ctx )
+    private Object aggregate( Function<double[], Double> func, AggregationType aggType, ExprContext ctx )
     {
-        double[] doubles = getDoubles( ctx );
+        double[] doubles = getDoubles( aggType, ctx );
 
         if ( doubles.length == 0 )
         {
@@ -791,7 +794,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
     private Object aggregate2( BiFunction<double[], Double, Double> func, Double arg2, ExprContext ctx )
     {
-        double[] doubles = getDoubles( ctx );
+        double[] doubles = getDoubles( null, ctx );
 
         if ( doubles.length == 0 )
         {
@@ -812,7 +815,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      * @param ctx parsing context with a single argument of the value to rank.
      * @return the rank of the argument within the multiple values.
      */
-    private Integer rankHigh( double[] values, ExprContext ctx )
+    private Double rankHigh( double[] values, ExprContext ctx )
     {
         Double test = castDouble( visit( ctx.a1().expr() ) );
 
@@ -821,7 +824,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
             return null;
         }
 
-        Integer rankHigh = 0;
+        Double rankHigh = 0.0;
 
         for ( double d : values )
         {
@@ -845,7 +848,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      * @param ctx parsing context with a single argument of the value to rank.
      * @return the rank of the argument within the multiple values.
      */
-    private Integer rankLow( double[] values, ExprContext ctx )
+    private Double rankLow( double[] values, ExprContext ctx )
     {
         Double test = castDouble( visit( ctx.a1().expr() ) );
 
@@ -854,7 +857,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
             return null;
         }
 
-        Integer rankLow = 1;
+        Double rankLow = 1.0;
 
         for ( double d : values )
         {
@@ -866,6 +869,32 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
 
         return rankLow;
     }
+
+    private Object firstOrLast( AggregationType aggType, ExprContext ctx, boolean isFirst )
+    {
+        AggregationType savedAggregationType = currentAggregationType;
+
+        currentAggregationType = aggType;
+
+        MultiValues multiValues = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
+
+        currentAggregationType = savedAggregationType;
+
+        if ( ctx.a0_1().expr() == null )
+        {
+            List<Object> values = multiValues.firstOrLast( 1, isFirst ).getValues();
+
+            return values.isEmpty() ? null : values.get( 0 );
+        }
+        else
+        {
+            return multiValues.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Other supportive functions
+    // -------------------------------------------------------------------------
 
     /**
      * Casts object as Integer, or throw exception if we can't.
@@ -920,7 +949,7 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
         }
         catch ( Exception ex )
         {
-            throw new ParsingException( "number expected at: '" + object.toString() + "'" );
+            throw new ParsingException( "number expected at: '" + object.toString() + "', found " + object.getClass().getName() );
         }
     }
 
@@ -1045,13 +1074,26 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
      * @param ctx the parsing context.
      * @return the array of double values.
      */
-    private double[] getDoubles( ExprContext ctx )
+    private double[] getDoubles( AggregationType aggType, ExprContext ctx )
     {
-        return ArrayUtils.toPrimitive( castMultiValues( visit( ctx.expr( 0 ) ) )
+        return ArrayUtils.toPrimitive( castMultiValues( visitAggType( aggType, ctx ) )
             .getValues().stream()
             .filter( o -> o != null )
             .map( o -> castDouble( o ) ).collect( Collectors.toList() )
             .toArray( new Double[0] ) );
+    }
+
+    private Object visitAggType( AggregationType aggType, ExprContext ctx )
+    {
+        AggregationType savedAggregationType = currentAggregationType;
+
+        currentAggregationType = aggType;
+
+        Object object = visit( ctx.expr( 0 ) );
+
+        currentAggregationType = savedAggregationType;
+
+        return object;
     }
 
     private List<Object> evalAll( ExprContext ctx )
@@ -1066,22 +1108,6 @@ public abstract class AbstractVisitor extends ExpressionBaseVisitor<Object>
         //TODO: iterate through periods and orgUnits in scope
 
         return Arrays.asList( visit( ctx.expr( 0 ) ) );
-    }
-
-    private Object firstOrLast( ExprContext ctx, boolean isFirst )
-    {
-        MultiValues multiValues = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
-
-        if ( ctx.a0_1().expr() == null )
-        {
-            List<Object> values = multiValues.firstOrLast( 1, isFirst ).getValues();
-
-            return values.isEmpty() ? null : values.get( 0 );
-        }
-        else
-        {
-            return multiValues.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
-        }
     }
 
     private int compare( ExprContext ctx )
