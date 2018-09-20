@@ -1197,7 +1197,12 @@ public abstract class AbstractEnrollmentService
 
     protected void reloadUser( ImportOptions importOptions )
     {
-        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )
