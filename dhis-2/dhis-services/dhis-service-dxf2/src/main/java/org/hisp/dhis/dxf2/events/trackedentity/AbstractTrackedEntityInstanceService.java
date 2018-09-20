@@ -336,12 +336,11 @@ public abstract class AbstractTrackedEntityInstanceService
         ImportOptions importOptions )
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
-        importOptions = updateImportOptions( importOptions );
-
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            importOptions = updateImportOptions( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -456,13 +455,13 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
 
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            importOptions = updateImportOptions( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -1052,6 +1051,10 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( importOptions.getUser() == null )
         {
             importOptions.setUser( currentUserService.getCurrentUser() );
+        }
+        else
+        {
+            importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
         }
 
         return importOptions;
