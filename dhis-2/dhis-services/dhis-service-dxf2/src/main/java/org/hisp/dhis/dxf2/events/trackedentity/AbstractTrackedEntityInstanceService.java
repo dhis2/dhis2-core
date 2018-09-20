@@ -337,11 +337,11 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
-
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -456,13 +456,13 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -1055,6 +1055,11 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )

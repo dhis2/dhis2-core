@@ -395,13 +395,13 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
             for ( Enrollment enrollment : _enrollments )
@@ -591,11 +591,11 @@ public abstract class AbstractEnrollmentService
     {
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
-
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
             for ( Enrollment enrollment : _enrollments )
@@ -1193,6 +1193,11 @@ public abstract class AbstractEnrollmentService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )

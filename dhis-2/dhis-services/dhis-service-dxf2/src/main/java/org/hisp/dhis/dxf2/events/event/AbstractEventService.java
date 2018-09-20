@@ -117,6 +117,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -251,6 +252,9 @@ public abstract class AbstractEventService
     @Autowired
     protected RelationshipService relationshipService;
 
+    @Autowired
+    protected UserService userService;
+
     protected static final int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
@@ -290,11 +294,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -1035,11 +1039,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -2182,5 +2186,10 @@ public abstract class AbstractEventService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 }
