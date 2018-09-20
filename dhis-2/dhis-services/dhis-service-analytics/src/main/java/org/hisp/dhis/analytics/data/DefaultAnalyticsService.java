@@ -987,7 +987,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams orgUnitTargetParams = DataQueryParams.newBuilder( params )
             .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, null, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
             .withSkipPartitioning( true ).build();
 
         Map<String, Double> orgUnitCountMap = getAggregatedOrganisationUnitTargetMap( orgUnitTargetParams );
