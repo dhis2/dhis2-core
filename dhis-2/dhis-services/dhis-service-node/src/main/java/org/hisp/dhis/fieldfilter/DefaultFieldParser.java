@@ -55,34 +55,8 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
-            if ( c.equals( "," ) )
-            {
-                putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
-                builder = new StringBuilder();
-                continue;
-            }
-
-            if ( c.equals( "[" ) || c.equals( "(" ) )
-            {
-                prefixList.add( builder.toString() );
-                builder = new StringBuilder();
-                continue;
-            }
-
-            if ( c.equals( "]" ) || c.equals( ")" ) )
-            {
-                if ( !builder.toString().isEmpty() )
-                {
-                    putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
-                }
-
-                prefixList.remove( prefixList.size() - 1 );
-                builder = new StringBuilder();
-                continue;
-            }
-
             // if we reach a field transformer, parse it out here (necessary to allow for () to be used to handle transformer parameters)
-            if ( c.equals( ":" ) || c.equals( "~" ) )
+            if ( (c.equals( ":" ) && fieldSplit[i + 1].equals( ":" )) || c.equals( "~" ) )
             {
                 boolean insideParameters = false;
 
@@ -113,12 +87,36 @@ public class DefaultFieldParser implements FieldParser
                         break;
                     }
                 }
+            }
 
+            if ( c.equals( "," ) )
+            {
+                putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
+                builder = new StringBuilder();
+                continue;
+            }
+
+            if ( c.equals( "[" ) || c.equals( "(" ) )
+            {
+                prefixList.add( builder.toString() );
+                builder = new StringBuilder();
+                continue;
+            }
+
+            if ( c.equals( "]" ) || c.equals( ")" ) )
+            {
+                if ( !builder.toString().isEmpty() )
+                {
+                    putInMap( fieldMap, joinedWithPrefix( builder, prefixList ) );
+                }
+
+                prefixList.remove( prefixList.size() - 1 );
+                builder = new StringBuilder();
                 continue;
             }
 
             if ( StringUtils.isAlphanumeric( c ) || c.equals( "*" ) || c.equals( ":" ) || c.equals( ";" ) || c.equals( "~" ) || c.equals( "!" )
-                || c.equals( "|" ) || c.equals( "{" ) || c.equals( "}" ) || c.equals( "(" ) || c.equals( ")" ) )
+                || c.equals( "|" ) || c.equals( "{" ) || c.equals( "}" ) )
             {
                 builder.append( c );
             }
