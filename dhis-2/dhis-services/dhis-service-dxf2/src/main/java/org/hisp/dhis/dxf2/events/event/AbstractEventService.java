@@ -293,12 +293,12 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-
+        importOptions = updateImportOptions( importOptions );
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -1038,12 +1038,12 @@ public abstract class AbstractEventService
     public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-
+        importOptions = updateImportOptions( importOptions );
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -2184,12 +2184,12 @@ public abstract class AbstractEventService
         {
             importOptions.setUser( currentUserService.getCurrentUser() );
         }
-        else
-        {
-            importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
-        }
-
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 }

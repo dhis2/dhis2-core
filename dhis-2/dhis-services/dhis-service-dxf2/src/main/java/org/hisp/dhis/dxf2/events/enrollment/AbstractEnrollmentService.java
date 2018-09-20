@@ -396,12 +396,12 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
             for ( Enrollment enrollment : _enrollments )
@@ -590,12 +590,12 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
             for ( Enrollment enrollment : _enrollments )
@@ -1191,13 +1191,13 @@ public abstract class AbstractEnrollmentService
         {
             importOptions.setUser( currentUserService.getCurrentUser() );
         }
-        else
-        {
-            importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
-        }
-
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )

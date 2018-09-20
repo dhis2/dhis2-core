@@ -336,11 +336,12 @@ public abstract class AbstractTrackedEntityInstanceService
         ImportOptions importOptions )
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -456,12 +457,12 @@ public abstract class AbstractTrackedEntityInstanceService
         ImportOptions importOptions )
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            importOptions = updateImportOptions( importOptions );
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -1052,12 +1053,13 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             importOptions.setUser( currentUserService.getCurrentUser() );
         }
-        else
-        {
-            importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
-        }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
     private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
