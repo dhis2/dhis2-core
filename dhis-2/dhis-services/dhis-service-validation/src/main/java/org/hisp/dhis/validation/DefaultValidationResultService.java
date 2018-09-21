@@ -56,7 +56,7 @@ public class DefaultValidationResultService
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
         validationResults.forEach( validationResult -> {
-            validationResult.setPeriod( periodService.getPeriod( validationResult.getPeriod().getId() ) );
+            validationResult.setPeriod( periodService.reloadPeriod( validationResult.getPeriod() ) );
             validationResultStore.save( validationResult );
         } );
     }
