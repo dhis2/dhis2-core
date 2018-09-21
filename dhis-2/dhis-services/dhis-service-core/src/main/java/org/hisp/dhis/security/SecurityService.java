@@ -118,7 +118,7 @@ public interface SecurityService
     boolean sendRestoreMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken and restoreCode property of the given
+     * Populates the restoreToken property of the given
      * credentials with a hashed version of auto-generated values. Sets the
      * restoreExpiry property with a date time some interval from now depending
      * on the restore type. Changes are persisted.
@@ -139,20 +139,19 @@ public interface SecurityService
     RestoreOptions getRestoreOptions( String token );
 
     /**
-     * Tests whether the given token and code are valid for the given user name.
+     * Tests whether the given token is valid for the given user name.
      * If true, it will update the user credentials identified by the given user
-     * name with the new password. In order to succeed, the given token and code
+     * name with the new password. In order to succeed, the given token 
      * must match the ones on the credentials, and the current date must be before
      * the expiry date time of the credentials.
      *
      * @param credentials the user credentials.
      * @param token       the token.
-     * @param code        the code.
      * @param newPassword the proposed new password.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean restore( UserCredentials credentials, String token, String code, String newPassword, RestoreType restoreType );
+    boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType );
 
     /**
      * Tests whether the given token and code are valid for the given user name.
@@ -166,7 +165,7 @@ public interface SecurityService
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean canRestore( UserCredentials credentials, String token, String code, RestoreType restoreType );
+    boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType );
 
     /**
      * Tests whether the given token in combination with the given user name is

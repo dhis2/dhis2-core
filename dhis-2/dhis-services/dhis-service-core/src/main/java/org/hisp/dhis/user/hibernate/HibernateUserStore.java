@@ -181,7 +181,6 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " uc.invitation = true " +
                 "and uc.restoreToken is not null " +
-                "and uc.restoreCode is not null " +
                 "and uc.restoreExpiry is not null " +
                 "and uc.restoreExpiry < current_timestamp() ";
         }
