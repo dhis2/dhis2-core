@@ -30,22 +30,23 @@ package org.hisp.dhis.logging;
 
 import org.hisp.dhis.DhisTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class LogTest extends DhisTest
 {
-    @Autowired
-    private LogManager logManager;
-
     @Test
     public void logTest()
     {
-        Log log = new Log( "Test log message" )
-            .setSource( LogTest.class );
-
-        logManager.log( log );
+        LogManager.Logger logger = LogManager.logger( LogTest.class );
+        logger.log( new Log( "Logging with Log instance" ) );
+        logger.log( "Logging without Log instance" );
+        logger.fatal( "Logging FATAL without Log instance" );
+        logger.error( "Logging ERROR without Log instance" );
+        logger.warn( "Logging WARN without Log instance" );
+        logger.info( "Logging INFO without Log instance" );
+        logger.debug( "Logging DEBUG without Log instance" );
+        logger.trace( "Logging TRACE without Log instance" );
     }
 }

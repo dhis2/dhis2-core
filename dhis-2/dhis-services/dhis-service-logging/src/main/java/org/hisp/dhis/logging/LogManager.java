@@ -28,28 +28,25 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class LogManager implements ApplicationEventPublisherAware, ApplicationListener<LogEvent>
+public class LogManager implements ApplicationEventPublisherAware, ApplicationListener<LogEvent>, InitializingBean
 {
     private static final long serialVersionUID = 1L;
+    private static LogManager instance;
 
     private ApplicationEventPublisher publisher;
-
-    @Override
-    public void setApplicationEventPublisher( ApplicationEventPublisher publisher )
-    {
-        this.publisher = publisher;
-    }
 
     public void log( Log log )
     {
@@ -78,6 +75,86 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
             {
                 log.setUsername( (String) context.getAuthentication().getPrincipal() );
             }
+        }
+    }
+
+    @Override
+    public void setApplicationEventPublisher( ApplicationEventPublisher publisher )
+    {
+        this.publisher = publisher;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception
+    {
+        instance = this;
+    }
+
+    public static LogManager getInstance()
+    {
+        return instance;
+    }
+
+    public static Logger logger( Class<?> source )
+    {
+        return new Logger( LogManager.getInstance(), source );
+    }
+
+    public static class Logger
+    {
+        private final LogManager logManager;
+        private final Class<?> source;
+
+        public Logger( LogManager logManager, Class<?> source )
+        {
+            Assert.notNull( logManager, "LogManager is required, check if the logger is called within a spring context." );
+            this.logManager = logManager;
+            this.source = source;
+        }
+
+        public void log( String message )
+        {
+            log( new Log( message ) );
+        }
+
+        public void fatal( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.FATAL ) );
+        }
+
+        public void error( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.ERROR ) );
+        }
+
+        public void warn( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.WARN ) );
+        }
+
+        public void info( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.INFO ) );
+        }
+
+        public void debug( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.DEBUG ) );
+        }
+
+        public void trace( String message )
+        {
+            log( new Log( message ).setLogLevel( LogLevel.TRACE ) );
+        }
+
+        public void log( Log log )
+        {
+            if ( log.getSource() == null )
+            {
+                log.setSource( source );
+            }
+
+            logManager.log( log );
         }
     }
 }
