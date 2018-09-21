@@ -28,24 +28,56 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LogTest extends DhisTest
+@Component
+public class LogManager implements ApplicationEventPublisherAware, ApplicationListener<LogEvent>
 {
-    @Autowired
-    private LogManager logManager;
+    private static final long serialVersionUID = 1L;
 
-    @Test
-    public void logTest()
+    private ApplicationEventPublisher publisher;
+
+    @Override
+    public void setApplicationEventPublisher( ApplicationEventPublisher publisher )
     {
-        Log log = new Log( "Test log message" )
-            .setSource( LogTest.class );
+        this.publisher = publisher;
+    }
 
-        logManager.log( log );
+    public void log( Log log )
+    {
+        updateUsername( log );
+        publisher.publishEvent( new LogEvent( this, log ) );
+    }
+
+    @Override
+    public void onApplicationEvent( LogEvent event )
+    {
+        System.err.println( event.getLog() );
+    }
+
+    private void updateUsername( Log log )
+    {
+        if ( log.getUsername() != null )
+        {
+            return;
+        }
+
+        SecurityContext context = SecurityContextHolder.getContext();
+
+        if ( context.getAuthentication() != null )
+        {
+            if ( context.getAuthentication().getPrincipal() instanceof String )
+            {
+                log.setUsername( (String) context.getAuthentication().getPrincipal() );
+            }
+        }
     }
 }

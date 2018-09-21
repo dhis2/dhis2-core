@@ -47,6 +47,8 @@ public class Log
 
     private String username;
 
+    private Object data;
+
     public Log( String message )
     {
         this.message = message;
@@ -98,6 +100,17 @@ public class Log
     {
         this.username = username;
         return this;
+    }
+
+    @JsonProperty
+    public Object getData()
+    {
+        return data;
+    }
+
+    public void setData( Object data )
+    {
+        this.data = data;
     }
 
     // ~ Utility methods

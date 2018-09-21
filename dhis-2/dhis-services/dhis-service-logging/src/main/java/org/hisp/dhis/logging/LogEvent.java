@@ -28,24 +28,23 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LogTest extends DhisTest
+public class LogEvent extends ApplicationEvent
 {
-    @Autowired
-    private LogManager logManager;
+    private final Log log;
 
-    @Test
-    public void logTest()
+    public LogEvent( Object source, Log log )
     {
-        Log log = new Log( "Test log message" )
-            .setSource( LogTest.class );
+        super( source );
+        this.log = log;
+    }
 
-        logManager.log( log );
+    public Log getLog()
+    {
+        return log;
     }
 }
