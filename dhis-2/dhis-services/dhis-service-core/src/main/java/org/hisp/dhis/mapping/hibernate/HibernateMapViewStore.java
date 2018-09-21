@@ -28,14 +28,13 @@ package org.hisp.dhis.mapping.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.criterion.Restrictions;
-
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,9 +42,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 public class HibernateMapViewStore
     extends HibernateAnalyticalObjectStore<MapView> implements MapViewStore
 {
-    @SuppressWarnings("unchecked")
     public List<MapView> getByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
-        return getCriteria( Restrictions.eq( "organisationUnitGroupSet", groupSet ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "organisationUnitGroupSet" ), groupSet ) ) );
     }
 }

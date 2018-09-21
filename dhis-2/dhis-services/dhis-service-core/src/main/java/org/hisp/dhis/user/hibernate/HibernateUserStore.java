@@ -28,7 +28,7 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -88,13 +88,13 @@ public class HibernateUserStore
             if ( params.isIncludeOrgUnitChildren() )
             {
                 hql += hlp.whereAnd() + " (";
-                
+
                 for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
                 {
                     hql += String.format( "ou.path like :ouUid%d or ", i );
                 }
-                
-                hql = TextUtils.removeLastOr( hql ) + ")";                
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
             }
             else
             {
@@ -194,12 +194,12 @@ public class HibernateUserStore
         
         if ( params.getQuery() != null )
         {
-            query.setString( "key", "%" + params.getQuery().toLowerCase() + "%" );
+            query.setParameter( "key", "%" + params.getQuery().toLowerCase() + "%" );
         }
         
         if ( params.getPhoneNumber() != null )
         {
-            query.setString( "phoneNumber", params.getPhoneNumber() );
+            query.setParameter( "phoneNumber", params.getPhoneNumber() );
         }
         
         if ( params.isCanManage() && params.getUser() != null )
@@ -211,7 +211,7 @@ public class HibernateUserStore
 
         if ( params.getDisabled() != null )
         {
-            query.setBoolean( "disabled", params.getDisabled().booleanValue() );
+            query.setParameter( "disabled", params.getDisabled().booleanValue() );
         }
         
         if ( params.isAuthSubset() && params.getUser() != null )
@@ -230,17 +230,17 @@ public class HibernateUserStore
         
         if ( params.getLastLogin() != null )
         {
-            query.setTimestamp( "lastLogin", params.getLastLogin() );
+            query.setParameter( "lastLogin", params.getLastLogin() );
         }
 
         if ( params.getPasswordLastUpdated() != null )
         {
-            query.setTimestamp( "passwordLastUpdated", params.getPasswordLastUpdated() );
+            query.setParameter( "passwordLastUpdated", params.getPasswordLastUpdated() );
         }
 
         if ( params.getInactiveSince() != null )
         {
-            query.setTimestamp( "inactiveSince", params.getInactiveSince() );
+            query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
         
         if ( !params.getOrganisationUnits().isEmpty() )
@@ -249,13 +249,13 @@ public class HibernateUserStore
             {
                 for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
                 {
-                    query.setString( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
                 }
             }
             else
             {
                 Collection<Integer> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
-                
+
                 query.setParameterList( "ouIds", ouIds );
             }
         }
@@ -276,7 +276,7 @@ public class HibernateUserStore
     @Override
     public int getUserCount()
     {
-        return ((Long) getQuery( "select count(*) from User" ).
-            uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(*) from User" );
+        return query.uniqueResult().intValue();
     }
 }
