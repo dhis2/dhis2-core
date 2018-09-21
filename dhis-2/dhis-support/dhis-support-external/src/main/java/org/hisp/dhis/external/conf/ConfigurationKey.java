@@ -88,7 +88,8 @@ public enum ConfigurationKey
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
-    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
+    LOGGING_LEVEL( "logging.level", "INFO", false );
 
     private final String key;
 

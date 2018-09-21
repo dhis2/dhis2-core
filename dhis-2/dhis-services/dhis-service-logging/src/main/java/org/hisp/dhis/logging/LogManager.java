@@ -28,6 +28,7 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -46,21 +47,16 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
     private static final long serialVersionUID = 1L;
     private static LogManager instance;
 
+    private final SystemSettingManager systemSettingManager;
+
     private ApplicationEventPublisher publisher;
 
+    public LogManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
+
     public void log( Log log )
-    {
-        updateUsername( log );
-        publisher.publishEvent( new LogEvent( this, log ) );
-    }
-
-    @Override
-    public void onApplicationEvent( LogEvent event )
-    {
-        System.err.println( event.getLog() );
-    }
-
-    private void updateUsername( Log log )
     {
         if ( log.getUsername() != null )
         {
@@ -76,6 +72,14 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
                 log.setUsername( (String) context.getAuthentication().getPrincipal() );
             }
         }
+
+        publisher.publishEvent( new LogEvent( this, log ) );
+    }
+
+    @Override
+    public void onApplicationEvent( LogEvent event )
+    {
+        System.err.println( event.getLog() );
     }
 
     @Override

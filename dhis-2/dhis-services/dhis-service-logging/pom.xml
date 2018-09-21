@@ -2,21 +2,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
     <version>2.31-SNAPSHOT</version>
   </parent>
-  
+
   <artifactId>dhis-service-logging</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Logging services</name>
-  
+
   <dependencies>
-    
+
     <!-- DHIS -->
-    
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -33,7 +33,11 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
     </dependency>
-    
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-setting</artifactId>
+    </dependency>
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
