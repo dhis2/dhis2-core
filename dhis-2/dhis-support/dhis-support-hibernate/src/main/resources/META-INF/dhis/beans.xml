@@ -51,6 +51,11 @@
     <property name="hibernateProperties" ref="hibernateProperties" />
     <property name="mappingJarLocations" ref="hibernateMappingJarLocations" />
     <property name="mappingDirectoryLocations" ref="hibernateMappingDirectoryLocations" />
+    <property name="annotatedClasses">
+        <list>
+          <value>org.hisp.dhis.deletedobject.DeletedObject</value>
+        </list>
+    </property>
   </bean>
 
   <!-- Data source -->

@@ -28,7 +28,7 @@ package org.hisp.dhis.message.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -133,7 +133,7 @@ public class HibernateMessageConversationStore
         String hql = "select count(*) from MessageConversation m join m.userMessages u where u.user = :user and u.read = false";
 
         Query query = getQuery( hql );
-        query.setEntity( "user", user );
+        query.setParameter( "user", user );
 
         return (Long) query.uniqueResult();
     }
@@ -151,7 +151,7 @@ public class HibernateMessageConversationStore
         String hql = "delete Message m where m.sender = :sender";
 
         Query query = getQuery( hql );
-        query.setEntity( "sender", sender );
+        query.setParameter( "sender", sender );
         return query.executeUpdate();
     }
 
@@ -168,7 +168,7 @@ public class HibernateMessageConversationStore
         String hql = "delete UserMessage u where u.user = :user";
 
         Query query = getQuery( hql );
-        query.setEntity( "user", user );
+        query.setParameter( "user", user );
         return query.executeUpdate();
     }
 
@@ -180,7 +180,7 @@ public class HibernateMessageConversationStore
         String hql = "update MessageConversation m set m.lastSender = null where m.lastSender = :lastSender";
 
         Query query = getQuery( hql );
-        query.setEntity( "lastSender", lastSender );
+        query.setParameter( "lastSender", lastSender );
         return query.executeUpdate();
     }
 
