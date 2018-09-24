@@ -37,6 +37,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Lars Helge Overland
@@ -60,18 +62,8 @@ public enum UserSettingKey
 
     private final Class<?> clazz;
     
-    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = new HashMap<>();
-
-    static
-    {
-        for ( UserSettingKey key : UserSettingKey.values() )
-        {
-            if ( key.getDefaultValue() != null )
-            {
-                DEFAULT_USER_SETTINGS_MAP.put( key.getName(), key.getDefaultValue() );
-            }
-        }
-    }
+    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() ).filter( k -> k.getDefaultValue() != null )
+        .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -170,15 +162,15 @@ public enum UserSettingKey
         return clazz;
     }
     
-    public static Map<String,Serializable>getDefaultUserSettingsMap()
+    public static Map<String, Serializable> getDefaultUserSettingsMap()
     {
-        return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
+        return new HashMap<>( DEFAULT_USER_SETTINGS_MAP );
     }
-    
-    public static Set<UserSetting> getDefaultUserSettings(User user)
+
+    public static Set<UserSetting> getDefaultUserSettings( User user )
     {
         Set<UserSetting> defaultUserSettings = new HashSet<>();
-        DEFAULT_USER_SETTINGS_MAP.forEach( (key,value)->{
+        DEFAULT_USER_SETTINGS_MAP.forEach( ( key, value ) -> {
             UserSetting userSetting = new UserSetting();
             userSetting.setName( key );
             userSetting.setValue( value );
