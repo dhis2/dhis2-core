@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,18 +100,15 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
 
     public static Logger logger( Class<?> source )
     {
-        return new Logger( LogManager.getInstance(), source );
+        return new Logger( source );
     }
 
     public static class Logger
     {
-        private final LogManager logManager;
         private final Class<?> source;
 
-        public Logger( LogManager logManager, Class<?> source )
+        public Logger( Class<?> source )
         {
-            Assert.notNull( logManager, "LogManager is required, check if the logger is called within a spring context." );
-            this.logManager = logManager;
             this.source = source;
         }
 
@@ -158,7 +154,7 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
                 log.setSource( source );
             }
 
-            logManager.log( log );
+            getInstance().log( log );
         }
     }
 }
