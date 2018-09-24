@@ -121,6 +121,11 @@ public class MetadataImportParams
     private boolean skipSharing;
 
     /**
+     * Should translation be considered when importing objects.
+     */
+    private boolean skipTranslation;
+
+    /**
      * Skip validation of objects (not recommended).
      */
     private boolean skipValidation;
@@ -312,6 +317,19 @@ public class MetadataImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipTranslation()
+    {
+        return skipTranslation;
+    }
+
+    public MetadataImportParams setSkipTranslation( boolean skipTranslation )
+    {
+        this.skipTranslation = skipTranslation;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
@@ -444,6 +462,7 @@ public class MetadataImportParams
         params.setUserOverrideMode( userOverrideMode );
         params.setOverrideUser( overrideUser );
         params.setSkipSharing( skipSharing );
+        params.setSkipTranslation( skipTranslation );
         params.setSkipValidation( skipValidation );
         params.setJobId( id );
         params.setImportStrategy( importStrategy );

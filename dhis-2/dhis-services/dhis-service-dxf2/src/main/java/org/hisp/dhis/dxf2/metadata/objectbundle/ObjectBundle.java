@@ -115,6 +115,11 @@ public class ObjectBundle
     private final boolean skipSharing;
 
     /**
+     * Should translation be considered when importing objects.
+     */
+    private final boolean skipTranslation;
+
+    /**
      * Skip validation of objects (not recommended).
      */
     private final boolean skipValidation;
@@ -162,6 +167,7 @@ public class ObjectBundle
         this.mergeMode = params.getMergeMode();
         this.flushMode = params.getFlushMode();
         this.skipSharing = params.isSkipSharing();
+        this.skipTranslation = params.isSkipTranslation();
         this.skipValidation = params.isSkipValidation();
         this.jobId = params.getJobId();
         this.preheat = preheat;
@@ -232,6 +238,11 @@ public class ObjectBundle
     public boolean isSkipSharing()
     {
         return skipSharing;
+    }
+
+    public boolean isSkipTranslation()
+    {
+        return skipTranslation;
     }
 
     public boolean isSkipValidation()
