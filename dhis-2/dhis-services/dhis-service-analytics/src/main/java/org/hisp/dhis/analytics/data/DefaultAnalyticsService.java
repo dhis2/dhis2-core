@@ -1128,14 +1128,14 @@ public class DefaultAnalyticsService
                         map.putAll( taskValues );
                     }
                 }
-                catch ( ExecutionException | InterruptedException ex )
+                catch ( Exception ex )
                 {
                     log.error( DebugUtils.getStackTrace( ex ) );
                     log.error( DebugUtils.getStackTrace( ex.getCause() ) );
                     
                     if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
                     {
-                        throw (RuntimeException) ex.getCause(); // Throw the real exception
+                        throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution exception
                     }
                     else
                     {                    
