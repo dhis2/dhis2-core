@@ -28,7 +28,8 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -45,14 +46,15 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
 {
     private static final long serialVersionUID = 1L;
     private static LogManager instance;
+    private static LoggingConfig loggingConfig;
 
-    private final SystemSettingManager systemSettingManager;
+    private final DhisConfigurationProvider dhisConfig;
 
     private ApplicationEventPublisher publisher;
 
-    public LogManager( SystemSettingManager systemSettingManager )
+    public LogManager( DhisConfigurationProvider dhisConfig )
     {
-        this.systemSettingManager = systemSettingManager;
+        this.dhisConfig = dhisConfig;
     }
 
     public void log( Log log )
@@ -91,6 +93,10 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
     public void afterPropertiesSet() throws Exception
     {
         instance = this;
+
+        loggingConfig = new LoggingConfig(
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ) )
+        );
     }
 
     public static LogManager getInstance()

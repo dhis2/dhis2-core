@@ -31,24 +31,17 @@ package org.hisp.dhis.logging;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum LogLevel
+public class LoggingConfig
 {
-    FATAL( 0 ), ERROR( 1 ), WARN( 2 ), INFO( 3 ), DEBUG( 4 ), TRACE( 5 );
+    private final LogLevel level;
 
-    private final int level;
-
-    LogLevel( int level )
+    public LoggingConfig( LogLevel level )
     {
         this.level = level;
     }
 
-    public int getLevel()
+    public LogLevel getLevel()
     {
         return level;
-    }
-
-    public boolean isEnabled( LogLevel logLevel )
-    {
-        return level >= logLevel.getLevel();
     }
 }

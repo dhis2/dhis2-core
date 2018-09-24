@@ -166,4 +166,9 @@ public class Log
     {
         return LogLevel.TRACE == logLevel;
     }
+
+    public boolean isEnabled( LogLevel logLevel )
+    {
+        return logLevel.isEnabled( logLevel );
+    }
 }

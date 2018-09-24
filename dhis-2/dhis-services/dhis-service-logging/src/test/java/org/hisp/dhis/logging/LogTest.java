@@ -31,6 +31,9 @@ package org.hisp.dhis.logging;
 import org.hisp.dhis.DhisTest;
 import org.junit.Test;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -48,5 +51,17 @@ public class LogTest extends DhisTest
         logger.info( "Logging INFO without Log instance" );
         logger.debug( "Logging DEBUG without Log instance" );
         logger.trace( "Logging TRACE without Log instance" );
+    }
+
+    @Test
+    public void logLevelTest()
+    {
+        assertTrue( LogLevel.WARN.isEnabled( LogLevel.FATAL ) );
+        assertTrue( LogLevel.WARN.isEnabled( LogLevel.ERROR ) );
+        assertTrue( LogLevel.WARN.isEnabled( LogLevel.WARN ) );
+        assertFalse( LogLevel.WARN.isEnabled( LogLevel.INFO ) );
+        assertFalse( LogLevel.WARN.isEnabled( LogLevel.DEBUG ) );
+        assertFalse( LogLevel.WARN.isEnabled( LogLevel.TRACE ) );
+        assertFalse( LogLevel.INFO.isEnabled( LogLevel.DEBUG ) );
     }
 }
