@@ -61,9 +61,17 @@ public class DefaultMergeService implements MergeService
 
         for ( Property property : schema.getProperties() )
         {
-            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            if ( schema.isIdentifiableObject() )
             {
-                continue;
+                if ( mergeParams.isSkipSharing() && isSharingProperty( property ) )
+                {
+                    continue;
+                }
+
+                if ( mergeParams.isSkipTranslation() && isTranslationProperty( property ) )
+                {
+                    continue;
+                }
             }
 
             // passwords should only be merged manually
@@ -142,5 +150,10 @@ public class DefaultMergeService implements MergeService
     private boolean isSharingProperty( Property property )
     {
         return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
+    }
+
+    private boolean isTranslationProperty( Property property )
+    {
+        return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
     }
 }
