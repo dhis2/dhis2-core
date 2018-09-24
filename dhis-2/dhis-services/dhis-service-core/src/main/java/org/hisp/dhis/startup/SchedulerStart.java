@@ -193,7 +193,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            //portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
+            portJob( systemSettingManager, dataStatistics, SettingKey.LAST_SUCCESSFUL_DATA_STATISTICS );
             dataStatistics.setLeaderOnlyJob( true );
             addAndScheduleJob( dataStatistics );
         }
