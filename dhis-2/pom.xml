@@ -349,6 +349,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-logging</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-node</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -1169,7 +1174,7 @@
         <artifactId>spring-restdocs-mockmvc</artifactId>
         <version>1.1.2.RELEASE</version>
         <scope>test</scope>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>com.vividsolutions</groupId>
         <artifactId>jts-io</artifactId>

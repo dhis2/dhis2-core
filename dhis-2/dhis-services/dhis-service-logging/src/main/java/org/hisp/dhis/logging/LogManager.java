@@ -80,7 +80,10 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
     @Override
     public void onApplicationEvent( LogEvent event )
     {
-        System.err.println( event.getLog() );
+        if ( loggingConfig.getLevel().isEnabled( event.getLog().getLogLevel() ) )
+        {
+            System.err.println( event.getLog() );
+        }
     }
 
     @Override

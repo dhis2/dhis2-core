@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.kafka.Kafka;
+import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
@@ -139,6 +140,8 @@ public class SystemInfo
     private RabbitMQ rabbitMQ;
 
     private Kafka kafka;
+
+    private LoggingConfig logging;
 
     public SystemInfo instance()
     {
@@ -552,7 +555,7 @@ public class SystemInfo
     {
         this.emailConfigured = emailConfigured;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemId()
@@ -688,5 +691,17 @@ public class SystemInfo
     public boolean isKafka()
     {
         return kafka != null && kafka.isValid();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LoggingConfig getLogging()
+    {
+        return logging;
+    }
+
+    public void setLogging( LoggingConfig loggingConfig )
+    {
+        this.logging = loggingConfig;
     }
 }
