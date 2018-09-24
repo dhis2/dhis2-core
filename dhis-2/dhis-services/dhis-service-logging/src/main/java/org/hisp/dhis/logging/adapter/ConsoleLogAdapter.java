@@ -30,7 +30,6 @@ package org.hisp.dhis.logging.adapter;
 
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
-import org.hisp.dhis.logging.LoggingConfig;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Component;
 public class ConsoleLogAdapter implements LogAdapter
 {
     @Override
-    public void log( Log log, LoggingConfig config )
+    public void log( Log log )
     {
         System.err.println( log );
     }

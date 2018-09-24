@@ -51,5 +51,12 @@ public interface LogAdapter extends ApplicationListener<LogEvent>
         }
     }
 
-    void log( Log log, LoggingConfig config );
+    default void log( Log log, LoggingConfig config )
+    {
+        log( log );
+    }
+
+    default void log( Log log )
+    {
+    }
 }
