@@ -123,13 +123,13 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( String name, Serializable value )
+    public void saveSystemSetting( SettingKey settingKey, Serializable value )
     {
-        settingCache.invalidate( name );
+        settingCache.invalidate( settingKey.getName() );
 
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
-        if ( isConfidential( name ) )
+        if ( isConfidential( settingKey.getName() ) )
         {
             value = pbeStringEncryptor.encrypt( value.toString() );
         }
@@ -138,7 +138,7 @@ public class DefaultSystemSettingManager
         {
             setting = new SystemSetting();
 
-            setting.setName( name );
+            setting.setName( settingKey.getName() );
             setting.setValue( value );
 
             systemSettingStore.save( setting );
@@ -153,44 +153,16 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( SettingKey setting, Serializable value )
+    public void deleteSystemSetting( SettingKey settingKey )
     {
-        saveSystemSetting( setting.getName(), value );
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
         if ( setting != null )
         {
-            settingCache.invalidate( name );
+            settingCache.invalidate( settingKey.getName() );
 
             systemSettingStore.delete( setting );
         }
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( SettingKey setting )
-    {
-        deleteSystemSetting( setting.getName() );
-    }
-
-    @Override
-    @Transactional
-    public Serializable getSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
-
-        if ( isConfidential( name ) )
-        {
-            setting.setValue( pbeStringEncryptor.decrypt( setting.getValue().toString() ) );
-        }
-
-        return setting != null && setting.hasValue() ? setting.getValue() : null;
     }
 
     /**
@@ -302,35 +274,6 @@ public class DefaultSystemSettingManager
         }
 
         return settingsMap;
-    }
-
-    @Override
-    @Transactional
-    public Map<String, Serializable> getSystemSettingsAsMap( Set<String> names )
-    {
-        Map<String, Serializable> map = new HashMap<>();
-
-        for ( String name : names )
-        {
-            Serializable settingValue = getSystemSetting( name );
-
-            if ( settingValue == null )
-            {
-                Optional<SettingKey> setting = SettingKey.getByName( name );
-
-                if ( setting.isPresent() )
-                {
-                    settingValue = setting.get().getDefaultValue();
-                }
-            }
-
-            if ( settingValue != null )
-            {
-                map.put( name, settingValue );
-            }
-        }
-
-        return map;
     }
 
     @Override
