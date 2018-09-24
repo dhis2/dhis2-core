@@ -110,7 +110,7 @@ public class JdbcAnalyticsManager
         .put( MeasureFilter.LE, "<=" )
         .build();
     
-    @Resource( name = "jdbcTemplate" )
+    @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
