@@ -28,6 +28,11 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -46,6 +51,20 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
     private static final long serialVersionUID = 1L;
     private static LoggingManager instance;
     private static LoggingConfig loggingConfig;
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    static
+    {
+        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+        objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
+        objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
+    }
 
     private final DhisConfigurationProvider dhisConfig;
 
@@ -95,6 +114,20 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
     public static LoggingManager getInstance()
     {
         return instance;
+    }
+
+    public static String toJson( Log log )
+    {
+        try
+        {
+            return objectMapper.writeValueAsString( log );
+        }
+        catch ( JsonProcessingException e )
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public static Logger logger( Class<?> source )

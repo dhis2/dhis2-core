@@ -37,12 +37,12 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LogTest extends DhisTest
+public class LoggingTest extends DhisTest
 {
     @Test
     public void logTest()
     {
-        LoggingManager.Logger logger = LoggingManager.logger( LogTest.class );
+        LoggingManager.Logger logger = LoggingManager.logger( LoggingTest.class );
         logger.log( new Log( "Logging with Log instance" ) );
         logger.log( "Logging without Log instance" );
         logger.fatal( "Logging FATAL without Log instance" );
@@ -63,5 +63,14 @@ public class LogTest extends DhisTest
         assertFalse( LogLevel.WARN.isEnabled( LogLevel.DEBUG ) );
         assertFalse( LogLevel.WARN.isEnabled( LogLevel.TRACE ) );
         assertFalse( LogLevel.INFO.isEnabled( LogLevel.DEBUG ) );
+    }
+
+    @Test
+    public void toJsonTest()
+    {
+        LoggingManager.Logger logger = LoggingManager.logger( LoggingTest.class );
+        Log log = new Log( "Logging with Log instance" );
+
+        System.err.println( LoggingManager.toJson( log ) );
     }
 }
