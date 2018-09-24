@@ -28,18 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public class IllegalQueryException
+public class QueryTimeoutException
     extends RuntimeException
 {
-    public IllegalQueryException( String message )
+    public QueryTimeoutException( String message )
     {
         super( message );
     }
     
-    public IllegalQueryException( String message, Throwable throwable ) 
+    public QueryTimeoutException( String message, Throwable throwable )
     {
         super( message, throwable );
     }

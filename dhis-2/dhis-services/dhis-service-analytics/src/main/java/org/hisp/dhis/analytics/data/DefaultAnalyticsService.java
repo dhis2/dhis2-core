@@ -97,6 +97,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1127,12 +1128,19 @@ public class DefaultAnalyticsService
                         map.putAll( taskValues );
                     }
                 }
-                catch ( Exception ex )
+                catch ( ExecutionException | InterruptedException ex )
                 {
                     log.error( DebugUtils.getStackTrace( ex ) );
                     log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-
-                    throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    
+                    if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
+                    {
+                        throw (RuntimeException) ex.getCause(); // Throw the real exception
+                    }
+                    else
+                    {                    
+                        throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    }
                 }
             }
         }
