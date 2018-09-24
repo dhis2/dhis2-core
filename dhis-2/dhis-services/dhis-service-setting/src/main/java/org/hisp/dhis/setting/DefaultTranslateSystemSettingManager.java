@@ -61,11 +61,11 @@ public class DefaultTranslateSystemSettingManager
     {
         Map<String, String> translations = new Hashtable<>();
 
-        translations.put( SettingKey.APPLICATION_TITLE.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_TITLE.getName(), locale, SettingKey.APPLICATION_TITLE.getDefaultValue().toString() ) );
-        translations.put( SettingKey.APPLICATION_INTRO.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_INTRO.getName(), locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_NOTIFICATION.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_NOTIFICATION.getName(), locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_FOOTER.getName(), locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_RIGHT_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_RIGHT_FOOTER.getName(), locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_TITLE.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_TITLE, locale, SettingKey.APPLICATION_TITLE.getDefaultValue().toString() ) );
+        translations.put( SettingKey.APPLICATION_INTRO.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_INTRO, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_NOTIFICATION.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_NOTIFICATION, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_FOOTER ,locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_RIGHT_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_RIGHT_FOOTER, locale, EMPTY ) );
 
         return translations;
     }
@@ -74,20 +74,11 @@ public class DefaultTranslateSystemSettingManager
     // Support Method implementation
     // -------------------------------------------------------------------------
 
-    private String getSystemSettingWithFallbacks( String keyName, String localeStr, String defaultValue )
+    private String getSystemSettingWithFallbacks( SettingKey keyName, String localeStr, String defaultValue )
     {
         String settingValue = EMPTY;
 
-        String keyWithLocale = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName + localeStr ), "" );
-
-        if ( keyWithLocale.isEmpty() )
-        {
-            settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ), defaultValue );
-        }
-        else
-        {
-            settingValue = keyWithLocale;
-        }
+        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ), defaultValue );
 
         return settingValue;
     }
