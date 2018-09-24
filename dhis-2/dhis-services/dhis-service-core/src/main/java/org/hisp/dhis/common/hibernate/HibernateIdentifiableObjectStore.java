@@ -32,12 +32,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
@@ -52,23 +49,36 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author bobj
@@ -182,13 +192,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void save( T object, boolean clearSharing )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         String username = user != null ? user.getUsername() : "system-process";
 
         if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -264,7 +274,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( IdentifiableObject.class.isInstance( object ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -323,7 +333,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public final T get( int id )
     {
         T object = (T) getSession().get( getClazz(), id );
-        
+
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
@@ -334,18 +344,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getAll()
     {
-        return getSharingCriteria().list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, new JpaQueryParameters<T>().addPredicates( getSharingPredicates( builder ) ) );
     }
 
     @Override
     public int getCount()
     {
-        return ((Number) getSharingCriteria()
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
+
+        return getCount( builder, param ).intValue();
     }
 
     @Override
@@ -356,7 +371,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getSharingObject( Restrictions.eq( "uid", uid ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
+
+        return getSingleResult( builder, param );
     }
 
     @Override
@@ -367,7 +388,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getObject( Restrictions.eq( "uid", uid ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
+
+        return getSingleResult( builder, param );
     }
 
     @Override
@@ -383,7 +409,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final T getByName( String name )
     {
-        List<T> list = getList( Restrictions.eq( "name", name ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "name" ), name )  );
+
+        List<T> list = getList(  builder, param );
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
@@ -404,11 +436,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getSharingObject( Restrictions.eq( "code", code ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "code" ), code )  );
+
+        return getSingleResult( builder, param );
     }
 
+
     @Override
-    @SuppressWarnings( "unchecked" )
     public T getByUniqueAttributeValue( Attribute attribute, String value )
     {
         if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
@@ -416,179 +454,250 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        Criteria criteria = getSharingCriteria();
-        criteria.createAlias( "attributeValues", "av" );
-        criteria.add( Restrictions.eq( "av.value", value ) );
-        criteria.createAlias( "av.attribute", "att" );
-        criteria.add( Restrictions.eq( "att.id", attribute.getId() ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (T) criteria.uniqueResult();
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate(  root -> {
+                Join<Object, Object> joinAttrValue = root.join( "attributeValues", JoinType.INNER );
+                Join<Object, Object> joinAttribute = joinAttrValue.join( "attribute", JoinType.INNER );
+                return builder.and( builder.equal( joinAttrValue.get( "value" ), value ), builder.equal( joinAttribute.get( "id" ), attribute.getId() ) );
+            } );
+
+        return getSingleResult( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllEqName( String name )
     {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "name", name ) )
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( String name )
     {
-        return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate(root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( String name, int first, int max )
     {
-        return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  )
             .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
+            .setMaxResults( max );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( Set<String> nameWords, int first, int max )
     {
-        Conjunction conjunction = Restrictions.conjunction();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  )
+            .setFirstResult( first )
+            .setMaxResults( max );
+
+        if ( nameWords.isEmpty() )
+        {
+            return getList( builder, param );
+        }
+
+        List<Function<Root<T>, Predicate>> conjunction = new ArrayList<>();
 
         for ( String word : nameWords )
         {
-            conjunction.add( Restrictions.like( "name", "%" + word + "%" ).ignoreCase() );
+            conjunction.add( root -> builder.like( builder.lower( root.get( "name") ), "%" + word.toLowerCase() + "%" ) ) ;
         }
 
-        return getSharingCriteria()
-            .add( conjunction )
-            .addOrder( Order.asc( "name" ) )
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
+        param.addPredicate( root -> builder.and( conjunction.toArray( new Predicate[0] ) ) );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName()
     {
-        return getSharingCriteria()
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName( int first, int max )
     {
-        return getSharingCriteria()
-            .addOrder( Order.asc( "name" ) )
-            .setFirstResult( first ).setMaxResults( max )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "name" )  )  )
+            .setFirstResult( first )
+            .setMaxResults( max );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedLastUpdated( int first, int max )
     {
-        return getSharingCriteria()
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .setFirstResult( first ).setMaxResults( max )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "lastUpdated" )  ) );
+
+        return getList( builder, param );
     }
 
     @Override
     public int getCountLikeName( String name )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root ->  builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
+
+        return getCount( builder, param ).intValue();
     }
 
     @Override
     public int getCountGeLastUpdated( Date lastUpdated )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
+
+        return getCount( builder, param ).intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllGeLastUpdated( Date lastUpdated )
     {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) )
+            .addOrder( root -> builder.desc( root.get( "lastUpdated" ) ) );
+
+        return getList( builder, param );
     }
 
     @Override
     public int getCountGeCreated( Date created )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
+
+        return getCount( builder, param ).intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllGeCreated( Date created )
     {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .addOrder( Order.desc( "created" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        return getList( builder, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLeCreated( Date created )
     {
-        return getSharingCriteria()
-            .add( Restrictions.le( "created", created ) )
-            .addOrder( Order.desc( "created" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.lessThanOrEqualTo( root.get( "created" ), created ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        return getList( builder, param );
     }
 
     @Override
     public Date getLastUpdated()
     {
-        return (Date) getClazzCriteria().setProjection( Projections.property( "lastUpdated" ) )
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .setMaxResults( 1 )
-            .setCacheable( true ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<Date> query = builder.createQuery(  Date.class );
+
+        Root<T> root = query.from( getClazz() );
+
+        query.select( root.get( "lastUpdated" ) );
+
+        query.orderBy( builder.desc( root.get( "lastUpdated" ) ) );
+
+        TypedQuery<Date> typedQuery = getSession().createQuery( query );
+
+        typedQuery.setMaxResults( 1 );
+
+        typedQuery.setHint( JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true );
+
+        return getSingleResult( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByDataDimension( boolean dataDimension )
     {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) )
+            .addPredicates( getSharingPredicates( builder ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByDataDimensionNoAcl( boolean dataDimension )
     {
-        return getCriteria()
-            .add( Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getById( Collection<Integer> ids )
     {
         if ( ids == null || ids.isEmpty() )
@@ -596,11 +705,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "id", ids ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "id" ).in( ids ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByUid( Collection<String> uids )
     {
         if ( uids == null || uids.isEmpty() )
@@ -608,11 +722,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "uid", uids ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByCode( Collection<String> codes )
     {
         if ( codes == null || codes.isEmpty() )
@@ -620,11 +739,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "code", codes ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "code" ).in( codes ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByName( Collection<String> names )
     {
         if ( names == null || names.isEmpty() )
@@ -632,7 +756,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "name", names ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "name" ).in( names ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
@@ -667,41 +797,60 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     //----------------------------------------------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getDataReadAll()
     {
-        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
+            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getDataReadAll( User user )
     {
-        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
+            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getDataWriteAll()
     {
-        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
+            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_WRITE_DATA ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getDataWriteAll( User user )
     {
-        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
+            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_WRITE_DATA ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getDataReadAll( int first, int max )
     {
-        return getDataSharingCriteria()
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
+            .addPredicates( getDataSharingPredicates( builder,  AclService.LIKE_READ_DATA ) )
             .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
+            .setMaxResults( max );
+
+        return getList( builder, parameters );
     }
 
     //----------------------------------------------------------------------------------------------------------------
@@ -709,7 +858,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     //----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Creates a criteria with sharing restrictions relative to the given 
+     * Creates a criteria with sharing restrictions relative to the given
      * user and access string.
      */
     public final Criteria getSharingCriteria()
@@ -720,7 +869,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     /**
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
-     * 
+     *
      * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
@@ -772,9 +921,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Creates a detached criteria with sharing restrictions relative to the given 
+     * Creates a detached criteria with sharing restrictions relative to the given
      * user and access string.
-     * 
+     *
      * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
@@ -829,6 +978,182 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return criteria;
     }
 
+    // ----------------------------------------------------------------------
+    // JPA support methods
+    // ----------------------------------------------------------------------
+
+    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
+    {
+        return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
+    }
+
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user )
+    {
+        return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
+    }
+
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
+    {
+        return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+    }
+
+    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
+    {
+        return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
+    {
+        return  getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
+    }
+
+    public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
+    {
+        return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+    }
+
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user )
+    {
+        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
+    }
+
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
+    {
+        return getSharingPredicates( builder, UserInfo.fromUser( user ), access );
+    }
+
+    /**
+     * Get sharing predicates based on given user and AclService.LIKE_READ_METADATA
+     * @param builder CriteriaBuilder
+     * @param user User
+     * @return List of Function<Root<T>, Predicate>
+     */
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
+    {
+        return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
+    }
+
+    /**
+     * Get sharing predicates based on Access string and current user
+     * @param builder CriteriaBuilder
+     * @param access Access String
+     * @return List of Function<Root<T>, Predicate>
+     */
+    public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
+    {
+        return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
+    }
+
+    /**
+     * Get sharing predicates based on given UserInfo and Access String
+     * @param builder CriteriaBuilder
+     * @param user UserInfo
+     * @param access Access String
+     * @return List of Function<Root<T>, Predicate>
+     */
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    {
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
+
+        preProcessPredicates( builder, predicates );
+
+        if ( !sharingEnabled( user ) || user == null )
+        {
+            return predicates;
+        }
+
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = ( ( Root<T> root ) -> {
+            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
+            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
+            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
+            userGroupSubQuery.select( uga.get("id") );
+
+            return userGroupSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
+                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
+                    builder.like( uga.get( "access" ), access ) ) );
+        } );
+
+        Function<Root<T>, Subquery<Integer>> userPredicate = ( root -> {
+            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
+            Root<T> udc = userSubQuery.from( getClazz() );
+            Join<T, UserAccess> ua = udc.join( "userAccesses" );
+            userSubQuery.select( ua.get( "id" ) );
+
+            return userSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
+                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
+                    builder.like( ua.get( "access" ), access ) ) );
+        } );
+
+        predicates.add( root -> builder.or(
+            builder.like( root.get( "publicAccess" ), access ),
+            builder.isNull( root.get( "publicAccess" ) ),
+            builder.isNull( root.get( "user" ) ),
+            builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
+            builder.exists( userGroupPredicate.apply( root ) ),
+            builder.exists( userPredicate.apply( root ) ) ) );
+
+        return predicates;
+    }
+
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    {
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
+
+        preProcessPredicates( builder, predicates );
+
+        if ( !dataSharingEnabled( user ) || user == null )
+        {
+            return predicates;
+        }
+
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = ( ( Root<T> root ) -> {
+            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
+            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
+            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
+            userGroupSubQuery.select( uga.get("id") );
+
+            return userGroupSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
+                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
+                    builder.like( uga.get( "access" ), access ) ) );
+        } );
+
+        Function<Root<T>, Subquery<Integer>> userPredicate = ( root -> {
+            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
+            Root<T> udc = userSubQuery.from( getClazz() );
+            Join<T, UserAccess> ua = udc.join( "userAccesses" );
+            userSubQuery.select( ua.get( "id" ) );
+
+            return userSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
+                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
+                    builder.like( ua.get( "access" ), access ) ) );
+        } );
+
+        predicates.add( root -> builder.or(
+            builder.like( root.get( "publicAccess" ), access ),
+            builder.isNull( root.get( "publicAccess" ) ),
+            builder.exists( userGroupPredicate.apply( root ) ),
+            builder.exists( userPredicate.apply( root ) ) ) );
+
+        return predicates;
+    }
+
+    // ----------------------------------------------------------------------
+    // JPA Implementations
+    // ----------------------------------------------------------------------
+
     /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
      * given Criterions.
@@ -850,20 +1175,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Retrieves an object based on the given Criterions using a sharing Criteria.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return an object of the implementation Class type.
-     */
-    @SuppressWarnings( "unchecked" )
-    protected final T getSharingObject( Criterion... expressions )
-    {
-        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
-    }
-
-    /**
      * Checks whether the given user has public access to the given identifiable object.
-     * 
+     *
      * @param user the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.

@@ -28,13 +28,13 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Viet Nguyen
@@ -46,10 +46,10 @@ public class HibernateProgramStageDataElementStore
     @Override
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
-        Criteria criteria = getCriteria( 
-            Restrictions.eq( "programStage", programStage ),
-            Restrictions.eq( "dataElement", dataElement ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (ProgramStageDataElement) criteria.uniqueResult();
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
+            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
     }
 }

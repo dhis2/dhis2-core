@@ -28,10 +28,11 @@ package org.hisp.dhis.security.oauth2.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,6 +44,8 @@ public class HibernateOAuth2ClientStore
     @Override
     public OAuth2Client getByClientId( String cid )
     {
-        return (OAuth2Client) getCriteria().add( Restrictions.eq( "cid", cid ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
     }
 }

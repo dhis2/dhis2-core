@@ -28,12 +28,11 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -47,20 +46,19 @@ public class HibernateDataSetNotificationTemplateStore
     @Override
     public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger )
     {
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "dataSets", "dataSet" )
-            .add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) )
-            .add( Restrictions.eq( "dataSet.id", dataSet.getId() ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataSetNotificationTrigger" ), trigger ) )
+            .addPredicate( root -> builder.equal( root.join( "dataSets" ).get( "id" ), dataSet.getId() ) ));
     }
 
     @Override
     public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataSetNotificationTrigger" ), trigger ) ) );
     }
 }

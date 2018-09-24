@@ -31,10 +31,9 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.poi.util.SuppressForbidden;
-import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -48,6 +47,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -77,7 +77,7 @@ public class HibernateProgramInstanceStore
 
         Query query = getQuery( hql );
 
-        return ((Number) query.iterate().next()).intValue();
+        return ( Integer ) query.getSingleResult();
     }
 
     public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
@@ -178,25 +178,32 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( Program program )
     {
-        return getCriteria( Restrictions.eq( "program", program ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( Program program, ProgramStatus status )
     {
-        return getCriteria( Restrictions.eq( "program", program ), Restrictions.eq( "status", status ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
-        return getCriteria( Restrictions.eq( "entityInstance", entityInstance ), Restrictions.eq( "program", program ),
-            Restrictions.eq( "status", status ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program) )
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
     @Override
@@ -214,7 +221,6 @@ public class HibernateProgramInstanceStore
     }
 
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
@@ -241,12 +247,12 @@ public class HibernateProgramInstanceStore
                 "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
-            .setEntity( "notificationTemplate", template )
-            .setString( "activeEnrollmentStatus", ProgramStatus.ACTIVE.name() )
-            .setDate( "targetDate", targetDate ).list();
+            .setParameter( "notificationTemplate", template )
+            .setParameter( "activeEnrollmentStatus", ProgramStatus.ACTIVE )
+            .setParameter( "targetDate", targetDate ).list();
     }
 
-    private String toDateProperty(NotificationTrigger trigger )
+    private String toDateProperty( NotificationTrigger trigger )
     {
         if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
         {

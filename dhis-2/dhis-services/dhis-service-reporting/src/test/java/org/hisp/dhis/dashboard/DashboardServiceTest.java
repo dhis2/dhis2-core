@@ -73,6 +73,8 @@ public class DashboardServiceTest
     private Chart chartA;
     private Chart chartB;
 
+    private Document docA;
+
     @Override
     public void setUpTest()
     {
@@ -82,7 +84,7 @@ public class DashboardServiceTest
         chartService.addChart( chartA );
         chartService.addChart( chartB );
 
-        Document docA = new Document( "A", "url", false, null );
+        docA = new Document( "A", "url", false, null );
         Document docB = new Document( "B", "url", false, null );
         Document docC = new Document( "C", "url", false, null );
         Document docD = new Document( "D", "url", false, null );
@@ -132,6 +134,10 @@ public class DashboardServiceTest
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
+
+        assertEquals( 1, dashboardService.countChartDashboardItems( chartA ) );
+        assertEquals( 1, dashboardService.countChartDashboardItems( chartB ) );
+        assertEquals( 1, dashboardService.countDocumentDashboardItems( docA ) );
     }
 
     @Test

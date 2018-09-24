@@ -29,9 +29,9 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and
