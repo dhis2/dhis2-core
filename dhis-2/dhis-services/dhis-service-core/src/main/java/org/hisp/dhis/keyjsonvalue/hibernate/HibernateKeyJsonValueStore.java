@@ -31,7 +31,6 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
 import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
@@ -90,7 +89,7 @@ public class HibernateKeyJsonValueStore
     {
         return getCriteria( Restrictions.eq( "namespace", namespace ) ).list();
     }
-    
+
     @Override
     public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
