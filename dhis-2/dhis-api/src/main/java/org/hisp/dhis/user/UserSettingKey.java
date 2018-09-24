@@ -31,8 +31,12 @@ package org.hisp.dhis.user;
 import org.apache.commons.lang3.LocaleUtils;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -55,6 +59,19 @@ public enum UserSettingKey
     private final Serializable defaultValue;
 
     private final Class<?> clazz;
+    
+    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = new HashMap<>();
+
+    static
+    {
+        for ( UserSettingKey key : UserSettingKey.values() )
+        {
+            if ( key.getDefaultValue() != null )
+            {
+                DEFAULT_USER_SETTINGS_MAP.put( key.getName(), key.getDefaultValue() );
+            }
+        }
+    }
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -151,5 +168,23 @@ public enum UserSettingKey
     public Class<?> getClazz()
     {
         return clazz;
+    }
+    
+    public static Map<String,Serializable>getDefaultUserSettingsMap()
+    {
+        return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
+    }
+    
+    public static Set<UserSetting> getDefaultUserSettings(User user)
+    {
+        Set<UserSetting> defaultUserSettings = new HashSet<>();
+        DEFAULT_USER_SETTINGS_MAP.forEach( (key,value)->{
+            UserSetting userSetting = new UserSetting();
+            userSetting.setName( key );
+            userSetting.setValue( value );
+            userSetting.setUser( user );
+            defaultUserSettings.add( userSetting );
+        } );
+        return defaultUserSettings;
     }
 }

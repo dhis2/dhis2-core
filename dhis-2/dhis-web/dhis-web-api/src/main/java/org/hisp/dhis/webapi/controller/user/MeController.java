@@ -139,8 +139,8 @@ public class MeController
     @Autowired
     private DataSetService dataSetService;
 
-    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
-        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
+        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception
@@ -170,7 +170,7 @@ public class MeController
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, true ) ) );
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
@@ -291,7 +291,7 @@ public class MeController
         }
 
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
-            currentUser, USER_SETTING_NAMES, true );
+            currentUser, USER_SETTING_KEYS, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );

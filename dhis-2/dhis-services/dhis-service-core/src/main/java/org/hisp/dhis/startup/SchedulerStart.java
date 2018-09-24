@@ -36,6 +36,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
@@ -192,7 +193,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
+            //portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
             dataStatistics.setLeaderOnlyJob( true );
             addAndScheduleJob( dataStatistics );
         }
@@ -283,7 +284,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     }
 
 
-    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, String systemKey )
+    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey )
     {
         Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
 
