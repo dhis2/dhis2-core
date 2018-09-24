@@ -47,9 +47,9 @@ public interface LogAdapter extends ApplicationListener<LogEvent>
 
         if ( config.getLevel().isEnabled( event.getLog().getLogLevel() ) )
         {
-            log( event.getLog() );
+            log( event.getLog(), event.getConfig() );
         }
     }
 
-    void log( Log log );
+    void log( Log log, LoggingConfig config );
 }
