@@ -3404,7 +3404,7 @@ dhis2.de.insertOptionSets = function()
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
                     var options = [];
                     $.each( obj.optionSet.options, function( inx, option ) {
-                        if ( !option.access.data.write ) return;
+                        if ( !option.access.data.read ) return;
 
                         option.text = option.displayName;
                         option.id = option.code;
@@ -3418,7 +3418,13 @@ dhis2.de.insertOptionSets = function()
                         dataType: 'json',
                         data: options
                     }).on("change", function(e){
-                        saveVal( dataElementId, optionComboId, fieldId );
+                        if ( e.added && e.added.access.data.write )
+                        {
+                            saveVal( dataElementId, optionComboId, fieldId );
+                        }
+                        else {
+                            alert(" You don't have Data Write access for this Option: " + e.added.id);
+                        }
                     });
 		}		
 	} );        
