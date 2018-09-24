@@ -33,7 +33,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -42,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class LogManager implements ApplicationEventPublisherAware, ApplicationListener<LogEvent>, InitializingBean
+public class LogManager implements ApplicationEventPublisherAware, InitializingBean
 {
     private static final long serialVersionUID = 1L;
     private static LogManager instance;
@@ -74,16 +73,7 @@ public class LogManager implements ApplicationEventPublisherAware, ApplicationLi
             }
         }
 
-        publisher.publishEvent( new LogEvent( this, log ) );
-    }
-
-    @Override
-    public void onApplicationEvent( LogEvent event )
-    {
-        if ( loggingConfig.getLevel().isEnabled( event.getLog().getLogLevel() ) )
-        {
-            System.err.println( event.getLog() );
-        }
+        publisher.publishEvent( new LogEvent( this, log, loggingConfig ) );
     }
 
     @Override

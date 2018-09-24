@@ -1,4 +1,4 @@
-package org.hisp.dhis.logging;
+package org.hisp.dhis.logging.adapter;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,30 +28,19 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.logging.Log;
+import org.hisp.dhis.logging.LogAdapter;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LogEvent extends ApplicationEvent
+@Component
+public class ConsoleLogAdapter implements LogAdapter
 {
-    private final Log log;
-    private final LoggingConfig config;
-
-    public LogEvent( Object source, Log log, LoggingConfig config )
+    @Override
+    public void log( Log log )
     {
-        super( source );
-        this.log = log;
-        this.config = config;
-    }
-
-    public Log getLog()
-    {
-        return log;
-    }
-
-    public LoggingConfig getConfig()
-    {
-        return config;
+        System.err.println( log );
     }
 }

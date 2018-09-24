@@ -28,30 +28,28 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LogEvent extends ApplicationEvent
+public interface LogAdapter extends ApplicationListener<LogEvent>
 {
-    private final Log log;
-    private final LoggingConfig config;
-
-    public LogEvent( Object source, Log log, LoggingConfig config )
+    @Override
+    default void onApplicationEvent( LogEvent event )
     {
-        super( source );
-        this.log = log;
-        this.config = config;
+        if ( event == null || event.getLog() == null )
+        {
+            return;
+        }
+
+        LoggingConfig config = event.getConfig();
+
+        if ( config.getLevel().isEnabled( event.getLog().getLogLevel() ) )
+        {
+            log( event.getLog() );
+        }
     }
 
-    public Log getLog()
-    {
-        return log;
-    }
-
-    public LoggingConfig getConfig()
-    {
-        return config;
-    }
+    void log( Log log );
 }
