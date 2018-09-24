@@ -55,7 +55,10 @@ public class DefaultValidationResultService
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
-        validationResults.forEach( validationResult -> validationResultStore.save( validationResult ) );
+        validationResults.forEach( validationResult -> {
+            validationResult.setPeriod( periodService.reloadPeriod( validationResult.getPeriod() ) );
+            validationResultStore.save( validationResult );
+        } );
     }
 
     public List<ValidationResult> getAllValidationResults()

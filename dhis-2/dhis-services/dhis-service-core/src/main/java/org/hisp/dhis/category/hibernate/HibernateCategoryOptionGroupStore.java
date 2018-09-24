@@ -30,14 +30,15 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import java.util.List;
-
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -47,20 +48,19 @@ public class HibernateCategoryOptionGroupStore
     implements CategoryOptionGroupStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
-        return getSharingCriteria()
-            .createAlias( "groupSets", "groupSet" )
-            .add( Restrictions.eqOrIsNull( "groupSet.id", groupSet.getId() ) ).list();
-    }
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<CategoryOptionGroup> getCategoryOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
-    {
-        return getCriteria( 
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        JpaQueryParameters<CategoryOptionGroup> parameters = newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> {
+                Join<Object, Object> groupSets = root.join( "groupSets" );
+
+                return builder.or( builder.equal( groupSets.get( "id" ) , groupSet.getId() ),
+                                    builder.isNull( groupSets.get( "id" ) ) );
+            });
+
+        return getList( builder, parameters );
     }
 }

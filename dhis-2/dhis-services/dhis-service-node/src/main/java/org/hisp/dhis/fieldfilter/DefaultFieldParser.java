@@ -56,7 +56,7 @@ public class DefaultFieldParser implements FieldParser
             String c = fieldSplit[i];
 
             // if we reach a field transformer, parse it out here (necessary to allow for () to be used to handle transformer parameters)
-            if ( (c.equals( ":" ) && fieldSplit[i + 1].equals( ":" )) || c.equals( "~" ) )
+            if ( (c.equals( ":" ) && fieldSplit[i + 1].equals( ":" )) || c.equals( "~" ) || c.equals( "|" ) )
             {
                 boolean insideParameters = false;
 
@@ -64,7 +64,7 @@ public class DefaultFieldParser implements FieldParser
                 {
                     c = fieldSplit[i];
 
-                    if ( StringUtils.isAlphanumeric( c ) || c.equals( ":" ) || c.equals( "~" ) )
+                    if ( StringUtils.isAlphanumeric( c ) || c.equals( ":" ) || c.equals( "~" ) || c.equals( "|" ) )
                     {
                         builder.append( c );
                     }

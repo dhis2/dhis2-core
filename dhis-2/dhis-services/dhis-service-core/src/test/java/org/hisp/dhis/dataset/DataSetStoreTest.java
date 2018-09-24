@@ -171,6 +171,22 @@ public class DataSetStoreTest
     }
 
     @Test
+    public void testGetDataSetByPeriodType()
+    {
+        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+        PeriodType periodType1 = types.get( 0 );
+        PeriodType periodType2 = types.get( 1 );
+        DataSet dataSetA = createDataSet( 'A', periodType1 );
+        DataSet dataSetB = createDataSet( 'B', periodType2 );
+
+        dataSetStore.save( dataSetA );
+        dataSetStore.save( dataSetB );
+
+        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType1 ).size() );
+        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType2 ).size() );
+    }
+
+    @Test
     public void testGetByDataEntryForm()
     {
         DataEntryForm dataEntryFormX = createDataEntryForm( 'X' );
