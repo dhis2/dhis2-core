@@ -66,7 +66,7 @@ public class DefaultKafkaManager implements KafkaManager
     public boolean isEnabled()
     {
         SystemInfo systemInfo = systemService.getSystemInfo();
-        Kafka kafka = systemInfo != null ? systemInfo.getKafka() : null;
+        KafkaConfig kafka = systemInfo != null ? systemInfo.getKafka() : null;
 
         return kafka != null && kafka.isValid();
     }
@@ -74,7 +74,7 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public KafkaAdmin getAdmin()
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafka = systemService.getSystemInfo().getKafka();
 
         Map<String, Object> props = new HashMap<>();
         props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
@@ -118,7 +118,7 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group )
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafka = systemService.getSystemInfo().getKafka();
 
         Map<String, Object> props = new HashMap<>();
         props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
@@ -138,7 +138,7 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer )
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafka = systemService.getSystemInfo().getKafka();
 
         Map<String, Object> props = new HashMap<>();
         props.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );

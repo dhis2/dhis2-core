@@ -41,7 +41,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.kafka.Kafka;
+import org.hisp.dhis.kafka.KafkaConfig;
 import org.hisp.dhis.logging.LogLevel;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
@@ -155,7 +155,7 @@ public class DefaultSystemService
         // Kafka
         // ---------------------------------------------------------------------
 
-        Kafka kafka = new Kafka(
+        KafkaConfig kafka = new KafkaConfig(
             dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
             dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
             Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
