@@ -42,7 +42,7 @@ public class LogTest extends DhisTest
     @Test
     public void logTest()
     {
-        LogManager.Logger logger = LogManager.logger( LogTest.class );
+        LoggingManager.Logger logger = LoggingManager.logger( LogTest.class );
         logger.log( new Log( "Logging with Log instance" ) );
         logger.log( "Logging without Log instance" );
         logger.fatal( "Logging FATAL without Log instance" );

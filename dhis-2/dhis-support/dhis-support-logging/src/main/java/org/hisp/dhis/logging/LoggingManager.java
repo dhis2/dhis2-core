@@ -41,17 +41,17 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class LogManager implements ApplicationEventPublisherAware, InitializingBean
+public class LoggingManager implements ApplicationEventPublisherAware, InitializingBean
 {
     private static final long serialVersionUID = 1L;
-    private static LogManager instance;
+    private static LoggingManager instance;
     private static LoggingConfig loggingConfig;
 
     private final DhisConfigurationProvider dhisConfig;
 
     private ApplicationEventPublisher publisher;
 
-    public LogManager( DhisConfigurationProvider dhisConfig )
+    public LoggingManager( DhisConfigurationProvider dhisConfig )
     {
         this.dhisConfig = dhisConfig;
     }
@@ -92,7 +92,7 @@ public class LogManager implements ApplicationEventPublisherAware, InitializingB
         );
     }
 
-    public static LogManager getInstance()
+    public static LoggingManager getInstance()
     {
         return instance;
     }
