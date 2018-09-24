@@ -28,8 +28,8 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -95,10 +95,11 @@ public class HibernateOrganisationUnitStore
             "where o.path like :path " +
             "and :object in elements(o." + collectionName + ")";
         
-        return (Long) getQuery( hql )
-            .setString( "path", parent.getPath() + "%" )
-            .setEntity( "object", member )
-            .uniqueResult();
+        Query<Long> query = getTypedQuery( hql );
+            query.setParameter( "path", parent.getPath() + "%" )
+            .setParameter( "object", member );
+
+            return query.getSingleResult();
     }
 
     @Override
@@ -152,15 +153,15 @@ public class HibernateOrganisationUnitStore
 
         if ( params.hasQuery() )
         {
-            query.setString( "queryLower", "%" + params.getQuery().toLowerCase() + "%" );
-            query.setString( "query", params.getQuery() );
+            query.setParameter( "queryLower", "%" + params.getQuery().toLowerCase() + "%" );
+            query.setParameter( "query", params.getQuery() );
         }
 
         if ( params.hasParents() )
         {
             for ( OrganisationUnit parent : params.getParents() )
             {
-                query.setString( parent.getUid(), parent.getPath() + "%" );
+                query.setParameter( parent.getUid(), parent.getPath() + "%" );
             }
         }
 
@@ -176,7 +177,7 @@ public class HibernateOrganisationUnitStore
 
         if ( params.getMaxLevels() != null )
         {
-            query.setInteger( "maxLevels", params.getMaxLevels() );
+            query.setParameter( "maxLevels", params.getMaxLevels() );
         }
 
         if ( params.getFirst() != null )
@@ -272,7 +273,8 @@ public class HibernateOrganisationUnitStore
     {
         String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
-        Integer maxLength = (Integer) getQuery( hql ).uniqueResult();
+        Query<Integer> query =  getTypedQuery( hql );
+        Integer maxLength =  query.getSingleResult();
 
         return maxLength != null ? maxLength.intValue() : 0;
     }

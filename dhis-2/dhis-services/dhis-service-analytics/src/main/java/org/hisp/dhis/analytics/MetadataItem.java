@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -61,6 +62,8 @@ public class MetadataItem
     private ValueType valueType;
 
     private AggregationType aggregationType;
+    
+    private TotalAggregationType totalAggregationType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -136,11 +139,12 @@ public class MetadataItem
             return;
         }
 
+        this.uid = dimensionalItemObject.getUid();
         this.code = dimensionalItemObject.getCode();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
         this.description = dimensionalItemObject.getDescription();
         this.aggregationType = dimensionalItemObject.getAggregationType();
-        this.uid = dimensionalItemObject.getUid();
+        this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
     }
 
     private void setDataItem( DimensionalObject dimensionalObject )
@@ -150,11 +154,11 @@ public class MetadataItem
             return;
         }
 
+        this.uid = dimensionalObject.getUid();
         this.code = dimensionalObject.getCode();
         this.dimensionType = dimensionalObject.getDimensionType();
         this.description = dimensionalObject.getDescription();
         this.aggregationType = dimensionalObject.getAggregationType();
-        this.uid = dimensionalObject.getUid();
     }
 
     // -------------------------------------------------------------------------
@@ -258,5 +262,16 @@ public class MetadataItem
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
+    }
+
+    @JsonProperty
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return totalAggregationType;
+    }
+
+    public void setTotalAggregationType( TotalAggregationType totalAggregationType )
+    {
+        this.totalAggregationType = totalAggregationType;
     }
 }

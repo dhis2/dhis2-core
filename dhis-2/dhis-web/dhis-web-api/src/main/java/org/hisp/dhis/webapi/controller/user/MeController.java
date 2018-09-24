@@ -67,6 +67,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -94,7 +95,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
 public class MeController
 {
     @Autowired
@@ -454,6 +455,14 @@ public class MeController
         currentUser.setJobTitle( stringWithDefault( user.getJobTitle(), currentUser.getJobTitle() ) );
         currentUser.setIntroduction( stringWithDefault( user.getIntroduction(), currentUser.getIntroduction() ) );
         currentUser.setGender( stringWithDefault( user.getGender(), currentUser.getGender() ) );
+
+        currentUser.setAvatar( user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar() );
+
+        currentUser.setSkype( stringWithDefault( user.getSkype(), currentUser.getSkype() ) );
+        currentUser.setFacebookMessenger( stringWithDefault( user.getFacebookMessenger(), currentUser.getFacebookMessenger() ) );
+        currentUser.setTelegram( stringWithDefault( user.getTelegram(), currentUser.getTelegram() ) );
+        currentUser.setWhatsApp( stringWithDefault( user.getWhatsApp(), currentUser.getWhatsApp() ) );
+        currentUser.setTwitter( stringWithDefault( user.getTwitter(), currentUser.getTwitter() ) );
 
         if ( user.getBirthday() != null )
         {

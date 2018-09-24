@@ -29,12 +29,12 @@ package org.hisp.dhis.dataset.hibernate;
  */
 
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Tri
@@ -46,9 +46,10 @@ public class HibernateSectionStore
     @Override
     public Section getSectionByName( String name, DataSet dataSet )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "name", name ) );
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-        return (Section) criteria.uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
+            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
     }
 }
