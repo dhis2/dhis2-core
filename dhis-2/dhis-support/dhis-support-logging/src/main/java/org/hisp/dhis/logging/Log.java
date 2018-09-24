@@ -31,33 +31,35 @@ package org.hisp.dhis.logging;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class Log
 {
-    private final String message;
-
     private final long timestamp = Instant.now().toEpochMilli();
 
     private LogLevel logLevel = LogLevel.INFO;
+
+    private String message;
 
     private Class<?> source;
 
     private String username;
 
+    private Map<String, Object> metadata = new HashMap<>();
+
     private Object data;
+
+    public Log()
+    {
+    }
 
     public Log( String message )
     {
         this.message = message;
-    }
-
-    @JsonProperty
-    public String getMessage()
-    {
-        return message;
     }
 
     @JsonProperty
@@ -91,6 +93,17 @@ public class Log
     }
 
     @JsonProperty
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage( String message )
+    {
+        this.message = message;
+    }
+
+    @JsonProperty
     public String getUsername()
     {
         return username;
@@ -100,6 +113,17 @@ public class Log
     {
         this.username = username;
         return this;
+    }
+
+    @JsonProperty
+    public Map<String, Object> getMetadata()
+    {
+        return metadata;
+    }
+
+    public void setMetadata( Map<String, Object> metadata )
+    {
+        this.metadata = metadata;
     }
 
     @JsonProperty
