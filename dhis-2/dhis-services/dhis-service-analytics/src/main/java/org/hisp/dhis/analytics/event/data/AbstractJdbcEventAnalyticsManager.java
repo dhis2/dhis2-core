@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.persistence.QueryTimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,6 +61,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -74,7 +76,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
     
-    protected static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
     protected static final String ITEM_NAME_SEP = ": ";
     protected static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
@@ -243,7 +244,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( QUERY_ERR_MSG, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
 
         return grid;
