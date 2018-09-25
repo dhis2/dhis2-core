@@ -35,6 +35,7 @@ public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off" ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600" ),
+    SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", "on" ),
     INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
     ENCRYPTION_PASSWORD( "encryption.password", "" ),
     CONNECTION_DIALECT( "connection.dialect" ),
