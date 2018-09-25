@@ -33,7 +33,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor
 {
