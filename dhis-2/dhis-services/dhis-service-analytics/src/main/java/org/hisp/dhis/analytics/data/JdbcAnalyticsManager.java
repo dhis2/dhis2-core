@@ -168,7 +168,7 @@ public class JdbcAnalyticsManager
         }
         catch ( DataAccessResourceFailureException ex )
         {
-            log.info( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
             throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
         catch ( RuntimeException ex )
