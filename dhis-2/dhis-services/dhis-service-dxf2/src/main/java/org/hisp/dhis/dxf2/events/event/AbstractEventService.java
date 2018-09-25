@@ -1107,6 +1107,11 @@ public abstract class AbstractEventService
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
             return importSummary.incrementIgnored();
         }
+        
+        if ( aoc != null )
+        {
+            programStageInstance.setAttributeOptionCombo( aoc );
+        }
 
         programStageInstance.setDeleted( event.isDeleted() );
 
