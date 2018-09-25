@@ -72,6 +72,8 @@
 
     <property name="textPattern" type="jbTextPattern" column="textpattern" not-null="false" />
 
+    <property name="fieldMask" />
+
     <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="orgunitScope" />
