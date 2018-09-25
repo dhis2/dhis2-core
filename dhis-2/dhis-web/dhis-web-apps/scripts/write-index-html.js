@@ -1,5 +1,6 @@
 const fs = require('fs-extra')
 const path = require('path')
+const { execSync } = require('child_process')
 
 const log = require('@vardevs/log')({
     level: 2,
@@ -33,6 +34,22 @@ function listEl (name) {
         </li>`
 }
 
+function buildInfo () {
+    let created = 'n/a'
+    let sha = 'n/a'
+    try {
+        created = Date()
+        sha = execSync('git rev-parse HEAD', { encoding: 'utf8' })
+    } catch (e) {
+        console.error(e)
+    }
+    return `
+        <p>
+            ${created}<br>
+            ${sha}
+        </p>`
+}
+
 try {
     const html = fs.readFileSync(indexPath, 'utf8')
 
@@ -41,7 +58,9 @@ try {
         apps.push(listEl(appName(name)))
     }
 
-    const targetHtml = html.replace('<!-- INJECT HTML HERE -->', apps.join('\n'))
+    const targetHtml = html
+        .replace('<!-- INJECT HTML HERE -->', apps.join('\n'))
+        .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo())
 
     try {
         fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
