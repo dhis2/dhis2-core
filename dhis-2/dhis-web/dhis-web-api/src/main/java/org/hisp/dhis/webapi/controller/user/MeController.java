@@ -67,6 +67,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -139,8 +140,8 @@ public class MeController
     @Autowired
     private DataSetService dataSetService;
 
-    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
-        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
+        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception
@@ -170,7 +171,7 @@ public class MeController
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, true ) ) );
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
@@ -291,7 +292,7 @@ public class MeController
         }
 
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
-            currentUser, USER_SETTING_NAMES, true );
+            currentUser, USER_SETTING_KEYS, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );
@@ -454,6 +455,14 @@ public class MeController
         currentUser.setJobTitle( stringWithDefault( user.getJobTitle(), currentUser.getJobTitle() ) );
         currentUser.setIntroduction( stringWithDefault( user.getIntroduction(), currentUser.getIntroduction() ) );
         currentUser.setGender( stringWithDefault( user.getGender(), currentUser.getGender() ) );
+
+        currentUser.setAvatar( user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar() );
+
+        currentUser.setSkype( stringWithDefault( user.getSkype(), currentUser.getSkype() ) );
+        currentUser.setFacebookMessenger( stringWithDefault( user.getFacebookMessenger(), currentUser.getFacebookMessenger() ) );
+        currentUser.setTelegram( stringWithDefault( user.getTelegram(), currentUser.getTelegram() ) );
+        currentUser.setWhatsApp( stringWithDefault( user.getWhatsApp(), currentUser.getWhatsApp() ) );
+        currentUser.setTwitter( stringWithDefault( user.getTwitter(), currentUser.getTwitter() ) );
 
         if ( user.getBirthday() != null )
         {

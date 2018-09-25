@@ -1131,8 +1131,15 @@ public class DefaultAnalyticsService
                 {
                     log.error( DebugUtils.getStackTrace( ex ) );
                     log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-
-                    throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    
+                    if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
+                    {
+                        throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution exception
+                    }
+                    else
+                    {                    
+                        throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    }
                 }
             }
         }
