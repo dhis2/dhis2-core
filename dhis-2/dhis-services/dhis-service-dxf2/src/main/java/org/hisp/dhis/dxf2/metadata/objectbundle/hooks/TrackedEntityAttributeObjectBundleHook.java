@@ -59,7 +59,7 @@ public class TrackedEntityAttributeObjectBundleHook
 
             errorReports.addAll( textPatternValid( attr ) );
 
-            if ( !attr.getFieldMask().isEmpty() )
+            if ( attr.getFieldMask() != null )
             {
                 try
                 {

@@ -51,7 +51,7 @@ public class DataElementObjectBundleHook
         {
             DataElement dataElement = (DataElement) object;
 
-            if ( !dataElement.getFieldMask().isEmpty() )
+            if ( dataElement.getFieldMask() != null )
             {
                 try
                 {
