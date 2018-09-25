@@ -48,18 +48,21 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.QueryTimeoutException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -155,13 +158,18 @@ public class JdbcAnalyticsManager
             }
             catch ( BadSqlGrammarException ex )
             {
-                log.info( "Query failed, likely because the requested analytics table does not exist", ex );
+                log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
                 return new AsyncResult<>( Maps.newHashMap() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
 
             return new AsyncResult<>( map );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.info( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
         catch ( RuntimeException ex )
         {
