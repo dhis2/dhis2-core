@@ -28,12 +28,10 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -62,8 +60,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -73,6 +73,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -88,14 +89,19 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
+import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -104,6 +110,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -111,12 +118,14 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,11 +144,11 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
@@ -158,15 +167,16 @@ public abstract class AbstractEventService
 {
     private static final Log log = LogFactory.getLog( AbstractEventService.class );
 
-    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_CREATED_ID,
+    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
-        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED );
+        EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     @Autowired
     protected ProgramService programService;
 
@@ -231,17 +241,24 @@ public abstract class AbstractEventService
     protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
+    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+
+    @Autowired
     protected AclService aclService;
 
     @Autowired
-    protected ProgramRuleEngineService programRuleEngineService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     protected ProgramNotificationPublisher programNotificationPublisher;
 
-    protected static final int FLUSH_FREQUENCY = 100;
+    @Autowired
+    protected RelationshipService relationshipService;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    @Autowired
+    protected UserService userService;
+
+    protected static final int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // Caches
@@ -280,11 +297,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -408,7 +425,7 @@ public abstract class AbstractEventService
             }
             else
             {
-                if ( StringUtils.isNotEmpty( event.getEvent() ) )
+                if ( !StringUtils.isEmpty( event.getEvent() ) )
                 {
                     programStageInstance = manager.getObject( ProgramStageInstance.class,
                         importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
@@ -455,7 +472,7 @@ public abstract class AbstractEventService
 
             programInstance = programInstances.get( 0 );
 
-            if ( StringUtils.isNotEmpty( event.getEvent() ) )
+            if ( !StringUtils.isEmpty( event.getEvent() ) )
             {
                 programStageInstance = manager.getObject( ProgramStageInstance.class,
                     importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
@@ -493,7 +510,18 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        validateExpiryDays( event, program, null );
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, null );
+        }
+
+        if ( event.getGeometry() != null )
+        {
+            if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
+            }
+        }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
@@ -541,7 +569,16 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
-        events.setEvents( eventList );
+
+        User user = currentUserService.getCurrentUser();
+
+        for ( Event event : eventList )
+        {
+            if ( trackerOwnershipAccessManager.hasAccess( user, event.getTrackedEntityInstance(), event.getProgram() ) )
+            {
+                events.getEvents().add( event );
+            }
+        }
 
         return events;
     }
@@ -549,8 +586,9 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
+        User user = currentUserService.getCurrentUser();
 
-        if ( params.getProgramStage() == null )
+        if ( params.getProgramStage() == null || params.getProgramStage().getProgram() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null" );
         }
@@ -563,8 +601,8 @@ public abstract class AbstractEventService
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
-        // If includeAllDataElements is set to true, return all data elements. 
-        // If no data element is specified, use those configured for display 
+        // If includeAllDataElements is set to true, return all data elements.
+        // If no data element is specified, use those configured for display
         // in report
         // ---------------------------------------------------------------------
         if ( params.isIncludeAllDataElements() )
@@ -620,6 +658,19 @@ public abstract class AbstractEventService
         for ( Map<String, String> event : events )
         {
             grid.addRow();
+
+            if ( params.getProgramStage().getProgram().isRegistration() && user != null || !user.isSuper() )
+            {
+                ProgramInstance enrollment = programInstanceService.getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
+
+                if ( enrollment != null && enrollment.getEntityInstance() != null )
+                {
+                    if ( !trackerOwnershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), params.getProgramStage().getProgram() ) )
+                    {
+                        continue;
+                    }
+                }
+            }
 
             for ( String col : STATIC_EVENT_COLUMNS )
             {
@@ -729,15 +780,18 @@ public abstract class AbstractEventService
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
+        return getEvent( programStageInstance, false );
+    }
+
+    @Override
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery )
+    {
         if ( programStageInstance == null )
         {
             return null;
         }
 
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
-
         Event event = new Event();
-
         event.setEvent( programStageInstance.getUid() );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
@@ -757,7 +811,15 @@ public abstract class AbstractEventService
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
+        event.setGeometry( programStageInstance.getGeometry() );
         event.setDeleted( programStageInstance.isDeleted() );
+
+        // Lat and lnt deprecated in 2.30, remove by 2.33
+        if ( event.getGeometry() != null && event.getGeometry().getGeometryType().equals( "Point" ) )
+        {
+            com.vividsolutions.jts.geom.Coordinate geometryCoordinate = event.getGeometry().getCoordinate();
+            event.setCoordinate( new Coordinate( geometryCoordinate.x, geometryCoordinate.y ) );
+        }
 
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
@@ -789,35 +851,15 @@ public abstract class AbstractEventService
             event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
         }
 
-        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
+        Collection<TrackedEntityDataValue> dataValues;
+        if ( !isSynchronizationQuery )
         {
-            Coordinate coordinate = null;
-
-            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
-            {
-                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
-                    {
-                    } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                event.setCoordinate( coordinate );
-            }
+            dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
         }
-
-        Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
+        else
+        {
+            dataValues = dataValueService.getTrackedEntityDataValuesForSynchronization( programStageInstance );
+        }
 
         for ( TrackedEntityDataValue dataValue : dataValues )
         {
@@ -845,16 +887,18 @@ public abstract class AbstractEventService
         {
             Note note = new Note();
 
+            note.setNote( comment.getUid() );
             note.setValue( comment.getCommentText() );
             note.setStoredBy( comment.getCreator() );
-
-            if ( comment.getCreatedDate() != null )
-            {
-                note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreatedDate() ) );
-            }
+            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
 
             event.getNotes().add( note );
         }
+
+        event.setRelationships( programStageInstance.getRelationshipItems().stream()
+            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
+            .collect( Collectors.toSet() )
+        );
 
         return event;
     }
@@ -875,21 +919,21 @@ public abstract class AbstractEventService
 
         Program pr = programService.getProgram( program );
 
-        if ( StringUtils.isNotEmpty( program ) && pr == null )
+        if ( !StringUtils.isEmpty( program ) && pr == null )
         {
             throw new IllegalQueryException( "Program is specified but does not exist: " + program );
         }
 
         ProgramStage ps = programStageService.getProgramStage( programStage );
 
-        if ( StringUtils.isNotEmpty( programStage ) && ps == null )
+        if ( !StringUtils.isEmpty( programStage ) && ps == null )
         {
             throw new IllegalQueryException( "Program stage is specified but does not exist: " + programStage );
         }
 
         OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnit );
 
-        if ( StringUtils.isNotEmpty( orgUnit ) && ou == null )
+        if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
         {
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
@@ -915,7 +959,7 @@ public abstract class AbstractEventService
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
-        if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
+        if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {
             throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
@@ -937,7 +981,7 @@ public abstract class AbstractEventService
 
         if ( filters != null )
         {
-            if ( StringUtils.isNotEmpty( programStage ) && ps == null )
+            if ( !StringUtils.isEmpty( programStage ) && ps == null )
             {
                 throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
             }
@@ -998,11 +1042,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -1077,10 +1121,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, null, importOptions.getUser() );
+        String storedBy = getStoredBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getCompletedBy( event, null, importOptions.getUser() );
+        String completedBy = getCompletedBy( event, null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1117,7 +1161,7 @@ public abstract class AbstractEventService
 
             if ( !importOptions.isSkipNotifications() )
             {
-                programRuleEngineService.evaluate( programStageInstance );
+                eventPublisher.publishEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1132,53 +1176,58 @@ public abstract class AbstractEventService
 
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-
-        if ( !singleValue )
-        {
-            if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-            {
-                if ( event.getCoordinate() != null && event.getCoordinate().isValid() )
-                {
-                    programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
-                    programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
-                }
-                else
-                {
-                    programStageInstance.setLatitude( null );
-                    programStageInstance.setLongitude( null );
-                }
-            }
-        }
+        programStageInstance.setGeometry( event.getGeometry() );
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
-        validateExpiryDays( event, program, programStageInstance );
+        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            validateExpiryDays( event, program, programStageInstance );
+        }
+
+        CategoryOptionCombo aoc = null;
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-            CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( program.getCategoryCombo(),
-                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
-
-            if ( attributeOptionCombo == null )
+            try
+            {
+                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
+                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
+            }
+            catch ( IllegalQueryException ex )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
-                    event.getAttributeCategoryOptions() ) );
-
+                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
                 return importSummary.incrementIgnored();
             }
+        }
 
-            programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            return importSummary.incrementIgnored();
+        }
+
+        programStageInstance.setAttributeOptionCombo( aoc );
+
+        if ( event.getGeometry() != null )
+        {
+            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
+                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
+                    ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
+                    ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
+            }
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
-
-        updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
-
         saveTrackedEntityComment( programStageInstance, event, storedBy );
+        updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
@@ -1187,7 +1236,7 @@ public abstract class AbstractEventService
         Map<String, DataElement> newDataElements = new HashMap<>();
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
-            newDataElements, importSummary, importOptions );
+            newDataElements, importSummary, importOptions, singleValue );
 
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
@@ -1229,7 +1278,7 @@ public abstract class AbstractEventService
 
             if ( !importOptions.isSkipNotifications() )
             {
-                programRuleEngineService.evaluate( programStageInstance );
+                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
 
@@ -1254,8 +1303,12 @@ public abstract class AbstractEventService
             return;
         }
 
+        User currentUser = currentUserService.getCurrentUser();
+
         saveTrackedEntityComment( programStageInstance, event,
-            getStoredBy( event, null, currentUserService.getCurrentUser() ) );
+            getStoredBy( event, null, currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
+
+        updateTrackedEntityInstance( programStageInstance, currentUser );
     }
 
     @Override
@@ -1412,10 +1465,68 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
+    private boolean doValidationOfMandatoryAttributes( User user )
+    {
+        return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+    }
+
+    private Set<String> validatePresenceOfMandatoryDataElements(Event event, ProgramStageInstance programStageInstance, ImportSummary importSummary, boolean isSingleValueUpdate) {
+        ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
+        Set<String> mandatoryDataElements = new HashSet<>(  );
+
+        if ( validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT ||
+            (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED) )
+        {
+            //I am filling the set only if I know that I will do the validation. Otherwise, it would be waste of resources
+            mandatoryDataElements = programStageInstance.getProgramStage().getProgramStageDataElements().stream()
+                .filter( psde -> psde.isCompulsory() )
+                .map( psde -> psde.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
+
+            Set<String> presentDataElements = event.getDataValues().stream()
+                .map( dv -> dv.getDataElement() )
+                .collect( Collectors.toSet());
+
+            // When the request is update, then only changed data values can be in the payload and so I should take into
+            // account also already stored data values in order to make correct decision. Basically, this situation happens when
+            // only 1 dataValue is updated and /events/{uid}/{dataElementUid} endpoint is leveraged.
+            if ( isSingleValueUpdate ) {
+                presentDataElements.addAll(
+                    programStageInstance.getDataValues().stream()
+                        .filter( dv -> !StringUtils.isEmpty( dv.getValue() ))
+                        .map( dv -> dv.getDataElement().getUid() )
+                        .collect( Collectors.toSet()));
+            }
+
+            Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements, presentDataElements );
+
+            if ( notPresentMandatoryDataElements.size() > 0 )
+            {
+                notPresentMandatoryDataElements.forEach( deUid -> importSummary.getConflicts().add( new ImportConflict( deUid, "value_required_but_not_provided" ) ) );
+                importSummary.incrementIgnored();
+                importSummary.setStatus( ImportStatus.ERROR );
+            }
+        }
+
+        return mandatoryDataElements;
+    }
+
     private ImportSummary validateDataValues( Event event, ProgramStageInstance programStageInstance,
         Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements,
-        ImportSummary importSummary, ImportOptions importOptions )
+        ImportSummary importSummary, ImportOptions importOptions, boolean isSingleValueUpdate )
     {
+        boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
+
+        Set<String> mandatoryDataElements = new HashSet<>(  );
+        if (validateMandatoryAttributes)
+        {
+            mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, isSingleValueUpdate );
+            if ( importSummary.getStatus() == ImportStatus.ERROR )
+            {
+                return importSummary;
+            }
+        }
+
         // Loop through values, if only one validation problem occurs -> FAIL
         for ( DataValue dataValue : event.getDataValues() )
         {
@@ -1443,7 +1554,7 @@ public abstract class AbstractEventService
             }
 
             // Return error if one or more values fail validation
-            if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary ) )
+            if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, validateMandatoryAttributes, importSummary ) )
             {
                 return importSummary;
             }
@@ -1453,7 +1564,7 @@ public abstract class AbstractEventService
     }
 
     private boolean validateDataValue( ProgramStageInstance programStageInstance, User user, DataElement dataElement,
-        String value, ImportSummary importSummary )
+        String value, EventStatus eventStatus, Set<String> mandatoryDataElements, boolean validateMandatoryAttributes, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
 
@@ -1464,6 +1575,22 @@ public abstract class AbstractEventService
             importSummary.setStatus( ImportStatus.ERROR );
 
             return false;
+        }
+
+        if (validateMandatoryAttributes)
+        {
+            ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
+
+            if ( (validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT ||
+                (validationStrategy == ValidationStrategy.ON_COMPLETE && eventStatus == EventStatus.COMPLETED)) &&
+                (mandatoryDataElements.contains( dataElement.getUid() ) && (StringUtils.isEmpty( value ) || "null".equals( value ))) )
+            {
+                importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), "value_required_but_not_provided" ) );
+                importSummary.incrementIgnored();
+                importSummary.setStatus( ImportStatus.ERROR );
+
+                return false;
+            }
         }
 
         List<String> errors = trackerAccessManager.canWrite( user,
@@ -1509,8 +1636,8 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, importSummary, importOptions.getUser() );
-        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser() );
+        String storedBy = getStoredBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         CategoryOptionCombo aoc = null;
 
@@ -1527,6 +1654,8 @@ public abstract class AbstractEventService
             catch ( IllegalQueryException ex )
             {
                 importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+                importSummary.setStatus( ImportStatus.ERROR );
+                return importSummary.incrementIgnored();
             }
         }
         else
@@ -1536,7 +1665,9 @@ public abstract class AbstractEventService
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo" ) );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            importSummary.setStatus( ImportStatus.ERROR );
+            return importSummary.incrementIgnored();
         }
 
         if ( !dryRun )
@@ -1544,18 +1675,18 @@ public abstract class AbstractEventService
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
-                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(),
+                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
             }
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
-                    executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
+                    executionDate, event.getStatus().getValue(), completedBy,
                     programStageInstance, aoc, importOptions );
             }
 
-            updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
 
             importSummary.setReference( programStageInstance.getUid() );
         }
@@ -1566,6 +1697,17 @@ public abstract class AbstractEventService
         {
             dataElementValueMap = getDataElementDataValueMap(
                 dataValueService.getTrackedEntityDataValues( programStageInstance ) );
+        }
+
+        boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
+        Set<String> mandatoryDataElements = new HashSet<>(  );
+        if (validateMandatoryAttributes)
+        {
+            mandatoryDataElements = validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, false );
+            if ( importSummary.getStatus() == ImportStatus.ERROR )
+            {
+                return importSummary;
+            }
         }
 
         for ( DataValue dataValue : event.getDataValues() )
@@ -1584,7 +1726,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary ) )
+                if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), event.getStatus(), mandatoryDataElements, validateMandatoryAttributes, importSummary ) )
                 {
                     String dataValueStoredBy = dataValue.getStoredBy() != null ? dataValue.getStoredBy() : storedBy;
 
@@ -1604,9 +1746,24 @@ public abstract class AbstractEventService
             }
         }
 
-        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
+        sendProgramNotification( programStageInstance, importOptions );
+
+        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.ERROR );
 
         return importSummary;
+    }
+
+    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
+    {
+        if ( !importOptions.isSkipNotifications() )
+        {
+            if ( programStageInstance.isCompleted() )
+            {
+                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+            }
+
+            eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+        }
     }
 
     private void saveDataValue( ProgramStageInstance programStageInstance, String storedBy, DataElement dataElement,
@@ -1626,6 +1783,8 @@ public abstract class AbstractEventService
                 dataValue.setProvidedElsewhere( providedElsewhere );
 
                 dataValueService.saveTrackedEntityDataValue( dataValue );
+
+                programStageInstance.getDataValues().add( dataValue );
 
                 if ( importSummary != null )
                 {
@@ -1659,7 +1818,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
-        int status, Coordinate coordinate, String completedBy, String storeBy, String programStageInstanceIdentifier,
+        int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
         CategoryOptionCombo aoc, ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1679,13 +1838,13 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, coordinate, completedBy, programStageInstance, aoc, importOptions );
+            status, completedBy, programStageInstance, aoc, importOptions );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
-        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
+        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
         String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
@@ -1695,15 +1854,7 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
-
-        if ( programStage.getCaptureCoordinates() )
-        {
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                programStageInstance.setLongitude( coordinate.getLongitude() );
-                programStageInstance.setLatitude( coordinate.getLatitude() );
-            }
-        }
+        programStageInstance.setGeometry( event.getGeometry() );
 
         updateDateFields( event, programStageInstance );
 
@@ -1737,26 +1888,34 @@ public abstract class AbstractEventService
     {
         for ( Note note : event.getNotes() )
         {
-            TrackedEntityComment comment = new TrackedEntityComment();
-            comment.setCreator( storedBy );
-            comment.setCreatedDate( new Date() );
-            comment.setCommentText( note.getValue() );
+            String noteUid = CodeGenerator.isValidUid( note.getNote() ) ? note.getNote() : CodeGenerator.generateUid();
 
-            commentService.addTrackedEntityComment( comment );
+            if ( !commentService.trackedEntityCommentExists( noteUid ) && !StringUtils.isEmpty( note.getValue() ) )
+            {
+                TrackedEntityComment comment = new TrackedEntityComment();
+                comment.setUid( noteUid );
+                comment.setCommentText( note.getValue() );
+                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
 
-            programStageInstance.getComments().add( comment );
+                Date created = DateUtils.parseDate( note.getStoredDate() );
+                comment.setCreated( created );
 
-            programStageInstanceService.updateProgramStageInstance( programStageInstance );
+                commentService.addTrackedEntityComment( comment );
+
+                programStageInstance.getComments().add( comment );
+
+                programStageInstanceService.updateProgramStageInstance( programStageInstance );
+            }
         }
     }
 
-    private String getCompletedBy( Event event, ImportSummary importSummary, User fallbackUser )
+    private String getCompletedBy( Event event, ImportSummary importSummary, String fallbackUsername )
     {
         String completedBy = event.getCompletedBy();
 
-        if ( completedBy == null )
+        if ( StringUtils.isEmpty( completedBy ) )
         {
-            completedBy = User.getSafeUsername( fallbackUser );
+            completedBy = User.getSafeUsername( fallbackUsername );
         }
         else if ( completedBy.length() >= 31 )
         {
@@ -1766,19 +1925,19 @@ public abstract class AbstractEventService
                     completedBy + " is more than 31 characters, using current username instead" ) );
             }
 
-            completedBy = User.getSafeUsername( fallbackUser );
+            completedBy = User.getSafeUsername( fallbackUsername );
         }
 
         return completedBy;
     }
 
-    private String getStoredBy( Event event, ImportSummary importSummary, User fallbackUser )
+    private String getStoredBy( Event event, ImportSummary importSummary, String fallbackUsername )
     {
         String storedBy = event.getStoredBy();
 
-        if ( storedBy == null )
+        if ( StringUtils.isEmpty( storedBy ) )
         {
-            storedBy = User.getSafeUsername( fallbackUser );
+            storedBy = User.getSafeUsername( fallbackUsername );
         }
         else if ( storedBy.length() >= 31 )
         {
@@ -1788,7 +1947,7 @@ public abstract class AbstractEventService
                     storedBy + " is more than 31 characters, using current username instead" ) );
             }
 
-            storedBy = User.getSafeUsername( fallbackUser );
+            storedBy = User.getSafeUsername( fallbackUsername );
         }
 
         return storedBy;
@@ -1874,7 +2033,6 @@ public abstract class AbstractEventService
     {
         if ( program != null )
         {
-
             if ( program.getCompleteEventsExpiryDays() > 0 )
             {
                 if ( event.getStatus() == EventStatus.COMPLETED
@@ -2129,5 +2287,15 @@ public abstract class AbstractEventService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -138,6 +139,9 @@ public class DefaultTrackedEntityInstanceService
     @Autowired
     private AclService aclService;
 
+    @Autowired
+    private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -166,21 +170,13 @@ public class DefaultTrackedEntityInstanceService
             params.setDefaultPaging();
         }
 
-        Set<TrackedEntityAttribute> readableAttributes = attributeService.getAllUserReadableTrackedEntityAttributes();
-
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
-
+        
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-
-            tei.setTrackedEntityAttributeValues(
-                tei.getTrackedEntityAttributeValues().stream()
-                    .filter( av -> readableAttributes.contains( av.getAttribute() ) )
-                    .collect( Collectors.toSet() )
-            );
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );            
         }
 
         return trackedEntityInstances;
@@ -216,7 +212,9 @@ public class DefaultTrackedEntityInstanceService
         validateSearchScope( params );
         handleAttributes( params );
 
-        params.setUser( currentUserService.getCurrentUser() );
+        User user = currentUserService.getCurrentUser();
+
+        params.setUser( user );
 
         // ---------------------------------------------------------------------
         // Conform parameters
@@ -272,6 +270,18 @@ public class DefaultTrackedEntityInstanceService
 
         for ( Map<String, String> entity : entities )
         {
+            if ( user != null && !user.isSuper() && params.hasProgram() &&
+                (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
+                    params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
+            {
+                TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+
+                if ( !trackerOwnershipAccessManager.hasAccess( user, tei, params.getProgram() ) )
+                {
+                    continue;
+                }
+            }
+
             grid.addRow();
             grid.addValue( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
             grid.addValue( entity.get( CREATED_ID ) );
@@ -516,7 +526,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
 
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() )
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() && !params.hasOrganisationUnits()  )
         {
             List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
 
@@ -582,7 +592,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
 
-                if ( !params.hasFilters() || (params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch()) )
+                if ( isProgramMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
                 }
@@ -592,7 +602,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
 
-                if ( !params.hasFilters() || (params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch()) )
+                if ( isTeTypeMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
                 }
@@ -604,13 +614,25 @@ public class DefaultTrackedEntityInstanceService
             }
         }
     }
+    
+    private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
+    {
+        return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+            || (params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+    }
+
+    private boolean isTeTypeMinAttributesViolated( TrackedEntityInstanceQueryParams params )
+    {
+        return (!params.hasFilters() && params.getTrackedEntityType().getMinAttributesRequiredToSearch() > 0)
+            || (params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
+    }
 
     @Override
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -676,14 +698,14 @@ public class DefaultTrackedEntityInstanceService
 
         if ( trackedEntityType != null && te == null )
         {
-            throw new IllegalQueryException( "Tracked entity does not exist: " + program );
+            throw new IllegalQueryException( "Tracked entity type does not exist: " + trackedEntityType );
         }
 
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
         {
             params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }
-
+        }        
+        
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -705,6 +727,7 @@ public class DefaultTrackedEntityInstanceService
             .setTotalPages( totalPages )
             .setSkipPaging( skipPaging )
             .setIncludeDeleted( includeDeleted )
+            .setIncludeAllAttributes( includeAllAttributes )
             .setOrders( orders );
 
         return params;
@@ -814,8 +837,6 @@ public class DefaultTrackedEntityInstanceService
                 instance.setRepresentative( representative );
 
                 Relationship rel = new Relationship();
-                rel.setEntityInstanceA( representative );
-                rel.setEntityInstanceB( instance );
 
                 if ( relationshipTypeId != null )
                 {
@@ -833,6 +854,12 @@ public class DefaultTrackedEntityInstanceService
         updateTrackedEntityInstance( instance ); // Update associations
 
         return id;
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    {
+        return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
     }
 
     @Override
@@ -930,7 +957,7 @@ public class DefaultTrackedEntityInstanceService
 
     private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, AuditType auditType )
     {
-        if ( trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() && user != null )
+        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );

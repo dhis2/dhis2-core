@@ -46,6 +46,8 @@ public class App
      */
     private static final long serialVersionUID = -6638197841892194228L;
 
+    public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
+
     /**
      * Required.
      */
@@ -83,6 +85,8 @@ public class App
     private String baseUrl;
 
     private Set<String> authorities = new HashSet<>();
+
+    private AppStatus appState = AppStatus.OK;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -236,6 +240,7 @@ public class App
         this.activities = activities;
     }
 
+    @JsonProperty
     public String getFolderName()
     {
         return folderName;
@@ -289,6 +294,17 @@ public class App
     {
         this.authorities = authorities;
     }
+    
+    @JsonProperty
+    public AppStatus getAppState()
+    {
+        return appState;
+    }
+
+    public void setAppState( AppStatus appState )
+    {
+         this.appState = appState;
+    }
 
     // -------------------------------------------------------------------------
     // hashCode, equals, toString
@@ -341,12 +357,16 @@ public class App
             "}";
     }
 
-    @JsonProperty( "folderName")
     public String getUrlFriendlyName()
     {
         String result = name.replaceAll("[^A-Za-z0-9 -]", "");
         result = result.replaceAll(" ", "-");
 
         return result;
+    }
+
+    public String getSeeAppAuthority()
+    {
+        return  SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
     }
 }

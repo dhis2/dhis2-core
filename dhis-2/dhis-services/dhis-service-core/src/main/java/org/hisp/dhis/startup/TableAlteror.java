@@ -212,6 +212,11 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET dataelementid = 0 WHERE dataelementid IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
+
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
+        executeSql( "UPDATE datasetnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -712,6 +717,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-data-administration' WHERE authority='M_dhis-web-maintenance-dataadmin'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority = 'M_' ||  replace(regexp_replace(replace(authority, 'See ', '' ), '[^a-zA-Z0-9 ]', ''), ' ', '_') WHERE authority like 'See%'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -856,6 +863,7 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET dataElementGroupSetAttribute=false WHERE dataElementGroupSetAttribute IS NULL" );
         executeSql( "UPDATE attribute SET validationRuleAttribute=false WHERE validationRuleAttribute IS NULL" );
         executeSql( "UPDATE attribute SET validationRuleGroupAttribute=false WHERE validationRuleGroupAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryAttribute=false WHERE categoryAttribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
@@ -1076,6 +1084,8 @@ public class TableAlteror
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
         
         updateDimensionFilterToText();
+
+        renameAnalyticsPeriodBoundaryTableToPeriodBoundary();
         
         insertDefaultBoundariesForBoundlessProgramIndicators();
         
@@ -1105,7 +1115,26 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
         
+        // 2.31, migrate to Flyway
+        executeSql( "alter table trackedentityattribute alter column shortname set not null" );
+        
         log.info( "Tables updated" );
+
+    }
+
+    /**
+     * Moves existing data in "analyticsperiodboundary" table to new and renamed table "periodboundary"
+     */
+    private void renameAnalyticsPeriodBoundaryTableToPeriodBoundary()
+    {
+
+        String sql =
+            "INSERT INTO periodboundary(periodboundaryid, uid, code, created, lastupdated, lastupdatedby, boundarytarget, analyticsperiodboundarytype, offsetperiods, offsetperiodtypeid, programindicatorid) " +
+                "SELECT analyticsperiodboundaryid, uid, code, created, lastupdated, lastupdatedby, boundarytarget, analyticsperiodboundarytype, offsetperiods, offsetperiodtypeid, programindicatorid " +
+                "FROM analyticsperiodboundary; " +
+                "DROP TABLE analyticsperiodboundary;";
+
+        executeSql( sql );
 
     }
 
@@ -1754,21 +1783,27 @@ public class TableAlteror
     {
         String findBoundlessAndInsertDefaultBoundaries = 
             "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
+
             "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
-            "from programindicator pi left join analyticsperiodboundary apb on apb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " + 
-            "having count(apb.*) = 0;" +
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from programindicator pi left join periodboundary pb on pb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " +
+            "having count(pb.*) = 0;" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" +
+
+            "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
             "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
+
         executeSql( findBoundlessAndInsertDefaultBoundaries );
         
     }

@@ -39,10 +39,13 @@ import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
+import org.springframework.util.Assert;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -125,7 +128,7 @@ public class ProgramIndicator
     private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
-    private static final Set<AnalyticsPeriodBoundary> defaultErollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+    private static final Set<AnalyticsPeriodBoundary> defaultEnrollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
@@ -174,6 +177,11 @@ public class ProgramIndicator
         return decimals != null && decimals >= 0;
     }
 
+    public boolean hasZeroDecimals()
+    {
+        return decimals != null && decimals == 0;
+    }
+
     /**
      * Returns aggregation type, if not exists returns AVERAGE.
      */
@@ -218,7 +226,7 @@ public class ProgramIndicator
      * @param expression the program indicator expression.
      * @return a set of column names
      */
-    public static Set<String> getVariableColumnNames( String expression, AnalyticsType analyticsType )
+    public static Set<String> getVariableColumnNames( String expression )
     {
         Set<String> requiredColumns = new HashSet<String>();
         
@@ -287,7 +295,7 @@ public class ProgramIndicator
         return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
             !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.containsAll( defaultErollmentTypeBoundaries ) );
+            !this.analyticsPeriodBoundaries.containsAll( defaultEnrollmentTypeBoundaries ) );
     }
     
     /**
@@ -330,6 +338,48 @@ public class ProgramIndicator
         }
 
         return null;
+    }
+
+    /**
+     * Determines wether there exists any analytics period boundaries that has type "Event in program stage".
+     * @return true if any boundary exists with type  "Event in program stage"
+     */
+    public boolean hasEventDateCohortBoundary()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEnrollmentHavingEventDateCohortBoundary() )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Returns any analytics period boundaries that has type "Event in program stage", organized as a map
+     * where the program stage is the key, and the list of boundaries for that program stage is the value.
+     */
+    public Map<String, Set<AnalyticsPeriodBoundary>> getEventDateCohortBoundaryByProgramStage()
+    {
+        Map<String, Set<AnalyticsPeriodBoundary>> map = new HashMap<String, Set<AnalyticsPeriodBoundary>>();
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEnrollmentHavingEventDateCohortBoundary() )
+            {
+                Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN.matcher( boundary.getBoundaryTarget() );
+                Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
+                Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                if ( !map.containsKey( programStage ) )
+                {
+                    map.put( programStage, new HashSet<AnalyticsPeriodBoundary>() );
+                }
+                map.get( programStage ).add( boundary );
+            }
+        }
+        
+        return map;
     }
 
     // -------------------------------------------------------------------------

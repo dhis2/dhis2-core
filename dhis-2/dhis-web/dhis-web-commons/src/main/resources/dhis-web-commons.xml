@@ -110,7 +110,7 @@
     </global-results>
 
   </package>
-
+  
   <!-- Security -->
 
   <package name="dhis-web-commons-security" extends="dhis-web-commons" namespace="/dhis-web-commons/security">
@@ -149,13 +149,13 @@
     </action>
 
     <action name="restore" class="org.hisp.dhis.useraccount.action.IsRestoreTokenValidAction">
-        <result name="success" type="velocity">/dhis-web-commons/useraccount/restore.vm</result>
-        <result name="error" type="redirect">login.action</result>
+      <result name="success" type="velocity">/dhis-web-commons/useraccount/restore.vm</result>
+      <result name="error" type="redirect">login.action</result>
     </action>
 
     <action name="invite" class="org.hisp.dhis.useraccount.action.IsInviteTokenValidAction">
-        <result name="success" type="velocity">/dhis-web-commons/useraccount/account.vm</result>
-        <result name="error" type="redirect">login.action</result>
+      <result name="success" type="velocity">/dhis-web-commons/useraccount/account.vm</result>
+      <result name="error" type="redirect">login.action</result>
     </action>
 
     <action name="getSystemAuthorities" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction">

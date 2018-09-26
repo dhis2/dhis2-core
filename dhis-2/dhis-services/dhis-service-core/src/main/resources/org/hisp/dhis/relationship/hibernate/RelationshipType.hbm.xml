@@ -1,33 +1,64 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
-  >
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.relationship.RelationshipType" table="relationshiptype">
+    <class name="org.hisp.dhis.relationship.RelationshipType" table="relationshiptype">
 
-    <cache usage="read-write" />
-    
-    <id name="id" column="relationshiptypeid">
-      <generator class="native" />
-    </id>
-    &identifiableProperties;
+        <cache usage="read-write"/>
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+        <id name="id" column="relationshiptypeid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
 
-    <property name="aIsToB" column="a_is_to_b" not-null="true" />
+        <property name="name" column="name" not-null="true" unique="true" length="230"/>
 
-    <property name="bIsToA" column="b_is_to_a" not-null="true" />
+        <property name="description" column="description" not-null="false" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="relationshiptypetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="relationshiptypeid" foreign-key="fk_objecttranslation_relationshiptypeid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+        <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
+                     column="from_relationshipconstraintid"
+                     foreign-key="fk_relationshiptype_from_relationshipconstraintid"
+                     not-null="false"
+                     unique="true"
+                     unique-key="relationshiptype_from_key"
+                     cascade="all-delete-orphan"/>
 
-  </class>
+        <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
+                     column="to_relationshipconstraintid"
+                     foreign-key="fk_relationshiptype_to_relationshipconstraintid"
+                     not-null="false"
+                     unique="true"
+                     unique-key="relationshiptype_to_key"
+                     cascade="all-delete-orphan"/>
 
+        <!-- Object Translation -->
+        <set name="translations" table="relationshiptypetranslations" cascade="all-delete-orphan">
+            <cache usage="read-write"/>
+            <key column="relationshiptypeid" foreign-key="fk_objecttranslation_relationshiptypeid"/>
+            <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid"
+                          unique="true"/>
+        </set>
+
+        <!-- Access properties -->
+        <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_relationshiptype_userid" />
+
+        <property name="publicAccess" length="8" />
+
+        <set name="userGroupAccesses" table="relationshiptypeusergroupaccesses" cascade="all-delete-orphan">
+            <cache usage="read-write" />
+            <key column="relationshiptypeid" />
+            <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+        </set>
+
+        <set name="userAccesses" table="relationshiptypeuseraccesses" cascade="all-delete-orphan">
+            <cache usage="read-write" />
+            <key column="relationshiptypeid" />
+            <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+        </set>
+
+    </class>
 </hibernate-mapping>

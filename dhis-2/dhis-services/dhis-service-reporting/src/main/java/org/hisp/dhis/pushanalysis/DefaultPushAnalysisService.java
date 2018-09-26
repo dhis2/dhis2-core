@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * @author Stian Sandvold
@@ -240,8 +241,8 @@ public class DefaultPushAnalysisService
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
-                OutboundMessageResponse status = messageSender
-                    .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
+                Future<OutboundMessageResponse> status = messageSender
+                    .sendMessageAsync( title, html, "", null, Sets.newHashSet( user ), true );
 
             }
             catch ( Exception e )
@@ -355,7 +356,7 @@ public class DefaultPushAnalysisService
         switch ( item.getType() )
         {
             case MAP:
-                result += "/dhis-web-mapping/index.html?id=" + item.getMap().getUid();
+                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
             case REPORT_TABLE:
                 result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();

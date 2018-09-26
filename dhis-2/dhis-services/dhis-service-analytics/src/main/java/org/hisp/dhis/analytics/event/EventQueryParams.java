@@ -191,6 +191,13 @@ public class EventQueryParams
      * Indicates whether to include metadata details to response
      */
     protected boolean includeMetadataDetails;
+    
+    /**
+     * Identifier scheme to use for data and attribute values. Applies to data
+     * elements with option sets and legend sets, which are stored as codes and
+     * UIDs respectively.
+     */
+    protected IdScheme dataIdScheme;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -214,6 +221,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.timeField = this.timeField;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
@@ -247,6 +255,7 @@ public class EventQueryParams
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
         params.includeMetadataDetails = this.includeMetadataDetails;
+        params.dataIdScheme = this.dataIdScheme;
 
         params.periodType = this.periodType;
 
@@ -381,7 +390,7 @@ public class EventQueryParams
 
         return objects;
     }
-
+    
     /**
      * Get legend sets part of items and item filters.
      */
@@ -392,7 +401,6 @@ public class EventQueryParams
             .map( i -> i.getLegendSet().getLegends() )
             .flatMap( i -> i.stream() )
             .collect( Collectors.toSet() );
-            
     }
 
     /**
@@ -405,6 +413,38 @@ public class EventQueryParams
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( q -> q.stream() )
             .collect( Collectors.toSet() );
+    }
+    
+    /**
+     * Indicates whether the given time field is valid, i.e. whether
+     * it is either a fixed time field or matches the identifier of an 
+     * attribute or data element of date value type part of the query program.
+     */
+    public boolean timeFieldIsValid()
+    {
+        if ( timeField == null )
+        {
+            return true;
+        }
+        
+        if ( TimeField.fieldIsValid( timeField ) )
+        {
+            return true;
+        }
+
+        if ( program.getTrackedEntityAttributes().stream()
+            .anyMatch( at -> at.getValueType().isDate() && timeField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+        
+        if ( program.getDataElements().stream()
+            .anyMatch( de -> de.getValueType().isDate() && timeField.equals( de.getUid() ) ) )
+        {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -567,6 +607,24 @@ public class EventQueryParams
     }
 
     /**
+     * Indicates whether the EventQueryParams has exactly one Period dimension. 
+     * @return true when exactly one Period dimension exists.
+     */
+    public boolean hasSinglePeriod()
+    {
+        return getPeriods().size() == 1;
+    }
+
+    /**
+     * Indicates whether the EventQueryParams has Period filters. 
+     * @return true when any Period filters exists.
+     */
+    public boolean hasFilterPeriods()
+    {
+        return getFilterPeriods().size() > 0;
+    }
+    
+    /**
      * Indicates whether the program of this query requires registration of
      * tracked entity instances.
      */
@@ -589,6 +647,11 @@ public class EventQueryParams
     {
         return bbox != null && !bbox.isEmpty();
     }
+    
+    public boolean hasDataIdScheme()
+    {
+        return dataIdScheme != null;
+    }
 
     /**
      * Returns a negative integer in case of ascending sort order, a positive in
@@ -598,7 +661,7 @@ public class EventQueryParams
     {
         return SortOrder.ASC.equals( sortOrder ) ? -1 : SortOrder.DESC.equals( sortOrder ) ? 1 : 0;
     }
-
+    
     @Override
     public String toString()
     {
@@ -742,7 +805,12 @@ public class EventQueryParams
     {
         return includeMetadataDetails;
     }
-    
+
+    public IdScheme getDataIdScheme()
+    {
+        return dataIdScheme;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -1006,6 +1074,12 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withTimeField( String timeField )
+        {
+            this.params.timeField = timeField;
+            return this;
+        }
+        
         public Builder withClusterSize( Long clusterSize )
         {
             this.params.clusterSize = clusterSize;
@@ -1054,27 +1128,15 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withDataIdScheme( IdScheme dataIdScheme )
+        {
+            this.params.dataIdScheme = dataIdScheme;
+            return this;
+        }
+        
         public EventQueryParams build()
         {
             return params;
         }
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has exactly one Period dimension. 
-     * @return true when exactly one Period dimension exists.
-     */
-    public boolean hasSinglePeriod()
-    {
-        return getPeriods().size() == 1;
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has Period filters. 
-     * @return true when any Period filters exists.
-     */
-    public boolean hasFilterPeriods()
-    {
-        return getFilterPeriods().size() > 0;
     }
 }

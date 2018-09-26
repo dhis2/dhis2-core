@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,8 +114,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         CompleteDataSetRegistrations cdsr = new StreamingXmlCompleteDataSetRegistrations( XMLFactory.getXMLWriter( outputStream ) );
 
         write( params, cdsr );
-
-        IOUtils.closeQuietly( outputStream );
     }
 
     @Override
@@ -125,8 +122,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         CompleteDataSetRegistrations cdsr = new StreamingJsonCompleteDataSetRegistrations( outputStream );
 
         write( params, cdsr );
-
-        IOUtils.closeQuietly( outputStream );
     }
 
     @Override

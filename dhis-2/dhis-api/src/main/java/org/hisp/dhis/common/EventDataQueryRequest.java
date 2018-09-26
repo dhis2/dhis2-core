@@ -83,6 +83,8 @@ public class EventDataQueryRequest
     protected boolean aggregateData;
 
     protected boolean includeMetadataDetails;
+    
+    protected IdScheme dataIdScheme;
 
     protected DisplayProperty displayProperty;
 
@@ -97,6 +99,8 @@ public class EventDataQueryRequest
     protected Set<String> asc;
 
     protected Set<String> desc;
+
+    protected String timeField;
 
     protected boolean coordinatesOnly;
 
@@ -216,6 +220,11 @@ public class EventDataQueryRequest
         return includeMetadataDetails;
     }
 
+    public IdScheme getDataIdScheme()
+    {
+        return dataIdScheme;
+    }
+
     public DisplayProperty getDisplayProperty()
     {
         return displayProperty;
@@ -249,6 +258,11 @@ public class EventDataQueryRequest
     public Set<String> getDesc()
     {
         return desc;
+    }
+
+    public String getTimeField()
+    {
+        return timeField;
     }
 
     public boolean isCoordinatesOnly()
@@ -308,6 +322,7 @@ public class EventDataQueryRequest
         request.ouMode = this.ouMode;
         request.asc = new HashSet<>( this.asc );
         request.desc = new HashSet<>( this.desc );
+        request.timeField = this.timeField;
         request.coordinatesOnly = this.coordinatesOnly;
         request.coordinateField = this.coordinateField;
         request.page = this.page;
@@ -474,6 +489,12 @@ public class EventDataQueryRequest
             this.request.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
+        
+        public EventDataQueryRequestBuilder dataIdScheme( IdScheme dataIdScheme )
+        {
+            this.request.dataIdScheme = dataIdScheme;
+            return this;
+        }
 
         public EventDataQueryRequestBuilder displayProperty( DisplayProperty displayProperty )
         {
@@ -517,6 +538,12 @@ public class EventDataQueryRequest
             return this;
         }
 
+        public EventDataQueryRequestBuilder timeField( String timeField )
+        {
+            this.request.timeField = timeField;
+            return this;
+        }
+        
         public EventDataQueryRequestBuilder coordinatesOnly( boolean coordinatesOnly )
         {
             this.request.coordinatesOnly = coordinatesOnly;
@@ -545,7 +572,5 @@ public class EventDataQueryRequest
         {
             return request;
         }
-
     }
-
 }

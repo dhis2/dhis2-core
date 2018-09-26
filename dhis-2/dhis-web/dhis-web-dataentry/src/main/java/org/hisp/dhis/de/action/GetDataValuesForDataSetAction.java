@@ -48,6 +48,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -111,6 +113,13 @@ public class GetDataValuesForDataSetAction
     public void setFileResourceService( FileResourceService fileResourceService )
     {
         this.fileResourceService = fileResourceService;
+    }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     @Autowired
@@ -236,6 +245,8 @@ public class GetDataValuesForDataSetAction
         // Validation
         // ---------------------------------------------------------------------
 
+        User currentUser = currentUserService.getCurrentUser();
+
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
         Period period = PeriodType.getPeriodFromIsoString( periodId );
@@ -308,7 +319,7 @@ public class GetDataValuesForDataSetAction
                 lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
             }
 
-            locked = dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null );
+            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
         }
         else
         {
@@ -320,7 +331,7 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null );
+                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
 
                     if ( locked )
                     {

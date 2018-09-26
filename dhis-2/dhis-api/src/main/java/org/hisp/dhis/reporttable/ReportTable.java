@@ -424,7 +424,7 @@ public class ReportTable
 
         for ( DimensionalItemObject object : objects )
         {
-            builder.append( object != null ? (object.getDisplayProperty( displayProperty ) + SPACE) : EMPTY );
+            builder.append( object != null ? ( object.getDisplayProperty( displayProperty ) + SPACE ) : EMPTY );
         }
 
         return builder.length() > 0 ? builder.substring( 0, builder.lastIndexOf( SPACE ) ) : TOTAL_COLUMN_PRETTY_NAME;
@@ -450,7 +450,7 @@ public class ReportTable
             }
             else
             {
-                buffer.append( object != null ? (object.getShortName() + SEPARATOR) : EMPTY );
+                buffer.append( object != null ? ( object.getShortName() + SEPARATOR ) : EMPTY );
             }
         }
 
@@ -527,9 +527,9 @@ public class ReportTable
      * Generates a grid for this report table based on the given aggregate value
      * map.
      *
-     * @param grid               the grid, should be empty and not null.
-     * @param valueMap           the mapping of identifiers to aggregate values.
-     * @param displayProperty    the display property to use for meta data.
+     * @param grid the grid, should be empty and not null.
+     * @param valueMap the mapping of identifiers to aggregate values.
+     * @param displayProperty the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
@@ -586,7 +586,7 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ),
+            grid.addHeader( new GridHeader( getColumnName( column ), getPrettyColumnName( column, displayProperty ),
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 

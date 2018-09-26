@@ -42,7 +42,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 
 /**
@@ -65,11 +64,6 @@ public class TwoFactorAuthenticationProvider
     public void setSecurityService( SecurityService securityService )
     {
         this.securityService = securityService;
-    }
-
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
-    {
-        super.setPasswordEncoder( passwordEncoder );
     }
 
     @Override

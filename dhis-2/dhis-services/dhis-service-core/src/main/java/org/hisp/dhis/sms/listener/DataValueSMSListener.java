@@ -101,11 +101,17 @@ public class DataValueSMSListener
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
 
-        OrganisationUnit orgUnit = getOrganisationUnits( sms ).iterator().next();
+        OrganisationUnit orgUnit = null;
+
+        if ( getOrganisationUnits( sms ).iterator().hasNext() )
+        {
+           orgUnit  = getOrganisationUnits( sms ).iterator().next();
+        }
+
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.isLocked( dataSet, period, orgUnit, dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
+        if ( dataSetService.isLocked( null, dataSet, period, orgUnit, dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
         {
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(), ERROR );
 

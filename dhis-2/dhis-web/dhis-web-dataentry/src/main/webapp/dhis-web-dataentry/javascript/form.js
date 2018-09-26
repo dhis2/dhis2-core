@@ -1867,7 +1867,7 @@ function insertDataValues( json )
                 };
 
                 var cc = dhis2.de.getCurrentCategoryCombo();
-                var cp = dhis2.de.getCurrentCategoryOptionsQueryValue;
+                var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
 
                 if( cc && cp )
                 {
@@ -2163,7 +2163,7 @@ function registerCompleteDataSet(completedStatus)
 }
 
 function handleDataSetCompletenessResponse( data ){
-    var html = '<h3>' + i18n_dataset_completeness_errort + ' &nbsp;<img src="../images/warning_small.png"></h3>';
+    var html = '<h3>' + i18n_dataset_completeness_error + ' &nbsp;<img src="../images/warning_small.png"></h3>';
                     
     if( data && data.conflicts && data.conflicts.length > 0 )
     {
@@ -3408,17 +3408,21 @@ dhis2.de.insertOptionSets = function()
         
         DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
-
+                    var options = [];
                     $.each( obj.optionSet.options, function( inx, option ) {
+                        if ( !option.access.data.write ) return;
+
                         option.text = option.displayName;
                         option.id = option.code;
+
+                        options.push(option);
                     } );
                     
                     $("#" + item).select2({
                         placeholder: i18n_select_option ,
                         allowClear: true,
                         dataType: 'json',
-                        data: obj.optionSet.options
+                        data: options
                     }).on("change", function(e){
                         saveVal( dataElementId, optionComboId, fieldId );
                     });

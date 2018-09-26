@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.metadata;
 
-    /*
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -62,7 +63,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -208,6 +208,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         }
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
+        params.setSkipTranslation( getBooleanWithDefault( parameters, "skipTranslation", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
         params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
@@ -239,6 +240,10 @@ public class DefaultMetadataImportService implements MetadataImportService
             if ( overrideUser == null )
             {
                 throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+            }
+            else
+            {
+                params.setOverrideUser( overrideUser );
             }
         }
 
@@ -293,7 +298,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null || manager.get( object.getUser().getUid() ) == null )
+        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
         {
             object.setUser( bundle.getUser() );
         }

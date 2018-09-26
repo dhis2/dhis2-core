@@ -34,8 +34,11 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -91,6 +94,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private JobConfigurationService jobConfigurationService;
 
+    @Autowired
+    private SystemService systemService;
+
     public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
     {
         this.jobConfigurationService = jobConfigurationService;
@@ -140,14 +146,21 @@ public class SchedulerStart extends AbstractStartupRoutine
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED
-                    || (!jobConfig.isContinuousExecution() && oldExecutionTime.compareTo( now ) < 0) )
+                    || (!jobConfig.isContinuousExecution() && oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
                 {
-                    unexecutedJobs.add( "Job [" + jobConfig.getUid() + ", " + jobConfig.getName()
+                    unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
                         + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
                         + oldExecutionTime );
                 }
 
-                schedulingManager.scheduleJob( jobConfig );
+                if ( JobType.KAFKA_TRACKER == jobConfig.getJobType() && !systemService.getSystemInfo().isKafka() )
+                {
+                    log.info( "Kafka is not enabled, disabling scheduled Kafka job." );
+                }
+                else
+                {
+                    schedulingManager.scheduleJob( jobConfig );
+                }
             }
         }) );
 
@@ -180,7 +193,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
+            portJob( systemSettingManager, dataStatistics, SettingKey.LAST_SUCCESSFUL_DATA_STATISTICS );
             dataStatistics.setLeaderOnlyJob( true );
             addAndScheduleJob( dataStatistics );
         }
@@ -220,7 +233,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         if ( verifyNoJobExist( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
         {
             JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
-                KAFKA_TRACKER, CRON_HOURLY, null, false, true );
+                KAFKA_TRACKER, "* * * * * ?", null, true, true );
             addAndScheduleJob( kafkaTracker );
         }
 
@@ -271,7 +284,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     }
 
 
-    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, String systemKey )
+    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey )
     {
         Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
 

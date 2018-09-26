@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -69,6 +70,8 @@ public class TrackedEntityInstance
 
     private List<Enrollment> enrollments = new ArrayList<>();
 
+    private List<ProgramOwner> programOwners = new ArrayList<>();
+
     private Boolean inactive;
 
     private Boolean deleted = false;
@@ -76,6 +79,8 @@ public class TrackedEntityInstance
     private FeatureType featureType = FeatureType.NONE;
 
     private String coordinates;
+
+    private Geometry geometry;
 
     public TrackedEntityInstance()
     {
@@ -93,6 +98,15 @@ public class TrackedEntityInstance
                 attribute.setValue( StringUtils.trimToNull( attribute.getValue() ) );
             }
         }
+    }
+
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setFeatureType( null );
+        this.setEnrollments( null );
+        this.setRelationships( null );
+        this.setAttributes( null );
     }
 
     @JsonProperty( required = true )
@@ -218,6 +232,19 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ProgramOwner> getProgramOwners()
+    {
+        return programOwners;
+    }
+
+    public void setProgramOwners( List<ProgramOwner> programOwners )
+    {
+        this.programOwners = programOwners;
+    }
+
+    @JsonProperty
     @JacksonXmlElementWrapper( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isInactive()
@@ -267,6 +294,18 @@ public class TrackedEntityInstance
         this.coordinates = coordinates;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -293,18 +332,24 @@ public class TrackedEntityInstance
             relationships, attributes, enrollments, inactive );
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "TrackedEntityInstance{" +
             "trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", orgUnit='" + orgUnit + '\'' +
             ", created='" + created + '\'' +
+            ", lastUpdated='" + lastUpdated + '\'' +
+            ", createdAtClient='" + createdAtClient + '\'' +
+            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
             ", relationships=" + relationships +
             ", attributes=" + attributes +
+            ", enrollments=" + enrollments +
+            ", programOwners=" + programOwners +
             ", inactive=" + inactive +
             ", deleted=" + deleted +
+            ", featureType=" + featureType +
+            ", coordinates='" + coordinates + '\'' +
             '}';
     }
 }

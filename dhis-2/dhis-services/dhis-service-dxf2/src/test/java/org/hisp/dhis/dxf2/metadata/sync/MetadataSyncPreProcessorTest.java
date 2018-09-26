@@ -31,10 +31,9 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -62,7 +61,12 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author aamerm
@@ -77,19 +81,19 @@ public class MetadataSyncPreProcessorTest
     @Autowired
     @Mock
     private SynchronizationManager synchronizationManager;
-    
+
     @Autowired
     @Mock
     private SystemSettingManager systemSettingManager;
-    
+
     @InjectMocks
     @Autowired
     private MetadataSyncPreProcessor metadataSyncPreProcessor;
-    
+
     @Autowired
     @Mock
     private MetadataVersionService metadataVersionService;
-    
+
     @Autowired
     @Mock
     private MetadataVersionDelegate metadataVersionDelegate;
@@ -101,7 +105,7 @@ public class MetadataSyncPreProcessorTest
     }
 
     // TODO: Do not assert for methods to be executed. Assert for the result not on how it happens.
-    
+
     @Test
     public void testHandleDataPushShouldCallDataPush() throws Exception
     {
@@ -121,10 +125,11 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.ERROR );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
+        doThrow( MetadataSyncServiceException.class )
+            .when( metadataSyncPreProcessor )
+            .handleAggregateDataPush( mockRetryContext );
 
-        ImportSummary actualSummary = metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getStatus(), actualSummary.getStatus() );
+        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
     }
 
     @Test
@@ -135,53 +140,10 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
+        doNothing().when( metadataSyncPreProcessor ).handleAggregateDataPush( mockRetryContext );
 
-        ImportSummary actualSummary = metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getStatus(), actualSummary.getStatus() );
-    }
-
-    @Test
-    public void testHandleEventDataPushShouldCallEventDataPush() throws Exception
-    {
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-
-        metadataSyncPreProcessor.handleEventDataPush( mockRetryContext );
-        verify( synchronizationManager, times( 1 ) ).executeEventPush();
-    }
-
-    @Test( expected = MetadataSyncServiceException.class )
-    public void testHandleEventDataPushShouldThrowExceptionWhenEventDataPushIsUnsuccessful() throws Exception
-    {
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
-        ImportSummaries expectedSummary = new ImportSummaries();
-        ImportSummary summary = new ImportSummary();
-        summary.setStatus( ImportStatus.ERROR );
-        expectedSummary.addImportSummary( summary );
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleEventDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
-
-        ImportSummaries actualSummary = metadataSyncPreProcessor.handleEventDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getImportSummaries().get( 0 ).getStatus(), actualSummary.getImportSummaries().get( 0 ).getStatus() );
-    }
-
-    @Test
-    public void testHandleEventDataPushShouldNotThrowExceptionWhenDataPushIsSuccessful() throws Exception
-    {
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
-        ImportSummaries expectedSummary = new ImportSummaries();
-        ImportSummary summary = new ImportSummary();
-        summary.setStatus( ImportStatus.SUCCESS );
-        expectedSummary.addImportSummary( summary );
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        when( metadataSyncPreProcessor.handleEventDataPush( mockRetryContext ) ).thenReturn( expectedSummary );
-
-        ImportSummaries actualSummary = metadataSyncPreProcessor.handleEventDataPush( mockRetryContext );
-        assertEquals( expectedSummary.getImportSummaries().get( 0 ).getStatus(), actualSummary.getImportSummaries().get( 0 ).getStatus() );
+        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( mockRetryContext );
     }
 
     @Test

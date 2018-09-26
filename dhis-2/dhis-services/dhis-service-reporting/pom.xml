@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.30-SNAPSHOT</version>
+    <version>2.31-SNAPSHOT</version>
   </parent>
   
   <artifactId>dhis-service-reporting</artifactId>
@@ -89,6 +89,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.11.3</version>
     </dependency>
     
   </dependencies>

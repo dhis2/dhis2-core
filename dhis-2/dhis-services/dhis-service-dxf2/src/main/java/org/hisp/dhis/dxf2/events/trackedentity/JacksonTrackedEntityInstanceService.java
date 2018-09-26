@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -51,6 +52,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,8 +119,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( module );
+        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
+        XML_MAPPER.registerModules( module, new JtsModule(  ) );
     }
 
     // -------------------------------------------------------------------------
@@ -139,6 +142,26 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         {
             TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromJson );
+        }
+
+        return trackedEntityInstances;
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+        try
+        {
+            TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
+            trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
+            trackedEntityInstances.add( fromXml );
         }
 
         return trackedEntityInstances;
@@ -192,6 +215,38 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
         List<TrackedEntityInstance> delete = new ArrayList<>();
+        List<Relationship> createRelationships = new ArrayList<>();
+        List<Relationship> updateRelationships = new ArrayList<>();
+
+
+        if ( !importOptions.getImportStrategy().isDelete() )
+        {
+            trackedEntityInstances.stream()
+
+                // Skip teis with no relationships
+                .filter( tei -> !tei.getRelationships().isEmpty() )
+                .forEach( tei ->
+                {
+                    RelationshipItem relationshipItem = new RelationshipItem();
+                    relationshipItem.setTrackedEntityInstance( tei );
+
+                    // Update from since it might be empty, which means this tei is "from".
+                    tei.getRelationships().forEach( rel ->
+                    {
+                        rel.setFrom( relationshipItem );
+                        if ( rel.getRelationship() == null || !_relationshipService.relationshipExists( rel.getRelationship() ) )
+                        {
+                            createRelationships.add(rel);
+                        }
+                        else
+                        {
+                            updateRelationships.add( rel );
+                        }
+                    } );
+
+                    tei.setRelationships( new ArrayList<>(  ) );
+                } );
+        }
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -230,6 +285,10 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         importSummaries.addImportSummaries( addTrackedEntityInstances( create, importOptions ) );
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
         importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
+
+        // Setting to null so it will be updated by relationshipService. Otherwise it will cause problems with session.
+        importSummaries.addImportSummaries( relationshipService.addRelationships( createRelationships, importOptions ) );
+        importSummaries.addImportSummaries( relationshipService.updateRelationships( updateRelationships, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {

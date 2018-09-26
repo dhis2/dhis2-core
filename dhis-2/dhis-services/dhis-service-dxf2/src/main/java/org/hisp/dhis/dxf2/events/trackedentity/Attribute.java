@@ -172,7 +172,7 @@ public class Attribute
     }
 
     @JsonIgnore
-    public Boolean getSkipSynchronization()
+    public Boolean isSkipSynchronization()
     {
         return skipSynchronization;
     }
@@ -231,10 +231,15 @@ public class Attribute
         return result;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return "Attribute{" + "displayName='" + displayName + '\'' + ", attribute='" + attribute + '\'' + ", type='"
-            + valueType + '\'' + ", code='" + code + '\'' + ", value='" + value + '\'' + '}';
+        return "Attribute{" +
+            "displayName='" + displayName + '\'' +
+            ", attribute='" + attribute + '\'' +
+            ", valueType=" + valueType +
+            ", code='" + code + '\'' +
+            ", value='" + value + '\'' +
+            ", skipSynchronization=" + skipSynchronization +
+            '}';
     }
 }

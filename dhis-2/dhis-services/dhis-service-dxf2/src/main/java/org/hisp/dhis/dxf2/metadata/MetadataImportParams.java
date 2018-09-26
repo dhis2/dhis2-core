@@ -35,6 +35,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -120,6 +121,11 @@ public class MetadataImportParams
     private boolean skipSharing;
 
     /**
+     * Should translation be considered when importing objects.
+     */
+    private boolean skipTranslation;
+
+    /**
      * Skip validation of objects (not recommended).
      */
     private boolean skipValidation;
@@ -128,6 +134,11 @@ public class MetadataImportParams
      * Name of file that was used for import (if available).
      */
     private String filename;
+
+    /**
+     * Metadata Class name for importing using CSV
+     */
+    private CsvImportClass csvImportClass;
 
     /**
      * Job id to use for threaded imports.
@@ -306,6 +317,19 @@ public class MetadataImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipTranslation()
+    {
+        return skipTranslation;
+    }
+
+    public MetadataImportParams setSkipTranslation( boolean skipTranslation )
+    {
+        this.skipTranslation = skipTranslation;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
@@ -328,6 +352,18 @@ public class MetadataImportParams
     {
         this.filename = filename;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CsvImportClass getCsvImportClass()
+    {
+        return this.csvImportClass;
+    }
+
+    public void setCsvImportClass( CsvImportClass csvImportClass )
+    {
+        this.csvImportClass = csvImportClass;
     }
 
     public JobConfiguration getId()
@@ -426,6 +462,7 @@ public class MetadataImportParams
         params.setUserOverrideMode( userOverrideMode );
         params.setOverrideUser( overrideUser );
         params.setSkipSharing( skipSharing );
+        params.setSkipTranslation( skipTranslation );
         params.setSkipValidation( skipValidation );
         params.setJobId( id );
         params.setImportStrategy( importStrategy );

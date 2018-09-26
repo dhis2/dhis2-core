@@ -43,11 +43,13 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.FormType;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +64,11 @@ public class ProgramStage
     extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
+    
+    /**
+     * The i18n variant of the description. Should not be persisted.
+     */
+    protected transient String displayDescription;
 
     private String formName;
 
@@ -89,9 +96,11 @@ public class ProgramStage
 
     private Boolean validCompleteOnly = false;
 
+    private ValidationStrategy validationStrategy = ValidationStrategy.NONE;
+
     private Boolean displayGenerateEventBox = true;
 
-    private Boolean captureCoordinates = false;
+    private FeatureType featureType;
 
     private Boolean blockEntryForm = false;
 
@@ -248,6 +257,19 @@ public class ProgramStage
         this.description = description;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
+    }
+
     @JsonProperty( "programStageSections" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programStageSections", namespace = DxfNamespaces.DXF_2_0 )
@@ -377,6 +399,18 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValidationStrategy getValidationStrategy()
+    {
+        return validationStrategy;
+    }
+
+    public void setValidationStrategy( ValidationStrategy validationStrategy )
+    {
+        this.validationStrategy = validationStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getDisplayGenerateEventBox()
     {
         return displayGenerateEventBox;
@@ -385,18 +419,6 @@ public class ProgramStage
     public void setDisplayGenerateEventBox( Boolean displayGenerateEventBox )
     {
         this.displayGenerateEventBox = displayGenerateEventBox;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getCaptureCoordinates()
-    {
-        return captureCoordinates;
-    }
-
-    public void setCaptureCoordinates( Boolean captureCoordinates )
-    {
-        this.captureCoordinates = captureCoordinates;
     }
 
     @JsonProperty
@@ -508,5 +530,17 @@ public class ProgramStage
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
     }
 }

@@ -61,6 +61,9 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
@@ -74,6 +77,7 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -110,7 +114,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -1640,11 +1643,19 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setShortName( "AttributeShortName" + uniqueChar );
         attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
         attribute.setAggregationType( AggregationType.NONE );
 
+        return attribute;
+    }
+    
+    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
+    {
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
+        attribute.setValueType( valueType );
         return attribute;
     }
 
@@ -1654,24 +1665,6 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
-
-        return attribute;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return TrackedEntityAttribute
-     */
-    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
-    {
-        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
-        attribute.setAutoFields();
-
-        attribute.setName( "Attribute" + uniqueChar );
-        attribute.setCode( "AttributeCode" + uniqueChar );
-        attribute.setDescription( "Attribute" + uniqueChar );
-        attribute.setValueType( valueType );
-        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
@@ -1700,22 +1693,6 @@ public abstract class DhisConvenienceTest
         attributeGroup.setUniqunessType( UniqunessType.NONE );
 
         return attributeGroup;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return RelationshipType
-     */
-    public static RelationshipType createRelationshipType( char uniqueChar )
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setAutoFields();
-
-        relationshipType.setaIsToB( "aIsToB" );
-        relationshipType.setbIsToA( "bIsToA" );
-        relationshipType.setName( "RelationshipType" + uniqueChar );
-
-        return relationshipType;
     }
 
     /**
@@ -1815,6 +1792,23 @@ public abstract class DhisConvenienceTest
                 Sets.newHashSet(),
                 days,
                 null, null
+        );
+    }
+
+    public static DataSetNotificationTemplate createDataSetNotificationTemplate(
+        String name, DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger,
+        Integer relativeScheduledDays, SendStrategy sendStrategy )
+    {
+        return new DataSetNotificationTemplate(
+            Sets.newHashSet(),
+            Sets.newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy
         );
     }
 

@@ -31,69 +31,47 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationship
 {
-    private String displayName;
+    private String relationshipType;
 
-    private String trackedEntityInstanceA;
-
-    private String trackedEntityInstanceB;
+    private String relationshipName;
 
     private String relationship;
 
-    private TrackedEntityInstance relative;
+    private RelationshipItem from;
+
+    private RelationshipItem to;
+
+    private String created;
+
+    private String lastUpdated;
 
     public Relationship()
     {
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDisplayName()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRelationshipType()
     {
-        return displayName;
+        return relationshipType;
     }
 
-    public void setDisplayName( String name )
+    public void setRelationshipType( String relationshipType )
     {
-        this.displayName = name;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityInstanceA()
-    {
-        return trackedEntityInstanceA;
-    }
-
-    public void setTrackedEntityInstanceA( String trackedEntityInstanceA )
-    {
-        this.trackedEntityInstanceA = trackedEntityInstanceA;
+        this.relationshipType = relationshipType;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityInstanceB()
-    {
-        return trackedEntityInstanceB;
-    }
-
-    public void setTrackedEntityInstanceB( String trackedEntityInstanceB )
-    {
-        this.trackedEntityInstanceB = trackedEntityInstanceB;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelationship()
     {
         return relationship;
@@ -106,49 +84,73 @@ public class Relationship
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getRelative()
+    public RelationshipItem getFrom()
     {
-        return relative;
+        return from;
     }
 
-    public void setRelative( TrackedEntityInstance relative )
+    public void setFrom( RelationshipItem from )
     {
-        this.relative = relative;
+        this.from = from;
     }
 
-    @Override
-    public int hashCode()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelationshipItem getTo()
     {
-        return Objects.hash( displayName, trackedEntityInstanceA, trackedEntityInstanceB, relationship, relative );
+        return to;
     }
 
-    @Override
-    public boolean equals( Object obj )
+    public void setTo( RelationshipItem to )
     {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-        final Relationship other = (Relationship) obj;
-        return Objects.equals( this.displayName, other.displayName )
-            && Objects.equals( this.trackedEntityInstanceA, other.trackedEntityInstanceA )
-            && Objects.equals( this.trackedEntityInstanceB, other.trackedEntityInstanceB )
-            && Objects.equals( this.relationship, other.relationship )
-            && Objects.equals( this.relative, other.relative );
+        this.to = to;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRelationshipName()
+    {
+        return relationshipName;
+    }
+
+    public void setRelationshipName( String relationshipName )
+    {
+        this.relationshipName = relationshipName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( String lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "displayName", displayName )
-            .add( "trackedEntityInstanceA", trackedEntityInstanceA )
-            .add( "trackedEntityInstanceB", trackedEntityInstanceB )
-            .add( "relationship", relationship )
-            .toString();
+        return "Relationship{" +
+            "relationshipType='" + relationshipType + '\'' +
+            ", relationshipName='" + relationshipName + '\'' +
+            ", relationship='" + relationship + '\'' +
+            ", from=" + from +
+            ", to=" + to +
+            '}';
     }
 }

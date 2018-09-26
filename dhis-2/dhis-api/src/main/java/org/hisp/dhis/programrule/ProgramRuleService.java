@@ -38,8 +38,6 @@ import org.hisp.dhis.program.Program;
  */
 public interface ProgramRuleService
 {
-    String ID = ProgramRuleService.class.getName();
-
     /**
      * Adds an {@link ProgramRule}
      *

@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +55,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -244,8 +245,7 @@ public class JdbcEventAnalyticsTableManager
         {
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
-                String column = quote(
-                    dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String column = quote( dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
                 String select = getSelectClause( dataElement.getValueType() );
 
                 String sql =
@@ -301,19 +301,20 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" ) );
         columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" ) );
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "created" ), "timestamp", "psi.created" ) );
+        columns.add( new AnalyticsTableColumn( quote( "lastupdated" ), "timestamp", "psi.lastupdated" ) );
         columns.add( new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "psi.geometry", false, "gist" ) );
+
+        // lat and lng deprecated in 2.30, should be removed after 2.33
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ) );
+
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-        if ( databaseInfo.isSpatialSupport() )
-        {
-            String alias = "(select ST_SetSRID(ST_MakePoint(psi.longitude, psi.latitude), 4326)) as geom";
-            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
-        }
         
         if ( program.isRegistration() )
         {

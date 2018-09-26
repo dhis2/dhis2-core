@@ -35,10 +35,21 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.io.MalformedByteSequenceException;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -125,8 +136,10 @@ public class DefaultGmlImportService
 
     @Transactional
     @Override
-    public void importGml( InputStream inputStream, MetadataImportParams importParams )
+    public ImportReport importGml( InputStream inputStream, MetadataImportParams importParams )
     {
+        ImportReport importReport = new ImportReport();
+
         if ( !importParams.getImportStrategy().isUpdate() )
         {
             importParams.setImportStrategy( ImportStrategy.UPDATE );
@@ -138,15 +151,30 @@ public class DefaultGmlImportService
         if ( preProcessed.isSuccess && preProcessed.metaData != null )
         {
             importParams.addMetadata( schemaService.getMetadataSchemas(), preProcessed.metaData );
-            importService.importMetadata( importParams );
+            importReport = importService.importMetadata( importParams );
         }
         else
         {
             Throwable throwable = preProcessed.throwable;
 
             notifier.notify( importParams.getId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ), false );
+
+            importReport.setStatus( Status.ERROR );
+
+            ObjectReport objectReport = new ObjectReport( getClass(),  0 );
+
+            objectReport.addErrorReport( new ErrorReport( getClass(), new ErrorMessage( ErrorCode.E7010, createNotifierErrorMessage( throwable ) ) ) );
+
+            TypeReport typeReport = new TypeReport( getClass() );
+
+            typeReport.addObjectReport( objectReport );
+
+            importReport.addTypeReport( typeReport );
+
             log.error( "GML import failed: ", throwable );
         }
+
+        return importReport;
     }
 
     // -------------------------------------------------------------------------

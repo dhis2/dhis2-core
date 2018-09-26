@@ -38,6 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -73,6 +74,8 @@ public class ProgramInstance
     private Program program;
 
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
@@ -498,5 +501,38 @@ public class ProgramInstance
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
+
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
+
+
+    @Override public String toString()
+    {
+        return "ProgramInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", status=" + status +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", incidentDate=" + incidentDate +
+            ", enrollmentDate=" + enrollmentDate +
+            ", entityInstance=" + entityInstance.getUid() +
+            ", program=" + program +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
     }
 }

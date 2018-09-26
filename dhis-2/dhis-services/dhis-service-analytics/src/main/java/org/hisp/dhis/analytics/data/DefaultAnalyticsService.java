@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryParams.Builder;
@@ -53,6 +52,7 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -97,6 +97,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -207,9 +208,7 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
-
-        return tableLayout ?
+        return AnalyticsUtils.isTableLayout( columns, rows ) ?
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
@@ -223,7 +222,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDimensionConstraints( params );
 
         queryValidator.validate( params );
-        
+
         return getRawDataGrid( params );
     }
 
@@ -238,7 +237,7 @@ public class DefaultAnalyticsService
             .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
-                
+
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
     
@@ -975,7 +974,7 @@ public class DefaultAnalyticsService
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the indicators for which formulas to scan for organisation
-     *        unit groups.
+     *         unit groups.
      * @return a map of maps.
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
@@ -989,7 +988,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams orgUnitTargetParams = DataQueryParams.newBuilder( params )
             .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, null, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
             .withSkipPartitioning( true ).build();
 
         Map<String, Double> orgUnitCountMap = getAggregatedOrganisationUnitTargetMap( orgUnitTargetParams );
@@ -1133,8 +1132,15 @@ public class DefaultAnalyticsService
                 {
                     log.error( DebugUtils.getStackTrace( ex ) );
                     log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-
-                    throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    
+                    if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
+                    {
+                        throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution exception
+                    }
+                    else
+                    {                    
+                        throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    }
                 }
             }
         }

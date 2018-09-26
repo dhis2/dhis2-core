@@ -17,7 +17,7 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="shortName" column="shortname" not-null="false" unique="true" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
     <property name="description" type="text" />
 
@@ -78,7 +78,7 @@
 
     <property name="programScope" />
 
-    <property name="skipSynchronization" not-null="false" />
+    <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"

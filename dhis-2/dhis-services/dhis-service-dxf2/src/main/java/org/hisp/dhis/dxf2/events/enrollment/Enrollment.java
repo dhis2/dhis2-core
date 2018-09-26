@@ -37,10 +37,13 @@ import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,6 +79,8 @@ public class Enrollment
 
     private List<Event> events = new ArrayList<>();
 
+    private Set<Relationship> relationships = new HashSet<>();
+
     private List<Attribute> attributes = new ArrayList<>();
 
     private List<Note> notes = new ArrayList<>();
@@ -89,11 +94,20 @@ public class Enrollment
     private Coordinate coordinate;
 
     private Boolean deleted = false;
-    
+
     private String storedBy;
 
     public Enrollment()
     {
+    }
+
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setNotes( null );
+        this.setRelationships( null );
+        this.setAttributes( null );
+        this.setEvents( null );
     }
 
     @JsonProperty( required = true )
@@ -350,7 +364,7 @@ public class Enrollment
     {
         this.deleted = deleted;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getStoredBy()
@@ -361,5 +375,36 @@ public class Enrollment
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Set<Relationship> getRelationships()
+    {
+        return relationships;
+    }
+
+    public void setRelationships( Set<Relationship> relationships )
+    {
+        this.relationships = relationships;
+    }
+
+    @Override public String toString()
+    {
+        return "Enrollment{" +
+            "enrollment='" + enrollment + '\'' +
+            ", trackedEntityType='" + trackedEntityType + '\'' +
+            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", program='" + program + '\'' +
+            ", status=" + status +
+            ", orgUnit='" + orgUnit + '\'' +
+            ", enrollmentDate=" + enrollmentDate +
+            ", incidentDate=" + incidentDate +
+            ", events=" + events +
+            ", relationships=" + relationships +
+            ", attributes=" + attributes +
+            ", notes=" + notes +
+            ", deleted=" + deleted +
+            '}';
     }
 }

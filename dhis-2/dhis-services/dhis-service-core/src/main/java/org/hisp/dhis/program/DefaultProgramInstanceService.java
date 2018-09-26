@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -57,7 +58,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 /**
  * @author Abyot Asalefew
@@ -97,10 +100,10 @@ public class DefaultProgramInstanceService
     private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
-    
+    private ApplicationEventPublisher eventPublisher;
+
     @Autowired
-    private ProgramInstanceAuditService programInstanceAuditService;    
+    private ProgramInstanceAuditService programInstanceAuditService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -138,29 +141,29 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( int id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
-        
+
         User user = currentUserService.getCurrentUser();
 
         if ( user != null )
         {
             addProgramInstanceAudit( programInstance, user.getUsername() );
         }
-        
+
         return programInstance;
     }
-    
+
     @Override
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-        
+
         User user = currentUserService.getCurrentUser();
 
         if ( user != null )
         {
             addProgramInstanceAudit( programInstance, user.getUsername() );
         }
-        
+
         return programInstance;
     }
 
@@ -184,7 +187,7 @@ public class DefaultProgramInstanceService
 
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, 
+        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
@@ -274,9 +277,9 @@ public class DefaultProgramInstanceService
         {
             params.setDefaultPaging();
         }
-        
+
         List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-        
+
         if ( user != null )
         {
             addProrgamInstanceAudits( programInstances, user.getUsername() );
@@ -448,7 +451,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
 
-        programRuleEngineService.evaluate( programInstance );
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -489,7 +492,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
 
-        programRuleEngineService.evaluate( programInstance );
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance
@@ -564,20 +567,20 @@ public class DefaultProgramInstanceService
 
         updateProgramInstance( programInstance );
     }
-    
+
     private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
-    {        
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() == AccessLevel.AUDITED && accessedBy != null )
+    {
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
         {
             ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
-                
+
             programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
         }
     }
-    
+
     private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
     {
-        for( ProgramInstance programInstance : programInstances )
+        for ( ProgramInstance programInstance : programInstances )
         {
             addProgramInstanceAudit( programInstance, accessedBy );
         }

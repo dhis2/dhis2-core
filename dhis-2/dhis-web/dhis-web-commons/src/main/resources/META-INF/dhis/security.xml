@@ -17,7 +17,8 @@
   <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"
     authentication-manager-ref="oAuth2AuthenticationManager" stateless="false" />
 
-  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
+  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager"
+    disable-url-rewriting="true"
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
@@ -26,7 +27,8 @@
     <sec:csrf disabled="true" />
   </sec:http>
 
-  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
+  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
+    use-expressions="false"
     create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
     <sec:http-basic />
@@ -137,6 +139,7 @@
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
+    <sec:intercept-url pattern="/api/icons/*/icon.svg" method="GET" access="permitAll()" />
     <sec:intercept-url request-matcher-ref="analyticPluginResources"
       access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
       'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard,M_dhis-web-mapping')" />
@@ -167,8 +170,9 @@
   </sec:http>
 
   <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
-        <constructor-arg name="pattern" value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)"/>
-        <constructor-arg name="httpMethod" value="GET"/>
+    <constructor-arg name="pattern"
+      value=".*(dhis-web-mapping\/map.js|dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)" />
+    <constructor-arg name="httpMethod" value="GET" />
   </bean>
 
   <bean id="securityExceptionTranslationHandler"
@@ -239,7 +243,8 @@
     </constructor-arg>
   </bean>
 
-  <bean id="methodSecurityExpressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+  <bean id="methodSecurityExpressionHandler"
+    class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
     <property name="defaultRolePrefix" value="" />
   </bean>
 
@@ -413,40 +418,47 @@
     <property name="authorities">
       <set>
         <value>ALL</value>
-        <value>F_VIEW_EVENT_ANALYTICS</value>
+        <!-- Import - export -->
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
+        <value>F_EXPORT_DATA</value>
+        <value>F_IMPORT_DATA</value>
+        <value>F_EXPORT_EVENTS</value>
+        <value>F_IMPORT_EVENTS</value>
+        <!-- Approval -->
         <value>F_APPROVE_DATA</value>
         <value>F_APPROVE_DATA_LOWER_LEVELS</value>
         <value>F_ACCEPT_DATA_LOWER_LEVELS</value>
+        <!-- Various -->
+        <value>F_PERFORM_MAINTENANCE</value>
+        <value>F_LOCALE_ADD</value>
+        <value>F_GENERATE_MIN_MAX_VALUES</value>
+        <value>F_RUN_VALIDATION</value>
+        <value>F_PREDICTOR_RUN</value>
+        <value>F_SEND_EMAIL</value>
+        <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_INSERT_CUSTOM_JS_CSS</value>
         <value>F_VIEW_UNAPPROVED_DATA</value>
+        <!-- User -->
+        <value>F_USER_VIEW</value>
         <value>F_REPLICATE_USER</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_ADD</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
         <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
+        <!-- Tracker -->
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
-        <value>F_TRACKED_ENTITY_DATAVALUE_READ</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_SEARCH</value>
         <value>F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_ADD</value>
-        <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
-        <value>F_UNCOMPLETE_EVENT</value>
-        <value>F_PROGRAM_ENROLLMENT</value>
-        <value>F_PROGRAM_UNENROLLMENT</value>
-        <value>F_PROGRAM_ENROLLMENT_READ</value>
-        <value>F_ORGANISATIONUNIT_MOVE</value>
-        <value>F_PREDICTOR_RUN</value>
-        <value>F_SEND_EMAIL</value>
         <value>F_TEI_CASCADE_DELETE</value>
         <value>F_ENROLLMENT_CASCADE_DELETE</value>
+        <value>F_UNCOMPLETE_EVENT</value>
+        <value>F_EDIT_EXPIRED</value>
+        <!-- Program Data Synchronization -->
+        <value>F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION</value>
       </set>
     </property>
   </bean>
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener" />
 </beans>

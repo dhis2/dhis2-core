@@ -28,7 +28,7 @@ package org.hisp.dhis.mapping.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapStore;
@@ -43,9 +43,9 @@ public class HibernateMapStore
     @Override
     public int countMapViewMaps( MapView mapView )
     {
-        Query query = getQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
-        query.setEntity( "mapView", mapView );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
+        query.setParameter( "mapView", mapView );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 }

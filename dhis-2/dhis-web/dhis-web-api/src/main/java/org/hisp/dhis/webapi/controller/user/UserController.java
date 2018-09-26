@@ -134,14 +134,14 @@ public class UserController
         params.setInactiveSince( options.getDate( "inactiveSince" ) );
         params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
+        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
+        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
 
         String ou = options.get( "ou" );
-        boolean includeOrgUnitChildren = Boolean.valueOf( options.get( "includeChildren" ) );
 
         if ( ou != null )
         {
-            params.setOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
-            params.setIncludeOrgUnitChildren( includeOrgUnitChildren );
+            params.addOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
         }
 
         if ( options.isManage() )

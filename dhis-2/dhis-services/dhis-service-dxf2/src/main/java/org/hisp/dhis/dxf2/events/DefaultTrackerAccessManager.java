@@ -28,18 +28,21 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 
@@ -53,12 +56,12 @@ import java.util.Set;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
-    private final IdentifiableObjectManager manager;
+    private final TrackerOwnershipAccessManager ownershipAccessManager;
 
-    public DefaultTrackerAccessManager( AclService aclService, IdentifiableObjectManager manager )
+    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipAccessManager ownershipAccessManager )
     {
         this.aclService = aclService;
-        this.manager = manager;
+        this.ownershipAccessManager = ownershipAccessManager;
     }
 
     @Override
@@ -124,6 +127,80 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
+    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program )
+    {
+        List<String> errors = new ArrayList<>();
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        {
+            return errors;
+        }
+
+        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+            {
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+
+        if ( !aclService.canDataRead( user, trackedEntityType ) )
+        {
+            errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
+        }
+
+        // check for ownership access
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        {
+            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program )
+    {
+        List<String> errors = new ArrayList<>();
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        {
+            return errors;
+        }
+
+        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+
+        if ( !aclService.canDataWrite( user, trackedEntityType ) )
+        {
+            errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
+        }
+
+        // check for ownership access
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        {
+            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+        }
+
+        return errors;
+    }
+
+    @Override
     public List<String> canRead( User user, ProgramInstance programInstance )
     {
         List<String> errors = new ArrayList<>();
@@ -138,7 +215,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getDataViewOrganisationUnitsWithFallback() ) )
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
@@ -156,6 +233,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
+            }
+
+            // check for ownership access
+            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            {
+                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
 
@@ -196,6 +279,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
+
+            // check for ownership access
+            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            {
+                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            }
         }
 
         return errors;
@@ -216,13 +305,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getDataViewOrganisationUnitsWithFallback() ) )
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+
+        if ( isNull( programStage ) )
+        {
+            return errors;
+        }
+
         Program program = programStage.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
@@ -240,6 +335,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
+            }
+
+            // check for ownership access
+            if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
+            {
+                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
 
@@ -270,6 +371,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
+
+        if ( isNull( programStage ) )
+        {
+            return errors;
+        }
+
         Program program = programStage.getProgram();
 
         if ( program.isWithoutRegistration() )
@@ -295,9 +402,85 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
+
+            // check for ownership access
+            if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
+            {
+                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            }
         }
 
         errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canRead( User user, Relationship relationship )
+    {
+        List<String> errors = new ArrayList<>();
+        RelationshipType relationshipType;
+        RelationshipItem from;
+        RelationshipItem to;
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || relationship == null )
+        {
+            return errors;
+        }
+
+        relationshipType = relationship.getRelationshipType();
+
+        if ( !aclService.canDataRead( user, relationshipType ) )
+        {
+            errors.add( "User has no data read access to relationshipType: " + relationshipType.getUid() );
+        }
+
+        from = relationship.getFrom();
+        to = relationship.getTo();
+
+        errors.addAll( canRead( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, from.getProgramInstance() ) );
+        errors.addAll( canRead( user, from.getProgramStageInstance() ) );
+
+        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance() ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, Relationship relationship )
+    {
+        List<String> errors = new ArrayList<>();
+        RelationshipType relationshipType;
+        RelationshipItem from;
+        RelationshipItem to;
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() || relationship == null )
+        {
+            return errors;
+        }
+
+        relationshipType = relationship.getRelationshipType();
+
+        if ( !aclService.canDataWrite( user, relationshipType ) )
+        {
+            errors.add( "User has no data write access to relationshipType: " + relationshipType.getUid() );
+        }
+
+        from = relationship.getFrom();
+        to = relationship.getTo();
+
+        errors.addAll( canWrite( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canWrite( user, from.getProgramInstance() ) );
+        errors.addAll( canWrite( user, from.getProgramStageInstance() ) );
+
+        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance() ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
 
         return errors;
     }
@@ -351,14 +534,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null )
         {
             return errors;
         }
 
         for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataRead( user, categoryOption ) && !manager.isDefault( categoryOption ) )
+            if ( !aclService.canDataRead( user, categoryOption ) )
             {
                 errors.add( "User has no read access to category option: " + categoryOption.getUid() );
             }
@@ -372,14 +555,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null )
         {
             return errors;
         }
 
         for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataWrite( user, categoryOption ) && !manager.isDefault( categoryOption ) )
+            if ( !aclService.canDataWrite( user, categoryOption ) )
             {
                 errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
@@ -391,5 +574,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
     {
         return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    private boolean isNull( ProgramStage programStage )
+    {
+        return programStage == null || programStage.getProgram() == null;
     }
 }

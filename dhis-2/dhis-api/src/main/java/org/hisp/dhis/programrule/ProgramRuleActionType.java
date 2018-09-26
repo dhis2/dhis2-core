@@ -50,12 +50,15 @@ public enum ProgramRuleActionType
     CREATEEVENT( "createevent" ),
     SETMANDATORYFIELD( "setmandatoryfield" ),
     SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" );
+    SCHEDULEMESSAGE( "schedulemessage" ),
+    HIDEOPTION( "hideoption" ),
+    SHOWOPTIONGROUP( "showoptiongroup" ),
+    HIDEOPTIONGROUP( "hideoptiongroup" );
 
     final String value;
 
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions having back end implementation
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
 
     ProgramRuleActionType( String value )
     {

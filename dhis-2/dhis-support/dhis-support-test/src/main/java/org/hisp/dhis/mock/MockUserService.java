@@ -28,9 +28,6 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
@@ -38,6 +35,10 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Adrian Quintana
@@ -77,6 +78,12 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public List<User> getUsers( Collection<String> uid )
+    {
+        return this.users;
+    }
+
+    @Override
     public List<User> getAllUsers()
     {
         return null;
@@ -103,18 +110,6 @@ public class MockUserService implements UserService
     public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
     {
         return false;
-    }
-
-    @Override
-    public List<User> getManagedUsers( User user )
-    {
-        return null;
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        return 0;
     }
 
     @Override

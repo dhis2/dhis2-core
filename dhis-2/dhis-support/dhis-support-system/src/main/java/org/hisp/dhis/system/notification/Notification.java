@@ -43,7 +43,7 @@ import java.util.Date;
 @JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
 public class Notification
 {
-    private String uid;
+    private String uid; // FIXME expose as "id" externally in next API version as "uid" is internal
     
     private NotificationLevel level;
     

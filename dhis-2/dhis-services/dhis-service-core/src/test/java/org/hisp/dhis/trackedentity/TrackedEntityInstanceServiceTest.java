@@ -31,14 +31,8 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -56,9 +50,6 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
-
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
 
     private TrackedEntityInstance entityInstanceA1;
 
@@ -151,21 +142,4 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( "B1" ) );
     }
 
-    @Test
-    public void testCreateTrackedEntityInstanceAndRelative()
-    {
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        int relationshipTypeId = relationshipTypeService.addRelationshipType( relationshipType );
-
-        TrackedEntityAttributeValue attributeValue = createTrackedEntityAttributeValue( 'A', entityInstanceA1,
-            entityInstanceAttribute );
-        Set<TrackedEntityAttributeValue> entityInstanceAttributeValues = new HashSet<>();
-        entityInstanceAttributeValues.add( attributeValue );
-
-        int idA = entityInstanceService.createTrackedEntityInstance( entityInstanceA1, entityInstanceB1.getUid(),
-            relationshipTypeId, entityInstanceAttributeValues );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-    }
 }

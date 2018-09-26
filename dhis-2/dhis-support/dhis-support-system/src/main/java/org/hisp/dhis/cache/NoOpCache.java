@@ -28,8 +28,11 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
+
+import com.google.common.collect.Sets;
 
 /**
  * A No operation implementation of {@link Cache}. The implementation will not
@@ -67,6 +70,12 @@ public class NoOpCache<V> implements Cache<V>
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
         return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
+    }
+
+    @Override
+    public Collection<V> getAll()
+    {
+        return Sets.newHashSet();
     }
 
     @Override

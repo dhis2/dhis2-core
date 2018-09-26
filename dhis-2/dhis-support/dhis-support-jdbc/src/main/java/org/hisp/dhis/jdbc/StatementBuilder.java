@@ -29,7 +29,12 @@ package org.hisp.dhis.jdbc;
  */
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
  * @author Lars Helge Overland
@@ -38,6 +43,8 @@ import java.util.List;
 public interface StatementBuilder
 {
     final String QUOTE = "'";
+    
+    final String ANALYTICS_TBL_ALIAS = "ax";
 
     //--------------------------------------------------------------------------
     // General
@@ -263,4 +270,38 @@ public interface StatementBuilder
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
+   
+    /**
+     * Get SQL where-condition for all analyticsPeriodBoundaries in a program indicator.
+     * @param programIndicator the program indicator context
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
+     * @return SQL to use in where clause.
+     */
+    String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, 
+        SqlHelper sqlHelper );
+    
+    /**
+     * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.
+     * @param boundary the boundary to get where-condition for
+     * @param programIndicator the program indicator context
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
+     * @return SQL to use in where clause.
+     */
+    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate );
+    
+    /**
+     * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries.
+     * @param programStageUid the program stage to get data for
+     * @param dataElementUid the data element to get data for
+     * @param reportingStartDate the reporting start date
+     * @param reportingEndDate the reporting end date
+     * @param programIndicator the program indicator context
+     * @return
+     */
+    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
 }

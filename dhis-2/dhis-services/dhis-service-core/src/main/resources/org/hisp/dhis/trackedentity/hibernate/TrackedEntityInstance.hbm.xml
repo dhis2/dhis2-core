@@ -22,15 +22,7 @@
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
-    <property name="featureType" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <property name="coordinates" type="text" />
+    <property name="geometry" />
 
     <set name="trackedEntityAttributeValues" inverse="true">
       <key column="trackedentityinstanceid" />
@@ -40,6 +32,16 @@
     <set name="programInstances" inverse="true">
       <key column="trackedentityinstanceid" />
       <one-to-many class="org.hisp.dhis.program.ProgramInstance" />
+    </set>
+    
+      <set name="programOwners" inverse="true">
+      <key column="trackedentityinstanceid" />
+      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" />
+    </set>
+
+    <set name="relationshipItems" inverse="true">
+      <key column="trackedentityinstanceid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
     <many-to-one name="representative" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="representativeid"

@@ -30,15 +30,20 @@ package org.hisp.dhis.interpretation.impl;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.interpretation.MentionUtils;
+import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -48,9 +53,12 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +74,8 @@ public class DefaultInterpretationService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    @Autowired
+    private SchemaService schemaService;
 
     private InterpretationStore interpretationStore;
 
@@ -133,7 +143,7 @@ public class DefaultInterpretationService
         User user = currentUserService.getCurrentUser();
         
         Set<User> users = new HashSet<>();
-        
+
         if ( interpretation != null )
         {
             if ( user != null )
@@ -152,8 +162,9 @@ public class DefaultInterpretationService
         }
 
         interpretationStore.save( interpretation );
+        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );
 
-        sendNotifications( interpretation, null, users );
+        sendMentionNotifications( interpretation, null, users );
 
         return interpretation.getId();
     }
@@ -171,15 +182,32 @@ public class DefaultInterpretationService
     }
 
     @Override
+    public void updateComment( Interpretation interpretation, InterpretationComment comment )
+    {
+        Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
+        comment.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
+        interpretationStore.update( interpretation );
+        notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
+        sendMentionNotifications( interpretation, comment, users );
+    }
+
+    @Override
     public void updateInterpretation( Interpretation interpretation )
     {
-        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-        
-        interpretation.setMentionsFromUsers( users );
         interpretationStore.update( interpretation );
+    }
+
+    @Override
+    public void updateInterpretationText( Interpretation interpretation, String text )
+    {
+        interpretation.setText( text );
+        updateInterpretation( interpretation );
+        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_UPDATE );
+        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        interpretation.setMentionsFromUsers( users );
         updateSharingForMentions( interpretation, users );
-        
-        sendNotifications( interpretation, null, users );
+        sendMentionNotifications( interpretation, null, users );
     }
 
     @Override
@@ -206,53 +234,93 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    @Override
-    public void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
+    private int sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    {
+        I18n i18n = i18nManager.getI18n();
+        String currentUsername = currentUserService.getCurrentUser().getUsername();
+        String interpretableName = interpretation.getObject().getName();
+        String actionString;
+        String details;
+
+        switch ( notificationType )
+        {
+            case INTERPRETATION_CREATE:
+                actionString = i18n.getString( "notification_interpretation_create" );
+                details = interpretation.getText();
+                break;
+            case INTERPRETATION_UPDATE:
+                actionString = i18n.getString( "notification_interpretation_update" );
+                details = interpretation.getText();
+                break;
+            case INTERPRETATION_LIKE:
+                actionString = i18n.getString( "notification_interpretation_like" );
+                details = "";
+                break;
+            case COMMENT_CREATE:
+                actionString = i18n.getString( "notification_comment_create" );
+                details = comment.getText();
+                break;
+            case COMMENT_UPDATE:
+                actionString = i18n.getString( "notification_comment_update" );
+                details = comment.getText();
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
+        }
+
+        String subject = String.join( " ", Arrays.asList(
+            i18n.getString( "notification_user" ),
+            currentUsername,
+            actionString,
+            i18n.getString( "notification_object_subscribed" )
+        ) );
+
+        String fullBody = String.join( "\n\n", Arrays.asList(
+            String.format( "%s: %s", subject, interpretableName ),
+            Jsoup.parse( details ).text(),
+            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
+        ) );
+        
+        return messageService.sendSystemMessage( users, subject, fullBody );
+    }
+
+    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    {
+        IdentifiableObject interpretableObject = interpretation.getObject();
+        Schema interpretableObjectSchema = schemaService.getDynamicSchema( interpretableObject.getClass() );
+
+        if ( interpretableObjectSchema.isSubscribable() )
+        {
+            SubscribableObject object = (SubscribableObject) interpretableObject;
+            Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
+            subscribers.remove( currentUserService.getCurrentUser() );
+            
+            if ( !subscribers.isEmpty() ) 
+            {
+                sendNotificationMessage( subscribers, interpretation, comment, notificationType );
+            }
+        }
+    }
+
+    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
     {
         if ( interpretation == null || users.isEmpty() )
         {
             return;
         }
-        String link = systemSettingManager.getInstanceBaseUrl();
-
-        switch ( interpretation.getType() )
-        {
-        case MAP:
-            link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case REPORT_TABLE:
-            link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case CHART:
-            link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case EVENT_REPORT:
-            link += "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case EVENT_CHART:
-            link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        default:
-            break;
-        }
-
+        String link = getInterpretationLink( interpretation );
         StringBuilder messageContent;
         I18n i18n = i18nManager.getI18n();
 
         if ( comment != null )
         {
             messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( comment.getText() );
+                .append( "\n\n" ).append( Jsoup.parse( comment.getText() ).text() );
         }
         else
         {
             messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( interpretation.getText() );
+                .append( "\n\n" ).append( Jsoup.parse( interpretation.getText() ).text() );
 
         }
         messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
@@ -260,8 +328,40 @@ public class DefaultInterpretationService
         User user = currentUserService.getCurrentUser();
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-        messageService.sendMessage( messageService
-            .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
+        
+        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" );
+    }
+
+    private String getInterpretationLink( Interpretation interpretation ) {
+        String path;
+
+        switch ( interpretation.getType() )
+        {
+        case MAP:
+            path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case REPORT_TABLE:
+            path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case CHART:
+            path = "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case EVENT_REPORT:
+            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case EVENT_CHART:
+            path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
+                + "&interpretationid=" + interpretation.getUid();
+            break;
+        default:
+            path = "";
+            break;
+        }
+        return systemSettingManager.getInstanceBaseUrl() + path;
     }
 
     @Override
@@ -298,7 +398,8 @@ public class DefaultInterpretationService
         interpretation.addComment( comment );
         interpretationStore.update( interpretation );
 
-        sendNotifications( interpretation, comment, users );
+        notifySubscribers( interpretation, comment, NotificationType.COMMENT_CREATE );
+        sendMentionNotifications( interpretation, comment, users );
 
         return comment;
     }
@@ -349,7 +450,10 @@ public class DefaultInterpretationService
             return false;
         }
 
-        return interpretation.like( user );
+        boolean userLike = interpretation.like( user );
+        notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_LIKE );
+
+        return userLike;
     }
 
     @Transactional( isolation = Isolation.REPEATABLE_READ )

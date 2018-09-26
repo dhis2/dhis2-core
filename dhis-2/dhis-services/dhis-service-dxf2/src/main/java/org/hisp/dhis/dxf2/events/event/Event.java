@@ -32,13 +32,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,6 +69,8 @@ public class Event
     private String orgUnitName;
 
     private String trackedEntityInstance;
+
+    private Set<Relationship> relationships;
 
     private String eventDate;
 
@@ -98,12 +103,22 @@ public class Event
     private String completedBy;
 
     private String completedDate;
-    
+
     private int optionSize;
+
+    private Geometry geometry;
 
     public Event()
     {
         deleted = false;
+    }
+
+    public void clear()
+    {
+        this.setDeleted( null );
+        this.setStatus( null );
+        this.setDataValues( null );
+        this.setNotes( null );
     }
 
     public String getUid()
@@ -417,16 +432,42 @@ public class Event
     {
         this.deleted = deleted;
     }
-    
-    public int getOptionSize() {
-		return optionSize;
-	}
 
-	public void setOptionSize(int optionSize) {
-		this.optionSize = optionSize;
-	}
+    public int getOptionSize()
+    {
+        return optionSize;
+    }
 
-	@Override
+    public void setOptionSize( int optionSize )
+    {
+        this.optionSize = optionSize;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Relationship> getRelationships()
+    {
+        return relationships;
+    }
+
+    public void setRelationships( Set<Relationship> relationships )
+    {
+        this.relationships = relationships;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
+    @Override
     public boolean equals( Object o )
     {
         if ( this == o ) return true;
@@ -445,25 +486,21 @@ public class Event
         return event != null ? event.hashCode() : 0;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "Event{" +
             "event='" + event + '\'' +
             ", status=" + status +
             ", program='" + program + '\'' +
             ", programStage='" + programStage + '\'' +
+            ", enrollment='" + enrollment + '\'' +
             ", orgUnit='" + orgUnit + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", relationships=" + relationships +
             ", eventDate='" + eventDate + '\'' +
             ", dueDate='" + dueDate + '\'' +
-            ", storedBy='" + storedBy + '\'' +
-            ", coordinate=" + coordinate +
             ", dataValues=" + dataValues +
-            ", attributeOptionCombo=" + attributeOptionCombo +
-            ", attributeCategoryOptions=" + attributeCategoryOptions +
-            ", completedBy=" + completedBy +
-            ", completedDate=" + completedDate +
+            ", notes=" + notes +
             ", deleted=" + deleted +
             '}';
     }

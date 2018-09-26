@@ -158,7 +158,8 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
+        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
         boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
@@ -235,7 +236,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -377,11 +381,14 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String ds, HttpServletResponse response )
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
 
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -403,7 +410,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -599,11 +609,8 @@ public class DataValueController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = content.openStream() )
         {
-            inputStream = content.openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
@@ -611,10 +618,6 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
         }
     }
 
@@ -790,8 +793,10 @@ public class DataValueController
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
+        User user = currentUserService.getCurrentUser();
+
+        if ( dataSet == null ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }

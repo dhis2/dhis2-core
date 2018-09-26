@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -127,6 +128,9 @@ public class EventValidationServiceTest
 
     @Autowired
     private ValidationRuleService validationRuleService;
+
+    @Autowired
+    private CategoryManager categoryManager;
 
     private CategoryOptionCombo defaultCombo;
 
@@ -233,7 +237,7 @@ public class EventValidationServiceTest
         programStageInstanceService.addProgramStageInstance( stageInstanceA );
         programStageInstanceService.addProgramStageInstance( stageInstanceB );
 
-        categoryService.addAndPruneAllOptionCombos();
+        categoryManager.addAndPruneAllOptionCombos();
 
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );

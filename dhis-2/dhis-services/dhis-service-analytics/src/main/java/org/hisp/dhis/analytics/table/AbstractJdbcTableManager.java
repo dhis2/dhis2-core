@@ -34,14 +34,15 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -49,7 +50,6 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -61,11 +61,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 
 /**
  * @author Lars Helge Overland
@@ -111,8 +118,11 @@ public abstract class AbstractJdbcTableManager
     @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Autowired
+    @Resource( name = "jdbcTemplate" )
     protected JdbcTemplate jdbcTemplate;
+    
+    @Resource( name = "slowQueryJdbcTemplate" )
+    protected JdbcTemplate slowQueryJdbcTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -127,13 +137,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    public void createTable( AnalyticsTable table )
     {
-        if ( !skipMasterTable )
-        {
-            createTempTable( table );
-        }
-        
+        createTempTable( table );        
         createTempTablePartitions( table );
     }
     
@@ -166,13 +172,13 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean skipMasterTable )
+    public void swapTable( AnalyticsTable table, boolean partialUpdate )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {
-            swapTable( partition.getTempTableName(), partition.getTableName() );
-        }
+        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
+        boolean tableExists = partitionManager.tableExists( table.getTableName() );
+        boolean skipMasterTable = partialUpdate && tableExists;
+
         if ( !skipMasterTable )
         {
             swapTable( table.getTempTableName(), table.getTableName() );
@@ -182,9 +188,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTempTable( AnalyticsTable table )
     {
-        table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
-        
-        dropTableCascade( table.getTempTableName() );
+        dropTableCascade( table.getTempTableName() );        
     }
     
     @Override
@@ -264,27 +268,7 @@ public abstract class AbstractJdbcTableManager
     {
         return getAnalyticsTableType().getTableName();
     }
-    
-    /**
-     * Quotes the given column name.
-     * 
-     * @param column the column name.
-     */
-    protected String quote( String column )
-    {
-        return statementBuilder.columnQuote( column );
-    }
-    
-    /**
-     * Remove quotes from the given column name.
-     * 
-     * @param column the column name.
-     */
-    private String removeQuote( String column )
-    {
-        return column != null ? column.replaceAll( statementBuilder.getColumnQuote(), StringUtils.EMPTY ) : null;
-    }
-    
+
     /**
      * Shortens the given table name.
      * 
@@ -485,7 +469,7 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
-        jdbcTemplate.execute( sql );
+        slowQueryJdbcTemplate.execute( sql );
         
         log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }

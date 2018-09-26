@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 import java.util.Date;
 import java.util.List;
@@ -40,9 +43,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -57,6 +60,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -65,14 +69,12 @@ import org.springframework.util.Assert;
 import com.google.common.collect.Lists;
 
 /**
- * 
  * @author Markus Bekken
  */
 public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
     
-    protected static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
     protected static final String ITEM_NAME_SEP = ": ";
     protected static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
@@ -134,7 +136,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
             {
-                columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+                columns.add( quote( ANALYTICS_TBL_ALIAS, dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -163,12 +165,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
+                String asClause = " as " + quote( in.getUid() );
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                String colName = quote( queryItem.getItemName() );
                 
                 String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
                 
@@ -176,7 +178,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
+                columns.add( quoteAlias( queryItem.getItemName() ) );
             }
         }
         
@@ -241,7 +243,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( QUERY_ERR_MSG, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.info( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
 
         return grid;
@@ -326,7 +332,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
-            String expression = statementBuilder.columnQuote( params.getValue().getUid() );
+            String expression = quoteAlias( params.getValue().getUid() );
             
             return function + "(" + expression + ")";
         }
@@ -358,15 +364,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
+                    return "count(distinct " + quoteAlias( "tei") + ")";
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
+                    return "count(distinct " + quoteAlias( "pi") + ")";
                 }
                 else // EVENT
                 {
-                    return "count(" + statementBuilder.columnQuote( "psi") + ")";
+                    return "count(" + quoteAlias( "psi") + ")";
                 }
             }
         }
@@ -416,7 +422,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getColumn( QueryItem item )
     {
-        String col = statementBuilder.columnQuote( item.getItemName() );
+        String col = quoteAlias( item.getItemName() );
         return item.isText() ? "lower(" + col + ")" : col;
     }
     

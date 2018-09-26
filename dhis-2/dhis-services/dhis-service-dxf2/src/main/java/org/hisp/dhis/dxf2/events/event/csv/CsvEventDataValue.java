@@ -54,7 +54,8 @@ import java.util.Objects;
     "storedBy",
     "providedElsewhere",
     "completedDate",
-    "completedBy"
+    "completedBy",
+    "geometry"
 } )
 public class CsvEventDataValue
 {
@@ -90,6 +91,8 @@ public class CsvEventDataValue
 
     private String completedBy;
 
+    private String geometry;
+
     public CsvEventDataValue()
     {
     }
@@ -114,6 +117,7 @@ public class CsvEventDataValue
         providedElsewhere = dataValue.getProvidedElsewhere();
         completedDate = dataValue.getCompletedDate();
         completedBy = dataValue.getCompletedBy();
+        geometry = dataValue.getGeometry();
     }
 
     @JsonProperty
@@ -292,10 +296,21 @@ public class CsvEventDataValue
         this.completedBy = completedBy;
     }
 
+    @JsonProperty
+    public String getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( String geometry )
+    {
+        this.geometry = geometry;
+    }
+
     @Override
     public int hashCode()
     {
-        return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate, latitude, longitude,
+        return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate,
             dataElement, value, storedBy, providedElsewhere );
     }
 
@@ -319,7 +334,8 @@ public class CsvEventDataValue
             other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
             other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
             other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere );
+            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere ) &&Objects.equals( this.geometry,
+            other.geometry );
     }
 
     @Override
@@ -342,6 +358,7 @@ public class CsvEventDataValue
             .add( "providedElsewhere", providedElsewhere )
             .add( "completedDate", completedDate )
             .add( "completedBy", completedBy )
+            .add( "geometry", geometry )
             .toString();
     }
 }

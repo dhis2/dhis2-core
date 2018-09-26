@@ -60,7 +60,7 @@ public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
     private static final String SMTP_ERROR = "SMTP server not configured";
-    private static final String EMAIL_DISABLED = "Email message notifications disabled";
+    private static final String EMAIL_DISABLED = "Email message notifications system setting disabled";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -83,10 +83,7 @@ public class EmailController
     {
         checkEmailSettings();
 
-        String userEmail = currentUserService.getCurrentUser().getEmail();
-        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
-
-        if ( !userEmailConfigured )
+        if ( !currentUserService.getCurrentUser().hasEmail() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, no email configured for current user" ) );
         }
@@ -146,14 +143,9 @@ public class EmailController
     
     private void checkEmailSettings() throws WebMessageException
     {
-        if ( !emailService.emailNotificationsEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.error( EMAIL_DISABLED ) );
-        }
-
         if ( !emailService.emailConfigured() )
         {
-            throw new WebMessageException( WebMessageUtils.error( SMTP_ERROR ) );
+            throw new WebMessageException( WebMessageUtils.conflict( SMTP_ERROR ) );
         }
     }
 }

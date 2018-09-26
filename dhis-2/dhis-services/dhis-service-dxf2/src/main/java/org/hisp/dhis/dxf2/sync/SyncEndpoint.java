@@ -33,9 +33,11 @@ package org.hisp.dhis.dxf2.sync;
  */
 public enum SyncEndpoint
 {
-    TEIS_ENDPOINT( "/api/trackedEntityInstances" ),
-    ENROLLMENTS_ENDPOINT( "/api/enrollments" ),
-    EVENTS_ENDPOINT( "/api/events" );
+    TRACKED_ENTITY_INSTANCES( "/api/trackedEntityInstances" ),
+    ENROLLMENTS( "/api/enrollments" ),
+    EVENTS( "/api/events" ),
+    COMPLETE_DATA_SET_REGISTRATIONS( "/api/completeDataSetRegistrations" ),
+    DATA_VALUE_SETS( "/api/dataValueSets" );
 
     private String path;
 
