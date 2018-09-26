@@ -174,6 +174,11 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
             log( new Log( message ).setLogLevel( LogLevel.DEBUG ) );
         }
 
+        public boolean isDebugEnabled()
+        {
+            return loggingConfig.getLevel().isEnabled( LogLevel.DEBUG );
+        }
+
         public void trace( String message )
         {
             log( new Log( message ).setLogLevel( LogLevel.TRACE ) );
