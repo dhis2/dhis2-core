@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -56,6 +57,11 @@ public class TrackedEntityAttributeObjectBundleHook
         if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
             TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
+
+            if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated", attr.getValueType() ) );
+            }
 
             errorReports.addAll( textPatternValid( attr ) );
 
