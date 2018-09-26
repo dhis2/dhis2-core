@@ -34,6 +34,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
@@ -70,6 +72,13 @@ public class DefaultSqlViewService
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+    
+    private DhisConfigurationProvider config;
+
+    public void setConfig( DhisConfigurationProvider config )
+    {
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -295,6 +304,7 @@ public class DefaultSqlViewService
         
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
+        final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
@@ -341,7 +351,7 @@ public class DefaultSqlViewService
             violation = "Criteria values are invalid: " + SqlView.getInvalidQueryValues( criteria.values() );
         }
 
-        if ( sql.matches( SqlView.getProtectedTablesRegex() ) )
+        if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )
         {
             violation = "SQL query contains references to protected tables";
         }

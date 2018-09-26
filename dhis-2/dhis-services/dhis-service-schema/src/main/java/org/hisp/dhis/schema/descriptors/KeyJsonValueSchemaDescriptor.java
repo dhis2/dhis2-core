@@ -1,4 +1,4 @@
-package org.hisp.dhis.textpattern;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,33 +28,28 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.regex.Pattern;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Stian Sandvold
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TextMethodType
-    extends BaseMethodType
+public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor
 {
-    TextMethodType( Pattern pattern )
-    {
-        super( pattern );
-    }
+    public static final String SINGULAR = "dataStore";
+
+    public static final String PLURAL = "dataStores";
+
+    public static final String API_ENDPOINT = "/" + SINGULAR;
 
     @Override
-    public boolean validateText( String format, String text )
+    public Schema getSchema()
     {
-        format = format.replaceAll( "\\\\d", "[0-9]" );
-        format = format.replaceAll( "\\\\x", "[a-z]" );
-        format = format.replaceAll( "\\\\X", "[A-Z]" );
-        format = format.replaceAll( "\\\\w", "[0-9a-zA-Z]" );
+        Schema schema = new Schema( KeyJsonValue.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 9060 );
 
-        return Pattern.compile( format ).matcher( text ).matches();
-    }
-
-    @Override
-    public String getValueRegex( String format )
-    {
-        return format;
+        return schema;
     }
 }

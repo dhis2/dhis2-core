@@ -145,6 +145,12 @@ public class DataElement
      */
     private ObjectStyle style;
 
+    /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -722,5 +728,17 @@ public class DataElement
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
     }
 }
