@@ -87,6 +87,8 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
+    
+    private boolean ignoreEmptyCollection;
 
     private boolean force;
 
@@ -132,6 +134,7 @@ public class ImportOptions
         options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.ignoreEmptyCollection = this.ignoreEmptyCollection;
 
         return options;
     }
@@ -326,6 +329,13 @@ public class ImportOptions
     {
         return skipPatternValidation;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIgnoreEmptyCollection()
+    {
+        return ignoreEmptyCollection;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -519,6 +529,12 @@ public class ImportOptions
         this.skipPatternValidation = skipPatternValidation;
         return this;
     }
+    
+    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
+    {
+        this.ignoreEmptyCollection = ignoreEmptyCollection;
+        return this;
+    }
 
     public ImportOptions setForce( boolean force )
     {
@@ -549,6 +565,7 @@ public class ImportOptions
             .add( "importStrategy", importStrategy )
             .add( "mergeMode", mergeMode )
             .add( "skipExistingCheck", skipExistingCheck )
+            .add( "ignoreEmptyCollection", ignoreEmptyCollection )
             .add( "sharing", sharing )
             .add( "skipNotifications", skipNotifications )
             .add( "datasetAllowsPeriods", datasetAllowsPeriods )

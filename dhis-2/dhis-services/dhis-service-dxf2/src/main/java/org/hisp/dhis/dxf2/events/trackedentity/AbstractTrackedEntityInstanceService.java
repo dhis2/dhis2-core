@@ -467,7 +467,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -586,11 +586,12 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-        removeAttributeValues( daoEntityInstance );
-
         teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getAttributes().isEmpty() )
+        {
+            updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        }
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -598,7 +599,10 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty() )
+        {
+            importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        }
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -849,6 +853,13 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
+    {
+        removeAttributeValues( daoEntityInstance );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+    }
+    
+    private void addAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
     {
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
