@@ -139,10 +139,11 @@ public class DefaultPredictionService implements PredictionService
         Set<String> nonAggregates = new HashSet<>();
         expressionService.getAggregatesAndNonAggregatesInExpression( generator.getExpression(), aggregates, nonAggregates );
         Map<String, Double> constantMap = constantService.getConstantMap();
-        List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
+        Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
+        Set<Period> existingSamplePeriods = getExistingPeriods( allSamplePeriods );
         Set<DimensionalItemObject> aggregateDimensionItems = getDimensionItems( aggregates, skipTest );
         Set<DimensionalItemObject> nonAggregateDimensionItems = getDimensionItems( nonAggregates, null );
         User currentUser = currentUserService.getCurrentUser();
@@ -172,11 +173,11 @@ public class DefaultPredictionService implements PredictionService
             {
                 Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> aggregateDataMap4 =
                     aggregateDimensionItems.isEmpty() ? emptyMap4 :
-                        getDataValues( aggregateDimensionItems, allSamplePeriods, orgUnits );
+                        getDataValues( aggregateDimensionItems, allSamplePeriods, existingSamplePeriods, orgUnits );
 
                 Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> nonAggregateDataMap4 =
                     nonAggregateDimensionItems.isEmpty() ? emptyMap4 :
-                        getDataValues( nonAggregateDimensionItems, existingOutputPeriods, orgUnits );
+                        getDataValues( nonAggregateDimensionItems, outputPeriods, existingOutputPeriods, orgUnits );
 
                 for ( OrganisationUnit orgUnit : orgUnits )
                 {
@@ -423,9 +424,9 @@ public class DefaultPredictionService implements PredictionService
      *         specified start date and end date before or equal the specified
      *         end date, or an empty list if no Periods match.
      */
-    private List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
+    private Set<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
-        List<Period> periods = new ArrayList<Period>();
+        Set<Period> periods = new HashSet<Period>();
 
         Period period = periodType.createPeriod( startDate );
 
@@ -453,7 +454,7 @@ public class DefaultPredictionService implements PredictionService
      * @param predictor the predictor
      * @return map from output periods to sample periods
      */
-    private ListMap<Period, Period> getSamplePeriodsMap( List<Period> outputPeriods, Predictor predictor)
+    private ListMap<Period, Period> getSamplePeriodsMap( Set<Period> outputPeriods, Predictor predictor)
     {
         int sequentialCount = predictor.getSequentialSampleCount();
         int annualCount = predictor.getAnnualSampleCount();
@@ -472,7 +473,7 @@ public class DefaultPredictionService implements PredictionService
             {
                 p = periodType.getPreviousPeriod( p );
 
-                addPeriod( samplePeriodsMap, outputPeriod, p );
+                samplePeriodsMap.putValue( outputPeriod, p );
             }
 
             for ( int year = 1; year <= annualCount; year++ )
@@ -480,42 +481,19 @@ public class DefaultPredictionService implements PredictionService
                 Period pPrev = periodType.getPreviousYearsPeriod( outputPeriod, year );
                 Period pNext = pPrev;
 
-                addPeriod( samplePeriodsMap, outputPeriod, pPrev );
+                samplePeriodsMap.putValue( outputPeriod, pPrev );
 
                 for ( int i = 0; i < sequentialCount; i++ )
                 {
                     pPrev = periodType.getPreviousPeriod( pPrev );
                     pNext = periodType.getNextPeriod( pNext );
 
-                    addPeriod( samplePeriodsMap, outputPeriod, pPrev );
-                    addPeriod( samplePeriodsMap, outputPeriod, pNext );
+                    samplePeriodsMap.putValue( outputPeriod, pPrev );
+                    samplePeriodsMap.putValue( outputPeriod, pNext );
                 }
             }
         }
         return samplePeriodsMap;
-    }
-
-    /**
-     * Adds a period to the sample period map, for the given output period.
-     *
-     * Only adds the period if it is found in the database, because:
-     * (a) We will need the period id, and
-     * (b) If the period does not exist in the database, then
-     *     there is no data in the database to look for.
-     *
-     * @param samplePeriodsMap the sample period map to add to
-     * @param outputPeriod the output period for which we are adding the sample
-     * @param samplePeriod the sample period to add
-     */
-    private void addPeriod( ListMap<Period, Period> samplePeriodsMap, Period outputPeriod, Period samplePeriod )
-    {
-        Period foundPeriod = samplePeriod.getId() != 0 ? samplePeriod :
-            periodService.getPeriod( samplePeriod.getStartDate(), samplePeriod.getEndDate(), samplePeriod.getPeriodType() );
-
-        if ( foundPeriod != null )
-        {
-            samplePeriodsMap.putValue( outputPeriod, foundPeriod );
-        }
     }
 
     /**
@@ -529,7 +507,7 @@ public class DefaultPredictionService implements PredictionService
      * @param periods the periods to look for
      * @return the set of periods that exist, with ids.
      */
-    private Set<Period> getExistingPeriods( List<Period> periods )
+    private Set<Period> getExistingPeriods( Set<Period> periods )
     {
         Set<Period> existingPeriods = new HashSet<>();
 
@@ -557,12 +535,14 @@ public class DefaultPredictionService implements PredictionService
      * then DimensionalItemObject.
      *
      * @param dimensionItems the dimensionItems.
-     * @param periods the Periods of the DataValues.
+     * @param allPeriods all data Periods (to fetch event data).
+     * @param existingPeriods existing data Periods (to fetch aggregate data).
      * @param orgUnits the roots of the OrganisationUnit trees to include.
      * @return the map of values
      */
     private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataValues(
-        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, List<OrganisationUnit> orgUnits)
+        Set<DimensionalItemObject> dimensionItems, Set<Period> allPeriods, Set<Period> existingPeriods,
+        List<OrganisationUnit> orgUnits)
     {
         Set<DataElementOperand> dataElementOperands = new HashSet<>();
         Set<DimensionalItemObject> eventAttributeOptionObjects = new HashSet<>();
@@ -591,17 +571,17 @@ public class DefaultPredictionService implements PredictionService
 
         if ( !dataElementOperands.isEmpty() )
         {
-            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, periods, orgUnits );
+            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, existingPeriods, orgUnits );
         }
 
         if ( !eventAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, allPeriods, orgUnits ) );
         }
 
         if ( !eventNonAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, allPeriods, orgUnits ) );
         }
 
         return dataValues;
