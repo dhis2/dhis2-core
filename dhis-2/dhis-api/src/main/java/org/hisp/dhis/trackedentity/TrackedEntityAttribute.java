@@ -87,6 +87,12 @@ public class TrackedEntityAttribute
     private TextPattern textPattern;
 
     /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
+
+    /**
      * The style representing how TrackedEntityAttributes should be presented on the client
      */
     private ObjectStyle style;
@@ -442,6 +448,18 @@ public class TrackedEntityAttribute
     public void setSkipSynchronization( Boolean skipSynchronization )
     {
         this.skipSynchronization = skipSynchronization;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
     }
 
     @Override public String toString()
