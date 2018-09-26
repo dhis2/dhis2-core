@@ -116,11 +116,7 @@ public class DefaultMergeService implements MergeService
             {
                 Object sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
 
-                if ( mergeParams.getMergeMode().isReplace() )
-                {
-                    ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
-                }
-                else if ( mergeParams.getMergeMode().isMerge() && sourceObject != null )
+                if ( mergeParams.getMergeMode().isReplace() || ( mergeParams.getMergeMode().isMerge() && sourceObject != null ) )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
