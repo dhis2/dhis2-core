@@ -312,7 +312,7 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
             return true;
         }
         return temporaryTrackerOwnershipCache
-            .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).get();
+            .get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
     }
 
     @Override
