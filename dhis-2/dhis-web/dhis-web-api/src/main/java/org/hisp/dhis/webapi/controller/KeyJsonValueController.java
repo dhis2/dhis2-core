@@ -169,7 +169,7 @@ public class KeyJsonValueController
         if ( !aclService.canRead( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.forbidden( "You do not have the authority to access the key:'" + key + "' in the namespace:'" + namespace + "'" ) );
+                WebMessageUtils.forbidden( "You do not have the authority to access the key: '" + key + "' in the namespace:'" + namespace + "'" ) );
         }
 
         return keyJsonValue.getValue();
@@ -200,7 +200,7 @@ public class KeyJsonValueController
         if ( !aclService.canRead( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.forbidden( "You do not have the authority to access the key:'" + key + "' in the namespace:'" + namespace + "'" ) );
+                WebMessageUtils.forbidden( "You do not have the authority to access the key: '" + key + "' in the namespace:'" + namespace + "'" ) );
         }
         
         KeyJsonValue metaDataValue = new KeyJsonValue();
@@ -274,7 +274,7 @@ public class KeyJsonValueController
         if ( !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.forbidden( "You do not have the authority to update the key:'" + key + "' in the namespace:'" + namespace + "'" ) );
+                WebMessageUtils.forbidden( "You do not have the authority to update the key: '" + key + "' in the namespace: '" + namespace + "'" ) );
         }
         
         if ( !renderService.isValidJson( body ) )
@@ -315,7 +315,7 @@ public class KeyJsonValueController
         if ( !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.forbidden( "You do not have the authority to delete the key:'" + key + "' in the namespace:'" + namespace + "'" ) );
+                WebMessageUtils.forbidden( "You do not have the authority to delete the key: '" + key + "' in the namespace: '" + namespace + "'" ) );
         }
 
         keyJsonValueService.deleteKeyJsonValue( keyJsonValue );
