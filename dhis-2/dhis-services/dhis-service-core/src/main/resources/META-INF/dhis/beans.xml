@@ -703,6 +703,7 @@
     <property name="clazz" value="org.hisp.dhis.sqlview.SqlView" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="readOnlyJdbcTemplate" ref="readOnlyJdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.textpattern;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,33 +28,44 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.regex.Pattern;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.textpattern.TextPatternParser;
 
-/**
- * @author Stian Sandvold
- */
-public class TextMethodType
-    extends BaseMethodType
+import java.util.ArrayList;
+import java.util.List;
+
+public class DataElementObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    TextMethodType( Pattern pattern )
-    {
-        super( pattern );
-    }
 
     @Override
-    public boolean validateText( String format, String text )
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        format = format.replaceAll( "\\\\d", "[0-9]" );
-        format = format.replaceAll( "\\\\x", "[a-z]" );
-        format = format.replaceAll( "\\\\X", "[A-Z]" );
-        format = format.replaceAll( "\\\\w", "[0-9a-zA-Z]" );
+        List<ErrorReport> errors = new ArrayList<>(  );
 
-        return Pattern.compile( format ).matcher( text ).matches();
+        if ( object != null && object.getClass().isInstance( DataElement.class ) )
+        {
+            DataElement dataElement = (DataElement) object;
+
+            if ( dataElement.getFieldMask() != null )
+            {
+                try
+                {
+                    TextPatternParser.parse( "\"" + dataElement.getFieldMask() + "\"" );
+                }
+                catch ( TextPatternParser.TextPatternParsingException e )
+                {
+                    errors.add( new ErrorReport(DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ));
+                }
+            }
+
+        }
+
+        return errors;
     }
 
-    @Override
-    public String getValueRegex( String format )
-    {
-        return format;
-    }
 }
