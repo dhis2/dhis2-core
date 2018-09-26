@@ -18,7 +18,7 @@
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="sqlViewService" ref="org..dhis.sqlview.SqlViewService" />
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
     <property name="statementBuilder" ref="statementBuilder" />
