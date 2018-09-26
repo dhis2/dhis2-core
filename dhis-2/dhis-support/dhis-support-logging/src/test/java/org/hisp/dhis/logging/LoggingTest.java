@@ -42,7 +42,7 @@ public class LoggingTest extends DhisTest
     @Test
     public void logTest()
     {
-        LoggingManager.Logger logger = LoggingManager.logger( LoggingTest.class );
+        LoggingManager.Logger logger = LoggingManager.createLogger( LoggingTest.class );
         logger.log( new Log( "Logging with Log instance" ) );
         logger.log( "Logging without Log instance" );
         logger.fatal( "Logging FATAL without Log instance" );
@@ -68,7 +68,7 @@ public class LoggingTest extends DhisTest
     @Test
     public void toJsonTest()
     {
-        LoggingManager.Logger logger = LoggingManager.logger( LoggingTest.class );
+        LoggingManager.Logger logger = LoggingManager.createLogger( LoggingTest.class );
         Log log = new Log( "Logging with Log instance" );
 
         System.err.println( LoggingManager.toJson( log ) );

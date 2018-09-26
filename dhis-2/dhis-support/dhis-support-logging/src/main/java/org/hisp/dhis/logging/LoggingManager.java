@@ -130,7 +130,7 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
         return null;
     }
 
-    public static Logger logger( Class<?> source )
+    public static Logger createLogger( Class<?> source )
     {
         return new Logger( source );
     }

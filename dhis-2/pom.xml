@@ -365,7 +365,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-logging</artifactId>
+        <artifactId>dhis-support-logging</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

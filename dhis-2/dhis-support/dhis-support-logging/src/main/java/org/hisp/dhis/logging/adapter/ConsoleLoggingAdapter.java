@@ -28,61 +28,19 @@ package org.hisp.dhis.logging.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
-import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class CommonsLoggingAdapter implements LogAdapter
+public class ConsoleLoggingAdapter implements LogAdapter
 {
     @Override
     public void log( Log log )
     {
-        org.apache.commons.logging.Log logger;
-
-        if ( log.getSource() != null )
-        {
-            logger = LogFactory.getLog( log.getSource() );
-        }
-        else
-        {
-            logger = LogFactory.getLog( "no-source" );
-        }
-
-        String message = log.getMessage();
-
-        if ( message == null )
-        {
-            message = LoggingManager.toJson( log );
-        }
-
-        switch ( log.getLogLevel() )
-        {
-            case FATAL:
-                logger.fatal( message );
-                break;
-            case ERROR:
-                logger.error( message );
-                break;
-            case WARN:
-                logger.warn( message );
-                break;
-            case INFO:
-                logger.info( message );
-                break;
-            case DEBUG:
-                logger.debug( message );
-                break;
-            case TRACE:
-                logger.trace( message );
-                break;
-            default:
-                logger.info( message );
-        }
+        System.err.println( log );
     }
 }

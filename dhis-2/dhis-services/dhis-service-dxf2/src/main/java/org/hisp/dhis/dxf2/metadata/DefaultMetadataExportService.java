@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -65,6 +63,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -112,7 +111,9 @@ import java.util.Map;
 @Component
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final Log log = LogFactory.getLog( MetadataExportService.class );
+    // private static final Log log = LogFactory.getLog( MetadataExportService.class );
+
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( MetadataExportService.class );
 
     @Autowired
     private SchemaService schemaService;
