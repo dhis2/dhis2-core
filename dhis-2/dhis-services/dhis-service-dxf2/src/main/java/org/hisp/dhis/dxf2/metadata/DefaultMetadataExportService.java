@@ -111,9 +111,7 @@ import java.util.Map;
 @Component
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    // private static final Log log = LogFactory.getLog( MetadataExportService.class );
-
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( MetadataExportService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataExportService.class );
 
     @Autowired
     private SchemaService schemaService;
