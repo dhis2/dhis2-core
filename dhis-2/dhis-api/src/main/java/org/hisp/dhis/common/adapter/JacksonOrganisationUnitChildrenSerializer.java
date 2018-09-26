@@ -48,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
  */
 public class JacksonOrganisationUnitChildrenSerializer extends JsonSerializer<OrganisationUnit>
 {
-    private static DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
+    private DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
 
     @Override
     public void serialize( OrganisationUnit value, JsonGenerator jgen, SerializerProvider provider ) throws IOException
