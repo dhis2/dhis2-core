@@ -48,11 +48,11 @@ import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
  */
 public class JacksonOrganisationUnitChildrenSerializer extends JsonSerializer<OrganisationUnit>
 {
-    private DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
-
     @Override
     public void serialize( OrganisationUnit value, JsonGenerator jgen, SerializerProvider provider ) throws IOException
     {
+        DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
+
         if ( ToXmlGenerator.class.isAssignableFrom( jgen.getClass() ) )
         {
             ToXmlGenerator xmlGenerator = (ToXmlGenerator) jgen;

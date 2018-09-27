@@ -46,11 +46,12 @@ import java.text.SimpleDateFormat;
  */
 public class JacksonOrganisationUnitGroupSymbolSerializer extends JsonSerializer<OrganisationUnitGroup>
 {
-    private DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
 
     @Override
     public void serialize( OrganisationUnitGroup value, JsonGenerator jgen, SerializerProvider provider ) throws IOException
     {
+        DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
+
         if ( ToXmlGenerator.class.isAssignableFrom( jgen.getClass() ) )
         {
             ToXmlGenerator xmlGenerator = (ToXmlGenerator) jgen;
