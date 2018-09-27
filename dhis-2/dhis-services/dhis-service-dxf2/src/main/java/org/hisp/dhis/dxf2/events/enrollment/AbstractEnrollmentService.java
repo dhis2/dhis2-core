@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.GeometryFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -95,7 +96,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -181,9 +181,7 @@ public abstract class AbstractEnrollmentService
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
+    
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
@@ -278,31 +276,14 @@ public abstract class AbstractEnrollmentService
             enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
         }
 
-        if ( programInstance.getProgram().getCaptureCoordinates() )
+        if ( programInstance.getGeometry() != null )
         {
-            Coordinate coordinate = null;
+            enrollment.setGeometry( programInstance.getGeometry() );
 
-            if ( programInstance.getLongitude() != null && programInstance.getLatitude() != null )
+            if ( programInstance.getProgram().getFeatureType().equals( FeatureType.POINT ) )
             {
-                coordinate = new Coordinate( programInstance.getLongitude(), programInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
-                    {
-                    } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                enrollment.setCoordinate( coordinate );
+                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
+                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
             }
         }
 
@@ -474,7 +455,7 @@ public abstract class AbstractEnrollmentService
             return importSummary;
         }
 
-        updateCoordinates( program, enrollment, programInstance );
+        updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
@@ -682,7 +663,7 @@ public abstract class AbstractEnrollmentService
             return new ImportSummary( ImportStatus.ERROR, "DisplayIncidentDate is true but IncidentDate is null" ).incrementIgnored();
         }
 
-        updateCoordinates( program, enrollment, programInstance );
+        updateFeatureType( program, enrollment, programInstance );
 
         if ( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) != enrollment.getStatus() )
         {
@@ -916,20 +897,20 @@ public abstract class AbstractEnrollmentService
             queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
         }
     }
-
-    private void updateCoordinates( Program program, Enrollment enrollment, ProgramInstance programInstance )
+    
+    private void updateFeatureType( Program program, Enrollment enrollment, ProgramInstance programInstance )
     {
-        if ( program.getCaptureCoordinates() )
+        if ( program.getFeatureType() != null )
         {
-            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
+            if ( enrollment.getGeometry() != null && !program.getFeatureType().equals( FeatureType.NONE ) )
             {
-                programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
-                programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
+                programInstance.setGeometry( enrollment.getGeometry() );
             }
-            else
+            else if ( program.getFeatureType().equals( FeatureType.POINT ) && enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
             {
-                programInstance.setLatitude( null );
-                programInstance.setLongitude( null );
+                GeometryFactory gf = new GeometryFactory();
+                com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
+                programInstance.setGeometry( gf.createPoint( co ) );
             }
         }
     }
