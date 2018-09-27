@@ -329,7 +329,7 @@ public class JCloudsAppStorageService
                 }
                 catch ( IOException e )
                 {
-                    e.printStackTrace();
+                    log.error( "Unable to store app file '" + zipEntry.getName() + "'", e );
                 }
             } );
 
