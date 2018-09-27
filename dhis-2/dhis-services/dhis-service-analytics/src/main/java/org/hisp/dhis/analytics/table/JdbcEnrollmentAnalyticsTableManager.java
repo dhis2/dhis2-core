@@ -207,15 +207,16 @@ public class JdbcEnrollmentAnalyticsTableManager
         
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "ST_X(pi.geometry)" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "ST_Y(pi.geometry)" ) );
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
-            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", "pi.geometry", false, "gist" ) );
+            String alias = "(select ST_SetSRID(ST_MakePoint(pi.longitude, pi.latitude), 4326)) as geom";
+            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
         if ( program.isRegistration() )
