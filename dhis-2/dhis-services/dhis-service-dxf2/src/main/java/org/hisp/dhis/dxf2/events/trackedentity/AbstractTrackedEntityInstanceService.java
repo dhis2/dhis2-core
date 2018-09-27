@@ -467,7 +467,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -586,11 +586,12 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-        removeAttributeValues( daoEntityInstance );
-
         teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getAttributes().isEmpty() )
+        {
+            updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        }
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -598,7 +599,10 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty() )
+        {
+            importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        }
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -704,7 +708,13 @@ public abstract class AbstractTrackedEntityInstanceService
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        List<Relationship> create = new ArrayList<>();
+        List<Relationship> update = new ArrayList<>();
         List<Relationship> delete = new ArrayList<>();
+
+        List<String> relationshipUids = dtoEntityInstance.getRelationships().stream()
+            .map( Relationship::getRelationship )
+            .collect( Collectors.toList() );
 
         delete.addAll(
             daoEntityInstance.getRelationshipItems().stream()
@@ -714,6 +724,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 .filter(
                     relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
                 .map( org.hisp.dhis.relationship.Relationship::getUid )
+
+                // Remove items we are already referencing
+                .filter( ( uid ) -> !relationshipUids.contains( uid ) )
 
                 // Create Relationships for these uids
                 .map( uid -> {
@@ -725,6 +738,51 @@ public abstract class AbstractTrackedEntityInstanceService
                 .collect( Collectors.toList() )
         );
 
+        for ( Relationship relationship : dtoEntityInstance.getRelationships() )
+        {
+            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && dtoEntityInstance.isDeleted() )
+            {
+                delete.add( relationship );
+            }
+            else if ( relationship.getRelationship() == null )
+            {
+                org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
+                relationshipItem.setTrackedEntityInstance( dtoEntityInstance );
+                relationship.setFrom( relationshipItem );
+
+                create.add( relationship );
+            }
+            else
+            {
+                String fromUid = relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance();
+
+                if ( fromUid.equals( daoEntityInstance.getUid() ) )
+                {
+                    if ( _relationshipService.relationshipExists( relationship.getRelationship() ))
+                    {
+                        update.add( relationship );
+                    }
+                    else
+                    {
+                        create.add( relationship );
+                    }
+                }
+                else
+                {
+                    String message = String.format(
+                        "Can't update relationship '%s': TrackedEntityInstance '%s' is not the owner of the relationship",
+                        relationship.getRelationship(), daoEntityInstance.getUid() );
+                    importSummaries.addImportSummary(
+                        new ImportSummary( ImportStatus.ERROR, message )
+                            .setReference( relationship.getRelationship() )
+                            .incrementIgnored()
+                    );
+                }
+            }
+        }
+
+        importSummaries.addImportSummaries( relationshipService.addRelationships( create, importOptions ) );
+        importSummaries.addImportSummaries( relationshipService.updateRelationships( update, importOptions ) );
         importSummaries.addImportSummaries( relationshipService.deleteRelationships( delete, importOptions ) );
 
         return importSummaries;
@@ -795,6 +853,13 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
+    {
+        removeAttributeValues( daoEntityInstance );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+    }
+    
+    private void addAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
     {
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
