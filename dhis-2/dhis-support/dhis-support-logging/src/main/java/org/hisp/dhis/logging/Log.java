@@ -51,7 +51,7 @@ public class Log
 
     private Map<String, Object> metadata = new HashMap<>();
 
-    private Object data;
+    private LogData data;
 
     public Log()
     {
@@ -127,12 +127,12 @@ public class Log
     }
 
     @JsonProperty
-    public Object getData()
+    public LogData getData()
     {
         return data;
     }
 
-    public void setData( Object data )
+    public void setData( LogData data )
     {
         this.data = data;
     }
