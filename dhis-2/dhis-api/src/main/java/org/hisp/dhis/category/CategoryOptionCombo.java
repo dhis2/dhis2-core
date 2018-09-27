@@ -48,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -90,24 +89,63 @@ public class CategoryOptionCombo
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean equals( Object o )
+    public int hashCode()
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
-        CategoryOptionCombo that = (CategoryOptionCombo) o;
-        return ignoreApproval == that.ignoreApproval &&
-            Objects.equals( categoryCombo, that.categoryCombo ) &&
-            Objects.equals( categoryOptions, that.categoryOptions );
+        final int prime = 31;
+
+        int result = 1;
+
+        result = prime * result + ((categoryCombo == null) ? 0 : categoryCombo.hashCode());
+        result = prime * result + ((categoryOptions == null) ? 0 : categoryOptions.hashCode());
+
+        return result;
     }
 
     @Override
-    public int hashCode()
+    public boolean equals( Object object )
     {
-        return Objects.hash( super.hashCode(), categoryCombo, categoryOptions, ignoreApproval );
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( !(object instanceof CategoryOptionCombo) )
+        {
+            return false;
+        }
+
+        final CategoryOptionCombo other = (CategoryOptionCombo) object;
+
+        if ( categoryCombo == null )
+        {
+            if ( other.categoryCombo != null )
+            {
+                return false;
+            }
+        }
+        else if ( !categoryCombo.equals( other.categoryCombo ) )
+        {
+            return false;
+        }
+
+        if ( categoryOptions == null )
+        {
+            if ( other.categoryOptions != null )
+            {
+                return false;
+            }
+        }
+        else if ( !categoryOptions.equals( other.categoryOptions ) )
+        {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
