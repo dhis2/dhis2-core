@@ -133,9 +133,9 @@ public class InitTableAlteror
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
         updateTrackedEntityAttributePatternAndTextPattern();
 
-        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
-        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
-        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
+        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default' OR name = 'default'" );
+        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default' OR name = 'default'" );
+        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default' OR name = 'default'" );
 
     }
 
