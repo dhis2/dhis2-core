@@ -1540,12 +1540,12 @@ public class TableAlteror
 
         List<Integer> distinctIds = new ArrayList<>();
 
-        try
+        Statement statement = holder.getStatement();
+
+        String query =  "SELECT DISTINCT " + col1 + " FROM " + table;
+
+        try ( ResultSet resultSet = statement.executeQuery( query ) )
         {
-            Statement statement = holder.getStatement();
-
-            ResultSet resultSet = statement.executeQuery( "SELECT DISTINCT " + col1 + " FROM " + table );
-
             while ( resultSet.next() )
             {
                 distinctIds.add( resultSet.getInt( 1 ) );
@@ -1569,17 +1569,16 @@ public class TableAlteror
 
         Map<Integer, List<Integer>> idMap = new HashMap<>();
 
-        try
+        Statement statement = holder.getStatement();
+
+        for ( Integer distinctId : distinctIds )
         {
-            Statement statement = holder.getStatement();
+            List<Integer> foreignIds = new ArrayList<>();
 
-            for ( Integer distinctId : distinctIds )
+            String query = "SELECT " + col2 + " FROM " + table + " WHERE " + col1 + "=" + distinctId;
+
+            try (ResultSet resultSet = statement.executeQuery( query ))
             {
-                List<Integer> foreignIds = new ArrayList<>();
-
-                ResultSet resultSet = statement.executeQuery( "SELECT " + col2 + " FROM " + table + " WHERE " + col1
-                    + "=" + distinctId );
-
                 while ( resultSet.next() )
                 {
                     foreignIds.add( resultSet.getInt( 1 ) );
@@ -1587,15 +1586,13 @@ public class TableAlteror
 
                 idMap.put( distinctId, foreignIds );
             }
+            catch ( Exception ex )
+            {
+                log.error( ex );
+            }
         }
-        catch ( Exception ex )
-        {
-            log.error( ex );
-        }
-        finally
-        {
-            holder.close();
-        }
+
+        holder.close();
 
         return idMap;
     }
