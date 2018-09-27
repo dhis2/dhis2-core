@@ -40,6 +40,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
@@ -263,6 +265,13 @@ public enum SettingKey
             else if ( FileResourceRetentionStrategy.class.isAssignableFrom( settingClazz ) )
             {
                 return FileResourceRetentionStrategy.valueOf( value );
+            }
+            else if( Date.class.isAssignableFrom( settingClazz ) )
+            {
+                //Accepts String with date in ISO_LOCAL_DATE_TIME format (https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_LOCAL_DATE_TIME)
+                LocalDateTime dateTime = LocalDateTime.parse( value );
+
+                return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );
             }
 
             //TODO handle Dates
