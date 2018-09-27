@@ -172,9 +172,9 @@ public class InitTableAlteror
             "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
 
         //Update publicaccess values for default categories to correct values (rwrw---- eventually rw------)
-        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
-        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
-        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
+        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE  name = 'default' or code = 'default'" );
+        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE name = 'default' or code = 'default'" );
+        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE name = 'default' or code = 'default'" );
 
         executeSql( "UPDATE userroleauthorities SET authority = 'F_RELATIONSHIPTYPE_PUBLIC_ADD' WHERE authority = 'F_RELATIONSHIPTYPE_ADD'" );
     }
