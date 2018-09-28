@@ -198,8 +198,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             String clause = " AND ( ";
 
             clause += params.getOrganisationUnits().stream()
-                .map( OrganisationUnit::getPath )
-                .collect( Collectors.joining( " ", "ou.path LIKE '", "%' OR" ) );
+                .map( o -> " ou.path LIKE '" + o.getPath() + "%' OR " )
+                .collect( Collectors.joining() );
 
             return TextUtils.removeLastOr( clause ) + " ) ";
         }
