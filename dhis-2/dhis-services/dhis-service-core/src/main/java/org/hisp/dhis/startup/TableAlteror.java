@@ -1577,7 +1577,7 @@ public class TableAlteror
 
             String query = "SELECT " + col2 + " FROM " + table + " WHERE " + col1 + "=" + distinctId;
 
-            try (ResultSet resultSet = statement.executeQuery( query ))
+            try (ResultSet resultSet = statement.executeQuery( query ) )
             {
                 while ( resultSet.next() )
                 {
