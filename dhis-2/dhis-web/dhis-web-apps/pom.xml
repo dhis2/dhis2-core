@@ -1,276 +1,90 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.hisp.dhis</groupId>
-    <artifactId>dhis-web</artifactId>
-    <version>2.29-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web</artifactId>
+        <version>2.29</version>
+    </parent>
 
-  <artifactId>dhis-web-apps</artifactId>
-  <packaging>war</packaging>
-  <name>DHIS Web Apps</name>
+	<artifactId>dhis-web-apps</artifactId>
+	<packaging>war</packaging>
+	<name>DHIS Web Apps</name>
 
-  <build>
-    <finalName>dhis-web-apps</finalName>
+	<build>
+		<finalName>dhis-web-apps</finalName>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.10</version>
-        <executions>
-          <execution>
-            <id>unpack</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <!-- Core Resource -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-core-resource</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-core-resource</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Maintenance -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-maintenance</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maintenance</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- App management -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-app-management</artifactId>
-                  <version>2.28-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-app-management</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Usage analytics -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-usage-analytics</artifactId>
-                  <version>2.25-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-usage-analytics</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!--  Cache cleaner -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-cache-cleaner</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-cache-cleaner</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!--  User profile -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-user-profile</artifactId>
-                  <version>2.28-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-user-profile</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Settings -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-settings</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-settings</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Menu management -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-menu-management</artifactId>
-                  <version>2.28-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-menu-management</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Event capture -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-event-capture</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-capture</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Tracker capture -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-tracker-capture</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-tracker-capture</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Visualizer -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-visualizer</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-visualizer</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Pivot -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-pivot</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-pivot</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Maps -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-maps</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maps</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- GIS (legacy) -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-mapping</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-mapping</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Event Reports -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-event-reports</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-reports</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Event Visualizer -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-event-visualizer</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-visualizer</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Translations -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-translations</artifactId>
-                  <version>2.26-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-translations</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Dashboard (new) -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-dashboard</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Interpretation wall -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-interpretation</artifactId>
-                  <version>2.27-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-interpretation</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Datastore -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-datastore</artifactId>
-                  <version>2.27-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-datastore</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-                <!-- Scheduler -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-scheduler</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-scheduler</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
 
-  <dependencies>
+					<execution>
+						<id>install node and npm</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+						<configuration>
+							<nodeVersion>v8.11.1</nodeVersion>
+							<npmVersion>5.6.0</npmVersion>
+						</configuration>
+					</execution>
 
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
+					<execution>
+						<id>npm install</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>process-resources</phase>
+						<configuration>
+							<arguments>install</arguments>
+						</configuration>
+					</execution>
 
-    <!-- DHIS -->
+					<execution>
+						<id>node generate struts xml config</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>process-resources</phase>
+						<configuration>
+							<arguments>run generate-struts</arguments>
+						</configuration>
+					</execution>
 
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons-resources</artifactId>
-      <type>war</type>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-api</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-reporting</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-analytics</artifactId>
-    </dependency>
+					<execution>
+						<id>node generate index to target</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<arguments>run generate-index</arguments>
+						</configuration>
+					</execution>
 
-  </dependencies>
+					<execution>
+						<id>node copy apps to target</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<arguments>run copy-apps -- ${project.build.directory}/${project.artifactId}</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
+		</plugins>
+	</build>
+
+	<properties>
+		<rootDir>../../</rootDir>
+	</properties>
 </project>
