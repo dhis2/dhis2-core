@@ -171,33 +171,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "text", "dps." + column ) );
         }
 
-        for ( ProgramStage programStage : program.getProgramStages() )
-        {
-            for( ProgramStageDataElement programStageDataElement : 
-                programStage.getProgramStageDataElements() )
-            {
-                DataElement dataElement = programStageDataElement.getDataElement();
-                ValueType valueType = dataElement.getValueType();
-                String dataType = getColumnType( valueType );
-                String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
-                String select = getSelectClause( valueType );
-                boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
-
-                String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
-                    "inner join programstageinstance psi on psi.programstageinstanceid = tedv.programstageinstanceid " + 
-                    "where psi.executiondate is not null " + 
-                    "and psi.deleted is false " + 
-                    "and psi.programinstanceid=pi.programinstanceid " +
-                    dataClause + " " +
-                    "and tedv.dataelementid=" + dataElement.getId() + " " +
-                    "and psi.programstageid=" + programStage.getId() + " " +
-                    "order by psi.executiondate desc " +
-                    "limit 1) as " + quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() );
-
-                columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
-            }
-        }
-
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
             String dataType = getColumnType( attribute.getValueType() );
@@ -234,16 +207,15 @@ public class JdbcEnrollmentAnalyticsTableManager
         
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "ST_X(pi.geometry)" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "ST_Y(pi.geometry)" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
-            String alias = "(select ST_SetSRID(ST_MakePoint(pi.longitude, pi.latitude), 4326)) as geom";
-            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
+            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", "pi.geometry", false, "gist" ) );
         }
         
         if ( program.isRegistration() )

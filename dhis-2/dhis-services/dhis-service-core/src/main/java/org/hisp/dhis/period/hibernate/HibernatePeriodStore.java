@@ -72,7 +72,8 @@ public class HibernatePeriodStore
         Query<Period> typedQuery = getQuery( query )
             .setParameter( "startDate", startDate )
             .setParameter( "endDate", endDate )
-            .setParameter( "periodType", periodType.getId() );
+            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
+
         return getSingleResult( typedQuery );
     }
 
@@ -163,7 +164,7 @@ public class HibernatePeriodStore
         }
 
         Period storedPeriod = getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
-        
+
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;
     }
 

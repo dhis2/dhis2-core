@@ -128,9 +128,6 @@ public class ProgramIndicator
     private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
-    private static final Set<AnalyticsPeriodBoundary> defaultEnrollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
     private Program program;
 
@@ -294,8 +291,7 @@ public class ProgramIndicator
     {
         return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
             !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.containsAll( defaultEnrollmentTypeBoundaries ) );
+            this.analyticsType == AnalyticsType.ENROLLMENT );
     }
     
     /**
