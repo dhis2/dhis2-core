@@ -1117,6 +1117,7 @@ public class TableAlteror
         
         // 2.31, migrate to Flyway
         executeSql( "alter table trackedentityattribute alter column shortname set not null" );
+        executeSql( "UPDATE keyjsonvalue SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
         
         log.info( "Tables updated" );
 
@@ -1540,12 +1541,12 @@ public class TableAlteror
 
         List<Integer> distinctIds = new ArrayList<>();
 
-        Statement statement = holder.getStatement();
-
-        String query =  "SELECT DISTINCT " + col1 + " FROM " + table;
-
-        try ( ResultSet resultSet = statement.executeQuery( query ) )
+        try
         {
+            Statement statement = holder.getStatement();
+
+            ResultSet resultSet = statement.executeQuery( "SELECT DISTINCT " + col1 + " FROM " + table );
+
             while ( resultSet.next() )
             {
                 distinctIds.add( resultSet.getInt( 1 ) );
@@ -1569,16 +1570,17 @@ public class TableAlteror
 
         Map<Integer, List<Integer>> idMap = new HashMap<>();
 
-        Statement statement = holder.getStatement();
-
-        for ( Integer distinctId : distinctIds )
+        try
         {
-            List<Integer> foreignIds = new ArrayList<>();
+            Statement statement = holder.getStatement();
 
-            String query = "SELECT " + col2 + " FROM " + table + " WHERE " + col1 + "=" + distinctId;
-
-            try (ResultSet resultSet = statement.executeQuery( query ) )
+            for ( Integer distinctId : distinctIds )
             {
+                List<Integer> foreignIds = new ArrayList<>();
+
+                ResultSet resultSet = statement.executeQuery( "SELECT " + col2 + " FROM " + table + " WHERE " + col1
+                    + "=" + distinctId );
+
                 while ( resultSet.next() )
                 {
                     foreignIds.add( resultSet.getInt( 1 ) );
@@ -1586,13 +1588,15 @@ public class TableAlteror
 
                 idMap.put( distinctId, foreignIds );
             }
-            catch ( Exception ex )
-            {
-                log.error( ex );
-            }
         }
-
-        holder.close();
+        catch ( Exception ex )
+        {
+            log.error( ex );
+        }
+        finally
+        {
+            holder.close();
+        }
 
         return idMap;
     }

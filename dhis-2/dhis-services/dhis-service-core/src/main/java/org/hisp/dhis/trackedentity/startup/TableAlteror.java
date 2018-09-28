@@ -283,12 +283,12 @@ public class TableAlteror
     {
         StatementHolder holder = statementManager.getHolder();
 
-        Statement statement = holder.getStatement();
-
-        String query = "SELECT count(column_name) > 0 FROM information_schema.columns WHERE table_name='trackedentityinstance' AND column_name='featuretype'";
-
-        try( ResultSet resultSet = statement.executeQuery( query ) )
+        try
         {
+            Statement statement = holder.getStatement();
+
+            ResultSet resultSet = statement
+                .executeQuery( "SELECT count(column_name) > 0 FROM information_schema.columns WHERE table_name='trackedentityinstance' AND column_name='featuretype'" );
 
             resultSet.next();
 
@@ -317,15 +317,10 @@ public class TableAlteror
                 " WHERE featuretype = 'MULTI_POLYGON'" +
                 " AND coordinates NOTNULL" +
                 " AND coordinates LIKE '[[[[%]]]]'" );
-        }
-        catch ( Exception ex )
-        {
-        }
 
-        query = "SELECT count(featuretype) > 0 FROM trackedentityinstance WHERE featuretype != 'NONE' AND featuretype NOTNULL ";
+            resultSet = statement
+                .executeQuery( "SELECT count(featuretype) > 0 FROM trackedentityinstance WHERE featuretype != 'NONE' AND featuretype NOTNULL " );
 
-        try( ResultSet resultSet = statement.executeQuery( query ) )
-        {
             resultSet.next();
 
             if ( resultSet.getBoolean( 1 ) )
@@ -395,12 +390,13 @@ public class TableAlteror
         {
             StatementHolder holder = statementManager.getHolder();
 
-            Statement statement = holder.getStatement();
-
-            String query = "SELECT programstageid, programid, minDaysFromStart FROM programstage order by programid, minDaysFromStart";
-
-            try( ResultSet resultSet = statement.executeQuery( query ) )
+            try
             {
+                Statement statement = holder.getStatement();
+
+                ResultSet resultSet = statement
+                    .executeQuery( "SELECT programstageid, programid, minDaysFromStart FROM programstage order by programid, minDaysFromStart" );
+
                 int index = 1;
                 int programId = 0;
                 while ( resultSet.next() )
@@ -431,12 +427,13 @@ public class TableAlteror
     {
         StatementHolder holder = statementManager.getHolder();
 
-        Statement statement = holder.getStatement();
-
-        String query = "select programtrackedentityattributeid, programid from program_attributes ORDER BY programid, sort_order";
-
-        try( ResultSet resultSet = statement.executeQuery( query ) )
+        try
         {
+            Statement statement = holder.getStatement();
+
+            ResultSet resultSet = statement
+                .executeQuery( "select programtrackedentityattributeid, programid from program_attributes ORDER BY programid, sort_order" );
+
             int index = 1;
             int programId = 0;
             while ( resultSet.next() )
