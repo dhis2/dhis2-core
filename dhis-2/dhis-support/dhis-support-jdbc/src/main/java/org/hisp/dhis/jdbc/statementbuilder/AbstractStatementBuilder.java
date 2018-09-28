@@ -305,22 +305,15 @@ public abstract class AbstractStatementBuilder
     {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
-            if( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
-            {
-                String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-                String columnName = "\"" + dataElementUid + "\"";
-                return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                    ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-                    ( programIndicator.getEndEventBoundary() != null ? ("and " + 
-                        getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
-                    " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
-                        getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
-            }
-            else
-            {
-                return this.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
-            }
+            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+            String columnName = "\"" + dataElementUid + "\"";
+            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+                ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
+                ( programIndicator.getEndEventBoundary() != null ? ("and " + 
+                    getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
+                " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
+                    getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
+                " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
         else
         {
