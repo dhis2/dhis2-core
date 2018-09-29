@@ -251,9 +251,9 @@ public class HibernateGenericStore<T>
      * @param Executable TypedQuery
      * @return single object
      */
-   protected <T> T getSingleResult( TypedQuery<T> typedQuery )
+   protected <V> V getSingleResult( TypedQuery<V> typedQuery )
     {
-        List<T> list = typedQuery.getResultList();
+        List<V> list = typedQuery.getResultList();
 
         if ( list != null && list.size() > 1 )
         {
