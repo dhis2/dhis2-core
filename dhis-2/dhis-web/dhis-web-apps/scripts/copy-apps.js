@@ -35,4 +35,13 @@ for (let name in deps) {
 
     fs.copySync(src, dest)
     log.info('copied', src, dest)
+
+    try {
+        const nm = path.join(dest, 'node_modules')
+        fs.accessSync(nm)
+        log.info('node_modules found, removing from', targetName)
+        fs.remove(nm)
+    } catch (e) {
+        log.info('no node_modules in bundle for', targetName)
+    }
 }
