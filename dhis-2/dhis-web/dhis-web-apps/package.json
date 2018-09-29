@@ -1,0 +1,45 @@
+{
+  "name": "dhis-web-apps",
+  "version": "1.0.0",
+  "description": "Wrapper for all frontend application apps",
+  "scripts": {
+    "copy-apps": "node ./scripts/copy-apps.js",
+    "generate-struts": "node ./scripts/write-struts-xml.js",
+    "generate-index": "node ./scripts/write-index-html.js"
+  },
+  "author": "Viktor Varland",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "app-management-app": "github:dhis2/app-management-app-builds",
+    "cache-cleaner-app": "github:dhis2/cache-cleaner-app-builds",
+    "capture-app": "github:dhis2/capture-app-builds",
+    "visualizer-app": "github:dhis2/charts-app-builds",
+    "core-resource-app": "github:dhis2/core-resource-app-builds",
+    "dashboard-app": "github:dhis2/dashboards-app-builds",
+    "data-administration-app": "github:dhis2/data-administration-app-builds",
+    "data-quality-app": "github:dhis2/data-quality-app-builds",
+    "event-capture-app": "github:dhis2/event-capture-app-builds",
+    "event-visualizer-app": "github:dhis2/event-charts-app-builds",
+    "event-reports-app": "github:dhis2/event-reports-app-builds",
+    "mapping-app": "github:dhis2/gis-app-builds",
+    "importexport-app": "github:dhis2/import-export-app-builds",
+    "interpretation-app": "github:dhis2/interpretation-app-builds",
+    "maintenance-app": "github:dhis2/maintenance-app-builds",
+    "maps-app": "github:dhis2/maps-app-builds",
+    "menu-management-app": "github:dhis2/menu-management-app-builds",
+    "messaging-app": "github:dhis2/messaging-app-builds",
+    "pivot-app": "github:dhis2/pivot-tables-app-builds",
+    "scheduler-app": "github:dhis2/scheduler-app-builds",
+    "settings-app": "github:dhis2/settings-app-builds",
+    "tracker-capture-app": "github:dhis2/tracker-capture-app-builds",
+    "translations-app": "github:dhis2/translations-app-builds#v31",
+    "usage-analytics-app": "github:dhis2/usage-analytics-app-builds",
+    "user-app": "github:dhis2/user-app-builds",
+    "user-profile-app": "github:dhis2/user-profile-app-builds"
+  },
+  "devDependencies": {
+    "@vardevs/log": "^1.0.0",
+    "fs-extra": "^7.0.0",
+    "xml2js": "^0.4.19"
+  }
+}

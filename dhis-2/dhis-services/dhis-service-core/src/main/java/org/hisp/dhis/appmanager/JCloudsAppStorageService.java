@@ -261,13 +261,11 @@ public class JCloudsAppStorageService
         App app = new App();
         log.info( "Installing new app: " + filename );
         
-        try
+        try( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
             // -----------------------------------------------------------------
-
-            ZipFile zip = new ZipFile( file );
 
             ZipEntry entry = zip.getEntry( MANIFEST_FILENAME );
 
@@ -306,47 +304,32 @@ public class JCloudsAppStorageService
             }
 
             // -----------------------------------------------------------------
-            // Delete if app is already installed, assuming app update so no
-            // data is deleted
-            // -----------------------------------------------------------------
-
-            /*if ( apps.containsKey( app.getName() ) )
-            {
-                deleteApp( apps.get( app.getName() ) );
-            }*/
-
-            // -----------------------------------------------------------------
             // Unzip the app
             // -----------------------------------------------------------------
 
             String dest = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
 
-            zip.stream().forEach( new Consumer<ZipEntry>()
-            {
-                @Override
-                public void accept( ZipEntry zipEntry )
+            zip.stream().forEach( (Consumer<ZipEntry>) zipEntry -> {
+
+                log.info( "Uploading zipEntry: " + zipEntry );
+
+                try
                 {
+                    InputStream input = zip.getInputStream( zipEntry );
 
-                    log.info( "Uploading zipEntry: " + zipEntry );
+                    Blob blob = blobStore.blobBuilder( dest + File.separator + zipEntry.getName() )
+                        .payload( input )
+                        .contentLength( zipEntry.getSize() )
+                        .build();
 
-                    try
-                    {
-                        InputStream input = zip.getInputStream( zipEntry );
+                    blobStore.putBlob( config.container, blob );
 
-                        Blob blob = blobStore.blobBuilder( dest + File.separator + zipEntry.getName() )
-                            .payload( input )
-                            .contentLength( zipEntry.getSize() )
-                            .build();
+                    input.close();
 
-                        blobStore.putBlob( config.container, blob );
-
-                        input.close();
-
-                    }
-                    catch ( IOException e )
-                    {
-                        e.printStackTrace();
-                    }
+                }
+                catch ( IOException e )
+                {
+                    log.error( "Unable to store app file '" + zipEntry.getName() + "'", e );
                 }
             } );
 
@@ -370,11 +353,6 @@ public class JCloudsAppStorageService
             app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
         }
         catch ( JsonParseException e )
-        {
-            log.error( "Failed to install app: Invalid manifest.webapp", e );
-            app.setAppState( AppStatus.INVALID_MANIFEST_JSON );
-        }
-        catch ( JsonMappingException e )
         {
             log.error( "Failed to install app: Invalid manifest.webapp", e );
             app.setAppState( AppStatus.INVALID_MANIFEST_JSON );
