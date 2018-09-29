@@ -202,7 +202,8 @@ public class HibernateGenericStore<T>
 
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
-        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable ).setTimeout( timeout );
+        return detachedCriteria.getExecutableCriteria( getSession() )
+            .setCacheable( cacheable ).setTimeout( timeout );
     }
 
     public CriteriaBuilder getCriteriaBuilder()
@@ -326,7 +327,7 @@ public class HibernateGenericStore<T>
      * @param parameters JpaQueryParameters
      * @return number of objects
      */
-    protected  final Long getCount( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
+    protected final Long getCount( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
     {
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
 
