@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -66,8 +67,6 @@ public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
-
-    public static final String HIBERNATE_CACHEABLE_HINT = "org.hibernate.cacheable";
 
     protected SessionFactory sessionFactory;
 
@@ -167,6 +166,7 @@ public class HibernateGenericStore<T>
      *
      * @return a Criteria instance.
      */
+    @Deprecated
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
@@ -207,6 +207,7 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
+    @Deprecated
     protected final Criteria getCriteria( Criterion... expressions )
     {
         Criteria criteria = getCriteria();
@@ -234,7 +235,7 @@ public class HibernateGenericStore<T>
     {
         return getSession()
             .createQuery( criteriaQuery )
-            .setHint( HIBERNATE_CACHEABLE_HINT, cacheable );
+            .setHint( QueryHints.CACHEABLE, cacheable );
     }
 
     /**
@@ -334,7 +335,7 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
-        typedQuery.setHint( HIBERNATE_CACHEABLE_HINT, parameters.isCachable() != null ? parameters.isCachable() : cacheable );
+        typedQuery.setHint( QueryHints.CACHEABLE, parameters.isCachable() != null ? parameters.isCachable() : cacheable );
 
         return typedQuery;
     }
@@ -404,7 +405,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery<T> getSqlQuery( String sql )
     {
         NativeQuery<T> query = getSession().createNativeQuery( sql );
-        query.setHint( HIBERNATE_CACHEABLE_HINT, cacheable );
+        query.setHint( QueryHints.CACHEABLE, cacheable );
         return query;
     }
 
