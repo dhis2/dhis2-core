@@ -44,6 +44,7 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.util.Assert;
 
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
@@ -119,6 +120,17 @@ public class HibernateGenericStore<T>
     {
         this.cacheable = cacheable;
     }
+    
+    protected int timeout = 600;
+
+    /**
+     * Could be injected through container, set to -1 to indicate no timeout.
+     */
+    public void setTimeout( int timeout )
+    {
+        Assert.isTrue( timeout > 0, "Timeout must be a positive integer" );
+        this.timeout = timeout;
+    }
 
     // -------------------------------------------------------------------------
     // Convenience methods
@@ -135,15 +147,17 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query with given hql String
+     * Creates a Query with given HQL String
      * Return type is auto cast to generic type T of the Store class
-     * @param hql the hql query.
+     * @param hql the HQL query.
      * @return a Query instance with return type is the object type T of the store class
      */
+    @SuppressWarnings("unchecked")
     protected final Query<T> getQuery( String hql )
     {
-        Query<T> query = getSession().createQuery( hql );
-        return query.setCacheable( cacheable );
+        return getSession().createQuery( hql )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
+            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
     }
 
     /**
@@ -152,10 +166,13 @@ public class HibernateGenericStore<T>
      * @param hql the hql query.
      * @return a Query instance with return type specified in the Query<Y>
      */
-    protected final <Y> Query<Y> getTypedQuery( String hql )
+    @SuppressWarnings("unchecked")
+    protected final <V> Query<V> getTypedQuery( String hql )
     {
-        Query<Y> query = getSession().createQuery( hql );
-        return query.setCacheable( cacheable );
+        return getSession()
+            .createQuery( hql )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
+            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
     }
 
     /**
@@ -185,13 +202,7 @@ public class HibernateGenericStore<T>
 
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
-        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
-    }
-
-    @Deprecated
-    protected Criteria getClazzCriteria()
-    {
-        return getSession().createCriteria( getClazz() );
+        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable ).setTimeout( timeout );
     }
 
     public CriteriaBuilder getCriteriaBuilder()
@@ -213,7 +224,8 @@ public class HibernateGenericStore<T>
     {
         return getSession()
             .createQuery( criteriaQuery )
-            .setHint( QueryHints.CACHEABLE, cacheable );
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
+            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
     }
 
     /**
@@ -240,16 +252,6 @@ public class HibernateGenericStore<T>
         }
 
         return list != null && !list.isEmpty() ? list.get( 0 ) : null;
-    }
-
-    /**
-     * Get List objects returned by JPA CriteriaQuery
-     * @param criteriaQuery
-     * @return list objects
-     */
-    protected List<T> getList( CriteriaQuery<T> criteriaQuery )
-    {
-        return getSession().createQuery( criteriaQuery ).getResultList();
     }
 
     /**
@@ -380,11 +382,12 @@ public class HibernateGenericStore<T>
      * @param sql the sql query String.
      * @return a NativeQuery<T> instance.
      */
+    @SuppressWarnings("unchecked")
     protected final NativeQuery<T> getSqlQuery( String sql )
     {
-        NativeQuery<T> query = getSession().createNativeQuery( sql );
-        query.setHint( QueryHints.CACHEABLE, cacheable );
-        return query;
+        return getSession().createNativeQuery( sql )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
+            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
     }
 
     // -------------------------------------------------------------------------
