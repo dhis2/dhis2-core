@@ -30,8 +30,6 @@ package org.hisp.dhis.dataentryform;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import java.util.List;
-
 public interface DataEntryFormStore
     extends IdentifiableObjectStore<DataEntryForm>
 {
@@ -44,6 +42,4 @@ public interface DataEntryFormStore
      * @return A DataEntryForm with the given name.
      */
     DataEntryForm getDataEntryFormByName( String name );
-
-    List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds );
 }

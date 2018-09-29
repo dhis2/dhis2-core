@@ -486,15 +486,4 @@ public class DefaultDataEntryFormService
 
         return dataElements;
     }
-
-    @Override
-    public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
-    {
-        if ( programStageIds == null || programStageIds.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataEntryFormStore.listDistinctDataEntryFormByProgramStageIds( programStageIds );
-    }
 }
