@@ -32,12 +32,8 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.program.ProgramStage;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.List;
 
 /**
  * @author Bharath Kumar
@@ -59,23 +55,5 @@ public class HibernateDataEntryFormStore
             .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
 
         return getSingleResult( builder, parameters );
-    }
-
-    @Override
-    public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = builder.createQuery();
-
-        Root<ProgramStage> programStage = query.from( ProgramStage.class );
-        query.select( programStage.get( "dataEntryForm" ) ).distinct( true );
-        query.where(
-            builder.and(
-                programStage.get( "id" ).in( programStageIds ),
-                builder.isNotNull( programStage.get( "dataEntryForm" ) )
-            )
-        );
-
-        return getList( query );
     }
 }
