@@ -670,6 +670,7 @@
 
   <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramInstanceAudit" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
