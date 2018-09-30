@@ -316,9 +316,9 @@ public class HibernateGenericStore<T>
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }
 
-        typedQuery.setHint( QueryHints.CACHEABLE, parameters.isCachable() != null ? parameters.isCachable() : cacheable );
-
-        return typedQuery;
+        return typedQuery
+            .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) )
+            .setHint( QueryHints.TIMEOUT_JPA, timeout );
     }
 
     /**
@@ -359,7 +359,10 @@ public class HibernateGenericStore<T>
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
-        return getSession().createQuery( query ).getSingleResult();
+        return getSession().createQuery( query )
+            .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) )
+            .setHint( QueryHints.TIMEOUT_JPA, timeout )
+            .getSingleResult();
     }
 
     /**

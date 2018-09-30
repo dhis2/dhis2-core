@@ -58,7 +58,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     private boolean useDistinct = false;
 
-    private Boolean cachable;
+    private Boolean cacheable;
 
     // select attributes
 
@@ -115,7 +115,11 @@ public class JpaQueryParameters<T> implements Serializable
     {
         return maxResults > -1;
     }
-
+    
+    public boolean isCacheable( boolean defaultValue )
+    {
+        return cacheable != null ? cacheable : defaultValue;
+    }
 
     // -----------------------------
     // Getters & Setters
@@ -200,14 +204,14 @@ public class JpaQueryParameters<T> implements Serializable
         this.orders = orders;
     }
 
-    public Boolean isCachable()
+    public Boolean isCacheable()
     {
-        return this.cachable;
+        return this.cacheable;
     }
 
-    public JpaQueryParameters<T> setCachable( boolean cachable )
+    public JpaQueryParameters<T> setCacheable( boolean cachable )
     {
-        this.cachable = cachable;
+        this.cacheable = cachable;
         return this;
     }
 
