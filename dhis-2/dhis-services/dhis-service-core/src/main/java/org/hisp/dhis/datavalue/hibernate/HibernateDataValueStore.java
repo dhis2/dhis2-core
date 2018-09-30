@@ -52,6 +52,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.PluralAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -301,14 +302,33 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return new ArrayList<>();
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+        String hql = "select dv from DataValue dv  where dv.dataElement in (:dataElements) and dv.period =:period and dv.deleted = false ";
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> root.get( "dataElement" ).in( dataElements ) )
-            .addPredicate( root -> builder.equal( root.get( "period" ), storedPeriod ) )
-            .addPredicate( root -> builder.equal( root.get( "souce" ), source ) )
-            .addPredicate( root -> builder.equal( root.get( "attributeOptionCombo" ), attributeOptionCombo) )
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
+        if ( source != null )
+        {
+            hql += " and dv.source =:source ";
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
+        }
+
+        Query query = getQuery( hql )
+            .setParameter( "dataElements", dataElements )
+            .setParameter( "period", storedPeriod );
+
+        if ( source != null )
+        {
+            query.setParameter( "source", source );
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            query.setParameter( "attributeOptionCombo", attributeOptionCombo );
+        }
+
+        return getList( query );
     }
 
     @Override
