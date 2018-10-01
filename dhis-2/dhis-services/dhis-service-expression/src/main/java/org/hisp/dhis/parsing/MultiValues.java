@@ -51,33 +51,41 @@ public class MultiValues
     // Business logic
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds a value to the MultiValues.
+     *
+     * @param value the value to add.
+     */
     public void addValue( Object value )
     {
-        if ( value != null )
+        if ( value instanceof MultiValues )
         {
-            if ( value instanceof MultiValues )
-            {
-                MultiValues multiValues = (MultiValues) value;
+            MultiValues multiValues = (MultiValues) value;
 
-                if ( multiValues.hasPeriods() )
+            if ( multiValues.hasPeriods() )
+            {
+                for ( int i = 0; i < multiValues.periods.size(); i++ )
                 {
-                    for ( int i = 0; i < multiValues.periods.size(); i++ )
-                    {
-                        addPeriodValue( multiValues.periods.get( i ), multiValues.values.get( i ) );
-                    }
-                }
-                else
-                {
-                    values.addAll( multiValues.values );
+                    addPeriodValue( multiValues.periods.get( i ), multiValues.values.get( i ) );
                 }
             }
             else
             {
-                values.add( value );
+                values.addAll( multiValues.values );
             }
+        }
+        else if ( value != null )
+        {
+            values.add( value );
         }
     }
 
+    /**
+     * Adds a value with period information to the MultiValues.
+     *
+     * @param period the period associated with the value.
+     * @param value the value to add.
+     */
     public void addPeriodValue( Period period, Object value )
     {
         if ( value instanceof MultiValues )
@@ -94,7 +102,7 @@ public class MultiValues
                 addPeriodValue( multiValues.periods.get( i ), multiValues.values.get( i ) );
             }
         }
-        else
+        else if ( value != null )
         {
             values.add( value );
 
@@ -107,11 +115,23 @@ public class MultiValues
         }
     }
 
+    /**
+     * Tells whether this MultiValues has periods.
+     *
+     * @return true if peridos are present, otherwise false.
+     */
     public boolean hasPeriods()
     {
         return periods != null;
     }
 
+    /**
+     * Returns the first or last n values, sorted by period.
+     *
+     * @param limit how many values (maximum) to return.
+     * @param isFirst whether to return first values (or last).
+     * @return the limited MultiValues.
+     */
     public MultiValues firstOrLast( int limit, boolean isFirst )
     {
         SortedMap<Period, List<Object>> sortedValues = buildSortedValues( isFirst );
@@ -132,6 +152,13 @@ public class MultiValues
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Build a SortedMap of values, orderd by period, in either ascending or
+     * descending order.
+     *
+     * @param isFirst whether to put earliest periods first (or last).
+     * @return the sorted values.
+     */
     private SortedMap<Period, List<Object>> buildSortedValues( boolean isFirst )
     {
         SortedMap<Period, List<Object>> sortedValues = isFirst ? new TreeMap<>()
@@ -150,6 +177,13 @@ public class MultiValues
         return sortedValues;
     }
 
+    /**
+     * Returns the first n values from the SortedMap.
+     *
+     * @param sortedValues the SortedMap of values.
+     * @param limit the largest number of values to return.
+     * @return the limited MultiValues.
+     */
     private MultiValues firstOrLastValues( SortedMap<Period, List<Object>> sortedValues, int limit )
     {
         MultiValues selectedValues = new MultiValues();

@@ -42,6 +42,7 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.DefaultExpressionService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parsing.generated.ExpressionLexer;
 import org.hisp.dhis.parsing.generated.ExpressionParser;
@@ -71,6 +72,9 @@ public class DefaultParsingService
     protected OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
     protected IdentifiableObjectManager manager;
 
     @Autowired
@@ -93,8 +97,12 @@ public class DefaultParsingService
         {
             ParseTree parseTree = getParseTree( expression.getExpression(), true );
 
-            expressionItemsVisitor.getDimensionalItemObjects( parseTree, orgUnits, periods, constantMap, items,
-                organisationUnitService, manager, dimensionService );
+            if ( parseTree != null )
+            {
+                expressionItemsVisitor.getExpressionItems( parseTree, orgUnits, periods,
+                    constantMap, orgUnitCountMap, items,
+                    organisationUnitService, manager, dimensionService );
+            }
         }
 
         return items;
@@ -125,34 +133,45 @@ public class DefaultParsingService
 
         ParseTree parseTree = getParseTree( expr, false );
 
-        return expressionItemsVisitor.getExpressionDescription( parseTree, expr );
+        return expressionItemsVisitor.getExpressionDescription( parseTree, expr,
+            constantService.getConstantMap(), organisationUnitService, manager, dimensionService,
+            constantService, organisationUnitGroupService );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Gets the ANTLR parse tree for the given expression string, from the cache
+     * if possible. If there is an exception, it is either logged as a warning,
+     * or thrown.
+     *
+     * @param expr the expression to parse.
+     * @param logWarnings whether to log as warnings (or throw) exceptions.
+     * @return the ANTLR parse tree, or null if parsing exception.
+     */
     private ParseTree getParseTree( String expr, boolean logWarnings )
     {
-        ParseTree parseTree = null;
-
         try
         {
-            parseTree = EXPRESSION_PARSE_TREES.get( expr, e -> parse( e ) );
+            return EXPRESSION_PARSE_TREES.get( expr, e -> parse( e ) );
         }
         catch ( ParsingException ex )
         {
+            String message = "Parsing error '" + ex.getMessage() + "' in expression '" + expr + "'";
+
             if ( logWarnings )
             {
-                log.warn( "Parsing error '" + ex.getMessage() + "' in expression '" + expr + "'" );
+                log.warn( message );
             }
             else
             {
-                throw ex;
+                throw new ParsingException( message );
             }
         }
 
-        return parseTree;
+        return null;
     }
 
     /**

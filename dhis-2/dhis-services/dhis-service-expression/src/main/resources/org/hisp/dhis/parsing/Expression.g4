@@ -31,12 +31,15 @@ expr
     |   expr '.' fun='rankHigh' a1
     |   expr '.' fun='rankLow' a1
     |   expr '.' fun='rankPercentile' a1
+    |   expr '.' fun='averageSumOrgUnit' a0
+    |   expr '.' fun='lastAverageOrgUnit' a0
+    |   expr '.' fun='noAggregation' a0
 
     // Aggregation scope functions
 
     |   expr '.' fun='period' a1_n
     |   expr '.' fun='ouAncestor' a1
-    |   expr '.' fun='ouDescendant' a1_n
+    |   expr '.' fun='ouDescendant' a1
     |   expr '.' fun='ouLevel' a1_n
     |   expr '.' fun='ouPeer' a1
     |   expr '.' fun='ouGroup' a1_n
@@ -57,9 +60,10 @@ expr
     // Other
 
     |   dataElement
-    |   dataElementOperand
+    |   dataElementOperandWithoutAoc
+    |   dataElementOperandWithAoc
     |   programDataElement
-    |   programTrackedEntityAttribute
+    |   programAttribute
     |   programIndicator
     |   orgUnitCount
     |   reportingRate
@@ -139,16 +143,20 @@ dataElement
     :   '#{' dataElementId '}'
     ;
 
-dataElementOperand
-    :   '#{' dataElementOperandId '}'
+dataElementOperandWithoutAoc
+    :   '#{' dataElementOperandIdWithoutAoc ('.*')? '}'
+    ;
+
+dataElementOperandWithAoc
+    :   '#{' dataElementOperandIdWithAoc '}'
     ;
 
 programDataElement
     :   'D{' programDataElementId '}'
     ;
 
-programTrackedEntityAttribute
-    :   'A{' programTrackedEntityAttributeId '}'
+programAttribute
+    :   'A{' programAttributeId '}'
     ;
 
 programIndicator
@@ -160,7 +168,7 @@ orgUnitCount
     ;
 
 reportingRate
-    :   'R{' reportingRateId '.REPORTING_RATE}'
+    :   'R{' reportingRateId '}'
     ;
 
 constant
@@ -175,15 +183,19 @@ dataElementId
     :   UID
     ;
 
-dataElementOperandId
-    :    UID '.' (UID | '*') ('.' (UID | '*'))?
+dataElementOperandIdWithoutAoc
+    :   UID '.' UID
+    ;
+
+dataElementOperandIdWithAoc
+    :   UID ('.' UID '.' | '.*.')  UID
     ;
 
 programDataElementId
-    :   UID ('.' UID)?
+    :   UID '.' UID
     ;
 
-programTrackedEntityAttributeId
+programAttributeId
     :   UID '.' UID
     ;
 
@@ -196,7 +208,7 @@ orgUnitCountId
     ;
 
 reportingRateId
-    :   UID
+    :   UID '.' javaIdentifier
     ;
 
 constantId
@@ -213,6 +225,10 @@ stringLiteral
 
 booleanLiteral
     :   BOOLEAN_LITERAL
+    ;
+
+javaIdentifier // Resolve ambiguity for Java identifiers that match UID pattern.
+    :    JAVA_IDENTIFIER | UID
     ;
 
 // -----------------------------------------------------------------------------
@@ -260,6 +276,9 @@ PERCENTILE: 'percentile';
 RANK_HIGH: 'rankHigh';
 RANK_LOW: 'rankLow';
 RANK_PERCENTILE: 'rankPercentile';
+AVERAGE_SUM_ORG_UNIT: 'averageSumOrgUnit';
+LAST_AVERAGE_ORG_UNIT: 'lastAverageOrgUnit';
+NO_AGGREGATION: 'noAggregation';
 
 // Aggregation scope functions
 
@@ -304,6 +323,10 @@ ZPVC :  'zpvc';
 
 // -----------------------------------------------------------------------------
 // Lexer rules
+//
+// Some expression characters are grouped into lexer tokens before parsing.
+// If a sequence of characters from the expression matches more than one
+// lexer rule, the first lexer rule is used.
 // -----------------------------------------------------------------------------
 
 NUMERIC_LITERAL
@@ -316,13 +339,18 @@ STRING_LITERAL
     ;
 
 BOOLEAN_LITERAL
-    :   [Tt][Rr][Uu][Ee]
-    |   [Ff][Aa][Ll][Ss][Ee]
+    :   'true'
+    |   'false'
     ;
 
+// UID and JAVA_IDENTIFIER might match the same pattern. UID must come first.
 UID :   Alpha
         AlphaNum AlphaNum AlphaNum AlphaNum AlphaNum
         AlphaNum AlphaNum AlphaNum AlphaNum AlphaNum
+    ;
+
+JAVA_IDENTIFIER
+    :   JavaIdentifierStart JavaIdentifierPart*
     ;
 
 WS  :   [ \t\n\r]+ -> skip // toss out all whitespace
@@ -335,19 +363,27 @@ fragment Exponent
     ;
 
 fragment Alpha
-    :    [a-zA-Z]
+    :   [a-zA-Z]
     ;
 
 fragment AlphaNum
     :   [a-zA-Z0-9]
     ;
 
+fragment JavaIdentifierStart
+    :   [a-zA-Z_$]
+    ;
+
+fragment JavaIdentifierPart
+    :   [a-zA-Z0-9_$]
+    ;
+
 fragment EscapeSequence
-    : '\\' [btnfr"'\\]
-    | '\\' ([0-3]? [0-7])? [0-7]
-    | '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit
+    :   '\\' [btnfr"'\\]
+    |   '\\' ([0-3]? [0-7])? [0-7]
+    |   '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit
     ;
 
 fragment HexDigit
-    : [0-9a-fA-F]
+    :   [0-9a-fA-F]
     ;

@@ -34,16 +34,18 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parsing.generated.ExpressionBaseVisitor;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,9 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     @Autowired
     protected IdentifiableObjectManager manager;
 
+    @Autowired
+    protected ConstantService constantService;
+
     protected OrganisationUnit currentOrgUnit = null;
 
     protected Period currentPeriod = null;
@@ -79,7 +84,18 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     protected Map<String, Integer> orgUnitCountMap = null;
 
-    protected Integer days = null;
+    protected Double days = DUMMY_VALUE;
+
+    protected Map<String, String> itemDescriptions = null;
+
+    /**
+     * Dummy values to use when the value is not yet known.
+     */
+    protected final static int DUMMY_INT = 1;
+
+    protected final static Double DUMMY_VALUE = 1.0;
+
+    protected final static Period DUMMY_PERIOD = ( new MonthlyPeriodType() ).createPeriod( "20010101" );
 
     /**
      * Tells whether we are already inside a multi-value orgUnit function,
@@ -95,15 +111,15 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     @Override
     public final Object visitExpr( ExprContext ctx )
     {
-        if ( ctx.fun != null )
+        if ( ctx.fun != null ) // Invoke a function
         {
             return function( ctx );
         }
-        else if ( ctx.expr( 0 ) != null ) // pass through the expression
+        else if ( ctx.expr( 0 ) != null ) // Pass through the expression
         {
             return visit( ctx.expr( 0 ) );
         }
-        else // pass through the entire subtree
+        else // Visit the type of expression defined
         {
             return visit( ctx.getChild( 0 ) );
         }
@@ -130,15 +146,30 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     @Override
     public final Object visitConstant( ConstantContext ctx )
     {
-        Double value = constantMap.get( ctx.constantId().getText() );
+        String constantId = ctx.constantId().getText();
+
+        Double value = constantMap.get( constantId );
 
         if ( value == null )
         {
-            throw new ParsingException( "No constant defined for " + ctx.getText() );
+            throw new ParsingException( "No constant defined for " + constantId );
+        }
+
+        if ( itemDescriptions != null )
+        {
+            Constant constant = constantService.getConstant( constantId );
+
+            itemDescriptions.put( ctx.getText(), constant.getDisplayName() );
         }
 
         return value;
     }
+
+    @Override
+    public final Object visitDays( DaysContext ctx )
+    {
+        return days;
+    };
 
     // -------------------------------------------------------------------------
     // Visitor methods to override when the syntax is supported.
@@ -156,34 +187,23 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         throw new ParsingException( "Program indicator function is not valid in this expression." );
     }
 
-    @Override
-    public Object visitReportingRate( ReportingRateContext ctx )
-    {
-        throw new ParsingException( "Reporting rate is not valid in this expression." );
-    }
-
     // -------------------------------------------------------------------------
-    // Visitor methods that subclasses must implement to process the
-    // data (for evaluation) or metadata (to find DimensionItemObjects.)
-    // -------------------------------------------------------------------------
-
-    @Override
-    public abstract Object visitOrgUnitCount( OrgUnitCountContext ctx );
-
-    @Override
-    public abstract Object visitDays( DaysContext ctx );
-
-    // -------------------------------------------------------------------------
-    // Logical methods that subclasses must implement so that only needed
-    // expressions are visited when evaluating, but all expressions are
-    // visited when syntax checking and/or finding DimensionItemObjects
+    // Subclasses must implement the following logical methods.
+    //
+    // When getting ExpresssionItems and description, visit all the items
+    // beause we don't know what the data values will be. Assume that all
+    // values will be dummy and no values will be null.
+    //
+    // When finding the expression value based on data values, only evaluate
+    // those exprssions we need to. This not only saves time but is important
+    // when implementing skip strategy. For example, if a value is explicitly
+    // tested to see if it is null, then it doesn't apply against the skip
+    // strategy if it is missing. Also, assume that any value returned might
+    // be null, and protect yourself accordingly.
     // -------------------------------------------------------------------------
 
     /**
      * Finds the logical AND of two boolean expressions.
-     * <p/>
-     * When not evaluating, visit both expressions. When evaluating,
-     * visit the first expression and then the second only if necessary.
      *
      * @param ctx the parsing context.
      * @return the logical AND.
@@ -192,9 +212,6 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Finds the logical OR of two boolean expressions.
-     * <p/>
-     * When not evaluating, visit both expressions. When evaluating,
-     * visit the first expression and then the second only if necessary.
      *
      * @param ctx the parsing context.
      * @return the logical OR.
@@ -204,9 +221,6 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     /**
      * If the test expression is true, returns the first expression value,
      * else returns the second expression value.
-     * <p/>
-     * When not evaluating, visit both result expressions. When evaluating,
-     * visit only the expression required.
      *
      * @param ctx the parsing context.
      * @return the first or second expression value, depending on the test.
@@ -215,9 +229,6 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * If the test expression is true, skips this value (returns null).
-     * <p/>
-     * When not evaluating, always visit the value expression. When evaluating,
-     * only visit it if the test expression is false.
      *
      * @param ctx the parsing context.
      * @return the expression, or null, depending on the test.
@@ -226,9 +237,6 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Returns the first non-null argument.
-     * <p/>
-     * When not evaluating, always visit every argument. When evaluating,
-     * only visit arguments until a non-null is found.
      *
      * @param ctx the parsing context.
      * @return the first non-null argument.
@@ -254,69 +262,62 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             // -----------------------------------------------------------------
 
             case MINUS:
-                if ( ctx.expr( 1 ) != null ) // Subtract operator
+                if ( ctx.expr().size() > 1 ) // Subtract operator
                 {
-                    return castDouble( visit( ctx.expr( 0 ) ) )
-                        - castDouble( visit( ctx.expr( 1 ) ) );
+                    return double2( ctx, (Double a, Double b) -> a - b );
                 }
                 else // Unary Negative operator
                 {
-                    return -castDouble( visit( ctx.expr( 0 ) ) );
+                    return double1( ctx, (Double a) -> - a );
                 }
 
             case PLUS: // String concatenation or numeric addition
-                Object left = visit( ctx.expr( 0 ) );
-                Object right = visit( ctx.expr( 1 ) );
+                Object arg1 = visit( ctx.expr( 0 ) );
+                Object arg2 = visit( ctx.expr( 1 ) );
 
-                if ( left.getClass() == String.class )
+                if ( arg1 instanceof String )
                 {
-                    return castString( left )
-                        + castString( right );
+                    return arg2 == null ? null : (String) arg1 + castString( arg2 );
                 }
 
-                return castDouble( left )
-                    + castDouble( right );
+                return double2( castDouble( arg1 ), castDouble( arg2 ), (Double a, Double b) -> a + b );
 
             case POWER:
-                return pow( castDouble( visit( ctx.expr( 0 ) ) ),
-                    castDouble( visit( ctx.expr( 1 ) ) ) );
+                return double2( ctx, (Double a, Double b) -> pow(a, b) );
 
             case MUL:
-                return castDouble( visit( ctx.expr( 0 ) ) )
-                    * castDouble( visit( ctx.expr( 1 ) ) );
+                return double2( ctx, (Double a, Double b) -> a * b );
 
             case DIV:
-                return castDouble( visit( ctx.expr( 0 ) ) )
-                    / castDouble( visit( ctx.expr( 1 ) ) );
+                return double2( ctx, (Double a, Double b) -> a / b );
 
             case MOD:
-                return castDouble( visit( ctx.expr( 0 ) ) )
-                    % castDouble( visit( ctx.expr( 1 ) ) );
+                return double2( ctx, (Double a, Double b) -> a % b );
 
             // -----------------------------------------------------------------
             // Logical Operators (return Boolean)
             // -----------------------------------------------------------------
 
             case NOT:
-                return !castBoolean( visit( ctx.expr( 0 ) ) );
+                return boolean1( ctx, (Boolean a) -> ! a );
 
             case LEQ:
-                return compare( ctx ) <= 0;
+                return compare( ctx, (Integer a) -> a <= 0 );
 
             case GEQ:
-                return compare( ctx ) >= 0;
+                return compare( ctx, (Integer a) -> a >= 0 );
 
             case LT:
-                return compare( ctx ) < 0;
+                return compare( ctx, (Integer a) -> a < 0 );
 
             case GT:
-                return compare( ctx ) > 0;
+                return compare( ctx, (Integer a) -> a > 0 );
 
             case EQ:
-                return compare( ctx ) == 0;
+                return compare( ctx, (Integer a) -> a == 0 );
 
             case NE:
-                return compare( ctx ) != 0;
+                return compare( ctx, (Integer a) -> a != 0 );
 
             case AND:
                 return functionAnd( ctx );
@@ -335,7 +336,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
                 return functionExcept( ctx );
 
             case IS_NULL:
-                return visit( ctx.expr( 0 ) ) == null;
+                return visit( ctx.a1().expr() ) == null;
 
             case COALESCE:
                 return functionCoalesce( ctx );
@@ -351,7 +352,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
                 return firstOrLast( AggregationType.LAST, ctx, false );
 
             case COUNT:
-                return evalAll( ctx ).size();
+                return aggregate( (double[] a) -> (double) a.length, AggregationType.COUNT, ctx );
 
             case SUM:
                 return aggregate( StatUtils::sum, AggregationType.SUM, ctx );
@@ -386,6 +387,15 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             case RANK_PERCENTILE:
                 double[] vals = getDoubles( null, ctx );
                 return vals.length == 0 ? null : (double) Math.round( 100.0 * rankHigh( vals, ctx ) / vals.length );
+
+            case AVERAGE_SUM_ORG_UNIT:
+                return visitAggType( AggregationType.AVERAGE_SUM_ORG_UNIT, ctx );
+
+            case LAST_AVERAGE_ORG_UNIT:
+                return visitAggType( AggregationType.LAST_AVERAGE_ORG_UNIT, ctx );
+
+            case NO_AGGREGATION:
+                return visitAggType( AggregationType.NONE, ctx );
 
             // -----------------------------------------------------------------
             // Aggregation scope functions
@@ -483,7 +493,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
                 if ( savedPeriod == null ) // No period, syntax check only.
                 {
-                    values.addPeriodValue( currentPeriod, visit( ctx.expr( 0 ) ) );
+                    values.addPeriodValue( DUMMY_PERIOD, visit( ctx.expr( 0 ) ) );
                 }
                 else
                 {
@@ -511,6 +521,14 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         return returnValue;
     }
 
+    /**
+     * Gets previous periods (negative shift value) or next periods (positive
+     * shift value)
+     *
+     * @param period starting period
+     * @param periodShift how many periods to shift
+     * @return the shifted period
+     */
     private Period getPreviousOrNextPeriod( Period period, int periodShift )
     {
         return periodShift < 0
@@ -530,11 +548,11 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
      *
      * @param ctx the parsing context, containing the ancestor level
      *            (1=parent, 2=grandparent, etc.)
-     * @return the value from the ancestor.
+     * @return the single value from the ancestor.
      */
     private Object ouAncestor( ExprContext ctx )
     {
-        int parentLevels = castInteger( visit( ctx.a1().expr() ) );
+        int parentLevels = castNonNullInteger( visit( ctx.a1().expr() ) );
 
         if ( currentOrgUnit == null )
         {
@@ -558,33 +576,22 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     /**
      * Returns the expression value, evaluated at the orgUnit's descendants.
      *
-     * @param ctx the parsing context, containing the descendant level(s)
+     * @param ctx the parsing context, containing the descendant level
      *            (1=children, 2=grandchildren, etc.)
      * @return the single value from the ancestor.
      */
     private Object ouDescendant( ExprContext ctx )
     {
-        Set<Integer> levels = new HashSet<>();
-
-        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
-        {
-            levels.add( castInteger( visit( ctx.a1_n().expr( i ) ) ) );
-        }
+        int level = castNonNullInteger( visit( ctx.a1().expr() ) );
 
         if ( currentOrgUnit == null )
         {
-            return visit( ctx.expr( 0 ) );
+            return ouVisitOrFilter( ctx, new HashSet<>() );
         }
 
-        Set<OrganisationUnit> descendants = new HashSet<>();
+        List<OrganisationUnit> descendants = organisationUnitService.getOrganisationUnitsAtLevel( currentOrgUnit.getLevel() + level, currentOrgUnit );
 
-        for ( Integer i : levels )
-        {
-            descendants.addAll ( organisationUnitService.getOrganisationUnitsAtLevel( currentOrgUnit.getLevel() + i, currentOrgUnit ) );
-        }
-
-        return ouVisitOrFilter( ctx, descendants );
-
+        return ouVisitOrFilter( ctx, new HashSet<>( descendants ) );
     }
 
     /**
@@ -599,12 +606,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
         for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
         {
-            levels.add( castInteger( visit( ctx.a1_n().expr( i ) ) ) );
-        }
-
-        if ( currentOrgUnit == null )
-        {
-            return visit( ctx.expr( 0 ) );
+            levels.add( castNonNullInteger( visit( ctx.a1_n().expr( i ) ) ) );
         }
 
         Set<OrganisationUnit> orgUnitsAtLevels = new HashSet<>();
@@ -619,28 +621,24 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Interates over the current orgUnit's peers.
-     * TODO: Update JavaDoc for only 1 argument.
-     * <ol>
-     *     <li>The number of times removed from the current orgUnit
-     *     (0=self, 1=siblings, 2=cousins but not siblings, etc.)</li>
-     *     <li>If two arguments are present, the two are a starting
-     *     and ending range of times removed. For example, (0,1) is
-     *     self plus all siblings (all the parent's children), and (0,2)
-     *     is self, all siblings and all cousins (all the grandparent's
-     *     grandchildren).</li>
-     * </ol>
+     * <p/>
+     * Expects one argument which is the number of times removed from the
+     * current orgUnit (0=self, 1=self and siblings, 2=self and siblings
+     * and cousins, etc.)
      *
-     * @param ctx the parsing context, one or two arguments.
+     * @param ctx the parsing context.
      * @return the multiple values from the orgUnits.
      */
     protected Object ouPeer( ExprContext ctx )
     {
         if ( currentOrgUnit == null )
         {
-            return visit( ctx.expr( 0 ) );
+            return ouVisitOrFilter( ctx, new HashSet<>() );
         }
 
-        OrganisationUnit ancestor = getOuAncestor( castInteger( visit( ctx.a1().expr() ) ) );
+        int ancestorLevel = castNonNullInteger( visit( ctx.a1().expr() ) );
+
+        OrganisationUnit ancestor = getOuAncestor( ancestorLevel );
 
         List<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitsAtLevel( currentOrgUnit.getLevel(), ancestor );
 
@@ -648,7 +646,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     }
 
     /**
-     * Iterates over one or more orgUnit groups.
+     * Iterates over one or more organisation unit groups.
      *
      * @param ctx the parsing context, with the group(s) to iterate over.
      * @return the multiple values from the orgUnits.
@@ -671,16 +669,11 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             orgUnitsInGroups.addAll( group.getMembers() );
         }
 
-        if ( currentOrgUnit == null )
-        {
-            return visit( ctx.expr( 0 ) );
-        }
-
         return ouVisitOrFilter( ctx, new HashSet<OrganisationUnit>( orgUnitsInGroups ) );
     }
 
     /**
-     * Iterates over one or more orgUnits to which a data set has been assigned.
+     * Iterates over organisation units assigned to one or more data sets.
      *
      * @param ctx the parsing context, with the group(s) to iterate over.
      * @return the multiple values from the orgUnits.
@@ -703,14 +696,15 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             orgUnitsInDataSets.addAll( dataSet.getSources() );
         }
 
-        if ( currentOrgUnit == null )
-        {
-            return visit( ctx.expr( 0 ) );
-        }
-
         return ouVisitOrFilter( ctx, new HashSet<OrganisationUnit>( orgUnitsInDataSets ) );
     }
 
+    /**
+     * Moves up in the organisation unit hierchy a specified number of times.
+     *
+     * @param levels The number of levels to move up.
+     * @return The nth ancestor (or root if n is too high).
+     */
     private OrganisationUnit getOuAncestor( int levels )
     {
         OrganisationUnit orgUnit = currentOrgUnit;
@@ -723,6 +717,13 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         return orgUnit;
     }
 
+    /**
+     * Looks up an identifiable object first by UID, then code, then name.
+     *
+     * @param clazz the class of the identifiable object
+     * @param identifier the identifier to look up
+     * @return the object
+     */
     private <T extends IdentifiableObject> T getIdentifiableObject( Class<T> clazz, String identifier )
     {
         T identifiableObject = manager.get( clazz, identifier );
@@ -742,11 +743,25 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         return manager.getByName( clazz, identifier );
     }
 
+    /**
+     * If not iterating through a higher set of organisation units, then
+     * iterate through the given set.
+     * <p/>
+     * If already iterating through a set of organisation units at a higher
+     * level, then just pass through this call if the organisation unit is
+     * in the given set, else return null. This has the effect of visiting
+     * only those organisation units that are in the intersection of the
+     * higher-level set and the current set.
+     *
+     * @param ctx the parting context
+     * @param orgUnits
+     * @return
+     */
     private Object ouVisitOrFilter( ExprContext ctx, Set<OrganisationUnit> orgUnits )
     {
         if ( filterOrgUnits )
         {
-            if ( orgUnits.contains( currentOrgUnit ) )
+            if ( currentOrgUnit == null || orgUnits.contains( currentOrgUnit ) )
             {
                 return visit( ctx.expr( 0 ) );
             }
@@ -756,9 +771,16 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             }
         }
 
-        OrganisationUnit savedOrgUnit = currentOrgUnit;
-
         MultiValues values = new MultiValues();
+
+        if ( currentOrgUnit == null )
+        {
+            values.addValue( visit( ctx.expr( 0 ) ) );
+
+            return values;
+        }
+
+        OrganisationUnit savedOrgUnit = currentOrgUnit;
 
         filterOrgUnits = true;
 
@@ -780,6 +802,14 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     // Aggregation functions
     // -------------------------------------------------------------------------
 
+    /**
+     * Applies an aggregation function, or returns null if there are no inputs.
+     *
+     * @param func the function to apply.
+     * @param aggType the aggregation type, if any, to set for values below.
+     * @param ctx the parsing context.
+     * @return the function value, or null if no inputs.
+     */
     private Object aggregate( Function<double[], Double> func, AggregationType aggType, ExprContext ctx )
     {
         double[] doubles = getDoubles( aggType, ctx );
@@ -792,11 +822,20 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         return func.apply( doubles );
     }
 
+    /**
+     * Applies an aggreegation function that takes a second argument, or returns null
+     * if there are no inputs or no second argument.
+     *
+     * @param func the function to apply.
+     * @param arg2 the second argument to the aggregation function.
+     * @param ctx the parsing context.
+     * @return the function value, or null if no inputs or no second argument.
+     */
     private Object aggregate2( BiFunction<double[], Double, Double> func, Double arg2, ExprContext ctx )
     {
         double[] doubles = getDoubles( null, ctx );
 
-        if ( doubles.length == 0 )
+        if ( doubles.length == 0 || arg2 == null )
         {
             return null;
         }
@@ -870,15 +909,20 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         return rankLow;
     }
 
+    /**
+     * Processes the first or last aggregation functions. Must be used on a
+     * set of multiple values iterated over periods. Without an argument,
+     * returns a single value of either the first or last value. With an
+     * argument, returns the first or last n values as a multi-value set.
+     *
+     * @param aggType aggregation type, if any, to set for data values.
+     * @param ctx parsing context with zero or one arguments.
+     * @param isFirst whether this is first (or last).
+     * @return the first or last value(s).
+     */
     private Object firstOrLast( AggregationType aggType, ExprContext ctx, boolean isFirst )
     {
-        AggregationType savedAggregationType = currentAggregationType;
-
-        currentAggregationType = aggType;
-
-        MultiValues multiValues = castMultiPeriodvalues( visit( ctx.expr( 0 ) ) );
-
-        currentAggregationType = savedAggregationType;
+        MultiValues multiValues = castMultiPeriodvalues( visitAggType( aggType, ctx ) );
 
         if ( ctx.a0_1().expr() == null )
         {
@@ -888,8 +932,43 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         }
         else
         {
-            return multiValues.firstOrLast( castInteger( visit( ctx.a0_1().expr() ) ), isFirst );
+            return multiValues.firstOrLast( castNonNullInteger( visit( ctx.a0_1().expr() ) ), isFirst );
         }
+    }
+
+    /**
+     * Returns an array of double values for aggregate function processing.
+     *
+     * @param ctx the parsing context.
+     * @return the array of double values.
+     */
+    private double[] getDoubles( AggregationType aggType, ExprContext ctx )
+    {
+        return ArrayUtils.toPrimitive( castMultiValues( visitAggType( aggType, ctx ) )
+            .getValues().stream()
+            .filter( o -> o != null )
+            .map( o -> castDouble( o ) ).collect( Collectors.toList() )
+            .toArray( new Double[0] ) );
+    }
+
+    /**
+     * Visits the tree nodes below with the specified aggregation type.
+     *
+     * @param aggType the aggregation type to use for lower-level nodes.
+     * @param ctx the parsing context.
+     * @return the value from the tree below.
+     */
+    private Object visitAggType( AggregationType aggType, ExprContext ctx )
+    {
+        AggregationType savedAggregationType = currentAggregationType;
+
+        currentAggregationType = aggType;
+
+        Object object = visit( ctx.expr( 0 ) );
+
+        currentAggregationType = savedAggregationType;
+
+        return object;
     }
 
     // -------------------------------------------------------------------------
@@ -897,30 +976,134 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     // -------------------------------------------------------------------------
 
     /**
-     * Casts object as Integer, or throw exception if we can't.
-     * <p/>
-     * The object must not be null.
+     * Evaluates a one-argument double function, but returns null if the
+     * input value is null.
      *
-     * @param object the value to cast as an Integer.
-     * @return Integer value.
+     * @param ctx the parsing context with one expression.
+     * @param fn the function to evaluate.
+     * @return the function result, or null if input was null.
+     */
+    protected Double double1( ExprContext ctx, Function<Double, Double> fn )
+    {
+        Double d1 = castDouble( visit( ctx.expr( 0 ) ) );
+
+        return d1 == null
+            ? null
+            : fn.apply( d1 );
+    }
+
+    /**
+     * Evaluates a two-argument double function, but returns null if either of
+     * the input values is null.
+     *
+     * @param ctx the parsing context with two expressions.
+     * @param fn the function to evaluate.
+     * @return the function result, or null if either input was null.
+     */
+    protected Double double2( ExprContext ctx, BiFunction<Double, Double, Double> fn )
+    {
+        Double d1 = castDouble( visit( ctx.expr( 0 ) ) );
+        Double d2 = castDouble( visit( ctx.expr( 1 ) ) );
+
+        return double2( d1, d2, fn);
+    }
+
+    /**
+     * Evaluates a two-argument double function, but returns null if either of
+     * the input values is null.
+     *
+     * @param d1 the first function argument (could be null).
+     * @param d2 the second function argument (could be null).
+     * @param fn the function to evaluate.
+     * @return the function result, or null if either input was null.
+     */
+    protected Double double2( Double d1, Double d2, BiFunction<Double, Double, Double> fn )
+    {
+        return d1 == null || d2 == null
+            ? null
+            : fn.apply( d1, d2 );
+    }
+
+    /**
+     * Evaluates a two-argument boolean function, but returns null if either of
+     * the input values is null.
+     *
+     * @param ctx the parsing context with two expressions.
+     * @param fn the function to evaluate.
+     * @return the function result, or null if either input was null.
+     */
+    protected Boolean boolean1( ExprContext ctx, Function<Boolean, Boolean> fn )
+    {
+        Boolean b1 = castBoolean( visit( ctx.expr( 0 ) ) );
+
+        return b1 == null
+            ? null
+            : fn.apply( b1 );
+    }
+
+    /**
+     * Casts object as Integer, or throws an exception if we can't.
+     * @param object
+     * @return
      */
     protected Integer castInteger( Object object )
     {
         Double d = castDouble( object );
 
-        if ( d == null )
+        Integer i = null;
+
+        if ( d != null )
+        {
+            i = (int) (double) d;
+
+            if ( (double) d != i )
+            {
+                throw new ParsingException( "integer expected at: '" + object.toString() + "'" );
+            }
+        }
+
+        return i;
+    }
+
+    /**
+     * Casts object as Integer, or throws exception if we can't or if the
+     * object is null.
+     *
+     * @param object the value to cast as an Integer.
+     * @return Integer value.
+     */
+    protected Integer castNonNullInteger( Object object )
+    {
+        Integer i = castInteger( object );
+
+        if ( i == null )
         {
             throw new ParsingException( "integer value missing" );
         }
 
-        Integer i = (int) (double) d;
-
-        if ( (double) d != i )
-        {
-            throw new ParsingException( "integer expected at: '" + object.toString() + "'" );
-        }
-
         return i;
+    }
+
+    /**
+     * Casts argument as Integer, but returns a default value if either the
+     * argument was missing, or it evaluates to null.
+     *
+     * @param ctx the parsing context of the argument.
+     * @param defaultValue the default value to use if null.
+     * @return the integer value.
+     */
+    private int evalIntDefault( ExprContext ctx, int defaultValue )
+    {
+        if ( ctx == null )
+        {
+            return defaultValue;
+        }
+        else
+        {
+            Integer i = castInteger( visit( ctx ) );
+
+            return i == null ? defaultValue : i;
+        }
     }
 
     /**
@@ -938,9 +1121,14 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             return null;
         }
 
+        if ( object instanceof MultiValues )
+        {
+            throw new ParsingException( "Multiple values must be aggregated." );
+        }
+
         try
         {
-            if ( object.getClass() == String.class )
+            if ( object instanceof String )
             {
                 return Double.valueOf( (String) object );
             }
@@ -1035,101 +1223,44 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     }
 
     /**
-     * Gets from the object a Double array
-     */
-    protected Double[] castDoubleArray( Object object )
-    {
-        return castMultiValues( object ).getValues().stream()
-            .map( v -> castDouble( v ) ).collect( Collectors.toList() ).toArray( new Double[0] );
-    }
-
-    private int evalIntDefault( ExprContext ctx, int defaultValue )
-    {
-        if ( ctx == null )
-        {
-            return defaultValue;
-        }
-        else
-        {
-            return coalesce( castInteger( visit( ctx ) ), defaultValue );
-        }
-    }
-
-    private Integer coalesce( Integer... integers )
-    {
-        for ( Integer i : integers )
-        {
-            if ( i != null )
-            {
-                return i;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns an array of double values for aggregate function processing.
+     * Compares two Doubles, Strings or Booleans applying the given function
+     * to the integer result of the comparison. Returns null if either value
+     * is null.
      *
-     * @param ctx the parsing context.
-     * @return the array of double values.
+     * @param ctx the expression context with two sub-expressions.
+     * @param fn the function to evaluate the compare result.
+     * @return the results of the comparision.
      */
-    private double[] getDoubles( AggregationType aggType, ExprContext ctx )
-    {
-        return ArrayUtils.toPrimitive( castMultiValues( visitAggType( aggType, ctx ) )
-            .getValues().stream()
-            .filter( o -> o != null )
-            .map( o -> castDouble( o ) ).collect( Collectors.toList() )
-            .toArray( new Double[0] ) );
-    }
-
-    private Object visitAggType( AggregationType aggType, ExprContext ctx )
-    {
-        AggregationType savedAggregationType = currentAggregationType;
-
-        currentAggregationType = aggType;
-
-        Object object = visit( ctx.expr( 0 ) );
-
-        currentAggregationType = savedAggregationType;
-
-        return object;
-    }
-
-    private List<Object> evalAll( ExprContext ctx )
-    {
-        return evalAll( ctx, 1 );
-    }
-
-    private List<Object> evalAll( ExprContext ctx, int periodOrder )
-    {
-        int limit = 0; // Unlimited
-
-        //TODO: iterate through periods and orgUnits in scope
-
-        return Arrays.asList( visit( ctx.expr( 0 ) ) );
-    }
-
-    private int compare( ExprContext ctx )
+    private Boolean compare( ExprContext ctx, Function<Integer, Boolean> fn )
     {
         Object o1 = visit( ctx.expr( 0 ) );
         Object o2 = visit( ctx.expr( 1 ) );
 
-        if ( o1.getClass() == Double.class )
+        if ( o1 == null || o2 == null )
         {
-            return ( (Double) o1).compareTo( castDouble( o2 ) );
+            return null;
         }
-        else if ( o1.getClass() == String.class )
+
+        int compare;
+
+        if ( o1 instanceof Double )
         {
-            return ( (String) o1).compareTo( castString( o2 ) );
+            compare = ( (Double) o1).compareTo( castDouble( o2 ) );
         }
-        else if ( o1.getClass() == Boolean.class )
+        else if ( o1 instanceof String )
         {
-            return ( (Boolean) o1).compareTo( castBoolean( o2 ) );
+            compare = ( (String) o1).compareTo( castString( o2 ) );
+        }
+        else if ( o1 instanceof Boolean )
+        {
+            compare = ( (Boolean) o1).compareTo( castBoolean( o2 ) );
         }
         else // (Shouldn't happen)
         {
-            throw new ParsingException( "magnitude of " + o1.getClass().getSimpleName() + " cannot be compared at: '" + o2.toString() + "'" );
+            throw new ParsingException( "magnitude of " + o1.getClass().getSimpleName() + " '" + o1.toString() +
+                "' cannot be compared to: " + o2.getClass().getSimpleName() + " '" + o1.toString() + "'" );
         }
+
+        return fn.apply( compare );
     }
 }

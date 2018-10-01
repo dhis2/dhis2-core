@@ -29,11 +29,19 @@ package org.hisp.dhis.parsing;
  */
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -44,6 +52,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.AbstractMap.SimpleEntry;
+import static org.hisp.dhis.common.ReportingRateMetric.*;
 import static org.junit.Assert.*;
 
 /**
@@ -81,6 +95,15 @@ public class ParsingServiceTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private ConstantService constantService;
 
     private OrganisationUnit orgUnitA;
     private OrganisationUnit orgUnitB;
@@ -121,19 +144,47 @@ public class ParsingServiceTest
 
     private static DataElement dataElementA;
     private static DataElement dataElementB;
+    private static DataElement dataElementC;
+    private static DataElement dataElementD;
+    private static DataElement dataElementE;
+
+    private static DataElementOperand dataElementOperandA;
+    private static DataElementOperand dataElementOperandB;
+    private static DataElementOperand dataElementOperandC;
+    private static DataElementOperand dataElementOperandD;
+    private static DataElementOperand dataElementOperandE;
+    private static DataElementOperand dataElementOperandF;
+
+    private static ProgramDataElementDimensionItem programDataElementA;
+    private static ProgramDataElementDimensionItem programDataElementB;
+
+    private static Program programA;
+    private static Program programB;
+
+    private static ProgramIndicator programIndicatorA;
+    private static ProgramIndicator programIndicatorB;
+
+    private static TrackedEntityAttribute trackedEntityAttributeA;
+    private static TrackedEntityAttribute trackedEntityAttributeB;
+
+    private static ProgramTrackedEntityAttributeDimensionItem programAttributeA;
+    private static ProgramTrackedEntityAttributeDimensionItem programAttributeB;
+
+    private static ReportingRate reportingRateA;
+    private static ReportingRate reportingRateB;
+    private static ReportingRate reportingRateC;
+    private static ReportingRate reportingRateD;
+    private static ReportingRate reportingRateE;
+    private static ReportingRate reportingRateF;
 
     private Map<ExpressionItem, Double> valueMap;
 
-    private static final Map<String, Double> CONSTANT_MAP = new HashMap<String, Double>()
-    {{
-        put( "xxxxxxxxx05", 0.5 );
-        put( "xxxxxxxx025", 0.25 );
-    }};
+    private Map<String, Double> constantMap;
 
     private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new HashMap<String, Integer>()
     {{
-        put( "dataSetAUid", 1000000 );
-        put( "dataSetBUid", 2000000 );
+        put( "orgUnitGrpA", 1000000 );
+        put( "orgUnitGrpB", 2000000 );
     }};
 
     private final static int DAYS = 30;
@@ -148,14 +199,90 @@ public class ParsingServiceTest
     {
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
+        dataElementC = createDataElement( 'C' );
+        dataElementD = createDataElement( 'D' );
+        dataElementE = createDataElement( 'E' );
 
         dataElementA.setUid( "dataElemenA" );
         dataElementB.setUid( "dataElemenB" );
+        dataElementC.setUid( "dataElemenC" );
+        dataElementD.setUid( "dataElemenD" );
+        dataElementE.setUid( "dataElemenE" );
 
         dataElementA.setAggregationType( AggregationType.SUM );
+        dataElementB.setAggregationType( AggregationType.NONE );
+        dataElementC.setAggregationType( AggregationType.SUM );
+        dataElementD.setAggregationType( AggregationType.NONE );
+        dataElementE.setAggregationType( AggregationType.SUM );
+
+        dataElementC.setDomainType( DataElementDomain.TRACKER );
+        dataElementD.setDomainType( DataElementDomain.TRACKER );
+
+        dataElementA.setName( "Data element A name");
+        dataElementB.setName( "Data element B name");
+        dataElementC.setName( "Data element C name");
+        dataElementD.setName( "Data element D name");
+        dataElementE.setName( "Data element E name");
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementC );
+        dataElementService.addDataElement( dataElementD );
+        dataElementService.addDataElement( dataElementE );
+
+        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        dataElementOperandA = new DataElementOperand( dataElementA, defaultCategoryOptionCombo );
+        dataElementOperandB = new DataElementOperand( dataElementB, defaultCategoryOptionCombo );
+        dataElementOperandC = new DataElementOperand( dataElementA, defaultCategoryOptionCombo, defaultCategoryOptionCombo );
+        dataElementOperandD = new DataElementOperand( dataElementB, defaultCategoryOptionCombo, defaultCategoryOptionCombo );
+        dataElementOperandE = new DataElementOperand( dataElementA, null, defaultCategoryOptionCombo );
+        dataElementOperandF = new DataElementOperand( dataElementB, null, defaultCategoryOptionCombo );
+
+        programA = createProgram( 'A' );
+        programB = createProgram( 'B' );
+
+        programA.setUid( "programUidA" );
+        programB.setUid( "programUidB" );
+
+        programA.setName( "Program A name" );
+        programB.setName( "Program B name" );
+
+        manager.save( programA );
+        manager.save( programB );
+
+        programDataElementA = new ProgramDataElementDimensionItem( programA, dataElementC );
+        programDataElementB = new ProgramDataElementDimensionItem( programB, dataElementD );
+
+        trackedEntityAttributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
+        trackedEntityAttributeB = createTrackedEntityAttribute( 'B', ValueType.NUMBER );
+
+        trackedEntityAttributeA.setUid( "trakEntAttA");
+        trackedEntityAttributeB.setUid( "trakEntAttB");
+
+        trackedEntityAttributeA.setAggregationType( AggregationType.SUM );
+        trackedEntityAttributeB.setAggregationType( AggregationType.NONE );
+
+        manager.save( trackedEntityAttributeA );
+        manager.save( trackedEntityAttributeB );
+
+        programAttributeA = new ProgramTrackedEntityAttributeDimensionItem( programA, trackedEntityAttributeA );
+        programAttributeB = new ProgramTrackedEntityAttributeDimensionItem( programB, trackedEntityAttributeB );
+
+        programIndicatorA = createProgramIndicator( 'A', programA, "9.0", "" );
+        programIndicatorB = createProgramIndicator( 'B', programA, "19.0", "" );
+
+        programIndicatorA.setUid( "programIndA" );
+        programIndicatorB.setUid( "programIndB" );
+
+        programIndicatorA.setName( "Program indicator A name" );
+        programIndicatorB.setName( "Program indicator B name" );
+
+        programIndicatorA.setAggregationType( AggregationType.SUM );
+        programIndicatorB.setAggregationType( AggregationType.NONE );
+
+        manager.save( programIndicatorA );
+        manager.save( programIndicatorB );
 
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B', orgUnitA );
@@ -200,9 +327,17 @@ public class ParsingServiceTest
         orgUnitGroupB = createOrganisationUnitGroup( 'B' );
         orgUnitGroupC = createOrganisationUnitGroup( 'C' );
 
-        orgUnitGroupA.setUid( "OrgUnitGrpA" );
-        orgUnitGroupB.setUid( "OrgUnitGrpB" );
-        orgUnitGroupC.setUid( "OrgUnitGrpC" );
+        orgUnitGroupA.setUid( "orgUnitGrpA" );
+        orgUnitGroupB.setUid( "orgUnitGrpB" );
+        orgUnitGroupC.setUid( "orgUnitGrpC" );
+
+        orgUnitGroupA.setCode( "orgUnitGroupCodeA" );
+        orgUnitGroupB.setCode( "orgUnitGroupCodeB" );
+        orgUnitGroupC.setCode( "orgUnitGroupCodeC" );
+
+        orgUnitGroupA.setName( "Org unit group A name" );
+        orgUnitGroupB.setName( "Org unit group B name" );
+        orgUnitGroupC.setName( "Org unit group C name" );
 
         orgUnitGroupA.addOrganisationUnit( orgUnitB );
         orgUnitGroupA.addOrganisationUnit( orgUnitC );
@@ -227,8 +362,14 @@ public class ParsingServiceTest
         dataSetA = createDataSet( 'A' );
         dataSetB = createDataSet( 'B' );
 
-        dataSetA.setUid( "DataSetUidA" );
-        dataSetB.setUid( "DataSetUidB" );
+        dataSetA.setUid( "dataSetUidA" );
+        dataSetB.setUid( "dataSetUidB" );
+
+        dataSetA.setName( "Data set A name" );
+        dataSetB.setName( "Data set B name" );
+
+        dataSetA.setCode( "dataSetCodeA" );
+        dataSetB.setCode( "dataSetCodeB" );
 
         dataSetA.addOrganisationUnit( orgUnitE );
         dataSetA.addOrganisationUnit( orgUnitH );
@@ -240,6 +381,20 @@ public class ParsingServiceTest
 
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
+
+        reportingRateA = new ReportingRate( dataSetA, REPORTING_RATE );
+        reportingRateB = new ReportingRate( dataSetA, REPORTING_RATE_ON_TIME );
+        reportingRateC = new ReportingRate( dataSetA, ACTUAL_REPORTS );
+        reportingRateD = new ReportingRate( dataSetA, ACTUAL_REPORTS_ON_TIME );
+        reportingRateE = new ReportingRate( dataSetA, EXPECTED_REPORTS );
+        reportingRateF = new ReportingRate( dataSetB );
+
+        reportingRateA.setUid( "reportRateA" );
+        reportingRateB.setUid( "reportRateB" );
+        reportingRateC.setUid( "reportRateC" );
+        reportingRateD.setUid( "reportRateD" );
+        reportingRateE.setUid( "reportRateE" );
+        reportingRateF.setUid( "reportRateF" );
 
         periodA = createPeriod( "200105" );
         periodB = createPeriod( "200106" );
@@ -278,6 +433,17 @@ public class ParsingServiceTest
         periodService.addPeriod( periodO );
         periodService.addPeriod( periodP );
 
+        Constant constantA = new Constant( "One half", 0.5 );
+        Constant constantB = new Constant( "One quarter", 0.25 );
+
+        constantA.setUid( "xxxxxxxxx05" );
+        constantB.setUid( "xxxxxxxx025" );
+
+        constantService.saveConstant( constantA );
+        constantService.saveConstant( constantB );
+
+        constantMap = constantService.getConstantMap();
+
         valueMap = entries(
             entrySum( orgUnitA, periodK, dataElementA, 0.5 ),
             entrySum( orgUnitA, periodL, dataElementA, 0.25 ),
@@ -310,13 +476,13 @@ public class ParsingServiceTest
             entrySum( orgUnitG, periodE, dataElementA, 4000.0 ),
             entrySum( orgUnitG, periodF, dataElementA, 2000.0 ),
 
-            entryAgg( orgUnitG, periodG, dataElementA, 1000.0 ),
-            entryAgg( orgUnitG, periodH, dataElementA, 400.0 ),
-            entryAgg( orgUnitG, periodI, dataElementA, 200.0 ),
-            entryAgg( orgUnitG, periodJ, dataElementA, 100.0 ),
-            entryAgg( orgUnitG, periodK, dataElementA, 40.0 ),
-            entryAgg( orgUnitG, periodL, dataElementA, 20.0 ),
-            entryAgg( orgUnitG, periodM, dataElementA, 10.0 ),
+            entryAll( orgUnitG, periodG, dataElementA, 1000.0 ),
+            entryAll( orgUnitG, periodH, dataElementA, 400.0 ),
+            entryAll( orgUnitG, periodI, dataElementA, 200.0 ),
+            entryAll( orgUnitG, periodJ, dataElementA, 100.0 ),
+            entryAll( orgUnitG, periodK, dataElementA, 40.0 ),
+            entryAll( orgUnitG, periodL, dataElementA, 20.0 ),
+            entryAll( orgUnitG, periodM, dataElementA, 10.0 ),
 
             entrySum( orgUnitG, periodN, dataElementA, 4.0 ),
             entrySum( orgUnitG, periodO, dataElementA, 2.0 ),
@@ -336,10 +502,30 @@ public class ParsingServiceTest
 
             entrySum( orgUnitL, periodL, dataElementA, 55.0 ),
 
-            entrySum( orgUnitG, periodK, dataElementB, 1.5 ),
-            entrySum( orgUnitG, periodL, dataElementB, 2.25 ),
-            entrySum( orgUnitG, periodM, dataElementB, 4.125 )
+            entryNone( orgUnitG, periodL, dataElementB, 3.0 ),
 
+            entrySum( orgUnitG, periodL, dataElementOperandA, 5.0 ),
+            entryNone( orgUnitG, periodL, dataElementOperandB, 15.0 ),
+            entrySum( orgUnitG, periodL, dataElementOperandC, 7.0 ),
+            entryNone( orgUnitG, periodL, dataElementOperandD, 17.0 ),
+            entrySum( orgUnitG, periodL, dataElementOperandE, 9.0 ),
+            entryNone( orgUnitG, periodL, dataElementOperandF, 19.0 ),
+
+            entrySum( orgUnitG, periodL, programDataElementA, 101.0 ),
+            entryNone( orgUnitG, periodL, programDataElementB, 102.0 ),
+
+            entrySum( orgUnitG, periodL, programAttributeA, 201.0 ),
+            entryNone( orgUnitG, periodL, programAttributeB, 202.0 ),
+
+            entrySum( orgUnitG, periodL, programIndicatorA, 301.0 ),
+            entryNone( orgUnitG, periodL, programIndicatorB, 302.0 ),
+
+            entryNull( orgUnitG, periodL, reportingRateA, 401.0 ),
+            entryNull( orgUnitG, periodL, reportingRateB, 402.0 ),
+            entryNull( orgUnitG, periodL, reportingRateC, 403.0 ),
+            entryNull( orgUnitG, periodL, reportingRateD, 404.0 ),
+            entryNull( orgUnitG, periodL, reportingRateE, 405.0 ),
+            entryNull( orgUnitG, periodL, reportingRateF, 406.0 )
         );
     }
 
@@ -347,6 +533,12 @@ public class ParsingServiceTest
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds a list of entry lists to the value map.
+     *
+     * @param entries the lists of entries to add.
+     * @return the value map.
+     */
     private <K, V> Map<K, V> entries( List<Map.Entry<K, V>>... entries )
     {
         Map<K, V> map = new HashMap<K, V>();
@@ -362,11 +554,27 @@ public class ParsingServiceTest
         return map;
     }
 
+    /**
+     * Creates a new Map entry.
+     *
+     * @param k the key.
+     * @param v the value.
+     * @return the Map.Entry.
+     */
     private <K, V> Map.Entry<K, V> singleEntry( K k, V v )
     {
         return new SimpleEntry<K, V>( k, v );
     }
 
+    /**
+     * Creates a list with a single map entry, aggregated by sum.
+     *
+     * @param orgUnit the organisation unit.
+     * @param period the period.
+     * @param item the dimensional item object.
+     * @param value the entry value.
+     * @return the list with a single map entry.
+     */
     private List<Map.Entry<ExpressionItem, Double>> entrySum( OrganisationUnit orgUnit,
         Period period, DimensionalItemObject item, Double value )
     {
@@ -375,17 +583,66 @@ public class ParsingServiceTest
         );
     }
 
-    private List<Map.Entry<ExpressionItem, Double>> entryAgg( OrganisationUnit orgUnit,
+    /**
+     * Creates a list with a single map entry, with aggregation type none.
+     *
+     * @param orgUnit the organisation unit.
+     * @param period the period.
+     * @param item the dimensional item object.
+     * @param value the entry value.
+     * @return the list with a single map entry.
+     */
+    private List<Map.Entry<ExpressionItem, Double>> entryNone( OrganisationUnit orgUnit,
         Period period, DimensionalItemObject item, Double value )
     {
         return ImmutableList.of(
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), value ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MAX ), value + 1 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MIN ), value + 2 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE ), value + 3 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.STDDEV ), value + 4 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.VARIANCE ), value + 5 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST ), value + 6 )
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), value )
+        );
+    }
+
+    /**
+     * Creates a list with a single map entry, a null aggregation type.
+     *
+     * @param orgUnit the organisation unit.
+     * @param period the period.
+     * @param item the dimensional item object.
+     * @param value the entry value.
+     * @return the list with a single map entry.
+     */
+    private List<Map.Entry<ExpressionItem, Double>> entryNull( OrganisationUnit orgUnit,
+        Period period, DimensionalItemObject item, Double value )
+    {
+        return ImmutableList.of(
+            singleEntry( new ExpressionItem( orgUnit, period, item, null ), value )
+        );
+    }
+
+    /**
+     * Creates a list with a map entry for each aggregation type, with
+     * incremental data values per type for testing.
+     *
+     * @param orgUnit the organisation unit.
+     * @param period the period.
+     * @param item the dimensional item object.
+     * @param value the entry value.
+     * @return the list with the map entries.
+     */
+    private List<Map.Entry<ExpressionItem, Double>> entryAll( OrganisationUnit orgUnit,
+        Period period, DimensionalItemObject item, Object value )
+    {
+        Double val = (Double) value;
+
+        return ImmutableList.of(
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), val ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MAX ), val + 1 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MIN ), val + 2 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE ), val + 3 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.STDDEV ), val + 4 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.VARIANCE ), val + 5 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST ), val + 6 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE_SUM_ORG_UNIT ), val + 7 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST_AVERAGE_ORG_UNIT ), val + 8 ),
+            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), val + 9 )
         );
     }
 
@@ -399,10 +656,12 @@ public class ParsingServiceTest
      * the values from (orgUnitF, period 200306, dataElementB)
      * and (orgUnitG, period 200307, dataElementB).
      * <p/>
-     * The value from getExpressionValue is always a Double. If it is null,
-     * "null" is returned. If it represents an integer value, just the
-     * integer is returned. (This improves readabiliy for test cases not
-     * having to add ".0" to each integral value.)
+     * If the value from getExpressionValue is null, "null" is returned.
+     * If it's a Double containing an integer value, just the integer is
+     * returned. (This improves readabiliy for test cases not having to add
+     * ".0" to each integral value.) If it's a Double non-integral value,
+     * the double string is returned. If it's a string, "'value'" is returned.
+     * Otherwise (unexpected) the class and string value are returned.
      * <p/>
      * The items returned from getItemsInExpression, if any, are returned
      * in abbreviated format for ease of comparing. Each item has the
@@ -411,25 +670,40 @@ public class ParsingServiceTest
      * <le>org unit letter</le>
      * <le>last digit of year and 2 digits of month</le>
      * <le>item type abbreviation and identifying letter</le>
+     * <le>aggregation type</le>
      * </li>
-     * For example, G306daB means orgUnitG, period 200306,
-     * dataElementB. Since dataElementA is used frequently for testing
-     * period and org unit functions, it is omitted from the item string --
-     * so G306 means orgUnitG, period 200306, dataElementA.
+     * For example, G306DATA_ELEMENTB-MAX means orgUnitG, period 200306,
+     * dataElementB, aggregation type MAX. Since dataElementA is used frequently
+     * for testing period and org unit functions, it is omitted from the item
+     * string -- so G306-MAX means orgUnitG, period 200306, dataElementA,
+     * aggregation type MAX. Since dataElementE is also frequently used, it is
+     * abbreviated to "E"
+     * <p/>
+     * Also, since SUM is used frequently for testing period and org unit
+     * functions, it is represented by just a dash, so G306- means orgUnitG,
+     * period 200306, dataElementA, aggregation type SUM.
      *
      * @param expr expression to evaluate
      * @return result from getItemsInExpression and getExpressionValue
      */
     private String eval( String expr )
     {
+        try {
+            parsingService.getExpressionDescription( expr );
+        }
+        catch ( ParsingException ex )
+        {
+            return ex.getMessage();
+        }
+
         Expression expression = new Expression( expr, expr );
 
         Set<ExpressionItem> items = parsingService.getExpressionItems(
             Arrays.asList( expression ), Arrays.asList( orgUnitG ), Arrays.asList( periodL ),
-            CONSTANT_MAP, ORG_UNIT_COUNT_MAP );
+            constantMap, ORG_UNIT_COUNT_MAP );
 
-        Double value = parsingService.getExpressionValue( expression, orgUnitG, periodL,
-            valueMap, CONSTANT_MAP, ORG_UNIT_COUNT_MAP, DAYS );
+        Object value = parsingService.getExpressionValue( expression, orgUnitG, periodL,
+            valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS );
 
         return result( value, items );
     }
@@ -441,7 +715,7 @@ public class ParsingServiceTest
      * @param items the items returned from getExpressionItems
      * @return the result string
      */
-    private String result( Double value, Set<ExpressionItem> items )
+    private String result( Object value, Set<ExpressionItem> items )
     {
         String valueString;
 
@@ -449,13 +723,26 @@ public class ParsingServiceTest
         {
             valueString = "null";
         }
-        else if ( value == (double) value.intValue() )
+        else if ( value instanceof Double )
         {
-            valueString = Integer.toString( value.intValue() );
+            Double d = (double)value;
+
+            if ( d == (double) d.intValue() )
+            {
+                valueString = Integer.toString( d.intValue() );
+            }
+            else
+            {
+                valueString = value.toString();
+            }
+        }
+        else if ( value instanceof String )
+        {
+            valueString = "'" + ( (String) value ) + "'";
         }
         else
         {
-            valueString = value.toString();
+            valueString = "Class " + value.getClass().getName() + " " + value.toString();
         }
 
         List<String> itemAbbreviations = getItemAbbreviations( items );
@@ -484,8 +771,8 @@ public class ParsingServiceTest
         {
             String ou = item.getOrgUnit().getUid().substring( 10 );
             String pe = item.getPeriod().getIsoDate().substring( 3 );
-            String it = getTypeAbbreviation( item.getDimensionalItemObject() )
-                + item.getDimensionalItemObject().getUid().substring( 10 );
+            String it = item.getDimensionalItemObject().getDimensionItemType().name()
+                + item.getDimensionalItemObject().getDimensionItem().substring( 10 );
 
             String agg = item.getAggregationType() == null ? "" : "-" + item.getAggregationType().name();
 
@@ -494,9 +781,14 @@ public class ParsingServiceTest
                 agg = "-"; // Shorthand for -SUM.
             }
 
-            if ( it.equals( "deA" ) )
+            if ( it.equals( "DATA_ELEMENTA" ) )
             {
                 it = "";
+            }
+
+            if ( it.equals( "DATA_ELEMENTE" ) )
+            {
+                it = "E";
             }
 
             itemAbbreviations.add( ou + pe + it + agg );
@@ -505,27 +797,6 @@ public class ParsingServiceTest
         Collections.sort( itemAbbreviations );
 
         return itemAbbreviations;
-    }
-
-    /**
-     * Gets the DimensionItemType abbreviation for display in results
-     *
-     * @param object the DimensionalItemObject
-     * @return abbreviation based on the DimensionalItemObject's type
-     */
-    private String getTypeAbbreviation( DimensionalItemObject object )
-    {
-        switch ( object.getDimensionItemType() )
-        {
-            case DATA_ELEMENT:
-                return "de";
-
-            case DATA_ELEMENT_OPERAND:
-                return "deo";
-
-            default:
-                return "???";
-        }
     }
 
     /**
@@ -540,14 +811,19 @@ public class ParsingServiceTest
 
         try
         {
-            parsingService.getExpressionDescription( expr );
+            description = parsingService.getExpressionDescription( expr );
         }
         catch ( ParsingException ex )
         {
             return null;
         }
 
-        return "Unexpected success: " + expr;
+        return "Unexpected success getting description: '" + expr + "' - '" + description + "'";
+    }
+
+    private String desc( String expr )
+    {
+        return parsingService.getExpressionDescription( expr );
     }
 
     // -------------------------------------------------------------------------
@@ -589,10 +865,15 @@ public class ParsingServiceTest
         assertEquals( "64", eval( "( 2 ^ 3 ) ^ 2" ) );
         assertEquals( "0.25", eval( "2 ^ -2" ) );
 
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenA} ^ #{dataElemenE}" ) );
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenE} ^ #{dataElemenA}" ) );
+
         // Unary +, -
 
         assertEquals( "5", eval( "+ (2 + 3)" ) );
         assertEquals( "-5", eval( "- (2 + 3)" ) );
+
+        assertEquals( "null G306E-", eval( "- #{dataElemenE}" ) );
 
         // Unary +, - after Exponentiation
 
@@ -614,6 +895,10 @@ public class ParsingServiceTest
         assertEquals( "1.5", eval( "7 % 4 / 2" ) );
         assertEquals( "1", eval( "9 / 3 % 2" ) );
 
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenA} * #{dataElemenE}" ) );
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenE} / #{dataElemenA}" ) );
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenA} % #{dataElemenE}" ) );
+
         // Multiply, divide, modulus after Unary +, -
 
         assertEquals( "-6", eval( "-(3) * 2" ) );
@@ -631,6 +916,9 @@ public class ParsingServiceTest
         assertEquals( "3", eval( "2 - ( 3 - 4 )" ) );
         assertEquals( "3", eval( "2 - 3 + 4" ) );
         assertEquals( "-5", eval( "2 - ( 3 + 4 )" ) );
+
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenA} + #{dataElemenE}" ) );
+        assertEquals( "null G306- G306E-", eval( "#{dataElemenE} - #{dataElemenA}" ) );
 
         // Add, subtract after Multiply, divide, modulus
 
@@ -666,6 +954,9 @@ public class ParsingServiceTest
         assertEquals( "1", eval( "if(1 >= 1, 1, 0)" ) );
         assertEquals( "1", eval( "if(2 >= 1, 1, 0)" ) );
 
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenA} > #{dataElemenE}, 1, 0)" ) );
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} < #{dataElemenA}, 1, 0)" ) );
+
         // Comparisons after Add, subtract
 
         assertEquals( "0", eval( "if(5 < 2 + 3, 1, 0)" ) );
@@ -696,6 +987,9 @@ public class ParsingServiceTest
         assertEquals( "0", eval( "if(1 != 1, 1, 0)" ) );
         assertEquals( "1", eval( "if(1 != 2, 1, 0)" ) );
 
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenA} == #{dataElemenE}, 1, 0)" ) );
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} != #{dataElemenA}, 1, 0)" ) );
+
         // Equality after Comparisons
 
         assertEquals( "1", eval( "if(1 + 2 == 3, 1, 0)" ) );
@@ -708,9 +1002,9 @@ public class ParsingServiceTest
     @Test
     public void testExpressionString()
     {
-        // Concatenation (and constants)
+        // Concatenation
 
-        assertEquals( "1", eval( "if( \"abc123\" == \"abc\" + \"123\", 1, 0)" ) );
+        assertEquals( "1", eval( "if(\"abc123\" == \"abc\" + \"123\", 1, 0)" ) );
 
         // Comparisons
 
@@ -764,6 +1058,13 @@ public class ParsingServiceTest
         assertEquals( "0", eval( "if( ! true, 1, 0)" ) );
         assertEquals( "1", eval( "if( ! false, 1, 0)" ) );
 
+        assertEquals( "null G306- G306E-", eval( "if( ! (#{dataElemenA} == #{dataElemenE}), 1, 0)" ) );
+
+        // Unary not before comparison
+
+        assertNull( error( "if( ! 5 > 3, 1, 0)" ) );
+        assertEquals( "0", eval( "if( ! (5 > 3), 1, 0)" ) );
+
         // Comparison
 
         assertEquals( "0", eval( "if( true < true, 1, 0)" ) );
@@ -803,6 +1104,100 @@ public class ParsingServiceTest
         assertEquals( "1", eval( "if( true != false, 1, 0)" ) );
 
         assertEquals( "1", eval( "if( true == false == false, 1, 0)" ) );
+
+        // && (and)
+
+        assertEquals( "1", eval( "if( true && true, 1, 0)" ) );
+        assertEquals( "0", eval( "if( true && false, 1, 0)" ) );
+        assertEquals( "0", eval( "if( false && true, 1, 0)" ) );
+        assertEquals( "0", eval( "if( false && false, 1, 0)" ) );
+
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenA} == #{dataElemenA} && #{dataElemenE} == #{dataElemenE}, 1, 0)" ) ); // true && null
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} == #{dataElemenE} && #{dataElemenA} == #{dataElemenA}, 1, 0)" ) ); // null && true
+        assertEquals( "0 G306- G306E-", eval( "if( #{dataElemenA} != #{dataElemenA} && #{dataElemenE} != #{dataElemenE}, 1, 0)" ) ); // false && null
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} != #{dataElemenE} && #{dataElemenA} != #{dataElemenA}, 1, 0)" ) ); // null && false
+
+        // && (and) after Equality
+
+        assertEquals( "1", eval( "if( true && 1 == 1, 1, 0)" ) );
+        assertNull( error( "if( ( true && 1 ) == 1, 1, 0)" ) );
+
+        // || (or)
+
+        assertEquals( "1", eval( "if( true || true, 1, 0)" ) );
+        assertEquals( "1", eval( "if( true || false, 1, 0)" ) );
+        assertEquals( "1", eval( "if( false || true, 1, 0)" ) );
+        assertEquals( "0", eval( "if( false || false, 1, 0)" ) );
+
+        assertEquals( "1 G306- G306E-", eval( "if( #{dataElemenA} == #{dataElemenA} || #{dataElemenE} == #{dataElemenE}, 1, 0)" ) ); // true && null
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} == #{dataElemenE} || #{dataElemenA} == #{dataElemenA}, 1, 0)" ) ); // null && true
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenA} != #{dataElemenA} || #{dataElemenE} != #{dataElemenE}, 1, 0)" ) ); // false && null
+        assertEquals( "null G306- G306E-", eval( "if( #{dataElemenE} != #{dataElemenE} || #{dataElemenA} != #{dataElemenA}, 1, 0)" ) ); // null && false
+
+        // || (or) after && (and)
+
+        assertEquals( "1", eval( "if( true || true && false, 1, 0)" ) );
+        assertEquals( "0", eval( "if( ( true || true ) && false, 1, 0)" ) );
+    }
+
+    @Test
+    public void testExpressionItemsAndVariables()
+    {
+        assertEquals( "HllvX50cXC0", categoryService.getDefaultCategoryOptionCombo().getUid() );
+
+        // Data element
+
+        assertEquals( "20 G306-", eval( "#{dataElemenA}" ) );
+        assertEquals( "3 G306DATA_ELEMENTB-NONE", eval( "#{dataElemenB}" ) );
+
+        // Data element operand
+
+        assertEquals( "5 G306DATA_ELEMENT_OPERANDA.HllvX50cXC0-", eval( "#{dataElemenA.HllvX50cXC0}" ) );
+        assertEquals( "15 G306DATA_ELEMENT_OPERANDB.HllvX50cXC0-NONE", eval( "#{dataElemenB.HllvX50cXC0}" ) );
+        assertEquals( "5 G306DATA_ELEMENT_OPERANDA.HllvX50cXC0-", eval( "#{dataElemenA.HllvX50cXC0.*}" ) );
+        assertEquals( "15 G306DATA_ELEMENT_OPERANDB.HllvX50cXC0-NONE", eval( "#{dataElemenB.HllvX50cXC0.*}" ) );
+        assertEquals( "7 G306DATA_ELEMENT_OPERANDA.HllvX50cXC0.HllvX50cXC0-", eval( "#{dataElemenA.HllvX50cXC0.HllvX50cXC0}" ) );
+        assertEquals( "17 G306DATA_ELEMENT_OPERANDB.HllvX50cXC0.HllvX50cXC0-NONE", eval( "#{dataElemenB.HllvX50cXC0.HllvX50cXC0}" ) );
+        assertEquals( "9 G306DATA_ELEMENT_OPERANDA.*.HllvX50cXC0-", eval( "#{dataElemenA.*.HllvX50cXC0}" ) );
+        assertEquals( "19 G306DATA_ELEMENT_OPERANDB.*.HllvX50cXC0-NONE", eval( "#{dataElemenB.*.HllvX50cXC0}" ) );
+
+        // Program data element
+
+        assertEquals( "101 G306PROGRAM_DATA_ELEMENTA.dataElemenC-", eval( "D{programUidA.dataElemenC}" ) );
+        assertEquals( "102 G306PROGRAM_DATA_ELEMENTB.dataElemenD-NONE", eval( "D{programUidB.dataElemenD}" ) );
+
+        // Program attribute (a.k.a. Program tracked entity attribute)
+
+        assertEquals( "201 G306PROGRAM_ATTRIBUTEA.trakEntAttA-", eval( "A{programUidA.trakEntAttA}" ) );
+        assertEquals( "202 G306PROGRAM_ATTRIBUTEB.trakEntAttB-NONE", eval( "A{programUidB.trakEntAttB}" ) );
+
+        // Program indicator
+
+        assertEquals( "301 G306PROGRAM_INDICATORA-", eval( "I{programIndA}" ) );
+        assertEquals( "302 G306PROGRAM_INDICATORB-NONE", eval( "I{programIndB}" ) );
+
+        // Data set reporting rate
+
+        assertEquals( "401 G306REPORTING_RATEA.REPORTING_RATE", eval( "R{dataSetUidA.REPORTING_RATE}" ) );
+        assertEquals( "402 G306REPORTING_RATEA.REPORTING_RATE_ON_TIME", eval( "R{dataSetUidA.REPORTING_RATE_ON_TIME}" ) );
+        assertEquals( "403 G306REPORTING_RATEA.ACTUAL_REPORTS", eval( "R{dataSetUidA.ACTUAL_REPORTS}" ) );
+        assertEquals( "404 G306REPORTING_RATEA.ACTUAL_REPORTS_ON_TIME", eval( "R{dataSetUidA.ACTUAL_REPORTS_ON_TIME}" ) );
+        assertEquals( "405 G306REPORTING_RATEA.EXPECTED_REPORTS", eval( "R{dataSetUidA.EXPECTED_REPORTS}" ) );
+        assertEquals( "406 G306REPORTING_RATEB.REPORTING_RATE", eval( "R{dataSetUidB.REPORTING_RATE}" ) );
+
+        // Constant
+
+        assertEquals( "0.5", eval( "C{xxxxxxxxx05}" ) );
+        assertEquals( "0.25", eval( "C{xxxxxxxx025}" ) );
+
+        // Org unit group
+
+        assertEquals( "1000000", eval( "OUG{orgUnitGrpA}" ) );
+        assertEquals( "2000000", eval( "OUG{orgUnitGrpB}" ) );
+
+        // Days
+
+        assertEquals( "30", eval( "[days]" ) );
     }
 
     @Test
@@ -821,30 +1216,44 @@ public class ParsingServiceTest
         //       2004                                N      O      P
         //                                           4      2      1
 
+        // period( period )
+
         assertEquals( "10 G307-", eval( "#{dataElemenA}.period( 1 )" ) );
         assertEquals( "20 G306-", eval( "#{dataElemenA}.period( 0 )" ) );
         assertEquals( "40 G305-", eval( "#{dataElemenA}.period( -1 )" ) );
         assertEquals( "4000 G206-", eval( "#{dataElemenA}.period( -12 )" ) );
+
+        // period( from, to )
 
         assertEquals( "10 G307-", eval( "#{dataElemenA}.period( 1, 1 ).sum()" ) );
         assertEquals( "30 G306- G307-", eval( "#{dataElemenA}.period( 0, 1 ).sum()" ) );
         assertEquals( "70 G305- G306- G307-", eval( "#{dataElemenA}.period( -1, 1 ).sum()" ) );
         assertEquals( "7770 G206- G207- G208- G209- G210- G211- G212- G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -12, 1 ).sum()" ) );
 
+        // period( from, to, year )
+
         assertEquals( "2000 G207-", eval( "#{dataElemenA}.period( 1, 1, -1 ).sum()" ) );
         assertEquals( "6000 G206- G207-", eval( "#{dataElemenA}.period( 0, 1, -1 ).sum()" ) );
         assertEquals( "160000 G105- G106- G107-", eval( "#{dataElemenA}.period( -1, 1, -2 ).sum()" ) );
         assertEquals( "7770 G206- G207- G208- G209- G210- G211- G212- G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -12, 1, 0 ).sum()" ) );
 
+        // period( from, to, yearFrom, yearTo )
+
         assertEquals( "7770 G206- G207- G208- G209- G210- G211- G212- G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -12, 1, 0, 0 ).sum()" ) );
         assertEquals( "16077 G205- G206- G207- G305- G306- G307- G405- G406- G407-", eval( "#{dataElemenA}.period( -1, 1, -1, 1 ).sum()" ) );
         assertEquals( "44022 G106- G206- G306- G406-", eval( "#{dataElemenA}.period( 0, 0, -2, 1 ).sum()" ) );
 
+        // period( from, to, yearFrom, yearTo, period2 )
+
         assertEquals( "7770 G206- G207- G208- G209- G210- G211- G212- G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -12, 0, 0, 0,   1 ).sum()" ) );
         assertEquals( "10040 G205- G305-", eval( "#{dataElemenA}.period( -1, -1, -1, -1,   -1 ).sum()" ) );
 
+        // period( from, to, yearFrom, yearTo, from2, to2 )
+
         assertEquals( "10040 G205- G305-", eval( "#{dataElemenA}.period( -1, -1, -1, -1,   -1, -1 ).sum()" ) );
         assertEquals( "66666 G106- G107- G206- G207- G302- G303- G305- G306- G405- G406-", eval( "#{dataElemenA}.period( -4, -3, 0, 0,   0, 1, -2, -1,   -1, 0, 0, 1).sum()" ) );
+
+        // Periods with no values
 
         assertEquals( "null G308-", eval( "#{dataElemenA}.period( 2 )" ) );
         assertEquals( "null G308- G309- G310-", eval( "#{dataElemenA}.period( 2, 4 ).sum()" ) );
@@ -888,17 +1297,10 @@ public class ParsingServiceTest
         assertEquals( "20 G306-", eval( "#{dataElemenA}.ouDescendant( 0 ).sum()" ) );
         assertEquals( "33 J306- K306-", eval( "#{dataElemenA}.ouDescendant( 1 ).sum()" ) );
         assertEquals( "55 L306-", eval( "#{dataElemenA}.ouDescendant( 2 ).sum()" ) );
-        assertEquals( "53 G306- J306- K306-", eval( "#{dataElemenA}.ouDescendant( 0, 1 ).sum()" ) );
-        assertEquals( "75 G306- L306-", eval( "#{dataElemenA}.ouDescendant( 0, 2 ).sum()" ) );
-        assertEquals( "88 J306- K306- L306-", eval( "#{dataElemenA}.ouDescendant( 1, 2 ).sum()" ) );
-        assertEquals( "108 G306- J306- K306- L306-", eval( "#{dataElemenA}.ouDescendant( 0, 1, 2 ).sum()" ) );
-        assertEquals( "108 G306- J306- K306- L306-", eval( "#{dataElemenA}.ouDescendant( 0, 1, 2, 3 ).sum()" ) );
 
         assertEquals( "2220 F306- G306- H306-", eval( "#{dataElemenA}.ouDescendant( 1 ).ouAncestor( 1 ).sum()" ) );
         assertEquals( "22222 E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouDescendant( 2 ).ouAncestor( 2 ).sum()" ) );
         assertEquals( "222.75 B306- C306- D306-", eval( "#{dataElemenA}.ouDescendant( 1 ).ouAncestor( 2 ).sum()" ) );
-        assertEquals( "22255 E306- F306- G306- H306- I306- J306- K306-", eval( "#{dataElemenA}.ouDescendant( 2, 3 ).ouAncestor( 2 ).sum()" ) );
-        assertEquals( "22310 E306- F306- G306- H306- I306- J306- K306- L306-", eval( "#{dataElemenA}.ouDescendant( 2, 3, 4 ).ouAncestor( 2 ).sum()" ) );
 
         // ouLevel
 
@@ -907,8 +1309,8 @@ public class ParsingServiceTest
         assertEquals( "22222 E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouLevel( 3 ).sum()" ) );
         assertEquals( "22444.75 B306- C306- D306- E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouLevel( 2, 3 ).sum()" ) );
 
-        assertEquals( "53 G306- J306- K306-", eval( "#{dataElemenA}.ouLevel( 3, 4 ).ouDescendant( 0, 1, 2 ).sum()" ) );
-        assertEquals( "75 G306- L306-", eval( "#{dataElemenA}.ouLevel( 3, 5 ).ouDescendant( 0, 1, 2 ).sum()" ) );
+        assertEquals( "20 G306-", eval( "#{dataElemenA}.ouLevel( 3, 4 ).ouDescendant( 0 ).sum()" ) );
+        assertEquals( "null", eval( "#{dataElemenA}.ouLevel( 3, 5 ).ouDescendant( 1 ).sum()" ) );
 
         // ouPeer
 
@@ -919,27 +1321,27 @@ public class ParsingServiceTest
 
         // ouGroup
 
-        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpA\" ).sum()" ) );
-        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"OrganisationUnitGroupCodeA\" ).sum()" ) );
-        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"OrganisationUnitGroupA\" ).sum()" ) );
-        assertEquals( "2220 F306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpB\" ).sum()" ) );
-        assertEquals( "22240.5 C306- D306- G306- H306- I306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpC\" ).sum()" ) );
+        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpA\" ).sum()" ) );
+        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGroupCodeA\" ).sum()" ) );
+        assertEquals( "244.5 B306- C306- E306- F306- G306-", eval( "#{dataElemenA}.ouGroup( \"Org unit group A name\" ).sum()" ) );
+        assertEquals( "2220 F306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpB\" ).sum()" ) );
+        assertEquals( "22240.5 C306- D306- G306- H306- I306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpC\" ).sum()" ) );
 
-        assertEquals( "2244.5 B306- C306- E306- F306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpA\", \"OrgUnitGrpB\" ).sum()" ) );
-        assertEquals( "22444.75 B306- C306- D306- E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpA\", \"OrgUnitGrpB\", \"OrgUnitGrpC\" ).sum()" ) );
+        assertEquals( "2244.5 B306- C306- E306- F306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpA\", \"orgUnitGrpB\" ).sum()" ) );
+        assertEquals( "22444.75 B306- C306- D306- E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpA\", \"orgUnitGrpB\", \"orgUnitGrpC\" ).sum()" ) );
 
-        assertEquals( "220 F306- G306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpA\" ).ouGroup( \"OrgUnitGrpB\" ).sum()" ) );
-        assertEquals( "2040.25 C306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"OrgUnitGrpA\", \"OrgUnitGrpB\").ouGroup( \"OrgUnitGrpC\" ).sum()" ) );
+        assertEquals( "220 F306- G306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpA\" ).ouGroup( \"orgUnitGrpB\" ).sum()" ) );
+        assertEquals( "2040.25 C306- G306- H306-", eval( "#{dataElemenA}.ouGroup( \"orgUnitGrpA\", \"orgUnitGrpB\").ouGroup( \"orgUnitGrpC\" ).sum()" ) );
 
         // ouDataSet
 
-        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetUidA\" ).sum()" ) );
-        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetCodeA\" ).sum()" ) );
-        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetA\" ).sum()" ) );
-        assertEquals( "20220 F306- G306- I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetUidB\" ).sum()" ) );
+        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"dataSetUidA\" ).sum()" ) );
+        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"dataSetCodeA\" ).sum()" ) );
+        assertEquals( "22002 E306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"Data set A name\" ).sum()" ) );
+        assertEquals( "20220 F306- G306- I306-", eval( "#{dataElemenA}.ouDataSet( \"dataSetUidB\" ).sum()" ) );
 
-        assertEquals( "22222 E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetUidA\", \"DataSetUidB\" ).sum()" ) );
-        assertEquals( "20000 I306-", eval( "#{dataElemenA}.ouDataSet( \"DataSetUidA\").ouDataSet( \"DataSetUidB\" ).sum()" ) );
+        assertEquals( "22222 E306- F306- G306- H306- I306-", eval( "#{dataElemenA}.ouDataSet( \"dataSetUidA\", \"dataSetUidB\" ).sum()" ) );
+        assertEquals( "20000 I306-", eval( "#{dataElemenA}.ouDataSet( \"dataSetUidA\").ouDataSet( \"dataSetUidB\" ).sum()" ) );
     }
 
     @Test
@@ -947,46 +1349,148 @@ public class ParsingServiceTest
     {
         // Period letters, and values for (dataElementA, orgUnitG):
         //
-        // Note that for testing purposes, the values supplied depend
-        // on the aggregation type override for the data element.
+        // For testing purposes, the values supplied depend on
+        // the aggregation type override for the data element.
         //
-        //              Month
-        //               Jan    Feb    Mar    Apr    May    Jun    Jul
-        // Year  2003     G      H      I      J      K      L      M
-        // - (SUM)      1,000   400    200    100    40     20     10
-        // -MAX         1,001   401    201    101    41     21     11
-        // -MIN         1,002   402    202    102    42     22     12
-        // -AVERAGE     1,003   403    203    103    43     23     13
-        // -STDDEV      1,004   404    204    104    44     24     14
-        // -VARIANCE    1,005   405    205    105    45     25     15
-        // -LAST        1,006   406    206    106    46     26     16
+        //                         Month
+        //                         Jan    Feb    Mar    Apr    May    Jun    Jul
+        // Year  2003               G      H      I      J      K      L      M
+        // - (SUM)                1,000   400    200    100    40     20     10
+        // -MAX                   1,001   401    201    101    41     21     11
+        // -MIN                   1,002   402    202    102    42     22     12
+        // -AVERAGE               1,003   403    203    103    43     23     13
+        // -STDDEV                1,004   404    204    104    44     24     14
+        // -VARIANCE              1,005   405    205    105    45     25     15
+        // -LAST                  1,006   406    206    106    46     26     16
+        // -AVERAGE_SUM_ORG_UNIT  1,007   407    207    107    47     27     17
+        // -LAST_AVERAGE_ORG_UNIT 1,008   408    208    108    48     28     18
+        // -NONE                  1,009   409    209    109    49     29     19
+
+        // sum
 
         assertEquals( "1770 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).sum()" ) );
 
+        // max
+
         assertEquals( "1001 G301-MAX G302-MAX G303-MAX G304-MAX G305-MAX G306-MAX G307-MAX", eval( "#{dataElemenA}.period( -5, 1 ).max()" ) );
+
+        // min
 
         assertEquals( "12 G301-MIN G302-MIN G303-MIN G304-MIN G305-MIN G306-MIN G307-MIN", eval( "#{dataElemenA}.period( -5, 1 ).min()" ) );
 
+        // average
+
         assertEquals( "45.5 G304-AVERAGE G305-AVERAGE G306-AVERAGE G307-AVERAGE", eval( "#{dataElemenA}.period( -2, 1 ).average()" ) );
+
+        // stddev
 
         assertEquals( "15.275252316519467 G305-STDDEV G306-STDDEV G307-STDDEV", eval( "#{dataElemenA}.period( -1, 1 ).stddev()" ) );
 
+        // variance
+
         assertEquals( "200 G305-VARIANCE G306-VARIANCE", eval( "#{dataElemenA}.period( -1, 0 ).variance()" ) );
 
-        assertEquals( "100 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).median()" ) );
+        // median
 
-        assertEquals( "70 G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -4, 1 ).median()" ) );
+        assertEquals( "100 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).median()" ) ); // Odd
+        assertEquals( "70 G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -4, 1 ).median()" ) ); // Even
+
+        // first
 
         assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first()" ) );
+        assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first(1).sum()" ) );
+        assertEquals( "1400 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first(2).sum()" ) );
+
+        // last
 
         assertEquals( "16 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last()" ) );
+        assertEquals( "16 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last(1).sum()" ) );
+        assertEquals( "42 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last(2).sum()" ) );
+
+        // percentile
 
         assertEquals( "20 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).percentile( 25 )" ) );
 
+        // rankHigh
+
         assertEquals( "5 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankHigh( 200 )" ) );
+
+        // rankLow
 
         assertEquals( "3 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankLow( 200 )" ) );
 
+        // rankPercentile
+
         assertEquals( "71 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankPercentile( 200 )" ) );
+
+        // averageSumOrgUnit
+
+        assertEquals( "27 G306-AVERAGE_SUM_ORG_UNIT", eval( "#{dataElemenA}.averageSumOrgUnit()" ) );
+
+        // lastAverageOrgUnit
+
+        assertEquals( "28 G306-LAST_AVERAGE_ORG_UNIT", eval( "#{dataElemenA}.lastAverageOrgUnit()" ) );
+
+        // noAggregation
+
+        assertEquals( "29 G306-NONE", eval( "#{dataElemenA}.noAggregation()" ) );
+    }
+
+    @Test
+    public void testExpressionLogical()
+    {
+        // If function is tested elsewhere
+
+        // IsNull
+
+        assertEquals( "0 G306-", eval( "if( isNull( #{dataElemenA} ), 1, 0)" ) );
+        assertEquals( "1 G308-", eval( "if( isNull( #{dataElemenA}.period( 2 ) ), 1, 0)" ) );
+
+        // Coalesce
+
+        assertEquals( "20 G306-", eval( "coalesce( #{dataElemenA} )" ) );
+        assertEquals( "20 G306- G308-", eval( "coalesce( #{dataElemenA}.period( 2 ), #{dataElemenA} )" ) );
+        assertEquals( "20 G306- G308- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}.period( 2 ), #{dataElemenA} )" ) );
+        assertEquals( "20 G306- G308- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}, #{dataElemenA}.period( 2 ) )" ) );
+
+        // Except
+
+        assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first()" ) );
+        assertEquals( "400 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.except(#{dataElemenA} == 1000).period( -5, 1 ).first()" ) );
+        assertEquals( "100 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.except(#{dataElemenA} > 100).period( -5, 1 ).first()" ) );
+    }
+
+    @Test
+    public void testGetExpressionDescription()
+    {
+        assertEquals( "Data element A name + Data element B name", desc("#{dataElemenA} + #{dataElemenB}") );
+        assertEquals( "Data element A name.period( -5, -1 ).average() + 2 *  Data element A name.period(-5,-1).stddev()", desc("#{dataElemenA}.period( -5, -1 ).average() + 2 *  #{dataElemenA}.period(-5,-1).stddev()") );
+        assertEquals( "Data element A name - Data element B name / Data element A name", desc("#{dataElemenA.HllvX50cXC0} - #{dataElemenB.HllvX50cXC0.HllvX50cXC0} / #{dataElemenA.*.HllvX50cXC0}") );
+        assertEquals( "Program A name Data element C name*Program B name Data element D name", desc("D{programUidA.dataElemenC}*D{programUidB.dataElemenD}") );
+        assertEquals( "Program A name AttributeA / Program B name AttributeB", desc("A{programUidA.trakEntAttA} / A{programUidB.trakEntAttB}") );
+        assertEquals( "Program indicator A name % Program indicator A name", desc("I{programIndA} % I{programIndA}") );
+        assertEquals( "Data set A name Reporting rate ^ Data set A name Actual reports", desc("R{dataSetUidA.REPORTING_RATE} ^ R{dataSetUidA.ACTUAL_REPORTS}") );
+        assertEquals( "One half + One quarter", desc("C{xxxxxxxxx05} + C{xxxxxxxx025}") );
+        assertEquals( "Org unit group A name - Org unit group B name", desc("OUG{orgUnitGrpA} - OUG{orgUnitGrpB}") );
+        assertEquals( "1 + [Number of days]", desc("1 + [days]") );
+    }
+
+    @Test
+    public void testBadExpressions()
+    {
+        assertNull( error( "( 1" ) );
+        assertNull( error( "( 1 +" ) );
+//        assertNull( error( "1) + 2" ) ); //TODO: Why isn't this a bad expression?
+        assertNull( error( "abc" ) );
+        assertNull( error( "\"abc\"" ) );
+        assertNull( error( "if(0, 1, 0)" ) );
+        assertNull( error( "1 && true" ) );
+        assertNull( error( "true && 2" ) );
+        assertNull( error( "!5" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2)" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).averageSumOrgUnit()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).lastAverageOrgUnit()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).noAggregation()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).period(2,4).sum()" ) );
     }
 }

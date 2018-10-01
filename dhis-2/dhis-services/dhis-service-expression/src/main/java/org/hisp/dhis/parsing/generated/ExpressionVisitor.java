@@ -83,11 +83,17 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDataElement(ExpressionParser.DataElementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperand}.
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandWithoutAoc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDataElementOperand(ExpressionParser.DataElementOperandContext ctx);
+	T visitDataElementOperandWithoutAoc(ExpressionParser.DataElementOperandWithoutAocContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandWithAoc}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDataElementOperandWithAoc(ExpressionParser.DataElementOperandWithAocContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programDataElement}.
 	 * @param ctx the parse tree
@@ -95,11 +101,11 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProgramDataElement(ExpressionParser.ProgramDataElementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#programTrackedEntityAttribute}.
+	 * Visit a parse tree produced by {@link ExpressionParser#programAttribute}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitProgramTrackedEntityAttribute(ExpressionParser.ProgramTrackedEntityAttributeContext ctx);
+	T visitProgramAttribute(ExpressionParser.ProgramAttributeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programIndicator}.
 	 * @param ctx the parse tree
@@ -137,11 +143,17 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDataElementId(ExpressionParser.DataElementIdContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandId}.
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandIdWithoutAoc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDataElementOperandId(ExpressionParser.DataElementOperandIdContext ctx);
+	T visitDataElementOperandIdWithoutAoc(ExpressionParser.DataElementOperandIdWithoutAocContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandIdWithAoc}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDataElementOperandIdWithAoc(ExpressionParser.DataElementOperandIdWithAocContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programDataElementId}.
 	 * @param ctx the parse tree
@@ -149,11 +161,11 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProgramDataElementId(ExpressionParser.ProgramDataElementIdContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#programTrackedEntityAttributeId}.
+	 * Visit a parse tree produced by {@link ExpressionParser#programAttributeId}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitProgramTrackedEntityAttributeId(ExpressionParser.ProgramTrackedEntityAttributeIdContext ctx);
+	T visitProgramAttributeId(ExpressionParser.ProgramAttributeIdContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programIndicatorId}.
 	 * @param ctx the parse tree
@@ -196,4 +208,10 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitBooleanLiteral(ExpressionParser.BooleanLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#javaIdentifier}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJavaIdentifier(ExpressionParser.JavaIdentifierContext ctx);
 }

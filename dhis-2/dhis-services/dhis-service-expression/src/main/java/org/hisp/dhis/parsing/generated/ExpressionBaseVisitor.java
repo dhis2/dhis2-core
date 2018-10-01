@@ -101,7 +101,14 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDataElementOperand(ExpressionParser.DataElementOperandContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDataElementOperandWithoutAoc(ExpressionParser.DataElementOperandWithoutAocContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitDataElementOperandWithAoc(ExpressionParser.DataElementOperandWithAocContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -115,7 +122,7 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitProgramTrackedEntityAttribute(ExpressionParser.ProgramTrackedEntityAttributeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitProgramAttribute(ExpressionParser.ProgramAttributeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -164,7 +171,14 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDataElementOperandId(ExpressionParser.DataElementOperandIdContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDataElementOperandIdWithoutAoc(ExpressionParser.DataElementOperandIdWithoutAocContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitDataElementOperandIdWithAoc(ExpressionParser.DataElementOperandIdWithAocContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -178,7 +192,7 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitProgramTrackedEntityAttributeId(ExpressionParser.ProgramTrackedEntityAttributeIdContext ctx) { return visitChildren(ctx); }
+	@Override public T visitProgramAttributeId(ExpressionParser.ProgramAttributeIdContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -228,4 +242,11 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitBooleanLiteral(ExpressionParser.BooleanLiteralContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitJavaIdentifier(ExpressionParser.JavaIdentifierContext ctx) { return visitChildren(ctx); }
 }

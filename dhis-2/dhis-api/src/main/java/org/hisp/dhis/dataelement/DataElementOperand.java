@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -139,6 +140,12 @@ public class DataElementOperand
     public DimensionItemType getDimensionItemType()
     {
         return DimensionItemType.DATA_ELEMENT_OPERAND;
+    }
+
+    @Override
+    public AggregationType getAggregationType()
+    {
+        return dataElement.getAggregationType();
     }
 
     // -------------------------------------------------------------------------

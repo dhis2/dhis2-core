@@ -59,6 +59,7 @@ public class ExpressionValueVisitor extends ExpressionVisitor
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, int days,
         OrganisationUnitService _organisationUnitService, IdentifiableObjectManager _manager)
     {
+        //TODO: Why don't the @Autowired values work?
         organisationUnitService = _organisationUnitService;
         manager = _manager;
 
@@ -66,7 +67,7 @@ public class ExpressionValueVisitor extends ExpressionVisitor
         currentPeriod = period;
         this.constantMap = constantMap;
         this.orgUnitCountMap = orgUnitCountMap;
-        this.days = days;
+        this.days = new Double( days );
 
         makeKeyValueMap( valueMap );
 
@@ -80,29 +81,56 @@ public class ExpressionValueVisitor extends ExpressionVisitor
     @Override
     public Object visitDataElement( DataElementContext ctx )
     {
-        String itemId = ctx.dataElementId().getText();
-
-        return getItemValue( DATA_ELEMENT, itemId );
+        return getItemValue( DATA_ELEMENT, ctx.dataElementId().getText() );
     }
 
     @Override
-    public Object visitDataElementOperand( DataElementOperandContext ctx )
+    public Object visitDataElementOperandWithoutAoc( DataElementOperandWithoutAocContext ctx )
     {
-        String itemId = ctx.dataElementOperandId().getText();
+        return getItemValue( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithoutAoc().getText() );
+    }
 
-        return getItemValue( DATA_ELEMENT_OPERAND, itemId );
+    @Override
+    public Object visitDataElementOperandWithAoc( DataElementOperandWithAocContext ctx )
+    {
+        return getItemValue( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithAoc().getText() );
+    }
+
+    @Override
+    public Object visitProgramDataElement( ProgramDataElementContext ctx )
+    {
+        return getItemValue( PROGRAM_DATA_ELEMENT, ctx.programDataElementId().getText() );
+    }
+
+    @Override
+    public Object visitProgramAttribute ( ProgramAttributeContext ctx )
+    {
+        return getItemValue( PROGRAM_ATTRIBUTE, ctx.programAttributeId().getText() );
+    }
+
+    @Override
+    public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
+    {
+        return getItemValue( PROGRAM_INDICATOR, ctx.programIndicatorId().getText() );
+    }
+
+    @Override
+    public Object visitReportingRate ( ReportingRateContext ctx )
+    {
+        return getItemValue( REPORTING_RATE, ctx.reportingRateId().getText() );
     }
 
     @Override
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
     {
-        return orgUnitCountMap.get( ctx.getText() );
-    }
+        Integer count = orgUnitCountMap.get( ctx.orgUnitCountId().getText() );
 
-    @Override
-    public Object visitDays( DaysContext ctx )
-    {
-        return days;
+        if ( count == null )
+        {
+            throw new ParsingException( "Can't find count for organisation unit " + ctx.orgUnitCountId().getText() );
+        }
+
+        return count.doubleValue();
     }
 
     // -------------------------------------------------------------------------
@@ -112,21 +140,64 @@ public class ExpressionValueVisitor extends ExpressionVisitor
     @Override
     protected Object functionAnd( ExprContext ctx )
     {
-        return castBoolean( visit( ctx.expr( 0 ) ) )
-            && castBoolean( visit( ctx.expr( 1 ) ) );
+        Boolean b1 = castBoolean( visit( ctx.expr( 0 ) ) );
+
+        if ( b1 == null )
+        {
+            return null;
+        }
+
+        if ( b1 == false )
+        {
+            return false;
+        }
+
+        Boolean b2 = castBoolean( visit( ctx.expr( 1 ) ) );
+
+        if ( b2 == null )
+        {
+            return null;
+        }
+
+        return b2;
     }
 
     @Override
     protected Object functionOr( ExprContext ctx )
     {
-        return castBoolean( visit( ctx.expr( 0 ) ) )
-            || castBoolean( visit( ctx.expr( 1 ) ) );
+        Boolean b1 = castBoolean( visit( ctx.expr( 0 ) ) );
+
+        if ( b1 == null )
+        {
+            return null;
+        }
+
+        if ( b1 == true )
+        {
+            return true;
+        }
+
+        Boolean b2 = castBoolean( visit( ctx.expr( 1 ) ) );
+
+        if ( b2 == null )
+        {
+            return null;
+        }
+
+        return b2;
     }
 
     @Override
     protected Object functionIf( ExprContext ctx )
     {
-        return castBoolean( visit( ctx.a3().expr( 0 ) ) )
+        Boolean test = castBoolean( visit( ctx.a3().expr( 0 ) ) );
+
+        if ( test == null )
+        {
+            return null;
+        }
+
+        return test
             ? visit( ctx.a3().expr( 1 ) )
             : visit( ctx.a3().expr( 2 ) );
     }
@@ -149,7 +220,14 @@ public class ExpressionValueVisitor extends ExpressionVisitor
     @Override
     protected final Object functionExcept( ExprContext ctx )
     {
-        return castBoolean( visit( ctx.a1().expr() ) )
+        Boolean test = castBoolean( visit( ctx.a1().expr() ) );
+
+        if ( test == null )
+        {
+            return null;
+        }
+
+        return test
             ? null
             : visit( ctx.expr( 0 ) );
     }
@@ -158,6 +236,22 @@ public class ExpressionValueVisitor extends ExpressionVisitor
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * From the initial valueMap containing expression items with full
+     * DimensionalItemObjects, makes a hash map that can be used for fast
+     * lookup from the DimensionalItemObject type and identifier found in the
+     * expression. This avoids a serious performance penalty for many
+     * expressions such as in a large set of validation rules.
+     * <p/>
+     * If the aggregation type is the default for the DimensionalItemObject,
+     * the entry is placed twice in the map, with and without the aggregation
+     * type. This allows the value to be accessed whether or not an explicit
+     * aggregation type is specified in the expression -- without having access
+     * to the full DimensionalItemObject to determine its default aggregation
+     * type.
+     *
+     * @param valueMap the given valueMap.
+     */
     private void makeKeyValueMap( Map<ExpressionItem, Double> valueMap )
     {
         keyValueMap = new HashMap<>();
@@ -185,15 +279,32 @@ public class ExpressionValueVisitor extends ExpressionVisitor
         }
     }
 
-    private Double getItemValue( DimensionItemType itemType, String itemId )
+    /**
+     * Gets an expression item's value from the keyValueMap.
+     *
+     * @param itemType the DimensionalItemObject type.
+     * @param itemId the DimensionalItemObject id.
+     * @return the item's value.
+     */
+    private Object getItemValue( DimensionItemType itemType, String itemId )
     {
         String key = getKey( currentOrgUnit, currentPeriod, itemType, itemId, currentAggregationType );
 
-        Double value = keyValueMap.get( key );
+        Object value = keyValueMap.get( key );
 
         return value;
     }
 
+    /**
+     * Generates a key to use in the keyValueMap.
+     *
+     * @param orgUnit
+     * @param period
+     * @param dimensionItemType
+     * @param itemId
+     * @param aggregationType
+     * @return
+     */
     private String getKey( OrganisationUnit orgUnit, Period period,
         DimensionItemType dimensionItemType, String itemId,
         AggregationType aggregationType )
