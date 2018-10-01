@@ -486,6 +486,16 @@ public class Event
         return event != null ? event.hashCode() : 0;
     }
 
+    /**
+     * Checks if this event is a scheduled event. Status should be SCHEDULE, event date should be null and data values should not exist.
+     * 
+     * @return true if this event is a scheduled event. False otherwise.
+     */
+    public boolean isScheduledEmptyEvent()
+    {
+        return (status == EventStatus.SCHEDULE && eventDate == null && (dataValues == null || dataValues.isEmpty()));
+    }
+
     @Override public String toString()
     {
         return "Event{" +
@@ -504,4 +514,5 @@ public class Event
             ", deleted=" + deleted +
             '}';
     }
+   
 }

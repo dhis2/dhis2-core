@@ -526,7 +526,7 @@ public abstract class AbstractEventService
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
 
-        if ( !errors.isEmpty() )
+        if ( !errors.isEmpty() && !event.isScheduledEvent() )
         {
             ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
             importSummary.incrementIgnored();
