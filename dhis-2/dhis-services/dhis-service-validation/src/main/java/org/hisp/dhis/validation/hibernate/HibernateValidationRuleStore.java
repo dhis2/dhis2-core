@@ -93,7 +93,6 @@ public class HibernateValidationRuleStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
         String hql = "select distinct v from ValidationRule v where v.notificationTemplates is not empty";

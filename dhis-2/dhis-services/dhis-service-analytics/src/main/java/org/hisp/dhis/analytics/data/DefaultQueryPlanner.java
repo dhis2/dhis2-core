@@ -437,7 +437,7 @@ public class DefaultQueryPlanner
                 PeriodType periodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
                 AnalyticsAggregationType degAggType = AnalyticsAggregationType.fromAggregationType( deg.getAggregationType() );
                 
-                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType );
+                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType, AnalyticsAggregationType.SUM );
                 aggregationType = QueryPlannerUtils.getAggregationType( aggregationType,
                     deg.getValueType(), periodType, deg.getPeriodType() );
             }

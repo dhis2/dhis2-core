@@ -61,11 +61,7 @@ public class MaxValue
         
         for ( Double v : vals )
         {
-            if ( max == null )
-            {
-                max = v;
-            }
-            else if ( v > max )
+            if ( max == null || v > max )
             {
                 max = v;
             }

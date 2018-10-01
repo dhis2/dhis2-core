@@ -197,16 +197,6 @@ public class JdbcEnrollmentAnalyticsManager
             sql += "and (" + sqlFilter + ") ";
         }
         
-        if ( params.hasProgramIndicatorDimension() )
-        {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
-            
-            if ( anyValueFilter != null )
-            {
-                sql += "and (" + anyValueFilter + ") ";
-            }
-        }
-        
         // ---------------------------------------------------------------------
         // Various filters
         // ---------------------------------------------------------------------
