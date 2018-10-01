@@ -67,14 +67,12 @@ public class HibernatePeriodStore
     @Override
     public Period getPeriod( Date startDate, Date endDate, PeriodType periodType )
     {
-        String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType.id =:periodType";
+        String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType =:periodType";
 
-        Query<Period> typedQuery = getQuery( query )
+        return getSingleResult( getQuery( query )
             .setParameter( "startDate", startDate )
             .setParameter( "endDate", endDate )
-            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
-
-        return getSingleResult( typedQuery );
+            .setParameter( "periodType", reloadPeriodType( periodType ) ) );
     }
 
     @Override
