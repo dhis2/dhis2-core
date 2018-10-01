@@ -309,7 +309,6 @@ public class ProgramInstanceStoreTest
         params.setSkipPaging( true );
 
         assertEquals( 2, auditStore.getProgramInstanceAudits( params ).size() );
-
         assertEquals( 2, auditStore.getProgramInstanceAuditsCount( params ) );
     }
 }

@@ -28,18 +28,13 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
 import org.hisp.dhis.program.ProgramInstanceAuditStore;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -89,7 +84,7 @@ public class HibernateProgramInstanceAuditStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<ProgramInstanceAudit> jpaParameters = newJpaParameters()
-            .addPredicates( getProgramInstanceAuditCriteria( params, builder ) )
+            .addPredicates( getProgramInstanceAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
         if( !params.isSkipPaging() )
@@ -106,12 +101,11 @@ public class HibernateProgramInstanceAuditStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getCount( builder, newJpaParameters()
-            .addPredicates( getProgramInstanceAuditCriteria( params, builder ) )
-            .setUseDistinct( true ) )
-            .intValue();
+            .addPredicates( getProgramInstanceAuditPredicates( params, builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    private List<Function<Root<ProgramInstanceAudit>, Predicate>> getProgramInstanceAuditCriteria( ProgramInstanceAuditQueryParams params, CriteriaBuilder builder )
+    private List<Function<Root<ProgramInstanceAudit>, Predicate>> getProgramInstanceAuditPredicates( ProgramInstanceAuditQueryParams params, CriteriaBuilder builder )
     {
         List<Function<Root<ProgramInstanceAudit>, Predicate>> predicates = new ArrayList<>();
 
