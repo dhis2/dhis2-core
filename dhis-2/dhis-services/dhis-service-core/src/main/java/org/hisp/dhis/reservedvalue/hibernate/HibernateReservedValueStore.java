@@ -28,7 +28,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
@@ -37,6 +37,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,7 +49,7 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 /**
  * @author Stian Sandvold
  */
-@org.springframework.transaction.annotation.Transactional
+@Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
@@ -93,34 +94,40 @@ public class HibernateReservedValueStore
     public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
         List<String> values )
     {
-        return (List<ReservedValue>) getCriteria()
-            .add( Restrictions.eq( "ownerObject", reservedValue.getOwnerObject() ) )
-            .add( Restrictions.eq( "ownerUid", reservedValue.getOwnerUid() ) )
-            .add( Restrictions.eq( "key", reservedValue.getKey() ) )
-            .add( Restrictions.in( "value", values ) )
-            .list();
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.key =:key and rv.value in :values";
+
+        return getQuery( hql )
+            .setParameter( "ownerObject", reservedValue.getOwnerObject() )
+            .setParameter( "ownerUid", reservedValue.getOwnerUid() )
+            .setParameter( "key", reservedValue.getKey() )
+            .setParameter( "values", values )
+            .getResultList();
     }
 
     @Override
     public int getNumberOfUsedValues( ReservedValue reservedValue )
     {
-        Long count = (long) getQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" )
-            .setParameter( "uid", reservedValue.getOwnerUid() )
+        Query<Long> query = getTypedQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" );
+
+        Long count = query.setParameter( "uid", reservedValue.getOwnerUid() )
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
+
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            count += (long) getQuery(
-                "SELECT count(*) " +
-                    "FROM TrackedEntityAttributeValue " +
-                    "WHERE attribute = " +
-                    "( FROM TrackedEntityAttribute " +
-                    "WHERE uid = :uid ) " +
-                    "AND value LIKE :value " )
-                .setParameter( "uid", reservedValue.getOwnerUid() )
-                .setParameter( "value", reservedValue.getValue() )
-                .getSingleResult();
+            Query<Long> attrQuery = getTypedQuery(
+            "SELECT count(*) " +
+                "FROM TrackedEntityAttributeValue " +
+                "WHERE attribute = " +
+                "( FROM TrackedEntityAttribute " +
+                "WHERE uid = :uid ) " +
+                "AND value LIKE :value " );
+
+            count += attrQuery.setParameter( "uid", reservedValue.getOwnerUid() )
+            .setParameter( "value", reservedValue.getValue() )
+            .getSingleResult();
         }
 
         return count.intValue();
@@ -154,14 +161,18 @@ public class HibernateReservedValueStore
     @Override
     public boolean isReserved( String ownerObject, String ownerUID, String value )
     {
-        return !getCriteria()
-            .add( Restrictions.eq( "ownerObject", ownerObject ) )
-            .add( Restrictions.eq( "ownerUid", ownerUID ) )
-            .add( Restrictions.eq( "value", value ) )
-            .list().isEmpty();
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.value =:value";
+
+        return !getQuery( hql )
+            .setParameter( "ownerObject", ownerObject )
+            .setParameter( "ownerUid", ownerUID )
+            .setParameter( "value", value )
+            .getResultList()
+            .isEmpty();
     }
 
-    // Helper methods:
+    // Helper methods
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {

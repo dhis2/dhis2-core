@@ -116,6 +116,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueStore">
+    <property name="clazz" value="org.hisp.dhis.datavalue.DataValue" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
@@ -209,6 +210,7 @@
 
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore"
     class="org.hisp.dhis.dataset.hibernate.HibernateCompleteDataSetRegistrationStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.CompleteDataSetRegistration" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
@@ -319,6 +321,7 @@
   <bean id="org.hisp.dhis.datavalue.DataValueAuditStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+    <property name="clazz" value="org.hisp.dhis.datavalue.DataValueAudit" />
   </bean>
 
   <bean id="org.hisp.dhis.user.UserStore" class="org.hisp.dhis.user.hibernate.HibernateUserStore">
@@ -481,6 +484,7 @@
   <bean id="org.hisp.dhis.sms.hibernate.IncomingSmsStore"
     class="org.hisp.dhis.sms.hibernate.HibernateIncomingSmsStore">
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.sms.incoming.IncomingSms" />
   </bean>
 
   <bean id="org.hisp.dhis.sms.hibernate.OutboundSmsStore"
@@ -699,6 +703,7 @@
     <property name="clazz" value="org.hisp.dhis.sqlview.SqlView" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="readOnlyJdbcTemplate" ref="readOnlyJdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
@@ -720,6 +725,7 @@
     class="org.hisp.dhis.sms.command.hibernate.HibernateSMSCommandStore">
     <property name="clazz" value="org.hisp.dhis.sms.command.SMSCommand" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.color.ColorSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

@@ -28,16 +28,6 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -45,6 +35,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 public class ProgramRuleServiceTest
     extends DhisSpringTest
@@ -147,7 +143,11 @@ public class ProgramRuleServiceTest
         assertTrue( rules.contains( ruleF ) );
         //Make sure that the rule connected to program A is not returned as part of list of rules in program B.
         assertFalse( rules.contains( ruleG ) );
-        
+
+
+        assertEquals( ruleD.getId(), programRuleService.getProgramRuleByName( "RuleD", programB ).getId() );
+
+        assertEquals( 3, programRuleService.getProgramRules( programB ,"rule" ).size() );
     }
     
     @Test

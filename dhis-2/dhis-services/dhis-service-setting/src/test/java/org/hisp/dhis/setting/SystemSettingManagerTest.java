@@ -58,16 +58,6 @@ public class SystemSettingManagerTest
     }
 
     @Test
-    public void testSaveGetSystemSetting()
-    {
-        systemSettingManager.saveSystemSetting( "settingA", "valueA" );
-        systemSettingManager.saveSystemSetting( "settingB", "valueB" );
-
-        assertEquals( "valueA", systemSettingManager.getSystemSetting( "settingA" ) );
-        assertEquals( "valueB", systemSettingManager.getSystemSetting( "settingB" ) );
-    }
-
-    @Test
     public void testSaveGetSetting()
     {
         systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueA" );
@@ -110,14 +100,13 @@ public class SystemSettingManagerTest
     @Test
     public void testGetAllSystemSettings()
     {
-        systemSettingManager.saveSystemSetting( "settingA", "valueA" );
-        systemSettingManager.saveSystemSetting( "settingB", "valueB" );
-        systemSettingManager.saveSystemSetting( "settingC", "valueC" );
+        systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueA" );
+        systemSettingManager.saveSystemSetting( APPLICATION_NOTIFICATION, "valueB" );
 
         List<SystemSetting> settings = systemSettingManager.getAllSystemSettings();
 
         assertNotNull( settings );
-        assertEquals( 3, settings.size() );
+        assertEquals( 2, settings.size() );
     }
 
     @Test

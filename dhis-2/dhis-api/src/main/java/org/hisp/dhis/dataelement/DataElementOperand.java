@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import net.sf.jasperreports.engine.util.ObjectUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -40,6 +41,8 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
+
+import java.util.Objects;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -329,64 +332,24 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
 
     @Override
-    public int hashCode()
+    public boolean equals( Object o )
     {
-        int result = dataElement.hashCode();
-        result = 31 * result + (categoryOptionCombo != null ? categoryOptionCombo.hashCode() : 0);
-        result = 31 * result + (attributeOptionCombo != null ? attributeOptionCombo.hashCode() : 0);
-        return result;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        if ( !super.equals( o ) )
+            return false;
+        DataElementOperand that = (DataElementOperand) o;
+        return Objects.equals( dataElement, that.dataElement ) &&
+            Objects.equals( categoryOptionCombo, that.categoryOptionCombo ) &&
+            Objects.equals( attributeOptionCombo, that.attributeOptionCombo );
     }
 
     @Override
-    public boolean equals( Object object )
+    public int hashCode()
     {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        DataElementOperand other = (DataElementOperand) object;
-
-        if ( !dataElement.equals( other.dataElement ) )
-        {
-            return false;
-        }
-
-        if ( categoryOptionCombo == null )
-        {
-            if ( other.categoryOptionCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !categoryOptionCombo.equals( other.categoryOptionCombo ) )
-        {
-            return false;
-        }
-
-        if ( attributeOptionCombo == null )
-        {
-            if ( other.attributeOptionCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !attributeOptionCombo.equals( other.attributeOptionCombo ) )
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.hash( super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo );
     }
 
     @Override

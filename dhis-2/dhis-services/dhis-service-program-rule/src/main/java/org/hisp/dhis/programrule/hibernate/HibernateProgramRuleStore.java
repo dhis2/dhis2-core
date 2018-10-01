@@ -28,14 +28,14 @@ package org.hisp.dhis.programrule.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleStore;
+import org.hisp.dhis.query.JpaQueryUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author markusbekken
@@ -45,27 +45,32 @@ public class HibernateProgramRuleStore
     implements ProgramRuleStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> get( Program program )
     {
-        return getCriteria( Restrictions.eq( "program", program ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
     
     @Override
     public ProgramRule getByName( String name, Program program )
     {
-        return (ProgramRule) getCriteria( Restrictions.eq( "name", name ), Restrictions.eq( "program", program ) )
-            .uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> get( Program program, String key )
     {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "program", program ) )
-            .add( Restrictions.like( "name", "%" + key + "%" ).ignoreCase())
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 }

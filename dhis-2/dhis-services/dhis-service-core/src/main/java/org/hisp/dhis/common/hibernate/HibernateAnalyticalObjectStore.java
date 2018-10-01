@@ -28,7 +28,7 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -56,7 +56,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( Indicator indicator )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator";
-        return getQuery( hql ).setEntity( "indicator", indicator ).list();
+        return getQuery( hql ).setParameter( "indicator", indicator ).list();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
-        return getQuery( hql ).setEntity( "dataElement", dataElement ).list();        
+        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();        
     }
 
     @Override
@@ -72,7 +72,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
-        return getQuery( hql ).setEntity( "dataElement", dataElement ).list();        
+        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();        
     }
 
     @Override
@@ -80,7 +80,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.attributeDimensions d where d.attribute = :attribute";
-        return getQuery( hql ).setEntity( "attribute", attribute ).list();        
+        return getQuery( hql ).setParameter( "attribute", attribute ).list();        
     }
 
     @Override
@@ -88,7 +88,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
-        return getQuery( hql ).setEntity( "dataSet", dataSet ).list(); 
+        return getQuery( hql ).setParameter( "dataSet", dataSet ).list(); 
     }
 
     @Override
@@ -96,7 +96,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( ProgramIndicator programIndicator )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
-        return getQuery( hql ).setEntity( "programIndicator", programIndicator ).list(); 
+        return getQuery( hql ).setParameter( "programIndicator", programIndicator ).list(); 
     }
 
     @Override
@@ -104,7 +104,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( Period period )
     {
         String hql = "from " + clazz.getName() + " c where :period in elements(c.periods)";
-        return getQuery( hql ).setEntity( "period", period ).list(); 
+        return getQuery( hql ).setParameter( "period", period ).list(); 
     }
 
     @Override
@@ -112,7 +112,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( OrganisationUnit organisationUnit )
     {
         String hql = "from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)";
-        return getQuery( hql ).setEntity( "organisationUnit", organisationUnit ).list(); 
+        return getQuery( hql ).setParameter( "organisationUnit", organisationUnit ).list(); 
     }
 
     @Override
@@ -120,7 +120,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         String hql = "from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)";
-        return getQuery( hql ).setEntity( "categoryOptionGroup", categoryOptionGroup ).list(); 
+        return getQuery( hql ).setParameter( "categoryOptionGroup", categoryOptionGroup ).list(); 
     }
     
     @Override
@@ -128,14 +128,14 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public List<T> getAnalyticalObjects( LegendSet legendSet )
     {
         String hql = "from " + clazz.getName() + " c where c.legendSet = :legendSet";
-        return getQuery( hql ).setEntity( "legendSet", legendSet ).list();
+        return getQuery( hql ).setParameter( "legendSet", legendSet ).list();
     }    
     
     @Override
     public int countAnalyticalObjects( Indicator indicator )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator" );
-        query.setEntity( "indicator", indicator );
+        query.setParameter( "indicator", indicator );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -144,7 +144,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( DataElement dataElement )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement" );
-        query.setEntity( "dataElement", dataElement );
+        query.setParameter( "dataElement", dataElement );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -153,7 +153,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( DataSet dataSet )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataSet = :dataSet" );
-        query.setEntity( "dataSet", dataSet );
+        query.setParameter( "dataSet", dataSet );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -162,7 +162,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( ProgramIndicator programIndicator )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator" );
-        query.setEntity( "dataSet", programIndicator );
+        query.setParameter( "dataSet", programIndicator );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -171,7 +171,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( Period period )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :period in elements(c.periods)" );
-        query.setEntity( "period", period );
+        query.setParameter( "period", period );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -180,7 +180,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( OrganisationUnit organisationUnit )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)" );
-        query.setEntity( "organisationUnit", organisationUnit );
+        query.setParameter( "organisationUnit", organisationUnit );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -189,7 +189,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     public int countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)" );
-        query.setEntity( "categoryOptionGroup", categoryOptionGroup );
+        query.setParameter( "categoryOptionGroup", categoryOptionGroup );
 
         return ((Long) query.uniqueResult()).intValue();
     }

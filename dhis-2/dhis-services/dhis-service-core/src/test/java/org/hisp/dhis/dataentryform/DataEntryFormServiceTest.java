@@ -37,8 +37,11 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.mock.MockI18n;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,7 +66,17 @@ public class DataEntryFormServiceTest
 
     @Autowired
     private CategoryService categoryService;
-    
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+
     private PeriodType periodType;
     
     private DataElement dataElement;
@@ -75,6 +88,7 @@ public class DataEntryFormServiceTest
     private String dataElementUid;
     
     private String categoryOptionComboUid;
+
 
     // -------------------------------------------------------------------------
     // Fixture
