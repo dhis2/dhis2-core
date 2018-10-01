@@ -200,6 +200,11 @@ public class DefaultProgramRuleEntityMapperService
 
     private Rule toRule( ProgramRule programRule )
     {
+        if ( programRule ==  null )
+        {
+            return null;
+        }
+
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
         List<RuleAction> ruleActions;
