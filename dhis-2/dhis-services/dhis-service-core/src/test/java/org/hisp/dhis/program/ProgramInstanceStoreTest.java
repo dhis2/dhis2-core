@@ -311,4 +311,15 @@ public class ProgramInstanceStoreTest
         assertEquals( 2, auditStore.getProgramInstanceAudits( params ).size() );
         assertEquals( 2, auditStore.getProgramInstanceAuditsCount( params ) );
     }
+
+    @Test
+    public void testGetExcludeDeletedProgramInstance()
+    {
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceB );
+
+        programInstanceStore.delete( programInstanceA );
+
+        assertEquals( 1, programInstanceStore.getAll().size() );
+    }
 }

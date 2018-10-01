@@ -52,7 +52,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.PluralAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -147,11 +146,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return null;
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+        String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period and dv.deleted = false  " +
+            "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root, new DataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo ) ) )
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
+        return getSingleResult( getQuery( hql )
+            .setParameter( "dataElement", dataElement )
+            .setParameter( "period", storedPeriod )
+            .setParameter( "source", source )
+            .setParameter( "attributeOptionCombo", attributeOptionCombo )
+            .setParameter( "categoryOptionCombo", categoryOptionCombo ) );
     }
 
     @Override
