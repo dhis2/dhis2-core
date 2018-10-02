@@ -90,11 +90,11 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
-    LOGGING_LEVEL( "logging.level", "INFO", false ),
-    LOGGING_ADAPTER_CONSOLE( "logging.console", "true", false ),
-    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO", false ),
-    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false", false ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO", false );
+    LOGGING_LEVEL( "logging.level", "INFO" ),
+    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
+    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
+    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" );
 
     private final String key;
 
@@ -106,6 +106,13 @@ public enum ConfigurationKey
     {
         this.key = key;
         this.defaultValue = null;
+        this.confidential = false;
+    }
+
+    ConfigurationKey( String key, String defaultValue )
+    {
+        this.key = key;
+        this.defaultValue = defaultValue;
         this.confidential = false;
     }
 
