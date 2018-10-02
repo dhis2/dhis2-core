@@ -89,10 +89,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         setUpProgramRules();
-        setUpContext();
 
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
-
         when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
         when( programRuleVariableService.getProgramRuleVariable( any( Program.class ) ) ).thenReturn( programRuleVariables );
     }
@@ -168,11 +166,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         programRules.add( programRuleB );
         programRules.add( programRuleC );
         programRules.add( programRuleD );
-    }
-
-    private void setUpContext()
-    {
-
     }
 
     private ProgramRule setProgramRule( ProgramRule programRule, String condition, ProgramRuleAction ruleAction, Integer priority )
