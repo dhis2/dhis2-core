@@ -92,7 +92,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         setUpContext();
 
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
-        when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
 
         when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
         when( programRuleVariableService.getProgramRuleVariable( any( Program.class ) ) ).thenReturn( programRuleVariables );
@@ -103,11 +102,31 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         List<Rule> rules = programRuleEntityMapperService.toMappedProgramRules();
 
+        assertEquals( 3, rules.size() );
+    }
+
+    @Test
+    public void testWhenProgramRuleConditionIsNull()
+    {
+        programRules.get( 0 ).setCondition( null );
+
+        List<Rule> rules = programRuleEntityMapperService.toMappedProgramRules();
+
+        programRules.get( 0 ).setCondition( "" );
+
         assertEquals( 2, rules.size() );
+    }
 
-        List<Rule> rulesByProgram = programRuleEntityMapperService.toMappedProgramRules( program );
+    @Test
+    public void testWhenProgramRuleActionIsNull()
+    {
+        programRules.get( 0 ).setProgramRuleActions( null );
 
-        assertEquals( 2, rulesByProgram.size() );
+        List<Rule> rules = programRuleEntityMapperService.toMappedProgramRules();
+
+        programRules.get( 0 ).setProgramRuleActions( Sets.newHashSet( assignAction ) );
+
+        assertEquals( 2, rules.size() );
     }
 
     @Test
@@ -143,7 +162,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         programRuleA = setProgramRule( programRuleA, "", assignAction, 1 );
         programRuleB = setProgramRule( programRuleB, "", sendMessageAction, 4 );
-        programRuleD = setProgramRule( programRuleD, "", null, null );
+        programRuleD = setProgramRule( programRuleD, "", sendMessageAction, null );
 
         programRules.add( programRuleA );
         programRules.add( programRuleB );
