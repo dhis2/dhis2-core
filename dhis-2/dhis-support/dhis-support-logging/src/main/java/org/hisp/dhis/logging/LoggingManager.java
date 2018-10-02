@@ -107,7 +107,11 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
         instance = this;
 
         loggingConfig = new LoggingConfig(
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ) )
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ) ),
+            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ) ),
+            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ) )
         );
     }
 

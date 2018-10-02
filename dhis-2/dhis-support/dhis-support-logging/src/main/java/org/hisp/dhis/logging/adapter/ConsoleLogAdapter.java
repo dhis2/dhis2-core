@@ -30,14 +30,30 @@ package org.hisp.dhis.logging.adapter;
 
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
+import org.hisp.dhis.logging.LogEvent;
+import org.hisp.dhis.logging.LoggingConfig;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ConsoleLoggingAdapter implements LogAdapter
+public class ConsoleLogAdapter implements LogAdapter
 {
+    @Override
+    public boolean isEnabled( LogEvent event )
+    {
+        if ( event == null || event.getLog() == null )
+        {
+            return false;
+        }
+
+        LoggingConfig config = event.getConfig();
+
+        return config.isConsoleEnabled() &&
+            config.getConsoleLevel().isEnabled( event.getLog().getLogLevel() );
+    }
+
     @Override
     public void log( Log log )
     {

@@ -90,7 +90,11 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
-    LOGGING_LEVEL( "logging.level", "INFO", false );
+    LOGGING_LEVEL( "logging.level", "INFO", false ),
+    LOGGING_ADAPTER_CONSOLE( "logging.console", "true", false ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO", false ),
+    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false", false ),
+    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO", false );
 
     private final String key;
 

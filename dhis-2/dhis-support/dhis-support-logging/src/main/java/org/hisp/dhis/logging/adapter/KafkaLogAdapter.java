@@ -1,4 +1,4 @@
-package org.hisp.dhis.logging;
+package org.hisp.dhis.logging.adapter;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,23 +28,20 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationListener;
+import org.hisp.dhis.logging.Log;
+import org.hisp.dhis.logging.LogAdapter;
+import org.hisp.dhis.logging.LogEvent;
+import org.hisp.dhis.logging.LoggingConfig;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface LogAdapter extends ApplicationListener<LogEvent>
+@Component
+public class KafkaLogAdapter implements LogAdapter
 {
     @Override
-    default void onApplicationEvent( LogEvent event )
-    {
-        if ( isEnabled( event ) )
-        {
-            log( event.getLog(), event.getConfig() );
-        }
-    }
-
-    default boolean isEnabled( LogEvent event )
+    public boolean isEnabled( LogEvent event )
     {
         if ( event == null || event.getLog() == null )
         {
@@ -53,15 +50,12 @@ public interface LogAdapter extends ApplicationListener<LogEvent>
 
         LoggingConfig config = event.getConfig();
 
-        return config.getLevel().isEnabled( event.getLog().getLogLevel() );
+        return config.isKafkaEnabled() &&
+            config.getKafkaLevel().isEnabled( event.getLog().getLogLevel() );
     }
 
-    default void log( Log log, LoggingConfig config )
-    {
-        log( log );
-    }
-
-    default void log( Log log )
+    @Override
+    public void log( Log log )
     {
     }
 }
