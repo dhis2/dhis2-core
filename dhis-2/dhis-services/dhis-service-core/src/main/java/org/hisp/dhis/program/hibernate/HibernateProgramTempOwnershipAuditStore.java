@@ -28,23 +28,29 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public class HibernateProgramTempOwnershipAuditStore implements ProgramTempOwnershipAuditStore
+public class HibernateProgramTempOwnershipAuditStore
+    extends HibernateGenericStore<ProgramTempOwnershipAudit>
+    implements ProgramTempOwnershipAuditStore
 {
 
     // -------------------------------------------------------------------------
@@ -76,52 +82,56 @@ public class HibernateProgramTempOwnershipAuditStore implements ProgramTempOwner
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params )
     {
-        Criteria criteria = getProgramTempOwnershipAuditCriteria( params );
-        criteria.addOrder( Order.desc( "created" ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        if ( !params.isSkipPaging() )
+        JpaQueryParameters<ProgramTempOwnershipAudit> jpaParameters = newJpaParameters()
+            .addPredicates( getProgramTempOwnershipAuditPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        if( !params.isSkipPaging() )
         {
-            criteria.setFirstResult( params.getFirst() );
-            criteria.setMaxResults( params.getMax() );
+            jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
         }
 
-        return criteria.list();
+        return getList( builder, jpaParameters );
     }
 
     @Override
     public int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params )
     {
-        return ((Number) getProgramTempOwnershipAuditCriteria( params )
-            .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( getProgramTempOwnershipAuditPredicates( params, builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    private Criteria getProgramTempOwnershipAuditCriteria( ProgramTempOwnershipAuditQueryParams params )
+    private List<Function<Root<ProgramTempOwnershipAudit>, Predicate>> getProgramTempOwnershipAuditPredicates( ProgramTempOwnershipAuditQueryParams params, CriteriaBuilder builder )
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramTempOwnershipAudit.class );
-
-        if ( params.hasPrograms() )
-        {
-            criteria.add( Restrictions.in( "program", params.getPrograms() ) );
-        }
+        List<Function<Root<ProgramTempOwnershipAudit>, Predicate>> predicates = new ArrayList<>();
 
         if ( params.hasUsers() )
         {
-            criteria.add( Restrictions.in( "accessedBy", params.getUsers() ) );
+            predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
         }
 
         if ( params.hasStartDate() )
         {
-            criteria.add( Restrictions.ge( "created", params.getStartDate() ) );
+            predicates.add( root -> builder.greaterThanOrEqualTo( root.get("created" ), params.getStartDate() ) );
         }
 
         if ( params.hasEndDate() )
         {
-            criteria.add( Restrictions.le( "created", params.getEndDate() ) );
+            predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
         }
 
-        return criteria;
+        if ( params.hasPrograms() )
+        {
+            predicates.add( root -> root.get( "program" ).in( params.getPrograms() ) );
+        }
+
+        return predicates;
     }
 }
