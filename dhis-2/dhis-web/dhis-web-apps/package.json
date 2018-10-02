@@ -25,7 +25,6 @@
     "importexport-app": "github:dhis2/import-export-app-builds",
     "interpretation-app": "github:dhis2/interpretation-app-builds",
     "maintenance-app": "github:dhis2/maintenance-app-builds",
-    "maps-app": "github:dhis2/maps-app-builds",
     "menu-management-app": "github:dhis2/menu-management-app-builds",
     "messaging-app": "github:dhis2/messaging-app-builds",
     "pivot-app": "github:dhis2/pivot-tables-app-builds",
