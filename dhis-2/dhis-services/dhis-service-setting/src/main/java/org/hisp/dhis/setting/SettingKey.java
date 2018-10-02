@@ -268,7 +268,7 @@ public enum SettingKey
             }
             else if( Date.class.isAssignableFrom( settingClazz ) )
             {
-                //Accepts String with date in ISO_LOCAL_DATE_TIME format (https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_LOCAL_DATE_TIME)
+                //Accepts String with date in ISO_LOCAL_DATE_TIME format
                 LocalDateTime dateTime = LocalDateTime.parse( value );
 
                 return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );
