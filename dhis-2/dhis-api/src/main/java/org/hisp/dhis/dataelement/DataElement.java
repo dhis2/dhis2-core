@@ -37,7 +37,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -49,11 +56,17 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -150,6 +163,8 @@ public class DataElement
      * be validated as a TextPatternSegment of type TEXT.
      */
     private String fieldMask;
+
+    private List<Translation> translations;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -740,5 +755,18 @@ public class DataElement
     public void setFieldMask( String fieldMask )
     {
         this.fieldMask = fieldMask;
+    }
+
+    @JsonProperty( "translations" )
+    @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Translation> getListTranslations()
+    {
+        return translations;
+    }
+
+    public void setTranslation( List<Translation> translations )
+    {
+        this.translations = translations;
     }
 }

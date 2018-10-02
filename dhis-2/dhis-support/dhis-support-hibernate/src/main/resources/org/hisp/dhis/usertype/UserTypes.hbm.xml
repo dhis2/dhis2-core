@@ -37,13 +37,17 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
     <param name="clazz">java.util.HashSet</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
   </typedef>
-  
+
    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
     <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jblTranslations">
+    <param name="clazz">org.hisp.dhis.translation.Translation</param>
   </typedef>
 
 </hibernate-mapping>
