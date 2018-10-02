@@ -42,6 +42,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.kafka.KafkaConfig;
+import org.hisp.dhis.logging.LogFormat;
 import org.hisp.dhis.logging.LogLevel;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
@@ -169,6 +170,7 @@ public class DefaultSystemService
 
         info.setLogging( new LoggingConfig(
             LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ) ),
+            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ) ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
             LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ) ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),

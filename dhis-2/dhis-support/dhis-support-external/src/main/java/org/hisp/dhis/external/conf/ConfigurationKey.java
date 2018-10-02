@@ -91,6 +91,7 @@ public enum ConfigurationKey
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
     LOGGING_LEVEL( "logging.level", "INFO" ),
+    LOGGING_FORMAT( "logging.format", "json" ),
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
     LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),

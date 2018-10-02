@@ -40,14 +40,16 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class LoggingConfig
 {
     private final LogLevel level;
+    private final LogFormat format;
     private final boolean consoleEnabled;
     private final LogLevel consoleLevel;
     private final boolean kafkaEnabled;
     private final LogLevel kafkaLevel;
 
-    public LoggingConfig( LogLevel level, boolean consoleEnabled, LogLevel consoleLevel, boolean kafkaEnabled, LogLevel kafkaLevel )
+    public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel, boolean kafkaEnabled, LogLevel kafkaLevel )
     {
         this.level = level;
+        this.format = format;
         this.consoleEnabled = consoleEnabled;
         this.consoleLevel = consoleLevel;
         this.kafkaEnabled = kafkaEnabled;
@@ -59,6 +61,23 @@ public class LoggingConfig
     public LogLevel getLevel()
     {
         return level;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogFormat getFormat()
+    {
+        return format;
+    }
+
+    public boolean isTextFormat()
+    {
+        return LogFormat.TEXT == format;
+    }
+
+    public boolean isJsonFormat()
+    {
+        return LogFormat.JSON == format;
     }
 
     @JsonProperty
