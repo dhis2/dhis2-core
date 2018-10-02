@@ -69,6 +69,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 
@@ -116,8 +118,11 @@ public abstract class AbstractJdbcTableManager
     @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Autowired
+    @Resource( name = "jdbcTemplate" )
     protected JdbcTemplate jdbcTemplate;
+    
+    @Resource( name = "slowQueryJdbcTemplate" )
+    protected JdbcTemplate slowQueryJdbcTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -464,7 +469,7 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
-        jdbcTemplate.execute( sql );
+        slowQueryJdbcTemplate.execute( sql );
         
         log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }

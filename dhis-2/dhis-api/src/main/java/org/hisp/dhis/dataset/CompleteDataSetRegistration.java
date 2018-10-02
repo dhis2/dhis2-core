@@ -77,6 +77,15 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
+        CategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataSet = dataSet;
+        this.period = period;
+        this.source = source;
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
         CategoryOptionCombo attributeOptionCombo, Date date, String storedBy )
     {
         this.dataSet = dataSet;

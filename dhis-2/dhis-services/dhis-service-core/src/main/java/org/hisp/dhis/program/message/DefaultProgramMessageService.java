@@ -384,7 +384,7 @@ public class DefaultProgramMessageService
         {
             strategies.stream()
                 .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                .map( st -> st.setAttributes( message ) );
+                .forEach( st -> st.setAttributes( message ) );
         }
 
         return message;

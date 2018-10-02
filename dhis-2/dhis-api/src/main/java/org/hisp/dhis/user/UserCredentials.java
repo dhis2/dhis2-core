@@ -142,11 +142,6 @@ public class UserCredentials
     private String restoreToken;
 
     /**
-     * The code used for a user account restore. Will be stored as a hash.
-     */
-    private String restoreCode;
-
-    /**
      * The timestamp representing when the restore window expires.
      */
     private Date restoreExpiry;
@@ -385,11 +380,6 @@ public class UserCredentials
         if ( restoreToken == null )
         {
             return "account_restoreToken_is_null";
-        }
-
-        if ( restoreCode == null )
-        {
-            return "account_restoreCode_is_null";
         }
 
         if ( restoreExpiry == null )
@@ -697,16 +687,6 @@ public class UserCredentials
         this.restoreToken = restoreToken;
     }
 
-    public String getRestoreCode()
-    {
-        return restoreCode;
-    }
-
-    public void setRestoreCode( String restoreCode )
-    {
-        this.restoreCode = restoreCode;
-    }
-
     public Date getRestoreExpiry()
     {
         return restoreExpiry;
@@ -764,7 +744,6 @@ public class UserCredentials
             "\"userAuthorityGroups\":\"" + userAuthorityGroups + "\", " +
             "\"lastLogin\":\"" + lastLogin + "\", " +
             "\"restoreToken\":\"" + restoreToken + "\", " +
-            "\"restoreCode\":\"" + restoreCode + "\", " +
             "\"restoreExpiry\":\"" + restoreExpiry + "\", " +
             "\"selfRegistered\":\"" + selfRegistered + "\", " +
             "\"disabled\":\"" + disabled + "\" " +

@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,9 +53,7 @@ import java.util.Set;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -76,6 +75,9 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramInstanceAuditStore auditStore;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
@@ -288,5 +290,36 @@ public class ProgramInstanceStoreTest
 
         results = programInstanceStore.getWithScheduledNotifications( a3, yesterday );
         assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testProgramInstanceAudit()
+    {
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceB );
+
+        ProgramInstanceAudit auditA = new ProgramInstanceAudit( programInstanceA, "testUser", AuditType.CREATE );
+        ProgramInstanceAudit auditB = new ProgramInstanceAudit( programInstanceB, "testUser", AuditType.CREATE );
+        auditStore.addProgramInstanceAudit( auditA );
+        auditStore.addProgramInstanceAudit( auditB );
+
+        ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
+        params.setAuditType( AuditType.CREATE );
+        params.setProgramInstances( Sets.newHashSet( programInstanceA, programInstanceB ) );
+        params.setSkipPaging( true );
+
+        assertEquals( 2, auditStore.getProgramInstanceAudits( params ).size() );
+        assertEquals( 2, auditStore.getProgramInstanceAuditsCount( params ) );
+    }
+
+    @Test
+    public void testGetExcludeDeletedProgramInstance()
+    {
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceB );
+
+        programInstanceStore.delete( programInstanceA );
+
+        assertEquals( 1, programInstanceStore.getAll().size() );
     }
 }

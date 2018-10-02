@@ -28,43 +28,25 @@ package org.hisp.dhis.sms.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsStore;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
+
 @Transactional
-public class HibernateIncomingSmsStore
+public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms>
     implements IncomingSmsStore
 {
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public int save( IncomingSms sms )
-    {
-        return (Integer) sessionFactory.getCurrentSession().save( sms );
-    }
 
     @Override
     public IncomingSms get( int id )
@@ -74,44 +56,44 @@ public class HibernateIncomingSmsStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
     {
-        Session session = sessionFactory.getCurrentSession();
-        Criteria criteria = session.createCriteria( IncomingSms.class ).addOrder( Order.desc( "sentDate" ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
+        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+        .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
+
         if ( status != null )
         {
-            criteria.add( Restrictions.eq( "status", status ) );
+            parameter.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
-        criteria.add( Restrictions.ilike( "originator", "%" + keyword + "%" ) );
-        return criteria.list();
+
+        return getList( builder, parameter );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<IncomingSms> getSmsByOriginator( String originator )
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( IncomingSms.class );
-        criteria.add( Restrictions.eq( "originator", originator ) );
-        return criteria.list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "originator" ), originator ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<IncomingSms> getAllSmses()
     {
-        return sessionFactory.getCurrentSession().createCriteria( IncomingSms.class ).addOrder( Order.desc( "id" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addOrder( root -> builder.desc( root.get( "id" ) ) ) );
     }
 
     @Override
     public long getSmsCount()
     {
-        Session session = sessionFactory.getCurrentSession();
-        Criteria criteria = session.createCriteria( IncomingSms.class );
-        criteria.setProjection( Projections.rowCount() );
-        Long count = (Long) criteria.uniqueResult();
-        return count != null ? count.longValue() : (long) 0;
+        return getCount( getCriteriaBuilder(), newJpaParameters() );
     }
 
     @Override
@@ -126,33 +108,33 @@ public class HibernateIncomingSmsStore
         sessionFactory.getCurrentSession().update( incomingSms );
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<IncomingSms> getAllUnparsedSmses()
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( IncomingSms.class );
-        criteria.add( Restrictions.eq( "parsed", false ) );
-        return criteria.list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "parsed" ), false ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
     {
-        Session session = sessionFactory.getCurrentSession();
-        Criteria criteria = session.createCriteria( IncomingSms.class ).addOrder( Order.desc( "sentDate" ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<IncomingSms> parameters = newJpaParameters()
+        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
 
         if ( status != null )
         {
-            criteria.add( Restrictions.eq( "status", status ) );
+            parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
-        criteria.add( Restrictions.ilike( "originator", "%" + keyword + "%" ) );
 
         if ( min != null && max != null )
         {
-            criteria.setFirstResult( min ).setMaxResults( max );
+            parameters.setFirstResult( min ).setMaxResults( max );
         }
 
-        return criteria.list();
+        return getList( builder, parameters );
     }
 }

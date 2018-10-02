@@ -71,6 +71,7 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -541,7 +542,7 @@ public class DataSet
         return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
             .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
             .reduce( ( a, b ) -> a || b )
-            .get();
+            .orElse( true );
     }
 
     // -------------------------------------------------------------------------

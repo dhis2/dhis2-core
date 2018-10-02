@@ -28,28 +28,28 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -69,6 +69,7 @@ public class HibernateMinMaxDataElementStore
 
     @Autowired
     private SchemaService schemaService;
+
     // -------------------------------------------------------------------------
     // MinMaxDataElementStore Implementation
     // -------------------------------------------------------------------------
@@ -77,23 +78,25 @@ public class HibernateMinMaxDataElementStore
     public MinMaxDataElement get( OrganisationUnit source, DataElement dataElement,
         CategoryOptionCombo optionCombo )
     {
-        return (MinMaxDataElement) getCriteria( 
-            Restrictions.eq( "source", source ),
-            Restrictions.eq( "dataElement", dataElement ), 
-            Restrictions.eq( "optionCombo", optionCombo ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
+            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) )
+            .addPredicate( root -> builder.equal( root.get( "optionCombo" ), optionCombo ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement )
     {
-        return getCriteria( 
-            Restrictions.eq( "source", source ), 
-            Restrictions.eq( "dataElement", dataElement ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
+            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements )
     {
         if ( dataElements.size() == 0 )
@@ -101,35 +104,40 @@ public class HibernateMinMaxDataElementStore
             return new ArrayList<>();
         }
 
-        return getCriteria( 
-            Restrictions.eq( "source", source ), 
-            Restrictions.in( "dataElement", dataElements ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
+            .addPredicate( root -> root.get( "dataElement" ).in( dataElements ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
     {
-        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
-        criteria = parseFilter( criteria, query.getFilters() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<MinMaxDataElement> parameters = newJpaParameters();
+        parameters.addPredicate( root -> parseFilter( builder, root, query.getFilters() ) );
 
         if ( !query.isSkipPaging() )
         {
             Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
+            parameters.setFirstResult( pager.getOffset() );
+            parameters.setMaxResults( pager.getPageSize() );
         }
 
-        return criteria.list();
+        return getList( builder, parameters );
     }
 
     @Override
     public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
     {
-        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
-        criteria = parseFilter( criteria, query.getFilters() );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list().size();
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> parseFilter( builder, root, query.getFilters() ) )
+            .setUseDistinct( true ) )
+            .intValue();
     }
     
     @Override
@@ -137,7 +145,7 @@ public class HibernateMinMaxDataElementStore
     {
         String hql = "delete from MinMaxDataElement m where m.source = :source";
         
-        getQuery( hql ).setEntity( "source", organisationUnit ).executeUpdate();
+        getQuery( hql ).setParameter( "source", organisationUnit ).executeUpdate();
     }
     
     @Override
@@ -145,7 +153,7 @@ public class HibernateMinMaxDataElementStore
     {
         String hql = "delete from MinMaxDataElement m where m.dataElement = :dataElement";
         
-        getQuery( hql ).setEntity( "dataElement", dataElement ).executeUpdate();
+        getQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
     }
     
     @Override
@@ -153,7 +161,7 @@ public class HibernateMinMaxDataElementStore
     {
         String hql = "delete from MinMaxDataElement m where m.optionCombo = :optionCombo";
         
-        getQuery( hql ).setEntity( "optionCombo", optionCombo ).executeUpdate();
+        getQuery( hql ).setParameter( "optionCombo", optionCombo ).executeUpdate();
     }
     
     @Override
@@ -162,14 +170,16 @@ public class HibernateMinMaxDataElementStore
         String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
             "and m.source in (select ou from OrganisationUnit ou where path like :path)";
         
-        getQuery( hql ).
-            setParameterList( "dataElements", dataElements ).
-            setParameter( "path", parent.getPath() + "%" ).executeUpdate();
+        getQuery( hql )
+            .setParameterList( "dataElements", dataElements )
+            .setParameter( "path", parent.getPath() + "%" )
+            .executeUpdate();
     }
 
-    private Criteria parseFilter( Criteria criteria, List<String> filters )
+    private Predicate parseFilter( CriteriaBuilder builder, Root root, List<String> filters )
     {
-        Conjunction conjunction = Restrictions.conjunction();
+        Predicate conjunction = builder.conjunction();
+
         Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
 
         if ( !filters.isEmpty() )
@@ -183,38 +193,19 @@ public class HibernateMinMaxDataElementStore
                     throw new QueryParserException( "Invalid filter: " + filter );
                 }
 
-                QueryPath queryPath = queryPlanner.getQueryPath( schema,  split[0] );
+                Path queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
 
                 Property property = queryParser.getProperty( schema, split[0] );
 
-                Criterion restriction = getRestriction( property, queryPath.getPath(), split[1], split[2] );
+                Predicate predicate = JpaQueryUtils.getPredicate( builder, property, queryPath, split[1], split[2] );
 
-                if ( restriction != null )
+                if ( predicate != null )
                 {
-                    conjunction.add( restriction );
-
-                    if ( queryPath.haveAlias() )
-                    {
-                        for ( String alias : queryPath.getAlias() )
-                        {
-                            criteria.createAlias( alias, alias );
-                        }
-                    }
+                    conjunction.getExpressions().add( predicate );
                 }
             }
         }
-        criteria.add( conjunction );
 
-        return criteria;
-    }
-
-    private Criterion getRestriction( Property property,  String path, String operator, String value )
-     {
-        switch ( operator )
-        {
-            case "in" : return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
-            case "eq" : return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), value ) );
-            default: throw new QueryParserException( "Query operator is not supported : " + operator );
-        }
+        return conjunction;
     }
 }

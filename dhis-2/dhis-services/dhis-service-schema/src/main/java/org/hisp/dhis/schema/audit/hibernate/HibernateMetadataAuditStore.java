@@ -28,19 +28,20 @@ package org.hisp.dhis.schema.audit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditQuery;
 import org.hisp.dhis.schema.audit.MetadataAuditStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,89 +68,101 @@ public class HibernateMetadataAuditStore
     @Override
     public int count( MetadataAuditQuery query )
     {
-        Criteria criteria = buildCriteria( query );
-        return ((Number) criteria.setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery( Long.class );
+
+        Root<MetadataAudit> root = criteriaQuery.from( MetadataAudit.class );
+
+        criteriaQuery.select( builder.countDistinct( root.get( "id" ) ) );
+
+        criteriaQuery.where( buildCriteria( builder, root, query ).toArray( new Predicate[0] ) );
+
+        return getCurrentSession().createQuery( criteriaQuery ).getSingleResult().intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MetadataAudit> query( MetadataAuditQuery query )
     {
-        Criteria criteria = buildCriteria( query );
+        CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+
+        CriteriaQuery<MetadataAudit> criteriaQuery = builder.createQuery( MetadataAudit.class );
+
+        Root<MetadataAudit> root = criteriaQuery.from( MetadataAudit.class );
+
+        criteriaQuery.where( buildCriteria( builder, root, query ).toArray( new Predicate[0] ) );
+
+        Query<MetadataAudit> typedQuery = getCurrentSession().createQuery( criteriaQuery );
 
         if ( !query.isSkipPaging() )
         {
             Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
+            typedQuery.setFirstResult( pager.getOffset() );
+            typedQuery.setMaxResults( pager.getPageSize() );
         }
 
-        return criteria.list();
+        return typedQuery.getResultList();
     }
 
-    private Criteria buildCriteria( MetadataAuditQuery query )
+    private List<Predicate> buildCriteria( CriteriaBuilder builder, Root<MetadataAudit> root, MetadataAuditQuery query )
     {
-        Criteria criteria = getCurrentSession().createCriteria( MetadataAudit.class );
+        List<Predicate> predicates = new ArrayList<>();
 
         if ( query.getKlass().isEmpty() )
         {
-            Disjunction disjunction = Restrictions.disjunction();
+            Predicate disjunction = builder.disjunction();
 
             if ( !query.getUid().isEmpty() )
             {
-                disjunction.add( Restrictions.in( "uid", query.getUid() ) );
+                 disjunction.getExpressions().add( root.get( "uid" ).in( query.getUid() ) );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                disjunction.add( Restrictions.in( "code", query.getCode() ) );
+                disjunction.getExpressions().add( root.get( "code" ).in( query.getCode() ) );
             }
 
-            criteria.add( disjunction );
+            predicates.add( disjunction );
         }
         else if ( query.getUid().isEmpty() && query.getCode().isEmpty() )
         {
-            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
+            predicates.add( root.get( "klass" ).in( query.getKlass() ) );
         }
         else
         {
-            Disjunction disjunction = Restrictions.disjunction();
+            Predicate disjunction = builder.disjunction();
 
             if ( !query.getUid().isEmpty() )
             {
-                Conjunction conjunction = Restrictions.conjunction();
-                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
-                conjunction.add( Restrictions.in( "uid", query.getUid() ) );
-                disjunction.add( conjunction );
+                Predicate conjunction = builder.and( root.get( "klass" ).in( query.getKlass() ), root.get( "uid" ).in( query.getUid() ) );
+                disjunction.getExpressions().add( conjunction );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                Conjunction conjunction = Restrictions.conjunction();
-                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
-                conjunction.add( Restrictions.in( "code", query.getCode() ) );
-                disjunction.add( conjunction );
+                Predicate conjunction = builder.and( root.get( "klass" ).in( query.getKlass() ), root.get( "code" ).in( query.getUid() ) );
+                disjunction.getExpressions().add( conjunction );
             }
 
-            criteria.add( disjunction );
+            predicates.add( disjunction );
         }
 
         if ( query.getCreatedAt() != null )
         {
-            criteria.add( Restrictions.ge( "createdAt", query.getCreatedAt() ) );
+            predicates.add( builder.greaterThanOrEqualTo( root.get( "createdAt" ), query.getCreatedAt() ) );
         }
 
         if ( query.getCreatedBy() != null )
         {
-            criteria.add( Restrictions.eq( "createdBy", query.getCreatedBy() ) );
+            predicates.add( builder.equal( root.get( "createdBy" ), query.getCreatedBy() ) );
         }
 
         if ( query.getType() != null )
         {
-            criteria.add( Restrictions.eq( "type", query.getType() ) );
+            predicates.add( builder.equal( root.get( "type" ), query.getType() ) );
         }
 
-        return criteria;
+        return predicates;
     }
 
     private Session getCurrentSession()

@@ -28,13 +28,13 @@ package org.hisp.dhis.programrule.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author markusbekken
@@ -44,9 +44,11 @@ public class HibernateProgramRuleVariableStore
     implements ProgramRuleVariableStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramRuleVariable> get( Program program )
     {
-        return getCriteria( Restrictions.eq( "program", program ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 }

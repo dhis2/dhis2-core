@@ -106,4 +106,30 @@ public class AttributeStoreTest
         assertTrue( attribute.getSupportedClasses().contains( Indicator.class ) );
         assertTrue( attribute.getSupportedClasses().contains( IndicatorGroup.class ) );
     }
+
+    @Test
+    public void testGetMandatoryAttributes()
+    {
+        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
+        attribute.setDataElementAttribute( true );
+        attribute.setMandatory( true );
+
+        attributeStore.save( attribute );
+
+        assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ).size() );
+    }
+
+    @Test
+    public void testGetUniqueAttributes()
+    {
+        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
+        attribute.setDataElementAttribute( true );
+        attribute.setUnique( true );
+
+        attributeStore.save( attribute );
+
+        assertEquals( 1, attributeStore.getUniqueAttributes( DataElement.class ).size() );
+
+
+    }
 }

@@ -39,7 +39,7 @@ import java.util.Calendar;
 public enum RestoreType
 {
     RECOVER_PASSWORD( Calendar.DAY_OF_MONTH, 2, "restore_message", "email_restore_subject", "restore.action" ),
-    INVITE( Calendar.DAY_OF_YEAR, 7, "invite_message", "email_invite_subject", "invite.action" );
+    INVITE( Calendar.DAY_OF_YEAR, 4, "invite_message", "email_invite_subject", "invite.action" );
 
     /**
      * Type of Calendar interval before the restore expires.

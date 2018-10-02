@@ -152,7 +152,6 @@ public class AccountController
     public void restoreAccount(
         @RequestParam String username,
         @RequestParam String token,
-        @RequestParam String code,
         @RequestParam String password,
         HttpServletRequest request,
         HttpServletResponse response ) throws WebMessageException
@@ -179,7 +178,7 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
-        boolean restore = securityService.restore( credentials, token, code, password, RestoreType.RECOVER_PASSWORD );
+        boolean restore = securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD );
 
         if ( !restore )
         {
@@ -202,7 +201,6 @@ public class AccountController
         @RequestParam String employer,
         @RequestParam( required = false ) String inviteUsername,
         @RequestParam( required = false ) String inviteToken,
-        @RequestParam( required = false ) String inviteCode,
         @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
         HttpServletRequest request,
         HttpServletResponse response )
@@ -223,7 +221,7 @@ public class AccountController
                 throw new WebMessageException( WebMessageUtils.badRequest( "Invitation link not valid" ) );
             }
 
-            boolean canRestore = securityService.canRestore( credentials, inviteToken, inviteCode, RestoreType.INVITE );
+            boolean canRestore = securityService.canRestore( credentials, inviteToken, RestoreType.INVITE );
 
             if ( !canRestore )
             {
@@ -338,7 +336,7 @@ public class AccountController
 
         if ( invitedByEmail )
         {
-            boolean restored = securityService.restore( credentials, inviteToken, inviteCode, password, RestoreType.INVITE );
+            boolean restored = securityService.restore( credentials, inviteToken, password, RestoreType.INVITE );
 
             if ( !restored )
             {
