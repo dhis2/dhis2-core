@@ -141,6 +141,7 @@ public class ParsingServiceTest
     private Period periodN;
     private Period periodO;
     private Period periodP;
+    private Period periodQ;
 
     private static DataElement dataElementA;
     private static DataElement dataElementB;
@@ -416,6 +417,8 @@ public class ParsingServiceTest
         periodO = createPeriod( "200406" );
         periodP = createPeriod( "200407" );
 
+        periodQ = createPeriod( "200308" );
+
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         periodService.addPeriod( periodC );
@@ -432,6 +435,7 @@ public class ParsingServiceTest
         periodService.addPeriod( periodN );
         periodService.addPeriod( periodO );
         periodService.addPeriod( periodP );
+        periodService.addPeriod( periodQ );
 
         Constant constantA = new Constant( "One half", 0.5 );
         Constant constantB = new Constant( "One quarter", 0.25 );
@@ -487,6 +491,8 @@ public class ParsingServiceTest
             entrySum( orgUnitG, periodN, dataElementA, 4.0 ),
             entrySum( orgUnitG, periodO, dataElementA, 2.0 ),
             entrySum( orgUnitG, periodP, dataElementA, 1.0 ),
+
+            entrySum( orgUnitG, periodQ, dataElementA, 20.0 ),
 
             entrySum( orgUnitH, periodK, dataElementA, 1000.0 ),
             entrySum( orgUnitH, periodL, dataElementA, 2000.0 ),
@@ -561,7 +567,7 @@ public class ParsingServiceTest
      * @param v the value.
      * @return the Map.Entry.
      */
-    private <K, V> Map.Entry<K, V> singleEntry( K k, V v )
+    private <K, V> Map.Entry<K, V> entry( K k, V v )
     {
         return new SimpleEntry<K, V>( k, v );
     }
@@ -579,7 +585,7 @@ public class ParsingServiceTest
         Period period, DimensionalItemObject item, Double value )
     {
         return ImmutableList.of(
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), value )
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), value )
         );
     }
 
@@ -596,7 +602,7 @@ public class ParsingServiceTest
         Period period, DimensionalItemObject item, Double value )
     {
         return ImmutableList.of(
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), value )
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), value )
         );
     }
 
@@ -613,7 +619,7 @@ public class ParsingServiceTest
         Period period, DimensionalItemObject item, Double value )
     {
         return ImmutableList.of(
-            singleEntry( new ExpressionItem( orgUnit, period, item, null ), value )
+            entry( new ExpressionItem( orgUnit, period, item, null ), value )
         );
     }
 
@@ -633,16 +639,16 @@ public class ParsingServiceTest
         Double val = (Double) value;
 
         return ImmutableList.of(
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), val ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MAX ), val + 1 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.MIN ), val + 2 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE ), val + 3 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.STDDEV ), val + 4 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.VARIANCE ), val + 5 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST ), val + 6 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE_SUM_ORG_UNIT ), val + 7 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST_AVERAGE_ORG_UNIT ), val + 8 ),
-            singleEntry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), val + 9 )
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.SUM ), val ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.MAX ), val + 1 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.MIN ), val + 2 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE ), val + 3 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.STDDEV ), val + 4 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.VARIANCE ), val + 5 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST ), val + 6 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.AVERAGE_SUM_ORG_UNIT ), val + 7 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.LAST_AVERAGE_ORG_UNIT ), val + 8 ),
+            entry( new ExpressionItem( orgUnit, period, item, AggregationType.NONE ), val + 9 )
         );
     }
 
@@ -1203,16 +1209,16 @@ public class ParsingServiceTest
     @Test
     public void testExpressionPeriods()
     {
-        // Period letters, and values for (dataElementA, orgUnitG):
+        // Period letters, and values for dataElementA, orgUnitG, SUM:
         //
         //              Month
-        //               Jan    Feb    Mar    Apr    May    Jun    Jul
+        //               Jan    Feb    Mar    Apr    May    Jun    Jul    Aug
         //  Year 2001                                 A      B      C
         //                                        100,000 40,000 20,000
         //       2002                                 D      E      F
         //                                         10,000  4,000  2,000
-        //       2003     G      H      I      J      K      L      M
-        //              1,000   400    200    100    40     20     10
+        //       2003     G      H      I      J      K      L      M      Q
+        //              1,000   400    200    100    40     20     10     20
         //       2004                                N      O      P
         //                                           4      2      1
 
@@ -1225,6 +1231,7 @@ public class ParsingServiceTest
 
         // period( from, to )
 
+        assertNull( error( "#{dataElemenA}.period( 1, 1 )" ) );
         assertEquals( "10 G307-", eval( "#{dataElemenA}.period( 1, 1 ).sum()" ) );
         assertEquals( "30 G306- G307-", eval( "#{dataElemenA}.period( 0, 1 ).sum()" ) );
         assertEquals( "70 G305- G306- G307-", eval( "#{dataElemenA}.period( -1, 1 ).sum()" ) );
@@ -1255,15 +1262,20 @@ public class ParsingServiceTest
 
         // Periods with no values
 
-        assertEquals( "null G308-", eval( "#{dataElemenA}.period( 2 )" ) );
-        assertEquals( "null G308- G309- G310-", eval( "#{dataElemenA}.period( 2, 4 ).sum()" ) );
+        assertEquals( "null G309-", eval( "#{dataElemenA}.period( 3 )" ) );
+        assertEquals( "null G309- G310-", eval( "#{dataElemenA}.period( 3, 4 ).sum()" ) );
         assertEquals( "null G201- G202- G203-", eval( "#{dataElemenA}.period( -17, -15 ).sum()" ) );
         assertEquals( "null G201- G202- G203- G204-", eval( "#{dataElemenA}.period( -5, -2, -1 ).sum()" ) );
         assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204-", eval( "#{dataElemenA}.period( -5, -2, -2, -1 ).sum()" ) );
-        assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G308-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   2 ).sum()" ) );
-        assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G308- G309- G310-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   2, 4 ).sum()" ) );
+        assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G309-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   3 ).sum()" ) );
+        assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G309- G310-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   3, 4 ).sum()" ) );
         assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G408- G409- G410-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   2, 4, 1 ).sum()" ) );
         assertEquals( "null G101- G102- G103- G104- G201- G202- G203- G204- G408- G409- G410- G508- G509- G510-", eval( "#{dataElemenA}.period( -5, -2, -2, -1,   2, 4, 1, 2 ).sum()" ) );
+
+        // Chaining period functions (not allowed)
+
+        assertNull( error( "#{dataElemenA}.period(-5,-2).period(2,4).sum()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).ouPeer(0).period(2,4).sum()" ) );
     }
 
     @Test
@@ -1353,9 +1365,9 @@ public class ParsingServiceTest
         // the aggregation type override for the data element.
         //
         //                         Month
-        //                         Jan    Feb    Mar    Apr    May    Jun    Jul
-        // Year  2003               G      H      I      J      K      L      M
-        // - (SUM)                1,000   400    200    100    40     20     10
+        //                         Jan    Feb    Mar    Apr    May    Jun    Jul    Aug
+        // Year  2003               G      H      I      J      K      L      M      Q
+        // - (SUM)                1,000   400    200    100    40     20     10     20
         // -MAX                   1,001   401    201    101    41     21     11
         // -MIN                   1,002   402    202    102    42     22     12
         // -AVERAGE               1,003   403    203    103    43     23     13
@@ -1368,72 +1380,95 @@ public class ParsingServiceTest
 
         // sum
 
+        assertEquals( "20 G306-", eval( "#{dataElemenA}.sum()" ) );
         assertEquals( "1770 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).sum()" ) );
 
         // max
 
+        assertEquals( "21 G306-MAX", eval( "#{dataElemenA}.max()" ) );
         assertEquals( "1001 G301-MAX G302-MAX G303-MAX G304-MAX G305-MAX G306-MAX G307-MAX", eval( "#{dataElemenA}.period( -5, 1 ).max()" ) );
 
         // min
 
+        assertEquals( "22 G306-MIN", eval( "#{dataElemenA}.min()" ) );
         assertEquals( "12 G301-MIN G302-MIN G303-MIN G304-MIN G305-MIN G306-MIN G307-MIN", eval( "#{dataElemenA}.period( -5, 1 ).min()" ) );
 
         // average
 
+        assertEquals( "23 G306-AVERAGE", eval( "#{dataElemenA}.average()" ) );
         assertEquals( "45.5 G304-AVERAGE G305-AVERAGE G306-AVERAGE G307-AVERAGE", eval( "#{dataElemenA}.period( -2, 1 ).average()" ) );
 
         // stddev
 
+        assertEquals( "24 G306-STDDEV", eval( "#{dataElemenA}.stddev()" ) );
         assertEquals( "15.275252316519467 G305-STDDEV G306-STDDEV G307-STDDEV", eval( "#{dataElemenA}.period( -1, 1 ).stddev()" ) );
+        assertEquals( "0 G306-STDDEV", eval( "#{dataElemenA}.period( 0, 0 ).stddev()" ) );
 
         // variance
 
+        assertEquals( "25 G306-VARIANCE", eval( "#{dataElemenA}.variance()" ) );
         assertEquals( "200 G305-VARIANCE G306-VARIANCE", eval( "#{dataElemenA}.period( -1, 0 ).variance()" ) );
 
         // median
 
+        assertNull( error( "#{dataElemenA}.median()" ) );
         assertEquals( "100 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).median()" ) ); // Odd
         assertEquals( "70 G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -4, 1 ).median()" ) ); // Even
 
         // first
 
+        assertNull( error( "#{dataElemenA}.first()" ) );
         assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first()" ) );
         assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first(1).sum()" ) );
         assertEquals( "1400 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first(2).sum()" ) );
 
         // last
 
+        assertEquals( "26 G306-LAST", eval( "#{dataElemenA}.last()" ) );
         assertEquals( "16 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last()" ) );
         assertEquals( "16 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last(1).sum()" ) );
         assertEquals( "42 G301-LAST G302-LAST G303-LAST G304-LAST G305-LAST G306-LAST G307-LAST", eval( "#{dataElemenA}.period( -5, 1 ).last(2).sum()" ) );
 
         // percentile
 
+        assertNull( error( "#{dataElemenA}.percentile( 25 )" ) );
         assertEquals( "20 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).percentile( 25 )" ) );
 
         // rankHigh
 
-        assertEquals( "5 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankHigh( 200 )" ) );
+        assertNull( error( "#{dataElemenA}.rankHigh( 20 )" ) );
+        assertEquals( "4 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankHigh( 40 )" ) );
+        assertEquals( "3 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankHigh( 20 )" ) );
+        assertEquals( "1 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankHigh( 10 )" ) );
 
         // rankLow
 
-        assertEquals( "3 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankLow( 200 )" ) );
+        assertNull( error( "#{dataElemenA}.rankLow( 20 )" ) );
+        assertEquals( "1 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankLow( 40 )" ) );
+        assertEquals( "2 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankLow( 20 )" ) );
+        assertEquals( "4 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankLow( 10 )" ) );
 
         // rankPercentile
 
-        assertEquals( "71 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).rankPercentile( 200 )" ) );
+        assertNull( error( "#{dataElemenA}.rankPercentile( 20 )" ) );
+        assertEquals( "100 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankPercentile( 40 )" ) );
+        assertEquals( "75 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankPercentile( 20 )" ) );
+        assertEquals( "25 G305- G306- G307- G308-", eval( "#{dataElemenA}.period( -1, 2 ).rankPercentile( 10 )" ) );
 
         // averageSumOrgUnit
 
         assertEquals( "27 G306-AVERAGE_SUM_ORG_UNIT", eval( "#{dataElemenA}.averageSumOrgUnit()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).averageSumOrgUnit()" ) );
 
         // lastAverageOrgUnit
 
         assertEquals( "28 G306-LAST_AVERAGE_ORG_UNIT", eval( "#{dataElemenA}.lastAverageOrgUnit()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).lastAverageOrgUnit()" ) );
 
         // noAggregation
 
         assertEquals( "29 G306-NONE", eval( "#{dataElemenA}.noAggregation()" ) );
+        assertNull( error( "#{dataElemenA}.period(-5,-2).noAggregation()" ) );
     }
 
     @Test
@@ -1444,14 +1479,14 @@ public class ParsingServiceTest
         // IsNull
 
         assertEquals( "0 G306-", eval( "if( isNull( #{dataElemenA} ), 1, 0)" ) );
-        assertEquals( "1 G308-", eval( "if( isNull( #{dataElemenA}.period( 2 ) ), 1, 0)" ) );
+        assertEquals( "1 G309-", eval( "if( isNull( #{dataElemenA}.period( 3 ) ), 1, 0)" ) );
 
         // Coalesce
 
         assertEquals( "20 G306-", eval( "coalesce( #{dataElemenA} )" ) );
-        assertEquals( "20 G306- G308-", eval( "coalesce( #{dataElemenA}.period( 2 ), #{dataElemenA} )" ) );
-        assertEquals( "20 G306- G308- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}.period( 2 ), #{dataElemenA} )" ) );
-        assertEquals( "20 G306- G308- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}, #{dataElemenA}.period( 2 ) )" ) );
+        assertEquals( "20 G306- G309-", eval( "coalesce( #{dataElemenA}.period( 3 ), #{dataElemenA} )" ) );
+        assertEquals( "20 G306- G309- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}.period( 3 ), #{dataElemenA} )" ) );
+        assertEquals( "20 G306- G309- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}, #{dataElemenA}.period( 3 ) )" ) );
 
         // Except
 
@@ -1464,7 +1499,7 @@ public class ParsingServiceTest
     public void testGetExpressionDescription()
     {
         assertEquals( "Data element A name + Data element B name", desc("#{dataElemenA} + #{dataElemenB}") );
-        assertEquals( "Data element A name.period( -5, -1 ).average() + 2 *  Data element A name.period(-5,-1).stddev()", desc("#{dataElemenA}.period( -5, -1 ).average() + 2 *  #{dataElemenA}.period(-5,-1).stddev()") );
+        assertEquals( "Data element A name.period( -5, -1 ).average() + 2 * Data element A name.period(-5,-1).stddev()", desc("#{dataElemenA}.period( -5, -1 ).average() + 2 * #{dataElemenA}.period(-5,-1).stddev()") );
         assertEquals( "Data element A name - Data element B name / Data element A name", desc("#{dataElemenA.HllvX50cXC0} - #{dataElemenB.HllvX50cXC0.HllvX50cXC0} / #{dataElemenA.*.HllvX50cXC0}") );
         assertEquals( "Program A name Data element C name*Program B name Data element D name", desc("D{programUidA.dataElemenC}*D{programUidB.dataElemenD}") );
         assertEquals( "Program A name AttributeA / Program B name AttributeB", desc("A{programUidA.trakEntAttA} / A{programUidB.trakEntAttB}") );
@@ -1480,17 +1515,12 @@ public class ParsingServiceTest
     {
         assertNull( error( "( 1" ) );
         assertNull( error( "( 1 +" ) );
-//        assertNull( error( "1) + 2" ) ); //TODO: Why isn't this a bad expression?
+        assertNull( error( "1) + 2" ) );
         assertNull( error( "abc" ) );
         assertNull( error( "\"abc\"" ) );
         assertNull( error( "if(0, 1, 0)" ) );
         assertNull( error( "1 && true" ) );
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
-        assertNull( error( "#{dataElemenA}.period(-5,-2)" ) );
-        assertNull( error( "#{dataElemenA}.period(-5,-2).averageSumOrgUnit()" ) );
-        assertNull( error( "#{dataElemenA}.period(-5,-2).lastAverageOrgUnit()" ) );
-        assertNull( error( "#{dataElemenA}.period(-5,-2).noAggregation()" ) );
-        assertNull( error( "#{dataElemenA}.period(-5,-2).period(2,4).sum()" ) );
     }
 }

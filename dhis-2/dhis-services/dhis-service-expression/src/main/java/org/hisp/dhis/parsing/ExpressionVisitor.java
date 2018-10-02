@@ -109,11 +109,24 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     // -------------------------------------------------------------------------
 
     @Override
+    public final Object visitExpression( ExpressionContext ctx )
+    {
+        return visit( ctx.expr() );
+    }
+
+    @Override
     public final Object visitExpr( ExprContext ctx )
     {
         if ( ctx.fun != null ) // Invoke a function
         {
-            return function( ctx );
+            try
+            {
+                return function( ctx );
+            }
+            catch ( LowLevelParsingException ex )
+            {
+                throw new ParsingException( ex.getMessage() + " while evaluating '" + ctx.fun.getText() + "'" );
+            }
         }
         else if ( ctx.expr( 0 ) != null ) // Pass through the expression
         {
@@ -389,13 +402,13 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
                 return vals.length == 0 ? null : (double) Math.round( 100.0 * rankHigh( vals, ctx ) / vals.length );
 
             case AVERAGE_SUM_ORG_UNIT:
-                return visitAggType( AggregationType.AVERAGE_SUM_ORG_UNIT, ctx );
+                return assertSingleValue( visitAggType( AggregationType.AVERAGE_SUM_ORG_UNIT, ctx ) );
 
             case LAST_AVERAGE_ORG_UNIT:
-                return visitAggType( AggregationType.LAST_AVERAGE_ORG_UNIT, ctx );
+                return assertSingleValue( visitAggType( AggregationType.LAST_AVERAGE_ORG_UNIT, ctx ) );
 
             case NO_AGGREGATION:
-                return visitAggType( AggregationType.NONE, ctx );
+                return assertSingleValue( visitAggType( AggregationType.NONE, ctx ) );
 
             // -----------------------------------------------------------------
             // Aggregation scope functions
@@ -423,7 +436,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
                 return ouDataSet( ctx );
 
             default: // (Shouldn't happen, mismatch between expression grammer and here.)
-                throw new ParsingException( "fun=" + ctx.fun.getType() + " not recognized." );
+                throw new LowLevelParsingException( "Fun=" + ctx.fun.getType() + " not recognized." );
         }
     }
 
@@ -663,7 +676,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
             if ( group == null )
             {
-                throw new ParsingException( "Can't find organisation unit group '" + groupName + "'" );
+                throw new LowLevelParsingException( "Can't find organisation unit group '" + groupName + "'" );
             }
 
             orgUnitsInGroups.addAll( group.getMembers() );
@@ -690,7 +703,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
             if ( dataSet == null )
             {
-                throw new ParsingException( "Can't find data set '" + dataSetName + "'" );
+                throw new LowLevelParsingException( "Can't find data set '" + dataSetName + "'" );
             }
 
             orgUnitsInDataSets.addAll( dataSet.getSources() );
@@ -803,28 +816,36 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     // -------------------------------------------------------------------------
 
     /**
-     * Applies an aggregation function, or returns null if there are no inputs.
+     * Returns either a single values with the specified aggregation type
+     * applied, or an aggregation function applied to multiple values
+     * (with the specified aggregation type applied.) Returns null if no
+     * values were found.
      *
-     * @param func the function to apply.
+     * @param func the function to apply (if multiple values).
      * @param aggType the aggregation type, if any, to set for values below.
      * @param ctx the parsing context.
      * @return the function value, or null if no inputs.
      */
     private Object aggregate( Function<double[], Double> func, AggregationType aggType, ExprContext ctx )
     {
-        double[] doubles = getDoubles( aggType, ctx );
+        Object object = getDoublesOrDouble( aggType, ctx );
 
-        if ( doubles.length == 0 )
+        if ( object instanceof double[])
         {
-            return null;
+            if ( ((double[]) object).length == 0 )
+            {
+                return null;
+            }
+
+            return func.apply( (double[]) object );
         }
 
-        return func.apply( doubles );
+        return object;
     }
 
     /**
-     * Applies an aggreegation function that takes a second argument, or returns null
-     * if there are no inputs or no second argument.
+     * Applies an aggreegation function that takes a second argument,
+     * or returns null if there are no inputs or no second argument.
      *
      * @param func the function to apply.
      * @param arg2 the second argument to the aggregation function.
@@ -922,7 +943,14 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
      */
     private Object firstOrLast( AggregationType aggType, ExprContext ctx, boolean isFirst )
     {
-        MultiValues multiValues = castMultiPeriodvalues( visitAggType( aggType, ctx ) );
+        Object object = visitAggType( aggType, ctx );
+
+        if ( object instanceof Double && aggType != null ) // Just set default agg type.
+        {
+            return object;
+        }
+
+        MultiValues multiValues = castMultiPeriodValues( object );
 
         if ( ctx.a0_1().expr() == null )
         {
@@ -944,11 +972,36 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
      */
     private double[] getDoubles( AggregationType aggType, ExprContext ctx )
     {
-        return ArrayUtils.toPrimitive( castMultiValues( visitAggType( aggType, ctx ) )
-            .getValues().stream()
-            .filter( o -> o != null )
-            .map( o -> castDouble( o ) ).collect( Collectors.toList() )
-            .toArray( new Double[0] ) );
+        Object object = getDoublesOrDouble( aggType, ctx );
+
+        if ( object instanceof double[] )
+        {
+            return (double[]) object;
+        }
+
+        throw new LowLevelParsingException( "Multiple values expected" );
+    }
+
+    /**
+     * Returns either array of double values, or a single double value for
+     * aggregate function processing.
+     *
+     * @param ctx the parsing context.
+     * @return the array of double values or a single double value.
+     */
+    private Object getDoublesOrDouble( AggregationType aggType, ExprContext ctx )
+    {
+        Object object = visitAggType( aggType, ctx );
+
+        if ( object instanceof MultiValues )
+        {
+            return ArrayUtils.toPrimitive( ( (MultiValues) object)
+                .getValues().stream()
+                .map( o -> castDouble( o ) ).collect( Collectors.toList() )
+                .toArray( new Double[0] ) );
+        }
+
+        return castDouble( object );
     }
 
     /**
@@ -1043,6 +1096,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
     /**
      * Casts object as Integer, or throws an exception if we can't.
+     *
      * @param object
      * @return
      */
@@ -1058,7 +1112,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
             if ( (double) d != i )
             {
-                throw new ParsingException( "integer expected at: '" + object.toString() + "'" );
+                throw new LowLevelParsingException( "Integer expected" );
             }
         }
 
@@ -1078,7 +1132,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
         if ( i == null )
         {
-            throw new ParsingException( "integer value missing" );
+            throw new LowLevelParsingException( "Integer value missing" );
         }
 
         return i;
@@ -1107,7 +1161,7 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     }
 
     /**
-     * Casts object as Double, or throw exception if we can't.
+     * Casts object as Double, or throws exception.
      * <p/>
      * If the object is null, return null.
      *
@@ -1116,110 +1170,114 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
      */
     protected Double castDouble( Object object )
     {
-        if ( object == null )
-        {
-            return null;
-        }
-
-        if ( object instanceof MultiValues )
-        {
-            throw new ParsingException( "Multiple values must be aggregated." );
-        }
-
-        try
-        {
-            if ( object instanceof String )
-            {
-                return Double.valueOf( (String) object );
-            }
-
-            return (Double) object;
-        }
-        catch ( Exception ex )
-        {
-            throw new ParsingException( "number expected at: '" + object.toString() + "', found " + object.getClass().getName() );
-        }
+        return (Double) cast( Double.class, object );
     }
 
     /**
-     * Casts object as Boolean, or throw exception if we can't.
+     * Casts object as Boolean, or throws exception.
      *
      * @param object the value to cast as a Boolean.
      * @return Boolean value.
      */
     protected Boolean castBoolean( Object object )
     {
-        if ( object == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            return (Boolean) object;
-        }
-        catch ( Exception ex )
-        {
-            throw new ParsingException( "boolean expected at: '" + object.toString() + "'" );
-        }
+        return (Boolean) cast( Boolean.class, object );
     }
 
     /**
-     * Casts object as String, or throw exception if we can't.
+     * Casts object as String, or throws exception.
      *
      * @param object the value to cast as a String.
      * @return String value.
      */
     protected String castString( Object object )
     {
-        if ( object == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            return (String) object;
-        }
-        catch ( Exception ex )
-        {
-            throw new ParsingException( "string expected at: '" + object.toString() + "'" );
-        }
+        return (String) cast( String.class, object );
     }
 
     /**
-     * Casts object as Multivalues, or throws exception if we can't.
+     * Casts object as Multivalues, or throws exception.
      *
      * @param object the value to cast as a Multivalues.
      * @return Multivalues object.
      */
     protected MultiValues castMultiValues( Object object )
     {
-        if ( ! ( object instanceof MultiValues ) )
-        {
-            throw new ParsingException( "multiple values expected at: '" +
-                ( object == null ? "" : object.toString() ) + "'" );
-        }
-
-        return (MultiValues) object;
+        return (MultiValues) cast( MultiValues.class, object );
     }
 
     /**
-     * Casts object as MultiValues with periods, or throws exception if we can't.
+     * Casts object as MultiValues with periods, or throws exception.
      *
      * @param object the value to cast as a MultiValues.
      * @return MultiValues object with periods.
      */
-    protected MultiValues castMultiPeriodvalues( Object object )
+    protected MultiValues castMultiPeriodValues( Object object )
     {
         MultiValues multiValues = castMultiValues( object );
 
         if ( ! multiValues.hasPeriods() )
         {
-            throw new ParsingException( "multiple period values expected at: '" +
-                ( object == null ? "" : object.toString() ) + "'" );
+            throw new LowLevelParsingException( "Multiple period values expected" );
         }
         return multiValues;
+    }
+
+    /**
+     * Checks to see whether object can be cast to the class specified,
+     * or throws exception if it can't.
+     *
+     * @param clazz the class: Double, Boolean, String, or MultiValues.
+     * @param object the value to cast
+     * @return object (if it can be cast to that class.)
+     */
+    protected Object cast( Class clazz, Object object )
+    {
+        if ( object instanceof Double && clazz != Double.class )
+        {
+            throw new LowLevelParsingException( "Found number when expecting " + clazz.getSimpleName() );
+        }
+
+        if ( object instanceof String && clazz != String.class )
+        {
+            throw new LowLevelParsingException( "Found string when expecting " + clazz.getSimpleName() );
+        }
+
+        if ( object instanceof Boolean && clazz != Boolean.class )
+        {
+            throw new LowLevelParsingException( "Found boolean value when expecting " + clazz.getSimpleName() );
+        }
+
+        if ( object instanceof MultiValues && clazz != MultiValues.class )
+        {
+            throw new LowLevelParsingException( "Found multiple values when expecting " + clazz.getSimpleName() );
+        }
+
+        try
+        {
+            return clazz.cast( object );
+        }
+        catch ( Exception e )
+        {
+            throw new LowLevelParsingException( "Could not cast value to " + clazz.getSimpleName() );
+        }
+    }
+
+    /**
+     * Asserts that the object is not an instance of MultiValues, throws
+     * exception if it is.
+     *
+     * @param object the object to test
+     * @return the object (if a single value.)
+     */
+    protected Object assertSingleValue( Object object )
+    {
+        if ( object instanceof MultiValues )
+        {
+            throw new LowLevelParsingException( "Function does not apply to multiple values" );
+        }
+
+        return object;
     }
 
     /**
@@ -1255,9 +1313,13 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
         {
             compare = ( (Boolean) o1).compareTo( castBoolean( o2 ) );
         }
+        else if ( o1 instanceof MultiValues || o2 instanceof MultiValues )
+        {
+            throw new LowLevelParsingException( "Must aggregate values before comparing them" );
+        }
         else // (Shouldn't happen)
         {
-            throw new ParsingException( "magnitude of " + o1.getClass().getSimpleName() + " '" + o1.toString() +
+            throw new LowLevelParsingException( "Magnitude of " + o1.getClass().getSimpleName() + " '" + o1.toString() +
                 "' cannot be compared to: " + o2.getClass().getSimpleName() + " '" + o1.toString() + "'" );
         }
 

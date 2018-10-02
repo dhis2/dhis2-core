@@ -6,6 +6,10 @@ grammar Expression;
 // Parser rules
 // -----------------------------------------------------------------------------
 
+expression
+    :   expr EOF
+    ;
+
 expr
     :   '(' expr ')'
 

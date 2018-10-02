@@ -99,9 +99,16 @@ public class DefaultParsingService
 
             if ( parseTree != null )
             {
-                expressionItemsVisitor.getExpressionItems( parseTree, orgUnits, periods,
-                    constantMap, orgUnitCountMap, items,
-                    organisationUnitService, manager, dimensionService );
+                try
+                {
+                    expressionItemsVisitor.getExpressionItems( parseTree, orgUnits, periods,
+                        constantMap, orgUnitCountMap, items,
+                        organisationUnitService, manager, dimensionService );
+                }
+                catch ( ParsingException ex )
+                {
+                    log.warn( ex.getMessage() + " getting value of expression '" + expression.getExpression() + "'" );
+                }
             }
         }
 
@@ -122,8 +129,17 @@ public class DefaultParsingService
             return null;
         }
 
-        return expressionValueVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
-            constantMap, orgUnitCountMap, days, organisationUnitService, manager );
+        try
+        {
+            return expressionValueVisitor.getExpressionValue( parseTree, orgUnit, period, valueMap,
+                constantMap, orgUnitCountMap, days, organisationUnitService, manager );
+        }
+        catch ( ParsingException ex )
+        {
+            log.warn( ex.getMessage() + " finding items in expression '" + expression.getExpression() + "'" );
+
+            return null;
+        }
     }
 
     @Override
@@ -132,6 +148,11 @@ public class DefaultParsingService
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expr, false );
+
+        if ( parseTree == null )
+        {
+            return null;
+        }
 
         return expressionItemsVisitor.getExpressionDescription( parseTree, expr,
             constantService.getConstantMap(), organisationUnitService, manager, dimensionService,
@@ -159,7 +180,7 @@ public class DefaultParsingService
         }
         catch ( ParsingException ex )
         {
-            String message = "Parsing error '" + ex.getMessage() + "' in expression '" + expr + "'";
+            String message = ex.getMessage() + " parsing expression '" + expr + "'";
 
             if ( logWarnings )
             {
@@ -198,6 +219,6 @@ public class DefaultParsingService
         parser.removeErrorListeners(); // Remove the default parser error listener (prints to console).
         parser.addErrorListener( errorListener ); // Add custom error listener to throw any errors.
 
-        return parser.expr(); // Parse the expression and return the parse tree.
+        return parser.expression(); // Parse the expression and return the parse tree.
     }
 }

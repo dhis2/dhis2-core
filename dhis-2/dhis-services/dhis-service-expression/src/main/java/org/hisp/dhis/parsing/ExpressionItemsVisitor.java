@@ -181,7 +181,7 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
 
         if ( count == null )
         {
-            throw new ParsingException( "Can't find count for organisation unit group " + orgUnitGroupId );
+            throw new LowLevelParsingException( "Can't find count for organisation unit group " + orgUnitGroupId );
         }
 
         if ( itemDescriptions != null )
@@ -190,7 +190,7 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
 
             if ( orgUnitGroup == null )
             {
-                throw new ParsingException( "Can't find organisation unit group " + orgUnitGroupId );
+                throw new LowLevelParsingException( "Can't find organisation unit group " + orgUnitGroupId );
             }
 
             itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
@@ -271,12 +271,12 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
 
         if ( item == null )
         {
-            throw new ParsingException( "Can't find " + type.name() + " matching '" + itemId + "'" );
+            throw new LowLevelParsingException( "Can't find " + type.name() + " matching '" + itemId + "'" );
         }
 
         if ( item.getDimensionItemType() != type )
         {
-            throw new ParsingException( "Expected " + type.name() + " but found " + item.getDimensionItemType().name() + " " + itemId );
+            throw new LowLevelParsingException( "Expected " + type.name() + " but found " + item.getDimensionItemType().name() + " " + itemId );
         }
 
         AggregationType aggregationType = currentAggregationType != null

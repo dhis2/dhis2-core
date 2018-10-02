@@ -127,7 +127,7 @@ public class ExpressionValueVisitor extends ExpressionVisitor
 
         if ( count == null )
         {
-            throw new ParsingException( "Can't find count for organisation unit " + ctx.orgUnitCountId().getText() );
+            throw new LowLevelParsingException( "Can't find count for organisation unit " + ctx.orgUnitCountId().getText() );
         }
 
         return count.doubleValue();
