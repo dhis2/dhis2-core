@@ -162,7 +162,7 @@ public class JdbcEventAnalyticsManager
         String clusterField = params.getCoordinateField();
         String quotedClusterField = quoteAlias( clusterField );
         
-        List<String> columns = Lists.newArrayList( "count(psi) as getCount",
+        List<String> columns = Lists.newArrayList( "count(psi) as count",
             "ST_AsText(ST_Centroid(ST_Collect(" + quotedClusterField + "))) as center", "ST_Extent(" + quotedClusterField + ") as extent" );
 
         columns.add( params.isIncludeClusterPoints() ?
