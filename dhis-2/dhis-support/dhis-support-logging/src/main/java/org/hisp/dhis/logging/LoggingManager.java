@@ -48,10 +48,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class LoggingManager implements ApplicationEventPublisherAware, InitializingBean
 {
+    public final static ObjectMapper objectMapper = new ObjectMapper();
     private static final long serialVersionUID = 1L;
     private static LoggingManager instance;
     private static LoggingConfig loggingConfig;
-    private static ObjectMapper objectMapper = new ObjectMapper();
 
     static
     {

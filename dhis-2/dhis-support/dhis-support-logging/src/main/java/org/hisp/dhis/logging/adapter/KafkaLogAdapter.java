@@ -28,18 +28,40 @@ package org.hisp.dhis.logging.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
 import org.hisp.dhis.logging.LogEvent;
 import org.hisp.dhis.logging.LoggingConfig;
+import org.hisp.dhis.logging.LoggingManager;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class KafkaLogAdapter implements LogAdapter
+public class KafkaLogAdapter implements LogAdapter, InitializingBean
 {
+    private final KafkaManager kafkaManager;
+    private ProducerFactory<String, Log> pfLog;
+    private KafkaTemplate<String, Log> ktLog;
+
+    public KafkaLogAdapter( KafkaManager kafkaManager )
+    {
+        this.kafkaManager = kafkaManager;
+    }
+
+    @Override
+    public void log( Log log )
+    {
+        ktLog.send( "log", log );
+    }
+
     @Override
     public boolean isEnabled( LogEvent event )
     {
@@ -50,12 +72,22 @@ public class KafkaLogAdapter implements LogAdapter
 
         LoggingConfig config = event.getConfig();
 
-        return config.isKafkaEnabled() &&
+        return kafkaManager.isEnabled() && config.isKafkaEnabled() &&
             config.getKafkaLevel().isEnabled( event.getLog().getLogLevel() );
     }
 
     @Override
-    public void log( Log log )
+    public void afterPropertiesSet() throws Exception
     {
+        if ( !kafkaManager.isEnabled() )
+        {
+            return;
+        }
+
+        this.pfLog = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>(
+            LoggingManager.objectMapper
+        ) );
+
+        this.ktLog = kafkaManager.getTemplate( this.pfLog );
     }
 }
