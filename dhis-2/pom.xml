@@ -133,7 +133,7 @@
                 </property>
               </systemProperties>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} -Xmx1024m</argLine>
+              <argLine>-Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
           </plugin>
