@@ -313,7 +313,7 @@ public class JdbcEventAnalyticsManager
         }
         else // Periods
         {
-            String alias = params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+            String alias = getPeriodAlias( params );
             
             sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
@@ -537,7 +537,7 @@ public class JdbcEventAnalyticsManager
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String valueItem = quote( params.getValue().getDimensionItem() );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        String alias = params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+        String alias = getPeriodAlias( params );
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         
         String sql = "(select ";
