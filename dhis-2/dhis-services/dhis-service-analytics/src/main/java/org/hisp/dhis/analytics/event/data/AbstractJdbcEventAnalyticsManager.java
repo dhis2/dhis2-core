@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 
 import java.util.Date;
 import java.util.List;
@@ -135,9 +136,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 continue;
             }
             
-            if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
+            if ( !params.hasNonDefaultBoundaries() || dimension.getDimensionType() != DimensionType.PERIOD )
             {
-                columns.add( quote( ANALYTICS_TBL_ALIAS, dimension.getDimensionName() ) );
+                String alias = getAlias( params, dimension.getDimensionType() );
+                
+                columns.add( quote( alias, dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -461,6 +464,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
         
         return item.getSqlFilter( filter, encodedFilter );
+    }
+    
+    /**
+     * Returns the analytics table alias for the program dimension.
+     * 
+     * @param params the event query parameters.
+     */
+    protected String getPeriodAlias( EventQueryParams params )
+    {
+        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+    }
+
+    /**
+     * Returns the analytics table alias.
+     * 
+     * @param params the event query parameters.
+     * @param 
+     */
+    protected String getAlias( EventQueryParams params, DimensionType dimensionType )
+    {
+        return params.hasTimeField() && DimensionType.PERIOD == dimensionType ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
     }
     
     /**
