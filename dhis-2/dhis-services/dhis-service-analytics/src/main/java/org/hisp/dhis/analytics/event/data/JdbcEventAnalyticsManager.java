@@ -455,7 +455,7 @@ public class JdbcEventAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() && !params.hasTimeField() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
