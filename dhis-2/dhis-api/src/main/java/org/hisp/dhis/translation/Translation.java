@@ -50,6 +50,17 @@ public class Translation implements Serializable
 
     private String value;
 
+    public Translation()
+    {
+    }
+
+    public Translation( String locale, TranslationProperty property, String value )
+    {
+        this.locale = locale;
+        this.property = property;
+        this.value = value;
+    }
+
     @Override
     public int hashCode()
     {

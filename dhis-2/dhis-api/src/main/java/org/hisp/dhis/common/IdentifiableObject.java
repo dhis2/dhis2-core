@@ -31,7 +31,7 @@ package org.hisp.dhis.common;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -67,7 +67,7 @@ public interface IdentifiableObject
 
     Set<AttributeValue> getAttributeValues();
 
-    Set<ObjectTranslation> getTranslations();
+    Set<Translation> getTranslations();
     
     Set<String> getFavorites();
 

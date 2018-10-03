@@ -43,7 +43,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -103,7 +103,7 @@ public class BaseIdentifiableObject
     /**
      * Set of available object translation, normally filtered by locale.
      */
-    protected Set<ObjectTranslation> translations = new HashSet<>();
+    protected Set<Translation> translations = new HashSet<>();
 
     /**
      * Cache for object translations, where the cache key is a combination of
@@ -346,15 +346,15 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ObjectTranslation> getTranslations()
+    public Set<Translation> getTranslations()
     {
-        return translations;
+        return translations != null ? translations : new HashSet<>();
     }
 
     /**
      * Clears out cache when setting translations.
      */
-    public void setTranslations( Set<ObjectTranslation> translations )
+    public void setTranslations( Set<Translation> translations )
     {
         this.translationCache.clear();
         this.translations = translations;
@@ -381,7 +381,7 @@ public class BaseIdentifiableObject
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = ObjectTranslation.getCacheKey( locale.toString(), property );
+        String cacheKey = Translation.getCacheKey( locale.toString(), property );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
@@ -391,13 +391,13 @@ public class BaseIdentifiableObject
      */
     private void loadTranslationsCacheIfEmpty()
     {
-        if ( translationCache.isEmpty() )
+        if ( translationCache.isEmpty() && translations != null )
         {
-            for ( ObjectTranslation translation : translations )
+            for ( Translation translation : translations )
             {
                 if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );
+                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }

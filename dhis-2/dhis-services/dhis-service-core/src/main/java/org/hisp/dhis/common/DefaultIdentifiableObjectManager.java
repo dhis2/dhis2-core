@@ -46,7 +46,7 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -166,7 +166,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations )
+    public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
     {
         Session session = sessionFactory.getCurrentSession();
         persistedObject.getTranslations().clear();
@@ -176,12 +176,11 @@ public class DefaultIdentifiableObjectManager
         {
             if ( StringUtils.isNotEmpty( translation.getValue() ) )
             {
-                session.save( translation );
                 persistedObject.getTranslations().add( translation );
             }
         } );
 
-        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        BaseIdentifiableObject translatedObject = ( BaseIdentifiableObject ) persistedObject;
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
