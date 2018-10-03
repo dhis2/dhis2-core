@@ -350,7 +350,7 @@ public class HibernateGenericStore<T>
         }
         else
         {
-            query.select(  parameters.isUseDistinct() ?  builder.countDistinct( root ) :  builder.count( root )  );
+            query.select(  parameters.isUseDistinct() ?  builder.countDistinct( root ) :  builder.count( root ) );
         }
 
         if ( !predicateProviders.isEmpty() )
