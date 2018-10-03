@@ -66,6 +66,7 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public boolean isEnabled()
     {
+        KafkaConfig kafkaConfig = getKafkaConfig();
         return kafkaConfig != null && kafkaConfig.isValid();
     }
 

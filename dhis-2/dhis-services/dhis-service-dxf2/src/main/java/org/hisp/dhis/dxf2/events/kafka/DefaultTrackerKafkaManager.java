@@ -116,6 +116,8 @@ public class DefaultTrackerKafkaManager
     @Override
     public void afterPropertiesSet() throws Exception
     {
+        System.err.println( "KAFKA: " + kafkaManager.isEnabled() );
+
         if ( !kafkaManager.isEnabled() )
         {
             return;

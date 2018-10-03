@@ -169,12 +169,12 @@ public class DefaultSystemService
         }
 
         info.setLogging( new LoggingConfig(
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ) ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ) ),
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ).toUpperCase() ),
+            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ).toUpperCase() ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ) ),
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ).toUpperCase() ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ) )
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() )
         ) );
 
         return info;
