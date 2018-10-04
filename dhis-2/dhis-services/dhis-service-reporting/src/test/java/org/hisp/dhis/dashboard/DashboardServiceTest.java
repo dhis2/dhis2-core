@@ -211,4 +211,24 @@ public class DashboardServiceTest
 
         eventChartService.deleteEventChart( eventChart );
     }
+
+    @Test
+    public void testSearchDashboard()
+    {
+        dashboardService.saveDashboard( dA );
+        dashboardService.saveDashboard( dB );
+
+        DashboardSearchResult result = dashboardService.search( "C" );
+        assertEquals(2, result.getChartCount() );
+        assertEquals(1, result.getResourceCount() );
+
+        result = dashboardService.search( "A" );
+        assertEquals(2, result.getChartCount() );
+        assertEquals(1, result.getResourceCount() );
+
+        result = dashboardService.search( "Z" );
+        assertEquals(0, result.getChartCount() );
+        assertEquals(0, result.getResourceCount() );
+
+    }
 }
