@@ -18,6 +18,8 @@
     <property name="name" column="name" not-null="true" length="230"
       unique-key="key_sectionnamedataset" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <property name="description" type="text" />
 
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
@@ -58,14 +60,6 @@
       <cache usage="read-write" />
       <key column="sectionid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-
-    <set name="translations" table="datasetsectiontranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="sectionid" foreign-key="fk_objecttranslation_sectionid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>
