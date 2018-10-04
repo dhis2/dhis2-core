@@ -49,6 +49,7 @@ import java.lang.reflect.Method;
 @RunWith( SpringRunner.class )
 @ContextConfiguration( classes = UnitTestConfiguration.class )
 @Transactional
+@ActiveProfiles( "test" )
 public abstract class DhisSpringTest
     extends DhisConvenienceTest
 {
