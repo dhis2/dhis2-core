@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.metadata;
 
-    /*
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -208,6 +208,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         }
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
+        params.setSkipTranslation( getBooleanWithDefault( parameters, "skipTranslation", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
         params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );

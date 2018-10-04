@@ -40,6 +40,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
@@ -111,6 +113,7 @@ public enum SettingKey
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
+    LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
     HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
     SYSTEM_NOTIFICATIONS_EMAIL( "keySystemNotificationsEmail" ),
@@ -156,7 +159,9 @@ public enum SettingKey
     DATA_VALUES_SYNC_PAGE_SIZE( "syncDataValuesPageSize", 10000, Integer.class ),
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
-    DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class );
+    DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),
+    KEY_SCHED_TASKS("keySchedTasks"),
+    LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class );
 
     private final String name;
 
@@ -260,6 +265,13 @@ public enum SettingKey
             else if ( FileResourceRetentionStrategy.class.isAssignableFrom( settingClazz ) )
             {
                 return FileResourceRetentionStrategy.valueOf( value );
+            }
+            else if( Date.class.isAssignableFrom( settingClazz ) )
+            {
+                //Accepts String with date in ISO_LOCAL_DATE_TIME format
+                LocalDateTime dateTime = LocalDateTime.parse( value );
+
+                return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );
             }
 
             //TODO handle Dates

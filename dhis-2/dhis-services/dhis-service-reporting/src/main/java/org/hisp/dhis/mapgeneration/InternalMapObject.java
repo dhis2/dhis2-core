@@ -154,10 +154,9 @@ public class InternalMapObject
         // The json root that is parsed from the coordinate string
         JsonNode root = null;
 
-        try
+        // Create a parser for the json and parse it into root
+        try ( JsonParser parser = new ObjectMapper().getFactory().createParser( coords ) )
         {
-            // Create a parser for the json and parse it into root
-            JsonParser parser = new ObjectMapper().getFactory().createParser( coords );
             root = parser.readValueAsTree();
         }
         catch ( IOException ex )

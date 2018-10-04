@@ -31,20 +31,16 @@ package org.hisp.dhis.datavalue.hibernate;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -53,20 +49,25 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-public class HibernateDataValueStore
+public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore
 {
     private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
@@ -74,13 +75,6 @@ public class HibernateDataValueStore
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
 
     private PeriodStore periodStore;
 
@@ -112,7 +106,7 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        sessionFactory.getCurrentSession().save( dataValue );
+        getSession().save( dataValue );
     }
 
     @Override
@@ -120,7 +114,7 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        sessionFactory.getCurrentSession().update( dataValue );
+        getSession().update( dataValue );
     }
 
     @Override
@@ -128,8 +122,8 @@ public class HibernateDataValueStore
     {
         String hql = "delete from DataValue d where d.source = :source";
 
-        sessionFactory.getCurrentSession().createQuery( hql ).
-            setEntity( "source", organisationUnit ).executeUpdate();
+        getSession().createQuery( hql ).
+            setParameter( "source", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -137,16 +131,14 @@ public class HibernateDataValueStore
     {
         String hql = "delete from DataValue d where d.dataElement = :dataElement";
 
-        sessionFactory.getCurrentSession().createQuery( hql )
-            .setEntity( "dataElement", dataElement ).executeUpdate();
+        getSession().createQuery( hql )
+            .setParameter( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
-        Session session = sessionFactory.getCurrentSession();
-
         Period storedPeriod = periodStore.reloadPeriod( period );
 
         if ( storedPeriod == null )
@@ -154,21 +146,20 @@ public class HibernateDataValueStore
             return null;
         }
 
-        return (DataValue) session.createCriteria( DataValue.class )
-            .add( Restrictions.eq( "dataElement", dataElement ) )
-            .add( Restrictions.eq( "period", storedPeriod ) )
-            .add( Restrictions.eq( "source", source ) )
-            .add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) )
-            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
-            .add( Restrictions.eq( "deleted", false ) )
-            .uniqueResult();
+        String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period and dv.deleted = false  " +
+            "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
+
+        return getSingleResult( getQuery( hql )
+            .setParameter( "dataElement", dataElement )
+            .setParameter( "period", storedPeriod )
+            .setParameter( "source", source )
+            .setParameter( "attributeOptionCombo", attributeOptionCombo )
+            .setParameter( "categoryOptionCombo", categoryOptionCombo ) );
     }
 
     @Override
     public DataValue getSoftDeletedDataValue( DataValue dataValue )
     {
-        Session session = sessionFactory.getCurrentSession();
-
         Period storedPeriod = periodStore.reloadPeriod( dataValue.getPeriod() );
 
         if ( storedPeriod == null )
@@ -176,14 +167,11 @@ public class HibernateDataValueStore
             return null;
         }
 
-        return (DataValue) session.createCriteria( DataValue.class )
-            .add( Restrictions.eq( "dataElement", dataValue.getDataElement() ) )
-            .add( Restrictions.eq( "period", storedPeriod ) )
-            .add( Restrictions.eq( "source", dataValue.getSource() ) )
-            .add( Restrictions.eq( "categoryOptionCombo", dataValue.getCategoryOptionCombo() ) )
-            .add( Restrictions.eq( "attributeOptionCombo", dataValue.getAttributeOptionCombo() ) )
-            .add( Restrictions.eq( "deleted", true ) )
-            .uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root, dataValue ) )
+            .addPredicate( root -> builder.equal( root.get( "deleted" ), true ) ) );
     }
         
     // -------------------------------------------------------------------------
@@ -191,7 +179,6 @@ public class HibernateDataValueStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataValue> getDataValues( DataExportParams params )
     {
         Set<DataElement> dataElements = params.getAllDataElements();
@@ -256,7 +243,7 @@ public class HibernateDataValueStore
         // Query parameters
         // ---------------------------------------------------------------------
 
-        Query query = sessionFactory.getCurrentSession()
+        Query<DataValue> query = getSession()
             .createQuery( hql )
             .setParameterList( "dataElements", getIdentifiers( dataElements ) );
 
@@ -270,7 +257,7 @@ public class HibernateDataValueStore
         }
         else if ( params.hasStartEndDate() )
         {
-            query.setDate( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
+            query.setParameter( "startDate", params.getStartDate() ).setParameter( "endDate", params.getEndDate() );
         }
 
         if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
@@ -285,7 +272,7 @@ public class HibernateDataValueStore
         
         if ( params.hasLastUpdated() )
         {
-            query.setDate( "lastUpdated", params.getLastUpdated() );
+            query.setParameter( "lastUpdated", params.getLastUpdated() );
         }
         
         if ( params.hasLimit() )
@@ -299,17 +286,15 @@ public class HibernateDataValueStore
     }
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataValue> getAllDataValues()
     {
-        return sessionFactory.getCurrentSession()
-            .createCriteria( DataValue.class )
-            .add( Restrictions.eq( "deleted", false ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
@@ -320,15 +305,33 @@ public class HibernateDataValueStore
             return new ArrayList<>();
         }
 
-        Session session = sessionFactory.getCurrentSession();
+        String hql = "select dv from DataValue dv  where dv.dataElement in (:dataElements) and dv.period =:period and dv.deleted = false ";
 
-        return session.createCriteria( DataValue.class )
-            .add( Restrictions.in( "dataElement", dataElements ) )
-            .add( Restrictions.eq( "period", storedPeriod ) )
-            .add( Restrictions.eq( "source", source ) )
-            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
-            .add( Restrictions.eq( "deleted", false ) )
-            .list();
+        if ( source != null )
+        {
+            hql += " and dv.source =:source ";
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
+        }
+
+        Query query = getQuery( hql )
+            .setParameter( "dataElements", dataElements )
+            .setParameter( "period", storedPeriod );
+
+        if ( source != null )
+        {
+            query.setParameter( "source", source );
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            query.setParameter( "attributeOptionCombo", attributeOptionCombo );
+        }
+
+        return getList( query );
     }
 
     @Override
@@ -486,29 +489,30 @@ public class HibernateDataValueStore
         {
             throw new IllegalArgumentException( "Start date or end date must be specified" );
         }
-        
-        Criteria criteria = sessionFactory.getCurrentSession()
-            .createCriteria( DataValue.class )
-            .setProjection( Projections.rowCount() );
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
 
         if ( !includeDeleted )
         {
-            criteria.add( Restrictions.eq( "deleted", false ) );
+            predicateList.add( root -> builder.equal( root.get( "deleted" ), false ) );
         }
         
         if ( startDate != null )
         {
-            criteria.add( Restrictions.ge( "lastUpdated", startDate ) );
+            predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), startDate ) );
         }
         
         if ( endDate != null )
         {
-            criteria.add( Restrictions.le( "lastUpdated", endDate ) );
+            predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
         }
-        
-        Number rs = (Number) criteria.uniqueResult();
 
-        return rs != null ? rs.intValue() : 0;
+        return getCount( builder, newJpaParameters()
+            .addPredicates( predicateList )
+            .count( root -> builder.countDistinct( root ) ) )
+            .intValue();
     }
 
     // -------------------------------------------------------------------------

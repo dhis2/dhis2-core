@@ -112,8 +112,10 @@ public class UserSettingServiceTest
     {
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.STYLE, "blue", "usernameA" );
-        
-        assertEquals( 2, userSettingService.getUserSettings( userA ).size() );
+        userSettingService.saveUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION, false, "usernameA" );
+        userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, false, "usernameA" );
+
+        assertEquals( 4, userSettingService.getUserSettings( userA ).size() );
     }
 
     @Test

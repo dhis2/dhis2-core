@@ -103,6 +103,12 @@ public class BaseDimensionalItemObject
     {
         return getPropertyValue( idScheme );
     }
+    
+    @Override
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return TotalAggregationType.SUM;
+    }
 
     // -------------------------------------------------------------------------
     // Get and set methods

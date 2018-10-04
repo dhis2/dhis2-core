@@ -30,12 +30,12 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -46,11 +46,13 @@ public class HibernateCategoryOptionStore
     implements CategoryOptionStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<CategoryOption> getCategoryOptions( Category category )
     {
-        return getSharingCriteria().
-            createAlias( "categories", "category" ).
-            add( Restrictions.eq( "category.id", category.getId() ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
+
     }
 }

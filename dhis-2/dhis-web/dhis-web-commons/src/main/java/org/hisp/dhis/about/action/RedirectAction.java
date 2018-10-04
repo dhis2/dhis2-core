@@ -84,13 +84,12 @@ public class RedirectAction
             }
             else
             {
-                redirectUrl = "../" + startModule + "/index.action";
+                redirectUrl = "../" + startModule + "/";
                 return SUCCESS;
             }
         }
 
         redirectUrl = "../dhis-web-dashboard/";
-
         return SUCCESS;
     }
 }

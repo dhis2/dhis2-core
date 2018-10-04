@@ -28,14 +28,13 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -83,21 +82,22 @@ public class HibernateValidationRuleStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationRule> getAllFormValidationRules()
     {
-        Criteria criteria = getSharingCriteria();
-        criteria.add( Restrictions.eq( "skipFormValidation", false ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "skipFormValidation" ), false ) ));
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
-        String hql = "select distinct v from ValidationRule v where v.notificationTemplates is not empty";
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getQuery( hql ).list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isNotEmpty( root.get( "notificationTemplates" ) ) )
+            .setUseDistinct( true ) );
     }
 }

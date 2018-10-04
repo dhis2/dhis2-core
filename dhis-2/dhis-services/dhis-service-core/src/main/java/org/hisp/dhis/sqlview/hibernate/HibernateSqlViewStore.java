@@ -40,6 +40,7 @@ import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.ImmutableMap;
@@ -68,6 +69,13 @@ public class HibernateSqlViewStore
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+    
+    private JdbcTemplate readOnlyJdbcTemplate;
+
+    public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
+    {
+        this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
     }
 
     // -------------------------------------------------------------------------
@@ -113,7 +121,7 @@ public class HibernateSqlViewStore
     @Override
     public void populateSqlViewGrid( Grid grid, String sql )
     {
-        SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
 
         log.info( "Get view SQL: " + sql );
 

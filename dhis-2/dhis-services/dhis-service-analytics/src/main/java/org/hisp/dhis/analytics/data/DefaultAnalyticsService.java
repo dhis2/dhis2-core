@@ -987,7 +987,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams orgUnitTargetParams = DataQueryParams.newBuilder( params )
             .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, null, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
             .withSkipPartitioning( true ).build();
 
         Map<String, Double> orgUnitCountMap = getAggregatedOrganisationUnitTargetMap( orgUnitTargetParams );
@@ -1131,8 +1131,15 @@ public class DefaultAnalyticsService
                 {
                     log.error( DebugUtils.getStackTrace( ex ) );
                     log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-
-                    throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    
+                    if ( ex.getCause() != null && ex.getCause() instanceof RuntimeException )
+                    {
+                        throw (RuntimeException) ex.getCause(); // Throw the real exception instead of execution exception
+                    }
+                    else
+                    {                    
+                        throw new RuntimeException( "Error during execution of aggregation query task", ex );
+                    }
                 }
             }
         }

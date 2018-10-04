@@ -29,17 +29,21 @@ package org.hisp.dhis.validation;
  */
 
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 /**
  * This class keeps track of a validation analysis. It contains information about the initial params of the analysis,
@@ -241,7 +245,10 @@ public class ValidationRunContext
 
             for ( PeriodTypeExtended periodTypeX : context.periodTypeXs )
             {
-                context.periodIdMap.putAll( periodTypeX.getPeriods().stream().collect( Collectors.toMap( Period::getId, p -> p ) ) );
+                for ( Period p : periodTypeX.getPeriods() )
+                {
+                    context.periodIdMap.putIfAbsent( p.getId(), p );
+                }
             }
 
             return this.context;

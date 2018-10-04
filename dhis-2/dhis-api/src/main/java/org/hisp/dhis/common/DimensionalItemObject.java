@@ -85,4 +85,10 @@ public interface DimensionalItemObject
      * Indicates whether this dimension has an aggregation type.
      */
     boolean hasAggregationType();
+    
+    /**
+     * Gets the total aggregation type, meaning how total values
+     * should be aggregated across multiple values.
+     */
+    TotalAggregationType getTotalAggregationType();
 }
