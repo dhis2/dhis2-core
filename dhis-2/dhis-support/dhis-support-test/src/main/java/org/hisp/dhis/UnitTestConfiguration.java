@@ -1,5 +1,3 @@
-package org.hisp.dhis.config;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,8 +26,9 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.TestDhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;

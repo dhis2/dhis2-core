@@ -30,7 +30,6 @@ package org.hisp.dhis;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.config.UnitTestConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.Before;
