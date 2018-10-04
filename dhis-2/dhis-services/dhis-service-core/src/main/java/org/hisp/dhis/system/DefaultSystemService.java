@@ -174,6 +174,7 @@ public class DefaultSystemService
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
             LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ).toUpperCase() ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
+            dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_TOPIC ),
             LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() )
         ) );
 

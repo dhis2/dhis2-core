@@ -95,6 +95,7 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
     LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
+    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
     LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" );
 
     private final String key;

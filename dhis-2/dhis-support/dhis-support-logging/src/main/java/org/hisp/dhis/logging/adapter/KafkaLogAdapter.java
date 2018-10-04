@@ -57,9 +57,9 @@ public class KafkaLogAdapter implements LogAdapter, InitializingBean
     }
 
     @Override
-    public void log( Log log )
+    public void log( Log log, LoggingConfig config )
     {
-        ktLog.send( "log", log );
+        ktLog.send( config.getKafkaTopic(), log );
     }
 
     @Override

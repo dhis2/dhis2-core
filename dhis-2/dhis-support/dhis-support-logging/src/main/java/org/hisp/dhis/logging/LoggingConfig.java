@@ -44,15 +44,18 @@ public class LoggingConfig
     private final boolean consoleEnabled;
     private final LogLevel consoleLevel;
     private final boolean kafkaEnabled;
+    private final String kafkaTopic;
     private final LogLevel kafkaLevel;
 
-    public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel, boolean kafkaEnabled, LogLevel kafkaLevel )
+    public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel,
+        boolean kafkaEnabled, String kafkaTopic, LogLevel kafkaLevel )
     {
         this.level = level;
         this.format = format;
         this.consoleEnabled = consoleEnabled;
         this.consoleLevel = consoleLevel;
         this.kafkaEnabled = kafkaEnabled;
+        this.kafkaTopic = kafkaTopic;
         this.kafkaLevel = kafkaLevel;
     }
 
@@ -99,6 +102,13 @@ public class LoggingConfig
     public boolean isKafkaEnabled()
     {
         return kafkaEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getKafkaTopic()
+    {
+        return kafkaTopic;
     }
 
     @JsonProperty
