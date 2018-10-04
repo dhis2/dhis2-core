@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -53,7 +52,6 @@ import java.lang.reflect.Method;
  */
 @RunWith( SpringRunner.class )
 @ContextConfiguration( classes = { UnitTestConfiguration.class } )
-@ActiveProfiles("test")
 public abstract class DhisTest
     extends DhisConvenienceTest implements ApplicationContextAware
 {

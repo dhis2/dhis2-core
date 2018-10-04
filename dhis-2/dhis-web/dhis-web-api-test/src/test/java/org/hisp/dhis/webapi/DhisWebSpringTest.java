@@ -74,15 +74,12 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RunWith( SpringRunner.class )
-@ContextConfiguration( classes = UnitTestConfiguration.class)
-@ImportResource("classpath*:/META-INF/dhis/servlet.xml")
 @WebAppConfiguration
+@ContextConfiguration(classes = WebTestConfiguration.class)
 @Transactional
-@ActiveProfiles("test")
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
 {
-
     @Autowired
     protected FilterChainProxy filterChainProxy;
 

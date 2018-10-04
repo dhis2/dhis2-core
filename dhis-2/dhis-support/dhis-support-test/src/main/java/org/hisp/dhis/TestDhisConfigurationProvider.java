@@ -54,8 +54,12 @@ public class TestDhisConfigurationProvider
     implements DhisConfigurationProvider
 {
     private static final Log log = LogFactory.getLog( TestDhisConfigurationProvider.class );
-
+    private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
+
+    public TestDhisConfigurationProvider() {
+        this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
+    }
 
     public TestDhisConfigurationProvider( String configurationFileName )
     {
