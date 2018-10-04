@@ -27,8 +27,8 @@
  */
 
 package org.hisp.dhis.webapi;
+import org.hisp.dhis.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.TestDhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
