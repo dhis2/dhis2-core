@@ -54,7 +54,6 @@ import java.lang.reflect.Method;
  */
 @RunWith( SpringRunner.class )
 @ContextConfiguration( classes = { UnitTestConfiguration.class } )
-@ActiveProfiles("test")
 public abstract class DhisTest
     extends DhisConvenienceTest implements ApplicationContextAware
 {
