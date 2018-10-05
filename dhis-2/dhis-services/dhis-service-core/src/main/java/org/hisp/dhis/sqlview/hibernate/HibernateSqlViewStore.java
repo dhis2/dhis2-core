@@ -134,7 +134,7 @@ public class HibernateSqlViewStore
         
         int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
-        log.info( "Get view SQL: " + sql + ", max limit: " + maxLimit );
+        log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
 
         grid.addHeaders( rs );
         grid.addRows( rs, maxLimit );
