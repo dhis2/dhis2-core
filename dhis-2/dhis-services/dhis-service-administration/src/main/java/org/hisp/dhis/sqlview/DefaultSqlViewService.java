@@ -175,7 +175,7 @@ public class DefaultSqlViewService
 
         validateSqlView( sqlView, criteria, variables );
 
-        log.info( String.format( "Retriving data for SQL view: '%s'" + sqlView.getUid() ) );
+        log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
         
         String sql = sqlView.isQuery() ?
             getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
