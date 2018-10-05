@@ -28,6 +28,7 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
@@ -66,6 +67,8 @@ public class MessageConversationParams
     private MessageConversationParams()
     {
     }
+
+    private Set<FileResource> attachments;
 
     private MessageConversationParams( Collection<User> recipients, User sender, String subject, String text,
         MessageType messageType )
@@ -130,6 +133,8 @@ public class MessageConversationParams
     {
         return forceNotification;
     }
+
+    public Set<FileResource> getAttachments() { return attachments; }
 
     public MessageConversation createMessageConversation()
     {
@@ -213,6 +218,12 @@ public class MessageConversationParams
         public Builder withForceNotification( boolean forceNotification )
         {
             this.params.forceNotification = forceNotification;
+            return this;
+        }
+
+        public Builder withAttachments( Set<FileResource> attachments )
+        {
+            this.params.attachments = attachments;
             return this;
         }
 
