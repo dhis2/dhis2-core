@@ -63,6 +63,7 @@
     <property name="sqlViewStore" ref="org.hisp.dhis.sqlview.SqlViewStore" />
     <property name="statementBuilder" ref="statementBuilder" />
     <property name="config" ref="dhisConfigurationProvider" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
   
   <!-- Scheduled tasks -->

@@ -35,6 +35,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -76,6 +78,13 @@ public class HibernateSqlViewStore
     public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
     {
         this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
+    }
+    
+    private SystemSettingManager systemSettingManager;
+    
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
     }
 
     // -------------------------------------------------------------------------
@@ -122,11 +131,13 @@ public class HibernateSqlViewStore
     public void populateSqlViewGrid( Grid grid, String sql )
     {
         SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
+        
+        int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
-        log.info( "Get view SQL: " + sql );
+        log.info( "Get view SQL: " + sql + ", max limit: " + maxLimit );
 
         grid.addHeaders( rs );
-        grid.addRows( rs );
+        grid.addRows( rs, maxLimit );
     }
 
     @Override

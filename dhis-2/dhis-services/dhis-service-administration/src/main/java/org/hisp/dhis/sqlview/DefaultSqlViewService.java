@@ -1,5 +1,9 @@
 package org.hisp.dhis.sqlview;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -43,10 +47,6 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author Dang Duy Hieu
  */
@@ -80,7 +80,7 @@ public class DefaultSqlViewService
     {
         this.config = config;
     }
-
+    
     // -------------------------------------------------------------------------
     // CRUD methods
     // -------------------------------------------------------------------------
