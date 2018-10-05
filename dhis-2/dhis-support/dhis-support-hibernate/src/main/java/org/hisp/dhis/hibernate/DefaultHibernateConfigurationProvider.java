@@ -107,8 +107,6 @@ public class DefaultHibernateConfigurationProvider
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        boolean testing = "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
-
         // ---------------------------------------------------------------------
         // Add mapping resources
         // ---------------------------------------------------------------------
@@ -154,28 +152,25 @@ public class DefaultHibernateConfigurationProvider
         // ---------------------------------------------------------------------
         // Add custom properties from file system
         // ---------------------------------------------------------------------
-        
-        if ( !testing )
-        {
-            try
-            {
-                Properties fileProperties = configurationProvider.getProperties();
-                
-                mapToHibernateProperties( fileProperties );
 
-                if ( configurationProvider.isReadOnlyMode() )
-                {
-                    fileProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
-                    
-                    log.info( "Read-only mode enabled, setting hibernate.hbm2ddl.auto to 'validate'" );
-                }
-                
-                config.addProperties( fileProperties );
-            }
-            catch ( LocationManagerException ex )
+        try
+        {
+            Properties fileProperties = configurationProvider.getProperties();
+
+            mapToHibernateProperties( fileProperties );
+
+            if ( configurationProvider.isReadOnlyMode() )
             {
-                log.info( "Could not read external configuration from file system" );
+                fileProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
+
+                log.info( "Read-only mode enabled, setting hibernate.hbm2ddl.auto to 'validate'" );
             }
+
+            config.addProperties( fileProperties );
+        }
+        catch ( LocationManagerException ex )
+        {
+            log.info( "Could not read external configuration from file system" );
         }
 
         // ---------------------------------------------------------------------
@@ -194,12 +189,6 @@ public class DefaultHibernateConfigurationProvider
         // ---------------------------------------------------------------------
         // Disable second-level cache during testing
         // ---------------------------------------------------------------------
-
-        if ( testing )
-        {
-            config.setProperty( Environment.USE_SECOND_LEVEL_CACHE, "false" );
-            config.setProperty( Environment.USE_QUERY_CACHE, "false" );
-        }
 
         log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
             config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
