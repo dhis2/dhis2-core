@@ -329,7 +329,7 @@ public class DefaultInterpretationService
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
         
-        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" );
+        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta", null );
     }
 
     private String getInterpretationLink( Interpretation interpretation ) {

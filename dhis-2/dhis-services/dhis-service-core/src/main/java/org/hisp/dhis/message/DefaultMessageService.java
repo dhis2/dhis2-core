@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -144,7 +145,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData )
+    public int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments )
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -154,7 +155,8 @@ public class DefaultMessageService
             .withSubject( subject )
             .withText( text )
             .withMessageType( MessageType.PRIVATE )
-            .withMetaData( metaData ).build();
+            .withMetaData( metaData )
+            .withAttachments( attachments ).build();
         
         return sendMessage( params );
     }
@@ -189,8 +191,12 @@ public class DefaultMessageService
     public int sendMessage( MessageConversationParams params )
     {
         MessageConversation conversation = params.createMessageConversation();
+        int id = saveMessageConversation( conversation );
 
-        conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
+        Message message = new Message( params.getText(), params.getMetadata(), params.getSender() );
+
+        message.setAttachments( params.getAttachments() );
+        conversation.addMessage( message );
 
         params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
@@ -205,7 +211,7 @@ public class DefaultMessageService
         invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
             params.getRecipients(), params.isForceNotification() );
 
-        return saveMessageConversation( conversation );
+        return id;
     }
 
     @Override
@@ -232,7 +238,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 

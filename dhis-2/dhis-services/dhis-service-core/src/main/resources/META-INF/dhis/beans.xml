@@ -707,7 +707,8 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="readOnlyJdbcTemplate" ref="readOnlyJdbcTemplate" />
-    <property name="statementBuilder" ref="statementBuilder" />
+    <property name="statementBuilder" ref="statementBuilder" />    
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
 
   <bean id="org.hisp.dhis.eventreport.EventReportStore"
