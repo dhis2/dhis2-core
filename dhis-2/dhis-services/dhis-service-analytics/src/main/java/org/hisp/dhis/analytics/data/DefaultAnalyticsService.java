@@ -480,6 +480,8 @@ public class DefaultAnalyticsService
                 }
             }
         }
+        
+        System.out.println( "done idn" );
     }
 
     /**
