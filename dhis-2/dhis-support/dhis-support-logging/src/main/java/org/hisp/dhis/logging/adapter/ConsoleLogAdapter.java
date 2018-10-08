@@ -69,7 +69,6 @@ public class ConsoleLogAdapter implements LogAdapter
             default:
                 System.err.println( LoggingManager.toJson( log ) );
                 break;
-
         }
     }
 }
