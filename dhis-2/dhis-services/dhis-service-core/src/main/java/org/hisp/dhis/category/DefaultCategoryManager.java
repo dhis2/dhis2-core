@@ -61,12 +61,12 @@ public class DefaultCategoryManager
     // -------------------------------------------------------------------------
 
     @Override
-    public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
+    public boolean addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
         {
             log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
-            return;
+            return false;
         }
 
         List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
@@ -117,6 +117,8 @@ public class DefaultCategoryManager
         {
             categoryService.updateCategoryCombo( categoryCombo );
         }
+
+        return true;
     }
 
     @Override

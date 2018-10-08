@@ -40,8 +40,9 @@ public interface CategoryManager
      * category combo. Removes obsolete category option combos.
      *
      * @param categoryCombo the CategoryCombo.
+     * return true if successful otherwise false.
      */
-    void addAndPruneOptionCombos( CategoryCombo categoryCombo );
+    boolean addAndPruneOptionCombos( CategoryCombo categoryCombo );
 
     /**
      * Generates the complete set of category option combos for all category

@@ -34,7 +34,9 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryManager;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -106,6 +108,9 @@ public class MaintenanceController
 
     @Autowired
     private AppManager appManager;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @RequestMapping( value = "/analyticsTablesClear", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -209,6 +214,27 @@ public class MaintenanceController
     public void updateCategoryOptionCombos()
     {
         categoryManager.addAndPruneAllOptionCombos();
+    }
+
+    @RequestMapping( value = "/categoryOptionComboUpdate/categoryCombo/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    public void updateCategoryOptionCombos( @PathVariable String uid, HttpServletResponse response )
+    {
+        CategoryCombo categoryCombo = categoryService.getCategoryCombo( uid );
+
+        if ( categoryCombo == null )
+        {
+            webMessageService.sendJson( WebMessageUtils.conflict( "CategoryCombo does not exist: " + uid ), response );
+            return;
+        }
+
+        boolean result = categoryManager.addAndPruneOptionCombos( categoryCombo );
+
+        WebMessage message = result ?
+            WebMessageUtils.ok( "Option combos are updated successfuly." ) :
+            WebMessageUtils.conflict( "Option combos could not be updated." );
+
+        webMessageService.sendJson( message, response );
     }
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
