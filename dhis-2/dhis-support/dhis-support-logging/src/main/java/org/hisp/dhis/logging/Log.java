@@ -39,19 +39,19 @@ import java.util.Map;
  */
 public class Log
 {
-    private final long timestamp = Instant.now().toEpochMilli();
+    protected final long timestamp = Instant.now().toEpochMilli();
 
-    private LogLevel logLevel = LogLevel.INFO;
+    protected LogLevel logLevel = LogLevel.INFO;
 
-    private String message;
+    protected String message;
 
-    private Class<?> source;
+    protected Class<?> source;
 
-    private String username;
+    protected String username;
 
-    private Map<String, Object> metadata = new HashMap<>();
+    protected Map<String, Object> metadata = new HashMap<>();
 
-    private LogData data;
+    protected LogData data;
 
     public Log()
     {
