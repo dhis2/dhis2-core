@@ -369,6 +369,7 @@ public abstract class AbstractJdbcTableManager
      * Drops and creates the table partitions for the given analytics table.
      * 
      * @param table the {@link AnalyticsTable}.
+     * @param masterTable the master table which partitions will inherit.
      */
     protected void createTempTablePartitions( AnalyticsTable table, String masterTable )
     {
