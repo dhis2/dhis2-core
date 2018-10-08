@@ -43,20 +43,24 @@ public class LoggingConfig
     private final LogFormat format;
     private final boolean consoleEnabled;
     private final LogLevel consoleLevel;
+    private final LogFormat consoleFormat;
     private final boolean kafkaEnabled;
-    private final String kafkaTopic;
     private final LogLevel kafkaLevel;
+    private final LogFormat kafkaFormat;
+    private final String kafkaTopic;
 
-    public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel,
-        boolean kafkaEnabled, String kafkaTopic, LogLevel kafkaLevel )
+    public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel, LogFormat consoleFormat,
+        boolean kafkaEnabled, LogLevel kafkaLevel, LogFormat kafkaFormat, String kafkaTopic )
     {
         this.level = level;
         this.format = format;
         this.consoleEnabled = consoleEnabled;
         this.consoleLevel = consoleLevel;
+        this.consoleFormat = consoleFormat;
         this.kafkaEnabled = kafkaEnabled;
-        this.kafkaTopic = kafkaTopic;
         this.kafkaLevel = kafkaLevel;
+        this.kafkaFormat = kafkaFormat;
+        this.kafkaTopic = kafkaTopic;
     }
 
     @JsonProperty
@@ -71,16 +75,6 @@ public class LoggingConfig
     public LogFormat getFormat()
     {
         return format;
-    }
-
-    public boolean isTextFormat()
-    {
-        return LogFormat.TEXT == format;
-    }
-
-    public boolean isJsonFormat()
-    {
-        return LogFormat.JSON == format;
     }
 
     @JsonProperty
@@ -99,9 +93,30 @@ public class LoggingConfig
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogFormat getConsoleFormat()
+    {
+        return consoleFormat != null ? consoleFormat : format;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isKafkaEnabled()
     {
         return kafkaEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogLevel getKafkaLevel()
+    {
+        return kafkaLevel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogFormat getKafkaFormat()
+    {
+        return kafkaFormat != null ? kafkaFormat : format;
     }
 
     @JsonProperty
@@ -111,10 +126,13 @@ public class LoggingConfig
         return kafkaTopic;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LogLevel getKafkaLevel()
+    public boolean isTextFormat()
     {
-        return kafkaLevel;
+        return LogFormat.TEXT == format;
+    }
+
+    public boolean isJsonFormat()
+    {
+        return LogFormat.JSON == format;
     }
 }

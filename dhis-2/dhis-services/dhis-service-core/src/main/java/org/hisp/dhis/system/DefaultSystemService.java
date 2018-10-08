@@ -173,9 +173,11 @@ public class DefaultSystemService
             LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ).toUpperCase() ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
             LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ).toUpperCase() ),
+            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_FORMAT ).toUpperCase() ),
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
-            dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_TOPIC ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() )
+            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() ),
+            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_FORMAT ).toUpperCase() ),
+            dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_TOPIC )
         ) );
 
         return info;

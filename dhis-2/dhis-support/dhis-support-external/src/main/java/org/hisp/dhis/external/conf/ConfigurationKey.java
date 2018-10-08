@@ -91,12 +91,14 @@ public enum ConfigurationKey
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
     LOGGING_LEVEL( "logging.level", "INFO" ),
-    LOGGING_FORMAT( "logging.format", "json" ),
+    LOGGING_FORMAT( "logging.format", "TEXT" ),
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
+    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
     LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" );
+    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
+    LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
+    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" );
 
     private final String key;
 
