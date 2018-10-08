@@ -32,6 +32,7 @@ import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
 import org.hisp.dhis.logging.LogEvent;
 import org.hisp.dhis.logging.LoggingConfig;
+import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,8 +56,20 @@ public class ConsoleLogAdapter implements LogAdapter
     }
 
     @Override
-    public void log( Log log )
+    public void log( Log log, LoggingConfig config )
     {
-        System.err.println( log );
+        switch ( config.getConsoleFormat() )
+        {
+            case TEXT:
+                System.err.println( log );
+                break;
+            case JSON:
+                System.err.println( LoggingManager.toJson( log ) );
+                break;
+            default:
+                System.err.println( LoggingManager.toJson( log ) );
+                break;
+
+        }
     }
 }
