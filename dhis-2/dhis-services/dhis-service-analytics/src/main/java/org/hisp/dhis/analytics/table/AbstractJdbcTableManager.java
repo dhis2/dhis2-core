@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -134,10 +135,20 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table )
+    public void createTable( AnalyticsTable table, AnalyticsTableUpdateParams params )
     {
-        createTempTable( table );        
-        createTempTablePartitions( table );
+        boolean tableExists = partitionManager.tableExists( table.getTableName() );
+        boolean skipMasterTable = params.isPartialUpdate() && tableExists;
+
+        if ( !skipMasterTable )
+        {
+            createTempTable( table );
+            createTempTablePartitions( table, table.getTempTableName() );
+        }
+        else
+        {
+            createTempTablePartitions( table, table.getTableName() );
+        }        
     }
     
     @Override
@@ -169,12 +180,12 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean partialUpdate )
+    public void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params )
     {
         table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
-        boolean skipMasterTable = partialUpdate && tableExists;
+        boolean skipMasterTable = params.isPartialUpdate() && tableExists;
 
         if ( !skipMasterTable )
         {
@@ -359,7 +370,7 @@ public abstract class AbstractJdbcTableManager
      * 
      * @param table the {@link AnalyticsTable}.
      */
-    protected void createTempTablePartitions( AnalyticsTable table )
+    protected void createTempTablePartitions( AnalyticsTable table, String masterTable )
     {
         for ( AnalyticsTablePartition partition : table.getPartitionTables() )
         {         
@@ -375,7 +386,7 @@ public abstract class AbstractJdbcTableManager
                 sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
             }
             
-            sqlCreate += "inherits (" + table.getTempTableName() + ")";
+            sqlCreate += "inherits (" + masterTable + ")";
             
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
