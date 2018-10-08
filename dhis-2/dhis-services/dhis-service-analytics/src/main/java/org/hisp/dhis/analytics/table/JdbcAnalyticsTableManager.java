@@ -392,7 +392,7 @@ public class JdbcAnalyticsTableManager
             sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
         }
 
-        return slowQueryJdbcTemplate.queryForList( sql, Integer.class );
+        return jdbcTemplate.queryForList( sql, Integer.class );
     }
 
     @Override
@@ -427,7 +427,7 @@ public class JdbcAnalyticsTableManager
 
             log.debug( "Aggregation level SQL: " + sql.toString() );
 
-            slowQueryJdbcTemplate.execute( sql.toString() );
+            jdbcTemplate.execute( sql.toString() );
         }
 
         return ConcurrentUtils.getImmediateFuture();
@@ -451,7 +451,7 @@ public class JdbcAnalyticsTableManager
 
             log.debug( "Vacuum SQL: " + sql );
 
-            slowQueryJdbcTemplate.execute( sql );
+            jdbcTemplate.execute( sql );
         }
 
         return ConcurrentUtils.getImmediateFuture();

@@ -118,11 +118,8 @@ public abstract class AbstractJdbcTableManager
     @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Resource( name = "jdbcTemplate" )
-    protected JdbcTemplate jdbcTemplate;
-    
     @Resource( name = "slowQueryJdbcTemplate" )
-    protected JdbcTemplate slowQueryJdbcTemplate;
+    protected JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -163,7 +160,7 @@ public abstract class AbstractJdbcTableManager
             
             log.debug( "Create index: " + indexName + " SQL: " + sql );
             
-            slowQueryJdbcTemplate.execute( sql );
+            jdbcTemplate.execute( sql );
             
             log.debug( "Created index: " + indexName );
         }
@@ -322,7 +319,7 @@ public abstract class AbstractJdbcTableManager
     {
         try
         {            
-            slowQueryJdbcTemplate.execute( sql );
+            jdbcTemplate.execute( sql );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -469,7 +466,7 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
-        slowQueryJdbcTemplate.execute( sql );
+        jdbcTemplate.execute( sql );
         
         log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }
