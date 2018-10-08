@@ -79,11 +79,15 @@ public interface AnalyticsTableManager
     void preCreateTables();
     
     /**
-     * Attempts to drop and then create analytics table.
+     * Attempts to drop and then create analytics table with partitions. If this is
+     * a partial update and the main analytics table currently exists, the main
+     * table is not created and the partition tables will inherit from the current
+     * main table.
      * 
      * @param table the analytics table.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void createTable( AnalyticsTable table );
+    void createTable( AnalyticsTable table, AnalyticsTableUpdateParams params );
     
     /**
      * Creates single indexes on the given columns of the analytics table with
@@ -96,12 +100,13 @@ public interface AnalyticsTableManager
     
     /**
      * Attempts to drop analytics table, then rename temporary table to analytics
-     * table.
+     * table. The main analytics table is not swapped when this is a partial update
+     * and the table currently exists.
      * 
      * @param table the analytics table.
-     * @param partialUpdate indicates whether this is a partial table update.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void swapTable( AnalyticsTable table, boolean partialUpdate );
+    void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params );
     
     /**
      * Copies and denormalizes rows from data value table into analytics table.

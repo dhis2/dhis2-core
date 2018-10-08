@@ -139,7 +139,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
 
-        createTables( tables );
+        createTables( tables, params );
         
         clock.logTime( "Created analytics tables" );
         notifier.notify( jobId, "Populating analytics tables" );
@@ -169,7 +169,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Analyzed tables" );
         notifier.notify( jobId, "Swapping analytics tables" );
         
-        swapTables( tables, params.isPartialUpdate() );
+        swapTables( tables, params );
         
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
@@ -213,10 +213,11 @@ public class DefaultAnalyticsTableService
      * Creates the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    private void createTables( List<AnalyticsTable> tables )
+    private void createTables( List<AnalyticsTable> tables, AnalyticsTableUpdateParams params )
     {
-        tables.forEach( table -> tableManager.createTable( table ) );
+        tables.forEach( table -> tableManager.createTable( table, params ) );
     }
     
     /**
@@ -364,13 +365,13 @@ public class DefaultAnalyticsTableService
      * Swaps the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param partialUpdate whether this is a partial analytics table update.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    private void swapTables( List<AnalyticsTable> tables, boolean partialUpdate )
+    private void swapTables( List<AnalyticsTable> tables, AnalyticsTableUpdateParams params )
     {
         resourceTableService.dropAllSqlViews();
         
-        tables.forEach( table -> tableManager.swapTable( table, partialUpdate ) );
+        tables.forEach( table -> tableManager.swapTable( table, params ) );
         
         resourceTableService.createAllSqlViews();
     }
