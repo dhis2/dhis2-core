@@ -167,6 +167,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return null;
         }
 
+        dataValue.setPeriod( storedPeriod );
+
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()

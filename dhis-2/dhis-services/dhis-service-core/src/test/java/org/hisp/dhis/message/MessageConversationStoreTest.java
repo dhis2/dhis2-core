@@ -32,7 +32,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +46,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Stian Sandvold
  */
-@Ignore
 public class MessageConversationStoreTest
     extends DhisSpringTest
 {
