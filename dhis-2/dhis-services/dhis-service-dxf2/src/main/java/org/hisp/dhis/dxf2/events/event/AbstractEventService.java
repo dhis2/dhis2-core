@@ -34,6 +34,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -1448,8 +1449,6 @@ public abstract class AbstractEventService
             query.add( Restrictions.in( "id", dataElements ) );
             queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
         }
-
-        defaultObjectsCache.put( CategoryOptionCombo.class, manager.getByName( CategoryOptionCombo.class , "default" ) );
     }
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
@@ -1674,7 +1673,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (CategoryOptionCombo) defaultObjectsCache.get( CategoryOptionCombo.class );
+            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
@@ -2018,6 +2017,11 @@ public abstract class AbstractEventService
         } );
     }
 
+    private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
+    {
+        return defaultObjectsCache.get( key, () -> manager.getByName( CategoryOptionCombo.class , "default" ) );
+    }
+
     @Override
     public void validate( EventSearchParams params )
         throws IllegalQueryException
@@ -2278,7 +2282,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (CategoryOptionCombo) defaultObjectsCache.get( CategoryOptionCombo.class );
+            attrOptCombo = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )
