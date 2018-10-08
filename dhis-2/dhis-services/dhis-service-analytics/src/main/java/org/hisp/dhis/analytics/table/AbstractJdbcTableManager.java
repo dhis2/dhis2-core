@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -167,16 +168,23 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean partialUpdate )
+    public void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params )
     {
+        boolean tableExists = partitionManager.tableExists( table.getTableName() );
+        boolean skipMasterTable = params.isPartialUpdate() && tableExists;
+        
+        log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists, skipMasterTable ) );
+
         table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
-        boolean tableExists = partitionManager.tableExists( table.getTableName() );
-        boolean skipMasterTable = partialUpdate && tableExists;
-
         if ( !skipMasterTable )
         {
             swapTable( table.getTempTableName(), table.getTableName() );
+        }
+        else
+        {
+            table.getPartitionTables().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
+            dropTempTable( table );
         }
     }
     
@@ -481,13 +489,28 @@ public abstract class AbstractJdbcTableManager
      * @param realTableName the real table name.
      */
     private void swapTable( String tempTableName, String realTableName )
-    {        
-        final String sqlDrop = "drop table " + realTableName;
+    {
+        final String sql = 
+            "drop table " + realTableName + ";" +
+            "alter table " + tempTableName + " rename to " + realTableName + ";";
+
+        executeSilently( sql );
+    }
+    
+    /**
+     * Updates table inheritance of a table partition from the temp master table
+     * to the real master table.
+     * 
+     * @param partitionTableName the partition table name.
+     * @param tempMasterTableName the temporary master table name.
+     * @param realMasterTableName the real master table name.
+     */
+    private void swapInheritance( String partitionTableName, String tempMasterTableName, String realMasterTableName )
+    {
+        final String sql = 
+            "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
+            "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
         
-        executeSilently( sqlDrop );
-        
-        final String sqlAlter = "alter table " + tempTableName + " rename to " + realTableName;
-        
-        executeSilently( sqlAlter );
+        executeSilently( sql );
     }
 }
