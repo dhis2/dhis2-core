@@ -1,5 +1,3 @@
-package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,29 +26,27 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.webapi;
+import org.hisp.dhis.TestDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
-public enum FileResourceDomain
+@Configuration
+@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
+public class WebTestConfiguration
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar");
-
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
-
-    FileResourceDomain( String containerName )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        this.containerName = containerName;
-    }
+        TestDhisConfigurationProvider testDhisConfigurationProvider = new TestDhisConfigurationProvider();
 
-    public String getContainerName()
-    {
-        return containerName;
+        return testDhisConfigurationProvider;
     }
 }

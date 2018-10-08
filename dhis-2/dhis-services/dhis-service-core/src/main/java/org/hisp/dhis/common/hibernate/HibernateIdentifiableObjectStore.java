@@ -79,6 +79,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author bobj
@@ -531,7 +532,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             conjunction.add( root -> builder.like( builder.lower( root.get( "name") ), "%" + word.toLowerCase() + "%" ) ) ;
         }
 
-        param.addPredicate( root -> builder.and( conjunction.toArray( new Predicate[0] ) ) );
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0]) ) );
 
         return getList( builder, param );
     }

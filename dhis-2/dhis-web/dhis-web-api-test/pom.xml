@@ -159,6 +159,12 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hisp.dhis</groupId>
+          <artifactId>dhis-support-external</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
