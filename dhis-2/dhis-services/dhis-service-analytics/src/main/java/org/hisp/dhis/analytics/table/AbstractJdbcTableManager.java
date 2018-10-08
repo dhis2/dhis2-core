@@ -160,7 +160,7 @@ public abstract class AbstractJdbcTableManager
             
             log.debug( "Create index: " + indexName + " SQL: " + sql );
             
-            slowQueryJdbcTemplate.execute( sql );
+            jdbcTemplate.execute( sql );
             
             log.debug( "Created index: " + indexName );
         }
@@ -319,7 +319,7 @@ public abstract class AbstractJdbcTableManager
     {
         try
         {            
-            slowQueryJdbcTemplate.execute( sql );
+            jdbcTemplate.execute( sql );
         }
         catch ( BadSqlGrammarException ex )
         {
