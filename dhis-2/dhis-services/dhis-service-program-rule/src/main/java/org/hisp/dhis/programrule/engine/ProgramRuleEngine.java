@@ -89,6 +89,7 @@ public class ProgramRuleEngine
         
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+
         if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
         {
             return ruleEffects;
@@ -168,7 +169,10 @@ public class ProgramRuleEngine
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
-        supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+        if( currentUserService.getCurrentUser() != null )
+        {
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+        }
 
         List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
 

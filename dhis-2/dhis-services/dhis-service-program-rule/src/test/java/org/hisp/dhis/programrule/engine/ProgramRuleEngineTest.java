@@ -52,6 +52,10 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -476,6 +480,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( bcgdoze );
         trackedEntityDataValueService.saveTrackedEntityDataValue( weight );
         trackedEntityDataValueService.saveTrackedEntityDataValue( height );
+
+        userService = (UserService) getBean( UserService.ID );
+        createAndInjectAdminUser();
     }
 
     private void setupProgramRuleEngine()
