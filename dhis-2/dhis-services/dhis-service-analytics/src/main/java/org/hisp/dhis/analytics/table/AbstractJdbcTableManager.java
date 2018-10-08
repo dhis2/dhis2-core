@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -169,12 +170,12 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table, boolean partialUpdate )
+    public void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params )
     {
         table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
         
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
-        boolean skipMasterTable = partialUpdate && tableExists;
+        boolean skipMasterTable = params.isPartialUpdate() && tableExists;
 
         if ( !skipMasterTable )
         {
