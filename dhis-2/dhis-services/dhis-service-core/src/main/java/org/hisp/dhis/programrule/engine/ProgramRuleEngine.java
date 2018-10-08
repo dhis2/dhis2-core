@@ -41,6 +41,8 @@ import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -52,6 +54,8 @@ import java.util.stream.Collectors;
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
+
+    private static final String USER = "USER";
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -70,6 +74,9 @@ public class ProgramRuleEngine
 
     @Autowired
     private RuleVariableInMemoryMap inMemoryMap;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
@@ -156,6 +163,11 @@ public class ProgramRuleEngine
     private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
+
+        if( currentUserService.getCurrentUser() != null )
+        {
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+        }
 
         List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
 
