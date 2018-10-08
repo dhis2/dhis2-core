@@ -87,6 +87,8 @@ public class User
     private String interests;
 
     private String languages;
+    
+    private String welcomeMessage;
 
     private Date lastCheckedInterpretations;
 
@@ -568,6 +570,18 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getWelcomeMessage()
+    {
+        return welcomeMessage;
+    }
+
+    public void setWelcomeMessage( String welcomeMessage )
+    {
+        this.welcomeMessage = welcomeMessage;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastCheckedInterpretations()
     {
         return lastCheckedInterpretations;
@@ -681,10 +695,6 @@ public class User
             "\"languages\":\"" + languages + "\", " +
             "\"lastCheckedInterpretations\":\"" + lastCheckedInterpretations + "\", " +
             "\"userCredentials\":\"" + userCredentials + "\", " +
-            "\"groups\":\"" + groups + "\", " +
-            "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
-            "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }
 }

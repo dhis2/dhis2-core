@@ -76,6 +76,7 @@ public class DefaultProgramRuleEntityMapperService
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER_MAPPER =
         new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> RuleVariableCalculatedValue.create( prv.getName(), "", RuleValueType.TEXT ) )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> RuleVariableCurrentEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
@@ -151,6 +152,11 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
+        if ( enrollment == null )
+        {
+            return null;
+        }
+
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
             enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getOrganisationUnit() != null ? enrollment.getOrganisationUnit().getUid() : "",
             enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
@@ -161,32 +167,37 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public List<RuleEvent> toMappedRuleEvents ( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate )
     {
-        return programStageInstances.stream()
+        return programStageInstances.stream().filter( Objects::nonNull )
             .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
-             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
+             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
-                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
     @Override
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
+        if ( psi == null )
+        {
+            return null;
+        }
+
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
          psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
-            .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+            .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
             .collect( Collectors.toList() ), psi.getProgramStage().getName() );
     }
 
     @Override
     public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances )
     {
-        return programStageInstances.stream()
+        return programStageInstances.stream().filter( Objects::nonNull )
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
-                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
@@ -196,13 +207,21 @@ public class DefaultProgramRuleEntityMapperService
 
     private Rule toRule( ProgramRule programRule )
     {
+        if ( programRule ==  null )
+        {
+            return null;
+        }
+
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
-        List<RuleAction> ruleActions = new ArrayList<>();
+        List<RuleAction> ruleActions;
 
+        Rule rule;
         try
         {
             ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
+
+            rule = Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
         }
         catch ( Exception e )
         {
@@ -211,7 +230,7 @@ public class DefaultProgramRuleEntityMapperService
             return null;
         }
 
-        return Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions );
+        return rule;
     }
 
     private RuleAction toRuleAction( ProgramRuleAction programRuleAction )

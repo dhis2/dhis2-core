@@ -117,7 +117,7 @@ public class DefaultEmailService
     }
 
     @Override
-    public OutboundMessageResponse sendSystemEmail(Email email )
+    public OutboundMessageResponse sendSystemEmail( Email email )
     {
         OutboundMessageResponse response = new OutboundMessageResponse();
 

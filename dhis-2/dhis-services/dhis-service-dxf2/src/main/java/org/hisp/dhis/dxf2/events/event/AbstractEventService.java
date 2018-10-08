@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -107,6 +106,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -118,11 +118,13 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -234,6 +236,9 @@ public abstract class AbstractEventService
     @Autowired
     protected RelationshipService relationshipService;
 
+    @Autowired
+    protected UserService userService;
+
     protected static final int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
@@ -267,11 +272,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -490,6 +495,19 @@ public abstract class AbstractEventService
             if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
+            }
+        }
+        else if ( event.getCoordinate() != null )
+        {
+            Coordinate coordinate = event.getCoordinate();
+
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
 
@@ -1012,11 +1030,11 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
@@ -1155,24 +1173,36 @@ public abstract class AbstractEventService
             validateExpiryDays( event, program, programStageInstance );
         }
 
+        CategoryOptionCombo aoc = null;
+
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-            CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( program.getCategoryCombo(),
-                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
-
-            if ( attributeOptionCombo == null )
+            try
+            {
+                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
+                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
+            }
+            catch ( IllegalQueryException ex )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
-                    event.getAttributeCategoryOptions() ) );
-
+                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
                 return importSummary.incrementIgnored();
             }
+        }
 
-            programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            return importSummary.incrementIgnored();
+        }
+
+        if ( aoc != null )
+        {
+            programStageInstance.setAttributeOptionCombo( aoc );
         }
 
         if ( event.getGeometry() != null )
@@ -1183,6 +1213,19 @@ public abstract class AbstractEventService
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
                     ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
                     ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
+            }
+        }
+        else if ( event.getCoordinate() != null )
+        {
+            Coordinate coordinate = event.getCoordinate();
+
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
 
@@ -1397,8 +1440,6 @@ public abstract class AbstractEventService
             query.add( Restrictions.in( "id", dataElements ) );
             queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
         }
-
-        defaultObjectsCache.put( CategoryOptionCombo.class, manager.getByName( CategoryOptionCombo.class , "default" ) );
     }
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
@@ -1543,16 +1584,20 @@ public abstract class AbstractEventService
             catch ( IllegalQueryException ex )
             {
                 importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+                importSummary.setStatus( ImportStatus.ERROR );
+                return importSummary.incrementIgnored();
             }
         }
         else
         {
-            aoc = (CategoryOptionCombo) defaultObjectsCache.get( CategoryOptionCombo.class );
+            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo" ) );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            importSummary.setStatus( ImportStatus.ERROR );
+            return importSummary.incrementIgnored();
         }
 
         if ( !dryRun )
@@ -1878,6 +1923,11 @@ public abstract class AbstractEventService
         } );
     }
 
+    private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
+    {
+        return defaultObjectsCache.get( key, () -> manager.getByName( CategoryOptionCombo.class , "default" ) );
+    }
+
     @Override
     public void validate( EventSearchParams params )
         throws IllegalQueryException
@@ -2138,7 +2188,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (CategoryOptionCombo) defaultObjectsCache.get( CategoryOptionCombo.class );
+            attrOptCombo = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )
@@ -2162,5 +2212,15 @@ public abstract class AbstractEventService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 }

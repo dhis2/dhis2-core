@@ -264,7 +264,8 @@ public class SyncUtils
             }
             catch ( InterruptedException e )
             {
-                log.error( "Sleep between sync retries failed.", e );
+                log.error( "Sleep between sync retries failed.", e );                
+                Thread.currentThread().interrupt();
             }
 
             serverStatus = isRemoteServerAvailable( systemSettingManager, restTemplate );

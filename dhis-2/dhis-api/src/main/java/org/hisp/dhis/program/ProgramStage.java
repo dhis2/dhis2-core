@@ -49,6 +49,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +64,11 @@ public class ProgramStage
     extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
+    
+    /**
+     * The i18n variant of the description. Should not be persisted.
+     */
+    protected transient String displayDescription;
 
     private String formName;
 
@@ -247,6 +253,19 @@ public class ProgramStage
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
     }
 
     @JsonProperty( "programStageSections" )

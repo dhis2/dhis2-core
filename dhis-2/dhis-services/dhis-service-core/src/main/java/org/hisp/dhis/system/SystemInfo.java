@@ -154,7 +154,6 @@ public class SystemInfo
     public void clearSensitiveInfo()
     {
         this.fileStoreProvider = null;
-        this.cacheProvider = null;
         this.readOnlyMode = null;
         this.nodeId = null;
         this.javaVersion = null;
