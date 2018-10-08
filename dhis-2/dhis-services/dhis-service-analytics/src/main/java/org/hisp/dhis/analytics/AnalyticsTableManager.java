@@ -95,8 +95,12 @@ public interface AnalyticsTableManager
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
     
     /**
-     * Attempts to drop analytics table, then rename temporary table to analytics
-     * table.
+     * Attempts to drop the analytics table with partitions and rename the temporary 
+     * table with partitions as replacement.
+     * <p>
+     * If this is a partial update and the master table currently exists, the master 
+     * table is not swapped and instead the inheritance of the partitions are set to 
+     * the existing master table.
      * 
      * @param table the analytics table.
      * @param params the {@link AnalyticsTableUpdateParams}.
