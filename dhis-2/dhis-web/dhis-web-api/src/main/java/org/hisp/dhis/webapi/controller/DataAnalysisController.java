@@ -31,24 +31,21 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
-import org.hisp.dhis.dataanalysis.FollowupParams;
-import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisParams;
-import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisParams;
-import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
-import org.hisp.dhis.webapi.webdomain.ValidationResultView;
-import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
-import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisService;
+import org.hisp.dhis.dataanalysis.FollowupParams;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
 import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
+import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
+import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -77,6 +74,7 @@ import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -103,8 +101,6 @@ import java.util.Set;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
- * analysis endpoint to perform analysis and generate reports
- *
  * @author Joao Antunes
  */
 @Controller
@@ -113,7 +109,7 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
 public class DataAnalysisController
 {
-    public static final String RESOURCE_PATH = "/analysis";
+    public static final String RESOURCE_PATH = "/dataAnalysis";
 
     private static final Log log = LogFactory.getLog( DataAnalysisController.class );
 
@@ -172,20 +168,17 @@ public class DataAnalysisController
         @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-
-        log.info( "performValidationRulesAnalysis from DataAnalysisController input " + validationRulesAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         ValidationRuleGroup group = null;
-        if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null )
+        if ( validationRulesAnalysisParams.getVrg() != null )
         {
             group = validationRuleService
-                .getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
+                .getValidationRuleGroup( validationRulesAnalysisParams.getVrg() );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( validationRulesAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( validationRulesAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -217,7 +210,6 @@ public class DataAnalysisController
         @RequestParam String periodId, @RequestParam String organisationUnitId )
         throws WebMessageException
     {
-
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
         if ( validationRule == null )
         {
@@ -251,15 +243,13 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     List<DeflatedDataValue> performStdDevOutlierAnalysis(
-        @RequestBody StdDevOutlierAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
+        @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-        log.info( "performStdDevOutlierAnalysis from DataAnalysisController input " + stdDevOutlierAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( stdDevOutlierAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( stdDevOutlierAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -271,7 +261,7 @@ public class DataAnalysisController
 
         Set<DataElement> dataElements = new HashSet<>();
 
-        for ( String uid : stdDevOutlierAnalysisParams.getDataSetIds() )
+        for ( String uid : stdDevOutlierAnalysisParams.getDs() )
         {
             dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
         }
@@ -300,39 +290,37 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     List<DeflatedDataValue> performMinMaxOutlierAnalysis(
-        @RequestBody MinMaxOutlierAnalysisParams minMaxOutlierAnalysisParams, HttpSession session )
+        @RequestBody DataAnalysisParams params, HttpSession session )
         throws WebMessageException
     {
-        log.info( "performMinMaxOutlierAnalysis from DataAnalysisController input " + minMaxOutlierAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( minMaxOutlierAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
-            .getPeriodsBetweenDates( format.parseDate( minMaxOutlierAnalysisParams.getStartDate() ),
-                format.parseDate( minMaxOutlierAnalysisParams.getEndDate() ) );
+            .getPeriodsBetweenDates( format.parseDate( params.getStartDate() ),
+                format.parseDate( params.getEndDate() ) );
 
         Set<DataElement> dataElements = new HashSet<>();
 
-        if ( minMaxOutlierAnalysisParams.getDataSetIds() != null )
+        if ( params.getDs() != null )
         {
-            for ( String uid : minMaxOutlierAnalysisParams.getDataSetIds() )
+            for ( String uid : params.getDs() )
             {
                 dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
             }
         }
 
-        Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getStartDate() ) ).minusYears( 2 )
+        Date from = new DateTime( format.parseDate( params.getStartDate() ) ).minusYears( 2 )
             .toDate();
 
-        log.info( "From date: " + minMaxOutlierAnalysisParams.getStartDate() + ", To date: " +
-            minMaxOutlierAnalysisParams.getEndDate() + ", Organisation unit: " + organisationUnit );
+        log.info( "From date: " + params.getStartDate() + ", To date: " +
+            params.getEndDate() + ", Organisation unit: " + organisationUnit );
 
         log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() +
             " for Min Max Outlier Analysis" );
@@ -349,33 +337,36 @@ public class DataAnalysisController
     @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody FollowupAnalysisParams followupAnalysisParams,
+    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
         HttpSession session )
         throws WebMessageException
     {
-        log.info( "performFollowupAnalysis from DataAnalysisController input " + followupAnalysisParams );
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService
-            .getOrganisationUnit( followupAnalysisParams.getOrganisationUnitId() );
+            .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        Date startDate = null;
-        Date endDate = null;
+        Collection<Period> periods = periodService
+            .getPeriodsBetweenDates( format.parseDate( params.getStartDate() ),
+                format.parseDate( params.getEndDate() ) );
 
-        if ( followupAnalysisParams.getStartDate() != null && followupAnalysisParams.getEndDate() != null )
+        Set<DataElement> dataElements = new HashSet<>();
+
+        if ( params.getDs() != null )
         {
-            startDate = new DateTime( format.parseDate( followupAnalysisParams.getStartDate() ) ).toDate();
-            endDate = new DateTime( format.parseDate( followupAnalysisParams.getEndDate() ) ).toDate();
+            for ( String uid : params.getDs() )
+            {
+                dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
+            }
         }
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
-            .getFollowupDataValuesBetweenInterval( organisationUnit, followupAnalysisParams.getDataSetId(),
-                DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
+            .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
+                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
@@ -385,13 +376,12 @@ public class DataAnalysisController
 
     @RequestMapping( value = "/followup/mark", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public @ResponseBody
-    void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest updateFollowUpForDataValuesRequest )
+    public @ResponseBody void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest params )
     {
-        log.info( "markDataValues from DataAnalysisController input " + updateFollowUpForDataValuesRequest );
+        log.info( "markDataValues from DataAnalysisController input " + params );
 
         List<DataValue> dataValues = new ArrayList<>();
-        for ( FollowupParams followup : updateFollowUpForDataValuesRequest.getFollowups() )
+        for ( FollowupParams followup : params.getFollowups() )
         {
             DataElement dataElement = dataElementService.getDataElement( followup.getDataElementId() );
             Period period = periodService.getPeriod( followup.getPeriodId() );
@@ -409,10 +399,6 @@ public class DataAnalysisController
                 dataValue.setFollowup( followup.isFollowup() );
                 dataValues.add( dataValue );
             }
-
-            log.info( followup.isFollowup() ?
-                "Data value will be marked for follow-up" :
-                "Data value will be unmarked for follow-up" );
         }
 
         if ( dataValues.size() > 0 )

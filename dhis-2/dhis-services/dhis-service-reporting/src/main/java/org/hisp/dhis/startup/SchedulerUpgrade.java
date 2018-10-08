@@ -37,6 +37,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,7 @@ public class SchedulerUpgrade
     {
         @SuppressWarnings( "unchecked" )
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
-            .getSystemSetting( "keySchedTasks" );
+            .getSystemSetting( SettingKey.KEY_SCHED_TASKS );
 
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
@@ -93,27 +94,27 @@ public class SchedulerUpgrade
         {
             log.info( "Porting old jobs" );
             JobConfiguration resourceTable = new JobConfiguration( "Resource table", RESOURCE_TABLE, null, null, false, true );
-            SchedulerStart.portJob( systemSettingManager, resourceTable, "keyLastSuccessfulResourceTablesUpdate" );
+            SchedulerStart.portJob( systemSettingManager, resourceTable, SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
 
             JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
                 new AnalyticsJobParameters( null, Sets.newHashSet(), false ), false, true );
-            SchedulerStart.portJob( systemSettingManager, analytics, "keyLastSuccessfulAnalyticsTablesUpdate" );
+            SchedulerStart.portJob( systemSettingManager, analytics, SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
 
             JobConfiguration monitoring = new JobConfiguration( "Monitoring", MONITORING, null, null, false, true );
-            SchedulerStart.portJob( systemSettingManager, monitoring, "keyLastSuccessfulMonitoring" );
+            SchedulerStart.portJob( systemSettingManager, monitoring, SettingKey.LAST_SUCCESSFUL_MONITORING );
 
             JobConfiguration dataSync = new JobConfiguration( "Data synchronization", DATA_SYNC, null, null, false, true );
-            SchedulerStart.portJob( systemSettingManager, dataSync, "keyLastSuccessfulDataSynch" );
+            SchedulerStart.portJob( systemSettingManager, dataSync, SettingKey.LAST_SUCCESSFUL_DATA_SYNC );
 
             JobConfiguration metadataSync = new JobConfiguration( "Metadata sync", META_DATA_SYNC, null, null, false, true );
-            SchedulerStart.portJob( systemSettingManager, metadataSync, "keyLastMetaDataSyncSuccess" );
+            SchedulerStart.portJob( systemSettingManager, metadataSync, SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
 
             JobConfiguration sendScheduledMessage = new JobConfiguration( "Send scheduled messages",
                 SEND_SCHEDULED_MESSAGE, null, null, false, true );
 
             JobConfiguration scheduledProgramNotifications = new JobConfiguration( "Scheduled program notifications",
                 PROGRAM_NOTIFICATIONS, null, null, false, true );
-            SchedulerStart.portJob( systemSettingManager, scheduledProgramNotifications, "keyLastSuccessfulScheduledProgramNotifications" );
+            SchedulerStart.portJob( systemSettingManager, scheduledProgramNotifications, SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS );
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
             {{
@@ -178,7 +179,7 @@ public class SchedulerUpgrade
             emptySystemSetting.putValue( "ported", "" );
 
             log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
-            systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
+            systemSettingManager.saveSystemSetting( SettingKey.KEY_SCHED_TASKS, emptySystemSetting );
         }
     }
 }

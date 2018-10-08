@@ -16,6 +16,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />

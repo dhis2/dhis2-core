@@ -30,13 +30,13 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import java.util.List;
-
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetStore;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -46,11 +46,12 @@ public class HibernateCategoryOptionGroupSetStore
     implements CategoryOptionGroupSetStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getCriteria( 
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

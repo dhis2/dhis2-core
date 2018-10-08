@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -48,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.system.util.MathUtils;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
@@ -109,7 +111,12 @@ public class JdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( QUERY_ERR_MSG, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
         
         return grid;
@@ -155,7 +162,7 @@ public class JdbcEventAnalyticsManager
         String clusterField = params.getCoordinateField();
         String quotedClusterField = quoteAlias( clusterField );
         
-        List<String> columns = Lists.newArrayList( "count(psi) as count", 
+        List<String> columns = Lists.newArrayList( "count(psi) as count",
             "ST_AsText(ST_Centroid(ST_Collect(" + quotedClusterField + "))) as center", "ST_Extent(" + quotedClusterField + ") as extent" );
 
         columns.add( params.isIncludeClusterPoints() ?
@@ -205,7 +212,12 @@ public class JdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( QUERY_ERR_MSG, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
         
         return count;
@@ -313,7 +325,7 @@ public class JdbcEventAnalyticsManager
         }
         else // Periods
         {
-            String alias = params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+            String alias = getPeriodAlias( params );
             
             sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
@@ -455,7 +467,7 @@ public class JdbcEventAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() && !params.hasTimeField() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
@@ -537,7 +549,7 @@ public class JdbcEventAnalyticsManager
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String valueItem = quote( params.getValue().getDimensionItem() );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        String alias = params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+        String alias = getPeriodAlias( params );
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         
         String sql = "(select ";

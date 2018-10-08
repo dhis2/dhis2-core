@@ -68,6 +68,9 @@ public class ProgramRuleEngine
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
 
+    @Autowired
+    private RuleVariableInMemoryMap inMemoryMap;
+
     public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
@@ -79,16 +82,23 @@ public class ProgramRuleEngine
         
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+        if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
+        {
+            return ruleEffects;
+        }
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
@@ -116,16 +126,23 @@ public class ProgramRuleEngine
 
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+        if ( implementableProgramRules.isEmpty() )
+        {
+            return ruleEffects;
+        }
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
             
             ruleEffects.stream().map( RuleEffect::ruleAction )
@@ -151,6 +168,7 @@ public class ProgramRuleEngine
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
             .supplementaryData( supplementaryData )
+            .calculatedValueMap( inMemoryMap.getVariablesMap() )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );

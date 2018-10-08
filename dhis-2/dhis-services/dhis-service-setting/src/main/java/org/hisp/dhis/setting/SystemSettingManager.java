@@ -32,22 +32,15 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Stian Strandli
  */
 public interface SystemSettingManager
 {
-    void saveSystemSetting( String name, Serializable value );
-
     void saveSystemSetting( SettingKey setting, Serializable value );
 
-    void deleteSystemSetting( String name );
-
     void deleteSystemSetting( SettingKey setting );
-
-    Serializable getSystemSetting( String name );
 
     Serializable getSystemSetting( SettingKey setting );
 
@@ -61,8 +54,6 @@ public interface SystemSettingManager
      * set value.
      */
     Map<String, Serializable> getSystemSettingsAsMap();
-
-    Map<String, Serializable> getSystemSettingsAsMap( Set<String> names );
 
     Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings );
 
@@ -91,8 +82,6 @@ public interface SystemSettingManager
     boolean accountRecoveryEnabled();
 
     boolean selfRegistrationNoRecaptcha();
-
-    boolean emailNotificationsEnabled();
     
     boolean emailConfigured();
 

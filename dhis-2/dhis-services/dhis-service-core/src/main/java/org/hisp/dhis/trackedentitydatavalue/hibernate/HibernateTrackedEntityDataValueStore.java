@@ -28,9 +28,7 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -71,15 +69,16 @@ public class HibernateTrackedEntityDataValueStore
     public int delete( ProgramStageInstance programStageInstance )
     {
         Query query = getQuery( "delete from TrackedEntityDataValue where programStageInstance = :programStageInstance" );
-        query.setEntity( "programStageInstance", programStageInstance );
+        query.setParameter( "programStageInstance", programStageInstance );
         return query.executeUpdate();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( ProgramStageInstance programStageInstance )
     {
-        return getCriteria( Restrictions.eq( "programStageInstance", programStageInstance ) ).list();
+        String hql = "from TrackedEntityDataValue tv where tv.programStageInstance =:programStageInstance";
+
+        return getList( getQuery( hql ).setParameter( "programStageInstance", programStageInstance ) );
     }
 
     @Override
@@ -113,7 +112,6 @@ public class HibernateTrackedEntityDataValueStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( ProgramStageInstance programStageInstance,
         Collection<DataElement> dataElements )
     {
@@ -122,11 +120,13 @@ public class HibernateTrackedEntityDataValueStore
             return new ArrayList<>();
         }
 
-        return getCriteria( Restrictions.in( "dataElement", dataElements ), Restrictions.eq( "programStageInstance", programStageInstance ) ).list();
+        String hql = "from TrackedEntityDataValue tv where tv.dataElement in :dataElements and tv.programStageInstance =:programStageInstance";
+        return getList( getQuery( hql )
+            .setParameter( "dataElements", dataElements )
+            .setParameter( "programStageInstance", programStageInstance ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( Collection<ProgramStageInstance> programStageInstances )
     {
         if ( programStageInstances == null || programStageInstances.isEmpty() )
@@ -134,18 +134,18 @@ public class HibernateTrackedEntityDataValueStore
             return new ArrayList<>();
         }
 
-        return getCriteria( Restrictions.in( "programStageInstance", programStageInstances ) ).list();
+        String hql = "from TrackedEntityDataValue tv where tv.programStageInstance in :programStageInstances";
+        return getList( getQuery( hql ).setParameter( "programStageInstances", programStageInstances ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( DataElement dataElement )
     {
-        return getCriteria( Restrictions.eq( "dataElement", dataElement ) ).list();
+        String hql = "from TrackedEntityDataValue tv where tv.dataElement =:dataElement";
+        return getList( getQuery( hql ).setParameter( "dataElement", dataElement ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValue> get( TrackedEntityInstance entityInstance, Collection<DataElement> dataElements, Date startDate,
         Date endDate )
     {
@@ -154,21 +154,24 @@ public class HibernateTrackedEntityDataValueStore
             return new ArrayList<>();
         }
 
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programStageInstance", "programStageInstance" );
-        criteria.createAlias( "programStageInstance.programInstance", "programInstance" );
-        criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        criteria.add( Restrictions.eq( "programInstance.entityInstance", entityInstance ) );
-        criteria.add( Restrictions.between( "programStageInstance.executionDate", startDate, endDate ) );
-
-        return criteria.list();
+        String hql = "from TrackedEntityDataValue tv  inner join tv.programStageInstance as psi where tv.dataElement in :dataElements " +
+            "and psi.programInstance =:entityInstance and psi.executionDate between :startDate and :endDate";
+        return getList( getQuery( hql )
+            .setParameter( "dataElements", dataElements )
+            .setParameter( "entityInstance", entityInstance )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate ) );
     }
 
     @Override
     public TrackedEntityDataValue get( ProgramStageInstance programStageInstance, DataElement dataElement )
     {
-        return (TrackedEntityDataValue) getCriteria( Restrictions.eq( "programStageInstance", programStageInstance ),
-            Restrictions.eq( "dataElement", dataElement ) ).uniqueResult();
+        String hql = "from TrackedEntityDataValue tv where tv.programStageInstance =:programStageInstance " +
+            "and tv.dataElement =:dataElement";
+
+        return getSingleResult( getQuery( hql )
+            .setParameter( "programStageInstance", programStageInstance )
+            .setParameter( "dataElement", dataElement ) );
     }
 
 }

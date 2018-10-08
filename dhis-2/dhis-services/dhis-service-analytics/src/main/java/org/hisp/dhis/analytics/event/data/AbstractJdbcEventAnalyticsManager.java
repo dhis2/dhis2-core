@@ -33,11 +33,13 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.persistence.QueryTimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,6 +62,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -74,7 +77,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
     
-    protected static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
     protected static final String ITEM_NAME_SEP = ": ";
     protected static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
@@ -134,9 +136,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 continue;
             }
             
-            if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
+            if ( !params.hasNonDefaultBoundaries() || dimension.getDimensionType() != DimensionType.PERIOD )
             {
-                columns.add( quote( ANALYTICS_TBL_ALIAS, dimension.getDimensionName() ) );
+                String alias = getAlias( params, dimension.getDimensionType() );
+                
+                columns.add( quote( alias, dimension.getDimensionName() ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -243,7 +247,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( QUERY_ERR_MSG, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
 
         return grid;
@@ -455,6 +464,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
         
         return item.getSqlFilter( filter, encodedFilter );
+    }
+    
+    /**
+     * Returns the analytics table alias for the program dimension.
+     * 
+     * @param params the event query parameters.
+     */
+    protected String getPeriodAlias( EventQueryParams params )
+    {
+        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+    }
+
+    /**
+     * Returns the analytics table alias.
+     * 
+     * @param params the event query parameters.
+     * @param 
+     */
+    protected String getAlias( EventQueryParams params, DimensionType dimensionType )
+    {
+        return params.hasTimeField() && DimensionType.PERIOD == dimensionType ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
     }
     
     /**

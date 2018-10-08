@@ -1,5 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -117,7 +119,10 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
         JSON_MAPPER.registerModule( module );
+        JSON_MAPPER.registerModule( new JtsModule() );
+        
         XML_MAPPER.registerModule( module );
+        XML_MAPPER.registerModule( new JtsModule() );
     }
 
     // -------------------------------------------------------------------------

@@ -158,7 +158,8 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
+        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
         boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
@@ -235,7 +236,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -377,11 +381,14 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String ds, HttpServletResponse response )
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
 
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -403,7 +410,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation

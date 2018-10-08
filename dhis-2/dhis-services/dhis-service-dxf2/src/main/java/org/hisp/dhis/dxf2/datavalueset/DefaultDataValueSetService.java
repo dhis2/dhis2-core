@@ -680,11 +680,13 @@ public class DefaultDataValueSetService
         boolean dryRun = dataValueSet.getDryRun() != null ? dataValueSet.getDryRun() : importOptions.isDryRun();
         boolean skipExistingCheck = importOptions.isSkipExistingCheck();
         boolean strictPeriods = importOptions.isStrictPeriods() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+        boolean strictDataElements = importOptions.isStrictDataElements() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS );
         boolean strictCategoryOptionCombos = importOptions.isStrictCategoryOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
         boolean strictAttrOptionCombos = importOptions.isStrictAttributeOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
         boolean strictOrgUnits = importOptions.isStrictOrganisationUnits() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = importOptions.isRequireCategoryOptionCombo() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
         boolean requireAttrOptionCombo = importOptions.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+        boolean forceDataInput = inputUtils.canForceDataInput( currentUser, importOptions.isForce() );
 
         // ---------------------------------------------------------------------
         // Create meta-data maps
@@ -749,6 +751,8 @@ public class DefaultDataValueSetService
         CategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         CategoryOptionCombo outerAttrOptionCombo = null;
+        
+        Set<DataElement> dataSetDataElements = dataSet != null ? dataSet.getDataElements() : new HashSet<>();
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
@@ -773,6 +777,12 @@ public class DefaultDataValueSetService
         {
             summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid() ) );
             summary.setStatus( ImportStatus.ERROR );
+        }
+        
+        if ( dataSet == null && strictDataElements )
+        {
+            summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid datset is required" ) );
+            summary.setStatus( ImportStatus.ERROR );            
         }
 
         if ( outerOrgUnit == null && trimToNull( dataValueSet.getOrgUnit() ) != null )
@@ -1002,6 +1012,13 @@ public class DefaultDataValueSetService
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
                 continue;
             }
+            
+            if ( strictDataElements && !dataSetDataElements.contains( dataElement ) )
+            {
+                summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS",
+                    "Data element: " + dataValue.getDataElement() + " is not part of dataset: " + dataSet.getUid() ) );
+                continue;
+            }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
                 () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
@@ -1073,7 +1090,7 @@ public class DefaultDataValueSetService
 
             if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
-                if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
+                if ( !forceDataInput && dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
                     () -> isLocked( currentUser, approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +

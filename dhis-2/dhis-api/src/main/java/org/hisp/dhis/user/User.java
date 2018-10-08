@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.springframework.util.StringUtils;
@@ -105,6 +106,8 @@ public class User
     private String telegram;
 
     private String twitter;
+
+    private FileResource avatar;
 
     /**
      * Organisation units for data input and data capture / write operations.
@@ -745,6 +748,18 @@ public class User
         this.twitter = twitter;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FileResource getAvatar()
+    {
+        return avatar;
+    }
+
+    public void setAvatar( FileResource avatar )
+    {
+        this.avatar = avatar;
+    }
+
     @Override
     public String toString()
     {
@@ -769,10 +784,6 @@ public class User
             "\"languages\":\"" + languages + "\", " +
             "\"lastCheckedInterpretations\":\"" + lastCheckedInterpretations + "\", " +
             "\"userCredentials\":\"" + userCredentials + "\", " +
-            "\"groups\":\"" + groups + "\", " +
-            "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
-            "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }
 }

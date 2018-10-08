@@ -61,8 +61,7 @@ import javax.annotation.PostConstruct;
  * @author Torgeir Lorange Ostby
  */
 public class DefaultUserSettingService implements UserSettingService
-{
-    
+{    
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test phase.
      */
@@ -81,12 +80,6 @@ public class DefaultUserSettingService implements UserSettingService
     @Autowired
     private CacheProvider cacheProvider;
 
-    private String getCacheKey( String settingName, String username )
-    {
-        return settingName + DimensionalObject.ITEM_SEP + username;
-    }
-
- 
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -118,7 +111,6 @@ public class DefaultUserSettingService implements UserSettingService
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-
     
     @PostConstruct
     public void init()
@@ -127,7 +119,7 @@ public class DefaultUserSettingService implements UserSettingService
             .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
     
     }
-
+    
     // -------------------------------------------------------------------------
     // UserSettingService implementation
     // -------------------------------------------------------------------------
@@ -248,23 +240,24 @@ public class DefaultUserSettingService implements UserSettingService
     }
 
     @Override
-    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<String> names,
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
     {
         Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
             .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
             .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
 
-        names.forEach( name -> {
-            if ( !result.containsKey( name ) )
+        userSettingKeys.forEach( userSettingKey -> {
+            if ( !result.containsKey( userSettingKey.getName() ) )
             {
-                if ( useFallback )
+                Optional<SettingKey> systemSettingKey = SettingKey.getByName( userSettingKey.getName() );
+                if ( useFallback && systemSettingKey.isPresent() )
                 {
-                    result.put( name, systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( name ) ) );
+                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
                 }
                 else
                 {
-                    result.put( name, null );
+                    result.put( userSettingKey.getName(), null );
                 }
             }
         } );
@@ -280,8 +273,12 @@ public class DefaultUserSettingService implements UserSettingService
         {
             return new ArrayList<>();
         }
+        List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
+        Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
-        return userSettingStore.getAllUserSettings( user );
+        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+
+        return userSettings;
     }
 
     @Override
@@ -293,9 +290,9 @@ public class DefaultUserSettingService implements UserSettingService
     @Override
     public Map<String, Serializable> getUserSettingsAsMap()
     {
-        Set<String> names = Stream.of( UserSettingKey.values() ).map( key -> key.getName() ).collect( Collectors.toSet() );
+        Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
 
-        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
+        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), userSettingKeys, false );
     }
 
     // -------------------------------------------------------------------------
@@ -313,8 +310,8 @@ public class DefaultUserSettingService implements UserSettingService
 
         String cacheKey = getCacheKey( key.getName(), username );
 
-        Optional<Serializable> result = userSettingCache.
-            get( cacheKey, c -> getUserSettingOptional( key, username ).orElse( null ) );
+        Optional<Serializable> result = userSettingCache
+            .get( cacheKey, c -> getUserSettingOptional( key, username ).orElse( null ) );
 
         if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
         {
@@ -329,9 +326,11 @@ public class DefaultUserSettingService implements UserSettingService
 
     /**
      * Get user setting optional. The database call is executed in a
-     * programmatic transaction.
+     * programmatic transaction. If the user setting exists and has a value, 
+     * the value is returned. If not, the default value for the key is returned,
+     * if not present, an empty optional is returned.
      *
-     * @param key      the user setting key.
+     * @param key the user setting key.
      * @param username the username of the user.
      * @return an optional user setting value.
      */
@@ -352,7 +351,13 @@ public class DefaultUserSettingService implements UserSettingService
             }
         } );
 
-        return setting != null && setting.hasValue() ?
-            Optional.of( setting.getValue() ) : Optional.empty();
+        Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
+        
+        return Optional.ofNullable( value );
+    }
+
+    private String getCacheKey( String settingName, String username )
+    {
+        return settingName + DimensionalObject.ITEM_SEP + username;
     }
 }

@@ -30,26 +30,32 @@ package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FollowupAnalysisParams
+import java.util.List;
+
+public class DataAnalysisParams
 {
     private String startDate;
 
     private String endDate;
 
-    private String organisationUnitId;
+    private List<String> ds;
 
-    private String dataSetId;
+    private Double standardDeviation;
 
-    public FollowupAnalysisParams()
+    private String ou;
+
+    public DataAnalysisParams()
     {
     }
 
-    public FollowupAnalysisParams( String startDate, String endDate, String organisationUnitId, String dataSetId )
+    public DataAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
+        Double standardDeviation, String organisationUnitId )
     {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.organisationUnitId = organisationUnitId;
-        this.dataSetId = dataSetId;
+        this.ds = dataSetIds;
+        this.standardDeviation = standardDeviation;
+        this.ou = organisationUnitId;
     }
 
     @JsonProperty
@@ -75,35 +81,47 @@ public class FollowupAnalysisParams
     }
 
     @JsonProperty
-    public String getOrganisationUnitId()
+    public List<String> getDs()
     {
-        return organisationUnitId;
+        return ds;
     }
 
-    public void setOrganisationUnitId( String organisationUnitId )
+    public void setDs( List<String> ds )
     {
-        this.organisationUnitId = organisationUnitId;
+        this.ds = ds;
     }
 
     @JsonProperty
-    public String getDataSetId()
+    public Double getStandardDeviation()
     {
-        return dataSetId;
+        return standardDeviation;
     }
 
-    public void setDataSetId( String dataSetId )
+    public void setStandardDeviation( Double standardDeviation )
     {
-        this.dataSetId = dataSetId;
+        this.standardDeviation = standardDeviation;
+    }
+
+    @JsonProperty
+    public String getOu()
+    {
+        return ou;
+    }
+
+    public void setOu( String ou )
+    {
+        this.ou = ou;
     }
 
     @Override
     public String toString()
     {
-        return "FollowupAnalysisParams{" +
+        return "StdDevOutlierAnalysisParams{" +
             "startDate='" + startDate + '\'' +
             ", endDate='" + endDate + '\'' +
-            ", organisationUnitId='" + organisationUnitId + '\'' +
-            ", dataSetId='" + dataSetId + '\'' +
+            ", ds=" + ds +
+            ", standardDeviation=" + standardDeviation +
+            ", ou='" + ou + '\'' +
             '}';
     }
 }

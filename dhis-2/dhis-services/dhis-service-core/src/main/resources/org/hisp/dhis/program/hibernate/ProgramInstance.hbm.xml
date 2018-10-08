@@ -32,9 +32,7 @@
 
     <property name="completedBy" />
 
-    <property name="longitude" />
-
-    <property name="latitude" />
+    <property name="geometry" />
 
     <property name="deleted" column="deleted" />
 

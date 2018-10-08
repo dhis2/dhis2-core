@@ -256,45 +256,47 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet,
-        int limit )
-    {
-        return getFollowupDataValuesBetweenInterval( organisationUnit, dataSet, limit, null, null );
-    }
-
-    @Override
-    public List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit,
-        DataSet dataSet, int limit, Date startDate, Date endDate )
+    public List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
+        Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
     {
 
-        String dataSetIdCheck = dataSet != null ? " and dse.datasetid =" + dataSet.getId() + " " : " ";
-        String joinDataSet =
-            dataSet != null ? " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
+        if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        String dataElementIds = getCommaDelimitedString( getIdentifiers( dataElements ) );
+        String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
+        String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
         String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, " +
-                "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, mm.minimumvalue, mm.maximumvalue, de.name AS dataelementname, " +
-                "pe.startdate, pe.enddate, pt.name AS periodtypename, ou.name AS sourcename, cc.name AS categoryoptioncomboname " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
+                "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
                 "from datavalue dv " +
-                "left join minmaxdataelement mm on (dv.sourceid = mm.sourceid and dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
+                "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
                 "join dataelement de on dv.dataelementid = de.dataelementid " +
                 "join period pe on dv.periodid = pe.periodid " +
                 "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
-                "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " + joinDataSet +
-                "where ou.path like '%" + organisationUnit.getUid() + "%' " +
-                "and dv.followup = true " +
-                "and dv.deleted is false " + dataSetIdCheck;
+                "join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+                "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+                "where dv.dataelementid in (" + dataElementIds + ") " +
+                "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
+                "and dv.periodid in (" + periodIds + ") " +
+                "and (";
 
-        if ( startDate != null && endDate != null )
+
+        for ( OrganisationUnit parent : parents )
         {
-            sql +=
-                "and pe.startdate >= '" + DateUtils.getMediumDateString( startDate ) + "' " +
-                    "and pe.enddate <= '" + DateUtils.getMediumDateString( endDate ) + "' ";
+            sql += "ou.path like '" + parent.getPath() + "%' or ";
         }
+
+        sql = TextUtils.removeLastOr( sql ) + ") ";
+        sql += "and dv.followup = true and dv.deleted is false ";
 
         sql += statementBuilder.limitRecord( 0, limit );
 
-        return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );
+        return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( null, null ) );
     }
 }
