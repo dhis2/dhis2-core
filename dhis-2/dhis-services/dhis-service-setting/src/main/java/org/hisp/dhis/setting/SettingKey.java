@@ -40,6 +40,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
@@ -98,6 +100,7 @@ public enum SettingKey
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
     IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", -1, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
+    SQL_VIEW_MAX_LIMIT( "keySqlViewMaxLimit", -1, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
     SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
     CUSTOM_LOGIN_PAGE_LOGO( "keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class ),
@@ -263,6 +266,13 @@ public enum SettingKey
             else if ( FileResourceRetentionStrategy.class.isAssignableFrom( settingClazz ) )
             {
                 return FileResourceRetentionStrategy.valueOf( value );
+            }
+            else if( Date.class.isAssignableFrom( settingClazz ) )
+            {
+                //Accepts String with date in ISO_LOCAL_DATE_TIME format
+                LocalDateTime dateTime = LocalDateTime.parse( value );
+
+                return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );
             }
 
             //TODO handle Dates

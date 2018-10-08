@@ -713,8 +713,8 @@ public class DefaultChartService
 
         for ( int i = 0; i < 10; i++ )
         {
-            double start = i * 10;
-            double end = start + 10;
+            double start = i * 10d;
+            double end = start + 10d;
             String label = String.valueOf( start );
 
             meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );

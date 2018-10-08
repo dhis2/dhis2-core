@@ -895,11 +895,7 @@ public class DefaultPreheatService implements PreheatService
 
         if ( Preheat.isDefaultClass( property.getKlass() ) )
         {
-            if ( refObject == null )
-            {
-                ref = defaultObject;
-            }
-            else if ( refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() ) )
+            if ( refObject == null || ( refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() ) ) )
             {
                 ref = defaultObject;
             }

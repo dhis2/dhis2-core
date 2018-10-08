@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -57,6 +58,8 @@ public class MessageConversation
     private Set<User> users = new HashSet<>();
 
     private Set<UserGroup> userGroups = new HashSet<>();
+
+    private Set<FileResource> attachments = new HashSet();
 
     public MessageConversation()
     {
@@ -144,5 +147,17 @@ public class MessageConversation
             ", users=" + users +
             ", userGroups=" + userGroups +
             '}';
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<FileResource> getAttachments()
+    {
+        return attachments;
+    }
+
+    public void setAttachments( Set<FileResource> attachments )
+    {
+        this.attachments = attachments;
     }
 }

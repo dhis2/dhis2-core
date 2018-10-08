@@ -32,6 +32,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.vividsolutions.jts.geom.Point;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -107,6 +108,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -126,6 +128,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -520,6 +523,19 @@ public abstract class AbstractEventService
             if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
+            }
+        }
+        else if ( event.getCoordinate() != null )
+        {
+            Coordinate coordinate = event.getCoordinate();
+
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
 
@@ -1180,6 +1196,11 @@ public abstract class AbstractEventService
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
+        if ( program == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
+        }
+
         if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
             validateExpiryDays( event, program, programStageInstance );
@@ -1225,6 +1246,19 @@ public abstract class AbstractEventService
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
                     ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
                     ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
+            }
+        }
+        else if ( event.getCoordinate() != null )
+        {
+            Coordinate coordinate = event.getCoordinate();
+
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
 

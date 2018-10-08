@@ -146,11 +146,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return null;
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+        String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period and dv.deleted = false  " +
+            "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root, new DataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo ) ) )
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
+        return getSingleResult( getQuery( hql )
+            .setParameter( "dataElement", dataElement )
+            .setParameter( "period", storedPeriod )
+            .setParameter( "source", source )
+            .setParameter( "attributeOptionCombo", attributeOptionCombo )
+            .setParameter( "categoryOptionCombo", categoryOptionCombo ) );
     }
 
     @Override
@@ -162,6 +166,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             return null;
         }
+
+        dataValue.setPeriod( storedPeriod );
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -301,14 +307,33 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return new ArrayList<>();
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+        String hql = "select dv from DataValue dv  where dv.dataElement in (:dataElements) and dv.period =:period and dv.deleted = false ";
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> root.get( "dataElement" ).in( dataElements ) )
-            .addPredicate( root -> builder.equal( root.get( "period" ), storedPeriod ) )
-            .addPredicate( root -> builder.equal( root.get( "souce" ), source ) )
-            .addPredicate( root -> builder.equal( root.get( "attributeOptionCombo" ), attributeOptionCombo) )
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
+        if ( source != null )
+        {
+            hql += " and dv.source =:source ";
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
+        }
+
+        Query query = getQuery( hql )
+            .setParameter( "dataElements", dataElements )
+            .setParameter( "period", storedPeriod );
+
+        if ( source != null )
+        {
+            query.setParameter( "source", source );
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            query.setParameter( "attributeOptionCombo", attributeOptionCombo );
+        }
+
+        return getList( query );
     }
 
     @Override

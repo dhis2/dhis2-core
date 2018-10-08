@@ -264,12 +264,12 @@ public class ChartController
         chart.getFilterDimensions().clear();
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
 
-        if ( chart.getColumns() != null )
+        if ( chart.getColumns() != null && !chart.getColumns().isEmpty() )
         {
             chart.setSeries( chart.getColumns().get( 0 ).getDimension() );
         }
 
-        if ( chart.getRows() != null )
+        if ( chart.getRows() != null && !chart.getRows().isEmpty() )
         {
             chart.setCategory( chart.getRows().get( 0 ).getDimension() );
         }
