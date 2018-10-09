@@ -93,7 +93,7 @@ public class DefaultCurrentUserService
         {
             return null;
         }
-        
+
         return currentUserStore.getUser( userId );
     }
 
