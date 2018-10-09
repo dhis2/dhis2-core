@@ -465,4 +465,13 @@ public interface Grid
      * @param rs the row set.
      */
     Grid addRows( SqlRowSet rs );
+
+    /**
+     * Moves the cursor the next row and adds values for each column of the given
+     * SQL row set.
+     *
+     * @param rs the row set.
+     * @param maxLimit the max number of records to return, use {@code -1} for no limit.
+     */
+    Grid addRows( SqlRowSet rs, int maxLimit );
 }

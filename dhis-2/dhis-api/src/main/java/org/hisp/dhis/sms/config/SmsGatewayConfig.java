@@ -57,17 +57,17 @@ public abstract class SmsGatewayConfig
 
     private boolean isDefault;
 
-    private String urltemplate;
+    private String urlTemplate;
 
-    @JsonProperty( value = "urltemplate" )
+    @JsonProperty( value = "urlTemplate" )
     public String getUrlTemplate()
     {
-        return urltemplate;
+        return urlTemplate;
     }
 
     public void setUrlTemplate( String urlTemplate )
     {
-        this.urltemplate = urlTemplate;
+        this.urlTemplate = urlTemplate;
     }
 
     public String getName()
