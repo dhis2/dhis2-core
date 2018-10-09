@@ -92,7 +92,7 @@ public class DefaultAnalyticsTableGenerator
             .collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
-        log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
+        log.info( String.format( "Analytics table update: %s", params ) );
 
         try
         {
