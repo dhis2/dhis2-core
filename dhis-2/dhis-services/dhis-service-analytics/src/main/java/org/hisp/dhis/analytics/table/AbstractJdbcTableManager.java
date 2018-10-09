@@ -506,7 +506,7 @@ public abstract class AbstractJdbcTableManager
     private void swapTable( String tempTableName, String realTableName )
     {
         final String sql = 
-            "drop table " + realTableName + ";" +
+            "drop table if exists " + realTableName + ";" +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );
