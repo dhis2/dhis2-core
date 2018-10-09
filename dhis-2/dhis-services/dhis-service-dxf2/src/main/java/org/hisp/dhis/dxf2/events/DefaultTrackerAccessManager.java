@@ -365,7 +365,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( programStageInstance.getStatus() == EventStatus.SCHEDULE )
+            if ( isWritableInSearchScopeOrgUnit( programStageInstance ) )
             {
                 if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
                 {
@@ -590,5 +590,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isNull( ProgramStage programStage )
     {
         return programStage == null || programStage.getProgram() == null;
+    }
+    
+    private boolean isWritableInSearchScopeOrgUnit( ProgramStageInstance programStageInstance )
+    {
+        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getDataValues().isEmpty()
+            && programStageInstance.getExecutionDate() == null;
     }
 }
