@@ -60,7 +60,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Lars Helge Overland
  */
-@Ignore // Ignore for now
 public class DataValueSetServiceIntegrationTest
     extends DhisTest
 {
