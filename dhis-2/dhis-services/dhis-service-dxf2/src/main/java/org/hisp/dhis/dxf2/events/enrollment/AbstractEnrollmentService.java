@@ -695,7 +695,7 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance != null )
         {
-            if ( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            if ( !isAllowedToDelete( user, programInstance ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
             }
@@ -1068,5 +1068,12 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
+    }
+    
+    private boolean isAllowedToDelete( User user, ProgramInstance pi )
+    {
+        Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream().filter( psi -> !psi.isDeleted() )
+            .collect( Collectors.toSet() );
+        return notDeletedProgramStageInstances.isEmpty() || user == null || user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
     }
 }
