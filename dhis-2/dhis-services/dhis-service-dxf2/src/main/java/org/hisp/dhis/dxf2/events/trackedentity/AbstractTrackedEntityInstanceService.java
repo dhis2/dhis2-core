@@ -52,6 +52,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -489,7 +490,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( entityInstance != null )
         {
-            if ( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            if ( !isAllowedToDelete( user, entityInstance ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities
                     .F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
@@ -500,6 +501,13 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
+    }
+    
+    private boolean isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    {
+        Set<ProgramInstance> notDeletedProgramInstances = entityInstance.getProgramInstances().stream().filter( pi -> !pi.isDeleted() )
+            .collect( Collectors.toSet() );
+        return notDeletedProgramInstances.isEmpty() || user == null || user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
     }
 
     @Override
