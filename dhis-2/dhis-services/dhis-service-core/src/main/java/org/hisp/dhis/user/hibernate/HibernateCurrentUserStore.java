@@ -31,6 +31,7 @@ package org.hisp.dhis.user.hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.user.CurrentUserStore;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,6 +46,12 @@ public class HibernateCurrentUserStore
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Override
+    public User getUser( int id )
+    {
+        return (User) sessionFactory.getCurrentSession().get( User.class, id );
+    }
+    
     @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {

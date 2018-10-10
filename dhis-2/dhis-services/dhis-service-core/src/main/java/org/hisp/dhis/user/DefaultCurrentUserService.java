@@ -63,7 +63,7 @@ public class DefaultCurrentUserService
     private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
         .expireAfterAccess( 1, TimeUnit.HOURS )
         .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 4000 )
         .build();
     
     // -------------------------------------------------------------------------
@@ -88,14 +88,14 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        UserCredentials userCredentials = currentUserStore.getUserCredentialsByUsername( username );
+        Integer userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
 
-        if ( userCredentials == null )
+        if ( userId == null )
         {
             return null;
         }
 
-        return userCredentials.getUserInfo();
+        return currentUserStore.getUser( userId );
     }
 
     @Override
