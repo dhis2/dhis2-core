@@ -199,6 +199,24 @@ public class HibernateDataApprovalStore
     }
 
     @Override
+    public boolean dataApprovalExists( DataApproval dataApproval )
+    {
+        Period storedPeriod = periodService.reloadPeriod( dataApproval.getPeriod() );
+        
+        String sql = 
+            "select dataapprovalid " +
+            "from dataapproval " +
+            "where dataapprovallevelid = " + dataApproval.getDataApprovalLevel().getId() + " " +
+            "and workflowid = " + dataApproval.getWorkflow().getId() + " " +
+            "and periodid  = " + storedPeriod.getId() + " " +
+            "and organisationunitid = " + dataApproval.getOrganisationUnit().getId() + " " +
+            "and attributeoptioncomboid = " + dataApproval.getAttributeOptionCombo().getId() + " " +
+            "limit 1";
+        
+        return jdbcTemplate.queryForList( sql ).size() > 0;
+    }
+
+    @Override
     public List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
         CategoryCombo attributeCombo,
