@@ -336,7 +336,7 @@ public class DataValueController
             }
 
             // -----------------------------------------------------------------
-            // Value and comment are sent individually, so null checks must be 
+            // Value and comment are sent individually, so null checks must be
             // made for each. Empty string is sent for clearing a value.
             // -----------------------------------------------------------------
 
