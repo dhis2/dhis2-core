@@ -28,7 +28,6 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -36,18 +35,13 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -69,25 +63,25 @@ public class DataValueDimensionTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     private CategoryOption male;
     private CategoryOption female;
-    private CategoryOption under15;    
+    private CategoryOption under15;
     private CategoryOption over15;
-    
+
     private Category gender;
     private Category ageGroup;
-    
+
     private CategoryCombo genderAndAgeGroup;
-    
+
     private CategoryOptionCombo defaultOptionCombo;
-    
+
     private DataElement dataElementA;
-    
+
     private Period periodA;
-    
+
     private OrganisationUnit sourceA;
-        
+
     @Override
     public void setUpTest()
     {
@@ -95,94 +89,48 @@ public class DataValueDimensionTest
         female = new CategoryOption( "Female" );
         under15 = new CategoryOption( "<15" );
         over15 = new CategoryOption( ">15" );
-        
+
         categoryService.addCategoryOption( male );
         categoryService.addCategoryOption( female );
         categoryService.addCategoryOption( under15 );
         categoryService.addCategoryOption( over15 );
-        
+
         gender = new Category( "Gender", DataDimensionType.DISAGGREGATION );
         gender.getCategoryOptions().add( male );
         gender.getCategoryOptions().add( female );
-        
+
         ageGroup = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
         ageGroup.getCategoryOptions().add( under15 );
         ageGroup.getCategoryOptions().add( over15 );
-        
+
         categoryService.addCategory( gender );
-        categoryService.addCategory( ageGroup );        
-        
+        categoryService.addCategory( ageGroup );
+
         genderAndAgeGroup = new CategoryCombo( "Gender and Agegroup", DataDimensionType.DISAGGREGATION );
         genderAndAgeGroup.getCategories().add( gender );
         genderAndAgeGroup.getCategories().add( ageGroup );
-                
+
         categoryService.addCategoryCombo( genderAndAgeGroup );
-        
+
         categoryService.generateOptionCombos( genderAndAgeGroup );
 
         dataElementA = createDataElement( 'A', genderAndAgeGroup );
-        
+
         dataElementService.addDataElement( dataElementA );
-        
+
         periodA = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 2, 1 ) );
-        
+
         periodService.addPeriod( periodA );
-        
+
         sourceA = createOrganisationUnit( 'A' );
-        
+
         organisationUnitService.addOrganisationUnit( sourceA );
-        
+
         defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        
+
         for ( CategoryOptionCombo categoryOptionCombo : genderAndAgeGroup.getOptionCombos() )
         {
             dataValueService.addDataValue( createDataValue( dataElementA, periodA, sourceA, "10", categoryOptionCombo, defaultOptionCombo ) );
         }
-    }
-        
-    @Test
-    public void testGetDimensions()
-    {
-        List<CategoryOption> categoryOptions = new ArrayList<>();
-        categoryOptions.add( male );
-        categoryOptions.add( under15 );
-        
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
-        
-        DataValue dataValue = dataValueService.getDataValue( dataElementA, periodA, sourceA, categoryOptionCombo );
-        
-        assertNotNull( dataValue );
-    }
-    
-    @Test
-    public void testGetByCategoryOptionCombos()
-    {
-        List<CategoryOption> categoryOptions = new ArrayList<>();
-        categoryOptions.add( male );
-        categoryOptions.add( under15 );
-        
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
-        
-        assertNotNull( categoryOptionCombo );
-        assertEquals( genderAndAgeGroup, categoryOptionCombo.getCategoryCombo() );
-        assertTrue( CollectionUtils.isEqualCollection( categoryOptions, categoryOptionCombo.getCategoryOptions() ) );
-        
-        categoryOptions.clear();
-        categoryOptions.add( female );
-        categoryOptions.add( over15 );
-        
-        categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
-        
-        assertNotNull( categoryOptionCombo );
-        assertEquals( genderAndAgeGroup, categoryOptionCombo.getCategoryCombo() );
-        assertTrue( CollectionUtils.isEqualCollection( categoryOptions, categoryOptionCombo.getCategoryOptions() ) );
-        
-        categoryOptions.clear();
-        categoryOptions.add( male );
-        categoryOptions.add( female );
-        
-        categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
-        
-        assertNull( categoryOptionCombo );
     }
 }
