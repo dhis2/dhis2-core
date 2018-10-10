@@ -31,7 +31,6 @@ package org.hisp.dhis.dataset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -49,14 +48,14 @@ public class DataSetTest
     {
         DataSet dsA = new DataSet( "DataSetA" );
         DataSet dsB = new DataSet( "DataSetB" );
-        
+
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
-        
+
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
         dsB.addDataSetElement( deA );
-        
+
         assertEquals( 2, dsA.getDataSetElements().size() );
         assertEquals( 1, dsB.getDataSetElements().size() );
         assertEquals( 2, deA.getDataSetElements().size() );
@@ -67,22 +66,22 @@ public class DataSetTest
     public void testUpdateOrganisationUnits()
     {
         DataSet dsA = new DataSet( "dsA" );
-        
+
         OrganisationUnit ouA = new OrganisationUnit( "ouA" );
         OrganisationUnit ouB = new OrganisationUnit( "ouB" );
         OrganisationUnit ouC = new OrganisationUnit( "ouC" );
         OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-        
+
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouB );
-        
+
         assertEquals( 2, dsA.getSources().size() );
         assertTrue( dsA.getSources().containsAll( Sets.newHashSet( ouA, ouB ) ) );
         assertTrue( ouA.getDataSets().contains( dsA ) );
         assertTrue( ouB.getDataSets().contains( dsA ) );
         assertTrue( ouC.getDataSets().isEmpty() );
         assertTrue( ouD.getDataSets().isEmpty() );
-        
+
         dsA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
 
         assertEquals( 2, dsA.getSources().size() );
@@ -121,29 +120,5 @@ public class DataSetTest
         assertEquals( 1, indicatorB.getDataSets().size() );
         assertTrue( indicatorA.getDataSets().contains( dsA ) );
         assertTrue( indicatorB.getDataSets().contains( dsA ) );
-    }
-
-    @Test
-    public void testSetWorkflow()
-    {
-        DataSet dsA = new DataSet( "DataSetA" );
-
-        DataApprovalWorkflow workflowA = new DataApprovalWorkflow( "Workflow A" );
-        DataApprovalWorkflow workflowB = new DataApprovalWorkflow( "Workflow B" );
-
-        dsA.setWorkflow( workflowA );
-
-        assertTrue( dsA.getWorkflow() == workflowA );
-
-        assertEquals( 1, workflowA.getDataSets().size() );
-        assertTrue( workflowA.getDataSets().contains( dsA ) );
-
-        dsA.setWorkflow( workflowB );
-
-        assertTrue( dsA.getWorkflow() == workflowB );
-
-        assertEquals( 0, workflowA.getDataSets().size() );
-        assertEquals( 1, workflowB.getDataSets().size() );
-        assertTrue( workflowB.getDataSets().contains( dsA ) );
     }
 }
