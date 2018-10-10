@@ -97,7 +97,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
-    
+
     // ---------------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------------
@@ -174,7 +174,7 @@ public class DataValueController
         // ---------------------------------------------------------------------
 
         DataElement dataElement = getAndValidateDataElement( currentUser, de );
-        
+
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
