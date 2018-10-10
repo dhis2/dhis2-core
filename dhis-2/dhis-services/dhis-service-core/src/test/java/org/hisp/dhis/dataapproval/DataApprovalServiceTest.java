@@ -97,7 +97,7 @@ public class DataApprovalServiceTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-   
+
     @Autowired
     protected UserService _userService;
 
@@ -214,7 +214,7 @@ public class DataApprovalServiceTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-    
+
     @Override
     public void setUpTest()
     {
@@ -331,15 +331,15 @@ public class DataApprovalServiceTest
         dataSetI = createDataSet( 'I', periodType, defaultCategoryCombo );
         dataSetJ = createDataSet( 'J', periodType, defaultCategoryCombo );
 
-        dataSetA.setWorkflow( workflow0 );
-        dataSetB.setWorkflow( workflow1 );
-        dataSetC.setWorkflow( workflow12 );
-        dataSetD.setWorkflow( workflow12A );
-        dataSetE.setWorkflow( workflow12B );
-        dataSetF.setWorkflow( workflow3 );
-        dataSetG.setWorkflow( workflow1234 );
-        dataSetI.setWorkflow( workflow13 );
-        dataSetJ.setWorkflow( workflow24 );
+        dataSetA.assignWorkflow( workflow0 );
+        dataSetB.assignWorkflow( workflow1 );
+        dataSetC.assignWorkflow( workflow12 );
+        dataSetD.assignWorkflow( workflow12A );
+        dataSetE.assignWorkflow( workflow12B );
+        dataSetF.assignWorkflow( workflow3 );
+        dataSetG.assignWorkflow( workflow1234 );
+        dataSetI.assignWorkflow( workflow13 );
+        dataSetJ.assignWorkflow( workflow24 );
 
         dataSetA.addOrganisationUnit( organisationUnitA );
         dataSetA.addOrganisationUnit( organisationUnitB );
@@ -565,7 +565,7 @@ public class DataApprovalServiceTest
         dataApprovalService.addWorkflow( workflow12A_H );
 
         dataSetH = createDataSet( 'H', periodType, categoryComboA );
-        dataSetH.setWorkflow( workflow12A_H );
+        dataSetH.assignWorkflow( workflow12A_H );
         dataSetH.addOrganisationUnit( organisationUnitA );
         dataSetH.addOrganisationUnit( organisationUnitB );
         dataSetService.addDataSet( dataSetH );

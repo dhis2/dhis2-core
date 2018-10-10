@@ -185,7 +185,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private DataApprovalWorkflow workflow2;
 
     private PeriodType periodType;
-    
+
     private Period periodA;
 
     private DataSet dataSetA;
@@ -238,7 +238,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         Set<User> users = new HashSet<>();
 
-        for ( CurrentUserService mock : mockServices ) 
+        for ( CurrentUserService mock : mockServices )
         {
             users.add( mock.getCurrentUser() );
         }
@@ -272,7 +272,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() 
+    public void setUpTest()
         throws Exception
     {
         userService = _userService;
@@ -497,8 +497,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
         dataSetA = createDataSet( 'A', periodType, mechanismCategoryCombo );
         dataSetB = createDataSet( 'B', periodType, mechanismCategoryCombo );
 
-        dataSetA.setWorkflow( workflow1 );
-        dataSetB.setWorkflow( workflow2 );
+        dataSetA.assignWorkflow( workflow1 );
+        dataSetB.assignWorkflow( workflow2 );
 
         dataSetA.addOrganisationUnit( global );
         dataSetA.addOrganisationUnit( americas );
@@ -579,7 +579,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
                 + " unaccept=" + ( p.isMayUnaccept() ? "T" : "F" )
                 + " read=" + ( p.isMayReadData() ? "T" : "F" ) );
     }
-    
+
     private String[] getUserApprovalsAndPermissions( CurrentUserService mockUserService, DataApprovalWorkflow workflow, Period period, OrganisationUnit orgUnit )
     {
         setUser( mockUserService );
