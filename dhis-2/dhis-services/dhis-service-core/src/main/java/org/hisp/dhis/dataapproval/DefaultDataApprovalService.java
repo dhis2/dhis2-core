@@ -462,12 +462,7 @@ public class DefaultDataApprovalService
 
         da = DataApproval.getLowestApproval( da );
 
-        if ( da != null )
-        {
-            da = getDataApproval( da );
-        }
-
-        return da != null;
+        return da != null ? dataApprovalStore.dataApprovalExists( da ) : false;
     }
 
     @Override

@@ -186,7 +186,13 @@ public class DataApproval
 
         return da;
     }
-
+    
+    public String getCacheKey()
+    {
+        return dataApprovalLevel.getUid() + "-" + workflow.getUid() + "-" + period.getUid() + 
+            "-" + organisationUnit.getUid() + "-" + attributeOptionCombo.getUid();
+    }
+    
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

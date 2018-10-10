@@ -380,6 +380,13 @@ public class ValidationUtils
         return dataValueIsValid( value, dataElement.getValueType() );
     }
 
+    /**
+     * Indicates whether the given data value is valid according to the given value type.
+     * 
+     * @param value the data value.
+     * @param valueType the {@link ValueType}.
+     * @return null if the value is valid, a string if not.
+     */
     public static String dataValueIsValid( String value, ValueType valueType )
     {
         if ( value == null || value.trim().isEmpty() )
@@ -481,9 +488,8 @@ public class ValidationUtils
     {
         AggregationType aggregationType = dataElement.getAggregationType();
 
-        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) &&
-            !dataElement.isZeroIsSignificant() &&
-            !(aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE);
+        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) && !dataElement.isZeroIsSignificant() &&
+            !( aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE );
     }
 
     /**

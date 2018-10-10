@@ -78,7 +78,7 @@ public interface DataApprovalStore
 
     /**
      * Deletes DataApprovals for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataApprovals( OrganisationUnit organisationUnit );
@@ -104,6 +104,15 @@ public interface DataApprovalStore
      */
     DataApproval getDataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
         Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Indicates whether a persisted instance of the given data approval object
+     * exists.
+     *
+     * @param dataApproval the data approval to check.
+     * @return true if persisted data approval exists.
+     */
+    boolean dataApprovalExists( DataApproval dataApproval );
 
     /**
      * Returns DataApproval objects (if any) for given collections of approval
