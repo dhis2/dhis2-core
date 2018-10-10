@@ -32,6 +32,8 @@ import com.google.common.base.Strings;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -98,6 +100,8 @@ public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
 
+    private static final Log log = LogFactory.getLog( DataValueController.class );
+    
     // ---------------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------------
@@ -175,6 +179,14 @@ public class DataValueController
 
         DataElement dataElement = getAndValidateDataElement( currentUser, de );
 
+        boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( value, dataElement );
+
+        if ( zeroAndInsignificant )
+        {
+            log.info( "Data value is zero and insignificant for data element: " + dataElement.getUid() );
+            return;
+        }
+        
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
