@@ -486,6 +486,7 @@ public class Event
         return event != null ? event.hashCode() : 0;
     }
 
+
     @Override public String toString()
     {
         return "Event{" +
@@ -504,4 +505,5 @@ public class Event
             ", deleted=" + deleted +
             '}';
     }
+   
 }
