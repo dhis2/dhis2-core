@@ -233,9 +233,10 @@ public class ProgramStageInstance
         this.completedDate = completedDate;
     }
 
-    public void setStatus( EventStatus status )
+    public ProgramStageInstance setStatus( EventStatus status )
     {
         this.status = status;
+        return this;
     }
 
     public List<MessageConversation> getMessageConversations()

@@ -474,7 +474,7 @@ public abstract class AbstractEventService
         validateExpiryDays( event, program, null );
 
         List<String> errors = trackerAccessManager.canWrite( user, new ProgramStageInstance( programInstance, programStage )
-            .setOrganisationUnit( organisationUnit ) );
+            .setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ) );
 
         if ( !errors.isEmpty() )
         {
