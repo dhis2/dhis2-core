@@ -1817,7 +1817,6 @@ public class TableAlteror
         addTranslationTable( listTables, "Indicator", "indicatortranslations", "indicator", "indicatorid" );
         addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
         addTranslationTable( listTables, "DataElementCategoryCombo", "categorycombotranslations", "categorycombo", "categorycomboid" );
-        addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
         addTranslationTable( listTables, "DataElementGroup", "dataelementgrouptranslations", "dataelementgroup", "dataelementgroupid" );
         addTranslationTable( listTables, "DataSet", "datasettranslations", "dataset", "datasetid" );
         addTranslationTable( listTables, "IndicatorType", "indicatortypetranslations", "indicatortype", "indicatortypeid" );
@@ -1854,7 +1853,6 @@ public class TableAlteror
         addTranslationTable( listTables, "MessageConversation", "messageconversationtranslations", "messageconversation", "messageconversationid" );
         addTranslationTable( listTables, "Option", "optionvaluetranslations", "optionvalue", "optionvalueid" );
         addTranslationTable( listTables, "OptionSet", "optionsettranslations", "optionset", "optionsetid" );
-        addTranslationTable( listTables, "OrganisationUnit", "organisationunittranslations", "organisationunit", "organisationunitid" );
         addTranslationTable( listTables, "OrganisationUnitGroup", "orgunitgrouptranslations", "orgunitgroup", "orgunitgroupid" );
         addTranslationTable( listTables, "OrganisationUnitGroupSet", "orgunitgroupsettranslations", "orgunitgroupset", "orgunitgroupsetid" );
         addTranslationTable( listTables, "OrganisationUnitLevel", "orgunitleveltranslations", "orgunitlevel", "orgunitlevelid" );
@@ -1907,7 +1905,8 @@ public class TableAlteror
                     " and t.objectproperty is not null " +
                     " and t.locale is not null " +
                     " and t.value is not null " +
-                    " and not exists ( select 1 from objecttranslation where objecttranslationid = t.translationid )  " +
+                    " and not exists ( select 1 from objecttranslation ot where ot.objecttranslationid = t.translationid )  " +
+                    " and not exists ( select 1 from " + table.get( "translationTable" )  + " tt where tt." + table.get( "objectId" ) + " = t.objectid ) " +
                     " and ( " +
                     " exists ( select 1 from " + table.get( "objectTable" ) + "  where " + table.get( "objectId" ) + " = t.objectid )  " +
                     " or  exists ( select 1 from " + table.get( "objectTable" ) + " where uid  = t.objectuid ) " +
@@ -1923,7 +1922,7 @@ public class TableAlteror
                     " end," +
                     " o.objecttranslationid  " +
                     " from objecttranslation o inner join translation t on o.objecttranslationid = t.translationid and t.objectclass = '" + table.get( "className" ) + "'" +
-                    " and not exists ( select 1 from " + table.get( "translationTable" ) + " where objecttranslationid = o.objecttranslationid) ;";
+                    " and not exists ( select 1 from " + table.get( "translationTable" ) + " where objecttranslationid = o.objecttranslationid  );" +
 
             executeSql( sql );
 
