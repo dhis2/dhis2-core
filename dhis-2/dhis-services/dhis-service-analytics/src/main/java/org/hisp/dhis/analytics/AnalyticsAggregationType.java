@@ -41,22 +41,22 @@ public class AnalyticsAggregationType
     public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
     public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
-    
+
     /**
      * General aggregation type.
      */
     private AggregationType aggregationType;
-    
+
     /**
      * Aggregation type for the period dimension.
      */
     private AggregationType periodAggregationType;
-    
+
     /**
      * Analytics data type.
      */
     private DataType dataType;
-    
+
     /**
      * Indicates whether to perform data disaggregation.
      */
@@ -65,20 +65,20 @@ public class AnalyticsAggregationType
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-    
+
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType )
     {
         this.aggregationType = aggregationType;
         this.periodAggregationType = periodAggregationType;
     }
-    
+
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType, DataType dataType, boolean disaggregation )
     {
         this( aggregationType, periodAggregationType );
         this.dataType = dataType;
         this.disaggregation = disaggregation;
     }
-    
+
     /**
      * Returns a new instance of this aggregation type.
      */
@@ -110,27 +110,27 @@ public class AnalyticsAggregationType
             return new AnalyticsAggregationType( aggregationType, aggregationType );
         }
     }
-    
+
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
     }
-    
+
     public boolean isPeriodAggregationType( AggregationType type )
     {
         return this.periodAggregationType == type;
     }
-    
+
     public boolean isLastPeriodAggregationType()
     {
         return AggregationType.LAST == periodAggregationType || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
     }
-    
+
     public boolean isNumericDataType()
     {
         return this.dataType == DataType.NUMERIC;
     }
-    
+
     public boolean isBooleanDataType()
     {
         return this.dataType == DataType.BOOLEAN;
@@ -173,7 +173,7 @@ public class AnalyticsAggregationType
             .add( "data type", dataType )
             .add( "disaggregation", disaggregation ).toString();
     }
-    
+
     @Override
     public boolean equals( Object object )
     {
@@ -199,7 +199,7 @@ public class AnalyticsAggregationType
             Objects.equals( this.dataType, other.dataType ) &&
             Objects.equals( this.disaggregation, other.disaggregation );
     }
-    
+
 
     @Override
     public int hashCode()
