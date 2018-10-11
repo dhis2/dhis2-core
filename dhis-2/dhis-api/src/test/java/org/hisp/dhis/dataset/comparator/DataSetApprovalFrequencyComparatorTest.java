@@ -55,11 +55,11 @@ public class DataSetApprovalFrequencyComparatorTest
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
 
-        dsA.setWorkflow( workflow );
-        dsD.setWorkflow( workflow );
-        
+        dsA.assignWorkflow( workflow );
+        dsD.assignWorkflow( workflow );
+
         List<DataSet> list = Lists.newArrayList( dsA, dsC, dsB, dsD );
-        
+
         Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
 
         assertEquals( dsD, list.get( 0 ) );
@@ -67,7 +67,7 @@ public class DataSetApprovalFrequencyComparatorTest
         assertEquals( dsC, list.get( 2 ) );
         assertEquals( dsB, list.get( 3 ) );
     }
-    
+
     @Test
     public void testB()
     {
@@ -77,17 +77,17 @@ public class DataSetApprovalFrequencyComparatorTest
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
 
-        dsB.setWorkflow( workflow );
-        
+        dsB.assignWorkflow( workflow );
+
         List<DataSet> list = Lists.newArrayList( dsB, dsC, dsA );
-        
+
         Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
 
         assertEquals( dsB, list.get( 0 ) );
         assertEquals( dsA, list.get( 1 ) );
         assertEquals( dsC, list.get( 2 ) );
     }
-    
+
     @Test
     public void testC()
     {
@@ -98,18 +98,18 @@ public class DataSetApprovalFrequencyComparatorTest
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
 
-        dsA.setWorkflow( workflow );
-        dsD.setWorkflow( workflow );
-        
+        dsA.assignWorkflow( workflow );
+        dsD.assignWorkflow( workflow );
+
         DataElement deA = new DataElement();
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA );
         dsC.addDataSetElement( deA );
         dsD.addDataSetElement( deA );
-        
+
         assertEquals( dsD, deA.getApprovalDataSet() );
     }
-    
+
     @Test
     public void testD()
     {
@@ -119,13 +119,13 @@ public class DataSetApprovalFrequencyComparatorTest
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", new QuarterlyPeriodType(), null );
 
-        dsB.setWorkflow( workflow );
+        dsB.assignWorkflow( workflow );
 
         DataElement deA = new DataElement();
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA );
         dsC.addDataSetElement( deA );
-        
-        assertEquals( dsB, deA.getApprovalDataSet() );        
+
+        assertEquals( dsB, deA.getApprovalDataSet() );
     }
 }

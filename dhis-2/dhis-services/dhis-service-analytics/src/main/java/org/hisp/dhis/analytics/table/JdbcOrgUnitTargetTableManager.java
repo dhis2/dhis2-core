@@ -63,7 +63,7 @@ public class JdbcOrgUnitTargetTableManager
     {
         return AnalyticsTableType.ORG_UNIT_TARGET;
     }
-    
+
     @Override
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
@@ -76,7 +76,7 @@ public class JdbcOrgUnitTargetTableManager
     {
         return Sets.newHashSet( getTableName() );
     }
-    
+
     @Override
     public String validState()
     {
@@ -88,7 +88,7 @@ public class JdbcOrgUnitTargetTableManager
     {
         return Lists.newArrayList();
     }
-        
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -98,9 +98,9 @@ public class JdbcOrgUnitTargetTableManager
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-        
+
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
@@ -112,13 +112,13 @@ public class JdbcOrgUnitTargetTableManager
         {
             sql += col.getAlias() + ",";
         }
-        
+
         sql +=
             "1 as value " +
             "from orgunitgroupmembers ougm " +
             "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
             "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
+            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
         populateAndLog( sql, tableName );
     }
@@ -129,7 +129,7 @@ public class JdbcOrgUnitTargetTableManager
 
         List<OrganisationUnitLevel> levels =
             organisationUnitService.getFilledOrganisationUnitLevels();
-                
+
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
@@ -137,17 +137,17 @@ public class JdbcOrgUnitTargetTableManager
         }
 
         columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
-        
+
         return filterDimensionColumns( columns );
     }
-    
+
     private List<AnalyticsTableColumn> getValueColumns()
     {
         final String dbl = statementBuilder.getDoubleColumnType();
-        
+
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
     }
-    
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )

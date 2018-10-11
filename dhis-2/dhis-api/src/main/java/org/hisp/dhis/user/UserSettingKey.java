@@ -51,17 +51,14 @@ public enum UserSettingKey
     UI_LOCALE( "keyUiLocale", Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
     ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", String.class ),
-    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" ),
-    AUTO_SAVE_CASE_ENTRY_FORM( "keyAutoSaveCaseEntryForm", Boolean.class ),
-    AUTO_SAVE_TRACKED_ENTITY_REGISTRATION_ENTRY_FORM( "keyAutoSavetTrackedEntityForm", Boolean.class ),
-    AUTO_SAVE_DATA_ENTRY_FORM( "keyAutoSaveDataEntryForm", Boolean.class );
+    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" );
 
-    private final String name;    
+    private final String name;
 
     private final Serializable defaultValue;
 
     private final Class<?> clazz;
-    
+
     private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() ).filter( k -> k.getDefaultValue() != null )
         .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
 
@@ -98,12 +95,12 @@ public enum UserSettingKey
     {
         return defaultValue;
     }
-    
+
     public boolean hasDefaultValue()
     {
         return defaultValue != null;
     }
-    
+
     public static Optional<UserSettingKey> getByName( String name )
     {
         for ( UserSettingKey setting : UserSettingKey.values() )
@@ -161,7 +158,7 @@ public enum UserSettingKey
     {
         return clazz;
     }
-    
+
     public static Map<String, Serializable> getDefaultUserSettingsMap()
     {
         return new HashMap<>( DEFAULT_USER_SETTINGS_MAP );

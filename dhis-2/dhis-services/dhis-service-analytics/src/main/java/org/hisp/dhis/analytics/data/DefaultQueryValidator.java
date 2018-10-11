@@ -84,7 +84,7 @@ public class DefaultQueryValidator
         }
 
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements().stream().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );        
+        params.getProgramDataElements().stream().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
 
         if ( params.getDimensions().isEmpty() )
@@ -99,9 +99,9 @@ public class DefaultQueryValidator
 
         if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )
         {
-            violation = "At least one period must be specified as dimension or filter";
+            violation = "At least one period as dimension or filter, or start and dates must be specified";
         }
-        
+
         if ( params.hasPeriods() && params.hasStartEndDate() )
         {
             violation = "Periods and start and end dates cannot be specified simultaneously";
@@ -126,7 +126,7 @@ public class DefaultQueryValidator
         {
             violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
         }
-        
+
         if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
             violation = "Reporting rates can only be specified together with dimensions of type: " + COMPLETENESS_DIMENSION_TYPES;
@@ -141,24 +141,24 @@ public class DefaultQueryValidator
         {
             violation = "Assigned categories can only be specified together with data elements, not indicators or reporting rates";
         }
-        
+
         if ( !nonAggDataElements.isEmpty() )
         {
             violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );
         }
-        
+
         if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )
             {
                 violation = "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET";
             }
-            
+
             if ( !params.hasDimension( PERIOD_DIM_ID ) )
             {
                 violation = "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET";
             }
-                        
+
             if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
                 violation = "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET";

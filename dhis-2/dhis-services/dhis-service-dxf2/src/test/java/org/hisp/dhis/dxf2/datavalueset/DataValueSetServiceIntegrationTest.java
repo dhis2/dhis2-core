@@ -274,7 +274,7 @@ public class DataValueSetServiceIntegrationTest
 
     /**
      * Import 12 data values where 4 are marked as deleted. Then import 12 data
-     * values which reverse deletion of the 4 values and update the other 8 
+     * values which reverse deletion of the 4 values and update the other 8
      * values.
      */
     @Test
@@ -308,7 +308,7 @@ public class DataValueSetServiceIntegrationTest
 
     /**
      * Import 12 data values where 4 are marked as deleted. Then import 12 data
-     * values which reverse deletion of the 4 values, update 4 values and add 4 
+     * values which reverse deletion of the 4 values, update 4 values and add 4
      * values.
      */
     @Test

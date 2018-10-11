@@ -244,6 +244,8 @@ public class DefaultMessageService
 
         Message message = new Message( text, metaData, sender, internal );
 
+        message.setAttachments( attachments );
+
         conversation.markReplied( sender, message );
 
         updateMessageConversation( conversation );

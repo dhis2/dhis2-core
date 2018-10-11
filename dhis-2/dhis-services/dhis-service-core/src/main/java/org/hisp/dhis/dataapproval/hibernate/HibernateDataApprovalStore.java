@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -56,12 +57,16 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataapproval.DataApprovalState.*;
@@ -80,6 +85,11 @@ public class HibernateDataApprovalStore
     private static final String SQL_CONCAT = "-";
     private static final String SQL_CAT = StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
 
+    private static Cache<String, Boolean> IS_APPROVED_CACHE =  Caffeine.newBuilder()
+        .expireAfterWrite( 24, TimeUnit.HOURS )
+        .initialCapacity( 200 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -129,6 +139,8 @@ public class HibernateDataApprovalStore
     @Override
     public void addDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+        
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         save( dataApproval );
@@ -137,6 +149,8 @@ public class HibernateDataApprovalStore
     @Override
     public void updateDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+        
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         update( dataApproval );
@@ -145,6 +159,8 @@ public class HibernateDataApprovalStore
     @Override
     public void deleteDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+        
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         delete( dataApproval );
@@ -153,6 +169,8 @@ public class HibernateDataApprovalStore
     @Override
     public void deleteDataApprovals( OrganisationUnit organisationUnit )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+        
         String hql = "delete from DataApproval d where d.organisationUnit = :unit";
         
         getSession().createQuery( hql ).
@@ -196,6 +214,29 @@ public class HibernateDataApprovalStore
             .addPredicate( root -> root.get( "period" ).in( storedPeriods ) )
             .addPredicate( root -> root.get( "organisationUnit" ).in( organisationUnits ) )
             .addPredicate( root -> root.get( "attributeOptionCombo" ).in( attributeOptionCombos ) ) );
+    }
+
+    @Override
+    public boolean dataApprovalExists( DataApproval dataApproval )
+    {
+        return IS_APPROVED_CACHE.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) );
+    }
+    
+    private boolean dataApprovalExistsInternal( DataApproval dataApproval )
+    {
+        Period storedPeriod = periodService.reloadPeriod( dataApproval.getPeriod() );
+        
+        String sql = 
+            "select dataapprovalid " +
+            "from dataapproval " +
+            "where dataapprovallevelid = " + dataApproval.getDataApprovalLevel().getId() + " " +
+            "and workflowid = " + dataApproval.getWorkflow().getId() + " " +
+            "and periodid  = " + storedPeriod.getId() + " " +
+            "and organisationunitid = " + dataApproval.getOrganisationUnit().getId() + " " +
+            "and attributeoptioncomboid = " + dataApproval.getAttributeOptionCombo().getId() + " " +
+            "limit 1";
+        
+        return jdbcTemplate.queryForList( sql ).size() > 0;
     }
 
     @Override
