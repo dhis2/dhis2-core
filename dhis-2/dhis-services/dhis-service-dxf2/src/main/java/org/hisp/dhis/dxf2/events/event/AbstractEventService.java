@@ -1352,6 +1352,13 @@ public abstract class AbstractEventService
         {
             return;
         }
+        
+        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+       
+        if ( !errors.isEmpty() )
+        {
+            return;
+        }
 
         Date executionDate = new Date();
 
