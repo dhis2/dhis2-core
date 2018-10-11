@@ -1205,6 +1205,7 @@ public abstract class AbstractEventService
         {
             return;
         }
+        
         Date executionDate = new Date();
 
         if ( event.getEventDate() != null )
