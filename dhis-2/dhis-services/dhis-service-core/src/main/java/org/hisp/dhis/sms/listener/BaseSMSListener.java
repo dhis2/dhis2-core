@@ -66,13 +66,19 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
 
     private static final String DEFAULT_PATTERN =  "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
-    private static final String NO_SMS_CONFIG = "No sms configuration found";
+
+    protected static final String OK = "200";
+    protected static final String CONFLICT = "409";
+    protected static final String NO_SMS_CONFIG = "No sms configuration found";
+    protected static final String MORE_THAN_ONE_TEI = "More than one tracked entity found for given phone number";
+    protected static final String NO_OU_FOUND = "No organisation unit found";
+    protected static final String NO_TEI_EXIST = "No tracked entity exists with given phone number";
 
     protected static final int INFO = 1;
     protected static final int WARNING = 2;
     protected static final int ERROR = 3;
 
-    private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
+    protected static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
         .put( 1, log::info )
         .put( 2, log::warn )
         .put( 3, log::error )
@@ -208,7 +214,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             return false;
         }
 
-        if ( !hasOrganisationUnit( sms, smsCommand ) )
+        if ( !hasOrganisationUnit( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ),
                 sms.getOriginator(), ERROR );
@@ -216,7 +222,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             return false;
         }
 
-        if ( hasMultipleOrganisationUnits( sms, smsCommand ) )
+        if ( hasMultipleOrganisationUnits( sms) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getMoreThanOneOrgUnitMessage(),
                 SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
@@ -327,7 +333,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         return true;
     }
 
-    private boolean hasOrganisationUnit( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasOrganisationUnit( IncomingSms sms )
     {
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
@@ -335,7 +341,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     }
 
-    private boolean hasMultipleOrganisationUnits( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasMultipleOrganisationUnits( IncomingSms sms )
     {
         List<User> users = userService.getUsersByPhoneNumber( sms.getOriginator() );
 

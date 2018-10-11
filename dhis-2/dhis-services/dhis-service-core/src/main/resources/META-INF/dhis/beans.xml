@@ -1367,6 +1367,8 @@
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
+  <bean id="org.hisp.dhis.sms.listener.EventDataListener" class="org.hisp.dhis.sms.listener.EventDataListener" />
+
   <!-- Notification renderers -->
 
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
