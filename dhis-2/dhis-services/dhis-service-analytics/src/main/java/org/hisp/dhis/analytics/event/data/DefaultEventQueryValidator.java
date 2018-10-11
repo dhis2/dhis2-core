@@ -47,10 +47,10 @@ public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
     private static final Log log = LogFactory.getLog( DefaultEventQueryValidator.class );
-    
+
     @Autowired
     private QueryValidator queryValidator;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 
@@ -68,9 +68,9 @@ public class DefaultEventQueryValidator
         {
             throw new IllegalQueryException( "Params cannot be null" );
         }
-        
+
         queryValidator.validateMaintenanceMode();
-        
+
         if ( !params.hasOrganisationUnits() )
         {
             violation = "At least one organisation unit must be specified";
@@ -80,27 +80,27 @@ public class DefaultEventQueryValidator
         {
             violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
         }
-        
+
         if ( !params.getDuplicateQueryItems().isEmpty() )
         {
             violation = "Query items cannot be specified more than once: " + params.getDuplicateQueryItems();
         }
-        
+
         if ( params.hasValueDimension() && params.getDimensionalObjectItems().contains( params.getValue() ) )
         {
             violation = "Value dimension cannot also be specified as an item or item filter";
         }
-        
+
         if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
         {
             violation = "Value dimension or aggregate data must be specified when aggregation type is specified";
         }
-        
+
         if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
         {
             violation = "Start and end date or at least one period must be specified";
         }
-        
+
         if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
         {
             violation = "Start date is after end date: " + params.getStartDate() + " - " + params.getEndDate();
@@ -110,32 +110,32 @@ public class DefaultEventQueryValidator
         {
             violation = "Page number must be a positive number: " + params.getPage();
         }
-        
+
         if ( params.getPageSize() != null && params.getPageSize() < 0 )
         {
             violation = "Page size must be zero or a positive number: " + params.getPageSize();
         }
-        
+
         if ( params.hasLimit() && getMaxLimit() > 0 && params.getLimit() > getMaxLimit() )
         {
             violation = "Limit of: " + params.getLimit() + " is larger than max limit: " + getMaxLimit();
         }
-        
+
         if ( params.hasTimeField() && !params.timeFieldIsValid() )
         {
             violation = "Time field is invalid: " + params.getTimeField();
         }
-        
+
         if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
         {
             violation = "Cluster size must be a positive number: " + params.getClusterSize();
         }
-        
+
         if ( params.hasBbox() && !ValidationUtils.bboxIsValid( params.getBbox() ) )
         {
             violation = "Bbox is invalid: " + params.getBbox() + ", must be on format: 'min-lng,min-lat,max-lng,max-lat'";
         }
-        
+
         if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
         {
             violation = "Cluster field must be specified when bbox or cluster size are specified";
@@ -147,17 +147,17 @@ public class DefaultEventQueryValidator
             {
                 violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
             }
-            
+
             if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
             {
                 violation = "Query item must be aggregateable when used in aggregate query: " + item.getItemId();
             }
         }
-        
+
         if ( violation != null )
         {
             log.warn( String.format( "Event analytics validation failed: %s", violation ) );
-            
+
             throw new IllegalQueryException( violation );
         }
     }

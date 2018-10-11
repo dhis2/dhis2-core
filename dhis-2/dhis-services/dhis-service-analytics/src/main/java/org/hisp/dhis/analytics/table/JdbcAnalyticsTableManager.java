@@ -83,7 +83,7 @@ public class JdbcAnalyticsTableManager
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private PartitionManager partitionManager;
 
@@ -102,16 +102,16 @@ public class JdbcAnalyticsTableManager
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
         AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
-        
+
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
-    
+
     @Override
     public Set<String> getExistingDatabaseTables()
     {
         return partitionManager.getDataValueAnalyticsPartitions();
     }
-    
+
     @Override
     public String validState()
     {
@@ -148,7 +148,7 @@ public class JdbcAnalyticsTableManager
             "year = " + partition.getYear() + "",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -193,12 +193,12 @@ public class JdbcAnalyticsTableManager
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
-        
+
         sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
@@ -256,7 +256,7 @@ public class JdbcAnalyticsTableManager
      * Returns sub-query for approval level. First looks for approval level in
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
-     * 
+     *
      * @param year the data year.
      */
     private String getApprovalJoinClause( Integer year )
@@ -280,7 +280,7 @@ public class JdbcAnalyticsTableManager
 
         return StringUtils.EMPTY;
     }
-    
+
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -353,7 +353,7 @@ public class JdbcAnalyticsTableManager
         String approvalCol = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
-        
+
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
@@ -466,13 +466,13 @@ public class JdbcAnalyticsTableManager
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
         Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
-        
+
         log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d", setting, levels, maxYears ) );
-        
+
         if ( year != null )
         {
             boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( year, maxYears );
-            
+
             return setting && levels && !periodOverMaxYears;
         }
         else

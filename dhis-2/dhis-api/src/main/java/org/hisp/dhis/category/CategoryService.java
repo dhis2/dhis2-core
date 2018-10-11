@@ -363,15 +363,6 @@ public interface CategoryService
     CategoryOptionCombo getCategoryOptionComboByCode( String code );
 
     /**
-     * Retrieves the CategoryOptionCombo with the given Collection of
-     * CategoryOptions.
-     *
-     * @param categoryOptions the collection of CategoryOptions.
-     */
-    CategoryOptionCombo getCategoryOptionCombo(
-        Collection<CategoryOption> categoryOptions );
-
-    /**
      * Retrieves a CategoryOptionCombo.
      *
      * @param categoryCombo   the CategoryOptionCombo.

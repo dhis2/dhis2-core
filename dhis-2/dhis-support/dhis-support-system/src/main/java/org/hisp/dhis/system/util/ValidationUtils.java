@@ -62,7 +62,7 @@ public class ValidationUtils
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile( "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" );
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
-    private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9]●?){6,14}[0-9]$" );
+    private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "f", "F", "0" );
 
@@ -381,6 +381,13 @@ public class ValidationUtils
         return dataValueIsValid( value, dataElement.getValueType() );
     }
 
+    /**
+     * Indicates whether the given data value is valid according to the given value type.
+     * 
+     * @param value the data value.
+     * @param valueType the {@link ValueType}.
+     * @return null if the value is valid, a string if not.
+     */
     public static String dataValueIsValid( String value, ValueType valueType )
     {
         if ( value == null || value.trim().isEmpty() )
@@ -482,9 +489,8 @@ public class ValidationUtils
     {
         AggregationType aggregationType = dataElement.getAggregationType();
 
-        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) &&
-            !dataElement.isZeroIsSignificant() &&
-            !(aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE);
+        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) && !dataElement.isZeroIsSignificant() &&
+            !( aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE );
     }
 
     /**

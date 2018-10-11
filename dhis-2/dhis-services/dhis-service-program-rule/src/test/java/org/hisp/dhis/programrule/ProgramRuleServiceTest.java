@@ -201,8 +201,8 @@ public class ProgramRuleServiceTest
         programService.deleteProgram( programA );
         
         assertNull( programRuleService.getProgramRule( programRuleA.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionA.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionB.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( assignAction.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( sendMessageAction.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableA.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableB.getId() ) );
     }*/

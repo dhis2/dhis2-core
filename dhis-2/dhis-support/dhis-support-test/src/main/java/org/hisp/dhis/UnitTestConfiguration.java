@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.event;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,21 +26,25 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+package org.hisp.dhis;
+
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 /**
- * @author Markus Bekken
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface EnrollmentAnalyticsManager
+@Configuration
+@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
+public class UnitTestConfiguration
 {
-    /**
-     * Retrieves aggregated data based on enrollments.
-     *
-     * @param params the query to retrieve aggregated data for.
-     * @param grid the grid to insert data into.
-     * @param maxLimit the max number of records to retrieve.
-     * @return a grid with data.
-     */
-    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
-}
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
+    {
+        TestDhisConfigurationProvider testDhisConfigurationProvider = new TestDhisConfigurationProvider();
 
+        return testDhisConfigurationProvider;
+    }
+}
