@@ -19,6 +19,8 @@ expr
     |   fun='if' a3
     |   fun='isNull' a1
     |   fun='coalesce' a1_n
+    |   fun='maximum' a1_n
+    |   fun='minimum' a1_n
 
     // Aggregation functions
 
@@ -263,6 +265,8 @@ IF: 'if';
 EXCEPT: 'except';
 IS_NULL: 'isNull';
 COALESCE: 'coalesce';
+MAXIMUM: 'maximum';
+MINIMUM: 'minimum';
 
 // Aggregation functions
 

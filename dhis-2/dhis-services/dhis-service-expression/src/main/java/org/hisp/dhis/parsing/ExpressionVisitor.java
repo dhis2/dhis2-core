@@ -46,6 +46,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -354,6 +355,12 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
             case COALESCE:
                 return functionCoalesce( ctx );
 
+            case MAXIMUM:
+                return aggregateArgs( StatUtils::max, ctx );
+
+            case MINIMUM:
+                return aggregateArgs( StatUtils::min, ctx );
+
             // -----------------------------------------------------------------
             // Aggregation functions
             // -----------------------------------------------------------------
@@ -617,9 +624,9 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     {
         Set<Integer> levels = new HashSet<>();
 
-        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        for ( ExprContext c : ctx.a1_n().expr() )
         {
-            levels.add( castNonNullInteger( visit( ctx.a1_n().expr( i ) ) ) );
+            levels.add( castNonNullInteger( visit( c ) ) );
         }
 
         Set<OrganisationUnit> orgUnitsAtLevels = new HashSet<>();
@@ -668,9 +675,9 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     {
         Set<OrganisationUnit> orgUnitsInGroups = new HashSet<>();
 
-        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        for ( ExprContext c : ctx.a1_n().expr() )
         {
-            String groupName = castString( visit( ctx.a1_n().expr( i ) ) );
+            String groupName = castString( visit( c ) );
 
             OrganisationUnitGroup group = getIdentifiableObject( OrganisationUnitGroup.class, groupName );
 
@@ -695,9 +702,9 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
     {
         Set<OrganisationUnit> orgUnitsInDataSets = new HashSet<>();
 
-        for ( int i = 0; i < ctx.a1_n().expr().size(); i++ )
+        for ( ExprContext c : ctx.a1_n().expr() )
         {
-            String dataSetName = castString( visit( ctx.a1_n().expr( i ) ) );
+            String dataSetName = castString( visit( c ) );
 
             DataSet dataSet = getIdentifiableObject( DataSet.class, dataSetName );
 
@@ -1023,6 +1030,39 @@ public abstract class ExpressionVisitor extends ExpressionBaseVisitor<Object>
 
         return object;
     }
+
+    /**
+     * Unlike the other aggregation functions, aggregates the values of the
+     * function arguments.
+     *
+     * @param func the function to apply (if multiple values).
+     * @param ctx the parsing context.
+     * @return the function value, or null if no inputs.
+     */
+    private Double aggregateArgs( Function<double[], Double> func, ExprContext ctx )
+    {
+        List<Double> args = new ArrayList<>();
+
+        for ( ExprContext c : ctx.a1_n().expr() )
+        {
+            Double arg = castDouble( visit( c ) );
+
+            if ( arg != null )
+            {
+                args.add( arg );
+            }
+        }
+
+        if ( args.size() == 0 )
+        {
+            return null;
+        }
+
+        double[] doubles = ArrayUtils.toPrimitive( args.toArray( new Double[ 0 ] ) );
+
+        return func.apply( doubles );
+    }
+
 
     // -------------------------------------------------------------------------
     // Other supportive functions

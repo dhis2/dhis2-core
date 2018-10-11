@@ -1382,6 +1382,7 @@ public class ParsingServiceTest
 
         assertEquals( "20 G306-", eval( "#{dataElemenA}.sum()" ) );
         assertEquals( "1770 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).sum()" ) );
+        assertEquals( "null G309-", eval( "#{dataElemenA}.period( 3 ).sum()" ) );
 
         // max
 
@@ -1487,6 +1488,16 @@ public class ParsingServiceTest
         assertEquals( "20 G306- G309-", eval( "coalesce( #{dataElemenA}.period( 3 ), #{dataElemenA} )" ) );
         assertEquals( "20 G306- G309- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}.period( 3 ), #{dataElemenA} )" ) );
         assertEquals( "20 G306- G309- G310-", eval( "coalesce( #{dataElemenA}.period( 4 ), #{dataElemenA}, #{dataElemenA}.period( 3 ) )" ) );
+
+        // Maximum
+
+        assertEquals( "5", eval( "maximum( 3, 5, 1, 4, 2 )" ) );
+        assertEquals( "null G309-", eval( "maximum( #{dataElemenA}.period(3) )" ) );
+
+        // Minimum
+
+        assertEquals( "1", eval( "minimum( 3, 5, 1, 4, 2 )" ) );
+        assertEquals( "null G309-", eval( "minimum( #{dataElemenA}.period(3) )" ) );
 
         // Except
 
