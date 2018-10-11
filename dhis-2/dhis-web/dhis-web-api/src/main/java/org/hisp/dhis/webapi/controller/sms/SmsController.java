@@ -68,6 +68,9 @@ import java.util.List;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsController
 {
+    private static final String NO_REG_USER = "User not registered in the system";
+    private static final String FOUND_MULTIPLE_USERS = "More than one user attached to sender phone number";
+
     @Autowired
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
@@ -201,9 +204,24 @@ public class SmsController
                 return null;
             }
 
-            throw new WebMessageException( WebMessageUtils.conflict( "User not registered in the system" ) );
+            sendFeedback( NO_REG_USER, phoneNumber );
+        }
+
+        if ( users.size() > 1 )
+        {
+            sendFeedback( FOUND_MULTIPLE_USERS, phoneNumber );
         }
 
         return users.iterator().next();
+    }
+
+    private void sendFeedback( String feedbackMessage, String recipient ) throws WebMessageException
+    {
+        if( smsSender.isConfigured() )
+        {
+            smsSender.sendMessage( "", feedbackMessage, recipient );
+        }
+
+        throw new WebMessageException( WebMessageUtils.conflict( feedbackMessage ) );
     }
 }
