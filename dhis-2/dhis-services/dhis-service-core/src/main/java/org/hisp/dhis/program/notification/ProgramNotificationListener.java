@@ -38,40 +38,45 @@ import org.springframework.scheduling.annotation.Async;
 public class ProgramNotificationListener
 {
     @Autowired
-    private ProgramNotificationService programNotificationService;
+    private ProgramNotificationAsyncTask asyncTask;
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
     @Async
     public void onEnrollment( ProgramNotificationEvent event )
     {
-        programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
+        asyncTask.setFunction( notificationService -> notificationService.sendEnrollmentNotifications( event.getProgramInstance() ) );
+        asyncTask.run();
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
     @Async
     public void onCompletion( ProgramNotificationEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
+        asyncTask.setFunction( notificationService -> notificationService.sendCompletionNotifications( event.getProgramInstance() ) );
+        asyncTask.run();
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
     @Async
     public void onProgramRuleEnrollment( ProgramNotificationEvent event )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
+        asyncTask.setFunction( notificationService -> notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() ) );
+        asyncTask.run();
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
     @Async
     public void onEvent( ProgramNotificationEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
+        asyncTask.setFunction( notificationService -> notificationService.sendCompletionNotifications( event.getProgramStageInstance() ) );
+        asyncTask.run();
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
     @Async
     public void onProgramRuleEvent( ProgramNotificationEvent event )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
+        asyncTask.setFunction( notificationService -> notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() ) );
+        asyncTask.run();
     }
 }

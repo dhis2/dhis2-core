@@ -1466,6 +1466,8 @@
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener" class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
 
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationAsyncTask" class="org.hisp.dhis.program.notification.ProgramNotificationAsyncTask"  scope="prototype"/>
+
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
     <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
   </bean>
