@@ -395,6 +395,12 @@ public class JdbcAnalyticsManager
         // Restrictions
         // ---------------------------------------------------------------------
 
+        if ( params.hasStartEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+        }
+
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
