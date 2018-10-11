@@ -99,7 +99,7 @@ public class DefaultQueryValidator
 
         if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )
         {
-            violation = "At least one period must be specified as dimension or filter";
+            violation = "At least one period as dimension or filter, or start and dates must be specified";
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )

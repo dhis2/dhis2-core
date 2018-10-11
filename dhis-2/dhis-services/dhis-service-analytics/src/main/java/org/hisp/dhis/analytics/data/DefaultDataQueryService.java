@@ -372,11 +372,6 @@ public class DefaultDataQueryService
 
             periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
-            if ( periods.isEmpty() && !allowAllPeriodItems )
-            {
-                throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
-            }
-
             if ( queryContainsRelativePeriods )
             {
                 periods.sort( new AscendingPeriodComparator() );
