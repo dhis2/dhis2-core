@@ -36,14 +36,24 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Implements the PeriodStore interface.
- * 
+ *
  * @author Torgeir Lorange Ostby
  * @version $Id: HibernatePeriodStore.java 5983 2008-10-17 17:42:44Z larshelg $
  */
@@ -51,6 +61,11 @@ public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
+    private static Cache<String, Integer> PERIOD_ID_CACHE =  Caffeine.newBuilder()
+        .expireAfterWrite( 24, TimeUnit.HOURS )
+        .initialCapacity( 200 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
@@ -103,10 +118,10 @@ public class HibernatePeriodStore
     public List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate )
     {
         String hql = "from Period p where ( p.startDate >= :startDate and p.endDate <= :endDate ) or ( p.startDate <= :startDate and p.endDate >= :endDate )";
-        
+
         return getQuery( hql ).setDate( "startDate", startDate ).setDate( "endDate", endDate ).list();
     }
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
@@ -126,7 +141,7 @@ public class HibernatePeriodStore
         Criteria criteria = getCriteria();
         criteria.add( Restrictions.ge( "endDate", startDate ) );
         criteria.add( Restrictions.le( "startDate", endDate ) );
-        
+
         return criteria.list();
     }
 
@@ -161,9 +176,18 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Period storedPeriod = getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
-        
+        Integer id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
+
+        Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
+
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;
+    }
+
+    private Integer getPeriodId( Date startDate, Date endDate, PeriodType periodType )
+    {
+        Period period = getPeriod( startDate, endDate, periodType );
+
+        return period != null ? period.getId() : null;
     }
 
     @Override
@@ -206,7 +230,7 @@ public class HibernatePeriodStore
     {
         Session session = sessionFactory.getCurrentSession();
 
-        return (PeriodType) session.get( PeriodType.class, id );
+        return session.get( PeriodType.class, id );
     }
 
     @Override
