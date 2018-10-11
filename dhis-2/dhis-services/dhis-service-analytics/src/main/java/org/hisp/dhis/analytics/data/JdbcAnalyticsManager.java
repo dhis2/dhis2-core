@@ -397,28 +397,25 @@ public class JdbcAnalyticsManager
 
         if ( params.hasStartEndDate() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-        }
+            if ( params.isRestrictByOrgUnitOpeningClosedDate() )
+            {
+                sql += sqlHelper.whereAnd() + " (" +
+                    "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
+                    "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
+            }
 
-        if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
-        {
-            sql += sqlHelper.whereAnd() + " (" +
-                "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
-                "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
-        }
+            if ( params.isRestrictByCategoryOptionStartEndDate() )
+            {
+                sql += sqlHelper.whereAnd() + " (" +
+                    "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
+                    "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
+            }
 
-        if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
-        {
-            sql += sqlHelper.whereAnd() + " (" +
-                "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
-                "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
-        }
-
-        if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
-        {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() )
+            {
+                sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            }
         }
 
         if ( params.isTimely() )
