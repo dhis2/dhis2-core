@@ -62,10 +62,10 @@ public class DefaultDhisConfigurationProvider
     private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
 
     private static final String CONF_FILENAME = "dhis.conf";
-    private static final String TEST_CONF_FILENAME = "dhis-test.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
+    private static final String DISABLED_VALUE = "off";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -94,18 +94,9 @@ public class DefaultDhisConfigurationProvider
         // Load DHIS 2 configuration file into properties bundle
         // ---------------------------------------------------------------------
 
-        if ( SystemUtils.isTestRun() )
-        {
-            this.properties = loadDhisTestConf();
-            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisH2Dialect" );
-
-            return; // Short-circuit here when we're setting up a test context
-        }
-        else
-        {
-            this.properties = loadDhisConf();
-            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        }
+        this.properties = loadDhisConf();
+        this.properties
+            .setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into properties bundle
@@ -182,6 +173,12 @@ public class DefaultDhisConfigurationProvider
     public boolean isEnabled( ConfigurationKey key )
     {
         return ENABLED_VALUE.equals( getProperty( key ) );
+    }
+
+    @Override
+    public boolean isDisabled( ConfigurationKey key )
+    {
+        return DISABLED_VALUE.equals( getProperty( key ) );
     }
 
     @Override
@@ -311,20 +308,6 @@ public class DefaultDhisConfigurationProvider
             log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
 
             throw new IllegalStateException( "Properties could not be loaded", ex );
-        }
-    }
-
-    private Properties loadDhisTestConf()
-    {
-        try
-        {
-            return PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
-        }
-        catch ( IOException ex )
-        {
-            log.warn( String.format( "Could not load %s from classpath", TEST_CONF_FILENAME ), ex );
-
-            return new Properties();
         }
     }
 

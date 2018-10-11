@@ -28,17 +28,15 @@ package org.hisp.dhis.sms.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.Date;
+import java.util.List;
 
 public class HibernateOutboundSmsStore
     extends HibernateGenericStore<OutboundSms>
@@ -70,25 +68,28 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OutboundSms> getAllOutboundSms()
     {
-        return getCriteria().addOrder( Order.desc( "date" ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addOrder( root -> builder.desc( root.get( "date" ) ) ));
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<OutboundSms> get( OutboundSmsStatus status )
     {
-        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        Criteria criteria = session.createCriteria( OutboundSms.class ).addOrder( Order.desc( "date" ) );
+        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
+            .addOrder( root -> builder.desc( root.get( "date" ) ) );
 
         if ( status != null )
         {
-            criteria.add( Restrictions.eq( "status", status ) );
+            parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
-        return criteria.list();
+
+        return getList( builder, parameters );
     }
 
     @Override
@@ -103,38 +104,40 @@ public class HibernateOutboundSmsStore
         delete( sms );
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max )
     {
-        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        Criteria criteria = session.createCriteria( OutboundSms.class ).addOrder( Order.desc( "date" ) );
+        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
+            .addOrder( root -> builder.desc( root.get( "date" ) ) );
 
         if ( status != null )
         {
-            criteria.add( Restrictions.eq( "status", status ) );
+            parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
         }
 
         if ( min != null && max != null )
         {
-            criteria.setFirstResult( min ).setMaxResults( max );
+            parameters.setFirstResult( min ).setMaxResults( max );
         }
-        return criteria.list();
+
+        return getList( builder, parameters );
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
     {
-        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        Criteria criteria = session.createCriteria( OutboundSms.class ).addOrder( Order.desc( "date" ) );
+        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
+            .addOrder( root -> builder.desc( root.get( "date" ) ) );
 
         if ( min != null && max != null )
         {
-            criteria.setFirstResult( min ).setMaxResults( max );
+            parameters.setFirstResult( min ).setMaxResults( max );
         }
-        return criteria.list();
+
+        return getList( builder, parameters );
     }
 }

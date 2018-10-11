@@ -44,7 +44,12 @@ public class TextMethodType
     @Override
     public boolean validateText( String format, String text )
     {
-        return text.equals( format );
+        format = format.replaceAll( "\\\\d", "[0-9]" );
+        format = format.replaceAll( "\\\\x", "[a-z]" );
+        format = format.replaceAll( "\\\\X", "[A-Z]" );
+        format = format.replaceAll( "\\\\w", "[0-9a-zA-Z]" );
+
+        return Pattern.compile( format ).matcher( text ).matches();
     }
 
     @Override

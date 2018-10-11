@@ -38,7 +38,6 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,14 +101,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
         if ( !variableMap.containsKey( programInstance.getUid() ) )
         {
-            Map<String, String> valueMap = new HashMap<>();
-            valueMap.put( variable, value );
-
-            variableMap.put( programInstance.getUid(), valueMap );
-            return;
+            variableMap.put( programInstance.getUid(), new HashMap<>() );
         }
 
         variableMap.get( programInstance.getUid() ).put( variable, value );
-        return;
     }
 }

@@ -334,9 +334,8 @@ public class DefaultProgramMessageService
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
         messageBatch.parallelStream()
-            .filter( ProgramMessage::isStoreCopy )
             .map( pm -> setParameters( pm, status ) )
-            .map( this::saveProgramMessage );
+            .forEach( this::saveProgramMessage );
     }
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
@@ -385,7 +384,7 @@ public class DefaultProgramMessageService
         {
             strategies.stream()
                 .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                .map( st -> st.setAttributes( message ) );
+                .forEach( st -> st.setAttributes( message ) );
         }
 
         return message;

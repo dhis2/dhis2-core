@@ -110,6 +110,13 @@
     </global-results>
 
   </package>
+
+  <!-- Messaging (for legacy reasons) -->
+  <package name="dhis-web-messaging" extends="dhis-web-commons" namespace="/dhis-web-messaging">
+    <action name="message" class="org.hisp.dhis.commons.action.NoAction">
+      <result name="success" type="redirect">/dhis-web-messaging</result>
+    </action>
+  </package>
   
   <!-- Security -->
 

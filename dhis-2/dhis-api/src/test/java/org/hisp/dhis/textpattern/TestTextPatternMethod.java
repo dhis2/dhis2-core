@@ -55,6 +55,19 @@ public class TestTextPatternMethod
     }
 
     @Test
+    public void testValidateTextWithSpecialCharacters()
+    {
+        String[] valid = {
+            "\"My digit is \\d\"",
+            "\"My lowercase letter is \\x\"",
+            "\"My uppercase letter is \\X\"",
+            "\"My any character is \\w\""
+        };
+
+        testSyntax( TextPatternMethod.TEXT, valid, true );
+    }
+
+    @Test
     public void testValidateRandom()
     {
         String[] valid = {

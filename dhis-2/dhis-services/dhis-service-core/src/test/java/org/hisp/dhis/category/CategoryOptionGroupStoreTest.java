@@ -31,11 +31,6 @@ package org.hisp.dhis.category;
  */
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.category.CategoryService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -169,4 +164,3 @@ public class CategoryOptionGroupStoreTest
         assertTrue( groupsB.contains( cogD ) );        
     }
 }
-

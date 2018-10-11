@@ -75,8 +75,8 @@ public class UserSettingController
     @Autowired
     private CurrentUserService currentUserService;
 
-    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
-        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
+        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
 
     // -------------------------------------------------------------------------
     // Resources
@@ -92,7 +92,7 @@ public class UserSettingController
     {
         User user = getUser( userId, username );
 
-        return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, useFallback );
+        return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
     }
 
     @GetMapping( value = "/{key}" )
@@ -108,7 +108,7 @@ public class UserSettingController
         User user = getUser( userId, username );
 
         Serializable value = userSettingService
-            .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
+            .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey ), useFallback )
             .get( key );
 
         return String.valueOf( value );

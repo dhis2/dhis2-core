@@ -28,13 +28,13 @@ package org.hisp.dhis.option.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -46,18 +46,22 @@ public class HibernateOptionGroupStore
     implements OptionGroupStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
     {
-        return getSharingDetachedCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "groupSet" ), groupSet ) ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getCriteria(
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimension ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

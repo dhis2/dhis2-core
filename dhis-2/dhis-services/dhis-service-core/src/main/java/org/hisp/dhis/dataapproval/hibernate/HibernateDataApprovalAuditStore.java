@@ -73,11 +73,10 @@ public class HibernateDataApprovalAuditStore
         String hql = "delete from DataApprovalAudit d where d.organisationUnit = :unit";
 
         getSession().createQuery( hql ).
-            setEntity( "unit", organisationUnit ).executeUpdate();
+            setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();

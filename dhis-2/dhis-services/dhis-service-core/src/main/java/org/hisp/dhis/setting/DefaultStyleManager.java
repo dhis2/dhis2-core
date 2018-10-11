@@ -90,7 +90,7 @@ public class DefaultStyleManager
     @Override
     public void setSystemStyle( String style )
     {
-        systemSettingManager.saveSystemSetting( SettingKey.STYLE.getName(), style );
+        systemSettingManager.saveSystemSetting( SettingKey.STYLE, style );
     }
     
     @Override

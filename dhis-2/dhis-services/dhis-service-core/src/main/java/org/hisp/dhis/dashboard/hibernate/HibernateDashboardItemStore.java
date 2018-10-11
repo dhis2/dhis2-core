@@ -28,6 +28,7 @@ package org.hisp.dhis.dashboard.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.query.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -40,8 +41,6 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 
-import javax.persistence.Query;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,73 +50,73 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countMapDashboardItems( Map map )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
         query.setParameter( "map", map );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countChartDashboardItems( Chart chart )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
         query.setParameter( "chart", chart );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countEventChartDashboardItems( EventChart eventChart )
     {
-        Query query = getJpaQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
+        Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
 
         query.setParameter( "eventChart", eventChart );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
         query.setParameter( "reportTable", reportTable );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countReportDashboardItems( Report report )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
         query.setParameter( "report", report );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countDocumentDashboardItems( Document document )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
         query.setParameter( "document", document );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public int countUserDashboardItems( User user )
     {
-        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
         query.setParameter( "user", user );
 
-        return ((Long) query.getSingleResult()).intValue();
+        return query.getSingleResult().intValue();
     }
 
     @Override
     public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
     {
-        Query query = getJpaQuery( "from Dashboard d where :item in elements(d.items)" );
+        Query<Dashboard> query = getTypedQuery( "from Dashboard d where :item in elements(d.items)" );
         query.setParameter( "item", dashboardItem );
 
-        return (Dashboard) query.getSingleResult();
+        return query.getSingleResult();
     }
 }

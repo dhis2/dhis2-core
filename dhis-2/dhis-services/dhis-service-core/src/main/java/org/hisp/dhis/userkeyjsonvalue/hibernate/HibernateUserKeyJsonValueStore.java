@@ -28,12 +28,12 @@ package org.hisp.dhis.userkeyjsonvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,21 +48,22 @@ public class HibernateUserKeyJsonValueStore
     @Override
     public UserKeyJsonValue getUserKeyJsonValue( User user, String namespace, String key )
     {
-        return (UserKeyJsonValue) getCriteria(
-            Restrictions.eq( "user", user ),
-            Restrictions.eq( "namespace", namespace ),
-            Restrictions.eq( "key", key ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
+            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> getNamespacesByUser( User user )
     {
-        List<UserKeyJsonValue> queryResult = getCriteria( Restrictions.eq( "user", user ) ).list();
-        List<String> namespaces = queryResult.stream().map( UserKeyJsonValue::getNamespace ).distinct()
-            .collect( Collectors.toList() );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return namespaces;
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "user" ), user ) ) )
+            .stream().map( UserKeyJsonValue::getNamespace  ).distinct().collect( Collectors.toList() );
     }
 
     @Override
@@ -73,12 +74,12 @@ public class HibernateUserKeyJsonValueStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<UserKeyJsonValue> getUserKeyJsonValueByUserAndNamespace( User user, String namespace )
     {
-        return (List<UserKeyJsonValue>) getCriteria(
-            Restrictions.eq( "user", user ),
-            Restrictions.eq( "namespace", namespace )
-        ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 }

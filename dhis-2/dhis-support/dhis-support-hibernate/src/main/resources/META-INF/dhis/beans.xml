@@ -51,6 +51,11 @@
     <property name="hibernateProperties" ref="hibernateProperties" />
     <property name="mappingJarLocations" ref="hibernateMappingJarLocations" />
     <property name="mappingDirectoryLocations" ref="hibernateMappingDirectoryLocations" />
+    <property name="annotatedClasses">
+        <list>
+          <value>org.hisp.dhis.deletedobject.DeletedObject</value>
+        </list>
+    </property>
   </bean>
 
   <!-- Data source -->
@@ -77,11 +82,19 @@
   <bean id="jdbcTemplate" primary="true" class="org.springframework.jdbc.core.JdbcTemplate">
     <property name="dataSource" ref="dataSource" />
     <property name="fetchSize" value="1000" />
+    <property name="queryTimeout" value="600" />
+  </bean>
+
+  <bean id="slowQueryJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <property name="dataSource" ref="dataSource" />
+    <property name="fetchSize" value="1000" />
+    <property name="queryTimeout" value="21600" />
   </bean>
 
   <bean id="readOnlyJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
     <property name="dataSource" ref="readOnlyDataSource" />
     <property name="fetchSize" value="1000" />
+    <property name="queryTimeout" value="600" />
   </bean>
 
   <bean id="driverClass" class="org.hisp.dhis.hibernate.ConnectionPropertyFactoryBean">

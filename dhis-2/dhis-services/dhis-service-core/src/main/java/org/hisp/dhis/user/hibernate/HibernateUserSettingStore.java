@@ -30,7 +30,7 @@ package org.hisp.dhis.user.hibernate;
 
 import java.util.List;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
@@ -81,8 +81,8 @@ public class HibernateUserSettingStore
 
         Query query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
 
-        query.setEntity( "user", user );
-        query.setString( "name", name );
+        query.setParameter( "user", user );
+        query.setParameter( "name", name );
         query.setCacheable( true );
 
         return (UserSetting) query.uniqueResult();
@@ -94,7 +94,7 @@ public class HibernateUserSettingStore
     {
         Session session = sessionFactory.getCurrentSession();
         Query query = session.createQuery( "from UserSetting us where us.user = :user" );
-        query.setEntity( "user", user );
+        query.setParameter( "user", user );
 
         return query.list();
     }
@@ -114,6 +114,6 @@ public class HibernateUserSettingStore
         
         String hql = "delete from UserSetting us where us.user = :user";
 
-        session.createQuery( hql ).setEntity( "user", user ).executeUpdate();
+        session.createQuery( hql ).setParameter( "user", user ).executeUpdate();
     }
 }

@@ -28,7 +28,6 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -36,6 +35,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -48,33 +48,27 @@ public class HibernateRelationshipStore
     @Override
     public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
     {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getCriteria(
-            Restrictions.eq( "from.trackedEntityInstance", tei )
-        )
-            .createAlias( "from", "from" )
-            .list();
-
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ) ));
     }
 
     @Override
     public List<Relationship> getByProgramInstance( ProgramInstance pi )
     {
-        return getCriteria(
-            Restrictions.eq( "from.programInstance", pi )
-        )
-            .createAlias( "from", "from" )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programInstance" ), pi ) ));
     }
 
     @Override
     public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
     {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getCriteria(
-            Restrictions.eq( "from.programStageInstance", psi )
-        )
-            .createAlias( "from", "from" )
-            .list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ) ));
     }
 }

@@ -28,14 +28,11 @@ package org.hisp.dhis.metadata.version.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Projections;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 
-import java.sql.Timestamp;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 
@@ -51,33 +48,49 @@ public class HibernateMetadataVersionStore
     @Override
     public MetadataVersion getVersionByKey( int key )
     {
-        return (MetadataVersion) getCriteria( Restrictions.eq( "id", key ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "id" ), key ) ) );
     }
 
     @Override
     public MetadataVersion getVersionByName( String versionName )
     {
-        return (MetadataVersion) getCriteria( Restrictions.eq( "name", versionName ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "name" ), versionName ) ) );
     }
 
     @Override
     public MetadataVersion getCurrentVersion()
     {
-        Timestamp lastUpdatedDate = (Timestamp) getCriteria().setCacheable( false ).setProjection( Projections.max( "created" ) ).uniqueResult();
-        return (MetadataVersion) getCriteria().setCacheable( false ).add( Property.forName( "created" ).eq( lastUpdatedDate ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addOrder( root -> builder.desc( root.get( "created" ) ) )
+            .setMaxResults( 1 )
+            .setCacheable( false ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate )
     {
-        return getCriteria().add( Restrictions.between( "created", startDate, endDate ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.between( root.get( "created" ), startDate, endDate ) ) );
     }
 
     @Override
     public MetadataVersion getInitialVersion()
     {
-        Timestamp initialCreateDate = (Timestamp) getCriteria().setCacheable( false ).setProjection( Projections.min( "created" ) ).uniqueResult();
-        return (MetadataVersion) getCriteria().setCacheable( false ).add( Property.forName( "created" ).eq( initialCreateDate ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addOrder( root -> builder.asc( root.get( "created" ) ) )
+            .setMaxResults( 1 )
+            .setCacheable( false ) );
     }
 }

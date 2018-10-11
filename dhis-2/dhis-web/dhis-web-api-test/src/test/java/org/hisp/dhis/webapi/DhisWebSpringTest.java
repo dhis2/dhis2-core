@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.UnitTestConfiguration;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
@@ -38,6 +39,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
@@ -49,6 +51,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -71,11 +74,8 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RunWith( SpringRunner.class )
-@ContextConfiguration( locations = {
-    "classpath*:/META-INF/dhis/beans.xml",
-    "classpath*:/META-INF/dhis/servlet.xml" }
-)
 @WebAppConfiguration
+@ContextConfiguration(classes = WebTestConfiguration.class)
 @Transactional
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
