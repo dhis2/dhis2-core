@@ -413,8 +413,9 @@ public class JdbcAnalyticsManager
 
             if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() )
             {
-                sql += sqlHelper.whereAnd() + " " + quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-                sql += "and " + quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+                sql += sqlHelper.whereAnd() + " " +
+                    quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' and " +
+                    quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
         }
 
