@@ -155,18 +155,16 @@ public class DefaultHibernateConfigurationProvider
 
         try
         {
-            Properties fileProperties = configurationProvider.getProperties();
-
-            mapToHibernateProperties( fileProperties );
+            Properties fileHibernateProperties = getHibernateProperties();
 
             if ( configurationProvider.isReadOnlyMode() )
             {
-                fileProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
+                fileHibernateProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
 
                 log.info( "Read-only mode enabled, setting hibernate.hbm2ddl.auto to 'validate'" );
             }
 
-            config.addProperties( fileProperties );
+            config.addProperties( fileHibernateProperties );
         }
         catch ( LocationManagerException ex )
         {
@@ -186,8 +184,10 @@ public class DefaultHibernateConfigurationProvider
             log.info( "Clustering and cache replication enabled" );
         }
 
-        log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
-            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
+        log.info( String.format(
+            "Hibernate configuration loaded: dialect: '%s', region factory: '%s', connection pool max size: %s",
+            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ),
+            config.getProperty( Environment.C3P0_MAX_SIZE ) ) );
 
         this.configuration = config;
     }
@@ -224,24 +224,26 @@ public class DefaultHibernateConfigurationProvider
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void mapToHibernateProperties( Properties properties )
+    private Properties getHibernateProperties()
     {
-        putIfExists( properties, ConfigurationKey.CONNECTION_DIALECT.getKey(), Environment.DIALECT );
-        putIfExists( properties, ConfigurationKey.CONNECTION_DRIVER_CLASS.getKey(), Environment.DRIVER );
-        putIfExists( properties, ConfigurationKey.CONNECTION_URL.getKey(), Environment.URL );
-        putIfExists( properties, ConfigurationKey.CONNECTION_USERNAME.getKey(), Environment.USER );
-        putIfExists( properties, ConfigurationKey.CONNECTION_PASSWORD.getKey(), Environment.PASS );
-        putIfExists( properties, ConfigurationKey.CONNECTION_SCHEMA.getKey(), Environment.HBM2DDL_AUTO );
-        putIfExists( properties, ConfigurationKey.CONNECTION_POOL_MAX_SIZE.getKey(), Environment.C3P0_MAX_SIZE );
+        Properties props = new Properties();
+
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), Environment.DIALECT, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), Environment.DRIVER, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_URL ), Environment.URL, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
+
+        return props;
     }
 
-    private void putIfExists( Properties properties, String from, String to )
+    private void putIfExists( String value, String to, Properties props )
     {
-        String value = properties.getProperty( from );
-
         if ( value != null && !value.isEmpty() )
         {
-            properties.put( to, value );
+            props.put( to, value );
         }
     }
 
