@@ -79,11 +79,11 @@ public class DefaultHibernateConfigurationProvider
     // -------------------------------------------------------------------------
 
     private String defaultPropertiesFile = "hibernate-default.properties";
-    
+
     private List<Resource> jarResources = new ArrayList<>();
     private List<Resource> dirResources = new ArrayList<>();
     private List<String> clusterHostnames = new ArrayList<>();
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -122,9 +122,9 @@ public class DefaultHibernateConfigurationProvider
                 URL jarFile = ResourceUtils.extractJarFileURL( resource );
 
                 File file = ResourceUtils.getFile( jarFile );
-                
+
                 jarResources.add( new FileSystemResource( file.getAbsolutePath() ) );
-                
+
                 log.debug( String.format( "Adding jar in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
 
                 config.addJar( file );
@@ -134,9 +134,9 @@ public class DefaultHibernateConfigurationProvider
                 File file = ResourceUtils.getFile( resource );
 
                 dirResources.add( new FileSystemResource( file ) );
-                
+
                 log.debug( String.format( "Adding directory in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
-                
+
                 config.addDirectory( file );
             }
         }
@@ -176,26 +176,22 @@ public class DefaultHibernateConfigurationProvider
         // ---------------------------------------------------------------------
         // Handle cache replication
         // ---------------------------------------------------------------------
-        
+
         if ( configurationProvider.isClusterEnabled() )
         {
             config.setProperty( "net.sf.ehcache.configurationResourceName", FILENAME_EHCACHE_REPLICATION );
-            
+
             setCacheReplicationConfigSystemProperties();
-            
+
             log.info( "Clustering and cache replication enabled" );
         }
 
-        // ---------------------------------------------------------------------
-        // Disable second-level cache during testing
-        // ---------------------------------------------------------------------
-
         log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
             config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
-        
+
         this.configuration = config;
     }
-    
+
     // -------------------------------------------------------------------------
     // HibernateConfigurationProvider implementation
     // -------------------------------------------------------------------------
@@ -216,14 +212,14 @@ public class DefaultHibernateConfigurationProvider
     public List<Resource> getDirectoryResources()
     {
         return dirResources;
-    }    
+    }
 
     @Override
     public List<String> getClusterHostnames()
     {
         return clusterHostnames;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -238,17 +234,17 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( properties, ConfigurationKey.CONNECTION_SCHEMA.getKey(), Environment.HBM2DDL_AUTO );
         putIfExists( properties, ConfigurationKey.CONNECTION_POOL_MAX_SIZE.getKey(), Environment.C3P0_MAX_SIZE );
     }
-    
+
     private void putIfExists( Properties properties, String from, String to )
     {
         String value = properties.getProperty( from );
-        
+
         if ( value != null && !value.isEmpty() )
         {
             properties.put( to, value );
         }
     }
-    
+
     private Properties getProperties( String path )
         throws IOException
     {
@@ -263,19 +259,19 @@ public class DefaultHibernateConfigurationProvider
         catch ( SecurityException ex )
         {
             log.warn( "Not permitted to read properties file: " + path, ex );
-            
+
             return null;
         }
     }
-    
+
     private Properties getProperties( InputStream inputStream )
         throws IOException
     {
         try
         {
-            Properties properties = new Properties();            
+            Properties properties = new Properties();
             properties.load( inputStream );
-            
+
             return properties;
         }
         finally
@@ -283,9 +279,9 @@ public class DefaultHibernateConfigurationProvider
             inputStream.close();
         }
     }
-    
+
     /**
-     * Sets system properties to be resolved in the Ehcache cache replication 
+     * Sets system properties to be resolved in the Ehcache cache replication
      * configuration.
      */
     private void setCacheReplicationConfigSystemProperties()
@@ -294,15 +290,15 @@ public class DefaultHibernateConfigurationProvider
         String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_PORT );
         String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
-        
+
         // Split using comma delimiter along with possible spaces in between
-        
+
         String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
-        
+
         List<String> cacheNames = getCacheNames();
-        
+
         final StringBuilder rmiUrlBuilder = new StringBuilder();
-        
+
         for ( int i = 0; i < clusterMemberList.length; i++ )
         {
             final String clusterUrl = "//" + clusterMemberList[i] + "/";
@@ -313,14 +309,14 @@ public class DefaultHibernateConfigurationProvider
 
             log.info( "Found cluster instance: " + clusterMemberList[i] );
         }
-        
+
         String rmiUrls = StringUtils.removeEnd( rmiUrlBuilder.toString(), "|" );
-        
+
         if ( StringUtils.isBlank( rmiUrls ) )
         {
             log.warn( "At least one cluster instance must be specified when clustering is enabled" );
         }
-        
+
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_HOSTNAME, instanceHost );
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_PORT, instancePort );
         System.setProperty( PROP_EHCACHE_PEER_PROVIDER_RIM_URLS, rmiUrls );
@@ -328,7 +324,7 @@ public class DefaultHibernateConfigurationProvider
 
         log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls + ", " + remoteObjectPort  );
     }
-    
+
     /**
      * Returns a list of names of all Hibernate caches.
      */
@@ -341,6 +337,6 @@ public class DefaultHibernateConfigurationProvider
         catch ( IOException ex )
         {
             throw new UncheckedIOException( ex );
-        }        
+        }
     }
 }
