@@ -540,7 +540,7 @@ public abstract class AbstractEventService
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
-            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
+            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ) );
 
         if ( !errors.isEmpty() )
         {
@@ -1355,6 +1355,13 @@ public abstract class AbstractEventService
             .getProgramStageInstance( event.getEvent() );
 
         if ( programStageInstance == null )
+        {
+            return;
+        }
+        
+        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+        
+        if ( !errors.isEmpty() )
         {
             return;
         }

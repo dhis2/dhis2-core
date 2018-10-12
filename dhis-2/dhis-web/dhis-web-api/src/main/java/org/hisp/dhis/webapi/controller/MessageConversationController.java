@@ -69,6 +69,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -330,7 +331,7 @@ public class MessageConversationController
         @PathVariable( "uid" ) String uid,
         @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
-        @RequestParam( value = "attachments", required = false ) Set<FileResource> attachments,
+        @RequestParam( value = "attachments", required = false ) Set<String> attachments,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -350,23 +351,24 @@ public class MessageConversationController
 
         Set<FileResource> fileResources = new HashSet<>(  );
 
-        for( FileResource fr : attachments )
+        for( String fileResourceUid : attachments )
         {
-            FileResource fileResource = fileResourceService.getFileResource( fr.getUid() );
+            FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
             if ( fileResource == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
             }
 
             if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
             }
 
             fileResource.setAssigned( true );
             fileResourceService.updateFileResource( fileResource );
-            attachments.add( fileResource );
+
+            fileResources.add( fileResource );
         }
 
 

@@ -32,21 +32,21 @@ import java.util.Date;
 
 /**
  * Class representing an analytics database table column.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsTableColumn
 {
     private String name;
-    
+
     private String dataType;
-    
+
     private String alias;
-    
+
     private Date created;
-    
+
     private boolean skipIndex = false;
-    
+
     private String indexType;
 
     // -------------------------------------------------------------------------
