@@ -1330,14 +1330,14 @@ function displayPeriods()
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
 
-    var periodWhitelist = dhis2.de.dataSets[dataSetId].dataInputPeriods
-        .filter(function(dip) { return ( dip.openingDate == "" || new Date( dip.openingDate ) <= Date.now() ) && ( dip.closingDate == "" || Date.now() <= new Date( dip.closingDate )); })
+    var periodBlackList = dhis2.de.dataSets[dataSetId].dataInputPeriods
+        .filter(function(dip) { return ( dip.openingDate != "" && new Date( dip.openingDate ) > Date.now() ) || ( dip.closingDate != "" && new Date( dip.closingDate ) < Date.now() ); })
         .map(function(dip) { return dip.period.isoPeriod; });
   
-    if ( periodWhitelist.length > 0 ) {
+    if ( periodBlackList.length > 0 ) {
         periods = periods
             .filter(function (period) {
-                return periodWhitelist.indexOf(period.iso) > -1
+                return periodBlackList.indexOf(period.iso) == -1
             });
     }
 
