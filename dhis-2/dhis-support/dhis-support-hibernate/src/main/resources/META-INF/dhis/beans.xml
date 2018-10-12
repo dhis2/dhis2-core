@@ -74,7 +74,7 @@
     <property name="initialPoolSize" value="5" />
     <property name="maxPoolSize" ref="maxPoolSize" />
     <property name="acquireIncrement" value="5" />
-    <property name="maxIdleTime" value="3600" />
+    <property name="maxIdleTime" value="7200" />
   </bean>
   
   <bean id="readOnlyDataSource" class="org.hisp.dhis.datasource.ReadOnlyDataSourceFactoryBean">
