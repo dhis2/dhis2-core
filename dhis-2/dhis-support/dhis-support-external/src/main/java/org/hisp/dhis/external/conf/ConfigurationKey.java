@@ -48,7 +48,7 @@ public enum ConfigurationKey
     CONNECTION_USERNAME( "connection.username", "", false ),
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
-    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "100", false ),
+    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
