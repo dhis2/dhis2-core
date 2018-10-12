@@ -64,10 +64,10 @@ import com.google.common.collect.Lists;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public class DefaultSystemSettingManager 
+public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-   
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -75,22 +75,22 @@ public class DefaultSystemSettingManager
     private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
-    
+
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
     private Cache<Serializable> settingCache;
-    
-  
+
+
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
-    
+
     @Autowired
     private TransactionTemplate transactionTemplate;
 
     @Resource( name = "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
-    
+
     @Autowired
     private CacheProvider cacheProvider;
 
@@ -109,12 +109,12 @@ public class DefaultSystemSettingManager
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-    
+
     @PostConstruct
     public void init()
     {
         settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build(); 
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -200,6 +200,7 @@ public class DefaultSystemSettingManager
     {
         SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
         {
+            @Override
             public SystemSetting doInTransaction( TransactionStatus status )
             {
                 return systemSettingStore.getByName( name );
@@ -245,7 +246,7 @@ public class DefaultSystemSettingManager
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
-        
+
         for ( SettingKey key : SettingKey.values() )
         {
             if ( key.hasDefaultValue() )
@@ -374,7 +375,7 @@ public class DefaultSystemSettingManager
         return StringUtils.isNotBlank( getEmailHostName() )
             && StringUtils.isNotBlank( getEmailUsername() );
     }
-    
+
     @Override
     public boolean systemNotificationEmailValid()
     {
