@@ -27,9 +27,9 @@
 
 <module name="Checker">
 
-    <!-- Checks that a package.html file exists for each package.     -->
-    <!-- See http://checkstyle.sf.net/config_javadoc.html#PackageHtml -->
-    <module name="PackageHtml"/>
+    <!-- Checks that a package.html file exists for each package.             -->
+    <!-- http://checkstyle.sourceforge.net/config_javadoc.html#JavadocPackage -->
+    <module name="JavadocPackage"/>
 
     <!-- Checks whether files end with a new line.                        -->
     <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
@@ -39,6 +39,22 @@
     <!-- See http://checkstyle.sf.net/config_misc.html#Translation -->
     <module name="Translation"/>
 
+    <!-- Checks for Size Violations.                    -->
+    <!-- See http://checkstyle.sf.net/config_sizes.html -->
+    <module name="FileLength"/>
+
+    <!-- Checks for whitespace                               -->
+    <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+    <module name="FileTabCharacter"/>
+
+    <!-- ************************************************************** -->
+    <!-- Checks that are different from the sun coding conventions ones -->
+    <!-- ************************************************************** -->
+    <module name="Header">
+        <property name="headerFile" value="${maven.checkstyle.header.file}"/>
+        <property name="ignoreLines" value="1,2,3,4,5,6"/>
+    </module>
+
     <module name="TreeWalker">
 
         <property name="cacheFile" value="${checkstyle.cache.file}"/>
@@ -46,10 +62,6 @@
         <!-- ************************************************************** -->
         <!-- Checks that are different from the sun coding conventions ones -->
         <!-- ************************************************************** -->
-        <module name="Header">
-            <property name="headerFile" value="${maven.checkstyle.header.file}"/>
-            <property name="ignoreLines" value="1,2,3,4,5,6"/>
-        </module>
         <property name="tabWidth" value="4"/>
         <module name="LeftCurly">
           <property name="option" value="nl"/>
@@ -104,7 +116,6 @@
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
-        <module name="FileLength"/>
         <module name="ParameterNumber"/>
 
 
@@ -114,7 +125,6 @@
         <module name="NoWhitespaceAfter"/>
         <module name="NoWhitespaceBefore"/>
         <module name="OperatorWrap"/>
-        <module name="TabCharacter"/>
         <module name="WhitespaceAfter"/>
         <module name="WhitespaceAround"/>
 
@@ -136,7 +146,11 @@
         <!-- Checks for common coding problems               -->
         <!-- See http://checkstyle.sf.net/config_coding.html -->
         <module name="AvoidInlineConditionals"/>
-        <module name="DoubleCheckedLocking"/>    <!-- MY FAVOURITE -->
+        <!-- DoubleCheckedLocking check removed in CheckStyle 5.6 onwards.
+             Issue https://github.com/checkstyle/checkstyle/issues/6135 raised to see whether there will be a
+             replacement.
+        <module name="DoubleCheckedLocking"/>
+        -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="HiddenField">
@@ -164,7 +178,7 @@
         <!-- See http://checkstyle.sf.net/config_misc.html -->
         <module name="ArrayTypeStyle"/>
         <!-- <module name="FinalParameters"/> -->
-        <module name="GenericIllegalRegexp">
+        <module name="RegexpSinglelineJava">
             <property name="format" value="\s+$"/>
             <property name="message" value="Line has trailing spaces."/>
         </module>
