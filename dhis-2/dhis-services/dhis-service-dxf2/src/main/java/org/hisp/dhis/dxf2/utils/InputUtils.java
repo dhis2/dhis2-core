@@ -1,19 +1,5 @@
 package org.hisp.dhis.dxf2.utils;
 
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -42,11 +28,34 @@ import java.util.Set;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 /**
  * @author Lars Helge Overland
  */
 public class InputUtils
 {
+    private static final Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+        .expireAfterWrite( 3, TimeUnit.HOURS )
+        .initialCapacity( 1000 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+
     @Autowired
     private DataElementCategoryService categoryService;
 
@@ -56,7 +65,7 @@ public class InputUtils
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as
      * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * case of invalid input. The response is cached.
      *
      * @param cc the category combo identifier.
      * @param cp the category and option query string.
@@ -66,6 +75,29 @@ public class InputUtils
      *         null. if the input was invalid.
      */
     public DataElementCategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
+    {
+        String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
+
+        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+
+        if ( id != null )
+        {
+            return categoryService.getDataElementCategoryOptionCombo( id );
+        }
+        else
+        {
+            DataElementCategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, cp, skipFallback );
+
+            if ( aoc != null )
+            {
+                ATTR_OPTION_COMBO_ID_CACHE.put( cacheKey, aoc.getId() );
+            }
+
+            return aoc;
+        }
+    }
+
+    private DataElementCategoryOptionCombo getAttributeOptionComboInternal( String cc, String cp, boolean skipFallback )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
 
