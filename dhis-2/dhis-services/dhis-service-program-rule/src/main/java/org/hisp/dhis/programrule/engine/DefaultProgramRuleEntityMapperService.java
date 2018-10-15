@@ -175,7 +175,7 @@ public class DefaultProgramRuleEntityMapperService
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
              RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() :ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream().filter( Objects::nonNull )
-                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
+                .map( dv -> RuleDataValue.create( ps.getExecutionDate() != null ? ps.getExecutionDate() :ps.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
@@ -189,7 +189,7 @@ public class DefaultProgramRuleEntityMapperService
 
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
          psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream().filter( Objects::nonNull )
-            .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
+            .map( dv -> RuleDataValue.create( psi.getExecutionDate() != null ? psi.getExecutionDate() :psi.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
             .collect( Collectors.toList() ), psi.getProgramStage().getName() );
     }
 
@@ -200,7 +200,7 @@ public class DefaultProgramRuleEntityMapperService
             .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream().filter( Objects::nonNull )
-                .map( dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
+                .map( dv -> RuleDataValue.create( ps.getExecutionDate() != null ? ps.getExecutionDate() :ps.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), getTrackedEntityDataValue( dv ) ) )
                 .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
     }
 
@@ -228,7 +228,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.error( "Invalid rule action" );
+            log.debug( "Invalid rule action" );
 
             return null;
         }
@@ -252,7 +252,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.error( "Invalid rule variable" );
+            log.debug( "Invalid rule variable" );
         }
 
         return ruleVariable;
