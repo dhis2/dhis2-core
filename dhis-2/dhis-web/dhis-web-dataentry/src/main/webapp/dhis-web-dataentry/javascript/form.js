@@ -1336,7 +1336,7 @@ function displayPeriods()
     var periods = dhis2.period.generator.generateReversedPeriods( periodType, dhis2.de.currentPeriodOffset );
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
-    
+
     clearListById( 'selectedPeriodId' );
 
     if ( periods.length > 0 )

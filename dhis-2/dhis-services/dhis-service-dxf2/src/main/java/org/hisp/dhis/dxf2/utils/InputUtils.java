@@ -95,25 +95,7 @@ public class InputUtils
             categoryCombo = categoryService.getDefaultCategoryCombo();
         }
 
-        return getAttributeOptionCombo( categoryCombo, cp, null, IdScheme.UID );
-    }
-
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
-     *
-     * @param categoryCombo the category combo.
-     * @param cp the category option query string.
-     * @param attributeOptionCombo the explicit attribute option combo identifier.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp, String attributeOptionCombo, IdScheme idScheme )
-    {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
-
-        return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
+        return getAttributeOptionCombo( categoryCombo, opts, null, IdScheme.UID );
     }
 
     /**
