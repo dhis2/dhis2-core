@@ -44,7 +44,6 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.Assert;
 
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
@@ -120,17 +119,6 @@ public class HibernateGenericStore<T>
     {
         this.cacheable = cacheable;
     }
-    
-    protected int timeout = 600;
-
-    /**
-     * Could be injected through container, set to -1 to indicate no timeout.
-     */
-    public void setTimeout( int timeout )
-    {
-        Assert.isTrue( timeout > 0, "Timeout must be a positive integer" );
-        this.timeout = timeout;
-    }
 
     // -------------------------------------------------------------------------
     // Convenience methods
@@ -147,7 +135,7 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query for given HQL query string. Return type is casted 
+     * Creates a Query for given HQL query string. Return type is casted
      * to generic type T of the Store class.
      * @param hql the HQL query.
      * @return a Query instance with return type is the object type T of the store class
@@ -156,12 +144,11 @@ public class HibernateGenericStore<T>
     protected final Query<T> getQuery( String hql )
     {
         return getSession().createQuery( hql )
-            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
-            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
     }
 
     /**
-     * Creates a Query for given HQL query string. Must specify the return 
+     * Creates a Query for given HQL query string. Must specify the return
      * type of the Query variable.
      * @param hql the HQL query.
      * @return a Query instance with return type specified in the Query<Y>
@@ -171,8 +158,7 @@ public class HibernateGenericStore<T>
     {
         return getSession()
             .createQuery( hql )
-            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
-            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
     }
 
     /**
@@ -203,7 +189,7 @@ public class HibernateGenericStore<T>
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
         return detachedCriteria.getExecutableCriteria( getSession() )
-            .setCacheable( cacheable ).setTimeout( timeout );
+            .setCacheable( cacheable );
     }
 
     public CriteriaBuilder getCriteriaBuilder()
@@ -225,8 +211,7 @@ public class HibernateGenericStore<T>
     {
         return getSession()
             .createQuery( criteriaQuery )
-            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
-            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
     }
 
     /**
@@ -317,8 +302,7 @@ public class HibernateGenericStore<T>
         }
 
         return typedQuery
-            .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) )
-            .setHint( QueryHints.TIMEOUT_JPA, timeout );
+            .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) );
     }
 
     /**
@@ -361,7 +345,6 @@ public class HibernateGenericStore<T>
 
         return getSession().createQuery( query )
             .setHint( QueryHints.CACHEABLE, parameters.isCacheable( cacheable ) )
-            .setHint( QueryHints.TIMEOUT_JPA, timeout )
             .getSingleResult();
     }
 
@@ -390,8 +373,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery<T> getSqlQuery( String sql )
     {
         return getSession().createNativeQuery( sql )
-            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
-            .setTimeout( timeout ).setHint( QueryHints.TIMEOUT_JPA, timeout );
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
     }
 
     // -------------------------------------------------------------------------
@@ -402,33 +384,33 @@ public class HibernateGenericStore<T>
     public void save( T object )
     {
         AuditLogUtil.infoWrapper( log, object, AuditLogUtil.ACTION_CREATE );
-        
+
         getSession().save( object );
     }
-    
+
     @Override
     public void update( T object )
     {
         getSession().update( object );
     }
-    
+
     @Override
     public void delete( T object )
     {
         getSession().delete( object );
     }
-    
+
     @Override
     public T get( int id )
     {
-        T object = (T) getSession().get( getClazz(), id );
-        
+        T object = getSession().get( getClazz(), id );
+
         return postProcessObject( object );
     }
-    
+
     /**
      * Override for further processing of a retrieved object.
-     * 
+     *
      * @param object the object.
      * @return the processed object.
      */
@@ -442,7 +424,7 @@ public class HibernateGenericStore<T>
     {
         return getList( getCriteriaBuilder(), new JpaQueryParameters<T>() );
     }
-    
+
     @Override
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {

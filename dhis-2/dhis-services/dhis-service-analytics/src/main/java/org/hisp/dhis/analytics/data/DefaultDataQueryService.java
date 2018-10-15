@@ -105,10 +105,10 @@ public class DefaultDataQueryService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private AclService aclService;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
 
@@ -125,19 +125,19 @@ public class DefaultDataQueryService
     // -------------------------------------------------------------------------
 
     //TODO introduce ExternalDataQueryParams and replace individual parameters
-    
+
     @Override
     public DataQueryParams getFromRequest( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
-        
+
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, 
+            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format,
                 request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
@@ -155,7 +155,7 @@ public class DefaultDataQueryService
         {
             params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria()) );
         }
-        
+
         if ( request.getAggregationType() != null )
         {
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
@@ -192,8 +192,8 @@ public class DefaultDataQueryService
         Assert.notNull( object, "Analytical object cannot be null" );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
-        
-        I18nFormat format = i18nManager.getI18nFormat();        
+
+        I18nFormat format = i18nManager.getI18nFormat();
         IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
 
@@ -218,7 +218,7 @@ public class DefaultDataQueryService
         {
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
         }
-        
+
         return params
             .withCompletedOnly( object.isCompletedOnly() )
             .withTimeField( object.getTimeField() )
@@ -226,7 +226,7 @@ public class DefaultDataQueryService
     }
 
     @Override
-    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, 
+    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit,
         I18nFormat format, boolean allowAllPeriods, IdScheme inputIdScheme )
     {
         List<DimensionalObject> list = new ArrayList<>();
@@ -371,11 +371,6 @@ public class DefaultDataQueryService
             }
 
             periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
-
-            if ( periods.isEmpty() && !allowAllPeriodItems )
-            {
-                throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
-            }
 
             if ( queryContainsRelativePeriods )
             {

@@ -579,9 +579,7 @@
 
   <!-- Others -->
 
-  <bean id="org.hisp.dhis.commons.action.GetPingAction" class="org.hisp.dhis.commons.action.GetPingAction">
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-  </bean>
+  <bean id="org.hisp.dhis.commons.action.GetPingAction" class="org.hisp.dhis.commons.action.GetPingAction" />
 
   <bean id="org.hisp.dhis.commons.action.GetAttributesAction" class="org.hisp.dhis.commons.action.GetAttributesAction">
     <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />

@@ -451,21 +451,6 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo(
-        Collection<CategoryOption> categoryOptions )
-    {
-        for ( CategoryOptionCombo categoryOptionCombo : getAllCategoryOptionCombos() )
-        {
-            if ( CollectionUtils.isEqualCollection( categoryOptions, categoryOptionCombo.getCategoryOptions() ) )
-            {
-                return categoryOptionCombo;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
