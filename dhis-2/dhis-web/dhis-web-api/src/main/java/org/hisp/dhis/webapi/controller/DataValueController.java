@@ -265,7 +265,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
+            if ( dataElement.getValueType().isFile() )
             {
                 fileResource = validateAndSetAssigned( value );
             }
