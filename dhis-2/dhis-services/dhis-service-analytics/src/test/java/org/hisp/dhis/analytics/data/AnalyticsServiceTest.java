@@ -29,19 +29,14 @@ package org.hisp.dhis.analytics.data;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -89,7 +84,7 @@ import static org.junit.Assert.assertEquals;
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
 public class AnalyticsServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private CategoryOptionCombo ocDef;
 
@@ -219,12 +214,6 @@ public class AnalyticsServiceTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
-
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-        idObjectManager.save( ouD );
-        idObjectManager.save( ouE );
 
         OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
         organisationUnitGroupA.setUid( "a2345groupA" );
@@ -805,6 +794,7 @@ public class AnalyticsServiceTest
         results.put( "ou_2017_validationruleA", ou_2017_validationruleA_keyValue );
         results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
         results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
+
     }
 
     @Override

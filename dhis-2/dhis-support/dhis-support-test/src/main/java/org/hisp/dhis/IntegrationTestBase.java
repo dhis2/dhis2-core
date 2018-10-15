@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2004-2018, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package org.hisp.dhis;
 
 import org.hibernate.Session;
@@ -5,7 +33,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,44 +40,31 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.lang.reflect.Method;
 
-@RunWith( SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {IntegrationTestConfig.class})
-public abstract class IntegrationTestBase extends DhisConvenienceTest implements ApplicationContextAware
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+@RunWith( SpringJUnit4ClassRunner.class )
+@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+public abstract class IntegrationTestBase
+    extends DhisConvenienceTest
+    implements ApplicationContextAware
 {
     @Autowired
     protected DbmsManager dbmsManager;
 
-    @ClassRule
-    public static PostgreSQLContainer postgresContainer = new PostgreSQLContainer()
-            .withDatabaseName("dhis2")
-            .withUsername("dhis")
-            .withPassword("dhis");
-
-    static {
-        postgresContainer.start();
-        System.setProperty("test.configuration.connection.url", postgresContainer.getJdbcUrl());
-        System.setProperty("test.configuration.connection.username", postgresContainer.getUsername());
-        System.setProperty("test.configuration.connection.password", postgresContainer.getPassword());
-        System.out.println(  postgresContainer.getJdbcUrl());
-    }
-
-
     protected ApplicationContext webApplicationContext;
 
     @Before
-    public void before() throws Exception {
-        bindSession();
-        executeStartupRoutines();
+    public void before()
+        throws Exception
+    {
+        beforeAll();
         setUpTest();
     }
 
@@ -60,17 +74,22 @@ public abstract class IntegrationTestBase extends DhisConvenienceTest implements
     {
         tearDownTest();
         unbindSession();
+
         if ( emptyDatabaseAfterTest() )
         {
-            System.out.print("Cleaning up");
             dbmsManager.emptyDatabase();
         }
+    }
 
-         postgresContainer.stop();
+    protected void beforeAll()
+        throws Exception
+    {
+        bindSession();
+        executeStartupRoutines();
     }
 
     private void executeStartupRoutines()
-            throws Exception
+        throws Exception
     {
         String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
 
@@ -82,11 +101,13 @@ public abstract class IntegrationTestBase extends DhisConvenienceTest implements
         }
     }
 
-
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
+    {
         this.webApplicationContext = applicationContext;
     }
+
     private void bindSession()
     {
         SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
@@ -99,7 +120,8 @@ public abstract class IntegrationTestBase extends DhisConvenienceTest implements
     {
         SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
 
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
@@ -121,6 +143,4 @@ public abstract class IntegrationTestBase extends DhisConvenienceTest implements
         throws Exception
     {
     }
-
-
 }
