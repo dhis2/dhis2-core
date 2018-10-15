@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.sms.listener.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,37 +28,10 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.command.SMSCommandService;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.system.util.SmsUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-    
-import java.util.Map;
-
 /**
  * @Author Zubair Asghar.
  */
-public class EventDataListener extends BaseSMSListener
+public enum  SMSObjectType
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private SMSCommandService smsCommandService;
-
-    @Override
-    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
-    {
-
-    }
-
-    @Override
-    protected SMSCommand getSMSCommand( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.EVENT_DATA_PARSER );
-    }
+    DATA_SET, PROGRAM_EVENT, TRACKER_EVENT, ENROLLMENT
 }
