@@ -362,7 +362,7 @@ public interface OrganisationUnitService
     boolean isInUserHierarchy( OrganisationUnit organisationUnit );
 
     /**
-     * Equal to {@link OrganisationUnitService#isInUserHierarchy(OrganisationUnit)
+     * Equal to {@link OrganisationUnitService#isInUserHierarchy(OrganisationUnit)}
      * except adds a caching layer on top. Use this method when performance is
      * imperative and the risk of a stale result is tolerable.
      *
