@@ -21,7 +21,6 @@
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
     <module>dhis-support-kafka</module>
-    <module>dhis-support-logging</module>
   </modules>
   <properties>
     <rootDir>../</rootDir>

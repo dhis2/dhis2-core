@@ -20,7 +20,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-logging</artifactId>
+      <artifactId>dhis-service-logging</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -93,6 +93,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <properties>
     <rootDir>../../</rootDir>
   </properties>

@@ -390,7 +390,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-logging</artifactId>
+        <artifactId>dhis-service-logging</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
