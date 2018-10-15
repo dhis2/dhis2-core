@@ -709,7 +709,7 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
-        boolean isInHierarchy = organisationUnitService.isInUserHierarchy( organisationUnit );
+        boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
