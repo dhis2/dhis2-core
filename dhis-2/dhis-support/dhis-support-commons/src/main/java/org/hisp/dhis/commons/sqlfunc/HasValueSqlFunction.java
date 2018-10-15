@@ -30,14 +30,14 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates whether a given expression is not null in the database
- * 
+ *
  * @author Markus Bekken
  */
 public class HasValueSqlFunction
     implements SqlFunction
 {
     public static final String KEY = "hasValue";
-    
+
     @Override
     public String evaluate( String... args )
     {
@@ -45,9 +45,9 @@ public class HasValueSqlFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 1 argument." );
         }
-        
+
         String expression = args[0];
-        
+
         return "((" + expression + ") is not null)";
     }
 }
