@@ -228,7 +228,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.error( "Invalid rule action" );
+            log.debug( "Invalid rule action" );
 
             return null;
         }
@@ -252,7 +252,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.error( "Invalid rule variable" );
+            log.debug( "Invalid rule variable" );
         }
 
         return ruleVariable;
