@@ -131,8 +131,6 @@ public class DefaultSystemService
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
 
-        Configuration config = configurationService.getConfiguration();
-
         Date now = new Date();
 
         info.setCalendar( calendarService.getSystemCalendar().name() );
@@ -141,7 +139,6 @@ public class DefaultSystemService
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
-        info.setSystemId( config.getSystemId() );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
@@ -171,6 +168,8 @@ public class DefaultSystemService
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
+
+        Configuration config = configurationService.getConfiguration();
 
         // ---------------------------------------------------------------------
         // Version
@@ -224,6 +223,7 @@ public class DefaultSystemService
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
+        info.setSystemId( config.getSystemId() );
 
         // ---------------------------------------------------------------------
         // Database
