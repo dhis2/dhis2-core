@@ -30,6 +30,7 @@ package org.hisp.dhis.dataapproval;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -67,7 +68,7 @@ import static org.junit.Assert.*;
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DataApprovalServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private static final String AUTH_APPR_LEVEL = "F_SYSTEM_SETTING";
 
@@ -615,7 +616,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testAddAllAndGetDataApprovalStatus()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -680,7 +680,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testDeleteDataApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -711,7 +710,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalState()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -864,7 +862,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateOrgUnitAssignments()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -911,7 +908,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateAbove()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -931,7 +927,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateWithMultipleChildren()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -982,7 +977,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -1000,7 +994,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1156,7 +1149,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1224,7 +1216,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameAndLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1282,7 +1273,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1309,7 +1299,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1369,7 +1358,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1428,7 +1416,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveWithAcceptAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1487,7 +1474,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1550,7 +1536,6 @@ public class DataApprovalServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testApprovalsWithCategories()
     {
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
@@ -1715,7 +1700,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testWorkflows()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1742,7 +1726,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPeriodsEndingDuringWorkflowApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitC );

@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -74,7 +73,7 @@ import java.util.Map;
  */
 @Category( IntegrationTest.class )
 public class EventAnalyticsServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
 
@@ -91,6 +90,12 @@ public class EventAnalyticsServiceTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest()

@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -77,9 +78,9 @@ import static org.junit.Assert.assertEquals;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-
+@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class PredictionServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private PredictionService predictionService;
@@ -474,7 +475,6 @@ public class PredictionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictWithCategoryOptionCombo()
     {
         useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 5 );
@@ -492,7 +492,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictSequential()
     {
         setupTestData();
@@ -524,7 +523,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictSeasonal()
     {
         setupTestData();
@@ -548,7 +546,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetPredictionsSeasonalWithOutbreak()
     {
         setupTestData();
@@ -575,7 +572,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictConstant()
     {
         setupTestData();
@@ -598,7 +594,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictInteger()
     {
         setupTestData();
@@ -616,7 +611,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictDays()
     {
         setupTestData();
@@ -639,7 +633,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictNoPeriods()
     {
         setupTestData();
@@ -653,7 +646,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictWithCurrentPeriodData()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
@@ -684,7 +676,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictWithOnlyCurrentPeriodData()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
@@ -715,7 +706,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictMultipleDataElements()
     {
         useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, 3 );
@@ -734,7 +724,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictMultipleAttributeOptionCombos()
     {
         CategoryOption optionJ = new CategoryOption( "CategoryOptionJ" );
@@ -785,7 +774,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictIf()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
@@ -835,7 +823,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictIsNull()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
@@ -858,7 +845,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictStrategyNeverSkip()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
@@ -907,7 +893,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictStrategySkipIfAllValuesMissing()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceG, 1 );
@@ -947,7 +932,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictStrategySkipIfAnyValueMissing()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceG, 1 );
@@ -985,7 +969,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictTaskPredictors()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
@@ -1024,7 +1007,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictTaskPredictorGroups()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
@@ -1067,7 +1049,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictMedian()
     {
         useDataValue( dataElementA, makeMonth( 2001, 1 ), sourceA, 50 );

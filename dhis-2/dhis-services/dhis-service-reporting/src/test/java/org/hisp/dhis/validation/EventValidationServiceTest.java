@@ -31,6 +31,7 @@ package org.hisp.dhis.validation;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryManager;
@@ -79,7 +80,7 @@ import static org.hisp.dhis.expression.Operator.not_equal_to;
  */
 @Category( IntegrationTest.class )
 public class EventValidationServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private TrackedEntityDataValueService trackedEntityDataValueService;

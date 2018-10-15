@@ -32,6 +32,7 @@ import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -58,6 +59,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -68,8 +70,9 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Category( IntegrationTest.class )
 public class RegistrationMultiEventsServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -108,6 +111,12 @@ public class RegistrationMultiEventsServiceTest
     private DataElement dataElementB;
     private ProgramStage programStageA;
     private ProgramStage programStageB;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -187,7 +196,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveWithoutProgramStageShouldFail()
     {
         Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(),
@@ -199,7 +207,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveWithoutEnrollmentShouldFail()
     {
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -210,7 +217,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -246,7 +252,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

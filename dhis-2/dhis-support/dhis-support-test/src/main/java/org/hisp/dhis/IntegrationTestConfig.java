@@ -32,6 +32,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.ClassRule;
 import org.springframework.context.annotation.*;
 import org.springframework.test.annotation.DirtiesContext;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.startupcheck.StartupCheckStrategy;
 
@@ -52,30 +54,33 @@ public class IntegrationTestConfig
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         TestDhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider();
-        PostgreSQLContainer postgreSQLContainer = initContainer();
+        JdbcDatabaseContainer postgreSQLContainer = initContainer();
 
         Properties properties = new Properties();
+
         properties.setProperty( "connection.url", postgreSQLContainer.getJdbcUrl() );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", postgreSQLContainer.getUsername() );
         properties.setProperty( "connection.password", postgreSQLContainer.getPassword() );
+
         dhisConfigurationProvider.addProperties( properties );
 
         return dhisConfigurationProvider;
     }
 
-    private PostgreSQLContainer initContainer()
+    private JdbcDatabaseContainer initContainer()
     {
-        PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer()
+        JdbcDatabaseContainer postgisContainer = new PostgisContainerProvider()
+            .newInstance()
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_CREDENTIALS )
             .withPassword( POSTGRES_CREDENTIALS );
 
-        postgreSQLContainer.start();
+        postgisContainer.start();
 
-        System.out.println( "Postgres container initialized: " + postgreSQLContainer.getJdbcUrl() );
+        System.out.println( "Postgis container initialized: " + postgisContainer.getJdbcUrl() );
 
-        return postgreSQLContainer;
+        return postgisContainer;
     }
 }
