@@ -81,7 +81,7 @@ dhis2.de.currentExistingValue = null;
 // Associative array with currently-displayed period choices, keyed by iso
 dhis2.de.periodChoices = [];
 
-// Periods
+// Periods locked because of data input periods start and end dates
 dhis2.de.blackListedPeriods = [];
 
 // Username of user who marked the current data set as complete if any
