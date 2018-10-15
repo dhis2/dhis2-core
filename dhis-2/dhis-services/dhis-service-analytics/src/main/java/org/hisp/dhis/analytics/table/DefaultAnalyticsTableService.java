@@ -59,9 +59,9 @@ public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
     private static final Log log = LogFactory.getLog( DefaultAnalyticsTableService.class );
-    
+
     private AnalyticsTableManager tableManager;
-    
+
     public void setTableManager( AnalyticsTableManager tableManager )
     {
         this.tableManager = tableManager;
@@ -69,29 +69,29 @@ public class DefaultAnalyticsTableService
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private ResourceTableService resourceTableService;
-    
+
     @Autowired
     private Notifier notifier;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
         return tableManager.getAnalyticsTableType();
     }
-    
+
     @Override
     public void update( AnalyticsTableUpdateParams params )
     {
@@ -99,15 +99,16 @@ public class DefaultAnalyticsTableService
 
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
-        
+        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
+
+        log.info( String.format( "Analytics table update parameters: %s", params ) );
+
         AnalyticsTableType tableType = tableManager.getAnalyticsTableType();
 
-        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
-        
         Clock clock = new Clock( log )
             .startClock()
             .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableType.getTableName(), processNo, orgUnitLevelNo ) );
-        
+
         String validState = tableManager.validState();
 
         if ( validState != null )
@@ -117,7 +118,7 @@ public class DefaultAnalyticsTableService
         }
 
         final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
-        
+
         if ( tables.isEmpty() )
         {
             clock.logTime( "Table updated aborted, no table or partitions found" );
@@ -129,7 +130,7 @@ public class DefaultAnalyticsTableService
         notifier.notify( jobId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
 
         tableManager.preCreateTables();
-        
+
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
 
@@ -138,38 +139,38 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
 
-        createTables( tables, params.isSkipMasterTable() );
-        
+        createTables( tables );
+
         clock.logTime( "Created analytics tables" );
         notifier.notify( jobId, "Populating analytics tables" );
-        
+
         populateTables( tables );
-        
+
         clock.logTime( "Populated analytics tables" );
         notifier.notify( jobId, "Invoking analytics table hooks" );
-                
+
         tableManager.invokeAnalyticsTableSqlHooks();
-        
+
         clock.logTime( "Invoked analytics table hooks" );
         notifier.notify( jobId, "Applying aggregation levels" );
-        
+
         applyAggregationLevels( tables );
-        
+
         clock.logTime( "Applied aggregation levels" );
         notifier.notify( jobId, "Creating indexes" );
-        
+
         createIndexes( tables );
-        
+
         clock.logTime( "Created indexes" );
         notifier.notify( jobId, "Analyzing analytics tables" );
-        
+
         analyzeTables( tables );
-        
+
         clock.logTime( "Analyzed tables" );
         notifier.notify( jobId, "Swapping analytics tables" );
-        
-        swapTables( tables, params.isSkipMasterTable() );
-        
+
+        swapTables( tables, params );
+
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
     }
@@ -180,7 +181,7 @@ public class DefaultAnalyticsTableService
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
         tables.forEach( table -> tableManager.dropTableCascade( table ) );
-        
+
         log.info( "Analytics tables dropped" );
     }
 
@@ -188,12 +189,12 @@ public class DefaultAnalyticsTableService
     public void analyzeAnalyticsTables()
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
-        
+
         tables.forEach( table -> tableManager.analyzeTable( table ) );
-        
+
         log.info( "Analytics tables analyzed" );
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -212,13 +213,12 @@ public class DefaultAnalyticsTableService
      * Creates the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param skipMasterTable whether to skip creating the master analytics table.
      */
-    private void createTables( List<AnalyticsTable> tables, boolean skipMasterTable )
+    private void createTables( List<AnalyticsTable> tables )
     {
-        tables.forEach( table -> tableManager.createTable( table, skipMasterTable ) );
+        tables.forEach( table -> tableManager.createTable( table ) );
     }
-    
+
     /**
      * Populates the given analytics tables.
      *
@@ -229,21 +229,21 @@ public class DefaultAnalyticsTableService
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         int taskNo = Math.min( getProcessNo(), partitions.size() );
-        
+
         log.info( "Populate table task number: " + taskNo );
-        
+
         ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
-        
+
         List<Future<?>> futures = new ArrayList<>();
-        
+
         for ( int i = 0; i < taskNo; i++ )
         {
             futures.add( tableManager.populateTablesAsync( partitionQ ) );
         }
-        
+
         ConcurrentUtils.waitForCompletion( futures );
     }
-    
+
     /**
      * Applies aggregation levels to the given analytics tables.
      *
@@ -254,27 +254,27 @@ public class DefaultAnalyticsTableService
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
-        
+
         boolean hasAggLevels = false;
-        
+
         levelLoop : for ( int i = 0; i < maxLevels; i++ )
         {
             int level = maxLevels - i;
-            
-            Collection<String> dataElements = IdentifiableObjectUtils.getUids( 
+
+            Collection<String> dataElements = IdentifiableObjectUtils.getUids(
                 dataElementService.getDataElementsByAggregationLevel( level ) );
-            
+
             if ( dataElements.isEmpty() )
             {
                 continue levelLoop;
             }
 
             hasAggLevels = true;
-            
+
             ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
 
             List<Future<?>> futures = new ArrayList<>();
-            
+
             for ( int j = 0; j < getProcessNo(); j++ )
             {
                 futures.add( tableManager.applyAggregationLevels( partitionQ, dataElements, level ) );
@@ -282,7 +282,7 @@ public class DefaultAnalyticsTableService
 
             ConcurrentUtils.waitForCompletion( futures );
         }
-        
+
         if ( hasAggLevels )
         {
             vacuumTables( tables );
@@ -301,17 +301,17 @@ public class DefaultAnalyticsTableService
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
-        
+
         List<Future<?>> futures = new ArrayList<>();
 
         for ( int i = 0; i < getProcessNo(); i++ )
         {
             tableManager.vacuumTablesAsync( partitionQ );
         }
-        
-        ConcurrentUtils.waitForCompletion( futures );        
+
+        ConcurrentUtils.waitForCompletion( futures );
     }
-    
+
     /**
      * Creates indexes on the given analytics tables.
      *
@@ -322,7 +322,7 @@ public class DefaultAnalyticsTableService
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
-        
+
         for ( AnalyticsTablePartition partition : partitions )
         {
             List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
@@ -335,9 +335,9 @@ public class DefaultAnalyticsTableService
                 }
             }
         }
-        
+
         log.info( "No of analytics table indexes: " + indexes.size() );
-        
+
         List<Future<?>> futures = new ArrayList<>();
 
         for ( int i = 0; i < getProcessNo(); i++ )
@@ -364,17 +364,17 @@ public class DefaultAnalyticsTableService
      * Swaps the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
-     * @param skipMasterTable whether to skip swapping the master analtyics table.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
+    private void swapTables( List<AnalyticsTable> tables, AnalyticsTableUpdateParams params )
     {
         resourceTableService.dropAllSqlViews();
-        
-        tables.forEach( table -> tableManager.swapTable( table, skipMasterTable ) );
-        
+
+        tables.forEach( table -> tableManager.swapTable( table, params ) );
+
         resourceTableService.createAllSqlViews();
     }
-    
+
     /**
      * Gets the number of available cores. Uses explicit number from system
      * setting if available. Detects number of cores from current server runtime
@@ -384,9 +384,9 @@ public class DefaultAnalyticsTableService
     private int getProcessNo()
     {
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
-        
+
         cores = ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
-                        
+
         return cores > 2 ? ( cores - 1 ) : cores;
     }
 }

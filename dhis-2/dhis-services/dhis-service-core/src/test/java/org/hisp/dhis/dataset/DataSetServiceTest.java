@@ -205,7 +205,7 @@ public class DataSetServiceTest
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", period.getPeriodType(), newHashSet( level ) );
         dataApprovalService.addWorkflow( workflow );
 
-        dataSet.setWorkflow( workflow );
+        dataSet.assignWorkflow( workflow );
         dataSet.addOrganisationUnit( unit );
         dataSetService.updateDataSet( dataSet );
 
@@ -371,7 +371,7 @@ public class DataSetServiceTest
         assertTrue( dataSets.contains( dataSetA ) );
         assertTrue( dataSets.contains( dataSetB ) );
     }
-    
+
     @Test
     public void testAddDataSetElement()
     {
@@ -379,12 +379,12 @@ public class DataSetServiceTest
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
         dataSetService.addDataSet( dataSetA );
-        
+
         assertEquals( 2, dataSetA.getDataSetElements().size() );
         assertEquals( 1, dataElementA.getDataSetElements().size() );
         assertEquals( dataSetA, dataElementA.getDataSetElements().iterator().next().getDataSet() );
         assertEquals( 1, dataElementB.getDataSetElements().size() );
-        assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet() );        
+        assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet() );
     }
 
     // -------------------------------------------------------------------------

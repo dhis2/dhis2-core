@@ -143,11 +143,6 @@ public class EmailController
     
     private void checkEmailSettings() throws WebMessageException
     {
-        if ( !emailService.emailNotificationsEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( EMAIL_DISABLED ) );
-        }
-
         if ( !emailService.emailConfigured() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( SMTP_ERROR ) );

@@ -158,7 +158,8 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
+        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
         boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
@@ -235,7 +236,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -261,7 +265,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
+            if ( dataElement.getValueType().isFile() )
             {
                 fileResource = validateAndSetAssigned( value );
             }
@@ -332,7 +336,7 @@ public class DataValueController
             }
 
             // -----------------------------------------------------------------
-            // Value and comment are sent individually, so null checks must be 
+            // Value and comment are sent individually, so null checks must be
             // made for each. Empty string is sent for clearing a value.
             // -----------------------------------------------------------------
 
@@ -377,11 +381,14 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String ds, HttpServletResponse response )
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
 
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -403,7 +410,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -692,7 +702,7 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
-        boolean isInHierarchy = organisationUnitService.isInUserHierarchy( organisationUnit );
+        boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
@@ -755,26 +765,6 @@ public class DataValueController
                 throw new WebMessageException( WebMessageUtils.conflict( "Period " + period.getIsoDate()
                     + " is after end date " + i18nManager.getI18nFormat().formatDate( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" ) );
-            }
-
-            if ( option.getOrganisationUnits() != null && !option.getOrganisationUnits().isEmpty() )
-            {
-                boolean validOrgUnit = false;
-
-                for ( OrganisationUnit optionOrgUnit : option.getOrganisationUnits() )
-                {
-                    if ( organisationUnit.getPath().contains( optionOrgUnit.getUid() ) )
-                    {
-                        validOrgUnit = true;
-                        break;
-                    }
-                }
-
-                if ( !validOrgUnit )
-                {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Organisation Unit " + organisationUnit.getUid() +
-                        " is not valid for attributeOption '" + option.getName() ) );
-                }
             }
         }
     }

@@ -38,7 +38,9 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -59,21 +61,24 @@ public class DefaultAnalyticsDimensionService
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
     @Override
     public List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request )
     {
         DataQueryParams params = dataQueryService.getFromRequest( request );
-        
+
         return getRecommendedDimensions( params );
     }
-    
+
     @Override
     public List<DimensionalObject> getRecommendedDimensions( DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         Set<DimensionalObject> dimensions = new HashSet<>();
-        
+
         if ( !params.getDataElements().isEmpty() )
         {
             dimensions.addAll( params.getDataElements().stream()
@@ -83,7 +88,7 @@ public class DefaultAnalyticsDimensionService
                 .flatMap( c -> c.stream() )
                 .filter( Category::isDataDimension )
                 .collect( Collectors.toSet() ) );
-            
+
             dimensions.addAll( params.getDataElements().stream()
                 .map( de -> ((DataElement) de).getDataSets() )
                 .flatMap( ds -> ds.stream() )
@@ -91,12 +96,14 @@ public class DefaultAnalyticsDimensionService
                 .flatMap( c -> c.stream() )
                 .filter( Category::isDataDimension )
                 .collect( Collectors.toSet() ) );
-            
+
             //TODO data set elements
         }
-        
-        //TODO org units
-        
+
+        dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
+
+        //TODO filter org unit group sets
+
         return dimensions.stream()
             .filter( d -> aclService.canDataRead( user, d ) )
             .sorted()

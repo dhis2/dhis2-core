@@ -32,7 +32,7 @@ import java.util.Set;
 
 /**
  * Manager for analytics table partitions.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface PartitionManager
@@ -46,7 +46,14 @@ public interface PartitionManager
      * Returns a set of names of current event analytics partitions.
      */
     Set<String> getEventAnalyticsPartitions();
-    
+
+    /**
+     * Indicates whether the given analytics table exists.
+     *
+     * @param table the analytics table name.
+     */
+    boolean tableExists( String table );
+
     /**
      * Clears the partition name caches.
      */

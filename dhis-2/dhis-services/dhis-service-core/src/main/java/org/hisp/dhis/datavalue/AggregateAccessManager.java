@@ -33,6 +33,7 @@ package org.hisp.dhis.datavalue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
@@ -97,4 +98,6 @@ public interface AggregateAccessManager
      * @return List of errors
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );
+
+    List<String> canWrite( User user, Option option );
 }

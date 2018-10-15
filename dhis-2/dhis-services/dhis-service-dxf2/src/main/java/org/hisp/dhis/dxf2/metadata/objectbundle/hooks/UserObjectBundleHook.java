@@ -30,14 +30,20 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +55,29 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( !(object instanceof User) )
+        {
+            return new ArrayList<>();
+        }
+
+        ArrayList<ErrorReport> errorReports = new ArrayList<>(  );
+        User user = (User) object;
+
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        {
+            errorReports.add( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
+        }
+
+        return errorReports;
+    }
+
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
@@ -73,6 +102,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
         }
 
+        if ( user.getAvatar() != null )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+        }
+
         preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );
@@ -86,6 +122,19 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( !User.class.isInstance( object ) || ((User) object).getUserCredentials() == null ) return;
         User user = (User) object;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
+
+        User persisted = (User) persistedObject;
+
+        if ( persisted.getAvatar() != null && !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() ) )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
+            fileResource.setAssigned( false );
+            fileResourceService.updateFileResource( fileResource );
+
+            fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+        }
     }
 
     @Override

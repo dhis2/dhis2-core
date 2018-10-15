@@ -87,6 +87,14 @@ public interface DhisConfigurationProvider
      * @return true if the configuration key is enabled.
      */
     boolean isEnabled( ConfigurationKey key );
+
+    /**
+     * Indicates whether a value for the given key is equal to "off".
+     * 
+     * @param key the configuration key.
+     * @return true if the configuration key is disabled.
+     */
+    boolean isDisabled( ConfigurationKey key );
     
     /**
      * Returns a GoogleCredential, if a Google service account has been configured.
@@ -117,13 +125,6 @@ public interface DhisConfigurationProvider
      * @return true if clustering is enabled.
      */
     boolean isClusterEnabled();
-    
-    /**
-     * Indicates whether {@code memcached} is enabled as cache provider.
-     * 
-     * @return true if {@code memcached} is enabled as cache provider.
-     */
-    boolean isMemcachedCacheProviderEnabled();
     
     /**
      * Indicates whether LDAP authentication is configured.

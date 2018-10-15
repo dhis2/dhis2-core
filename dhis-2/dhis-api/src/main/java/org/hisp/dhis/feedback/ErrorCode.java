@@ -87,6 +87,8 @@ public enum ErrorCode
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together."),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
 
+    E4027( "Value `{0}` is not a valid for property `{1}`"),
+
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
     E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
@@ -105,6 +107,7 @@ public enum ErrorCode
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." );
+
 
     private String message;
 

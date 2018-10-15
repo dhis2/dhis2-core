@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -96,6 +98,8 @@ public class Enrollment
     private Boolean deleted = false;
 
     private String storedBy;
+    
+    private Geometry geometry;
 
     public Enrollment()
     {
@@ -387,6 +391,18 @@ public class Enrollment
     public void setRelationships( Set<Relationship> relationships )
     {
         this.relationships = relationships;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
     }
 
     @Override public String toString()

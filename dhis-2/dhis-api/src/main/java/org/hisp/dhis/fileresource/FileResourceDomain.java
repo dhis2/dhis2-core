@@ -35,7 +35,9 @@ public enum FileResourceDomain
 {
     DATA_VALUE( "dataValue" ),
     PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" );
+    DOCUMENT( "document" ),
+    MESSAGE_ATTACHMENT( "messageAttachment" ),
+    USER_AVATAR( "userAvatar");
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain

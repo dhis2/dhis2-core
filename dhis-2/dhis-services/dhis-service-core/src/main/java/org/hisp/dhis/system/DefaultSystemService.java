@@ -102,10 +102,9 @@ public class DefaultSystemService
 
         List<String> info = ImmutableList.<String>builder()
             .add( "Version: " + systemInfo.getVersion() )
-            .add( "revision: " + systemInfo.getRevision() )
-            .add( "build date: " + systemInfo.getBuildTime() )
-            .add( "database name: " + systemInfo.getDatabaseInfo().getName() )
-            .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
+            .add( "Revision: " + systemInfo.getRevision() )
+            .add( "Build date: " + systemInfo.getBuildTime() )
+            .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )
             .add( "Java version: " + systemInfo.getJavaVersion() )
             .build();
 
@@ -132,8 +131,6 @@ public class DefaultSystemService
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
 
-        Configuration config = configurationService.getConfiguration();
-
         Date now = new Date();
 
         info.setCalendar( calendarService.getSystemCalendar().name() );
@@ -142,7 +139,6 @@ public class DefaultSystemService
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
-        info.setSystemId( config.getSystemId() );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
@@ -172,6 +168,8 @@ public class DefaultSystemService
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
+
+        Configuration config = configurationService.getConfiguration();
 
         // ---------------------------------------------------------------------
         // Version
@@ -225,6 +223,7 @@ public class DefaultSystemService
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
+        info.setSystemId( config.getSystemId() );
 
         // ---------------------------------------------------------------------
         // Database
@@ -312,9 +311,9 @@ public class DefaultSystemService
         }
         else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
         {
-            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime );
         }
 
-        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 ) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
 }

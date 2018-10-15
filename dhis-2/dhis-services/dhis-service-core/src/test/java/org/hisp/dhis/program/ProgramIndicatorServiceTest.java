@@ -565,22 +565,22 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsZeroFilter()
     {
-        String expected = "coalesce(\"OXXcwl6aPCQ_EZq9VbPWgML\"::numeric,0) == 0 ";
+        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) == 0 ";
         String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), new Date(), new Date() ) );        
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date() ) );        
     }
     
     @Test
     public void testIsZeroOrEmptyFilter()
     {
-        String expected = "coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\"::numeric,0) == 1 or " +
-            "(coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\",'') == '' and " +
+        String expected = "coalesce(\"GCyeKSqlpdk\"::numeric,0) == 1 or " +
+            "(coalesce(\"GCyeKSqlpdk\",'') == '' and " +
             "coalesce(\"kts5J79K9gA\"::numeric,0) == 0 )";
         
         String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " + 
         "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
-        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), true, new Date(), new Date() );
+        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), true, new Date(), new Date() );
         assertEquals( expected, actual );        
     }
     

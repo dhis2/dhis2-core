@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.springframework.util.StringUtils;
@@ -95,6 +96,18 @@ public class User
     private UserCredentials userCredentials;
 
     private Set<UserGroup> groups = new HashSet<>();
+
+    private String whatsApp;
+
+    private String facebookMessenger;
+
+    private String skype;
+
+    private String telegram;
+
+    private String twitter;
+
+    private FileResource avatar;
 
     /**
      * Organisation units for data input and data capture / write operations.
@@ -671,6 +684,82 @@ public class User
         this.apps = apps;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
+    public String getWhatsApp()
+    {
+        return whatsApp;
+    }
+
+    public void setWhatsApp( String whatsapp )
+    {
+        this.whatsApp = whatsapp;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFacebookMessenger()
+    {
+        return facebookMessenger;
+    }
+
+    public void setFacebookMessenger( String facebookMessenger )
+    {
+        this.facebookMessenger = facebookMessenger;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSkype()
+    {
+        return skype;
+    }
+
+    public void setSkype( String skype )
+    {
+        this.skype = skype;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTelegram()
+    {
+        return telegram;
+    }
+
+    public void setTelegram( String telegram )
+    {
+        this.telegram = telegram;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTwitter()
+    {
+        return twitter;
+    }
+
+    public void setTwitter( String twitter )
+    {
+        this.twitter = twitter;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FileResource getAvatar()
+    {
+        return avatar;
+    }
+
+    public void setAvatar( FileResource avatar )
+    {
+        this.avatar = avatar;
+    }
+
     @Override
     public String toString()
     {
@@ -695,10 +784,6 @@ public class User
             "\"languages\":\"" + languages + "\", " +
             "\"lastCheckedInterpretations\":\"" + lastCheckedInterpretations + "\", " +
             "\"userCredentials\":\"" + userCredentials + "\", " +
-            "\"groups\":\"" + groups + "\", " +
-            "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
-            "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }
 }

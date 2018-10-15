@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
@@ -77,15 +78,14 @@ public class SyncUtils
      * @param systemSettingManager Reference to SystemSettingManager
      * @param restTemplate         Spring Rest Template instance
      * @param requestCallback      Request callback
+     * @param instance             SystemInstance of remote system
      * @param endpoint             Endpoint against which the sync request is run
      * @return True if sync was successful, false otherwise
      */
-    static boolean sendSyncRequest( SystemSettingManager systemSettingManager, RestTemplate restTemplate, RequestCallback requestCallback, SyncEndpoint endpoint )
+    static boolean sendSyncRequest( SystemSettingManager systemSettingManager, RestTemplate restTemplate, RequestCallback requestCallback, SystemInstance instance, SyncEndpoint endpoint )
     {
         final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
-        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + endpoint.getPath() + IMPORT_STRATEGY_SYNC_SUFFIX;
-
-        return runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, syncUrl, endpoint, maxSyncAttempts );
+        return runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, instance.getUrl(), endpoint, maxSyncAttempts );
     }
 
     /**
@@ -175,18 +175,18 @@ public class SyncUtils
                 }
 
                 //I need recursively check for errors on lower levels of the graph
-                if ( endpoint == SyncEndpoint.TEIS_ENDPOINT )
+                if ( endpoint == SyncEndpoint.TRACKED_ENTITY_INSTANCES )
                 {
                     //Uses recursion. Correct value of endpoint argument is critical here.
-                    if ( !analyzeResultsInImportSummaries( summary.getEnrollments(), originalTopSummaries, SyncEndpoint.ENROLLMENTS_ENDPOINT ) )
+                    if ( !analyzeResultsInImportSummaries( summary.getEnrollments(), originalTopSummaries, SyncEndpoint.ENROLLMENTS ) )
                     {
                         return false;
                     }
                 }
-                else if ( endpoint == SyncEndpoint.ENROLLMENTS_ENDPOINT )
+                else if ( endpoint == SyncEndpoint.ENROLLMENTS )
                 {
                     //Uses recursion. Correct value of endpoint argument is critical here.
-                    if ( !analyzeResultsInImportSummaries( summary.getEvents(), originalTopSummaries, SyncEndpoint.EVENTS_ENDPOINT ) )
+                    if ( !analyzeResultsInImportSummaries( summary.getEvents(), originalTopSummaries, SyncEndpoint.EVENTS ) )
                     {
                         return false;
                     }
@@ -264,7 +264,8 @@ public class SyncUtils
             }
             catch ( InterruptedException e )
             {
-                log.error( "Sleep between sync retries failed.", e );
+                log.error( "Sleep between sync retries failed.", e );                
+                Thread.currentThread().interrupt();
             }
 
             serverStatus = isRemoteServerAvailable( systemSettingManager, restTemplate );

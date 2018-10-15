@@ -158,6 +158,10 @@ public class InitTableAlteror
         executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
         executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramStageInstanceCoordinates();
+        
+        executeSql( "UPDATE program SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
+        executeSql( "UPDATE program SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
+        updateAndRemoveOldProgramInstanceCoordinates();
 
         //Remove createddate column from trackedentitycomment table
         executeSql( "UPDATE trackedentitycomment SET created = createddate WHERE created IS NOT NULL;" );
@@ -172,15 +176,17 @@ public class InitTableAlteror
             "'F_PROGRAM_ENROLLMENT', 'F_PROGRAM_UNENROLLMENT', 'F_PROGRAM_ENROLLMENT_READ', 'F_IMPORT_GML', 'F_SQLVIEW_MANAGEMENT');" );
 
         //Update publicaccess values for default categories to correct values (rwrw---- eventually rw------)
-        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE code = 'default'" );
-        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE code = 'default'" );
-        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE code = 'default'" );
+        executeSql( "UPDATE dataelementcategoryoption SET publicaccess = 'rwrw----' WHERE  name = 'default' or code = 'default'" );
+        executeSql( "UPDATE dataelementcategory SET publicaccess = 'rw------' WHERE name = 'default' or code = 'default'" );
+        executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE name = 'default' or code = 'default'" );
 
         //New enum column was added into ProgramStage. I need to fill default values and make it NOT NULL
         executeSql( "UPDATE programstage SET validationstrategy = 'NONE' WHERE validcompleteonly = false" );
         executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true" );
         executeSql( "ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL" );
         executeSql( "ALTER TABLE programstage DROP COLUMN IF EXISTS validation" );
+
+        executeSql( "UPDATE userroleauthorities SET authority = 'F_RELATIONSHIPTYPE_PUBLIC_ADD' WHERE authority = 'F_RELATIONSHIPTYPE_ADD'" );
     }
 
     private void addGenerateUidFunction()
@@ -213,6 +219,18 @@ public class InitTableAlteror
 
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );
+    }
+    
+    private void updateAndRemoveOldProgramInstanceCoordinates()
+    {
+        executeSql( "UPDATE programinstance " +
+            "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
+            "WHERE longitude IS NOT NULL " +
+            "AND latitude IS NOT NULL" +
+            "AND geometry IS NULL" );
+
+        executeSql( "ALTER TABLE programinstance DROP COLUMN latitude " );
+        executeSql( "ALTER TABLE programinstance DROP COLUMN longitude " );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()

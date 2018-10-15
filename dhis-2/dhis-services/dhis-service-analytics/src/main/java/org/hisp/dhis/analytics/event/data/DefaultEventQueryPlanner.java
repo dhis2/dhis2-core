@@ -59,7 +59,7 @@ public class DefaultEventQueryPlanner
 {
     @Autowired
     private QueryPlanner queryPlanner;
-    
+
     @Autowired
     private QueryValidator queryValidator;
 
@@ -71,7 +71,7 @@ public class DefaultEventQueryPlanner
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
         final List<EventQueryParams> queries = Lists.newArrayList( params );
-        
+
         List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add( q -> groupByQueryItems( q ) )
             .add( q -> groupByOrgUnitLevel( q ) )
@@ -83,10 +83,10 @@ public class DefaultEventQueryPlanner
         {
             List<EventQueryParams> currentQueries = Lists.newArrayList( queries );
             queries.clear();
-            
+
             currentQueries.forEach( query -> queries.addAll( grouper.apply( query ) ) );
         }
-        
+
         return withTableNameAndPartitions( queries );
     }
 
@@ -95,20 +95,20 @@ public class DefaultEventQueryPlanner
     {
         return withTableNameAndPartitions( params );
     }
-    
+
     public void validateMaintenanceMode()
         throws MaintenanceModeException
     {
         queryValidator.validateMaintenanceMode();
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
     /**
      * Sets table name and partitions on the given query.
-     * 
+     *
      * @param params the event query parameters.
      * @return a {@link EventQueryParams}.
      */
@@ -117,22 +117,22 @@ public class DefaultEventQueryPlanner
         Partitions partitions = params.hasStartEndDate() ?
             PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
             PartitionUtils.getPartitions( params.getAllPeriods() );
-        
+
         String baseName = params.hasEnrollmentProgramIndicatorDimension() ?
             AnalyticsTableType.ENROLLMENT.getTableName() :
             AnalyticsTableType.EVENT.getTableName();
-        
+
         String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
-        
+
         return new EventQueryParams.Builder( params )
             .withTableName( tableName )
             .withPartitions( partitions )
             .build();
     }
-    
+
     /**
      * Sets table name and partition on each query in the given list.
-     * 
+     *
      * @param queries the list of queries.
      * @return a list of {@link EventQueryParams}.
      */
@@ -142,21 +142,21 @@ public class DefaultEventQueryPlanner
         queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
         return list;
     }
-    
+
     /**
      * Groups by organisation unit level.
-     * 
+     *
      * @param params the event data query parameters.
      * @return a list of {@link EventQueryParams}.
      */
     private List<EventQueryParams> groupByOrgUnitLevel( EventQueryParams params )
     {
         return QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( params ) );
-    }    
+    }
 
     /**
      * Groups by period types.
-     * 
+     *
      * @param params the event data query parameters.
      * @return a list of {@link EventQueryParams}.
      */
@@ -168,14 +168,14 @@ public class DefaultEventQueryPlanner
     /**
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
-     * 
+     *
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.
      */
     private List<EventQueryParams> groupByQueryItems( EventQueryParams params )
     {
         List<EventQueryParams> queries = new ArrayList<>();
-        
+
         if ( params.isAggregateData() )
         {
             for ( QueryItem item : params.getItemsAndItemFilters() )
@@ -184,15 +184,15 @@ public class DefaultEventQueryPlanner
                     .removeItems()
                     .removeItemProgramIndicators()
                     .withValue( item.getItem() );
-                
+
                 if ( item.hasProgram() )
                 {
                     query.withProgram( item.getProgram() );
                 }
-                
+
                 queries.add( query.build() );
             }
-            
+
             for ( ProgramIndicator programIndicator : params.getItemProgramIndicators() )
             {
                 EventQueryParams query = new EventQueryParams.Builder( params )
@@ -201,7 +201,7 @@ public class DefaultEventQueryPlanner
                     .withProgramIndicator( programIndicator )
                     .withProgram( programIndicator.getProgram() )
                     .build();
-                
+
                 queries.add( query );
             }
         }
@@ -212,12 +212,12 @@ public class DefaultEventQueryPlanner
                 EventQueryParams.Builder query = new EventQueryParams.Builder( params )
                     .removeItems()
                     .addItem( item );
-                
+
                 if ( item.hasProgram() )
                 {
                     query.withProgram( item.getProgram() );
                 }
-                
+
                 queries.add( query.build() );
             }
         }
@@ -225,36 +225,36 @@ public class DefaultEventQueryPlanner
         {
             queries.add( new EventQueryParams.Builder( params ).build() );
         }
-        
+
         return queries;
     }
 
     /**
      * Groups the given query in sub queries for each dimension period. This applies
-     * if the aggregation type is {@link AggregationType#LAST} or 
+     * if the aggregation type is {@link AggregationType#LAST} or
      * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
-     * a {@link ProgramIndicator} that does not use default analytics period boundaries: 
+     * a {@link ProgramIndicator} that does not use default analytics period boundaries:
      * {@link EventQueryParams#hasNonDefaultBoundaries()}.
-     * In this case, each period must be aggregated individually. 
-     * 
+     * In this case, each period must be aggregated individually.
+     *
      * @param params the data query parameters.
      * @return a list of {@link EventQueryParams}.
      */
     private List<EventQueryParams> groupByPeriod( EventQueryParams params )
     {
         List<EventQueryParams> queries = new ArrayList<>();
-        
-        
+
+
         if ( ( params.isLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
             !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {
                 String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
-                
+
                 EventQueryParams query = new EventQueryParams.Builder( params )
                     .withPeriods( Lists.newArrayList( period ), periodType ).build();
-                
+
                 queries.add( query );
             }
         }

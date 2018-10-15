@@ -82,9 +82,8 @@ public interface AnalyticsTableManager
      * Attempts to drop and then create analytics table.
      * 
      * @param table the analytics table.
-     * @param skipMasterTable whether to skip creating the master analytics table.
      */
-    void createTable( AnalyticsTable table, boolean skipMasterTable );
+    void createTable( AnalyticsTable table );
     
     /**
      * Creates single indexes on the given columns of the analytics table with
@@ -96,12 +95,17 @@ public interface AnalyticsTableManager
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
     
     /**
-     * Attempts to drop analytics table, then rename temporary table to analytics
-     * table.
+     * Attempts to drop the analytics table with partitions and rename the temporary 
+     * table with partitions as replacement.
+     * <p>
+     * If this is a partial update and the master table currently exists, the master 
+     * table is not swapped and instead the inheritance of the partitions are set to 
+     * the existing master table.
      * 
      * @param table the analytics table.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void swapTable( AnalyticsTable table, boolean skipMasterTable );
+    void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params );
     
     /**
      * Copies and denormalizes rows from data value table into analytics table.

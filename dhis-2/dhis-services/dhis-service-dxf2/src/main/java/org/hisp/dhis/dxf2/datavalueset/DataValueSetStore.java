@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
+
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
 
 /**
  * @author Lars Helge Overland
@@ -47,4 +47,6 @@ public interface DataValueSetStore
     void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
 
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+
+    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page );
 }

@@ -31,12 +31,7 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
@@ -47,10 +42,14 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author Abyot Asalefew
@@ -66,46 +65,47 @@ public class HibernateProgramStageInstanceStore
         );
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage )
     {
-        List<ProgramStageInstance> list = getCriteria(
-            Restrictions.eq( "programInstance", programInstance ),
-            Restrictions.eq( "programStage", programStage ) ).
-            addOrder( Order.asc( "id" ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return list.isEmpty() ? null : list.get( list.size() - 1 );
+        List<ProgramStageInstance> list = getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
+            .addOrder( root -> builder.asc( root.get( "id" ) ) )
+            .setMaxResults( 1 ) );
+
+        return list.isEmpty() ? null : list.get( 0 );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramStageInstance> get( Collection<ProgramInstance> programInstances, EventStatus status )
     {
-        return getCriteria(
-            Restrictions.in( "programInstance", programInstances ),
-            Restrictions.eq( "status", status ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
+            .addPredicate( root -> root.get( "programInstance" ).in( programInstances ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status )
     {
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programInstance", "programInstance" );
-        criteria.add( Restrictions.eq( "programInstance.entityInstance", entityInstance ) );
-        criteria.add( Restrictions.eq( "status", status ) );
-        return criteria.list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
+            .addPredicate( root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
     }
 
     @Override
     public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
     {
-        Number rs = (Number) getCriteria()
-            .add( Restrictions.ge( "lastUpdated", time ) )
-            .setProjection( Projections.rowCount() )
-            .uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return rs != null ? rs.longValue() : 0;
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
+            .count( root -> builder.countDistinct( root ) ) );
     }
 
     @Override
@@ -133,7 +133,6 @@ public class HibernateProgramStageInstanceStore
         query.executeUpdate();
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
@@ -160,16 +159,15 @@ public class HibernateProgramStageInstanceStore
                 "and psi.deleted is false";
 
         return getQuery( hql )
-            .setEntity( "notificationTemplate", template )
-            .setString( "skippedEventStatus", EventStatus.SKIPPED.name() )
-            .setDate( "targetDate", targetDate ).list();
+            .setParameter( "notificationTemplate", template )
+            .setParameter( "skippedEventStatus", EventStatus.SKIPPED )
+            .setParameter( "targetDate", targetDate ).list();
     }
 
     @Override
-    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
+    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramStageInstance>, Predicate>> predicates )
     {
-        // Filter out soft deleted values
-        criteria.add( Restrictions.eq( "deleted", false ) );
+        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
 
     @Override

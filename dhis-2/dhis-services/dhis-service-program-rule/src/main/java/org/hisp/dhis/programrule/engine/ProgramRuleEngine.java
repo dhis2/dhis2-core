@@ -41,6 +41,8 @@ import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -52,6 +54,8 @@ import java.util.stream.Collectors;
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
+
+    private static final String USER = "USER";
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -68,6 +72,12 @@ public class ProgramRuleEngine
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
 
+    @Autowired
+    private RuleVariableInMemoryMap inMemoryMap;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
     public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
@@ -79,16 +89,24 @@ public class ProgramRuleEngine
         
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+
+        if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
+        {
+            return ruleEffects;
+        }
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
@@ -116,16 +134,23 @@ public class ProgramRuleEngine
 
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
+        if ( implementableProgramRules.isEmpty() )
+        {
+            return ruleEffects;
+        }
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
         List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+        RuleEngine ruleEngine;
 
         try
         {
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
             
             ruleEffects.stream().map( RuleEffect::ruleAction )
@@ -144,6 +169,11 @@ public class ProgramRuleEngine
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
+        if( currentUserService.getCurrentUser() != null )
+        {
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+        }
+
         List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
 
         groups.stream().forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
@@ -151,6 +181,7 @@ public class ProgramRuleEngine
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
             .supplementaryData( supplementaryData )
+            .calculatedValueMap( inMemoryMap.getVariablesMap() )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );

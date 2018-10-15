@@ -36,9 +36,13 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -54,7 +58,13 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
@@ -505,7 +515,7 @@ public class DataValidationTask
             {
                 value = Double.parseDouble( valueString );
             }
-            catch ( NumberFormatException e )
+            catch ( NumberFormatException | NullPointerException e )
             {
                 continue;
             }

@@ -36,14 +36,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.Date;
