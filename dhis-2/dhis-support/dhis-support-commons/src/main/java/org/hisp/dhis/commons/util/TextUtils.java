@@ -298,6 +298,17 @@ public class TextUtils
     }
     
     /**
+     * Joins the given elements with a {@code -} character as separator.
+     * @param elements the elements to join.
+     * @return the joined string.
+     */
+    @SafeVarargs
+    public static <T> String joinHyphen( T... elements )
+    {
+        return StringUtils.join( elements, "-" );
+    }
+
+    /**
      * Transforms a collection of Integers into a comma delimited String. If the
      * given collection of elements are null or is empty, an empty String is
      * returned.
