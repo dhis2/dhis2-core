@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
 
 /**
  * Class representing an analytics database table.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsTable
@@ -52,7 +52,7 @@ public class AnalyticsTable
      * Columns representing dimensions.
      */
     private List<AnalyticsTableColumn> dimensionColumns;
-    
+
     /**
      * Columns representing values.
      */
@@ -62,7 +62,7 @@ public class AnalyticsTable
      * Program for analytics tables, applies to events and enrollments.
      */
     private Program program;
-    
+
     /**
      * Analytics partition tables for this base analytics table.
      */
@@ -95,7 +95,7 @@ public class AnalyticsTable
 
     /**
      * Adds an analytics partition table to this master table.
-     * 
+     *
      * @param year the year.
      * @param startDate the start date.
      * @param endDate the end date.
@@ -104,12 +104,12 @@ public class AnalyticsTable
     public AnalyticsTable addPartitionTable( Integer year, Date startDate, Date endDate )
     {
         Assert.notNull( year, "Year must be specified" );
-        
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval        
+
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
         this.partitionTables.add( partitionTable );
         return this;
     }
-        
+
     public String getTableName()
     {
         String name = baseName;
@@ -138,7 +138,7 @@ public class AnalyticsTable
     {
         return program != null;
     }
-    
+
     public boolean hasPartitionTables()
     {
         return !partitionTables.isEmpty();
@@ -194,19 +194,19 @@ public class AnalyticsTable
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         AnalyticsTable other = (AnalyticsTable) object;
-        
+
         if ( baseName == null )
         {
             if ( other.baseName != null )
@@ -218,7 +218,7 @@ public class AnalyticsTable
         {
             return false;
         }
-                
+
         if ( program == null )
         {
             if ( other.program != null )
@@ -230,7 +230,7 @@ public class AnalyticsTable
         {
             return false;
         }
-        
+
         return true;
     }
 

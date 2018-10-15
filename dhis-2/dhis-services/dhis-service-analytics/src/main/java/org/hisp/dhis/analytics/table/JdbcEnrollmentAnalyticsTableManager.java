@@ -56,32 +56,32 @@ public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-    
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
         return AnalyticsTableType.ENROLLMENT;
     }
-    
+
     @Override
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
-    {        
+    {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
         String baseName = getTableName();
-        
+
         for ( Program program : programs )
-        {            
+        {
             AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
-                        
+
             tables.add( table );
         }
-        
+
         return tables;
     }
-    
+
     @Override
     public Set<String> getExistingDatabaseTables()
     {
@@ -93,7 +93,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return Lists.newArrayList();
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -103,7 +103,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( program );
-        
+
         validateDimensionColumns( columns );
 
         for ( AnalyticsTableColumn col : columns )
@@ -128,7 +128,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
                 "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
-            "where pr.programid=" + program.getId() + " " + 
+            "where pr.programid=" + program.getId() + " " +
             "and pi.organisationunitid is not null " +
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
@@ -144,10 +144,10 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitLevel> levels = 
+        List<OrganisationUnitLevel> levels =
             organisationUnitService.getFilledOrganisationUnitLevels();
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = 
+        List<OrganisationUnitGroupSet> orgUnitGroupSets =
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
 
         for ( OrganisationUnitLevel level : levels )
@@ -155,7 +155,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
-        
+
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
@@ -175,32 +175,32 @@ public class JdbcEnrollmentAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentityattributevalue " +
-                "where trackedentityinstanceid=pi.trackedentityinstanceid " + 
+                "where trackedentityinstanceid=pi.trackedentityinstanceid " +
                 "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
-        
+
         columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
-        
+
         final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
-            "where psi.programinstanceid=pi.programinstanceid " + 
-            "and psi.executiondate is not null " + 
+            "where psi.programinstanceid=pi.programinstanceid " +
+            "and psi.executiondate is not null " +
             "and psi.deleted is false " +
             "order by psi.executiondate desc " +
-            "limit 1) as " + quote( "executiondate" );        
+            "limit 1) as " + quote( "executiondate" );
         columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql ) );
-        
-        final String dueDateSql = "(select psi.duedate from programstageinstance psi " + 
-            "where psi.programinstanceid = pi.programinstanceid " + 
-            "and psi.duedate is not null " + 
+
+        final String dueDateSql = "(select psi.duedate from programstageinstance psi " +
+            "where psi.programinstanceid = pi.programinstanceid " +
+            "and psi.duedate is not null " +
             "and psi.deleted is false " +
             "order by psi.duedate desc " +
-            "limit 1) as " + quote( "duedate" );        
+            "limit 1) as " + quote( "duedate" );
         columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
-        
+
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "ST_X(pi.geometry)" ) );
@@ -213,12 +213,12 @@ public class JdbcEnrollmentAnalyticsTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", "pi.geometry", false, "gist" ) );
         }
-        
+
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }
-        
+
         return filterDimensionColumns( columns );
-    }    
+    }
 }

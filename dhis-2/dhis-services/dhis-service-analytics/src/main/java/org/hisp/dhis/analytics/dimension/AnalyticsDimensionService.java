@@ -40,6 +40,6 @@ import org.hisp.dhis.common.DimensionalObject;
 public interface AnalyticsDimensionService
 {
     List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request );
-    
+
     List<DimensionalObject> getRecommendedDimensions( DataQueryParams params );
 }
