@@ -147,10 +147,10 @@ public interface OrganisationUnitService
      * @return a list of OrganisationUnits.
      */
     List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids );
-    
+
     /**
      * Returns a list of OrganisationUnits based on the given params.
-     * 
+     *
      * @param params the params.
      * @return a list of OrganisationUnits.
      */
@@ -312,12 +312,12 @@ public interface OrganisationUnitService
      * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-    
+
     /**
      * Returns the count of OrganisationUnits which are part of the
-     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * sub-hierarchy of the given parent OrganisationUnit and members of
      * the given object based on the collection of the given collection name.
-     * 
+     *
      * @param parent the parent OrganisationUnit.
      * @param member the member object.
      * @param collectionName the name of the collection.
@@ -361,6 +361,16 @@ public interface OrganisationUnitService
      */
     boolean isInUserHierarchy( OrganisationUnit organisationUnit );
 
+    /**
+     * Equal to {@link OrganisationUnitService#isInUserHierarchy(OrganisationUnit)
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserHierarchyCached( OrganisationUnit organisationUnit );
+
     boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit );
 
     /**
@@ -373,7 +383,7 @@ public interface OrganisationUnitService
      * @return true if the organisation unit with the given uid is part of the hierarchy.
      */
     boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits );
-    
+
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
