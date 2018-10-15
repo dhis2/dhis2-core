@@ -74,7 +74,7 @@ import java.util.Map;
  */
 @Category( IntegrationTest.class )
 public class EventAnalyticsServiceTest
-    extends IntegrationTestBase
+    extends DhisTest
 {
     private Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
 
@@ -91,12 +91,6 @@ public class EventAnalyticsServiceTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     public void setUpTest()
