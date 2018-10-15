@@ -65,8 +65,8 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
         {
             result = "false";
 
-            log.error( DebugUtils.getStackTrace( je ) );
-            log.error( DebugUtils.getStackTrace( je.getCause() ) );
+            log.debug( DebugUtils.getStackTrace( je ) );
+            log.debug( DebugUtils.getStackTrace( je.getCause() ) );
         }
 
        return result;
