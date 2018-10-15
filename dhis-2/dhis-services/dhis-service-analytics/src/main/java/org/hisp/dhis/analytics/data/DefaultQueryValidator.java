@@ -107,6 +107,11 @@ public class DefaultQueryValidator
             violation = "Periods and start and end dates cannot be specified simultaneously";
         }
 
+        if ( params.hasStartEndDate() && params.startDateAfterEndDate() )
+        {
+            violation = "Start date cannot be after end date";
+        }
+
         if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             violation = "Only a single indicator can be specified as filter";

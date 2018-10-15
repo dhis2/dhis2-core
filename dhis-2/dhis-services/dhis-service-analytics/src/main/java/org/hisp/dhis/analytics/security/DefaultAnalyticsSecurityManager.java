@@ -149,7 +149,9 @@ public class DefaultAnalyticsSecurityManager
             boolean canNotRead = !aclService.canDataRead( user, object );
             String className = TextUtils.getPrettyClassName( object.getClass() );
 
-            throwExWhenTrue( canNotRead, String.format( "User: %s is not allowed to read data for %s: %s", user.getUsername(), className, object.getUid() ) );
+            if ( canNotRead ) {
+                throw new IllegalQueryException( String.format( "User: %s is not allowed to read data for %s: %s", user.getUsername(), className, object.getUid()) );
+            }
         }
     }
 
