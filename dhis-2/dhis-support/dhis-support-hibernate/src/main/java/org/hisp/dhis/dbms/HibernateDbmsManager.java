@@ -247,6 +247,7 @@ public class HibernateDbmsManager
 
         emptyTable( "trackedentitydatavalue" );
         emptyTable( "trackedentitydatavalueaudit" );
+        emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
@@ -263,6 +264,7 @@ public class HibernateDbmsManager
         emptyTable( "trackedentityattributevalueaudit" );
         emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
+        emptyTable( "trackedentitytype" );
         emptyTable( "trackedentity" );
 
         emptyTable( "minmaxdataelement" );
