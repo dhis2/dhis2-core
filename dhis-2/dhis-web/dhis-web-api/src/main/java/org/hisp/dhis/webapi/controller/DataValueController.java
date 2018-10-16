@@ -265,7 +265,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
+            if ( dataElement.getValueType().isFile() )
             {
                 fileResource = validateAndSetAssigned( value );
             }
@@ -702,7 +702,7 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
-        boolean isInHierarchy = organisationUnitService.isInUserHierarchy( organisationUnit );
+        boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
@@ -765,26 +765,6 @@ public class DataValueController
                 throw new WebMessageException( WebMessageUtils.conflict( "Period " + period.getIsoDate()
                     + " is after end date " + i18nManager.getI18nFormat().formatDate( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" ) );
-            }
-
-            if ( option.getOrganisationUnits() != null && !option.getOrganisationUnits().isEmpty() )
-            {
-                boolean validOrgUnit = false;
-
-                for ( OrganisationUnit optionOrgUnit : option.getOrganisationUnits() )
-                {
-                    if ( organisationUnit.getPath().contains( optionOrgUnit.getUid() ) )
-                    {
-                        validOrgUnit = true;
-                        break;
-                    }
-                }
-
-                if ( !validOrgUnit )
-                {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Organisation Unit " + organisationUnit.getUid() +
-                        " is not valid for attributeOption '" + option.getName() ) );
-                }
             }
         }
     }
