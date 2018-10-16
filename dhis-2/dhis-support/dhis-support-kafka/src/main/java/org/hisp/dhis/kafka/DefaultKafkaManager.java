@@ -43,6 +43,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,7 @@ import java.util.Map;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service
 public class DefaultKafkaManager implements KafkaManager
 {
     private final DhisConfigurationProvider dhisConfig;

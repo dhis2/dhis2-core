@@ -30,7 +30,8 @@ package org.hisp.dhis.logging;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +40,9 @@ import java.util.Map;
  */
 public class Log
 {
-    protected final long timestamp = Instant.now().toEpochMilli();
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss,SS" );
+
+    protected final ZonedDateTime loggedAt = ZonedDateTime.now();
 
     protected LogLevel logLevel = LogLevel.INFO;
 
@@ -63,9 +66,9 @@ public class Log
     }
 
     @JsonProperty
-    public long getTimestamp()
+    public ZonedDateTime getLoggedAt()
     {
-        return timestamp;
+        return loggedAt;
     }
 
     @JsonProperty
@@ -145,7 +148,7 @@ public class Log
         StringBuilder builder = new StringBuilder();
 
         builder.append( "* " ).append( logLevel ).append( " " );
-        builder.append( Instant.ofEpochMilli( timestamp ).toString() ).append( " " );
+        builder.append( formatter.format( loggedAt ) ).append( " " );
         builder.append( message );
 
         if ( source != null )
