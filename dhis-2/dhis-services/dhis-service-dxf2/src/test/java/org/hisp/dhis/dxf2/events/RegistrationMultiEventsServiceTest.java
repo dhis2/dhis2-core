@@ -233,8 +233,6 @@ public class RegistrationMultiEventsServiceTest
         importSummary = eventService.addEvent( event, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        sessionFactory.getCurrentSession().flush();
-
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
         params.setOrgUnit( organisationUnitA );
@@ -267,9 +265,6 @@ public class RegistrationMultiEventsServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         importSummary = eventService.addEvent( event, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        sessionFactory.getCurrentSession().flush();
-
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
         params.setOrgUnit( organisationUnitA );
@@ -281,7 +276,7 @@ public class RegistrationMultiEventsServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         event.setEvent( importSummary.getReference() );
         importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
