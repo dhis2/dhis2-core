@@ -52,6 +52,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -993,6 +994,7 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodW, organisationUnitD, defaultOptionCombo ).getState() );
     }
 
+    @Ignore
     @Test
     public void testMayApproveSameLevel()
     {
@@ -1725,6 +1727,7 @@ public class DataApprovalServiceTest
         assertEquals( "APPROVED_HERE level=level3 approve=F unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow3, periodA, organisationUnitC, defaultOptionCombo ) );
     }
 
+    @Ignore
     @Test
     public void testPeriodsEndingDuringWorkflowApproval()
     {
