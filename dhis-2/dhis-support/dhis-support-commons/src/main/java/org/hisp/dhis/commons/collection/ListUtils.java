@@ -34,7 +34,7 @@ import java.util.*;
 
 /**
  * Utility methods for list operations.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ListUtils
@@ -42,7 +42,7 @@ public class ListUtils
     /**
      * Removes from the given list the elements at the given indexes. Ignores
      * indexes which are out of bounds of list.
-     * 
+     *
      * @param <T> type.
      * @param list the list to remove elements from.
      * @param indexes the indexes for the elements to remove.
@@ -53,11 +53,11 @@ public class ListUtils
         {
             return;
         }
-        
+
         Collections.sort( indexes, Collections.reverseOrder() );
-        
+
         final int size = list.size();
-        
+
         for ( Integer index : indexes )
         {
             if ( index >= 0 && index < size )
@@ -66,11 +66,11 @@ public class ListUtils
             }
         }
     }
-    
+
     /**
      * Removes from the given list the elements at the given indexes. Ignores
      * indexes which are out of bounds of list.
-     * 
+     *
      * @param <T> type.
      * @param list the list to operate on.
      * @param indexes the indexes to remove elements in the list from.
@@ -78,14 +78,14 @@ public class ListUtils
     public static <T> void removeAll( List<T> list, Integer... indexes )
     {
         List<Integer> inx = new ArrayList<>( Arrays.asList( indexes ) );
-        
+
         removeAll( list, inx );
     }
-    
+
     /**
      * Returns a sublist of the given list with the elements at the given
      * indexes. Does not modify the given list of elements.
-     * 
+     *
      * @param <T> type.
      * @param list the list to select from.
      * @param indexes the indexes of the elements in the list to select.
@@ -94,19 +94,19 @@ public class ListUtils
     public static <T> List<T> getAtIndexes( List<T> list, List<Integer> indexes )
     {
         List<T> elements = new ArrayList<>();
-        
+
         for ( Integer index : indexes )
         {
             elements.add( list.get( index ) );
         }
-        
+
         return elements;
     }
-    
+
     /**
      * Checks whether the given list contains duplicates. List entries are compared
      * using the given comparator.
-     * 
+     *
      * @param <T> type.
      * @param list the list.
      * @param comparator the comparator.
@@ -115,26 +115,26 @@ public class ListUtils
     public static <T> boolean containsDuplicates( List<T> list, Comparator<T> comparator )
     {
         Collections.sort( list, comparator );
-        
+
         T previous = null;
-        
+
         for ( T entry : list )
         {
             if ( previous != null && previous.equals( entry ) )
             {
                 return true;
             }
-            
+
             previous = entry;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Returns the duplicates in the given list. List entries are compared
      * using the given comparator.
-     * 
+     *
      * @param <T> type.
      * @param list the list.
      * @param comparator the comparator.
@@ -143,27 +143,27 @@ public class ListUtils
     public static <T> Set<T> getDuplicates( List<T> list, Comparator<? super T> comparator )
     {
         Set<T> duplicates = new HashSet<>();
-        
+
         Collections.sort( list, comparator );
-        
+
         T previous = null;
-        
+
         for ( T entry : list )
         {
             if ( previous != null && previous.equals( entry ) )
             {
                 duplicates.add( entry );
             }
-            
+
             previous = entry;
         }
-        
+
         return duplicates;
     }
 
     /**
      * Returns the duplicates in the given list.
-     * 
+     *
      * @param <T> type.
      * @param list the list.
      * @return a set of duplicates from the given list.
@@ -172,7 +172,7 @@ public class ListUtils
     {
         Set<T> duplicates = new HashSet<>();
         UniqueArrayList<T> uniqueElements = new UniqueArrayList<>();
-        
+
         for ( T element : list )
         {
             if ( !uniqueElements.add( element ) )
@@ -180,13 +180,13 @@ public class ListUtils
                 duplicates.add( element );
             }
         }
-        
+
         return duplicates;
     }
-        
+
     /**
      * Removes empty strings from the given list. Empty includes null.
-     * 
+     *
      * @param list the list of strings.
      */
     public static void removeEmptys( List<String> list )
@@ -196,11 +196,11 @@ public class ListUtils
             list.removeIf( StringUtils::isEmpty );
         }
     }
-    
+
     /**
-     * Returns the sub list of the given list avoiding exceptions, starting on 
-     * the given start index and returning at maximum the given max number of items. 
-     * 
+     * Returns the sub list of the given list avoiding exceptions, starting on
+     * the given start index and returning at maximum the given max number of items.
+     *
      * @param <T> type.
      * @param list the list.
      * @param start the start index.
@@ -213,15 +213,15 @@ public class ListUtils
         {
             return null;
         }
-        
+
         int end = start + max;
-        
+
         return list.subList( Math.max( 0, start ), Math.min( list.size(), end ) );
     }
-    
+
     /**
      * Unions the given array of lists into a single list.
-     * 
+     *
      * @param <T> type.
      * @param lists the array of lists.
      * @return a union of the given lists.
@@ -230,18 +230,18 @@ public class ListUtils
     public static final <T> List<T> union( final List<T>... lists )
     {
         final List<T> union = new ArrayList<>();
-        
+
         for ( List<T> list : lists )
         {
             union.addAll( list );
         }
-        
+
         return union;
     }
 
     /**
      * Unions the given array of lists into a single list with distinct items.
-     * 
+     *
      * @param <T> type.
      * @param lists the array of lists.
      * @return a union of the given lists.
@@ -250,19 +250,19 @@ public class ListUtils
     public static final <T> List<T> distinctUnion( final List<T>... lists )
     {
         final List<T> union = new UniqueArrayList<>();
-        
+
         for ( List<T> list : lists )
         {
             union.addAll( list );
         }
-        
+
         return union;
     }
-    
+
     /**
      * Returns a contiguous list of Integers starting on and including a, ending
      * on and excluding b.
-     * 
+     *
      * @param a start, inclusive.
      * @param b end, exclusive.
      * @return a list of Integers.
@@ -270,12 +270,12 @@ public class ListUtils
     public static List<Integer> getClosedOpenList( int a, int b )
     {
         List<Integer> list = new ArrayList<>();
-        
+
         for ( int i = a; i < b; i++ )
         {
             list.add( i );
         }
-        
+
         return list;
     }
 
@@ -319,15 +319,15 @@ public class ListUtils
 
         return integers;
     }
-    
+
     /**
      * Sorts the given list according to its natural sort order and returns it.
-     * 
+     *
      * @param <T> type.
      * @param list the list to sort.
      * @return a sorted list.
      */
-    public static <T extends Comparable<? super T>> List<T> sort( List<T> list ) 
+    public static <T extends Comparable<? super T>> List<T> sort( List<T> list )
     {
         Collections.sort( list );
         return list;
@@ -335,13 +335,13 @@ public class ListUtils
 
     /**
      * Sorts the given list using the given comparator and returns it.
-     * 
+     *
      * @param <T> type.
      * @param list the list to sort.
      * @param comparator the comparator.
      * @return a sorted list.
      */
-    public static <T> List<T> sort( List<T> list, Comparator<? super T> comparator ) 
+    public static <T> List<T> sort( List<T> list, Comparator<? super T> comparator )
     {
         Collections.sort( list, comparator );
         return list;

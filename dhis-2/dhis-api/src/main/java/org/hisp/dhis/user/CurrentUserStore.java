@@ -33,5 +33,7 @@ package org.hisp.dhis.user;
  */
 public interface CurrentUserStore
 {
+    User getUser( int id );
+    
     UserCredentials getUserCredentialsByUsername( String username );
 }

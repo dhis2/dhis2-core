@@ -33,9 +33,8 @@
 
 	#if( $accountAction == "invited" )
     <tr>
-        <td style="width:140px"><label for="code">$i18n.getString( "code_from_email" )</label></td>
+        <td style="width:140px"><label for="code"></label></td>
         <td>
-            <input type="text" id="inviteCode" name="inviteCode" autocomplete="off">
             <input type="hidden" id="inviteUsername" name="inviteUsername" value="$username">
             <input type="hidden" id="inviteToken" name="inviteToken" value="$token">
         </td>

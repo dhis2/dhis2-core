@@ -62,7 +62,7 @@ public class ValidationUtils
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile( "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" );
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
-    private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9]●?){6,14}[0-9]$" );
+    private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "f", "F", "0" );
 
@@ -381,6 +381,13 @@ public class ValidationUtils
         return dataValueIsValid( value, dataElement.getValueType() );
     }
 
+    /**
+     * Indicates whether the given data value is valid according to the given value type.
+     *
+     * @param value the data value.
+     * @param valueType the {@link ValueType}.
+     * @return null if the value is valid, a string if not.
+     */
     public static String dataValueIsValid( String value, ValueType valueType )
     {
         if ( value == null || value.trim().isEmpty() )
@@ -398,74 +405,63 @@ public class ValidationUtils
             return "value_length_greater_than_max_length";
         }
 
+        // Value type checks
+
         if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
         {
             return "value_not_numeric";
         }
-
-        if ( ValueType.UNIT_INTERVAL == valueType && !MathUtils.isUnitInterval( value ) )
+        else if ( ValueType.UNIT_INTERVAL == valueType && !MathUtils.isUnitInterval( value ) )
         {
             return "value_not_unit_interval";
         }
-
-        if ( ValueType.PERCENTAGE == valueType && !MathUtils.isPercentage( value ) )
+        else if ( ValueType.PERCENTAGE == valueType && !MathUtils.isPercentage( value ) )
         {
             return "value_not_percentage";
         }
-
-        if ( ValueType.INTEGER == valueType && !MathUtils.isInteger( value ) )
+        else if ( ValueType.INTEGER == valueType && !MathUtils.isInteger( value ) )
         {
             return "value_not_integer";
         }
-
-        if ( ValueType.INTEGER_POSITIVE == valueType && !MathUtils.isPositiveInteger( value ) )
+        else if ( ValueType.INTEGER_POSITIVE == valueType && !MathUtils.isPositiveInteger( value ) )
         {
             return "value_not_positive_integer";
         }
-
-        if ( ValueType.INTEGER_NEGATIVE == valueType && !MathUtils.isNegativeInteger( value ) )
+        else if ( ValueType.INTEGER_NEGATIVE == valueType && !MathUtils.isNegativeInteger( value ) )
         {
             return "value_not_negative_integer";
         }
-
-        if ( ValueType.INTEGER_ZERO_OR_POSITIVE == valueType && !MathUtils.isZeroOrPositiveInteger( value ) )
+        else if ( ValueType.INTEGER_ZERO_OR_POSITIVE == valueType && !MathUtils.isZeroOrPositiveInteger( value ) )
         {
             return "value_not_zero_or_positive_integer";
         }
-
-        if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value ) )
+        else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value ) )
         {
             return "value_not_bool";
         }
-
-        if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( value ) )
+        else if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( value ) )
         {
             return "value_not_true_only";
         }
-
-        if ( ValueType.DATE == valueType && !DateUtils.dateIsValid( value ) )
+        else if ( ValueType.DATE == valueType && !DateUtils.dateIsValid( value ) )
         {
             return "value_not_valid_date";
         }
-
-        if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
+        else if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
         {
             return "value_not_valid_datetime";
         }
-
-        if ( valueType.isFile() && !CodeGenerator.isValidUid( value ) )
-        {
-            return "value_not_valid_file_resource_uid";
-        }
-
-        if ( ValueType.COORDINATE == valueType && !MathUtils.isCoordinate( value ) )
+        else if ( ValueType.COORDINATE == valueType && !MathUtils.isCoordinate( value ) )
         {
             return "value_not_coordinate";
         }
-
-        if ( ValueType.URL == valueType && !urlIsValid( value ) )
+        else if ( ValueType.URL == valueType && !urlIsValid( value ) )
         {
             return "value_not_url";
+        }
+        else if ( valueType.isFile() && !CodeGenerator.isValidUid( value ) )
+        {
+            return "value_not_valid_file_resource_uid";
         }
 
         return null;
@@ -482,9 +478,8 @@ public class ValidationUtils
     {
         AggregationType aggregationType = dataElement.getAggregationType();
 
-        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) &&
-            !dataElement.isZeroIsSignificant() &&
-            !(aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE);
+        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) && !dataElement.isZeroIsSignificant() &&
+            !( aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE );
     }
 
     /**

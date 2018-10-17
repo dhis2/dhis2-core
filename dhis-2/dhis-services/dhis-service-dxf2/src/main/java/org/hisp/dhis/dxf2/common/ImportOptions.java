@@ -87,6 +87,10 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
+    
+    private boolean ignoreEmptyCollection;
+
+    private boolean force;
 
     private String filename;
 
@@ -127,8 +131,10 @@ public class ImportOptions
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
         options.skipPatternValidation = this.skipPatternValidation;
+        options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.ignoreEmptyCollection = this.ignoreEmptyCollection;
 
         return options;
     }
@@ -323,6 +329,20 @@ public class ImportOptions
     {
         return skipPatternValidation;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIgnoreEmptyCollection()
+    {
+        return ignoreEmptyCollection;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isForce()
+    {
+        return force;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -509,6 +529,18 @@ public class ImportOptions
         this.skipPatternValidation = skipPatternValidation;
         return this;
     }
+    
+    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
+    {
+        this.ignoreEmptyCollection = ignoreEmptyCollection;
+        return this;
+    }
+
+    public ImportOptions setForce( boolean force )
+    {
+        this.force = force;
+        return this;
+    }
 
     public ImportOptions setFilename( String filename )
     {
@@ -533,6 +565,7 @@ public class ImportOptions
             .add( "importStrategy", importStrategy )
             .add( "mergeMode", mergeMode )
             .add( "skipExistingCheck", skipExistingCheck )
+            .add( "ignoreEmptyCollection", ignoreEmptyCollection )
             .add( "sharing", sharing )
             .add( "skipNotifications", skipNotifications )
             .add( "datasetAllowsPeriods", datasetAllowsPeriods )
@@ -543,6 +576,7 @@ public class ImportOptions
             .add( "strictOrganisationUnits", strictOrganisationUnits )
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
+            .add( "force", force )
             .toString();
     }
 }

@@ -67,7 +67,7 @@ public class DefaultEventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
-    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of( 
+    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
@@ -90,7 +90,7 @@ public class DefaultEventDataQueryService
 
     @Autowired
     private DataQueryService dataQueryService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
@@ -98,9 +98,9 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         EventQueryParams.Builder params = new EventQueryParams.Builder();
-        
+
         IdScheme idScheme = IdScheme.UID;
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
@@ -125,11 +125,11 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
                     items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
-                {                    
+                {
                     params.addDimension( dimObj );
                 }
                 else
@@ -145,7 +145,7 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
                     items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
@@ -174,12 +174,12 @@ public class DefaultEventDataQueryService
                 params.addDescSortItem( getSortItem( sort, pr ) );
             }
         }
-        
+
         if ( request.getAggregationType() != null )
         {
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
-        
+
         return params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
@@ -210,7 +210,7 @@ public class DefaultEventDataQueryService
             .withProgramStatus( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .build();
-    
+
     }
 
     @Override
@@ -218,11 +218,11 @@ public class DefaultEventDataQueryService
     {
         Assert.notNull( object, "Event analytical object cannot be null" );
         Assert.notNull( object.getProgram(), "Event analytical object must specify a program" );
-        
+
         EventQueryParams.Builder params = new EventQueryParams.Builder();
-        
-        I18nFormat format = i18nManager.getI18nFormat();        
-        IdScheme idScheme = IdScheme.UID;        
+
+        I18nFormat format = i18nManager.getI18nFormat();
+        IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
 
         object.populateAnalyticalProperties();
@@ -266,7 +266,7 @@ public class DefaultEventDataQueryService
             .withOutputType( object.getOutputType() )
             .build();
     }
-    
+
     @Override
     public String getCoordinateField( String coordinateField )
     {
@@ -274,31 +274,31 @@ public class DefaultEventDataQueryService
         {
             return "geom";
         }
-        
+
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
-        
+
         if ( dataElement != null )
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
                 throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
-            
+
             return dataElement.getUid();
         }
-                
+
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
-        
+
         if ( attribute != null )
         {
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
                 throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
-            
+
             return attribute.getUid();
         }
-        
+
         throw new IllegalQueryException( "Cluster field not valid: " + coordinateField );
     }
 
@@ -343,7 +343,7 @@ public class DefaultEventDataQueryService
     private DimensionalItemObject getSortItem( String item, Program program )
     {
         QueryItem queryItem = getQueryItem( item, program );
-        
+
         if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && queryItem == null )
         {
             throw new IllegalQueryException( "Sort item is invalid: " + item );
@@ -367,7 +367,7 @@ public class DefaultEventDataQueryService
         if ( de != null && program.containsDataElement( de ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
-            
+
             return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
         }
 
@@ -376,7 +376,7 @@ public class DefaultEventDataQueryService
         if ( at != null && program.containsAttribute( at ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
-            
+
             return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 

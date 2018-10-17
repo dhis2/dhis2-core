@@ -1019,7 +1019,7 @@ public class ListGrid
     }
 
     @Override
-    public Grid addRows( SqlRowSet rs )
+    public Grid addRows( SqlRowSet rs, int maxLimit )
     {
         int cols = rs.getMetaData().getColumnCount();
 
@@ -1030,10 +1030,21 @@ public class ListGrid
             for ( int i = 1; i <= cols; i++ )
             {
                 addValue( rs.getObject( i ) );
+                
+                if ( maxLimit > 0 && i > maxLimit )
+                {
+                    throw new IllegalStateException( "Number of rows produced by query is larger than the max limit: " + maxLimit );
+                }
             }
         }
 
         return this;
+    }
+
+    @Override
+    public Grid addRows( SqlRowSet rs )
+    {
+        return addRows( rs, -1 );
     }
 
     // -------------------------------------------------------------------------

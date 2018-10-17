@@ -64,10 +64,10 @@ import com.google.common.collect.Lists;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public class DefaultSystemSettingManager 
+public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-   
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -75,22 +75,22 @@ public class DefaultSystemSettingManager
     private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
-    
+
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
     private Cache<Serializable> settingCache;
-    
-  
+
+
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
-    
+
     @Autowired
     private TransactionTemplate transactionTemplate;
 
     @Resource( name = "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
-    
+
     @Autowired
     private CacheProvider cacheProvider;
 
@@ -109,12 +109,12 @@ public class DefaultSystemSettingManager
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-    
+
     @PostConstruct
     public void init()
     {
         settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build(); 
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -123,13 +123,13 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( String name, Serializable value )
+    public void saveSystemSetting( SettingKey settingKey, Serializable value )
     {
-        settingCache.invalidate( name );
+        settingCache.invalidate( settingKey.getName() );
 
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
-        if ( isConfidential( name ) )
+        if ( isConfidential( settingKey.getName() ) )
         {
             value = pbeStringEncryptor.encrypt( value.toString() );
         }
@@ -138,7 +138,7 @@ public class DefaultSystemSettingManager
         {
             setting = new SystemSetting();
 
-            setting.setName( name );
+            setting.setName( settingKey.getName() );
             setting.setValue( value );
 
             systemSettingStore.save( setting );
@@ -153,44 +153,16 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( SettingKey setting, Serializable value )
+    public void deleteSystemSetting( SettingKey settingKey )
     {
-        saveSystemSetting( setting.getName(), value );
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
         if ( setting != null )
         {
-            settingCache.invalidate( name );
+            settingCache.invalidate( settingKey.getName() );
 
             systemSettingStore.delete( setting );
         }
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( SettingKey setting )
-    {
-        deleteSystemSetting( setting.getName() );
-    }
-
-    @Override
-    @Transactional
-    public Serializable getSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
-
-        if ( isConfidential( name ) )
-        {
-            setting.setValue( pbeStringEncryptor.decrypt( setting.getValue().toString() ) );
-        }
-
-        return setting != null && setting.hasValue() ? setting.getValue() : null;
     }
 
     /**
@@ -228,6 +200,7 @@ public class DefaultSystemSettingManager
     {
         SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
         {
+            @Override
             public SystemSetting doInTransaction( TransactionStatus status )
             {
                 return systemSettingStore.getByName( name );
@@ -273,7 +246,7 @@ public class DefaultSystemSettingManager
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
-        
+
         for ( SettingKey key : SettingKey.values() )
         {
             if ( key.hasDefaultValue() )
@@ -302,35 +275,6 @@ public class DefaultSystemSettingManager
         }
 
         return settingsMap;
-    }
-
-    @Override
-    @Transactional
-    public Map<String, Serializable> getSystemSettingsAsMap( Set<String> names )
-    {
-        Map<String, Serializable> map = new HashMap<>();
-
-        for ( String name : names )
-        {
-            Serializable settingValue = getSystemSetting( name );
-
-            if ( settingValue == null )
-            {
-                Optional<SettingKey> setting = SettingKey.getByName( name );
-
-                if ( setting.isPresent() )
-                {
-                    settingValue = setting.get().getDefaultValue();
-                }
-            }
-
-            if ( settingValue != null )
-            {
-                map.put( name, settingValue );
-            }
-        }
-
-        return map;
     }
 
     @Override
@@ -431,7 +375,7 @@ public class DefaultSystemSettingManager
         return StringUtils.isNotBlank( getEmailHostName() )
             && StringUtils.isNotBlank( getEmailUsername() );
     }
-    
+
     @Override
     public boolean systemNotificationEmailValid()
     {

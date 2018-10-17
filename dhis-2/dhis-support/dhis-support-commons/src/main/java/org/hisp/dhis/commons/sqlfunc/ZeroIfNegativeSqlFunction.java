@@ -29,16 +29,16 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates numerical values to zero if negative or null, unchanged 
+ * Function which evaluates numerical values to zero if negative or null, unchanged
  * if zero or positive.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ZeroIfNegativeSqlFunction
     implements SqlFunction
 {
     public static final String KEY = "zing";
-    
+
     @Override
     public String evaluate( String... args )
     {
@@ -46,9 +46,9 @@ public class ZeroIfNegativeSqlFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 1 argument: value" );
         }
-        
+
         String value = args[0];
-        
+
         return "coalesce(case when " + value + " < 0 then 0 else " + value + " end, 0)";
     }
 }

@@ -28,16 +28,16 @@ package org.hisp.dhis.analytics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -49,29 +49,27 @@ public class HibernateAnalyticsTableHookStore
     private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
     
     @Override
-    @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase" )
+
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase" )
             .setParameter( "phase", phase )
             .getResultList();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
             .setParameter( "phase", phase )
             .setParameter( "resourceTableType", resourceTableType )
             .getResultList();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
             .setParameter( "phase", phase )
             .setParameter( "analyticsTableType", analyticsTableType )
             .getResultList();

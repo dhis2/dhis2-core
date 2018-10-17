@@ -34,8 +34,12 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
@@ -56,6 +60,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -64,6 +69,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -76,6 +82,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,6 +110,12 @@ public class MessageConversationController
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Override
     protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
@@ -278,8 +291,29 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
+        Set<FileResource> attachments = new HashSet<>(  );
+
+        for( FileResource fr : messageConversation.getAttachments() )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( fr.getUid() );
+
+            if ( fileResource == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+            }
+
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+            }
+
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+            attachments.add( fileResource );
+        }
+
         int id = messageService.sendPrivateMessage( messageConversation.getUsers(),
-            messageConversation.getSubject(), messageConversation.getText(), metaData );
+            messageConversation.getSubject(), messageConversation.getText(), metaData, attachments );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
@@ -297,6 +331,7 @@ public class MessageConversationController
         @PathVariable( "uid" ) String uid,
         @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
+        @RequestParam( value = "attachments", required = false ) Set<String> attachments,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -314,7 +349,30 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, message, metaData, internal );
+        Set<FileResource> fileResources = new HashSet<>(  );
+
+        for( String fileResourceUid : attachments )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+            if ( fileResource == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
+            }
+
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
+            }
+
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+
+            fileResources.add( fileResource );
+        }
+
+
+        messageService.sendReply( conversation, message, metaData, internal, fileResources );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
@@ -816,6 +874,40 @@ public class MessageConversationController
         return responseNode;
     }
 
+    @RequestMapping( value = "/{mcUid}/{msgUid}/attachments/{fileUid}", method = RequestMethod.GET )
+    public void getAttachment(
+        @PathVariable( value = "mcUid" ) String mcUid,
+        @PathVariable( value = "msgUid" ) String msgUid,
+        @PathVariable( value = "fileUid" ) String fileUid,
+        HttpServletResponse response )
+        throws WebMessageException
+    {
+        User user = currentUserService.getCurrentUser();
+
+        Message message = getMessage( mcUid, msgUid, user );
+
+        FileResource fr = fileResourceService.getFileResource( fileUid );
+
+        if ( message == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No message found with id '" + msgUid + "' for message conversation with id '" + mcUid + "'" ) );
+        }
+
+        boolean attachmentExists = message.getAttachments().stream().filter( att -> att.getUid().equals( fileUid ) ).count() == 1;
+
+        if ( fr == null || !attachmentExists )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No messageattachment found with id '" + fileUid + "'" ) );
+        }
+
+        if ( !fr.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ))
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid messageattachment." ) );
+        }
+
+        fileResourceUtils.configureFileResourceResponse( response, fr );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -903,5 +995,40 @@ public class MessageConversationController
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
+    }
+
+    /* Returns the specified message after making sure the user has access to it */
+    private Message getMessage( String mcUid, String msgUid, User user )
+        throws WebMessageException
+    {
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( mcUid );
+
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+        }
+
+        if ( !canReadMessageConversation( user, conversation ) )
+        {
+            throw new AccessDeniedException( "Not authorized to access this conversation." );
+        }
+
+        List<Message> messages = conversation.getMessages().stream()
+            .filter( msg -> msg.getUid().equals( msgUid ) )
+            .collect( Collectors.toList() );
+
+        if ( messages.size() < 1 )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
+        }
+
+        Message message = messages.get( 0 );
+
+        if ( message.isInternal() && !configurationService.isUserInFeedbackRecipientUserGroup( user ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Not authorized to access this message" ) );
+        }
+
+        return message;
     }
 }

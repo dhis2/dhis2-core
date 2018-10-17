@@ -40,6 +40,8 @@ public class TestTextPatternValidationUtils
 
     private TextPatternSegment textSegment = new TextPatternSegment( TextPatternMethod.TEXT, "\"FOOBAR\"" );
 
+    private TextPatternSegment textSegmentWithSpecialCharacters = new TextPatternSegment( TextPatternMethod.TEXT, "\"\\d\\x\\X\\w\"" );
+
     private TextPatternSegment randomSegment = new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(XXxx##)" );
 
     private TextPatternSegment sequentialSegment = new TextPatternSegment( TextPatternMethod.SEQUENTIAL,
@@ -58,6 +60,15 @@ public class TestTextPatternValidationUtils
         assertTrue( TextPatternValidationUtils.validateSegmentValue( textSegment, "FOOBAR" ) );
         assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegment, "FOBAR" ) );
         assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegment, "" ) );
+
+        assertTrue( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "0aA0" ) );
+        assertTrue( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "9zZa" ) );
+        assertTrue( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "0aAA" ) );
+        assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "aaA0" ) );
+        assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "01A0" ) );
+        assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "0a10" ) );
+        assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "12aA0" ) );
+        assertFalse( TextPatternValidationUtils.validateSegmentValue( textSegmentWithSpecialCharacters, "0aA01" ) );
 
         assertTrue( TextPatternValidationUtils.validateSegmentValue( randomSegment, "AAaa11" ) );
         assertFalse( TextPatternValidationUtils.validateSegmentValue( randomSegment, "11AAaa" ) );

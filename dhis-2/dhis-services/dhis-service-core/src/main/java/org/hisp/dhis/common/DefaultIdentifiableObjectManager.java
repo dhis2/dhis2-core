@@ -991,7 +991,7 @@ public class DefaultIdentifiableObjectManager
 
             if ( store == null && !UserCredentials.class.isAssignableFrom( clazz ) )
             {
-                log.warn( "No IdentifiableObjectStore found for class: " + clazz );
+                log.debug( "No IdentifiableObjectStore found for class: " + clazz );
             }
         }
 
@@ -1011,7 +1011,7 @@ public class DefaultIdentifiableObjectManager
 
             if ( store == null )
             {
-                log.warn( "No DimensionalObjectStore found for class: " + clazz );
+                log.debug( "No DimensionalObjectStore found for class: " + clazz );
             }
         }
 

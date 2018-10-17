@@ -67,6 +67,9 @@ public class CategoryServiceTest
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryStore categoryStore;
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -300,5 +303,67 @@ public class CategoryServiceTest
         assertTrue( operands.contains( new DataElementOperand( deB ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
+    }
+
+    @Test
+    public void testGetDisaggregationCategoryCombos()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+
+        categoryService.addCategoryCombo( ccA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryCombos().size() );
+    }
+
+    @Test
+    public void testGetDisaggregationCategoryOptionGroupSetsNoAcl()
+    {
+        CategoryOptionGroup groupA = createCategoryOptionGroup( 'A' );
+        groupA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupB = createCategoryOptionGroup( 'B' );
+        groupB.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupC = createCategoryOptionGroup( 'C' );
+        groupC.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupA.getMembers().add( categoryOptionA );
+        groupA.getMembers().add( categoryOptionB );
+        groupB.getMembers().add( categoryOptionC );
+
+        categoryService.saveCategoryOptionGroup( groupA );
+        categoryService.saveCategoryOptionGroup( groupB );
+        categoryService.saveCategoryOptionGroup( groupC );
+
+        CategoryOptionGroupSet groupSetA = createCategoryOptionGroupSet( 'A' );
+        groupSetA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupSetA.getMembers().add( groupA );
+        groupSetA.getMembers().add( groupB );
+        groupSetA.getMembers().add( groupC );
+        categoryService.saveCategoryOptionGroupSet( groupSetA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size() );
+    }
+
+    @Test
+    public void testGetDisaggregationCategories()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        categoryService.addCategory( categoryA );
+
+        // Default Category is created so count should be equal 2
+        assertEquals( 2, categoryService.getDisaggregationCategories().size() );
+
+        assertEquals( 1, categoryStore.getCategories( DataDimensionType.DISAGGREGATION, true ).size() );
+
+        assertEquals( 1, categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
+
     }
 }

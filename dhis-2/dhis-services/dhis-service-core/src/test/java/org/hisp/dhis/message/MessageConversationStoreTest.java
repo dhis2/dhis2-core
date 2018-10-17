@@ -32,7 +32,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +46,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Stian Sandvold
  */
-@Ignore
 public class MessageConversationStoreTest
     extends DhisSpringTest
 {
@@ -94,23 +92,23 @@ public class MessageConversationStoreTest
 
         conversationIds = new HashSet<>();
 
-        conversationA = messageService.sendPrivateMessage( usersA,"Subject1", "Text", "Meta" );
+        conversationA = messageService.sendPrivateMessage( usersA,"Subject1", "Text", "Meta", null );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        messageService.sendReply( mc, "Message 1", "Meta", false );
-        messageService.sendReply( mc, "Message 2", "Meta", false );
-        messageService.sendReply( mc, "Message 3", "Meta", false );
+        messageService.sendReply( mc, "Message 1", "Meta", false, null );
+        messageService.sendReply( mc, "Message 2", "Meta", false, null );
+        messageService.sendReply( mc, "Message 3", "Meta", false, null );
 
-        int conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta" );
+        int conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationB );
         mc.setFollowUp( true );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        int conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta" );
+        int conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );

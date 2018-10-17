@@ -28,19 +28,19 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.List;
 
 /**
@@ -55,7 +55,9 @@ public class HibernateDeletedObjectStore
     @Override
     public int save( DeletedObject deletedObject )
     {
-        return (int) getCurrentSession().save( deletedObject );
+        getCurrentSession().save( deletedObject );
+
+        return deletedObject.getId();
     }
 
     @Override
@@ -83,79 +85,104 @@ public class HibernateDeletedObjectStore
     @Override
     public int count( DeletedObjectQuery query )
     {
-        Criteria criteria = buildCriteria( query );
-        return ((Number) criteria.setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery( Long.class );
+
+        Root<DeletedObject> root = criteriaQuery.from( DeletedObject.class );
+
+        Predicate predicate = buildCriteria( builder, root, query );
+
+        criteriaQuery.select( builder.countDistinct( root ) );
+
+        if ( !predicate.getExpressions().isEmpty() ) criteriaQuery.where( predicate );
+
+        Query<Long> typedQuery = getCurrentSession().createQuery( criteriaQuery );
+
+        return typedQuery.getSingleResult().intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DeletedObject> query( DeletedObjectQuery query )
     {
-        Criteria criteria = buildCriteria( query );
+        CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+
+        CriteriaQuery<DeletedObject> criteriaQuery = builder.createQuery( DeletedObject.class );
+
+        Root<DeletedObject> root = criteriaQuery.from( DeletedObject.class );
+
+        Predicate predicate = buildCriteria( builder, root, query );
+
+        criteriaQuery.select( root );
+
+        if ( !predicate.getExpressions().isEmpty() ) criteriaQuery.where( predicate );
+
+        Query<DeletedObject> typedQuery = getCurrentSession().createQuery( criteriaQuery );
 
         if ( !query.isSkipPaging() )
         {
             Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
+            typedQuery.setFirstResult( pager.getOffset() );
+            typedQuery.setMaxResults( pager.getPageSize() );
         }
 
-        return criteria.list();
+        return typedQuery.list();
     }
 
-    private Criteria buildCriteria( DeletedObjectQuery query )
+    private Predicate buildCriteria( CriteriaBuilder builder, Root<DeletedObject> root, DeletedObjectQuery query )
     {
-        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
+        Predicate predicate = builder.conjunction();
 
         if ( query.getKlass().isEmpty() )
         {
-            Disjunction disjunction = Restrictions.disjunction();
+            Predicate disjunction = builder.disjunction();
 
             if ( !query.getUid().isEmpty() )
             {
-                disjunction.add( Restrictions.in( "uid", query.getUid() ) );
+                disjunction.getExpressions().add( root.get( "uid" ).in( query.getUid() ) );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                disjunction.add( Restrictions.in( "code", query.getCode() ) );
+                disjunction.getExpressions().add( root.get( "code" ).in( query.getCode() ) );
             }
 
-            criteria.add( disjunction );
+            if ( !disjunction.getExpressions().isEmpty() ) predicate.getExpressions().add( disjunction );
         }
         else if ( query.getUid().isEmpty() && query.getCode().isEmpty() )
         {
-            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
+            predicate.getExpressions().add( builder.or( root.get( "klass" ).in( query.getKlass() ),
+                root.get( "klass" ).in( query.getKlass() ) ) );
         }
         else
         {
-            Disjunction disjunction = Restrictions.disjunction();
+            Predicate disjunction = builder.disjunction();
 
             if ( !query.getUid().isEmpty() )
             {
-                Conjunction conjunction = Restrictions.conjunction();
-                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
-                conjunction.add( Restrictions.in( "uid", query.getUid() ) );
-                disjunction.add( conjunction );
+                Predicate conjunction = builder.conjunction();
+                conjunction.getExpressions().add( root.get( "klass" ).in( query.getKlass() ) );
+                conjunction.getExpressions().add( root.get( "uid" ).in( query.getUid() ) );
+                disjunction.getExpressions().add( conjunction );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                Conjunction conjunction = Restrictions.conjunction();
-                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
-                conjunction.add( Restrictions.in( "code", query.getCode() ) );
-                disjunction.add( conjunction );
+                Predicate conjunction = builder.conjunction();
+                conjunction.getExpressions().add( root.get( "klass" ).in( query.getKlass() ) );
+                conjunction.getExpressions().add( root.get( "code" ).in( query.getUid() ) );
+                disjunction.getExpressions().add( conjunction );
             }
 
-            criteria.add( disjunction );
+            if ( !disjunction.getExpressions().isEmpty() ) predicate.getExpressions().add( disjunction );
         }
 
         if ( query.getDeletedAt() != null )
         {
-            criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
+            predicate.getExpressions().add( builder.greaterThanOrEqualTo( root.get( "deletedAt" ), query.getDeletedAt() ) );
         }
 
-        return criteria;
+        return predicate;
     }
 
     private Session getCurrentSession()
