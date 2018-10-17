@@ -373,11 +373,11 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
-
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -467,7 +467,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -489,13 +489,13 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
@@ -586,11 +586,12 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-        removeAttributeValues( daoEntityInstance );
-
         teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getAttributes().isEmpty() )
+        {
+            updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+        }
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -598,7 +599,10 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty() )
+        {
+            importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        }
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -849,6 +853,13 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
+    {
+        removeAttributeValues( daoEntityInstance );
+        addAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+    }
+    
+    private void addAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
     {
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
@@ -1122,6 +1133,16 @@ public abstract class AbstractTrackedEntityInstanceService
         return importOptions;
     }
 
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
+    }
+
     private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
@@ -1195,7 +1216,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             for ( ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances() )
             {
-                if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() )
+                if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
                 {
                     trackedEntityInstance.getEnrollments()
                         .add( enrollmentService.getEnrollment( user, programInstance, params ) );

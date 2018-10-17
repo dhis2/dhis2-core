@@ -30,21 +30,26 @@ package org.hisp.dhis.trackedentity.hibernate;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
 public class HibernateTrackedEntityInstanceAuditStore
+    extends HibernateGenericStore<TrackedEntityInstanceAudit>
     implements TrackedEntityInstanceAuditStore
 {
     // -------------------------------------------------------------------------
@@ -76,58 +81,61 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )    
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params )
-    {        
-        Criteria criteria = getTrackedEntityInstanceAuditCriteria( params );
-        criteria.addOrder( Order.desc( "created" ) );
-        
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<TrackedEntityInstanceAudit> jpaParameters = newJpaParameters()
+            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
         if( !params.isSkipPaging() )
         {
-            criteria.setFirstResult( params.getFirst() );
-            criteria.setMaxResults( params.getMax() );
+            jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
         }
 
-        return criteria.list();
+        return getList( builder, jpaParameters );
     }
 
     @Override
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
     {
-        return ((Number) getTrackedEntityInstanceAuditCriteria( params )
-            .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
     
-    private Criteria getTrackedEntityInstanceAuditCriteria( TrackedEntityInstanceAuditQueryParams params )
-    {        
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( TrackedEntityInstanceAudit.class );
+    private List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates( TrackedEntityInstanceAuditQueryParams params, CriteriaBuilder builder )
+    {
+        List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> predicates = new ArrayList<>();
 
         if ( params.hasTrackedEntityInstances() )
         {
-            criteria.add( Restrictions.in( "trackedEntityInstance", params.getTrackedEntityInstances() ) );
+            predicates.add( root -> root.get( "trackedEntityInstance").in( params.getTrackedEntityInstances() ) );
         }
         
         if ( params.hasUsers() )
         {
-            criteria.add( Restrictions.in( "accessedBy", params.getUsers() ) );
+            predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
         }
         
         if ( params.hasAuditType() )
         {
-            criteria.add( Restrictions.eq( "auditType", params.getAuditType() ) );
+            predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );
         }
 
         if ( params.hasStartDate() )
         {
-            criteria.add(  Restrictions.ge( "created", params.getStartDate() ) );
+            predicates.add( root -> builder.greaterThanOrEqualTo( root.get("created" ), params.getStartDate() ) );
         }
 
         if ( params.hasEndDate() )
         {
-            criteria.add(  Restrictions.le( "created", params.getEndDate() ) );
+            predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
         }
 
-        return criteria;
-
-    }    
+        return predicates;
+    }
 }

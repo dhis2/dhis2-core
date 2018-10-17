@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import org.hibernate.SessionFactory;
@@ -153,7 +154,7 @@ public class DefaultJobConfigurationService
             for ( Field field : clazz.getDeclaredFields() )
             {
                 if ( Arrays.stream( field.getAnnotations() )
-                    .anyMatch( f -> f.annotationType().getSimpleName().equals( "JsonProperty" ) ) )
+                    .anyMatch( f -> f instanceof JsonProperty ) )
                 {
                     Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                     property.setName( field.getName() );

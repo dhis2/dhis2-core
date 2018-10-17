@@ -1,5 +1,13 @@
 package org.hisp.dhis.message;
 
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,13 +36,6 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 /**
  * @author Lars Helge Overland
  */
@@ -44,7 +45,7 @@ public interface MessageService
 
     int sendTicketMessage( String subject, String text, String metaData );
     
-    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData );
+    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
     
     int sendSystemMessage( Set<User> recipients, String subject, String text );
     
@@ -54,7 +55,7 @@ public interface MessageService
 
     int sendSystemErrorNotification( String subject, Throwable t );
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments );
 
     int saveMessageConversation( MessageConversation conversation );
 

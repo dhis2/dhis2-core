@@ -28,8 +28,6 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.CurrentUserService;
-
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -39,21 +37,10 @@ public class GetPingAction
     implements Action
 {
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    // -------------------------------------------------------------------------
     // Input & Output
     // -------------------------------------------------------------------------
 
-    private Boolean loggedIn;
+    private Boolean loggedIn = true;
 
     public Boolean isLoggedIn()
     {
@@ -67,7 +54,7 @@ public class GetPingAction
     @Override
     public String execute()
     {
-        loggedIn = !(currentUserService.getCurrentUser() == null);
+        loggedIn = true;
 
         return SUCCESS;
     }

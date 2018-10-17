@@ -1115,6 +1115,10 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
         
+        // 2.31, migrate to Flyway
+        executeSql( "alter table trackedentityattribute alter column shortname set not null" );
+        executeSql( "UPDATE keyjsonvalue SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
+        
         log.info( "Tables updated" );
 
     }

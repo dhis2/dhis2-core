@@ -240,23 +240,24 @@ public class DefaultUserSettingService implements UserSettingService
     }
 
     @Override
-    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<String> names,
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
     {
         Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
             .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
             .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
 
-        names.forEach( name -> {
-            if ( !result.containsKey( name ) )
+        userSettingKeys.forEach( userSettingKey -> {
+            if ( !result.containsKey( userSettingKey.getName() ) )
             {
-                if ( useFallback )
+                Optional<SettingKey> systemSettingKey = SettingKey.getByName( userSettingKey.getName() );
+                if ( useFallback && systemSettingKey.isPresent() )
                 {
-                    result.put( name, systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( name ) ) );
+                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
                 }
                 else
                 {
-                    result.put( name, null );
+                    result.put( userSettingKey.getName(), null );
                 }
             }
         } );
@@ -272,8 +273,12 @@ public class DefaultUserSettingService implements UserSettingService
         {
             return new ArrayList<>();
         }
+        List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
+        Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
-        return userSettingStore.getAllUserSettings( user );
+        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+
+        return userSettings;
     }
 
     @Override
@@ -285,9 +290,9 @@ public class DefaultUserSettingService implements UserSettingService
     @Override
     public Map<String, Serializable> getUserSettingsAsMap()
     {
-        Set<String> names = Stream.of( UserSettingKey.values() ).map( key -> key.getName() ).collect( Collectors.toSet() );
+        Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
 
-        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
+        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), userSettingKeys, false );
     }
 
     // -------------------------------------------------------------------------

@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
@@ -85,9 +87,7 @@ public class ProgramInstance
 
     private String completedBy;
 
-    private Double longitude;
-
-    private Double latitude;
+    private Geometry geometry;
 
     private Boolean deleted = false;
 
@@ -455,28 +455,14 @@ public class ProgramInstance
         this.completedBy = completedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getLongitude()
+    public Geometry getGeometry()
     {
-        return longitude;
+        return geometry;
     }
 
-    public void setLongitude( Double longitude )
+    public void setGeometry( Geometry geometry )
     {
-        this.longitude = longitude;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
+        this.geometry = geometry;
     }
 
     @JsonProperty
@@ -491,13 +477,13 @@ public class ProgramInstance
         this.deleted = deleted;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;

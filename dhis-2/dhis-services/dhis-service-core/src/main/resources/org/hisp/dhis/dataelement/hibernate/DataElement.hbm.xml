@@ -24,6 +24,8 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
+    <property name="fieldMask" />
+
     <property name="valueType" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.ValueType</param>
