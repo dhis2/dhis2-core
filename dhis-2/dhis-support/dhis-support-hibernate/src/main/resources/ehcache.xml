@@ -11,8 +11,8 @@
   <defaultCache
     maxElementsInMemory="800000" 
     eternal="false" 
-    timeToIdleSeconds="7200" 
-    timeToLiveSeconds="7200"
+    timeToIdleSeconds="21600" 
+    timeToLiveSeconds="21600"
     overflowToDisk="false" 
     diskPersistent="false" />
 
@@ -21,8 +21,8 @@
   <cache name="org.hibernate.cache.internal.StandardQueryCache"
     maxElementsInMemory="800000" 
     eternal="false" 
-    timeToIdleSeconds="3600" 
-    timeToLiveSeconds="3600"
+    timeToIdleSeconds="10800" 
+    timeToLiveSeconds="10800"
     overflowToDisk="false" 
     diskPersistent="false" />
 
