@@ -21,7 +21,10 @@
      <artifactId>flyway-core</artifactId>
      <version>5.2.0</version>
     </dependency>
-    
+      <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
     
     <!-- Test -->
     

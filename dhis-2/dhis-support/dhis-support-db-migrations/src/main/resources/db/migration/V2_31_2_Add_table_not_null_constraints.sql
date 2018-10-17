@@ -1,0 +1,1 @@
+alter table trackedentityattribute alter column shortname set not null;        
