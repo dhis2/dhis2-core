@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ehcache>
 
-  <defaultCache maxElementsInMemory="800000" eternal="false" timeToIdleSeconds="360" timeToLiveSeconds="720"
-    overflowToDisk="false" diskPersistent="false" />
+  <!-- Default cache -->
+  
+  <!-- 
+    Ensure that default cache has less frequent expiration than query cache
+    to avoid individual select queries per entity.
+  -->
+
+  <defaultCache
+    maxElementsInMemory="800000" 
+    eternal="false" 
+    timeToIdleSeconds="21600" 
+    timeToLiveSeconds="21600"
+    overflowToDisk="false" 
+    diskPersistent="false" />
 
   <!-- Hibernate query cache -->
 
-  <cache name="org.hibernate.cache.internal.StandardQueryCache" maxElementsInMemory="250000" />
+  <cache name="org.hibernate.cache.internal.StandardQueryCache"
+    maxElementsInMemory="800000" 
+    eternal="false" 
+    timeToIdleSeconds="10800" 
+    timeToLiveSeconds="10800"
+    overflowToDisk="false" 
+    diskPersistent="false" />
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="2000" />
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" 
+    maxElementsInMemory="5000" />
 </ehcache>
