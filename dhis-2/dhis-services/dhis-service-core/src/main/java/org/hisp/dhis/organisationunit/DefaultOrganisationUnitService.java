@@ -1,5 +1,8 @@
 package org.hisp.dhis.organisationunit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,9 +33,11 @@ package org.hisp.dhis.organisationunit;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -48,9 +53,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -60,6 +67,11 @@ public class DefaultOrganisationUnitService
     implements OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
+
+    private static final Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+        .expireAfterWrite( 3, TimeUnit.HOURS )
+        .initialCapacity( 1000 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -447,6 +459,14 @@ public class DefaultOrganisationUnitService
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( currentUserService.getCurrentUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( organisationUnit ) );
     }
 
     @Override
