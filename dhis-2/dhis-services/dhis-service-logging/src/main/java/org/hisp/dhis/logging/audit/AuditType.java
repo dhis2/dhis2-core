@@ -33,5 +33,5 @@ package org.hisp.dhis.logging.audit;
  */
 public enum AuditType
 {
-    SECURITY
+    CREATE, READ, UPDATE, DELETE, SECURITY
 }

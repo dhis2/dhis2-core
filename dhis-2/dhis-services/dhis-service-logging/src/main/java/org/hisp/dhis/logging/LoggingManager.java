@@ -33,6 +33,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -64,6 +66,10 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
         objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
         objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
+
+        objectMapper.registerModule( new Jdk8Module() );
+        objectMapper.registerModule( new JavaTimeModule() );
+
     }
 
     private final DhisConfigurationProvider dhisConfig;

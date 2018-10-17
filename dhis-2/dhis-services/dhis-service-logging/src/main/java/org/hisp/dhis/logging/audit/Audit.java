@@ -36,7 +36,16 @@ import org.hisp.dhis.logging.Log;
  */
 public class Audit extends Log
 {
-    protected AuditType auditType = AuditType.SECURITY;
+    protected AuditType auditType = AuditType.READ;
+
+    public Audit()
+    {
+    }
+
+    public Audit( AuditType auditType )
+    {
+        this.auditType = auditType;
+    }
 
     @JsonProperty
     public AuditType getAuditType()

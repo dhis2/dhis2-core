@@ -28,7 +28,7 @@ package org.hisp.dhis.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LoggingTest extends DhisTest
+public class LoggingTest extends DhisSpringTest
 {
     @Test
     public void logTest()
