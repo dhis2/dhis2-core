@@ -162,7 +162,16 @@ public enum SettingKey
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),
     KEY_SCHED_TASKS( "keySchedTasks" ),
-    LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class );
+    LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class ),
+    LOGGING_LEVEL( "keyLoggingLevel", "INFO", String.class ),
+    LOGGING_FORMAT( "keyLoggingFormat", "TEXT", String.class ),
+    LOGGING_ADAPTER_CONSOLE( "keyLoggingConsole", Boolean.TRUE, Boolean.class ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "keyLoggingConsoleLevel", "INFO", String.class ),
+    LOGGING_ADAPTER_CONSOLE_FORMAT( "keyLoggingConsoleFormat", "TEXT", String.class ),
+    LOGGING_ADAPTER_KAFKA( "keyLoggingKafka", Boolean.FALSE, Boolean.class ),
+    LOGGING_ADAPTER_KAFKA_LEVEL( "keyLoggingKafkaLevel", "INFO", String.class ),
+    LOGGING_ADAPTER_KAFKA_FORMAT( "keyLoggingKafkaFormat", "JSON", String.class ),
+    LOGGING_ADAPTER_KAFKA_TOPIC( "keyLoggingKafkaTopic", "dhis2-log", String.class );
 
     private final String name;
 
@@ -267,7 +276,7 @@ public enum SettingKey
             {
                 return FileResourceRetentionStrategy.valueOf( value );
             }
-            else if( Date.class.isAssignableFrom( settingClazz ) )
+            else if ( Date.class.isAssignableFrom( settingClazz ) )
             {
                 //Accepts String with date in ISO_LOCAL_DATE_TIME format
                 LocalDateTime dateTime = LocalDateTime.parse( value );

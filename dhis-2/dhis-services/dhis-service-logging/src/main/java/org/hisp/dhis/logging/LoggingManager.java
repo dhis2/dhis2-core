@@ -35,8 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -72,13 +72,13 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
 
     }
 
-    private final DhisConfigurationProvider dhisConfig;
+    private final SystemSettingManager systemSettingManager;
 
     private ApplicationEventPublisher publisher;
 
-    public LoggingManager( DhisConfigurationProvider dhisConfig )
+    public LoggingManager( SystemSettingManager systemSettingManager )
     {
-        this.dhisConfig = dhisConfig;
+        this.systemSettingManager = systemSettingManager;
     }
 
     public void log( Log log )
@@ -113,15 +113,15 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
         instance = this;
 
         loggingConfig = new LoggingConfig(
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ).toUpperCase() ),
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_FORMAT ).toUpperCase() ),
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_FORMAT ).toUpperCase() ),
-            dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_TOPIC )
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
+            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
         );
     }
 

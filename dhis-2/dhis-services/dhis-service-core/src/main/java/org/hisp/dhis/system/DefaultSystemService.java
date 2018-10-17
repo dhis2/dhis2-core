@@ -166,15 +166,15 @@ public class DefaultSystemService
         }
 
         info.setLogging( new LoggingConfig(
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_FORMAT ).toUpperCase() ),
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_CONSOLE_FORMAT ).toUpperCase() ),
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA ) ),
-            LogLevel.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_LEVEL ).toUpperCase() ),
-            LogFormat.valueOf( dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_FORMAT ).toUpperCase() ),
-            dhisConfig.getProperty( ConfigurationKey.LOGGING_ADAPTER_KAFKA_TOPIC )
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
+            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
         ) );
 
         return info;
