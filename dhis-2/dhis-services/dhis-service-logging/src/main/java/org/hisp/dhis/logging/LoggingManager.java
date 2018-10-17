@@ -53,7 +53,6 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
     public final static ObjectMapper objectMapper = new ObjectMapper();
     private static final long serialVersionUID = 1L;
     private static LoggingManager instance;
-    private static LoggingConfig loggingConfig;
 
     static
     {
@@ -98,7 +97,7 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
             }
         }
 
-        publisher.publishEvent( new LogEvent( this, log, loggingConfig ) );
+        publisher.publishEvent( new LogEvent( this, log, getLoggingConfig() ) );
     }
 
     @Override
@@ -111,8 +110,16 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
     public void afterPropertiesSet() throws Exception
     {
         instance = this;
+    }
 
-        loggingConfig = new LoggingConfig(
+    public static LoggingManager getInstance()
+    {
+        return instance;
+    }
+
+    public LoggingConfig getLoggingConfig()
+    {
+        return new LoggingConfig(
             LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
             LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
             (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE ),
@@ -123,11 +130,6 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
             LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
             ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
         );
-    }
-
-    public static LoggingManager getInstance()
-    {
-        return instance;
     }
 
     public static String toJson( Log log )
@@ -186,11 +188,6 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
         public void debug( String message )
         {
             log( new Log( message ).setLogLevel( LogLevel.DEBUG ) );
-        }
-
-        public boolean isDebugEnabled()
-        {
-            return loggingConfig.getLevel().isEnabled( LogLevel.DEBUG );
         }
 
         public void trace( String message )
