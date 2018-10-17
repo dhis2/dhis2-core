@@ -659,6 +659,7 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -670,11 +671,13 @@
 
   <bean id="org.hisp.dhis.program.ProgramInstanceAuditStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceAuditStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramInstanceAudit" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramTempOwnershipAuditStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramTempOwnershipAuditStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramTempOwnershipAudit" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -704,7 +707,8 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="readOnlyJdbcTemplate" ref="readOnlyJdbcTemplate" />
-    <property name="statementBuilder" ref="statementBuilder" />
+    <property name="statementBuilder" ref="statementBuilder" />    
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
 
   <bean id="org.hisp.dhis.eventreport.EventReportStore"

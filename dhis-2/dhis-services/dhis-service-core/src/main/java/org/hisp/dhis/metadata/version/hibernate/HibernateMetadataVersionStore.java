@@ -71,7 +71,7 @@ public class HibernateMetadataVersionStore
         return getSingleResult( builder, newJpaParameters()
             .addOrder( root -> builder.desc( root.get( "created" ) ) )
             .setMaxResults( 1 )
-            .setCachable( false ) );
+            .setCacheable( false ) );
     }
 
     @Override
@@ -91,6 +91,6 @@ public class HibernateMetadataVersionStore
         return getSingleResult( builder, newJpaParameters()
             .addOrder( root -> builder.asc( root.get( "created" ) ) )
             .setMaxResults( 1 )
-            .setCachable( false ) );
+            .setCacheable( false ) );
     }
 }

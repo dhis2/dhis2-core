@@ -42,6 +42,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -138,9 +139,10 @@ public class Program
     private Boolean useFirstStageDuringRegistration = false;
 
     /**
-     * Property indicating whether program allows for capturing of coordinates
+     * Property indicating type of feature - none, point, symbol, polygon or 
+     * multipolygon - to capture for program. 
      */
-    private Boolean captureCoordinates = false;
+    private FeatureType featureType;
 
     /**
      * How many days after period is over will this program block creation and modification of events
@@ -719,14 +721,14 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getCaptureCoordinates()
+    public FeatureType getFeatureType()
     {
-        return captureCoordinates;
+        return featureType;
     }
 
-    public void setCaptureCoordinates( Boolean captureCoordinates )
+    public void setFeatureType( FeatureType featureType )
     {
-        this.captureCoordinates = captureCoordinates;
+        this.featureType = featureType;
     }
 
     @JsonProperty

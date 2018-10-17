@@ -31,8 +31,6 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -48,9 +46,12 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -267,10 +268,9 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
+    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramInstance>, Predicate>> predicates )
     {
-        // Filter out soft deleted values
-        criteria.add( Restrictions.eq( "deleted", false ) );
+        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
 
     @Override

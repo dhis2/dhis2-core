@@ -130,6 +130,4 @@ public interface DataEntryFormService
     String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n );
     
     Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet );
-    
-    List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds );
 }

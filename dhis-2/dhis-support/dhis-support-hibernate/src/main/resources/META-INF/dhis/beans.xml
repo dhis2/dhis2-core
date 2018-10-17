@@ -70,9 +70,11 @@
     <property name="jdbcUrl" ref="url" />
     <property name="user" ref="username" />
     <property name="password" ref="password" />
+    <property name="minPoolSize" value="5" />
+    <property name="initialPoolSize" value="5" />
     <property name="maxPoolSize" ref="maxPoolSize" />
-    <property name="acquireIncrement" value="6" />
-    <property name="maxIdleTime" value="21600" />
+    <property name="acquireIncrement" value="5" />
+    <property name="maxIdleTime" value="7200" />
   </bean>
   
   <bean id="readOnlyDataSource" class="org.hisp.dhis.datasource.ReadOnlyDataSourceFactoryBean">
@@ -88,7 +90,7 @@
   <bean id="slowQueryJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
     <property name="dataSource" ref="dataSource" />
     <property name="fetchSize" value="1000" />
-    <property name="queryTimeout" value="7200" />
+    <property name="queryTimeout" value="21600" />
   </bean>
 
   <bean id="readOnlyJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">

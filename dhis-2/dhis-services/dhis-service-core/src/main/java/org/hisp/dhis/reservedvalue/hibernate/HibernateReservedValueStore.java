@@ -97,12 +97,12 @@ public class HibernateReservedValueStore
         String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
             "and rv.key =:key and rv.value in :values";
 
-        Query<ReservedValue> query = getQuery( hql )
+        return getQuery( hql )
             .setParameter( "ownerObject", reservedValue.getOwnerObject() )
             .setParameter( "ownerUid", reservedValue.getOwnerUid() )
             .setParameter( "key", reservedValue.getKey() )
-            .setParameter( "values", values );
-        return getList( query );
+            .setParameter( "values", values )
+            .getResultList();
     }
 
     @Override
@@ -164,15 +164,15 @@ public class HibernateReservedValueStore
         String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
             "and rv.value =:value";
 
-        Query<ReservedValue> query = getQuery( hql )
+        return !getQuery( hql )
             .setParameter( "ownerObject", ownerObject )
             .setParameter( "ownerUid", ownerUID )
-            .setParameter( "value", value );
-
-        return !getList( query ).isEmpty();
+            .setParameter( "value", value )
+            .getResultList()
+            .isEmpty();
     }
 
-    // Helper methods:
+    // Helper methods
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {
