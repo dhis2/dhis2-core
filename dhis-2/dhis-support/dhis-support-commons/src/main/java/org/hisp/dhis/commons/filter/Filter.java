@@ -30,14 +30,14 @@ package org.hisp.dhis.commons.filter;
 
 /**
  * Filter interface.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface Filter<T>
 {
     /**
      * Indicates whether the given object to should be retained in the list.
-     * 
+     *
      * @param object the object.
      * @return true if object should be retained.
      */
