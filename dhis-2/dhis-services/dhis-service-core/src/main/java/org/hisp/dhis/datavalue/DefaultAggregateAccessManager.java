@@ -30,7 +30,6 @@ package org.hisp.dhis.datavalue;
  *
  */
 
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -63,13 +62,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         if ( user == null || user.isSuper() )
         {
             return errors;
-        }
-
-        DataElement dataElement = dataValue.getDataElement();
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
         Set<DataElementCategoryOption> options = new HashSet<>();
@@ -106,13 +98,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         if ( user == null || user.isSuper() )
         {
             return errors;
-        }
-
-        DataElement dataElement = dataValue.getDataElement();
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
         Set<DataElementCategoryOption> options = new HashSet<>();
@@ -230,13 +215,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         if ( user == null || user.isSuper() )
         {
             return errors;
-        }
-
-        DataElement dataElement = dataElementOperand.getDataElement();
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
         Set<DataElementCategoryOption> options = new HashSet<>();
