@@ -31,9 +31,14 @@ package db.migration;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.db.flyway.ScriptRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,11 +59,14 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                     boolean nonEmptyDatabase = rows.getBoolean( 1 );
                     if ( !nonEmptyDatabase )
                     {
-                        try (Connection mConnection = context.getConnection())
-                        {
+                        Connection mConnection = context.getConnection();
                             ScriptRunner runner = new ScriptRunner( mConnection, false, false );
-                            String file = "classpath:/base-schema/dhis2_base_schema final.sql";
-                            runner.runScript( new BufferedReader( new FileReader( file ) ) );
+                           // String file = "classpath:/db/base/dhis2_base_schema.sql";
+                            Resource resource = new ClassPathResource("/db/base/dhis2_base_schema.sql");
+                            InputStream resourceInputStream = resource.getInputStream();
+                            //ClassLoader classLoader = getClass().getClassLoader();
+                            runner.runScript( new BufferedReader( new InputStreamReader(resourceInputStream ) ) );
+                           // runner.runScript( new BufferedReader( new FileReader( classLoader.getResource("/db/base/dhis2_base_schema.sql").getFile() ) ) );
 
                             String generateUidFunctionSql = "create or replace function generate_uid()\n" + "  returns text as\n" + "$$\n" + "declare\n"
                                 + "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n"
@@ -79,7 +87,6 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                             {
                                 preparedStatement.executeUpdate();
                             }
-                        }
 
                     }
 
