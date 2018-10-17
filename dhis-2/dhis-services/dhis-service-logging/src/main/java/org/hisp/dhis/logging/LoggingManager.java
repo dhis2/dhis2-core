@@ -57,7 +57,7 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
 
     static
     {
-        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_EMPTY );
         objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
         objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
