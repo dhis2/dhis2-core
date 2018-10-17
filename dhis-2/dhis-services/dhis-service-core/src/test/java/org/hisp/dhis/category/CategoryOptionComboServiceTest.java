@@ -45,7 +45,6 @@ import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -139,19 +138,6 @@ public class CategoryOptionComboServiceTest
         assertNotNull( categoryOptionComboA );
         assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
         assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
-    }
-
-    @Test
-    public void testGetCategoryOptionCombo()
-    {
-        categoryService.generateOptionCombos( categoryComboA );
-
-        List<CategoryOption> catopts = new LinkedList<>();
-        catopts.add( categoryOptionA );
-        catopts.add( categoryOptionC );
-
-        CategoryOptionCombo catoptcombo = categoryService.getCategoryOptionCombo( catopts );
-        assertNotNull( catoptcombo );
     }
 
     @Test

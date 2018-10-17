@@ -33,7 +33,7 @@ import java.io.StringWriter;
 
 /**
  * Utility class for retrieving debugging information.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DebugUtils
@@ -41,7 +41,7 @@ public class DebugUtils
     public static String getStackTrace( Throwable t )
     {
         StringWriter sw = new StringWriter();
-        
+
         if ( t != null )
         {
             PrintWriter pw = new PrintWriter( sw, true );
@@ -49,7 +49,7 @@ public class DebugUtils
             pw.flush();
             sw.flush();
         }
-        
+
         return sw.toString();
     }
 }

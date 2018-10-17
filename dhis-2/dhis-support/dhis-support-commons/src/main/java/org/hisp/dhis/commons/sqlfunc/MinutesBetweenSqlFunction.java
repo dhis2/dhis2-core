@@ -30,14 +30,15 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates to the number of minutes between two given dates.
- * 
+ *
  * @author Markus Bekken
  */
 public class MinutesBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "minutesBetween";
-    
+
+    @Override
     protected String compare( String startDate, String endDate )
     {
         return "(extract(epoch from (cast(" + endDate + " as timestamp) - cast(" + startDate + " as timestamp))) / 60)";
