@@ -1,5 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
- 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -104,7 +104,9 @@ public class ObjectBundleServiceAttributesTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
         objectBundleService.commit( bundle );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
