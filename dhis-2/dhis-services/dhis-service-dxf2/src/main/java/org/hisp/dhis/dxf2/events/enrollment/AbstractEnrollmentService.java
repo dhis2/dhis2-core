@@ -912,6 +912,10 @@ public abstract class AbstractEnrollmentService
                 com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
                 programInstance.setGeometry( gf.createPoint( co ) );
             }
+            else
+            {
+                programInstance.setGeometry( null );
+            }
         }
     }
 

@@ -1255,9 +1255,9 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.17.RELEASE</spring.version>
-    <spring-security.version>4.2.6.RELEASE</spring-security.version>
-    <spring-security-oauth2.version>2.3.3.RELEASE</spring-security-oauth2.version>
+    <spring.version>4.3.20.RELEASE</spring.version>
+    <spring-security.version>4.2.9.RELEASE</spring-security.version>
+    <spring-security-oauth2.version>2.3.4.RELEASE</spring-security-oauth2.version>
     <spring-session-data-redis.version>1.3.3.RELEASE</spring-session-data-redis.version>
     <lettuce.version>3.5.0.Final</lettuce.version>
     <spring-data-redis.version>1.7.11.RELEASE</spring-data-redis.version>
