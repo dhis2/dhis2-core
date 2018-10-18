@@ -57,7 +57,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -137,9 +136,6 @@ public class DataValueController
 
     @Autowired
     private AggregateAccessManager accessManager;
-
-    @Autowired
-    private AclService aclService;
 
     // ---------------------------------------------------------------------
     // POST
@@ -265,7 +261,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
+            if ( dataElement.getValueType().isFile() )
             {
                 fileResource = validateAndSetAssigned( value );
             }
@@ -385,7 +381,6 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         User currentUser = currentUserService.getCurrentUser();
@@ -564,8 +559,8 @@ public class DataValueController
         if ( storageStatus != FileResourceStorageStatus.STORED )
         {
             // Special case:
-            //  The FileResource exists and has been tied to this DataValue, however, the underlying file
-            //  content is still not stored to the (most likely external) file store provider.
+            // The FileResource exists and has been tied to this DataValue, however, the underlying file
+            // content is still not stored to the (most likely external) file store provider.
 
             // HTTP 409, for lack of a more suitable status code
             WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
@@ -628,15 +623,11 @@ public class DataValueController
     private DataElement getAndValidateDataElement( User user, String de )
         throws WebMessageException
     {
-        DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, de );
+        DataElement dataElement = idObjectManager.get( DataElement.class, de );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data element identifier: " + de ) );
-        }
-        else if ( !aclService.canRead( user, dataElement ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "User does not have metadata read access for DataElement: " + de ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data element not found or not accessible: " + de ) );
         }
 
         return dataElement;
@@ -655,7 +646,7 @@ public class DataValueController
             }
             else if ( co != null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal category option combo identifier: " + co ) );
+                throw new WebMessageException( WebMessageUtils.conflict( "Category option combo not found or not accessible: " + co ) );
             }
             else
             {
@@ -673,7 +664,7 @@ public class DataValueController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + cc + " " + cp ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Attribute option combo not found or not accessible: " + cc + " " + cp ) );
         }
 
         return attributeOptionCombo;
@@ -699,7 +690,7 @@ public class DataValueController
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit not found or not accessible: " + ou ) );
         }
 
         boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
@@ -724,12 +715,12 @@ public class DataValueController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set not found or not accessible: " + ds ) );
         }
 
         if ( !dataSet.getDataElements().contains( dataElement ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set " + ds + " does not contain data element: " + dataElement.getUid() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set: " + ds + " does not contain data element: " + dataElement.getUid() ) );
         }
 
         return dataSet;
@@ -765,26 +756,6 @@ public class DataValueController
                 throw new WebMessageException( WebMessageUtils.conflict( "Period " + period.getIsoDate()
                     + " is after end date " + i18nManager.getI18nFormat().formatDate( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" ) );
-            }
-
-            if ( option.getOrganisationUnits() != null && !option.getOrganisationUnits().isEmpty() )
-            {
-                boolean validOrgUnit = false;
-
-                for ( OrganisationUnit optionOrgUnit : option.getOrganisationUnits() )
-                {
-                    if ( organisationUnit.getPath().contains( optionOrgUnit.getUid() ) )
-                    {
-                        validOrgUnit = true;
-                        break;
-                    }
-                }
-
-                if ( !validOrgUnit )
-                {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Organisation Unit " + organisationUnit.getUid() +
-                        " is not valid for attributeOption '" + option.getName() ) );
-                }
             }
         }
     }

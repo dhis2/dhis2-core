@@ -223,14 +223,14 @@
       "organisationUnitGroupAttribute": false,
       "optionAttribute": false,
       "trackedEntityAttributeAttribute": false,
-      "userAttribute": false,
+      "userAttribute": true,
       "organisationUnitAttribute": false,
       "userGroupAttribute": false,
       "name": "Data Element OptionSet Attribute",
       "id": "dxk9vlXm8rI",
       "dataElementAttribute": true,
       "indicatorGroupAttribute": false,
-      "optionSetAttribute": false,
+      "optionSetAttribute": true,
       "lastUpdated": "2016-02-27T03:10:19.638+0000",
       "valueType": "TEXT",
       "unique": false,
@@ -249,7 +249,7 @@
     },
     {
       "lastUpdated": "2016-02-27T03:10:04.283+0000",
-      "optionSetAttribute": false,
+      "optionSetAttribute": true,
       "valueType": "TEXT",
       "unique": false,
       "categoryOptionGroupAttribute": false,
@@ -258,7 +258,7 @@
       "name": "Data Element Text Attribute",
       "id": "vNmjWwe4G1g",
       "userGroupAttribute": false,
-      "userAttribute": false,
+      "userAttribute": true,
       "optionAttribute": false,
       "trackedEntityAttributeAttribute": false,
       "organisationUnitAttribute": false,
@@ -339,7 +339,24 @@
       "firstName": "admin",
       "created": "2016-02-17T06:14:12.250+0000",
       "dataViewOrganisationUnits": [ ],
-      "attributeValues": [ ],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "created": "2016-02-27T03:17:51.892+0000",
+          "value": "DataElementTextAttributeD",
+          "lastUpdated": "2016-02-27T03:17:51.965+0000"
+        },
+        {
+          "lastUpdated": "2016-02-27T03:17:51.963+0000",
+          "attribute": {
+            "id": "dxk9vlXm8rI"
+          },
+          "value": "Gender_Female",
+          "created": "2016-02-27T03:17:51.892+0000"
+        }
+      ],
       "surname": "admin",
       "organisationUnits": [
         {
@@ -378,7 +395,24 @@
         "id": "ueKaFVdR8Fz"
       },
       "code": "Gender",
-      "attributeValues": [ ],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "created": "2016-02-27T03:17:51.892+0000",
+          "value": "DataElementTextAttributeD",
+          "lastUpdated": "2016-02-27T03:17:51.965+0000"
+        },
+        {
+          "lastUpdated": "2016-02-27T03:17:51.963+0000",
+          "attribute": {
+            "id": "dxk9vlXm8rI"
+          },
+          "value": "Gender_Female",
+          "created": "2016-02-27T03:17:51.892+0000"
+        }
+      ],
       "lastUpdated": "2016-02-27T03:09:09.736+0000",
       "valueType": "TEXT",
       "name": "Gender",
