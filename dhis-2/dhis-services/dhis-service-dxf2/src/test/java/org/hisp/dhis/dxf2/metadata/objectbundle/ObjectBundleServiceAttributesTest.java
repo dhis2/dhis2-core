@@ -105,7 +105,6 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        System.err.println( validationReport.getErrorReports() );
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
