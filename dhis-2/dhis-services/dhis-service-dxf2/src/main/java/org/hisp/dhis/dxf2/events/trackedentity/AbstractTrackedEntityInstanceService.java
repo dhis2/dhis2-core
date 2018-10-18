@@ -355,6 +355,10 @@ public abstract class AbstractTrackedEntityInstanceService
                 return null;
             }
         }
+        else
+        {
+            daoEntityInstance.setGeometry( null );
+        }
 
         daoEntityInstance.setTrackedEntityType( trackedEntityType );
         daoEntityInstance.setUid( CodeGenerator.isValidUid( dtoEntityInstance.getTrackedEntityInstance() ) ?
@@ -584,6 +588,10 @@ public abstract class AbstractTrackedEntityInstanceService
                 importSummary.getImportCount().incrementIgnored();
                 return importSummary;
             }
+        }
+        else
+        {
+            daoEntityInstance.setGeometry( null );
         }
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
