@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,16 +40,15 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
-
 import java.util.stream.Collectors;
 
 /**
@@ -198,8 +196,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             String clause = " AND ( ";
 
             clause += params.getOrganisationUnits().stream()
-                .map( OrganisationUnit::getPath )
-                .collect( Collectors.joining( " ", "ou.path LIKE '", "%' OR" ) );
+                .map( o -> " ou.path LIKE '" + o.getPath() + "%' OR " )
+                .collect( Collectors.joining() );
 
             return TextUtils.removeLastOr( clause ) + " ) ";
         }
