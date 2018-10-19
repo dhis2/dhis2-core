@@ -30,7 +30,6 @@ package org.hisp.dhis.db.migration.v31;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class V2_31_9__Dummy_Java_Test extends BaseJavaMigration
@@ -41,19 +40,6 @@ public class V2_31_9__Dummy_Java_Test extends BaseJavaMigration
     {
         try (Statement select = context.getConnection().createStatement())
         {
-            try (ResultSet rows = select.executeQuery(
-                "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ))
-            {
-                if ( rows.next() )
-                {
-                    boolean nonEmptyDatabase = rows.getBoolean( 1 );
-                    if ( nonEmptyDatabase )
-                    {
-
-                    }
-
-                }
-            }
         }
     }
 }

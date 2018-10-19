@@ -42,17 +42,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+/**
+ * Java based migration class that populates base dhis2 schema if the db is
+ * empty.
+ * 
+ * @author Ameen Mohamed
+ *
+ */
 public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
 {
-    
+
     private final static String BASE_SCHEMA_SQL_LOCATION = "/org/hisp/dhis/db/base/dhis2_base_schema.sql";
+
     public void migrate( Context context )
         throws Exception
     {
         try (Statement select = context.getConnection().createStatement())
         {
-            try (ResultSet rows = select.executeQuery(
-                "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ))
+            try (ResultSet rows = select.executeQuery( "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ))
             {
                 if ( rows.next() )
                 {
@@ -60,30 +67,30 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                     if ( !nonEmptyDatabase )
                     {
                         Connection mConnection = context.getConnection();
-                            ScriptRunner runner = new ScriptRunner( mConnection, false, true );
-                            Resource resource = new ClassPathResource(BASE_SCHEMA_SQL_LOCATION);
-                            InputStream resourceInputStream = resource.getInputStream();
-                            runner.runScript( new BufferedReader( new InputStreamReader(resourceInputStream ) ) );
-                        
-                            String generateUidFunctionSql = "create or replace function generate_uid()\n" + "  returns text as\n" + "$$\n" + "declare\n"
-                                + "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n"
-                                + "  result text := chars [11 + random() * (array_length(chars, 1) - 11)];\n" + "begin\n" + "  for i in 1..10 loop\n"
-                                + "    result := result || chars [1 + random() * (array_length(chars, 1) - 1)];\n" + "  end loop;\n" + "  return result;\n"
-                                + "end;\n" + "$$\n" + "language plpgsql;";
+                        ScriptRunner runner = new ScriptRunner( mConnection, false, true );
+                        Resource resource = new ClassPathResource( BASE_SCHEMA_SQL_LOCATION );
+                        InputStream resourceInputStream = resource.getInputStream();
+                        runner.runScript( new BufferedReader( new InputStreamReader( resourceInputStream ) ) );
 
-                            try (PreparedStatement preparedStatement = mConnection.prepareStatement( generateUidFunctionSql ))
-                            {
-                                preparedStatement.executeUpdate();
-                            }
+                        String generateUidFunctionSql = "create or replace function generate_uid()\n" + "  returns text as\n" + "$$\n" + "declare\n"
+                            + "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n"
+                            + "  result text := chars [11 + random() * (array_length(chars, 1) - 11)];\n" + "begin\n" + "  for i in 1..10 loop\n"
+                            + "    result := result || chars [1 + random() * (array_length(chars, 1) - 1)];\n" + "  end loop;\n" + "  return result;\n"
+                            + "end;\n" + "$$\n" + "language plpgsql;";
 
-                            String uidFunction = "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' "
-                                + "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' "
-                                + " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
+                        try (PreparedStatement preparedStatement = mConnection.prepareStatement( generateUidFunctionSql ))
+                        {
+                            preparedStatement.executeUpdate();
+                        }
 
-                            try (PreparedStatement preparedStatement = mConnection.prepareStatement( uidFunction ))
-                            {
-                                preparedStatement.executeUpdate();
-                            }
+                        String uidFunction = "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' "
+                            + "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' "
+                            + " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
+
+                        try (PreparedStatement preparedStatement = mConnection.prepareStatement( uidFunction ))
+                        {
+                            preparedStatement.executeUpdate();
+                        }
 
                     }
 
