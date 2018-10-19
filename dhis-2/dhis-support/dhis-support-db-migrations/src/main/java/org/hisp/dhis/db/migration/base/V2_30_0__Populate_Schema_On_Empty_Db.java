@@ -60,7 +60,7 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                     if ( !nonEmptyDatabase )
                     {
                         Connection mConnection = context.getConnection();
-                            ScriptRunner runner = new ScriptRunner( mConnection, false, false );
+                            ScriptRunner runner = new ScriptRunner( mConnection, false, true );
                             Resource resource = new ClassPathResource(BASE_SCHEMA_SQL_LOCATION);
                             InputStream resourceInputStream = resource.getInputStream();
                             runner.runScript( new BufferedReader( new InputStreamReader(resourceInputStream ) ) );
