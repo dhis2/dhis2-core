@@ -947,6 +947,13 @@
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
       </dependency>
+      
+      <!-- Flyway -->
+      <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+        <version>5.2.0</version>
+      </dependency>
 
       <!-- Apache jClouds -->
       <dependency>
