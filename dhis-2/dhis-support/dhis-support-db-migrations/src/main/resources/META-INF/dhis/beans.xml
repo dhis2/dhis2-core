@@ -11,6 +11,11 @@
   <bean id="flywayConfig" class="org.flywaydb.core.api.configuration.ClassicConfiguration">
     <property name="dataSource" ref="dataSource"/>
     <property name="baselineOnMigrate" value="true" />
+    <property name="locations">
+        <bean class="org.flywaydb.core.internal.util.Locations">
+           <constructor-arg index="0" value="org.hisp.dhis.db.migration"/>
+        </bean>
+    </property>
   </bean>
 
   <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">

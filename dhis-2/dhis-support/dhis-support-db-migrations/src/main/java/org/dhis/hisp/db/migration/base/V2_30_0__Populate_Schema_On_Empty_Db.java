@@ -1,4 +1,4 @@
-package db.migration;
+package org.dhis.hisp.db.migration.base;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,13 +30,11 @@ package db.migration;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.flyway.ScriptRunner;
+import org.hisp.dhis.db.migration.helper.ScriptRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
@@ -46,6 +44,8 @@ import java.sql.Statement;
 
 public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
 {
+    
+    private final static String BASE_SCHEMA_SQL_LOCATION = "/org/hisp/dhis/db/base/dhis2_base_schema.sql";
     public void migrate( Context context )
         throws Exception
     {
@@ -61,13 +61,10 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                     {
                         Connection mConnection = context.getConnection();
                             ScriptRunner runner = new ScriptRunner( mConnection, false, false );
-                           // String file = "classpath:/db/base/dhis2_base_schema.sql";
-                            Resource resource = new ClassPathResource("/db/base/dhis2_base_schema.sql");
+                            Resource resource = new ClassPathResource(BASE_SCHEMA_SQL_LOCATION);
                             InputStream resourceInputStream = resource.getInputStream();
-                            //ClassLoader classLoader = getClass().getClassLoader();
                             runner.runScript( new BufferedReader( new InputStreamReader(resourceInputStream ) ) );
-                           // runner.runScript( new BufferedReader( new FileReader( classLoader.getResource("/db/base/dhis2_base_schema.sql").getFile() ) ) );
-
+                        
                             String generateUidFunctionSql = "create or replace function generate_uid()\n" + "  returns text as\n" + "$$\n" + "declare\n"
                                 + "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n"
                                 + "  result text := chars [11 + random() * (array_length(chars, 1) - 11)];\n" + "begin\n" + "  for i in 1..10 loop\n"

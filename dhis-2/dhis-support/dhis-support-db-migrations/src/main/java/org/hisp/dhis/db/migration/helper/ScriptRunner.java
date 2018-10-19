@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.flyway;
+package org.hisp.dhis.db.migration.helper;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
