@@ -311,6 +311,17 @@ public class JdbcEventStore
     {
         User user = currentUserService.getCurrentUser();
 
+        boolean isSuperUser = isSuper( user );
+
+        if ( !isSuperUser )
+        {
+            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
@@ -329,7 +340,7 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-            if ( rowSet.getString( "psi_uid" ) == null )
+            if ( rowSet.getString( "psi_uid" ) == null || ( params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet ) ) )
             {
                 continue;
             }
