@@ -1,4 +1,4 @@
-package org.dhis.hisp.db.migration.base;
+package org.hisp.dhis.db.migration.base;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
