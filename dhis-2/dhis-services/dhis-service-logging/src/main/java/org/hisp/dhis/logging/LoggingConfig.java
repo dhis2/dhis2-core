@@ -44,12 +44,17 @@ public class LoggingConfig
     private final boolean consoleEnabled;
     private final LogLevel consoleLevel;
     private final LogFormat consoleFormat;
+    private final boolean fileEnabled;
+    private final String fileName;
+    private final LogLevel fileLevel;
+    private final LogFormat fileFormat;
     private final boolean kafkaEnabled;
     private final LogLevel kafkaLevel;
     private final LogFormat kafkaFormat;
     private final String kafkaTopic;
 
     public LoggingConfig( LogLevel level, LogFormat format, boolean consoleEnabled, LogLevel consoleLevel, LogFormat consoleFormat,
+        boolean fileEnabled, String fileName, LogLevel fileLevel, LogFormat fileFormat,
         boolean kafkaEnabled, LogLevel kafkaLevel, LogFormat kafkaFormat, String kafkaTopic )
     {
         this.level = level;
@@ -57,6 +62,10 @@ public class LoggingConfig
         this.consoleEnabled = consoleEnabled;
         this.consoleLevel = consoleLevel;
         this.consoleFormat = consoleFormat;
+        this.fileEnabled = fileEnabled;
+        this.fileName = fileName;
+        this.fileLevel = fileLevel;
+        this.fileFormat = fileFormat;
         this.kafkaEnabled = kafkaEnabled;
         this.kafkaLevel = kafkaLevel;
         this.kafkaFormat = kafkaFormat;
@@ -96,6 +105,34 @@ public class LoggingConfig
     public LogFormat getConsoleFormat()
     {
         return consoleFormat != null ? consoleFormat : format;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFileEnabled()
+    {
+        return fileEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFileName()
+    {
+        return fileName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogLevel getFileLevel()
+    {
+        return fileLevel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LogFormat getFileFormat()
+    {
+        return fileFormat;
     }
 
     @JsonProperty
