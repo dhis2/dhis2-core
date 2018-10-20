@@ -34,7 +34,7 @@ import java.util.Collection;
 /**
  * List implementation that will only add items which are not already present in
  * the list.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class UniqueArrayList<E>
@@ -44,19 +44,19 @@ public class UniqueArrayList<E>
     {
         super();
     }
-    
+
     public UniqueArrayList( Collection<? extends E> c )
     {
         super();
         addAll( c );
     }
-    
+
     @Override
     public boolean add( E e )
     {
         return super.contains( e ) ? false : super.add( e );
     }
-    
+
     @Override
     public void add( int index, E e )
     {
@@ -65,14 +65,14 @@ public class UniqueArrayList<E>
             super.add( index, e );
         }
     }
-    
+
     @Override
     public boolean addAll( Collection<? extends E> c )
     {
         boolean modified = false;
-        
+
         if ( c != null )
-        {        
+        {
             for ( E e : c )
             {
                 if ( !super.contains( e ) )
@@ -82,17 +82,17 @@ public class UniqueArrayList<E>
                 }
             }
         }
-        
+
         return modified;
     }
-    
+
     @Override
     public boolean addAll( int index, Collection<? extends E> c )
     {
         boolean modified = false;
-        
+
         if ( c != null )
-        {        
+        {
             for ( E e : c )
             {
                 if ( !super.contains( e ) )
@@ -102,7 +102,7 @@ public class UniqueArrayList<E>
                 }
             }
         }
-        
+
         return modified;
     }
 }
