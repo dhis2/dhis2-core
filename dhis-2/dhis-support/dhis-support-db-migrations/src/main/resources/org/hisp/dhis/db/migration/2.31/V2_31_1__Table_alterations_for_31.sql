@@ -71,3 +71,11 @@ DROP CONSTRAINT IF EXISTS fk_messageattachments_fileresourceid;
 ALTER TABLE messageattachments
 ADD CONSTRAINT messageattachments_pkey PRIMARY KEY (messageid, fileresourceid),
 ADD CONSTRAINT fk_messageattachments_fileresourceid FOREIGN KEY (fileresourceid) REFERENCES fileresource(fileresourceid);
+
+--Corrections in case of column type mismatch from demodb and hbm
+ALTER TABLE programnotificationtemplate
+ALTER COLUMN messagetemplate TYPE text;
+
+ALTER TABLE organisationunit
+ALTER COLUMN openingdate TYPE date,
+ALTER COLUMN closeddate TYPE date;
