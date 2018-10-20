@@ -34,9 +34,9 @@
 
     <property name="description" type="text" />
 
-    <property name="openingDate" column="openingdate" type="date" not-null="true" />
+    <property name="openingDate" column="openingdate" type="timestamp" not-null="true" />
 
-    <property name="closedDate" column="closeddate" type="date" />
+    <property name="closedDate" column="closeddate" type="timestamp" />
 
     <property name="comment" type="text" />
 

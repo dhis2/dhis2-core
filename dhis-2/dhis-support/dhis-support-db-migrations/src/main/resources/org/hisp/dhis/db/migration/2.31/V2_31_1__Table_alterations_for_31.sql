@@ -1,4 +1,5 @@
 -- TrackedEntityAttribute shortName not null constraint
+UPDATE trackedentityattribute SET shortname = name WHERE shortname IS NULL;
 ALTER TABLE trackedentityattribute ALTER COLUMN shortname SET NOT NULL;
 
 -- FIELD MASK
