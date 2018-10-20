@@ -61,6 +61,44 @@ import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
  * Common ANTLR parsed expression code, using the ANTLR visitor pattern.
+ * <p/>
+ * ANTLR provides two patterns for traversing a tree that represents a parsed
+ * expression: With the "listener" pattern, ANTRL traverses the parsed tree
+ * but allows a subclass to listen at each node as it is processed. With the
+ * "visitor" pattern, the subclass (such as this class) is called for each node,
+ * and it is up to the code in this pattern to make explicit calls to descendant
+ * nodes. To process DHIS2 expressions the visitor pattern is used, because the
+ * visiting of descendant nodes can be used to advantage as described here.
+ * <p/>
+ * A left-recursive descent parser such as ANTLR is designed to evaluate
+ * expressions left-to-right, but the nodes are actually visited initially in
+ * the order right-to-left. For example, if the expression is "1 + 2 - 3", the
+ * higher-level node "(subexpression) - 3", is visited first, then it would
+ * visit the lower-level subexpression node "1 + 2" to evaluate that
+ * subexpression. After the subexpression returns its value, to the higher-level
+ * node, it finally subtracts 3 from that returned subexpression value.
+ * <p/>
+ * As an example of how this class makes use of the right-to-left visiting,
+ * consider the expression #{uid}.period(-3,-1).sum(). The sum() function is
+ * visited first as (subexpression).sum(). The sum() function will expect its
+ * subexpression to return multiple values to be summed, and so evaluates its
+ * subexpresssion. In doing so, the period() function is next visited as
+ * (subexpression).period(-3,-1). The period function then iterates over periods
+ * -3 to -1, and calls multiple times to evaluate its (subexpression) for each
+ * of these periods in turn. Finally, it returns an object with the multiple
+ * values from these evaluations to the sum() function, which then sums them.
+ * <p/>
+ * If the ANTLR listener pattern were used in the above example, the
+ * subexpression to the left of the period() function would be called only
+ * once, as determined by ANTLR. But by using the visitor period, this class
+ * is able to do things like evaluate the subexpression multiple times.
+ * <p/>
+ * This is an abstract class, which is intended to be extended for two different
+ * purposes: (1) an "items visitor" which collects the expression items as
+ * visited before data is fetched from the database, to know which values need
+ * to be fetched, and which periods and organisaiton units they need fetching
+ * for, and (2) an "value visitor" once the database values have been found, to
+ * plug them into the expression and compute the total value of the expression.
  *
  * @author Jim Grace
  */

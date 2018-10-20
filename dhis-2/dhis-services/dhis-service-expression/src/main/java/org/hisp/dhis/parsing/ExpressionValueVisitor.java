@@ -44,7 +44,8 @@ import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
- * ANTLR parse tree visitor to get an expression value.
+ * ANTLR parse tree visitor to compute an expression value, once the expression
+ * item values have been retrieved from the database.
  * <p/>
  * Uses the ANTLR visitor partern.
  *

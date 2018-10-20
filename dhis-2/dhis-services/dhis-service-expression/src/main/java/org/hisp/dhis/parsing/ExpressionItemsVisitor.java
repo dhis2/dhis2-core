@@ -55,7 +55,8 @@ import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
  * ANTLR parse tree visitor to find the expression items in an expression.
- * Also used to construct an expression description.
+ * Also used to construct an expression description by filling in the names
+ * of these items.
  * <p/>
  * Uses the ANTLR visitor partern.
  *
