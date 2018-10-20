@@ -42,6 +42,7 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.DefaultExpressionService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parsing.generated.ExpressionLexer;
@@ -113,6 +114,32 @@ public class DefaultParsingService
         }
 
         return items;
+    }
+
+    @Override
+    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression )
+    {
+        Set<OrganisationUnitGroup> orgUnitGroups = new HashSet<>();
+
+        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+
+        ParseTree parseTree = getParseTree( expression, true );
+
+        if ( parseTree != null )
+        {
+            try
+            {
+                orgUnitGroups = expressionItemsVisitor.getExpressionOrgUnitGroups(
+                    parseTree, organisationUnitService, manager, dimensionService,
+                    organisationUnitGroupService );
+            }
+            catch ( ParsingException ex )
+            {
+                log.warn( ex.getMessage() + " getting organisation unit groups of expression '" + expression + "'" );
+            }
+        }
+
+        return orgUnitGroups;
     }
 
     @Override

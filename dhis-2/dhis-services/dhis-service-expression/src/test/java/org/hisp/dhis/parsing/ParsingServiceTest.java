@@ -29,6 +29,7 @@ package org.hisp.dhis.parsing;
  */
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -67,6 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.AbstractMap.SimpleEntry;
 import static org.hisp.dhis.common.ReportingRateMetric.*;
@@ -827,6 +829,29 @@ public class ParsingServiceTest
         return "Unexpected success getting description: '" + expr + "' - '" + description + "'";
     }
 
+    /**
+     * Gets the organisation unit groups (if any) in an expression
+     *
+     * @param expr the expression string
+     * @return a string with org unit gruop names (if any)
+     */
+    private String getOrgUnitGroups( String expr )
+    {
+        Set<OrganisationUnitGroup> orgUnitGroups = parsingService.getExpressionOrgUnitGroups( expr );
+
+        List<String> orgUnitGroupNames = orgUnitGroups.stream().map( g -> g.getName() ).collect( Collectors.toList() );
+
+        Collections.sort( orgUnitGroupNames );
+
+        return String.join( ", " , orgUnitGroupNames );
+    }
+
+    /**
+     * Gets an expression description
+     *
+     * @param expr the expression string
+     * @return the description
+     */
     private String desc( String expr )
     {
         return parsingService.getExpressionDescription( expr );
@@ -1504,6 +1529,14 @@ public class ParsingServiceTest
         assertEquals( "1000 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.period( -5, 1 ).first()" ) );
         assertEquals( "400 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.except(#{dataElemenA} == 1000).period( -5, 1 ).first()" ) );
         assertEquals( "100 G301- G302- G303- G304- G305- G306- G307-", eval( "#{dataElemenA}.except(#{dataElemenA} > 100).period( -5, 1 ).first()" ) );
+    }
+
+    @Test
+    public void testGetExpressionOrgUnitGroups()
+    {
+        assertEquals( "", getOrgUnitGroups( "#{dataElemenA} " ) );
+        assertEquals( "Org unit group A name", getOrgUnitGroups( "OUG{orgUnitGrpA}" ) );
+        assertEquals( "Org unit group A name, Org unit group B name, Org unit group C name", getOrgUnitGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" ) );
     }
 
     @Test

@@ -54,9 +54,9 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.parsing.generated.ExpressionParser.*;
 
 /**
- * ANTLR parse tree visitor to find the expression items in an expression.
- * Also used to construct an expression description by filling in the names
- * of these items.
+ * ANTLR parse tree visitor to find the expression items in an expression,
+ * find the oranisation unit groups in an expression, and also used to construct
+ * an expression description by filling in the names of the items.
  * <p/>
  * Uses the ANTLR visitor partern.
  *
@@ -70,7 +70,9 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
 
-    private Set<ExpressionItem> eItemsNeeded;
+    private Set<ExpressionItem> eItemsNeeded = null;
+
+    private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
     public void getExpressionItems( ParseTree parseTree, List<OrganisationUnit> orgUnits,
         List<Period> periods, Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap,
@@ -97,6 +99,24 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
                 castDouble( visit( parseTree ) );
             }
         }
+    }
+
+    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( ParseTree parseTree,
+        OrganisationUnitService _organisationUnitService,
+        IdentifiableObjectManager _manager, DimensionService _dimensionService,
+        OrganisationUnitGroupService _organisationUnitGroupService)
+    {
+        //TODO: Why don't the @Autowired values work?
+        organisationUnitService = _organisationUnitService;
+        manager = _manager;
+        dimensionService = _dimensionService;
+        organisationUnitGroupService = _organisationUnitGroupService;
+
+        orgUnitGroupsNeeded = new HashSet<>();
+
+        castDouble( visit( parseTree ) );
+
+        return orgUnitGroupsNeeded;
     }
 
     public String getExpressionDescription( ParseTree parseTree, String expr,
@@ -185,7 +205,7 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
             throw new LowLevelParsingException( "Can't find count for organisation unit group " + orgUnitGroupId );
         }
 
-        if ( itemDescriptions != null )
+        if ( itemDescriptions != null || orgUnitGroupsNeeded != null )
         {
             OrganisationUnitGroup orgUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( orgUnitGroupId );
 
@@ -194,7 +214,15 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
                 throw new LowLevelParsingException( "Can't find organisation unit group " + orgUnitGroupId );
             }
 
-            itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
+            if ( orgUnitGroupsNeeded != null )
+            {
+                orgUnitGroupsNeeded.add( orgUnitGroup );
+            }
+
+            if ( itemDescriptions != null )
+            {
+                itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
+            }
         }
         return count.doubleValue();
     }
@@ -284,7 +312,10 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
             ? currentAggregationType
             : item.getAggregationType();
 
-        eItemsNeeded.add( new ExpressionItem( currentOrgUnit, currentPeriod, item, aggregationType ) );
+        if ( eItemsNeeded != null )
+        {
+            eItemsNeeded.add( new ExpressionItem( currentOrgUnit, currentPeriod, item, aggregationType ) );
+        }
 
         if ( itemDescriptions != null )
         {

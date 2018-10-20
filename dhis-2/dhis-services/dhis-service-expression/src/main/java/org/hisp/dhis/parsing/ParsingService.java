@@ -30,6 +30,7 @@ package org.hisp.dhis.parsing;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
 import java.util.List;
@@ -71,6 +72,15 @@ public interface ParsingService
     Set<ExpressionItem> getExpressionItems( List<Expression> expressions,
         List<OrganisationUnit> orgUnits, List<Period> periods,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
+
+    /**
+     * Returns all OrganisationUnitGroups in the given expression string.
+     *
+     * @param expression the expression string.
+     * @return a Set of OrganisationUnitGroups included in the expression
+     *         string.
+     */
+    Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression );
 
     /**
      * Generates the calculated value for an expression bases on the values
