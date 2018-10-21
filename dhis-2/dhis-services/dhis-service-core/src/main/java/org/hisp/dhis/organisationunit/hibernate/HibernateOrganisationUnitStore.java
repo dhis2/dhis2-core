@@ -199,11 +199,25 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap()
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Set<OrganisationUnit> organisationUnits )
     {
-        final String sql = "select ds.uid as ds_uid, ou.uid as ou_uid from datasetsource d " +
-            "left join organisationunit ou on ou.organisationunitid=d.sourceid " +
-            "left join dataset ds on ds.datasetid=d.datasetid";
+        String sql = "select ds.uid as ds_uid, ou.uid as ou_uid from datasetsource d " +
+            "inner join organisationunit ou on ou.organisationunitid=d.sourceid " +
+            "inner join dataset ds on ds.datasetid=d.datasetid ";
+
+        if ( !organisationUnits.isEmpty() )
+        {
+            sql += "where (";
+
+            for ( OrganisationUnit unit : organisationUnits )
+            {
+                sql += "ou.path like '" + unit.getPath() + "%' or ";
+            }
+
+            sql = TextUtils.removeLastOr( sql ) + ")";
+        }
+
+        System.out.println( sql );
 
         final SetMap<String, String> map = new SetMap<>();
 

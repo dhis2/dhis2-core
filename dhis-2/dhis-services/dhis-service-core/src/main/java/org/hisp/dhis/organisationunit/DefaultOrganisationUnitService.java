@@ -31,7 +31,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -377,10 +376,13 @@ public class DefaultOrganisationUnitService
     @Override
     public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxLevels )
     {
-        Map<String, Set<String>> associationSet = Maps.newHashMap( organisationUnitStore.getOrganisationUnitDataSetAssocationMap() );
+        User user = currentUserService.getCurrentUser();
 
-        filterUserDataSets( associationSet );
-        filterChildOrganisationUnits( associationSet, maxLevels );
+        Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : new HashSet<>();
+
+        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits );
+
+        filterUserDataSets( associationSet ); //TODO filter in db query
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 
@@ -424,29 +426,6 @@ public class DefaultOrganisationUnitService
 
                 associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
             }
-        }
-    }
-
-    /**
-     * Retains only the organisation units in the sub-tree of the current user.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     * @param maxLevels      the maximum number of levels to include relative to
-     *                       current user, inclusive.
-     */
-    private void filterChildOrganisationUnits( Map<String, Set<String>> associationMap, Integer maxLevels )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && currentUser.getOrganisationUnits() != null )
-        {
-            List<String> parentIds = getUids( currentUser.getOrganisationUnits() );
-
-            List<OrganisationUnit> organisationUnitsWithChildren = getOrganisationUnitsWithChildren( parentIds, maxLevels );
-
-            Set<String> children = Sets.newHashSet( getUids( organisationUnitsWithChildren ) );
-
-            associationMap.keySet().retainAll( children );
         }
     }
 

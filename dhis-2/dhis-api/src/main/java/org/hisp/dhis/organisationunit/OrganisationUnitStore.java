@@ -74,12 +74,12 @@ public interface OrganisationUnitStore
      * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-    
+
     /**
      * Returns the count of OrganisationUnits which are part of the
-     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * sub-hierarchy of the given parent OrganisationUnit and members of
      * the given object based on the collection of the given collection name.
-     * 
+     *
      * @param parent the parent OrganisationUnit.
      * @param member the member object.
      * @param collectionName the name of the collection.
@@ -89,7 +89,7 @@ public interface OrganisationUnitStore
 
     /**
      * Returns a list of OrganisationUnits based on the given params.
-     * 
+     *
      * @param params the params.
      * @return a list of OrganisationUnits.
      */
@@ -98,10 +98,12 @@ public interface OrganisationUnitStore
     /**
      * Creates a mapping between organisation unit UID and set of data set UIDs
      * being assigned to the organisation unit.
-     * 
+     *
+     * @param organisationUnits the parent organisation units.
+     *
      * @return a map of sets.
      */
-    Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap();
+    Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Set<OrganisationUnit> organisationUnits );
 
     /**
      * Retrieves the objects where its coordinate is within the 4 area points.
@@ -115,7 +117,7 @@ public interface OrganisationUnitStore
      * @return a list of objects.
      */
     List<OrganisationUnit> getWithinCoordinateArea( double[] box );
-    
+
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
@@ -138,11 +140,11 @@ public interface OrganisationUnitStore
     void updatePaths();
 
     void forceUpdatePaths();
-    
+
     /**
      * Returns the number of organsiation unit levels in the database based on
      * the organisation unit hierarchy.
-     * 
+     *
      * @return number of levels, 0 if no organisation units are present.
      */
     int getMaxLevel();
