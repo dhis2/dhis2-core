@@ -90,11 +90,11 @@ public class HibernateOrganisationUnitStore
     @Override
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        final String hql = 
+        final String hql =
             "select count(*) from OrganisationUnit o " +
             "where o.path like :path " +
             "and :object in elements(o." + collectionName + ")";
-        
+
         return (Long) getQuery( hql )
             .setString( "path", parent.getPath() + "%" )
             .setEntity( "object", member )
@@ -109,11 +109,16 @@ public class HibernateOrganisationUnitStore
 
         String hql = "select distinct o from OrganisationUnit o ";
 
+        if ( params.isFetchChildren() )
+        {
+            hql += "left join fetch o.children c ";
+        }
+
         if ( params.hasGroups() )
         {
             hql += "join o.groups og ";
         }
-        
+
         if ( params.hasQuery() )
         {
             hql += hlp.whereAnd() + " (lower(o.name) like :queryLower or o.code = :query or o.uid = :query) ";
@@ -168,7 +173,7 @@ public class HibernateOrganisationUnitStore
         {
             query.setParameterList( "groupIds", IdentifiableObjectUtils.getIdentifiers( params.getGroups() ) );
         }
-        
+
         if ( params.hasLevels() )
         {
             query.setParameterList( "levels", params.getLevels() );
@@ -226,7 +231,7 @@ public class HibernateOrganisationUnitStore
             "and cast( substring(o.coordinates, 2, locate(',', o.coordinates) - 2) AS big_decimal ) <= " + box[1] + " " +
             "and cast( substring(coordinates, locate(',', o.coordinates) + 1, locate(']', o.coordinates) - locate(',', o.coordinates) - 1 ) AS big_decimal ) >= " + box[2] + " " +
             "and cast( substring(coordinates, locate(',', o.coordinates) + 1, locate(']', o.coordinates) - locate(',', o.coordinates) - 1 ) AS big_decimal ) <= " + box[0];
-        
+
         return getQuery( sql ).list();
     }
 
