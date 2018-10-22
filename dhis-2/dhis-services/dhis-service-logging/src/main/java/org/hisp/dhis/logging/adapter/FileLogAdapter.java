@@ -32,6 +32,7 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
 import org.hisp.dhis.logging.LoggingConfig;
+import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -56,6 +57,20 @@ public class FileLogAdapter implements LogAdapter
     @Override
     public void log( Log log, LoggingConfig config )
     {
-        System.err.println( logDirectory );
+        String text = logFormat( log, config );
+        System.err.println( text );
+    }
+
+    private String logFormat( Log log, LoggingConfig config )
+    {
+        switch ( config.getFileFormat() )
+        {
+            case TEXT:
+                return log.toString();
+            case JSON:
+                return LoggingManager.toJson( log );
+            default:
+                return LoggingManager.toJson( log );
+        }
     }
 }

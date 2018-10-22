@@ -77,7 +77,7 @@ public class KafkaLogAdapter implements LogAdapter, InitializingBean
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception
+    public void afterPropertiesSet()
     {
         if ( !kafkaManager.isEnabled() )
         {
