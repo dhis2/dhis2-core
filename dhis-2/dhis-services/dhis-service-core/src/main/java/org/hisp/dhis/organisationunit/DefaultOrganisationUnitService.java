@@ -31,7 +31,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -56,7 +55,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
@@ -312,6 +310,7 @@ public class DefaultOrganisationUnitService
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
+        params.setFetchChildren( true );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }
@@ -376,10 +375,12 @@ public class DefaultOrganisationUnitService
     @Override
     public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxLevels )
     {
-        Map<String, Set<String>> associationSet = Maps.newHashMap( organisationUnitStore.getOrganisationUnitDataSetAssocationMap() );
+        User user = currentUserService.getCurrentUser();
 
-        filterUserDataSets( associationSet );
-        filterChildOrganisationUnits( associationSet, maxLevels );
+        Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
+        List<DataSet> dataSets = ( user != null && user.isSuper() ) ? null : dataSetService.getUserDataWrite( user );
+
+        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 
@@ -398,55 +399,6 @@ public class DefaultOrganisationUnitService
         }
 
         return set;
-    }
-
-    /**
-     * Retains only the data sets from the map which the current user has access to.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     */
-    private void filterUserDataSets( Map<String, Set<String>> associationMap )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && !currentUser.isSuper() )
-        {
-            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
-
-            if ( accessibleDataSets.isEmpty() )
-            {
-                associationMap.values().iterator().forEachRemaining( Set::clear );
-            }
-            else
-            {
-                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
-
-                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
-            }
-        }
-    }
-
-    /**
-     * Retains only the organisation units in the sub-tree of the current user.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     * @param maxLevels      the maximum number of levels to include relative to
-     *                       current user, inclusive.
-     */
-    private void filterChildOrganisationUnits( Map<String, Set<String>> associationMap, Integer maxLevels )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && currentUser.getOrganisationUnits() != null )
-        {
-            List<String> parentIds = getUids( currentUser.getOrganisationUnits() );
-
-            List<OrganisationUnit> organisationUnitsWithChildren = getOrganisationUnitsWithChildren( parentIds, maxLevels );
-
-            Set<String> children = Sets.newHashSet( getUids( organisationUnitsWithChildren ) );
-
-            associationMap.keySet().retainAll( children );
-        }
     }
 
     @Override

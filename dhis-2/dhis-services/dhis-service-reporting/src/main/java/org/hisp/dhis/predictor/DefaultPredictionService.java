@@ -687,12 +687,12 @@ public class DefaultPredictionService
             dataValues = getAggregateDataValues( dataElements, dataElementOperands, existingPeriods, orgUnits );
         }
 
-        if ( !eventAttributeOptionObjects.isEmpty() )
+        if ( !eventAttributeOptionObjects.isEmpty() && !allPeriods.isEmpty() )
         {
             dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, allPeriods, orgUnits ) );
         }
 
-        if ( !eventNonAttributeOptionObjects.isEmpty() )
+        if ( !eventNonAttributeOptionObjects.isEmpty() && !allPeriods.isEmpty() )
         {
             dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, allPeriods, orgUnits ) );
         }
