@@ -1,3 +1,20 @@
+--Function for creating uids. 
+create or replace function generate_uid()  returns text as
+$$
+declare
+chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';
+ result text := chars [11 + random() * (array_length(chars, 1) - 11)];
+begin
+ for i in 1..10 loop
+ result := result || chars [1 + random() * (array_length(chars, 1) - 1)];
+ end loop;
+return result;
+end;
+$$
+language plpgsql;
+
+
+
 -- TrackedEntityAttribute shortName not null constraint
 UPDATE trackedentityattribute SET shortname = name WHERE shortname IS NULL;
 ALTER TABLE trackedentityattribute ALTER COLUMN shortname SET NOT NULL;

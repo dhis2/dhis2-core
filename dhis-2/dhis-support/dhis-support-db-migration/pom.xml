@@ -9,7 +9,7 @@
     <version>2.31-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dhis-support-db-migrations</artifactId>
+  <artifactId>dhis-support-db-migration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Database Migration Support</name>
 

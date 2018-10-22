@@ -30,7 +30,7 @@ package org.hisp.dhis.db.migration.base;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.migration.helper.ScriptRunner;
+import org.hisp.dhis.db.migration.helper.JdbcSqlFileExecutor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -38,7 +38,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -67,33 +66,11 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
                     if ( !nonEmptyDatabase )
                     {
                         Connection mConnection = context.getConnection();
-                        ScriptRunner runner = new ScriptRunner( mConnection, false, true );
+                        JdbcSqlFileExecutor runner = new JdbcSqlFileExecutor( mConnection, false, true );
                         Resource resource = new ClassPathResource( BASE_SCHEMA_SQL_LOCATION );
                         InputStream resourceInputStream = resource.getInputStream();
                         runner.runScript( new BufferedReader( new InputStreamReader( resourceInputStream ) ) );
-
-                        String generateUidFunctionSql = "create or replace function generate_uid()\n" + "  returns text as\n" + "$$\n" + "declare\n"
-                            + "  chars  text [] := '{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}';\n"
-                            + "  result text := chars [11 + random() * (array_length(chars, 1) - 11)];\n" + "begin\n" + "  for i in 1..10 loop\n"
-                            + "    result := result || chars [1 + random() * (array_length(chars, 1) - 1)];\n" + "  end loop;\n" + "  return result;\n"
-                            + "end;\n" + "$$\n" + "language plpgsql;";
-
-                        try (PreparedStatement preparedStatement = mConnection.prepareStatement( generateUidFunctionSql ))
-                        {
-                            preparedStatement.executeUpdate();
-                        }
-
-                        String uidFunction = "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' "
-                            + "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' "
-                            + " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
-
-                        try (PreparedStatement preparedStatement = mConnection.prepareStatement( uidFunction ))
-                        {
-                            preparedStatement.executeUpdate();
-                        }
-
                     }
-
                 }
             }
         }

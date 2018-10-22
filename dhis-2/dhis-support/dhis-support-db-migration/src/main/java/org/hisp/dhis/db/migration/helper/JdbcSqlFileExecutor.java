@@ -37,17 +37,19 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 /**
- * Helper class that executes sql scripts read from a file
+ * Reads sql commands from an external/internal file (provided as buffered
+ * reader) and executes them onto the given jdbc connection. This is used to
+ * create the base schema (if db is empy) by reading from the sql script packaged as classpath
+ * resource.
  * 
  * @author Ameen Mohamed
  *
  */
-public class ScriptRunner
+public class JdbcSqlFileExecutor
 {
 
-    private static final Log log = LogFactory.getLog( ScriptRunner.class );
+    private static final Log log = LogFactory.getLog( JdbcSqlFileExecutor.class );
 
     private static final String DEFAULT_DELIMITER = ";";
 
@@ -70,7 +72,7 @@ public class ScriptRunner
     /**
      * Default constructor
      */
-    public ScriptRunner( Connection connection, boolean autoCommit, boolean stopOnError )
+    public JdbcSqlFileExecutor( Connection connection, boolean autoCommit, boolean stopOnError )
     {
         this.connection = connection;
         this.autoCommit = autoCommit;
