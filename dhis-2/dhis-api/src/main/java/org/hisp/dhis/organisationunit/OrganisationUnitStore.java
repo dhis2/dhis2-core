@@ -1,5 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
+import java.util.Collection;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
 
 /**
  * Defines methods for persisting OrganisationUnits.
@@ -99,11 +102,13 @@ public interface OrganisationUnitStore
      * Creates a mapping between organisation unit UID and set of data set UIDs
      * being assigned to the organisation unit.
      *
-     * @param organisationUnits the parent organisation units.
+     * @param organisationUnits the parent organisation units of the hierarchy to include,
+     *         ignored if null.
+     * @param dataSets the data set to include, ignored if null.
      *
      * @return a map of sets.
      */
-    Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Set<OrganisationUnit> organisationUnits );
+    Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets );
 
     /**
      * Retrieves the objects where its coordinate is within the 4 area points.

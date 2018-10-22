@@ -55,7 +55,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
@@ -378,11 +377,10 @@ public class DefaultOrganisationUnitService
     {
         User user = currentUserService.getCurrentUser();
 
-        Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : new HashSet<>();
+        Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
+        List<DataSet> dataSets = ( user != null && user.isSuper() ) ? null : dataSetService.getUserDataWrite( user );
 
-        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits );
-
-        filterUserDataSets( associationSet ); //TODO filter in db query
+        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 
@@ -401,32 +399,6 @@ public class DefaultOrganisationUnitService
         }
 
         return set;
-    }
-
-    /**
-     * Retains only the data sets from the map which the current user has access to.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     */
-    private void filterUserDataSets( Map<String, Set<String>> associationMap )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && !currentUser.isSuper() )
-        {
-            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
-
-            if ( accessibleDataSets.isEmpty() )
-            {
-                associationMap.values().iterator().forEachRemaining( Set::clear );
-            }
-            else
-            {
-                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
-
-                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
-            }
-        }
     }
 
     @Override
