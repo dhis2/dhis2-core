@@ -1,5 +1,9 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -31,24 +35,28 @@ package org.hisp.dhis.organisationunit.hibernate;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +68,8 @@ public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit>
     implements OrganisationUnitStore
 {
+    private static final Log log = LogFactory.getLog( HibernateOrganisationUnitStore.class );
+
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -199,22 +209,51 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap()
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
     {
-        final String sql = "select ds.uid as ds_uid, ou.uid as ou_uid from datasetsource d " +
-            "left join organisationunit ou on ou.organisationunitid=d.sourceid " +
-            "left join dataset ds on ds.datasetid=d.datasetid";
+        SqlHelper hlp = new SqlHelper();
 
-        final SetMap<String, String> map = new SetMap<>();
+        String sql = "select ou.uid as ou_uid, array_agg(ds.uid) as ds_uid " +
+            "from datasetsource d " +
+            "inner join organisationunit ou on ou.organisationunitid=d.sourceid " +
+            "inner join dataset ds on ds.datasetid=d.datasetid ";
+
+        if ( organisationUnits != null )
+        {
+            Assert.notEmpty( organisationUnits, "Organisation units cannot be empty" );
+
+            sql += hlp.whereAnd() + " (";
+
+            for ( OrganisationUnit unit : organisationUnits )
+            {
+                sql += "ou.path like '" + unit.getPath() + "%' or ";
+            }
+
+            sql = TextUtils.removeLastOr( sql ) + ") ";
+        }
+
+        if ( dataSets != null )
+        {
+            Assert.notEmpty( dataSets, "Data sets cannot be empty" );
+
+            sql += hlp.whereAnd() + " ds.datasetid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
+        }
+
+        sql += "group by ou_uid";
+
+        log.info( "Org unit data set association map SQL: " + sql );
+
+        Map<String, Set<String>> map = new HashMap<>();
 
         jdbcTemplate.query( sql, new RowCallbackHandler()
         {
             @Override
             public void processRow( ResultSet rs ) throws SQLException
             {
-                String dataSetId = rs.getString( "ds_uid" );
                 String organisationUnitId = rs.getString( "ou_uid" );
-                map.putValue( organisationUnitId, dataSetId );
+                Set<String> dataSetIds = SqlUtils.getArrayAsSet( rs, "ds_uid" );
+
+                map.put( organisationUnitId, dataSetIds );
             }
         } );
 
