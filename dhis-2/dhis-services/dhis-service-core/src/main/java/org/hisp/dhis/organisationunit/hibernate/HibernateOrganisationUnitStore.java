@@ -216,8 +216,7 @@ public class HibernateOrganisationUnitStore
         String sql = "select ou.uid as ou_uid, array_agg(ds.uid) as ds_uid " +
             "from datasetsource d " +
             "inner join organisationunit ou on ou.organisationunitid=d.sourceid " +
-            "inner join dataset ds on ds.datasetid=d.datasetid " +
-            "group by ou_uid";
+            "inner join dataset ds on ds.datasetid=d.datasetid ";
 
         if ( organisationUnits != null )
         {
@@ -230,7 +229,7 @@ public class HibernateOrganisationUnitStore
                 sql += "ou.path like '" + unit.getPath() + "%' or ";
             }
 
-            sql = TextUtils.removeLastOr( sql ) + ")";
+            sql = TextUtils.removeLastOr( sql ) + ") ";
         }
 
         if ( dataSets != null )
@@ -239,6 +238,8 @@ public class HibernateOrganisationUnitStore
 
             sql += hlp.whereAnd() + " ds.datasetid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
         }
+
+        sql += "group by ou_uid";
 
         log.info( "Org unit data set association map SQL: " + sql );
 
