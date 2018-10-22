@@ -55,13 +55,7 @@ public class TokenUtils
             return regex;
         }
         
-        TokenUtils.getTokens( value ).forEach( token -> regex.append( token ).append( "|.*" ) );
-        
-        regex.delete( Math.max( regex.length() - 3, 0 ), regex.length() );
-        
-        regex.insert( 0, "(?=.*" );
-        
-        regex.append( ")" );
+        TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
                 
         return regex;
     }
@@ -92,6 +86,7 @@ public class TokenUtils
                 for ( String s : s1_tokens )
                 {
                     boolean found = false;
+
                     for ( String s3 : s2_tokens )
                     {
                         switch ( matchMode )
@@ -112,13 +107,18 @@ public class TokenUtils
 
                         if ( found )
                         {
-                            return true;
+                            break;
                         }
+                    }
+
+                    if ( !found )
+                    {
+                        return false;
                     }
                 }
             }
         }
 
-        return false;
+        return true;
     }
 }
