@@ -208,5 +208,10 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
 
             getInstance().log( log );
         }
+
+        public boolean isDebugEnabled()
+        {
+            return true;
+        }
     }
 }
