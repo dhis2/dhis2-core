@@ -62,7 +62,7 @@ public class AnalyticsTableUpdateParams
     private JobConfiguration jobId;
 
     /**
-     * Time of instantiation.
+     * Start time for update process.
      */
     private Date startTime;
 

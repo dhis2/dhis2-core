@@ -111,11 +111,11 @@ public interface AnalyticsTableManager
      * Copies and denormalizes rows from data value table into analytics table.
      * The data range is based on the start date of the data value row.
      *
-     * @param tablePartitions the analytics table partitions.
      * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions, AnalyticsTableUpdateParams params );
+    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
 
     /**
      * Invokes analytics table SQL hooks for the table type.

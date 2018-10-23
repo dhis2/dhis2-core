@@ -218,7 +218,7 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Async
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, AnalyticsTableUpdateParams params )
+    public Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop: while ( true )
         {
