@@ -40,8 +40,8 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Reads sql commands from an external/internal file (provided as buffered
  * reader) and executes them onto the given jdbc connection. This is used to
- * create the base schema (if db is empy) by reading from the sql script packaged as classpath
- * resource.
+ * create the base schema (if db is empy) by reading from the sql script
+ * packaged as classpath resource.
  * 
  * @author Ameen Mohamed
  *
