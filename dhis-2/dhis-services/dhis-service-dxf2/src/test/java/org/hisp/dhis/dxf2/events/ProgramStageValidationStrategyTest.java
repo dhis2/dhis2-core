@@ -145,7 +145,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
+        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         programStageA.getUserAccesses().add( userAccess1 );
         manager.save( programStageA, false );
 
@@ -226,72 +226,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
      *  ##############################################################################################################
      *  ##############################################################################################################
      */
-
-
-    /*
-     *  #######################################################
-     *  Tests with ValidationStrategy.NONE
-     *  #######################################################
-     */
-
-    @Test
-    public void missingCompulsoryDataElementWithValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
-
-        ImportSummary importSummary = eventService.addEvent( event, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void correctCompulsoryDataElementsWithValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-
-        ImportSummary importSummary = eventService.addEvent( event, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-
-    @Test
-    public void missingCompulsoryDataElementAndCompletedEventWithValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
-
-        ImportSummary importSummary = eventService.addEvent( event, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void correctCompulsoryDataElementAndCompletedEventWithValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.setStatus( EventStatus.COMPLETED );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-
-        ImportSummary importSummary = eventService.addEvent( event, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
 
     /*
      *  #######################################################
@@ -435,142 +369,6 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     /*
      *  #######################################################
-     *  Tests with ValidationStrategy.NONE
-     *  #######################################################
-     */
-
-    @Test
-    public void compulsoryDataElementWithEmptyValueAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void correctCompulsoryDataElementAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void emptyNonCompulsoryDataElementAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueBMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-        updatedEvent.setStatus( EventStatus.COMPLETED );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void correctCompulsoryDataElementWithCompletedEventAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueB );
-        updatedEvent.setEvent( "abcdefghijk" );
-        updatedEvent.setStatus( EventStatus.COMPLETED );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-    @Test
-    public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationNoneShouldPassTest()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
-        manager.update( programStageA );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
-        event.setEvent( "abcdefghijk" );
-
-        eventService.addEvent( event, null );
-
-        Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        updatedEvent.getDataValues().add( dataValueCMissing );
-        updatedEvent.setEvent( "abcdefghijk" );
-        updatedEvent.setStatus( EventStatus.COMPLETED );
-
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-    }
-
-
-    /*
-     *  #######################################################
      *  Tests with ValidationStrategy.ON_UPDATE_AND_INSERT
      *  #######################################################
      */
@@ -620,7 +418,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     @Test
     public void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
     {
-        programStageA.setValidationStrategy( ValidationStrategy.NONE );
+        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

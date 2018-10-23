@@ -96,7 +96,7 @@ public class ProgramStage
 
     private Boolean validCompleteOnly = false;
 
-    private ValidationStrategy validationStrategy = ValidationStrategy.NONE;
+    private ValidationStrategy validationStrategy = ValidationStrategy.ON_COMPLETE;
 
     private Boolean displayGenerateEventBox = true;
 
