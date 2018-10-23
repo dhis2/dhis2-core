@@ -1,30 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:context="http://www.springframework.org/schema/context"
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
   xmlns:task="http://www.springframework.org/schema/task"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
     http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd">
 
- <!-- Flyway configuration -->
-
-  <bean id="flywayConfig" class="org.flywaydb.core.api.configuration.ClassicConfiguration">
-    <property name="dataSource" ref="dataSource"/>
-    <property name="baselineOnMigrate" value="true" />
-    <property name="outOfOrder" ref="flywayOutOfOrder" />
-    <property name="locations">
+  <!-- Flyway configuration -->
+  <beans profile="!test">
+    <bean id="flywayConfig"
+      class="org.flywaydb.core.api.configuration.ClassicConfiguration">
+      <property name="dataSource" ref="dataSource" />
+      <property name="baselineOnMigrate" value="true" />
+      <property name="outOfOrder" ref="flywayOutOfOrder" />
+      <property name="locations">
         <bean class="org.flywaydb.core.api.Location">
-           <constructor-arg index="0" value="org/hisp/dhis/db/migration"/>
+          <constructor-arg index="0"
+            value="org/hisp/dhis/db/migration" />
         </bean>
-    </property>
-  </bean>
+      </property>
+    </bean>
 
-  <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">
-    <constructor-arg ref="flywayConfig"/>
-  </bean>
+    <bean id="flywayOutOfOrder"
+      class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
+      <constructor-arg value="FLYWAY_OUT_OF_ORDER_MIGRATION" />
+    </bean>
 
-  <bean id="flywayOutOfOrder" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
-    <constructor-arg value="FLYWAY_OUT_OF_ORDER_MIGRATION" />
-  </bean>
- 
+    <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">
+      <constructor-arg ref="flywayConfig" />
+    </bean>
+  </beans>
+
+  <beans profile="test">
+    <bean id="flyway" class="org.hisp.dhis.db.migration.helper.NoOpFlyway">
+    </bean>
+  </beans>
 </beans>

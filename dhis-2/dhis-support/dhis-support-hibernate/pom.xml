@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-db-migrations</artifactId>
+      <artifactId>dhis-support-db-migration</artifactId>
     </dependency>
     
     <!-- Hibernate -->
