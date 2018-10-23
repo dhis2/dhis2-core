@@ -22,7 +22,7 @@
     "mapping-app": "github:dhis2/gis-app-builds#v29",
     "interpretation-app": "github:dhis2/interpretation-app-builds#v29",
     "maintenance-app": "github:dhis2/maintenance-app-builds#v29",
-    "maps-app": "github:dhis2/maps-app-builds#v29",
+    "maps-app": "github:dhis2/maps-app-builds#2.29",
     "menu-management-app": "github:dhis2/menu-management-app-builds#v29",
     "pivot-app": "github:dhis2/pivot-tables-app-builds#v29",
     "scheduler-app": "github:dhis2/scheduler-app-builds#2.29",
