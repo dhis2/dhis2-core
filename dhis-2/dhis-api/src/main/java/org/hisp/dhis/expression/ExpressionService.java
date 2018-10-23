@@ -89,12 +89,14 @@ public interface ExpressionService
     String DAYS_EXPRESSION = "\\[days\\]";
     String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
     String ISNULL_EXPRESSION = "ISNULL\\s*\\(";
+    String UID_EXPRESSION = "[a-zA-Z]\\w{10}";
+    String INT_EXPRESSION = "^(0|-?[1-9]\\d*)$";
 
     /**
-     * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
+     * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.
      */
     Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION );
-    
+
     /**
      * Data element operand pattern. Contains the named groups {@code de} and {@code coc}.
      */
@@ -109,7 +111,7 @@ public interface ExpressionService
      * Option combo pattern. Contains the named groups {@code de} and {@code coc}.
      */
     Pattern CATEGORY_OPTION_COMBO_OPERAND_PATTERN = Pattern.compile( CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION );
-    
+
     /**
      * Constant pattern. Contains the named group {@code id}.
      */
@@ -119,7 +121,7 @@ public interface ExpressionService
      * Organisation unit groups pattern. Contains the named group {@code id}.
      */
     Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
-    
+
     /**
      * Days pattern.
      */
