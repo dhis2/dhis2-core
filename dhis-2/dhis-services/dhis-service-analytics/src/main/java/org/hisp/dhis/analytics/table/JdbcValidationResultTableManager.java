@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -47,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
@@ -96,7 +98,7 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
 
@@ -134,6 +136,7 @@ public class JdbcValidationResultTableManager
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
+            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and vrs.created is not null";
 
         final String sql = insert + select;
