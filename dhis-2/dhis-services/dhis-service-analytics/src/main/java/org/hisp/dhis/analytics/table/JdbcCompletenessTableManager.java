@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,6 +52,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland
@@ -100,7 +102,7 @@ public class JdbcCompletenessTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
 
@@ -125,7 +127,7 @@ public class JdbcCompletenessTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
+        select = select.replace( "organisationunitid", "sourceid" ); // Database legacy fix
 
         select +=
             "cdr.date as value " +
@@ -138,6 +140,7 @@ public class JdbcCompletenessTableManager
             "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
+            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and cdr.date is not null";
 
         final String sql = insert + select;

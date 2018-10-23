@@ -144,7 +144,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Created analytics tables" );
         notifier.notify( jobId, "Populating analytics tables" );
 
-        populateTables( tables );
+        populateTables( params, tables );
 
         clock.logTime( "Populated analytics tables" );
         notifier.notify( jobId, "Invoking analytics table hooks" );
@@ -169,7 +169,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Analyzed tables" );
         notifier.notify( jobId, "Swapping analytics tables" );
 
-        swapTables( tables, params );
+        swapTables( params, tables );
 
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
@@ -224,7 +224,7 @@ public class DefaultAnalyticsTableService
      *
      * @param tables the list of {@link AnalyticsTable}.
      */
-    private void populateTables( List<AnalyticsTable> tables )
+    private void populateTables( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
@@ -238,7 +238,7 @@ public class DefaultAnalyticsTableService
 
         for ( int i = 0; i < taskNo; i++ )
         {
-            futures.add( tableManager.populateTablesAsync( partitionQ ) );
+            futures.add( tableManager.populateTablesAsync( partitionQ, params ) );
         }
 
         ConcurrentUtils.waitForCompletion( futures );
@@ -363,14 +363,14 @@ public class DefaultAnalyticsTableService
     /**
      * Swaps the given analytics tables.
      *
-     * @param tables the list of {@link AnalyticsTable}.
      * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param tables the list of {@link AnalyticsTable}.
      */
-    private void swapTables( List<AnalyticsTable> tables, AnalyticsTableUpdateParams params )
+    private void swapTables( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
         resourceTableService.dropAllSqlViews();
 
-        tables.forEach( table -> tableManager.swapTable( table, params ) );
+        tables.forEach( table -> tableManager.swapTable( params, table ) );
 
         resourceTableService.createAllSqlViews();
     }
