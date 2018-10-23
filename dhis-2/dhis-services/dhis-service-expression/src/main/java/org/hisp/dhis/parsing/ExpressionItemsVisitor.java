@@ -75,7 +75,7 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
     private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
     public void getExpressionItems( ParseTree parseTree, List<OrganisationUnit> orgUnits,
-        List<Period> periods, Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap,
+        List<Period> periods, Map<String, Double> constantMap,
         Set<ExpressionItem> eItemsNeeded, OrganisationUnitService _organisationUnitService,
         IdentifiableObjectManager _manager, DimensionService _dimensionService )
     {
@@ -85,7 +85,6 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
         dimensionService = _dimensionService;
 
         this.constantMap = constantMap;
-        this.orgUnitCountMap = orgUnitCountMap;
         this.eItemsNeeded = eItemsNeeded;
 
         for ( OrganisationUnit orgUnit : orgUnits )
@@ -198,33 +197,30 @@ public class ExpressionItemsVisitor extends ExpressionVisitor
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
     {
         String orgUnitGroupId = ctx.orgUnitCountId().getText();
-        Integer count = orgUnitCountMap == null ? DUMMY_INT : orgUnitCountMap.get( orgUnitGroupId );
 
-        if ( count == null )
+        if ( orgUnitGroupsNeeded == null && itemDescriptions == null )
         {
-            throw new LowLevelParsingException( "Can't find count for organisation unit group " + orgUnitGroupId );
+            return DUMMY_VALUE;
         }
 
-        if ( itemDescriptions != null || orgUnitGroupsNeeded != null )
+        OrganisationUnitGroup orgUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( orgUnitGroupId );
+
+        if ( orgUnitGroup == null )
         {
-            OrganisationUnitGroup orgUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( orgUnitGroupId );
-
-            if ( orgUnitGroup == null )
-            {
-                throw new LowLevelParsingException( "Can't find organisation unit group " + orgUnitGroupId );
-            }
-
-            if ( orgUnitGroupsNeeded != null )
-            {
-                orgUnitGroupsNeeded.add( orgUnitGroup );
-            }
-
-            if ( itemDescriptions != null )
-            {
-                itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
-            }
+            throw new LowLevelParsingException( "Can't find organisation unit group " + orgUnitGroupId );
         }
-        return count.doubleValue();
+
+        if ( orgUnitGroupsNeeded != null )
+        {
+            orgUnitGroupsNeeded.add( orgUnitGroup );
+        }
+
+        if ( itemDescriptions != null )
+        {
+            itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
+        }
+
+        return DUMMY_VALUE;
     }
 
 

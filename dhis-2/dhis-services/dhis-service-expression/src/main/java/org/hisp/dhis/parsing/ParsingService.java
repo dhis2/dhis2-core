@@ -65,13 +65,11 @@ public interface ParsingService
      * @param orgUnits the list of organisation units
      * @param periods the list of periods
      * @param constantMap constants and their values
-     * @param orgUnitCountMap the mapping between organisation unit group uid
-     *        and count of organisation units to use in the calculation.
      * @return orgUnits/periods/DimensionalItemObjects to fetch
      */
     Set<ExpressionItem> getExpressionItems( List<Expression> expressions,
         List<OrganisationUnit> orgUnits, List<Period> periods,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
+        Map<String, Double> constantMap );
 
     /**
      * Returns all OrganisationUnitGroups in the given expression string.

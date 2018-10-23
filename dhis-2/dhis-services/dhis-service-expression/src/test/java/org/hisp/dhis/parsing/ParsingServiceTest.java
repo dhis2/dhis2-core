@@ -708,7 +708,7 @@ public class ParsingServiceTest
 
         Set<ExpressionItem> items = parsingService.getExpressionItems(
             Arrays.asList( expression ), Arrays.asList( orgUnitG ), Arrays.asList( periodL ),
-            constantMap, ORG_UNIT_COUNT_MAP );
+            constantMap );
 
         Object value = parsingService.getExpressionValue( expression, orgUnitG, periodL,
             valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS );

@@ -88,7 +88,7 @@ public class DefaultParsingService
     @Override
     public Set<ExpressionItem> getExpressionItems(
         List<Expression> expressions, List<OrganisationUnit> orgUnits, List<Period> periods,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
+        Map<String, Double> constantMap )
     {
         Set<ExpressionItem> items = new HashSet<>();
 
@@ -103,7 +103,7 @@ public class DefaultParsingService
                 try
                 {
                     expressionItemsVisitor.getExpressionItems( parseTree, orgUnits, periods,
-                        constantMap, orgUnitCountMap, items,
+                        constantMap, items,
                         organisationUnitService, manager, dimensionService );
                 }
                 catch ( ParsingException ex )
