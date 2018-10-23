@@ -198,6 +198,8 @@ public class JdbcValidationResultTableManager
         }
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
 
         return filterDimensionColumns( columns );
