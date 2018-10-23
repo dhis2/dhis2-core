@@ -16,7 +16,7 @@
     "core-resource-app": "github:dhis2/core-resource-app-builds#v30",
     "dashboard-app": "github:dhis2/dashboards-app-builds#v30",
     "data-administration-app": "github:dhis2/data-administration-app-builds#v30",
-    "data-quality-app": "github:dhis2/data-quality-app-builds#30",
+    "data-quality-app": "github:dhis2/data-quality-app-builds#v30",
     "datastore-app": "github:dhis2/datastore-app-builds#v30",
     "event-capture-app": "github:dhis2/event-capture-app-builds#v30",
     "event-visualizer-app": "github:dhis2/event-charts-app-builds#v30",
