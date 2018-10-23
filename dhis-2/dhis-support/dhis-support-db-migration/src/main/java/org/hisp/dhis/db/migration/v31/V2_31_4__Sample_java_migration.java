@@ -32,7 +32,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import java.sql.Statement;
 
-public class V2_31_9__Dummy_Java_Test extends BaseJavaMigration
+public class V2_31_4__Sample_java_migration extends BaseJavaMigration
 {
     
     public void migrate( Context context )
