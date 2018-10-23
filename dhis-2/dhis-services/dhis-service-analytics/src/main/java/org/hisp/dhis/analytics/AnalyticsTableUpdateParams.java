@@ -31,11 +31,12 @@ package org.hisp.dhis.analytics;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
  * Class representing parameters for the analytics table generation process.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsTableUpdateParams
@@ -44,22 +45,32 @@ public class AnalyticsTableUpdateParams
      * Number of last years for which to update tables.
      */
     private Integer lastYears;
-    
+
     /**
      * Indicates whether to skip update of resource tables.
      */
     boolean skipResourceTables;
-    
+
     /**
      * Analytics table types to skip.
      */
     private Set<AnalyticsTableType> skipTableTypes;
-    
+
     /**
      * Job ID.
      */
     private JobConfiguration jobId;
-    
+
+    /**
+     * Start time for update process.
+     */
+    private Date startTime;
+
+    private AnalyticsTableUpdateParams()
+    {
+        this.startTime = new Date();
+    }
+
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
@@ -83,7 +94,12 @@ public class AnalyticsTableUpdateParams
     {
         return jobId;
     }
-    
+
+    public Date getStartTime()
+    {
+        return startTime;
+    }
+
     /**
      * Indicates whether this is a partial update of analytics tables, i.e.
      * if only certain partitions are to be updated and not all partitions
@@ -93,7 +109,7 @@ public class AnalyticsTableUpdateParams
     {
         return lastYears != null;
     }
-    
+
     // -------------------------------------------------------------------------
     // toString
     // -------------------------------------------------------------------------
@@ -105,9 +121,10 @@ public class AnalyticsTableUpdateParams
             .add( "last years", lastYears )
             .add( "skip resource tables", skipResourceTables )
             .add( "skip table types", skipTableTypes )
+            .add( "start time", startTime )
             .toString();
     }
-    
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -116,43 +133,43 @@ public class AnalyticsTableUpdateParams
     {
         return new AnalyticsTableUpdateParams.Builder();
     }
-    
+
     /**
      * Builder for {@link AnalyticsTableUpdateParams} instances.
      */
     public static class Builder
     {
         private AnalyticsTableUpdateParams params;
-        
+
         protected Builder()
         {
             this.params = new AnalyticsTableUpdateParams();
         }
-                
+
         public Builder withLastYears( Integer lastYears )
         {
             this.params.lastYears = lastYears;
             return this;
         }
-                
+
         public Builder withSkipResourceTables( boolean skipResourceTables )
         {
             this.params.skipResourceTables = skipResourceTables;
             return this;
         }
-        
+
         public Builder withSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
         {
             this.params.skipTableTypes = skipTableTypes;
             return this;
         }
-        
+
         public Builder withJobId( JobConfiguration jobId )
         {
             this.params.jobId = jobId;
             return this;
         }
-        
+
         public AnalyticsTableUpdateParams build()
         {
             return this.params;
