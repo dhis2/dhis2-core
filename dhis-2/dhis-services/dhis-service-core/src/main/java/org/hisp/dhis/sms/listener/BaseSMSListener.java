@@ -208,7 +208,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             return false;
         }
 
-        if ( !hasOrganisationUnit( sms, smsCommand ) )
+        if ( !hasOrganisationUnit( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ),
                 sms.getOriginator(), ERROR );
@@ -216,7 +216,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             return false;
         }
 
-        if ( hasMultipleOrganisationUnits( sms, smsCommand ) )
+        if ( hasMultipleOrganisationUnits( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getMoreThanOneOrgUnitMessage(),
                 SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
@@ -327,7 +327,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         return true;
     }
 
-    private boolean hasOrganisationUnit( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasOrganisationUnit( IncomingSms sms )
     {
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
@@ -335,7 +335,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     }
 
-    private boolean hasMultipleOrganisationUnits( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasMultipleOrganisationUnits( IncomingSms sms )
     {
         List<User> users = userService.getUsersByPhoneNumber( sms.getOriginator() );
 
