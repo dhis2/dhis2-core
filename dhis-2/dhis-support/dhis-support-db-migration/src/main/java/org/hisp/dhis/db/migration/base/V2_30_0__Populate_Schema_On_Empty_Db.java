@@ -56,9 +56,9 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
     public void migrate( Context context )
         throws Exception
     {
-        try (Statement select = context.getConnection().createStatement())
+        try ( Statement select = context.getConnection().createStatement() )
         {
-            try (ResultSet rows = select.executeQuery( "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ))
+            try ( ResultSet rows = select.executeQuery( "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ) )
             {
                 if ( rows.next() )
                 {

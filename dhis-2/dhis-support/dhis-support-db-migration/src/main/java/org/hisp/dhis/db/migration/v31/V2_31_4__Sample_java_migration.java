@@ -38,7 +38,7 @@ public class V2_31_4__Sample_java_migration extends BaseJavaMigration
     public void migrate( Context context )
         throws Exception
     {
-        try (Statement select = context.getConnection().createStatement())
+        try ( Statement select = context.getConnection().createStatement() )
         {
         }
     }
