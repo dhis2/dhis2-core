@@ -35,7 +35,12 @@ import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,10 +60,21 @@ public class FileLogAdapter implements LogAdapter
     }
 
     @Override
-    public void log( Log log, LoggingConfig config )
+    public synchronized void log( Log log, LoggingConfig config )
     {
-        String text = logFormat( log, config );
-        System.err.println( text );
+        Path path = Paths.get( logDirectory, "dhis2-log" );
+        String logText = logFormat( log, config );
+
+        try
+        {
+            BufferedWriter out = new BufferedWriter(
+                new FileWriter( path.getFileName().toFile(), true ) );
+            out.write( logText );
+            out.close();
+        }
+        catch ( IOException e )
+        {
+        }
     }
 
     private String logFormat( Log log, LoggingConfig config )
