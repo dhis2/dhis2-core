@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -52,8 +52,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -131,58 +129,23 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     public List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        try
-        {
-            TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
-            trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
-            trackedEntityInstances.add( fromJson );
-        }
-
-        return trackedEntityInstances;
+        return parseJsonTrackedEntityInstances( input );
     }
 
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        try
-        {
-            TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
-            trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
-            trackedEntityInstances.add( fromXml );
-        }
-
-        return trackedEntityInstances;
+        return parseXmlTrackedEntityInstances( input );
     }
 
     @Override
     public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-        try
-        {
-            TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
-            trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
-            trackedEntityInstances.add( fromXml );
-        }
+        List<TrackedEntityInstance> trackedEntityInstances = parseXmlTrackedEntityInstances( input );
 
         return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
@@ -191,20 +154,43 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     public ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = parseJsonTrackedEntityInstances( input );
+
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
+    }
+
+    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances ( String input ) throws IOException {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "trackedEntityInstances" ) != null ) {
             TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromJson );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
+        return trackedEntityInstances;
+    }
+
+    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances ( String input ) throws IOException {
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+        JsonNode root = XML_MAPPER.readTree( input );
+
+        if ( root.get( "trackedEntityInstances" ) != null ) {
+            TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
+            trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
+        }
+        else {
+            TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
+            trackedEntityInstances.add( fromXml );
+        }
+
+        return trackedEntityInstances;
     }
 
     private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )

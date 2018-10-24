@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -175,13 +175,13 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = XML_MAPPER.readTree( input );
+
+        if ( root.get( "events" ) != null ) {
             Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             Event single = fromXml( input, Event.class );
             events.add( single );
         }
@@ -193,13 +193,13 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try
-        {
-            Events multiple = fromJson( input, Events.class );
-            events.addAll( multiple.getEvents() );
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "events" ) != null ) {
+                Events multiple = fromJson( input, Events.class );
+                events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             Event single = fromJson( input, Event.class );
             events.add( single );
         }
