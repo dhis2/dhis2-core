@@ -354,6 +354,18 @@ public class DataQueryParams
     protected boolean restrictByCategoryOptionStartEndDate;
 
     /**
+     * Used to set restrictions on start date, e.g. by organisation unit opening date,
+     * or category option start date.
+     */
+    protected Date startDateRestriction;
+
+    /**
+     * Used to set restrictions on end date, e.g. by organisation unit closed date,
+     * or category option end date.
+     */
+    protected Date endDateRestriction;
+
+    /**
      * Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels.
      */
     protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
@@ -413,8 +425,6 @@ public class DataQueryParams
         params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
         params.measureCriteria = new HashMap<>( this.measureCriteria );
         params.preAggregateMeasureCriteria = new HashMap<>( this.preAggregateMeasureCriteria );
-        params.startDate = this.startDate;
-        params.endDate = this.endDate;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -449,6 +459,8 @@ public class DataQueryParams
         params.orgUnitLevels = this.orgUnitLevels;
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
+        params.startDateRestriction = this.startDateRestriction;
+        params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
 
         return params;
@@ -1132,6 +1144,14 @@ public class DataQueryParams
     public boolean startDateAfterEndDate()
     {
         return hasStartEndDate() && startDate.after( endDate );
+    }
+
+    /**
+     * Indicates whether this query has a start and end date restriction.
+     */
+    public boolean hasStartEndDateRestriction()
+    {
+        return startDateRestriction != null && endDateRestriction != null;
     }
 
     /**
@@ -1975,6 +1995,16 @@ public class DataQueryParams
         return restrictByCategoryOptionStartEndDate;
     }
 
+    public Date getStartDateRestriction()
+    {
+        return startDateRestriction;
+    }
+
+    public Date getEndDateRestriction()
+    {
+        return endDateRestriction;
+    }
+
     public Map<OrganisationUnit, Integer> getDataApprovalLevels()
     {
         return dataApprovalLevels;
@@ -2668,6 +2698,18 @@ public class DataQueryParams
         public Builder withRestrictByCategoryOptionStartEndDate( boolean restrictByCategoryOptionStartEndDate )
         {
             this.params.restrictByCategoryOptionStartEndDate = restrictByCategoryOptionStartEndDate;
+            return this;
+        }
+
+        public Builder withStartDateRestriction( Date startDateRestriction )
+        {
+            this.params.startDateRestriction = startDateRestriction;
+            return this;
+        }
+
+        public Builder withEndDateRestriction( Date endDateRestriction )
+        {
+            this.params.endDateRestriction = endDateRestriction;
             return this;
         }
 

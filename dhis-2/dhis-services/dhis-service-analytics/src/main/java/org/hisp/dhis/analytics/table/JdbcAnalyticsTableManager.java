@@ -360,7 +360,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
