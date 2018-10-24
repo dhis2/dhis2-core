@@ -51,6 +51,7 @@ import java.sql.Statement;
 public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
 {
 
+    private static final String CHECK_EMPTY_DB_QUERY = "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');";
     private final static String BASE_SCHEMA_SQL_LOCATION = "/org/hisp/dhis/db/base/dhis2_base_schema.sql";
 
     public void migrate( Context context )
@@ -58,7 +59,7 @@ public class V2_30_0__Populate_Schema_On_Empty_Db extends BaseJavaMigration
     {
         try ( Statement select = context.getConnection().createStatement() )
         {
-            try ( ResultSet rows = select.executeQuery( "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');" ) )
+            try ( ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ) )
             {
                 if ( rows.next() )
                 {
