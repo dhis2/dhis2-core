@@ -43,7 +43,7 @@ public class SystemUtils
     {
         return "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
     }
-    
+
     /**
      * Gets the number of CPU cores available to this JVM.
      * @return the number of available CPU cores.
@@ -59,8 +59,8 @@ public class SystemUtils
      */
     public static String getMemoryString()
     {
-        return "Mem Total in JVM: " + ( Runtime.getRuntime().totalMemory() / FACTOR_MB ) + 
+        return "Mem Total in JVM: " + ( Runtime.getRuntime().totalMemory() / FACTOR_MB ) +
             " Free in JVM: " + ( Runtime.getRuntime().freeMemory() / FACTOR_MB ) +
-            " Max Limit: " + ( Runtime.getRuntime().maxMemory() / FACTOR_MB );     
+            " Max Limit: " + ( Runtime.getRuntime().maxMemory() / FACTOR_MB );
     }
 }

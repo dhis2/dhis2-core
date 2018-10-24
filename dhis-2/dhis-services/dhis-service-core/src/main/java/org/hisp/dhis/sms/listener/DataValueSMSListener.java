@@ -164,7 +164,7 @@ public class DataValueSMSListener
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.KEY_VALUE_PARSER );
     }
 
-    private Period getPeriod(SMSCommand command, Date date )
+    private Period getPeriod( SMSCommand command, Date date )
     {
         Period period = null;
         period = command.getDataset().getPeriodType().createPeriod();

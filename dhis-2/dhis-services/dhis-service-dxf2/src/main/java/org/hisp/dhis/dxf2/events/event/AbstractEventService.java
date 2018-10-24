@@ -540,7 +540,7 @@ public abstract class AbstractEventService
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
-            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
+            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ) );
 
         if ( !errors.isEmpty() )
         {
@@ -783,13 +783,21 @@ public abstract class AbstractEventService
     public EventRows getEventRows( EventSearchParams params )
     {
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        
+        User user = currentUserService.getCurrentUser();
 
         EventRows eventRows = new EventRows();
 
         List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
-
-        eventRows.setEventRows( eventRowList );
-
+        
+        for ( EventRow eventRow : eventRowList )
+        {
+            if ( trackerOwnershipAccessManager.hasAccess( user, eventRow.getTrackedEntityInstance(), eventRow.getProgram() ) )
+            {
+                eventRows.getEventRows().add( eventRow );
+            }
+        }
+        
         return eventRows;
     }
 
@@ -1355,6 +1363,13 @@ public abstract class AbstractEventService
             .getProgramStageInstance( event.getEvent() );
 
         if ( programStageInstance == null )
+        {
+            return;
+        }
+        
+        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+        
+        if ( !errors.isEmpty() )
         {
             return;
         }

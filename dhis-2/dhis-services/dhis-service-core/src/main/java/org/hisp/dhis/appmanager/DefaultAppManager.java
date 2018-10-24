@@ -39,7 +39,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 
@@ -92,9 +91,9 @@ public class DefaultAppManager
     public List<App> getApps( String contextPath )
     {
         List<App> apps = appCache.getAll().stream().collect( Collectors.toList() );
-        
+
         apps.forEach( a -> a.init( contextPath ) );
-        
+
         return apps;
     }
 
@@ -106,12 +105,12 @@ public class DefaultAppManager
             .limit( max )
             .collect( Collectors.toList() );
     }
-    
+
     @Override
     public App getApp( String appName )
     {
         // Checks for app.getUrlFriendlyName which is the key of AppMap
-        
+
         Optional<App> appOptional = appCache.getIfPresent( appName );
         if ( appOptional.isPresent() )
         {
@@ -282,11 +281,11 @@ public class DefaultAppManager
             return false;
         }
 
-        UserCredentials userCredentials = user.getUserCredentials();
+        Set<String> auths = user.getUserCredentials().getAllAuthorities();
 
-        return userCredentials.getAllAuthorities().contains( "ALL" ) ||
-            userCredentials.getAllAuthorities().contains( "M_dhis-web-maintenance-appmanager" ) ||
-            userCredentials.getAllAuthorities().contains( app.getSeeAppAuthority() );
+        return auths.contains( "ALL" ) ||
+            auths.contains( "M_dhis-web-maintenance-appmanager" ) ||
+            auths.contains( app.getSeeAppAuthority() );
     }
 
     @Override

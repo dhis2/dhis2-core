@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics;
 
 /**
  * Class representing an index on a database table column.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsIndex
@@ -39,12 +39,12 @@ public class AnalyticsIndex
      * Table name.
      */
     private String table;
-    
+
     /**
      * Table column name.
      */
     private String column;
-    
+
     /**
      * Index type.
      */
@@ -122,19 +122,19 @@ public class AnalyticsIndex
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         AnalyticsIndex other = (AnalyticsIndex) object;
-        
+
         return column.equals( other.column ) && table.equals( other.table );
     }
 }

@@ -71,7 +71,6 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -230,9 +229,9 @@ public class DataSet
      * Render multi-organisationUnit forms either with OU vertically or horizontally.
      */
     private boolean renderHorizontally;
-    
+
     /**
-    * Property indicating whether all compulsory fields should be filled before completing 
+    * Property indicating whether all compulsory fields should be filled before completing
     * data set
     */
     private boolean compulsoryFieldsCompleteOnly;
@@ -400,6 +399,12 @@ public class DataSet
     public void removeCompulsoryDataElementOperand( DataElementOperand dataElementOperand )
     {
         compulsoryDataElementOperands.remove( dataElementOperand );
+    }
+
+    public void assignWorkflow( DataApprovalWorkflow workflow )
+    {
+        workflow.getDataSets().add( this );
+        this.workflow = workflow;
     }
 
     public boolean hasDataEntryForm()
@@ -765,19 +770,10 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
-        if ( this.workflow != null )
-        {
-            this.workflow.getDataSets().remove( this );
-        }
-
-        if ( workflow != null )
-        {
-            workflow.getDataSets().add( this );
-        }
-
         this.workflow = workflow;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
@@ -911,7 +907,7 @@ public class DataSet
     {
         this.formName = formName;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompulsoryFieldsCompleteOnly()
@@ -922,6 +918,6 @@ public class DataSet
     public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
     {
         this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
-    }    
-    
+    }
+
 }
