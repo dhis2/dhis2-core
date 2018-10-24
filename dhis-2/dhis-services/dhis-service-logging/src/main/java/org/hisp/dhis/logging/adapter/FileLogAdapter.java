@@ -35,12 +35,12 @@ import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -60,19 +60,16 @@ public class FileLogAdapter implements LogAdapter
     }
 
     @Override
-    public synchronized void log( Log log, LoggingConfig config )
+    public void log( Log log, LoggingConfig config )
     {
-        Path path = Paths.get( logDirectory, "dhis2-log" );
+        Path path = Paths.get( logDirectory, "dhis2.log" );
         String logText = logFormat( log, config );
 
         try
         {
-            BufferedWriter out = new BufferedWriter(
-                new FileWriter( path.getFileName().toFile(), true ) );
-            out.write( logText );
-            out.close();
+            Files.write( path, logText.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND );
         }
-        catch ( IOException e )
+        catch ( IOException ignored )
         {
         }
     }
@@ -84,9 +81,9 @@ public class FileLogAdapter implements LogAdapter
             case TEXT:
                 return log.toString();
             case JSON:
-                return LoggingManager.toJson( log );
+                return LoggingManager.toJson( log ) + "\n";
             default:
-                return LoggingManager.toJson( log );
+                return LoggingManager.toJson( log ) + "\n";
         }
     }
 }
