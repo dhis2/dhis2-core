@@ -216,7 +216,8 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedAfter(Date date) {
+    public int getCompleteDataSetCountLastUpdatedAfter( Date date )
+    {
         return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedBetween(date);
     }
 }

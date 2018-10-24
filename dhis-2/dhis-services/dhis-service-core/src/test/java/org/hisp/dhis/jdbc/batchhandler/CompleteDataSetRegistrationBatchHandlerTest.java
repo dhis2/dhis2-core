@@ -161,7 +161,6 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         batchHandler.addObject( regC );
         batchHandler.addObject( regD );
 
-
         List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
         completeDataSetRegistrations.add(regA);
         completeDataSetRegistrations.add(regB);

@@ -126,5 +126,5 @@ public interface CompleteDataSetRegistrationService
      * @param date the date time.
      * @return the number of completedatasets.
      */
-    int getCompleteDataSetCountLastUpdatedAfter(Date date);
+    int getCompleteDataSetCountLastUpdatedAfter( Date date );
 }

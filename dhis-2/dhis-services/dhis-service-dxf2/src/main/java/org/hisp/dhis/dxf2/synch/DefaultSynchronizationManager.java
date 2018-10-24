@@ -128,7 +128,8 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataSetCompletenessPush() throws WebMessageParseException {
+    public ImportSummary executeDataSetCompletenessPush() throws WebMessageParseException
+    {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
         if ( !availability.isAvailable() )
@@ -146,7 +147,8 @@ public class DefaultSynchronizationManager
         return executeDataSetCompletenessPush( instance );
     }
 
-    private ImportSummary executeDataSetCompletenessPush(SystemInstance instance)  throws WebMessageParseException {
+    private ImportSummary executeDataSetCompletenessPush( SystemInstance instance )  throws WebMessageParseException
+    {
 
         final Date startTime = new Date();
 

@@ -172,7 +172,8 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedBetween(Date date) {
+    public int getCompleteDataSetCountLastUpdatedBetween( Date date )
+    {
 
         if ( date == null )
         {

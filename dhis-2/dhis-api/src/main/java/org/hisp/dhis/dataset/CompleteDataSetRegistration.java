@@ -312,7 +312,6 @@ public class CompleteDataSetRegistration
         this.lastUpdated = lastUpdated;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getCompleted()

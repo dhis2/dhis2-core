@@ -338,10 +338,11 @@ public class GetDataValuesForDataSetAction
                         break;
                     }
 
-                    CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration(
-                        dataSet, period, ou, attributeOptionCombo );
+                    CompleteDataSetRegistration registration =
+                            registrationService.getCompleteDataSetRegistration( dataSet, period, ou, attributeOptionCombo );
 
-                    if(registration != null) {
+                    if( registration != null )
+                    {
                         complete = registration.getCompleted();
                         lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
                     }
