@@ -45,6 +45,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
@@ -119,7 +120,7 @@ public class JdbcAnalyticsManager
 
     @Override
     @Async
-    public Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, int maxLimit )
+    public Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType, int maxLimit )
     {
         assertQuery( params );
 
@@ -139,7 +140,7 @@ public class JdbcAnalyticsManager
 
             sql += getFromClause( params );
 
-            sql += getWhereClause( params );
+            sql += getWhereClause( params, tableType );
 
             sql += getGroupByClause( params );
 
@@ -323,7 +324,7 @@ public class JdbcAnalyticsManager
     /**
      * Generates the where clause of the query SQL.
      */
-    private String getWhereClause( DataQueryParams params )
+    private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -395,28 +396,25 @@ public class JdbcAnalyticsManager
         // Restrictions
         // ---------------------------------------------------------------------
 
-        if ( params.hasStartEndDate() )
+        if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction() )
         {
-            if ( params.isRestrictByOrgUnitOpeningClosedDate() )
-            {
-                sql += sqlHelper.whereAnd() + " (" +
-                    "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
-                    "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
-            }
+            sql += sqlHelper.whereAnd() + " (" +
+                "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
+                "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
+        }
 
-            if ( params.isRestrictByCategoryOptionStartEndDate() )
-            {
-                sql += sqlHelper.whereAnd() + " (" +
-                    "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
-                    "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
-            }
+        if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction() )
+        {
+            sql += sqlHelper.whereAnd() + " (" +
+                "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
+                "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
+        }
 
-            if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() )
-            {
-                sql += sqlHelper.whereAnd() + " " +
-                    quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' and " +
-                    quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-            }
+        if ( tableType.hasPeriodDimension() && params.hasStartEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " +
+                quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' and " +
+                quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )

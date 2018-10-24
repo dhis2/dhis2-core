@@ -170,7 +170,7 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params )
+    public void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table )
     {
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
         boolean skipMasterTable = params.isPartialUpdate() && tableExists;
@@ -218,7 +218,7 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Async
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
+    public Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop: while ( true )
         {
@@ -229,7 +229,7 @@ public abstract class AbstractJdbcTableManager
                 break taskLoop;
             }
 
-            populateTable( partition );
+            populateTable( params, partition );
         }
 
         return null;
@@ -258,9 +258,10 @@ public abstract class AbstractJdbcTableManager
     /**
      * Populates the given analytics table.
      *
+     * @param params the {@link AnalyticsTableUpdateParams}.
      * @param table the analytics table to populate.
      */
-    protected abstract void populateTable( AnalyticsTablePartition partition );
+    protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 
     // -------------------------------------------------------------------------
     // Protected supportive methods
