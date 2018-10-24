@@ -306,7 +306,7 @@ public class DefaultQueryPlanner
     }
 
     @Override
-    public List<DataQueryParams> groupByStartEndDate( DataQueryParams params )
+    public List<DataQueryParams> groupByStartEndDateRestriction( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
@@ -317,8 +317,8 @@ public class DefaultQueryPlanner
                 Period period = (Period) item;
 
                 DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withStartDate( period.getStartDate() )
-                    .withEndDate( period.getEndDate() ).build();
+                    .withStartDateRestriction( period.getStartDate() )
+                    .withEndDateRestriction( period.getEndDate() ).build();
 
                 BaseDimensionalObject staticPeriod = (BaseDimensionalObject) query.getDimension( PERIOD_DIM_ID );
                 staticPeriod.setDimensionName( period.getIsoDate() );
@@ -332,8 +332,8 @@ public class DefaultQueryPlanner
             Period period = (Period) params.getFilterPeriods().get( 0 );
 
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withStartDate( period.getStartDate() )
-                .withEndDate( period.getEndDate() )
+                .withStartDateRestriction( period.getStartDate() )
+                .withEndDateRestriction( period.getEndDate() )
                 .removeFilter( PERIOD_DIM_ID ).build();
 
             queries.add( query );
