@@ -185,6 +185,7 @@ public class InitTableAlteror
         executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true" );
         executeSql( "ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL" );
         executeSql( "ALTER TABLE programstage DROP COLUMN IF EXISTS validation" );
+        executeSql( "UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validationstrategy = 'NONE'" );
 
         executeSql( "UPDATE userroleauthorities SET authority = 'F_RELATIONSHIPTYPE_PUBLIC_ADD' WHERE authority = 'F_RELATIONSHIPTYPE_ADD'" );
     }
