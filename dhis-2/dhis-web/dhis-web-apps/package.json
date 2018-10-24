@@ -13,7 +13,7 @@
     "app-management-app": "github:dhis2/app-management-app-builds#v29",
     "cache-cleaner-app": "github:dhis2/cache-cleaner-app-builds#v29",
     "visualizer-app": "github:dhis2/charts-app-builds#v29",
-    "core-resource-app": "github:dhis2/core-resource-app-builds#v29",
+    "core-resource-app": "github:dhis2/core-resource-app-builds#master",
     "dashboard-app": "github:dhis2/dashboards-app-builds#2.29",
     "datastore-app": "github:dhis2/datastore-app-builds#v29",
     "event-capture-app": "github:dhis2/event-capture-app-builds#v29",
