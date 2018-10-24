@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -131,13 +131,13 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = XML_MAPPER.readTree( input );
+
+        if ( root.get( "trackedEntityInstances" ) != null ) {
             TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromXml );
         }
@@ -151,13 +151,13 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "trackedEntityInstances" ) != null ) {
             TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromJson );
         }
