@@ -1396,6 +1396,17 @@ public abstract class AbstractEventService
             return importSummary.incrementIgnored();
         }
 
+        List<String> errors = trackerAccessManager.canWrite( user, aoc );
+
+        if ( !errors.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         if ( !dryRun )
         {
             if ( programStageInstance == null )
