@@ -323,9 +323,10 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns the a select union all clause of the SQL query.
+     * Returns the query from source clause. Can be any of table name, partition
+     * name or inner select union all query.
      */
-    private String getSelectUnionAllClause( DataQueryParams params )
+    private String getFromSourceClause( DataQueryParams params )
     {
         if ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne() )
         {
