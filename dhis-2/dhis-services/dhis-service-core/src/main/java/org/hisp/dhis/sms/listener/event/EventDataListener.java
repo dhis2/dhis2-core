@@ -33,6 +33,8 @@ import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.listener.BaseSMSListener;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.sms.parse.SMSObjectParser;
+import org.hisp.dhis.sms.parse.SMSObjectType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,6 +59,15 @@ public class EventDataListener extends BaseSMSListener
     @Override
     protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
+        SMSObjectType type = SMSObjectType.fromObjectName( getSMSObjectType( sms ) );
+
+        for ( SMSObjectParser parser : parserList )
+        {
+            if ( parser.accept( type ) )
+            {
+                parser.parse( "" );
+            }
+        }
 
     }
 
@@ -65,5 +76,10 @@ public class EventDataListener extends BaseSMSListener
     {
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.EVENT_DATA_PARSER );
+    }
+
+    private String getSMSObjectType( IncomingSms sms )
+    {
+        return "";
     }
 }
