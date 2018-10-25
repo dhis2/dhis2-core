@@ -232,4 +232,16 @@ public class PartitionUtils
         
         return partitions;
     }
+
+    /**
+     * Returns partition name. Aggregate only for now!
+     *
+     * @param tableName the table name.
+     * @param partitiont the partition.
+     * @return the partition name.
+     */
+    public static String getPartitionName( String tableName, Integer partition )
+    {
+        return tableName + SEP + partition;
+    }
 }
