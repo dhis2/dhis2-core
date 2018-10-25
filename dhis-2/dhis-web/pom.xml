@@ -21,8 +21,7 @@
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-reporting</module>
-    <!-- 
-    <module>dhis-web-apps</module> -->
+    <module>dhis-web-apps</module>
     <module>dhis-web-portal</module>
   </modules>
 
