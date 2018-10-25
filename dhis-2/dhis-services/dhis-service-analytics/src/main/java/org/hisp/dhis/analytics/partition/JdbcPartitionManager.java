@@ -30,10 +30,13 @@ package org.hisp.dhis.analytics.partition;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -108,6 +111,22 @@ public class JdbcPartitionManager
         int count = jdbcTemplate.queryForObject( sql, Integer.class );
 
         return count > 0;
+    }
+
+    @Override
+    public void filterNonExistingPartitions( Partitions partitions, String tableName )
+    {
+        Set<Integer> p = partitions.getPartitions().stream()
+            .filter( partition -> partitionExists( tableName, partition ) )
+            .collect( Collectors.toSet() );
+
+        partitions.setPartitions( p );
+    }
+
+    private boolean partitionExists( String tableName, Integer partition )
+    {
+        return tableExists( PartitionUtils.getPartitionName( tableName, partition ) );
+
     }
 
     @Override
