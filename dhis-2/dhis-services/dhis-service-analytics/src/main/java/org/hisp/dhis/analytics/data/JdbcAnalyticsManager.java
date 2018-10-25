@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -315,10 +316,41 @@ public class JdbcAnalyticsManager
         }
         else
         {
-            sql += params.getTableName();
+            sql += getFromSourceClause( params );
         }
 
         return sql + " as " + ANALYTICS_TBL_ALIAS + " ";
+    }
+
+    /**
+     * Returns the query from source clause. Can be any of table name, partition
+     * name or inner select union all query.
+     */
+    private String getFromSourceClause( DataQueryParams params )
+    {
+        if ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne() )
+        {
+            Integer partition = params.getPartitions().getAny();
+
+            return PartitionUtils.getPartitionName( params.getTableName(), partition );
+        }
+        else if ( ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple() ) )
+        {
+            String sql = "(";
+
+            for ( Integer partition : params.getPartitions().getPartitions() )
+            {
+                String partitionName = PartitionUtils.getPartitionName( params.getTableName(), partition );
+
+                sql += "select ap.* from " + partitionName + " as ap union all ";
+            }
+
+            return TextUtils.removeLast( sql, "union all" ) + ")";
+        }
+        else
+        {
+            return params.getTableName();
+        }
     }
 
     /**
@@ -471,6 +503,7 @@ public class JdbcAnalyticsManager
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
 
@@ -483,7 +516,7 @@ public class JdbcAnalyticsManager
             "row_number() over (" +
                 "partition by dx, ou, co, ao " +
                 "order by peenddate desc, pestartdate desc) as pe_rank " +
-            "from analytics " +
+            "from " + fromSourceClause + " " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
             "and (value is not null or textvalue is not null))";
@@ -540,7 +573,9 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "(select * from " + params.getTableName() + " ";
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
+
+        String sql = "(select * from " + fromSourceClause + " ";
 
         for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
         {
