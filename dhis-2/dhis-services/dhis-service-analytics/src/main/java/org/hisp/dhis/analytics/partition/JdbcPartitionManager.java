@@ -116,11 +116,11 @@ public class JdbcPartitionManager
     @Override
     public void filterNonExistingPartitions( Partitions partitions, String tableName )
     {
-        Set<Integer> p = partitions.getPartitions().stream()
+        Set<Integer> partitionSet = partitions.getPartitions().stream()
             .filter( partition -> partitionExists( tableName, partition ) )
             .collect( Collectors.toSet() );
 
-        partitions.setPartitions( p );
+        partitions.setPartitions( partitionSet );
     }
 
     private boolean partitionExists( String tableName, Integer partition )
