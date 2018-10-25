@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
  */
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -128,58 +128,23 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Enrollment> enrollments = new ArrayList<>();
 
-        try
-        {
-            Enrollments fromJson = fromJson( input, Enrollments.class );
-            enrollments.addAll( fromJson.getEnrollments() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Enrollment fromJson = fromJson( input, Enrollment.class );
-            enrollments.add( fromJson );
-        }
-
-        return enrollments;
+        return parseJsonEnrollments( input );
     }
 
     @Override
     public List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Enrollment> enrollments = new ArrayList<>();
 
-        try
-        {
-            Enrollments fromXml = fromXml( input, Enrollments.class );
-            enrollments.addAll( fromXml.getEnrollments() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Enrollment fromXml = fromXml( input, Enrollment.class );
-            enrollments.add( fromXml );
-        }
-
-        return enrollments;
+        return parseXmlEnrollments( input );
     }
 
     @Override
     public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Enrollment> enrollments = new ArrayList<>();
-
-        try
-        {
-            Enrollments fromJson = fromJson( input, Enrollments.class );
-            enrollments.addAll( fromJson.getEnrollments() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Enrollment fromJson = fromJson( input, Enrollment.class );
-            enrollments.add( fromJson );
-        }
+        List<Enrollment> enrollments = parseJsonEnrollments( input );
 
         return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
@@ -188,20 +153,43 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     public ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = parseXmlEnrollments( input );
+
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
+    }
+
+    private List<Enrollment> parseJsonEnrollments ( String input ) throws IOException {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "enrollments" ) != null ) {
+            Enrollments fromJson = fromJson( input, Enrollments.class );
+            enrollments.addAll( fromJson.getEnrollments() );
+        }
+        else {
+            Enrollment fromJson = fromJson( input, Enrollment.class );
+            enrollments.add( fromJson );
+        }
+
+        return enrollments;
+    }
+
+    private List<Enrollment> parseXmlEnrollments ( String input ) throws IOException {
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        JsonNode root = XML_MAPPER.readTree( input );
+
+        if ( root.get( "enrollments" ) != null ) {
             Enrollments fromXml = fromXml( input, Enrollments.class );
             enrollments.addAll( fromXml.getEnrollments() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             Enrollment fromXml = fromXml( input, Enrollment.class );
             enrollments.add( fromXml );
         }
 
-        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
+        return enrollments;
     }
 
     private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
