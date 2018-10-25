@@ -53,15 +53,21 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Transactional
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
@@ -120,11 +126,13 @@ public class DefaultProgramNotificationService
         this.programStageNotificationRenderer = programStageNotificationRenderer;
     }
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
     public void sendScheduledNotificationsForDay( Date notificationDate )
     {
@@ -146,28 +154,33 @@ public class DefaultProgramNotificationService
         clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
     }
 
-    @Transactional
     @Override
     public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
-        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
+        transactionTemplate.execute( tx -> {
+            sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
+            return null;
+        });
     }
 
-    @Transactional
     @Override
     public void sendCompletionNotifications( ProgramInstance programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
+        transactionTemplate.execute( tx -> {
+            sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
+            return null;
+        });
     }
 
-    @Transactional
     @Override
     public void sendEnrollmentNotifications( ProgramInstance programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
+        transactionTemplate.execute( tx -> {
+            sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
+            return null;
+        });
     }
 
-    @Transactional
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance )
     {
@@ -175,7 +188,6 @@ public class DefaultProgramNotificationService
         sendAll( messageBatch );
     }
 
-    @Transactional
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance )
     {
@@ -410,7 +422,7 @@ public class DefaultProgramNotificationService
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
     {
-        return programInstance.getProgram().getNotificationTemplates().stream()
+         return programInstance.getProgram().getNotificationTemplates().stream()
                 .filter( t -> t.getNotificationTrigger() == trigger )
                 .collect( Collectors.toSet() );
     }
