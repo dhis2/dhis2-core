@@ -475,11 +475,6 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-db-migration</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
         <version>1.0.2.1-SNAPSHOT</version>
@@ -946,13 +941,6 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
-      </dependency>
-      
-      <!-- Flyway -->
-      <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-        <version>5.2.0</version>
       </dependency>
 
       <!-- Apache jClouds -->
