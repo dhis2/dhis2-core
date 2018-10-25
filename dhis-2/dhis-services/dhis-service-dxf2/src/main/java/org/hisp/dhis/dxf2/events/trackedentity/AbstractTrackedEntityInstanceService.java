@@ -926,13 +926,6 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private void removeAttributeValues( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
-    {
-        entityInstance.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::deleteTrackedEntityAttributeValue );
-        teiService.updateTrackedEntityInstance( entityInstance );
-    }
-
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
         return organisationUnitCache
