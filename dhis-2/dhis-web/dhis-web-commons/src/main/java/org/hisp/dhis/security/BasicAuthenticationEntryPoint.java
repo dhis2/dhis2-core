@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.ldap.authentication;
+package org.hisp.dhis.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,44 @@ package org.hisp.dhis.security.ldap.authentication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * Authenticator which checks whether LDAP authentication is configured. If not,
- * the authentication will be aborted, otherwise authentication is delegated to
- * Spring BindAuthenticator.
- * 
- * @author Lars Helge Overland
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public class DhisBindAuthenticator
-    extends BindAuthenticator
+public class BasicAuthenticationEntryPoint
+    implements AuthenticationEntryPoint
 {
     @Autowired
-    private UserService userService;
-    
-    public DhisBindAuthenticator( BaseLdapPathContextSource contextSource )
-    {
-        super( contextSource );
-    }
+    private RenderService renderService;
 
     @Override
-    public DirContextOperations authenticate( Authentication authentication )
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( authentication.getName() );
-                
-        if ( userCredentials == null )
+        String message;
+
+        if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
         {
-            throw new BadCredentialsException( "Incorrect user credentials" );
+            message = "Account locked" ;
         }
-        
-        if ( userCredentials.hasLdapId() )
+        else
         {
-            authentication = new UsernamePasswordAuthenticationToken( userCredentials.getLdapId(), authentication.getCredentials() );
+            message = "Unauthorized";
         }
-        
-        return super.authenticate( authentication );
+
+        response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
     }
 }
