@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -77,6 +78,9 @@ public class DefaultQueryPlanner
     @Autowired
     private QueryValidator queryValidator;
 
+    @Autowired
+    private PartitionManager partitionManager;
+
     // -------------------------------------------------------------------------
     // QueryPlanner implementation
     // -------------------------------------------------------------------------
@@ -91,6 +95,8 @@ public class DefaultQueryPlanner
         // ---------------------------------------------------------------------
 
         params = withTableNameAndPartitions( params, plannerParams );
+
+        partitionManager.filterNonExistingPartitions( params.getPartitions(), plannerParams.getTableName() );
 
         final List<DataQueryParams> queries = Lists.newArrayList( params );
 
