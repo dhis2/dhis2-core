@@ -222,7 +222,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             return false;
         }
 
-        if ( hasMultipleOrganisationUnits( sms) )
+        if ( hasMultipleOrganisationUnits( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getMoreThanOneOrgUnitMessage(),
                 SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
