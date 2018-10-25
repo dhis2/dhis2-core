@@ -32,7 +32,7 @@ public class ExpressionParser extends Parser {
 		REPORTING_PERIOD_START=76, REPORTING_PERIOD_END=77, HAS_VALUE=78, MINUTES_BETWEEN=79, 
 		DAYS_BETWEEN=80, WEEKS_BETWEEN=81, MONTHS_BETWEEN=82, YEARS_BETWEEN=83, 
 		CONDITION=84, ZING=85, OIZP=86, ZPVC=87, NUMERIC_LITERAL=88, STRING_LITERAL=89, 
-		BOOLEAN_LITERAL=90, UID=91, JAVA_IDENTIFIER=92, WS=93;
+		BOOLEAN_LITERAL=90, UID=91, KEYWORD=92, WS=93;
 	public static final int
 		RULE_expression = 0, RULE_expr = 1, RULE_programIndicatorExpr = 2, RULE_programIndicatorVariable = 3, 
 		RULE_programIndicatorFunction = 4, RULE_a0 = 5, RULE_a0_1 = 6, RULE_a1 = 7, 
@@ -44,7 +44,7 @@ public class ExpressionParser extends Parser {
 		RULE_programDataElementId = 25, RULE_programAttributeId = 26, RULE_programIndicatorId = 27, 
 		RULE_orgUnitCountId = 28, RULE_reportingRateId = 29, RULE_constantId = 30, 
 		RULE_numericLiteral = 31, RULE_stringLiteral = 32, RULE_booleanLiteral = 33, 
-		RULE_javaIdentifier = 34;
+		RULE_keyword = 34;
 	public static final String[] ruleNames = {
 		"expression", "expr", "programIndicatorExpr", "programIndicatorVariable", 
 		"programIndicatorFunction", "a0", "a0_1", "a1", "a1_2", "a1_n", "a2", 
@@ -53,7 +53,7 @@ public class ExpressionParser extends Parser {
 		"reportingRate", "constant", "days", "dataElementId", "dataElementOperandIdWithoutAoc", 
 		"dataElementOperandIdWithAoc", "programDataElementId", "programAttributeId", 
 		"programIndicatorId", "orgUnitCountId", "reportingRateId", "constantId", 
-		"numericLiteral", "stringLiteral", "booleanLiteral", "javaIdentifier"
+		"numericLiteral", "stringLiteral", "booleanLiteral", "keyword"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -88,7 +88,7 @@ public class ExpressionParser extends Parser {
 		"REPORTING_PERIOD_END", "HAS_VALUE", "MINUTES_BETWEEN", "DAYS_BETWEEN", 
 		"WEEKS_BETWEEN", "MONTHS_BETWEEN", "YEARS_BETWEEN", "CONDITION", "ZING", 
 		"OIZP", "ZPVC", "NUMERIC_LITERAL", "STRING_LITERAL", "BOOLEAN_LITERAL", 
-		"UID", "JAVA_IDENTIFIER", "WS"
+		"UID", "KEYWORD", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -2288,8 +2288,8 @@ public class ExpressionParser extends Parser {
 
 	public static class ReportingRateIdContext extends ParserRuleContext {
 		public TerminalNode UID() { return getToken(ExpressionParser.UID, 0); }
-		public JavaIdentifierContext javaIdentifier() {
-			return getRuleContext(JavaIdentifierContext.class,0);
+		public KeywordContext keyword() {
+			return getRuleContext(KeywordContext.class,0);
 		}
 		public ReportingRateIdContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2313,7 +2313,7 @@ public class ExpressionParser extends Parser {
 			setState(392);
 			match(T__2);
 			setState(393);
-			javaIdentifier();
+			keyword();
 			}
 		}
 		catch (RecognitionException re) {
@@ -2463,30 +2463,30 @@ public class ExpressionParser extends Parser {
 		return _localctx;
 	}
 
-	public static class JavaIdentifierContext extends ParserRuleContext {
-		public TerminalNode JAVA_IDENTIFIER() { return getToken(ExpressionParser.JAVA_IDENTIFIER, 0); }
+	public static class KeywordContext extends ParserRuleContext {
+		public TerminalNode KEYWORD() { return getToken(ExpressionParser.KEYWORD, 0); }
 		public TerminalNode UID() { return getToken(ExpressionParser.UID, 0); }
-		public JavaIdentifierContext(ParserRuleContext parent, int invokingState) {
+		public KeywordContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_javaIdentifier; }
+		@Override public int getRuleIndex() { return RULE_keyword; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitJavaIdentifier(this);
+			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitKeyword(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final JavaIdentifierContext javaIdentifier() throws RecognitionException {
-		JavaIdentifierContext _localctx = new JavaIdentifierContext(_ctx, getState());
-		enterRule(_localctx, 68, RULE_javaIdentifier);
+	public final KeywordContext keyword() throws RecognitionException {
+		KeywordContext _localctx = new KeywordContext(_ctx, getState());
+		enterRule(_localctx, 68, RULE_keyword);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(403);
 			_la = _input.LA(1);
-			if ( !(_la==UID || _la==JAVA_IDENTIFIER) ) {
+			if ( !(_la==UID || _la==KEYWORD) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {

@@ -214,7 +214,7 @@ orgUnitCountId
     ;
 
 reportingRateId
-    :   UID '.' javaIdentifier
+    :   UID '.' keyword
     ;
 
 constantId
@@ -233,8 +233,8 @@ booleanLiteral
     :   BOOLEAN_LITERAL
     ;
 
-javaIdentifier // Resolve ambiguity for Java identifiers that match UID pattern.
-    :    JAVA_IDENTIFIER | UID
+keyword // Resolve ambiguity for Java identifiers that match UID pattern.
+    :    KEYWORD | UID
     ;
 
 // -----------------------------------------------------------------------------
@@ -357,8 +357,8 @@ UID :   Alpha
         AlphaNum AlphaNum AlphaNum AlphaNum AlphaNum
     ;
 
-JAVA_IDENTIFIER
-    :   JavaIdentifierStart JavaIdentifierPart*
+KEYWORD
+    :   KeywordStart KeywordPart*
     ;
 
 WS  :   [ \t\n\r]+ -> skip // toss out all whitespace
@@ -378,11 +378,11 @@ fragment AlphaNum
     :   [a-zA-Z0-9]
     ;
 
-fragment JavaIdentifierStart
+fragment KeywordStart
     :   [a-zA-Z_$]
     ;
 
-fragment JavaIdentifierPart
+fragment KeywordPart
     :   [a-zA-Z0-9_$]
     ;
 

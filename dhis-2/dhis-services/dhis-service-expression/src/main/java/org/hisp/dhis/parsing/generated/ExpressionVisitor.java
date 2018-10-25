@@ -215,9 +215,9 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBooleanLiteral(ExpressionParser.BooleanLiteralContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#javaIdentifier}.
+	 * Visit a parse tree produced by {@link ExpressionParser#keyword}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitJavaIdentifier(ExpressionParser.JavaIdentifierContext ctx);
+	T visitKeyword(ExpressionParser.KeywordContext ctx);
 }

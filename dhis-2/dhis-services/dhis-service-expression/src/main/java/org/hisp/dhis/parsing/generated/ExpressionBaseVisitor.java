@@ -255,5 +255,5 @@ public class ExpressionBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitJavaIdentifier(ExpressionParser.JavaIdentifierContext ctx) { return visitChildren(ctx); }
+	@Override public T visitKeyword(ExpressionParser.KeywordContext ctx) { return visitChildren(ctx); }
 }

@@ -32,7 +32,7 @@ public class ExpressionLexer extends Lexer {
 		REPORTING_PERIOD_START=76, REPORTING_PERIOD_END=77, HAS_VALUE=78, MINUTES_BETWEEN=79, 
 		DAYS_BETWEEN=80, WEEKS_BETWEEN=81, MONTHS_BETWEEN=82, YEARS_BETWEEN=83, 
 		CONDITION=84, ZING=85, OIZP=86, ZPVC=87, NUMERIC_LITERAL=88, STRING_LITERAL=89, 
-		BOOLEAN_LITERAL=90, UID=91, JAVA_IDENTIFIER=92, WS=93;
+		BOOLEAN_LITERAL=90, UID=91, KEYWORD=92, WS=93;
 	public static String[] channelNames = {
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	};
@@ -56,8 +56,8 @@ public class ExpressionLexer extends Lexer {
 		"PROGRAM_STAGE_ID", "REPORTING_PERIOD_START", "REPORTING_PERIOD_END", 
 		"HAS_VALUE", "MINUTES_BETWEEN", "DAYS_BETWEEN", "WEEKS_BETWEEN", "MONTHS_BETWEEN", 
 		"YEARS_BETWEEN", "CONDITION", "ZING", "OIZP", "ZPVC", "NUMERIC_LITERAL", 
-		"STRING_LITERAL", "BOOLEAN_LITERAL", "UID", "JAVA_IDENTIFIER", "WS", "Exponent", 
-		"Alpha", "AlphaNum", "JavaIdentifierStart", "JavaIdentifierPart", "EscapeSequence", 
+		"STRING_LITERAL", "BOOLEAN_LITERAL", "UID", "KEYWORD", "WS", "Exponent", 
+		"Alpha", "AlphaNum", "KeywordStart", "KeywordPart", "EscapeSequence", 
 		"HexDigit"
 	};
 
@@ -93,7 +93,7 @@ public class ExpressionLexer extends Lexer {
 		"REPORTING_PERIOD_END", "HAS_VALUE", "MINUTES_BETWEEN", "DAYS_BETWEEN", 
 		"WEEKS_BETWEEN", "MONTHS_BETWEEN", "YEARS_BETWEEN", "CONDITION", "ZING", 
 		"OIZP", "ZPVC", "NUMERIC_LITERAL", "STRING_LITERAL", "BOOLEAN_LITERAL", 
-		"UID", "JAVA_IDENTIFIER", "WS"
+		"UID", "KEYWORD", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
