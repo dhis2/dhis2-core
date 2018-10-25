@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -56,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
@@ -125,7 +127,7 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
@@ -166,6 +168,7 @@ public class JdbcEventAnalyticsTableManager
             "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " +
             "and psi.executiondate < '" + end + "' " +
+            "and psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +

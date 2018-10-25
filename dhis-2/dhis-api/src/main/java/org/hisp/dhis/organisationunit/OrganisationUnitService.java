@@ -330,6 +330,16 @@ public interface OrganisationUnitService
     List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );
 
     /**
+     * Returns the level of the given org unit level. The level parameter string can either
+     * represent a numerical level, or a UID referring to an {@link OrganisationUnitLevel} object.
+     *
+     * @param level the level string, either a numeric level or UID.
+     * @return the level of the corresponding {@link OrganisationUnitLevel}, or null if not found
+     *          or if the parameter was invalid.
+     */
+    Integer getOrganisationUnitLevelByLevelOrUid( String level );
+
+    /**
      * Retrieves all the org units within the distance from center location.
      *
      * @param longitude The longitude of the center location.

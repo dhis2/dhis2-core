@@ -37,42 +37,47 @@ import com.google.common.base.MoreObjects;
  * @author Lars Helge Overland
  */
 public class OrganisationUnitQueryParams
-{    
+{
     /**
      * Query string to match like name and exactly on UID and code.
      */
     private String query;
-    
+
     /**
      * The parent organisation units for which to include all children, inclusive.
      */
     private Set<OrganisationUnit> parents = new HashSet<>();
-    
+
     /**
      * The groups for which members to include, inclusive.
      */
     private Set<OrganisationUnitGroup> groups = new HashSet<>();
-    
+
     /**
      * The levels of organisation units to include.
      */
     private Set<Integer> levels = new HashSet<>();
-    
+
     /**
      * The maximum number of organisation unit levels to include, relative to the
      * real root of the hierarchy.
      */
     private Integer maxLevels;
-    
+
     /**
      * The first result to include.
      */
     private Integer first;
-    
+
     /**
      * The max number of results to include.
      */
     private Integer max;
+
+    /**
+     * Whether to fetch children eagerly.
+     */
+    private boolean fetchChildren;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -90,22 +95,22 @@ public class OrganisationUnitQueryParams
     {
         return query != null && !query.isEmpty();
     }
-    
+
     public boolean hasParents()
     {
         return parents != null && !parents.isEmpty();
     }
-        
+
     public boolean hasGroups()
     {
         return groups != null && !groups.isEmpty();
     }
-    
+
     public boolean hasLevels()
     {
         return levels != null && !levels.isEmpty();
     }
-        
+
     public void setLevel( Integer level )
     {
         if ( level != null )
@@ -113,7 +118,7 @@ public class OrganisationUnitQueryParams
             levels.add( level );
         }
     }
-        
+
     @Override
     public String toString()
     {
@@ -126,7 +131,7 @@ public class OrganisationUnitQueryParams
             add( "first", first ).
             add( "max", max ).toString();
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -199,5 +204,15 @@ public class OrganisationUnitQueryParams
     public void setMax( Integer max )
     {
         this.max = max;
+    }
+
+    public boolean isFetchChildren()
+    {
+        return fetchChildren;
+    }
+
+    public void setFetchChildren( boolean fetchChildren )
+    {
+        this.fetchChildren = fetchChildren;
     }
 }
