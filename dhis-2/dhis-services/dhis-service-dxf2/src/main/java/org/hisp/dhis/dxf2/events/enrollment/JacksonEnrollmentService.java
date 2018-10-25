@@ -185,12 +185,12 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         JsonNode root = XML_MAPPER.readTree( input );
 
         if ( root.get( "enrollments" ) != null ) {
-            Enrollments fromJson = fromXml( input, Enrollments.class );
-            enrollments.addAll( fromJson.getEnrollments() );
+            Enrollments fromXml = fromXml( input, Enrollments.class );
+            enrollments.addAll( fromXml.getEnrollments() );
         }
         else {
-            Enrollment fromJson = fromXml( input, Enrollment.class );
-            enrollments.add( fromJson );
+            Enrollment fromXml = fromXml( input, Enrollment.class );
+            enrollments.add( fromXml );
         }
 
         return enrollments;
