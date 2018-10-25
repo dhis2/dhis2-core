@@ -503,7 +503,7 @@ public class JdbcAnalyticsManager
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        String fromSourceClause = getFromSourceClause( params );
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
 
@@ -573,7 +573,7 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();
 
-        String fromSourceClause = getFromSourceClause( params );
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select * from " + fromSourceClause + " ";
 
