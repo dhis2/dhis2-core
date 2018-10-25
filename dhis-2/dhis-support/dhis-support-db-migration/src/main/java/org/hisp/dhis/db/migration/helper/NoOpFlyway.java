@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.db.migration.helper;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,79 +28,13 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * A no operation flyway that is used for unit tests. Disabling flyway
+ * migrations during unit tests.
+ * 
+ * @author Ameen Mohamed
+ *
  */
-public class GenericGatewayParameter
-    implements Serializable
+public class NoOpFlyway
 {
-    private static final long serialVersionUID = -863990758156009672L;
-
-    private boolean header;
-
-    private String key;
-
-    private String value;
-
-    private boolean classified;
-
-    public GenericGatewayParameter()
-    {
-    }
-
-    public GenericGatewayParameter( String key, String value, boolean classified )
-    {
-        super();
-        this.key = key;
-        this.value = value;
-        this.classified = classified;
-    }
-
-    @JsonProperty( value = "key" )
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    @JsonProperty( value = "value" )
-    public String getValue()
-    {
-        return classified ? "" : value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty( value = "classified" )
-    public boolean isClassified()
-    {
-        return classified;
-    }
-
-    public void setClassified( boolean classified )
-    {
-        this.classified = classified;
-    }
-
-    @JsonProperty
-    public boolean isHeader()
-    {
-        return header;
-    }
-
-    public void setHeader( boolean header )
-    {
-        this.header = header;
-    }
 }

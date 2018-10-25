@@ -256,7 +256,7 @@ function saveSettings ()
 		name: httpFields.find("#name")[0].value,
 		messageParameter: httpFields.find("#messageParameter")[0].value,
 		recipientParameter: httpFields.find("#recipientParameter")[0].value,
-		urltemplate: httpFields.find("#urlTemplate")[0].value
+		urlTemplate: httpFields.find("#urlTemplate")[0].value
 	};
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);

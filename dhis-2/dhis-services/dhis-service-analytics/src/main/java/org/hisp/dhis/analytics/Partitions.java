@@ -33,7 +33,7 @@ import java.util.Set;
 
 /**
  * Class representing analytics table partitions.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class Partitions
@@ -50,12 +50,12 @@ public class Partitions
     public Partitions()
     {
     }
-    
+
     public Partitions( Set<Integer> partitions )
     {
         this.partitions = partitions;
     }
-    
+
     public Partitions( Partitions partitions )
     {
         this.partitions = partitions != null ? new HashSet<>( partitions.getPartitions() ) : new HashSet<Integer>();
@@ -73,7 +73,7 @@ public class Partitions
         partitions.add( partition );
         return this;
     }
-    
+
     /**
      * Indicates whether this instance contains multiple partitions.
      */
@@ -81,7 +81,7 @@ public class Partitions
     {
         return partitions != null && partitions.size() > 1;
     }
-    
+
     /**
      * Indicates whether this instance has any partitions.
      */
@@ -89,7 +89,31 @@ public class Partitions
     {
         return partitions != null && !partitions.isEmpty();
     }
-    
+
+    /**
+     * Indicates whether this instance has exactly one partition.
+     */
+    public boolean hasOne()
+    {
+        return partitions != null && partitions.size() == 1;
+    }
+
+    /**
+     * Indicates whether this instance has more than one partition.
+     */
+    public boolean hasMultiple()
+    {
+        return partitions != null && partitions.size() > 1;
+    }
+
+    /**
+     * Returns a partition.
+     */
+    public Integer getAny()
+    {
+        return hasAny() ? partitions.iterator().next() : null;
+    }
+
     // -------------------------------------------------------------------------
     // toString, hashCode, equals
     // -------------------------------------------------------------------------
@@ -99,7 +123,7 @@ public class Partitions
     {
         return partitions.toString();
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -113,22 +137,22 @@ public class Partitions
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         Partitions other = (Partitions) object;
-        
+
         return partitions.equals( other.partitions );
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

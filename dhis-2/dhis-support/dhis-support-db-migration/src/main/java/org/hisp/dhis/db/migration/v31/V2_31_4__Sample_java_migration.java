@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.db.migration.v31;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,79 +28,18 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import java.sql.Statement;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-public class GenericGatewayParameter
-    implements Serializable
+public class V2_31_4__Sample_java_migration extends BaseJavaMigration
 {
-    private static final long serialVersionUID = -863990758156009672L;
-
-    private boolean header;
-
-    private String key;
-
-    private String value;
-
-    private boolean classified;
-
-    public GenericGatewayParameter()
+    
+    public void migrate( Context context )
+        throws Exception
     {
-    }
-
-    public GenericGatewayParameter( String key, String value, boolean classified )
-    {
-        super();
-        this.key = key;
-        this.value = value;
-        this.classified = classified;
-    }
-
-    @JsonProperty( value = "key" )
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    @JsonProperty( value = "value" )
-    public String getValue()
-    {
-        return classified ? "" : value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty( value = "classified" )
-    public boolean isClassified()
-    {
-        return classified;
-    }
-
-    public void setClassified( boolean classified )
-    {
-        this.classified = classified;
-    }
-
-    @JsonProperty
-    public boolean isHeader()
-    {
-        return header;
-    }
-
-    public void setHeader( boolean header )
-    {
-        this.header = header;
+        try ( Statement select = context.getConnection().createStatement() )
+        {
+        }
     }
 }
