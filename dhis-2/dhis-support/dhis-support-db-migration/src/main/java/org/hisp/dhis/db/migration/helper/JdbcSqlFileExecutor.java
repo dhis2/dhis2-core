@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.flywaydb.core.api.FlywayException;
 
 /**
  * Reads sql commands from an external/internal file (provided as buffered
@@ -119,7 +120,7 @@ public class JdbcSqlFileExecutor
         }
         catch ( Exception e )
         {
-            throw new RuntimeException( "Error running script.  Cause: " + e, e );
+            throw new FlywayException( "Error running script.  Cause: " + e, e );
         }
     }
 

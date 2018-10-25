@@ -37,7 +37,4 @@ package org.hisp.dhis.db.migration.helper;
  */
 public class NoOpFlyway
 {
-    public NoOpFlyway()
-    {
-    }
 }
