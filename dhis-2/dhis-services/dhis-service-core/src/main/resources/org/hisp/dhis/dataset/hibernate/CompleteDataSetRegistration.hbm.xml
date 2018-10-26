@@ -27,7 +27,7 @@
 
     <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
 
-    <property name="completed" type="boolean" column="completed" not-null="true"/>
+    <property name="completed" type="boolean" column="iscompleted" not-null="true"/>
 
   </class>
 </hibernate-mapping>

@@ -2127,7 +2127,7 @@ function registerCompleteDataSet(completedStatus)
                 if( data && data.status == 'SUCCESS' )
                 {
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                    disableCompleteButton( params.isCompleted );
+                    disableCompleteButton(params.isCompleted);
                 }
                 else if( data && data.status == 'ERROR' )
                 {
@@ -2143,7 +2143,7 @@ function registerCompleteDataSet(completedStatus)
 	        	else // Offline, keep local value
 	        	{
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-	        		disableCompleteButton( params.isCompleted );
+	        		disableCompleteButton(params.isCompleted);
 	        		setHeaderMessage( i18n_offline_notification );
 	        	}
 		    }
@@ -2201,7 +2201,7 @@ function undoCompleteDataSet()
         {
             dhis2.de.storageManager.clearCompleteDataSet( params );
             $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-            disableCompleteButton( params );
+            disableCompleteButton(params);
         },
         error: function( xhr, textStatus, errorThrown )
         {
@@ -2227,15 +2227,13 @@ function disableUndoButton()
     $( '#undoButton' ).attr( 'disabled', 'disabled' );
 }
 
-function disableCompleteButton( status )
+function disableCompleteButton(status)
 {
-    if( status == true )
-    {
+    if(status == true) {
         $( '#completeButton' ).attr( 'disabled', 'disabled' );
         $( '#undoButton' ).removeAttr( 'disabled' );
     }
-    else
-	{
+    else {
         disableUndoButton();
     }
 }
