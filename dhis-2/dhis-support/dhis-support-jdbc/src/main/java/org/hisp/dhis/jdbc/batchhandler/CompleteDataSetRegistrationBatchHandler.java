@@ -127,7 +127,7 @@ public class CompleteDataSetRegistrationBatchHandler
             "storedby",
             "lastupdatedby",
             "lastupdated",
-            "iscompleted" );
+            "completed" );
     }
 
     @Override

@@ -125,5 +125,5 @@ public interface CompleteDataSetRegistrationStore
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
 
-    int getCompleteDataSetCountLastUpdatedBetween(Date date);
+    int getCompleteDataSetCountLastUpdatedBetween( Date date );
 }

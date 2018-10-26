@@ -929,7 +929,7 @@ public class AnalyticsServiceTest
 
             CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
                 organisationUnit, ocDef, now,
-                storedBy, new User(), new Date(), true);
+                storedBy, new User(), new Date(), true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
 
