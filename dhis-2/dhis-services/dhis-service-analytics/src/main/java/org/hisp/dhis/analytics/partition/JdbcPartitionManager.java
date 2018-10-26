@@ -44,15 +44,15 @@ public class JdbcPartitionManager
     implements PartitionManager
 {
     private static final Log log = LogFactory.getLog( JdbcPartitionManager.class );
-    
+
     private Set<String> analyticsPartitions = null;
     private Set<String> analyticsEventPartitions = null;
-    
+
     //TODO separate method for enrollment partitions ?
-    
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
-  
+
     @Override
     public Set<String> getDataValueAnalyticsPartitions()
     {
@@ -60,19 +60,19 @@ public class JdbcPartitionManager
         {
             return analyticsPartitions;
         }
-                
+
         final String sql =
             "select table_name from information_schema.tables " +
             "where table_name like '" + AnalyticsTableType.DATA_VALUE.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
-        
+
         log.info( "Information schema analytics SQL: " + sql );
 
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
         analyticsPartitions = partitions;
         return partitions;
     }
-    
+
     @Override
     public Set<String> getEventAnalyticsPartitions()
     {
@@ -80,36 +80,36 @@ public class JdbcPartitionManager
         {
             return analyticsEventPartitions;
         }
-        
-        final String sql = 
+
+        final String sql =
             "select table_name from information_schema.tables " +
             "where table_name like '" + AnalyticsTableType.EVENT.getTableName() + "%' " +
             "or table_name like '" + AnalyticsTableType.ENROLLMENT.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
-        
+
         log.info( "Information schema event analytics SQL: " + sql );
-        
+
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
         analyticsEventPartitions = partitions;
-        
+
         return partitions;
     }
 
     @Override
     public boolean tableExists( String table )
     {
-        final String sql = 
+        final String sql =
             "select count(table_name) from information_schema.tables " +
             "where table_name = '" + table + "' " +
             "and table_type = 'BASE TABLE'";
-        
+
         log.info( "Table exists SQL: " + sql );
-        
+
         int count = jdbcTemplate.queryForObject( sql, Integer.class );
-        
+
         return count > 0;
     }
-    
+
     @Override
     public void clearCaches()
     {
