@@ -43,12 +43,31 @@ ADD COLUMN IF NOT EXISTS featuretype character varying(255);
 ALTER TABLE programinstance
 ADD COLUMN IF NOT EXISTS geometry geometry;
 
+UPDATE trackedentitytype SET featuretype = 'NONE' where featuretype is null;
+
+UPDATE program SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL;
+UPDATE program SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL;
+
+UPDATE programinstance SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) WHERE longitude IS NOT NULL AND latitude IS NOT NULL AND geometry IS NULL;
+
+ALTER TABLE programinstance DROP COLUMN IF EXISTS latitude;
+ALTER TABLE programinstance DROP COLUMN IF EXISTS longitude;
+  
+
+ 
 
 --VALIDATION STRATEGY for programstage
 
 ALTER TABLE programstage
 ADD COLUMN IF NOT EXISTS validationstrategy character varying(32);
 
+
+ --New enum column was added into ProgramStage. fill default values and make it NOT NULL
+UPDATE programstage SET validationstrategy = 'NONE' WHERE validcompleteonly = false;
+UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validcompleteonly = true;
+ALTER TABLE programstage ALTER COLUMN validationstrategy SET NOT NULL;
+ALTER TABLE programstage DROP COLUMN IF EXISTS validation;
+UPDATE programstage SET validationstrategy = 'ON_COMPLETE' WHERE validationstrategy = 'NONE';
 
 
 --USER INFO CHANGES
