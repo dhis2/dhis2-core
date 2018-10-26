@@ -282,17 +282,11 @@ public abstract class AbstractEventService
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
+    private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
-
-    @PostConstruct
-    private void init()
-    {
-        defaults = manager.getDefaults();
-    }
 
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
@@ -1632,7 +1626,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            aoc = ( CategoryOptionCombo ) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
@@ -1965,6 +1959,11 @@ public abstract class AbstractEventService
         } );
     }
 
+    private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
+    {
+        return defaultObjectsCache.get( key, () -> manager.getByName( CategoryOptionCombo.class , "default" ) );
+    }
+
     @Override
     public void validate( EventSearchParams params )
         throws IllegalQueryException
@@ -2114,6 +2113,7 @@ public abstract class AbstractEventService
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
+        defaultObjectsCache.clear();
 
         dbmsManager.clearSession();
     }
@@ -2224,7 +2224,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            attrOptCombo = ( CategoryOptionCombo ) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )
