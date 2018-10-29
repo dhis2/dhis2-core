@@ -1405,13 +1405,18 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        //TODO: Should access rights be checked for delete in the same way as for update?
-
         boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
 
         if ( existsEvent )
         {
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+            
+            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+
+            if ( !errors.isEmpty() )
+            {
+                return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
+            }
 
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
