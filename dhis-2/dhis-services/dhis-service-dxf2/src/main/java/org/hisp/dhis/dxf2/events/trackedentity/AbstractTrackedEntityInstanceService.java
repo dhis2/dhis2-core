@@ -88,6 +88,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -523,11 +524,8 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
         daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
 
-        removeAttributeValues( daoEntityInstance );
-
-        teiService.updateTrackedEntityInstance( daoEntityInstance );
-
         updateAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
+
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         teiService.updateTrackedEntityInstance( daoEntityInstance );
@@ -788,33 +786,40 @@ public abstract class AbstractTrackedEntityInstanceService
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
     {
+        Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap = getTeiAttributeValueMap( trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
+
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
-            TrackedEntityAttribute daoEntityAttribute = trackedEntityAttributeService
-                .getTrackedEntityAttribute( dtoAttribute.getAttribute() );
+            String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
+                user == null ? "[Unknown]" : user.getUsername() );
 
-            if ( daoEntityAttribute != null )
+            TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap.get( dtoAttribute.getAttribute() );
+
+            if ( existingAttributeValue != null ) // value exists
             {
-                TrackedEntityAttributeValue daoAttributeValue = new TrackedEntityAttributeValue();
-                daoAttributeValue.setEntityInstance( daoEntityInstance );
-                daoAttributeValue.setValue( dtoAttribute.getValue() );
-                daoAttributeValue.setAttribute( daoEntityAttribute );
+                if ( !existingAttributeValue.getValue().equals( dtoAttribute.getValue() ) ) // value is changed, do update
+                {
+                    existingAttributeValue.setStoredBy( storedBy );
+                    existingAttributeValue.setValue( dtoAttribute.getValue() );
+                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue );
+                }
+            }
+            else // value is new, do add
+            {
+                TrackedEntityAttribute daoEntityAttribute = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( dtoAttribute.getAttribute() );
 
-                daoEntityInstance.addAttributeValue( daoAttributeValue );
+                TrackedEntityAttributeValue newAttributeValue = new TrackedEntityAttributeValue();
 
-                String storedBy = getStoredBy( daoAttributeValue, new ImportSummary(), user == null ? "[Unknown]" : user.getUsername() );
-                daoAttributeValue.setStoredBy( storedBy );
+                newAttributeValue.setStoredBy( storedBy );
+                newAttributeValue.setEntityInstance( daoEntityInstance );
+                newAttributeValue.setValue( dtoAttribute.getValue() );
+                newAttributeValue.setAttribute( daoEntityAttribute );
 
-                trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
+                daoEntityInstance.getTrackedEntityAttributeValues().add( newAttributeValue );
+                trackedEntityAttributeValueService.addTrackedEntityAttributeValue( newAttributeValue );
             }
         }
-    }
-
-    private void removeAttributeValues( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
-    {
-        entityInstance.getTrackedEntityAttributeValues()
-            .forEach( trackedEntityAttributeValueService::deleteTrackedEntityAttributeValue );
-        teiService.updateTrackedEntityInstance( entityInstance );
     }
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
@@ -833,6 +838,12 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         return trackedEntityAttributeCache.get( id, () -> manager
             .getObject( TrackedEntityAttribute.class, idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
+    }
+    
+    private Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
+        List<TrackedEntityAttributeValue> teiAttributeValues )
+    {
+        return teiAttributeValues.stream().collect( Collectors.toMap( tav -> tav.getAttribute().getUid(), tav -> tav ) );
     }
 
     //--------------------------------------------------------------------------
@@ -1014,7 +1025,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary, String fallbackUsername )
+    private String getStoredBy( Attribute attributeValue, ImportSummary importSummary, String fallbackUsername )
     {
         String storedBy = attributeValue.getStoredBy();
 
