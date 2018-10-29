@@ -239,7 +239,7 @@ public class SchedulerUpgrade
         emptySystemSetting.putValue( "portedV31", "" );
 
         log.info( "Upgrade to V31 scheduler finished. Setting system settings key 'keySchedTasks' to 'portedV31'." );
-        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
+        systemSettingManager.saveSystemSetting( SettingKey.KEY_SCHED_TASKS, emptySystemSetting );
     }
 
     public static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
