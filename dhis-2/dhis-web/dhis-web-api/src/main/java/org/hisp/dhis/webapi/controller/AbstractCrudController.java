@@ -484,6 +484,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         entities = (List<T>) queryService.query( query );
 
