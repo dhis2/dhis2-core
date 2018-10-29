@@ -28,34 +28,41 @@ package org.hisp.dhis.webapi.mvc.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogLevel;
+import org.hisp.dhis.logging.LoggingManager;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class RequestLog extends Log
+public class WebRequestInterceptor extends HandlerInterceptorAdapter
 {
-    private final long requestTime;
-    private final String url;
+    private final LoggingManager.Logger log = LoggingManager.createLogger( WebRequestInterceptor.class );
 
-    public RequestLog( LogLevel level, long requestTime, String url )
+    @Override
+    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
     {
-        this.logLevel = level;
-        this.requestTime = requestTime;
-        this.url = url;
+        long startTime = System.currentTimeMillis();
+        request.setAttribute( "log:startTime", startTime );
+
+        return true;
     }
 
-    @JsonProperty
-    public long getRequestTime()
+    @Override
+    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView ) throws Exception
     {
-        return requestTime;
+        long startTime = (Long) request.getAttribute( "log:startTime" );
+        long requestTime = System.currentTimeMillis() - startTime;
+
+        log.log( new WebRequestLog( LogLevel.INFO, requestTime, request.getRequestURL().toString() ) );
     }
 
-    @JsonProperty
-    public String getUrl()
+    @Override
+    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex ) throws Exception
     {
-        return url;
     }
 }

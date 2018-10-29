@@ -28,41 +28,34 @@ package org.hisp.dhis.webapi.mvc.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogLevel;
-import org.hisp.dhis.logging.LoggingManager;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class RequestTimeInterceptor extends HandlerInterceptorAdapter
+public class WebRequestLog extends Log
 {
-    private final LoggingManager.Logger log = LoggingManager.createLogger( RequestTimeInterceptor.class );
+    private final long requestTime;
+    private final String url;
 
-    @Override
-    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
+    public WebRequestLog( LogLevel level, long requestTime, String url )
     {
-        long startTime = System.currentTimeMillis();
-        request.setAttribute( "log:startTime", startTime );
-
-        return true;
+        this.logLevel = level;
+        this.requestTime = requestTime;
+        this.url = url;
     }
 
-    @Override
-    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView ) throws Exception
+    @JsonProperty
+    public long getRequestTime()
     {
-        long startTime = (Long) request.getAttribute( "log:startTime" );
-        long requestTime = System.currentTimeMillis() - startTime;
-
-        log.log( new RequestLog( LogLevel.INFO, requestTime, request.getRequestURL().toString() ) );
+        return requestTime;
     }
 
-    @Override
-    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex ) throws Exception
+    @JsonProperty
+    public String getUrl()
     {
+        return url;
     }
 }
