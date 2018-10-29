@@ -34,6 +34,13 @@
     <property name="series" />
 
     <property name="category" />
+    
+    <list name="yearlySeries" table="chart_yearlyseries">
+      <cache usage="read-write" />
+      <key column="chartid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="yearlyseries" />
+    </list>
 
     <list name="filterDimensions" table="chart_filters">
       <cache usage="read-write" />
