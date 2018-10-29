@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,56 +28,41 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.dxf2.common.TranslateParams;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.logging.LogLevel;
+import org.hisp.dhis.logging.LoggingManager;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Locale;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TranslationInterceptor extends HandlerInterceptorAdapter
+public class RequestTimeInterceptor extends HandlerInterceptorAdapter
 {
-    private static String PARAM_TRANSLATE = "translate";
-
-    private static String PARAM_LOCALE = "locale";
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private UserSettingService userSettingService;
+    private final LoggingManager.Logger log = LoggingManager.createLogger( RequestTimeInterceptor.class );
 
     @Override
     public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
     {
-        boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
-        String locale = request.getParameter( PARAM_LOCALE );
-
-        User user = currentUserService.getCurrentUser();
-        setUserContext( user, new TranslateParams( translate, locale ) );
+        long startTime = System.currentTimeMillis();
+        request.setAttribute( "log:startTime", startTime );
 
         return true;
     }
 
-    private void setUserContext( User user, TranslateParams translateParams )
+    @Override
+    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView ) throws Exception
     {
-        Locale dbLocale = getLocaleWithDefault( translateParams, user );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        long startTime = (Long) request.getAttribute( "log:startTime" );
+        long requestTime = System.currentTimeMillis() - startTime;
+
+        log.log( new RequestLog( LogLevel.INFO, requestTime, request.getRequestURL().toString() ) );
     }
 
-    private Locale getLocaleWithDefault( TranslateParams translateParams, User user )
+    @Override
+    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex ) throws Exception
     {
-        return translateParams.isTranslate() ?
-            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, user ) ) : null;
     }
 }
