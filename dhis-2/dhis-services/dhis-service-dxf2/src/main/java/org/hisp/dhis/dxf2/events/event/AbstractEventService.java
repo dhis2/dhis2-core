@@ -1247,6 +1247,13 @@ public abstract class AbstractEventService
 
         if ( programStageInstance != null )
         {
+            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+
+            if ( !errors.isEmpty() )
+            {
+                return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            }
+            
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
                 .incrementDeleted();
