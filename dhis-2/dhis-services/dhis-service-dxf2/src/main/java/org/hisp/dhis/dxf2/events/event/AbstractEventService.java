@@ -32,9 +32,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Point;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -127,7 +127,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -141,24 +140,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -283,17 +265,11 @@ public abstract class AbstractEventService
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
+    private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
-
-    @PostConstruct
-    private void init()
-    {
-        defaults = manager.getDefaults();
-    }
 
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
@@ -1240,7 +1216,7 @@ public abstract class AbstractEventService
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
             return importSummary.incrementIgnored();
         }
-        
+
         if ( aoc != null )
         {
             programStageInstance.setAttributeOptionCombo( aoc );
@@ -1712,7 +1688,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
@@ -1720,6 +1696,17 @@ public abstract class AbstractEventService
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
+
+        if ( !errors.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
+
+            return importSummary;
         }
 
         if ( !dryRun )
@@ -2056,6 +2043,11 @@ public abstract class AbstractEventService
         } );
     }
 
+    private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
+    {
+        return defaultObjectsCache.get( key, () -> manager.getByName( CategoryOptionCombo.class , "default" ) );
+    }
+
     @Override
     public void validate( EventSearchParams params )
         throws IllegalQueryException
@@ -2205,6 +2197,7 @@ public abstract class AbstractEventService
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
+        defaultObjectsCache.clear();
 
         dbmsManager.clearSession();
     }
@@ -2315,7 +2308,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            attrOptCombo = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )

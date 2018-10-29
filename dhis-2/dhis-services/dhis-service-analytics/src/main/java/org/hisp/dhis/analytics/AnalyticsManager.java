@@ -49,11 +49,12 @@ public interface AnalyticsManager
      * method is invoked asynchronously. The value class can be Double or String.
      *
      * @param params the query to retrieve aggregated data for.
+     * @param tableType the {@link AnalyticsTableType}.
      * @param maxLimit the max number of records to retrieve.
      * @return a map.
      * @throws IllegalQueryException if query result set exceeds the max limit.
      */
-    Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, int maxLimit );
+    Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType, int maxLimit );
 
     /**
      * Inserts entries for the aggregation periods mapped to each data period
