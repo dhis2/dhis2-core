@@ -120,7 +120,7 @@ public class DataApprovalStoreUserTest
         dataApprovalService.addWorkflow( workflowA );
 
         DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setWorkflow( workflowA );
+        dataSetA.assignWorkflow( workflowA );
         dataSetService.addDataSet( dataSetA );
 
         orgUnitA = createOrganisationUnit( 'A' );

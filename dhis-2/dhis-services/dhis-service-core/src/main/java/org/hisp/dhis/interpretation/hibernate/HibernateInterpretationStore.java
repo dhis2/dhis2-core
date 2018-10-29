@@ -28,7 +28,7 @@ package org.hisp.dhis.interpretation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -52,7 +52,7 @@ public class HibernateInterpretationStore
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
         Query query = getQuery( hql );
-        query.setEntity( "user", user );
+        query.setParameter( "user", user );
 
         return query.list();
     }
@@ -64,7 +64,7 @@ public class HibernateInterpretationStore
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
         Query query = getQuery( hql );
-        query.setEntity( "user", user );
+        query.setParameter( "user", user );
         query.setMaxResults( first );
         query.setMaxResults( max );
 
@@ -75,7 +75,7 @@ public class HibernateInterpretationStore
     public int countMapInterpretations( Map map )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
-        query.setEntity( "map", map );
+        query.setParameter( "map", map );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -84,7 +84,7 @@ public class HibernateInterpretationStore
     public int countChartInterpretations( Chart chart )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
-        query.setEntity( "chart", chart );
+        query.setParameter( "chart", chart );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -93,7 +93,7 @@ public class HibernateInterpretationStore
     public int countReportTableInterpretations( ReportTable reportTable )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
-        query.setEntity( "reportTable", reportTable );
+        query.setParameter( "reportTable", reportTable );
 
         return ((Long) query.uniqueResult()).intValue();
     }

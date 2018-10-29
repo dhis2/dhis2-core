@@ -1,5 +1,9 @@
 package org.hisp.dhis.sqlview;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,16 +38,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Dang Duy Hieu
@@ -71,7 +73,14 @@ public class DefaultSqlViewService
     {
         this.statementBuilder = statementBuilder;
     }
+    
+    private DhisConfigurationProvider config;
 
+    public void setConfig( DhisConfigurationProvider config )
+    {
+        this.config = config;
+    }
+    
     // -------------------------------------------------------------------------
     // CRUD methods
     // -------------------------------------------------------------------------
@@ -166,6 +175,8 @@ public class DefaultSqlViewService
 
         validateSqlView( sqlView, criteria, variables );
 
+        log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
+        
         String sql = sqlView.isQuery() ?
             getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
             getSqlForView( grid, sqlView, criteria, filters, fields );
@@ -295,6 +306,7 @@ public class DefaultSqlViewService
         
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
+        final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
@@ -341,7 +353,7 @@ public class DefaultSqlViewService
             violation = "Criteria values are invalid: " + SqlView.getInvalidQueryValues( criteria.values() );
         }
 
-        if ( sql.matches( SqlView.getProtectedTablesRegex() ) )
+        if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )
         {
             violation = "SQL query contains references to protected tables";
         }

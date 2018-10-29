@@ -462,12 +462,7 @@ public class DefaultDataApprovalService
 
         da = DataApproval.getLowestApproval( da );
 
-        if ( da != null )
-        {
-            da = getDataApproval( da );
-        }
-
-        return da != null;
+        return da != null ? dataApprovalStore.dataApprovalExists( da ) : false;
     }
 
     @Override
@@ -523,11 +518,13 @@ public class DefaultDataApprovalService
             orgUnit == null ? 0 : orgUnit.getHierarchyLevel(),
             attributeCombo, null );
 
+        //TODO reuse or remove
+        
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
         for ( DataApprovalStatus status : statusList )
         {
-            makePermissionsEvaluator().evaluatePermissions( status, workflow );
+            permissionsEvaluator.evaluatePermissions( status, workflow );
         }
 
         return statusList;

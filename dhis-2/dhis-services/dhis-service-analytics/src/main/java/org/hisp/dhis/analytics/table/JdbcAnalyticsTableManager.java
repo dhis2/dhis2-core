@@ -61,6 +61,7 @@ import java.util.concurrent.Future;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized
@@ -83,7 +84,7 @@ public class JdbcAnalyticsTableManager
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private PartitionManager partitionManager;
 
@@ -102,16 +103,16 @@ public class JdbcAnalyticsTableManager
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
         AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
-        
+
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
-    
+
     @Override
     public Set<String> getExistingDatabaseTables()
     {
         return partitionManager.getDataValueAnalyticsPartitions();
     }
-    
+
     @Override
     public String validState()
     {
@@ -148,9 +149,9 @@ public class JdbcAnalyticsTableManager
             "year = " + partition.getYear() + "",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
-    
+
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
@@ -162,13 +163,13 @@ public class JdbcAnalyticsTableManager
             "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
             numericClause;
 
-        populateTable( partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
-        populateTable( partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
 
-        populateTable( partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-        populateTable( partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
 
     /**
@@ -180,8 +181,8 @@ public class JdbcAnalyticsTableManager
      * @param valueTypes data element value types to include data for.
      * @param whereClause where clause to constrain data query.
      */
-    private void populateTable( AnalyticsTablePartition partition, String valueExpression,
-        String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
+    private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
@@ -193,12 +194,12 @@ public class JdbcAnalyticsTableManager
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
-        
+
         sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
@@ -232,6 +233,7 @@ public class JdbcAnalyticsTableManager
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
             "and ps.year = " + partition.getYear() + " " +
+            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -256,7 +258,7 @@ public class JdbcAnalyticsTableManager
      * Returns sub-query for approval level. First looks for approval level in
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
-     * 
+     *
      * @param year the data year.
      */
     private String getApprovalJoinClause( Integer year )
@@ -280,7 +282,7 @@ public class JdbcAnalyticsTableManager
 
         return StringUtils.EMPTY;
     }
-    
+
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -353,12 +355,12 @@ public class JdbcAnalyticsTableManager
         String approvalCol = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
-        
+
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
@@ -466,13 +468,13 @@ public class JdbcAnalyticsTableManager
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
         Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
-        
+
         log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d", setting, levels, maxYears ) );
-        
+
         if ( year != null )
         {
             boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( year, maxYears );
-            
+
             return setting && levels && !periodOverMaxYears;
         }
         else

@@ -41,35 +41,30 @@ public class ProgramNotificationListener
     private ProgramNotificationService programNotificationService;
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
-    @Async
     public void onEnrollment( ProgramNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
-    @Async
     public void onCompletion( ProgramNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
-    @Async
     public void onProgramRuleEnrollment( ProgramNotificationEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
-    @Async
     public void onEvent( ProgramNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
-    @Async
     public void onProgramRuleEvent( ProgramNotificationEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );

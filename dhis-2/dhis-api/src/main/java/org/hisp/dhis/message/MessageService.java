@@ -1,10 +1,12 @@
 package org.hisp.dhis.message;
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -41,21 +43,19 @@ public interface MessageService
 {
     String META_USER_AGENT = "User-agent: ";
 
-    MessageConversationParams.Builder createPrivateMessage( Collection<User> recipients, String subject, String text, String metaData );
-
-    MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData );
-
-    MessageConversationParams.Builder createSystemMessage( String subject, String text );
-
-    MessageConversationParams.Builder createSystemMessage( Collection<User> user, String subject, String text );
-
-    MessageConversationParams.Builder createValidationResultMessage( Collection<User> users, String subject, String text );
-
+    int sendTicketMessage( String subject, String text, String metaData );
+    
+    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
+    
+    int sendSystemMessage( Set<User> recipients, String subject, String text );
+    
+    int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
+    
     int sendMessage( MessageConversationParams params );
 
     int sendSystemErrorNotification( String subject, Throwable t );
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments );
 
     int saveMessageConversation( MessageConversation conversation );
 

@@ -69,7 +69,7 @@ public class DefaultAnalyticsTableGenerator
 
     @Autowired
     private MessageService messageService;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 
@@ -83,7 +83,6 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateTables( AnalyticsTableUpdateParams params )
     {
-        final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
         final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
@@ -92,7 +91,7 @@ public class DefaultAnalyticsTableGenerator
             .collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
-        log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
+        log.info( String.format( "Analytics table update: %s", params ) );
 
         try
         {
@@ -129,7 +128,7 @@ public class DefaultAnalyticsTableGenerator
             throw ex;
         }
 
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, startTime );
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime() );
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
     }
 

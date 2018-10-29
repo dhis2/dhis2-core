@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,6 +52,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland
@@ -69,26 +71,26 @@ public class JdbcCompletenessTableManager
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
         AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
-        
+
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
-    
+
     @Override
     public Set<String> getExistingDatabaseTables()
     {
         return Sets.newHashSet( getTableName() );
     }
-    
+
     @Override
     public String validState()
     {
         boolean hasData = jdbcTemplate.queryForRowSet( "select datasetid from completedatasetregistration limit 1" ).next();
-        
+
         if ( !hasData )
         {
             return "No complete registrations exist, not updating completeness analytics tables";
         }
-        
+
         return null;
     }
 
@@ -98,9 +100,9 @@ public class JdbcCompletenessTableManager
         return Lists.newArrayList(
             "year = " + partition.getYear() + "" );
     }
-    
+
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
 
@@ -108,25 +110,25 @@ public class JdbcCompletenessTableManager
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-        
+
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             insert += col.getName() + ",";
         }
-        
+
         insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
-        
+
         for ( AnalyticsTableColumn col : columns )
         {
             select += col.getAlias() + ",";
         }
-        
-        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
-        
+
+        select = select.replace( "organisationunitid", "sourceid" ); // Database legacy fix
+
         select +=
             "cdr.date as value " +
             "from completedatasetregistration cdr " +
@@ -138,20 +140,21 @@ public class JdbcCompletenessTableManager
             "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
+            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and cdr.date is not null";
 
         final String sql = insert + select;
-        
+
         populateAndLog( sql, tableName );
     }
-    
+
     private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = 
+        List<OrganisationUnitGroupSet> orgUnitGroupSets =
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-        
+
         List<OrganisationUnitLevel> levels =
             organisationUnitService.getFilledOrganisationUnitLevels();
 
@@ -160,12 +163,12 @@ public class JdbcCompletenessTableManager
 
         List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
-        
+
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
-        
+
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
@@ -181,23 +184,23 @@ public class JdbcCompletenessTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
-        
+
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
             columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
-        
-        String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );        
+
+        String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
-        
+
         columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
-        
+
         return filterDimensionColumns( columns );
     }
-    
+
     private List<AnalyticsTableColumn> getValueColumns()
     {
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
@@ -205,7 +208,7 @@ public class JdbcCompletenessTableManager
 
     private List<Integer> getDataYears( Date earliest )
     {
-        String sql = 
+        String sql =
             "select distinct(extract(year from pe.startdate)) " +
             "from completedatasetregistration cdr " +
             "inner join period pe on cdr.periodid=pe.periodid " +
@@ -215,10 +218,10 @@ public class JdbcCompletenessTableManager
         {
             sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
         }
-        
+
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
-    
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )

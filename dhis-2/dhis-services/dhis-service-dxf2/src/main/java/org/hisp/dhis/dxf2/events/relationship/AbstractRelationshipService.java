@@ -61,6 +61,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -109,6 +110,9 @@ public abstract class AbstractRelationshipService
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
 
+    @Autowired
+    private UserService userService;
+
     private HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
 
     private HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
@@ -156,6 +160,7 @@ public abstract class AbstractRelationshipService
 
         for ( List<Relationship> _relationships : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _relationships, importOptions.getUser() );
 
             for ( Relationship relationship : _relationships )
@@ -230,13 +235,13 @@ public abstract class AbstractRelationshipService
     @Override
     public ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions )
     {
-        importOptions = updateImportOptions( importOptions );
         List<List<Relationship>> partitions = Lists.partition( relationships, FLUSH_FREQUENCY );
-
+        importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
         for ( List<Relationship> _relationships : partitions )
         {
+            reloadUser( importOptions );
             prepareCaches( _relationships, importOptions.getUser() );
 
             for ( Relationship relationship : _relationships )
@@ -655,6 +660,11 @@ public abstract class AbstractRelationshipService
 
         daoRelationship.setRelationshipType( relationshipType );
 
+        if ( relationship.getRelationship() != null )
+        {
+            daoRelationship.setUid( relationship.getRelationship() );
+        }
+
         // FROM
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
@@ -783,6 +793,16 @@ public abstract class AbstractRelationshipService
         }
 
         return importOptions;
+    }
+
+    protected void reloadUser( ImportOptions importOptions )
+    {
+        if ( importOptions == null || importOptions.getUser() == null )
+        {
+            return;
+        }
+
+        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
     private Function<org.hisp.dhis.relationship.Relationship, Relationship> mapDaoToDto( User user )

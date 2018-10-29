@@ -38,13 +38,6 @@ import java.util.Set;
 public interface EmailService
 {
     /**
-     * Checks whether email is configured for the system or not.
-     * 
-     * @return true if all necessary email configurations are set.
-     */
-    boolean emailNotificationsEnabled();
-
-    /**
      * Indicates whether email is configured.
      * 
      * @return true if email is configured.

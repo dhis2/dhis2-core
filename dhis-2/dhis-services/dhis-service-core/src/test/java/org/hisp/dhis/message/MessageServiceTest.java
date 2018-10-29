@@ -171,7 +171,7 @@ public class MessageServiceTest
     @Test
     public void testSendMessage()
     {
-        int id = messageService.sendMessage( messageService.createPrivateMessage( users, "Subject", "Text", "Meta").build() );
+        int id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -185,7 +185,7 @@ public class MessageServiceTest
     @Test
     public void testSendFeedback()
     {
-        int id = messageService.sendMessage( messageService.createTicketMessage( "Subject", "Text", "Meta").build() );
+        int id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -202,7 +202,7 @@ public class MessageServiceTest
         message.addMessage( new Message( "TextA", "MetaA", sender) );
         int id = messageService.saveMessageConversation( message );
         
-        messageService.sendReply( message, "TextB", "MetaB", false );
+        messageService.sendReply( message, "TextB", "MetaB", false, null );
         
         message = messageService.getMessageConversation( id );
         

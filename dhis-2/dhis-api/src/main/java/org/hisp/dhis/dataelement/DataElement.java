@@ -62,11 +62,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * A DataElement is a definition (meta-information about) of the entities that
  * are captured in the system. An example from public health care is a
  * DataElement representing the number BCG doses; A DataElement with "BCG dose"
- * as name, with type DataElement.TYPE_INT. DataElements can be structured
- * hierarchically, one DataElement can have a parent and a collection of
- * children. The sum of the children represent the same entity as the parent.
- * Hierarchies of DataElements are used to give more fine- or course-grained
- * representations of the entities.
+ * as name, with type DataElement.TYPE_INT.
  * <p>
  * DataElement acts as a DimensionSet in the dynamic dimensional model, and as a
  * DimensionOption in the static DataElement dimension.
@@ -148,6 +144,12 @@ public class DataElement
      * The style defines how the DataElement should be represented on clients
      */
     private ObjectStyle style;
+
+    /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -726,5 +728,17 @@ public class DataElement
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
     }
 }

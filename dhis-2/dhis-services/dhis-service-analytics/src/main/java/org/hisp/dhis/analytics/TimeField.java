@@ -39,7 +39,9 @@ public enum TimeField
     ENROLLMENT_DATE( "enrollmentdate" ),
     INCIDENT_DATE( "incidentdate" ),
     DUE_DATE( "duedate" ),
-    COMPLETED_DATE( "completeddate" );
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" );
 
     private String field;
     

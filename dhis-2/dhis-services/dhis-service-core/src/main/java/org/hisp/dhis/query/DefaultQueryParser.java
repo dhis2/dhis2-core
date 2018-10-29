@@ -94,10 +94,15 @@ public class DefaultQueryParser implements QueryParser
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
-    {
-        disjunction.add( getRestriction( schema, "displayName", operator, arg ) );
+    {        
         disjunction.add( getRestriction( schema, "id", operator, arg ) );
         disjunction.add( getRestriction( schema, "code", operator, arg ) );
+        disjunction.add( getRestriction( schema, "name", operator, arg ) );
+        
+        if( schema.haveProperty( "shortName" ) )
+        {
+            disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
+        }
     }
 
     @Override
@@ -195,11 +200,11 @@ public class DefaultQueryParser implements QueryParser
             }
             case "token":
             {
-                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.token( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
             case "!token":
             {
-                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
             }
             case "endsWith":
             case "ilike$":

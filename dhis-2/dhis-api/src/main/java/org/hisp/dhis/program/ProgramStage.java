@@ -49,6 +49,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +64,11 @@ public class ProgramStage
     extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
+    
+    /**
+     * The i18n variant of the description. Should not be persisted.
+     */
+    protected transient String displayDescription;
 
     private String formName;
 
@@ -89,6 +95,8 @@ public class ProgramStage
     private Boolean autoGenerateEvent = true;
 
     private Boolean validCompleteOnly = false;
+
+    private ValidationStrategy validationStrategy = ValidationStrategy.ON_COMPLETE;
 
     private Boolean displayGenerateEventBox = true;
 
@@ -249,6 +257,19 @@ public class ProgramStage
         this.description = description;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
+    }
+
     @JsonProperty( "programStageSections" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programStageSections", namespace = DxfNamespaces.DXF_2_0 )
@@ -374,6 +395,18 @@ public class ProgramStage
     public void setValidCompleteOnly( Boolean validCompleteOnly )
     {
         this.validCompleteOnly = validCompleteOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValidationStrategy getValidationStrategy()
+    {
+        return validationStrategy;
+    }
+
+    public void setValidationStrategy( ValidationStrategy validationStrategy )
+    {
+        this.validationStrategy = validationStrategy;
     }
 
     @JsonProperty

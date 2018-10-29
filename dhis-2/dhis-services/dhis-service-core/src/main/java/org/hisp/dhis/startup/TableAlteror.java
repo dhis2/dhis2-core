@@ -1118,6 +1118,10 @@ public class TableAlteror
         // Remove old serialized jobparameters column for job configuration object
         executeSql( "alter table jobconfiguration drop column jobparameters" );
 
+        // 2.31, migrate to Flyway
+        executeSql( "alter table trackedentityattribute alter column shortname set not null" );
+        executeSql( "UPDATE keyjsonvalue SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
+        
         log.info( "Tables updated" );
 
     }

@@ -73,6 +73,8 @@ public class ImportOptions
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
+    
+    private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
 
@@ -85,6 +87,10 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
+    
+    private boolean ignoreEmptyCollection;
+
+    private boolean force;
 
     private String filename;
 
@@ -118,14 +124,17 @@ public class ImportOptions
         options.skipNotifications = this.skipNotifications;
         options.datasetAllowsPeriods = this.datasetAllowsPeriods;
         options.strictPeriods = this.strictPeriods;
+        options.strictDataElements = this.strictDataElements;
         options.strictCategoryOptionCombos = this.strictCategoryOptionCombos;
         options.strictAttributeOptionCombos = this.strictAttributeOptionCombos;
         options.strictOrganisationUnits = this.strictOrganisationUnits;
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
         options.skipPatternValidation = this.skipPatternValidation;
+        options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.ignoreEmptyCollection = this.ignoreEmptyCollection;
 
         return options;
     }
@@ -271,6 +280,13 @@ public class ImportOptions
     {
         return strictPeriods;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStrictDataElements()
+    {
+        return strictDataElements;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -312,6 +328,20 @@ public class ImportOptions
     public boolean isSkipPatternValidation()
     {
         return skipPatternValidation;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIgnoreEmptyCollection()
+    {
+        return ignoreEmptyCollection;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isForce()
+    {
+        return force;
     }
 
     @JsonProperty
@@ -457,6 +487,12 @@ public class ImportOptions
         this.strictPeriods = strictPeriods;
         return this;
     }
+    
+    public ImportOptions setStrictDataElements( boolean strictDataElements )
+    {
+        this.strictDataElements = strictDataElements;
+        return this;
+    }
 
     public ImportOptions setStrictCategoryOptionCombos( boolean strictCategoryOptionCombos )
     {
@@ -493,6 +529,18 @@ public class ImportOptions
         this.skipPatternValidation = skipPatternValidation;
         return this;
     }
+    
+    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
+    {
+        this.ignoreEmptyCollection = ignoreEmptyCollection;
+        return this;
+    }
+
+    public ImportOptions setForce( boolean force )
+    {
+        this.force = force;
+        return this;
+    }
 
     public ImportOptions setFilename( String filename )
     {
@@ -517,15 +565,18 @@ public class ImportOptions
             .add( "importStrategy", importStrategy )
             .add( "mergeMode", mergeMode )
             .add( "skipExistingCheck", skipExistingCheck )
+            .add( "ignoreEmptyCollection", ignoreEmptyCollection )
             .add( "sharing", sharing )
             .add( "skipNotifications", skipNotifications )
             .add( "datasetAllowsPeriods", datasetAllowsPeriods )
             .add( "strictPeriods", strictPeriods )
+            .add( "strictDataElements", strictDataElements )
             .add( "strictCategoryOptionCombos", strictCategoryOptionCombos )
             .add( "strictAttributeOptionCombos", strictAttributeOptionCombos )
             .add( "strictOrganisationUnits", strictOrganisationUnits )
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
+            .add( "force", force )
             .toString();
     }
 }

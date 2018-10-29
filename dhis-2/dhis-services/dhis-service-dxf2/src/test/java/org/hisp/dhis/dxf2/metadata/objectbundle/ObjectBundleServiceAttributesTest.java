@@ -1,5 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
- 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,11 +32,11 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -104,7 +104,9 @@ public class ObjectBundleServiceAttributesTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
         objectBundleService.commit( bundle );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );

@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -62,11 +63,8 @@ public class DefaultMessageService
     private static final Log log = LogFactory.getLog( DefaultMessageService.class );
 
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
-
     private static final String COMPLETE_TEMPLATE = "completeness_message";
-
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
-
     private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
@@ -130,58 +128,76 @@ public class DefaultMessageService
     // -------------------------------------------------------------------------
 
     @Override
-    public MessageConversationParams.Builder createPrivateMessage( Collection<User> receivers, String subject,
-        String text, String metaData )
+    public int sendTicketMessage( String subject, String text, String metaData )
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.PRIVATE )
-            .withMetaData( metaData );
-    }
-
-    @Override
-    public MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-        Set<User> receivers = getFeedbackRecipients();
-
-        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.TICKET )
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( getFeedbackRecipients() )
+            .withSender( currentUser )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.TICKET )
             .withMetaData( metaData )
-            .withStatus( MessageConversationStatus.OPEN );
+            .withStatus( MessageConversationStatus.OPEN ).build();
+        
+        return sendMessage( params );        
     }
 
     @Override
-    public MessageConversationParams.Builder createSystemMessage( String subject, String text )
+    public int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments )
     {
-        return new MessageConversationParams.Builder( getFeedbackRecipients(), null, subject, text,
-            MessageType.SYSTEM );
+        User currentUser = currentUserService.getCurrentUser();
+
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSender( currentUser )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.PRIVATE )
+            .withMetaData( metaData )
+            .withAttachments( attachments ).build();
+        
+        return sendMessage( params );
+    }
+    
+    @Override
+    public int sendSystemMessage( Set<User> recipients, String subject, String text )
+    {
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.SYSTEM ).build();
+        
+        return sendMessage( params );
     }
 
     @Override
-    public MessageConversationParams.Builder createSystemMessage( Collection<User> recipients, String subject, String text )
+    public int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority )
     {
-        return new MessageConversationParams.Builder( recipients, null, subject, text,
-            MessageType.SYSTEM );
-    }
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.VALIDATION_RESULT )
+            .withStatus( MessageConversationStatus.OPEN )
+            .withPriority( priority ).build();
 
-    @Override
-    public MessageConversationParams.Builder createValidationResultMessage( Collection<User> receivers, String subject,
-        String text )
-    {
-        return new MessageConversationParams.Builder( receivers, null, subject, text, MessageType.VALIDATION_RESULT );
+        return sendMessage( params );
     }
-
+    
     @Override
     public int sendMessage( MessageConversationParams params )
     {
-
-        // Create MessageConversation based on params
         MessageConversation conversation = params.createMessageConversation();
+        int id = saveMessageConversation( conversation );
 
-        // Initial message of the conversation
-        conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
+        Message message = new Message( params.getText(), params.getMetadata(), params.getSender() );
 
-        // Add UserMessages
+        message.setAttachments( params.getAttachments() );
+        conversation.addMessage( message );
+
         params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
 
@@ -190,14 +206,12 @@ public class DefaultMessageService
             conversation.addUserMessage( new UserMessage( params.getSender(), true ) );
         }
 
-        // Get footer for other messageSenders
         String footer = getMessageFooter( conversation );
 
-        // Send messages to users using the messageSenders
         invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
             params.getRecipients(), params.isForceNotification() );
 
-        return saveMessageConversation( conversation );
+        return id;
     }
 
     @Override
@@ -214,15 +228,23 @@ public class DefaultMessageService
             .append( "Message: " + t.getMessage() + LN + LN )
             .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
 
-        return sendMessage( createSystemMessage( subject, text ).build() );
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( getFeedbackRecipients() )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.SYSTEM ).build();
+        
+        return sendMessage( params );
     }
 
     @Override
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 
         Message message = new Message( text, metaData, sender, internal );
+
+        message.setAttachments( attachments );
 
         conversation.markReplied( sender, message );
 
@@ -427,7 +449,7 @@ public class DefaultMessageService
         {
             log.debug( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 
-            messageSender.sendMessage( subject, text, footer, sender, new HashSet<>( users ), forceSend );
+            messageSender.sendMessageAsync( subject, text, footer, sender, new HashSet<>( users ), forceSend );
         }
     }
 

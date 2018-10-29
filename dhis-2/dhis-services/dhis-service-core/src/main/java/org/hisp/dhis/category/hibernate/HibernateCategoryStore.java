@@ -30,12 +30,12 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -46,27 +46,33 @@ public class HibernateCategoryStore
     implements CategoryStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
     {
-        return getSharingDetachedCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getSharingDetachedCriteria(
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
     
     @Override
-    @SuppressWarnings("unchecked")
     public List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getCriteria( 
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
     }
 }

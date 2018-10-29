@@ -60,11 +60,7 @@ public class MinValue
         Double min = null;
         for ( Double v : vals )
         {
-            if ( min == null )
-            {
-                min = v;
-            }
-            else if ( v < min )
+            if ( min == null || v < min )
             {
                 min = v;
             }

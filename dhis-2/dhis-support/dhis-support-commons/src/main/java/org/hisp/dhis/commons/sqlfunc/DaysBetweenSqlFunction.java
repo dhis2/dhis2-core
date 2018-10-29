@@ -30,14 +30,15 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates to the number of days between two given dates.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DaysBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "daysBetween";
-    
+
+    @Override
     protected String compare( String startDate, String endDate )
     {
         return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";

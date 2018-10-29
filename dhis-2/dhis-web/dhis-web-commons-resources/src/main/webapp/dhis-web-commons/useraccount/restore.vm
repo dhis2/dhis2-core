@@ -28,10 +28,6 @@
 
 <table style="margin-bottom:20px">
     <tr>
-        <td style="width:140px"><label for="code">$i18n.getString( "code_from_email" )</label></td>
-        <td><input type="text" id="code" name="code" autocomplete="off"></td>
-    </tr>
-    <tr>
         <td><label for="password">$i18n.getString( "new_password" )</label></td>
         <td><input type="password" id="password" name="password" autocomplete="off"></td>
     </tr>

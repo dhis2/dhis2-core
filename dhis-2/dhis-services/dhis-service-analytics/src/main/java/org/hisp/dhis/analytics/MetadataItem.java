@@ -29,23 +29,28 @@ package org.hisp.dhis.analytics;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
+
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Item part of meta data analytics response.
- * 
+ *
 * @author Lars Helge Overland
 */
 public class MetadataItem
-{    
+{
     private String name;
-    
+
     private String legendSet;
 
     private String uid;
@@ -62,6 +67,12 @@ public class MetadataItem
 
     private AggregationType aggregationType;
 
+    private TotalAggregationType totalAggregationType;
+
+    private Date startDate;
+
+    private Date endDate;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -76,13 +87,6 @@ public class MetadataItem
         this.name = name;
         this.uid = uid;
         this.code = code;
-    }
-
-    public MetadataItem( String name, String legendSet, DimensionalItemObject dimensionalItemObject )
-    {
-        this.name = name;
-        this.legendSet = legendSet;
-        setDataItem( dimensionalItemObject );
     }
 
     public MetadataItem( String name, DimensionalItemObject dimensionalItemObject )
@@ -136,11 +140,26 @@ public class MetadataItem
             return;
         }
 
+        this.uid = dimensionalItemObject.getUid();
         this.code = dimensionalItemObject.getCode();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
         this.description = dimensionalItemObject.getDescription();
         this.aggregationType = dimensionalItemObject.getAggregationType();
-        this.uid = dimensionalItemObject.getUid();
+        this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
+
+        if ( dimensionalItemObject.hasLegendSet() )
+        {
+            this.legendSet = dimensionalItemObject.getLegendSet().getUid();
+        }
+
+        // TODO introduce start/end date marker interface instead
+
+        if ( dimensionalItemObject instanceof Period )
+        {
+            Period period = (Period) dimensionalItemObject;
+            this.startDate = period.getStartDate();
+            this.endDate = period.getEndDate();
+        }
     }
 
     private void setDataItem( DimensionalObject dimensionalObject )
@@ -150,11 +169,11 @@ public class MetadataItem
             return;
         }
 
+        this.uid = dimensionalObject.getUid();
         this.code = dimensionalObject.getCode();
         this.dimensionType = dimensionalObject.getDimensionType();
         this.description = dimensionalObject.getDescription();
         this.aggregationType = dimensionalObject.getAggregationType();
-        this.uid = dimensionalObject.getUid();
     }
 
     // -------------------------------------------------------------------------
@@ -226,7 +245,7 @@ public class MetadataItem
     {
         this.dimensionItemType = dimensionItemType;
     }
-    
+
     @JsonProperty
     public String getName()
     {
@@ -258,5 +277,38 @@ public class MetadataItem
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
+    }
+
+    @JsonProperty
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return totalAggregationType;
+    }
+
+    public void setTotalAggregationType( TotalAggregationType totalAggregationType )
+    {
+        this.totalAggregationType = totalAggregationType;
+    }
+
+    @JsonProperty
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    @JsonProperty
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
     }
 }
