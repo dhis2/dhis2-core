@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -237,7 +238,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllLikeName( String name )
     {
         return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
+            .add( Restrictions.ilike( "name", name, MatchMode.ANYWHERE ) )
             .addOrder( Order.asc( "name" ) )
             .list();
     }
@@ -247,7 +248,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllLikeName( String name, int first, int max )
     {
         return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
+            .add( Restrictions.ilike( "name", name, MatchMode.ANYWHERE ) )
             .addOrder( Order.asc( "name" ) )
             .setFirstResult( first )
             .setMaxResults( max )
@@ -262,7 +263,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         for ( String word : nameWords )
         {
-            conjunction.add( Restrictions.like( "name", "%" + word + "%" ).ignoreCase() );
+            conjunction.add( Restrictions.ilike( "name", word, MatchMode.ANYWHERE ) );
         }
 
         return getSharingCriteria()
