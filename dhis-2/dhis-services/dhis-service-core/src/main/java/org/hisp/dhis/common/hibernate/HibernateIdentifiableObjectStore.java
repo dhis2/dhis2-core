@@ -36,6 +36,7 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
@@ -182,13 +183,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void save( T object, boolean clearSharing )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         String username = user != null ? user.getUsername() : "system-process";
 
         if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -264,7 +265,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( IdentifiableObject.class.isInstance( object ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -323,7 +324,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public final T get( int id )
     {
         T object = (T) getSession().get( getClazz(), id );
-        
+
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
@@ -440,7 +441,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllLikeName( String name )
     {
         return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
+            .add( Restrictions.ilike( "name", name, MatchMode.ANYWHERE ) )
             .addOrder( Order.asc( "name" ) )
             .list();
     }
@@ -450,7 +451,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<T> getAllLikeName( String name, int first, int max )
     {
         return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
+            .add( Restrictions.ilike( "name", name, MatchMode.ANYWHERE ) )
             .addOrder( Order.asc( "name" ) )
             .setFirstResult( first )
             .setMaxResults( max )
@@ -465,7 +466,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         for ( String word : nameWords )
         {
-            conjunction.add( Restrictions.like( "name", "%" + word + "%" ).ignoreCase() );
+            conjunction.add( Restrictions.ilike( "name", word, MatchMode.ANYWHERE ) );
         }
 
         return getSharingCriteria()
@@ -709,7 +710,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     //----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Creates a criteria with sharing restrictions relative to the given 
+     * Creates a criteria with sharing restrictions relative to the given
      * user and access string.
      */
     public final Criteria getSharingCriteria()
@@ -720,8 +721,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     /**
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
-     * 
-     * @param user the user.
+     *
+     * @param user   the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
@@ -772,10 +773,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Creates a detached criteria with sharing restrictions relative to the given 
+     * Creates a detached criteria with sharing restrictions relative to the given
      * user and access string.
-     * 
-     * @param user the user.
+     *
+     * @param user   the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
@@ -863,8 +864,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     /**
      * Checks whether the given user has public access to the given identifiable object.
-     * 
-     * @param user the user.
+     *
+     * @param user               the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
      */
