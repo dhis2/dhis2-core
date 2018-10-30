@@ -119,12 +119,14 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
