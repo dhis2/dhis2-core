@@ -53,6 +53,11 @@ public class KeyJsonValue
      * A value referenced by a key and namespace, JSON-formatted data stored as a string.
      */
     private String plainValue;
+    
+    /**
+     * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a jsonb column.
+     */
+    private String jbPlainValue;
 
     /**
      * Whether or not this KeyJsonValue is encrypted or not. Default is false.
@@ -128,7 +133,7 @@ public class KeyJsonValue
     @JsonProperty
     public String getValue()
     {
-        return encrypted ? encryptedValue : plainValue;
+        return encrypted ? encryptedValue : jbPlainValue;
     }
 
     public void setValue( String value )
@@ -154,6 +159,16 @@ public class KeyJsonValue
     public void setPlainValue( String plainValue )
     {
         this.plainValue = plainValue;
+    }
+    
+    public String getJbPlainValue()
+    {
+        return !this.encrypted && this.value != null ? this.value : this.jbPlainValue;
+    }
+
+    public void setJbPlainValue( String jbPlainValue )
+    {
+        this.jbPlainValue = jbPlainValue;
     }
 
     public String getEncryptedValue()
