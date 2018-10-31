@@ -27,6 +27,8 @@
     <!-- set not-null -->
 
     <property name="plainValue" column="value" type="text" access="property" />
+    
+    <property name="jbPlainValue" type="jbPlain" column="jbvalue" access="property" />
 
     <property name="encryptedValue" column="encrypted_value" type="Aes128EncryptedString" access="property" />
 

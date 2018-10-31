@@ -57,6 +57,11 @@ public class UserKeyJsonValue
      * A value referenced by a key, namespace and user, JSON-formatted data stored as a string
      */
     private String plainValue;
+    
+    /**
+     * A value referenced by a key, namespace and user, JSON-formatted data stored as a jsonb in db
+     */
+    private String jbPlainValue;
 
     /**
      * The encrypted value of the object, if encrypted is true
@@ -131,7 +136,7 @@ public class UserKeyJsonValue
     @JsonProperty
     public String getValue()
     {
-        return encrypted ? encryptedValue : plainValue;
+        return encrypted ? encryptedValue : jbPlainValue;
     }
 
     public void setValue( String value )
@@ -147,6 +152,16 @@ public class UserKeyJsonValue
     public void setPlainValue( String plainValue )
     {
         this.plainValue = plainValue;
+    }
+    
+    public String getJbPlainValue()
+    {
+        return !encrypted && value != null ? value : jbPlainValue;
+    }
+
+    public void setJbPlainValue( String jbPlainValue )
+    {
+        this.jbPlainValue = jbPlainValue;
     }
 
     public String getEncryptedValue()
