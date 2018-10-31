@@ -37,7 +37,7 @@
     
     <list name="yearlySeries" table="chart_yearlyseries">
       <cache usage="read-write" />
-      <key column="chartid" />
+      <key column="chartid" foreign-key="fk_yearlyseries_chartid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="yearlyseries" />
     </list>
