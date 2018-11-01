@@ -50,7 +50,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final Log log = LogFactory.getLog( RuleActionAssignValueImplementer.class );
 
-    private static final String REGEX = "\\w+";
+    private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -]*[a-zA-Z0-9]+)*";
 
     @Autowired
     private RuleVariableInMemoryMap variableMap;
@@ -109,6 +109,5 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         }
 
         variableMap.get( programInstance.getUid() ).put( variable, value );
-        return;
     }
 }
