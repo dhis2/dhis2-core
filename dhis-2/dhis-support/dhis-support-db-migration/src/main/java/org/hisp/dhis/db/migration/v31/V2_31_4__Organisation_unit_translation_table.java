@@ -32,25 +32,22 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.db.migration.helper.ObjectTranslationHelper;
 
-import java.sql.Statement;
-import java.util.List;
-
-public class V2_31_4__Organisation_unit_translation_table extends BaseJavaMigration 
+/**
+ * Updating translation tables for organisation unit.
+ * 
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
+ */
+public class V2_31_4__Organisation_unit_translation_table extends BaseJavaMigration
 {
-    
+
     public void migrate( Context context )
         throws Exception
     {
-        
-        List<String> scripts = ObjectTranslationHelper.getObjectTranslationScripts( "OrganisationUnit", "organisationunittranslations", "organisationunit", "organisationunitid" );
-        try ( Statement statement = context.getConnection().createStatement() )
-        {
-           for ( int i = 0 ; i < scripts.size() ; i++)
-            {
-              statement.executeUpdate( scripts.get( i ) ) ; 
-            }
-        }
+
+        ObjectTranslationHelper.updateObjectTranslation( "OrganisationUnit", "organisationunittranslations", "organisationunit", "organisationunitid",
+            context.getConnection() );
+
     }
-    
-   
+
 }

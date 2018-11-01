@@ -1,5 +1,8 @@
 package org.hisp.dhis.db.migration.helper;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +35,8 @@ import java.util.List;
  */
 
 /**
- * Generates sql insert scripts for object translations. Refactored from legacy TableAlteror startup routine.
+ * Generates sql insert scripts for object translations. Refactored from legacy
+ * TableAlteror startup routine.
  * 
  * @author Ameen Mohamed
  *
@@ -58,8 +62,21 @@ public class ObjectTranslationHelper
             + " end," + " o.objecttranslationid  "
             + " from objecttranslation o inner join translation t on o.objecttranslationid = t.translationid and t.objectclass = '" + className + "'"
             + " and not exists ( select 1 from " + translationTable + " where objecttranslationid = o.objecttranslationid) ;" );
-       
+
         return scripts;
+    }
+
+    public static void updateObjectTranslation( String className, String translationTable, String objectTable, String objectId, Connection connection )
+        throws SQLException
+    {
+        List<String> scripts = getObjectTranslationScripts( className, translationTable, objectTable, objectId );
+        try (Statement statement = connection.createStatement())
+        {
+            for ( int i = 0; i < scripts.size(); i++ )
+            {
+                statement.executeUpdate( scripts.get( i ) );
+            }
+        }
     }
 
 }
