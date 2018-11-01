@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v31;
+package org.hisp.dhis.db.migration.base;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,24 +30,50 @@ package org.hisp.dhis.db.migration.v31;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.migration.helper.ObjectTranslationHelper;
+import org.hisp.dhis.db.migration.helper.JdbcSqlFileExecutor;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 /**
- * Updating translation tables for organisation unit.
+ * Java based migration class that populates base dhis2 schema if the db is
+ * empty.
  * 
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * @author Ameen Mohamed
  *
  */
-public class V2_31_4__Organisation_unit_translation_table extends BaseJavaMigration
+public class V2_30_0__Populate_dhis2_schema_if_empty_database extends BaseJavaMigration
 {
+
+    private static final String CHECK_EMPTY_DB_QUERY = "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');";
+    private final static String BASE_SCHEMA_SQL_LOCATION = "/org/hisp/dhis/db/base/dhis2_base_schema.sql";
 
     public void migrate( Context context )
         throws Exception
     {
-
-        ObjectTranslationHelper.updateObjectTranslation( "OrganisationUnit", "organisationunittranslations", "organisationunit", "organisationunitid",
-            context.getConnection() );
-
+        try ( Statement select = context.getConnection().createStatement() )
+        {
+            try ( ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ) )
+            {
+                if ( rows.next() )
+                {
+                    boolean nonEmptyDatabase = rows.getBoolean( 1 );
+                    if ( !nonEmptyDatabase )
+                    {
+                        Connection mConnection = context.getConnection();
+                        JdbcSqlFileExecutor runner = new JdbcSqlFileExecutor( mConnection, false, true );
+                        Resource resource = new ClassPathResource( BASE_SCHEMA_SQL_LOCATION );
+                        InputStream resourceInputStream = resource.getInputStream();
+                        runner.runScript( new BufferedReader( new InputStreamReader( resourceInputStream ) ) );
+                    }
+                }
+            }
+        }
     }
-
 }
