@@ -35,11 +35,9 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -79,9 +77,6 @@ public class DefaultProgramService
     {
         this.organisationUnitService = organisationUnitService;
     }
-
-    @Autowired
-    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -149,23 +144,20 @@ public class DefaultProgramService
     }
 
     @Override
-    public Set<Program> getUserPrograms()
+    public List<Program> getUserPrograms()
     {
         return getUserPrograms( currentUserService.getCurrentUser() );
     }
 
     @Override
-    public Set<Program> getUserPrograms( User user )
+    public List<Program> getUserPrograms( User user )
     {
         if ( user == null || user.isSuper() )
         {
-            return Sets.newHashSet( getAllPrograms() );
+            return getAllPrograms();
         }
 
-        //TODO should this be canDataWrite ?
-        return getAllPrograms().stream()
-            .filter( p -> aclService.canDataRead( user, p ) )
-            .collect( Collectors.toSet() );
+        return programStore.getDataReadAll( user );
     }
 
     @Override
