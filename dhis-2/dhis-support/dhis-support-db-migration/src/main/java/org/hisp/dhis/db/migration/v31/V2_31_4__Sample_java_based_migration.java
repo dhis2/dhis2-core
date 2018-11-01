@@ -33,7 +33,7 @@ import org.flywaydb.core.api.migration.Context;
 
 /**
  * See V2_30_0__Populate_dhis2_schema_if_empty_database.java class for a real java
- * migration. This class simply is to demonstrate the package structure to be
+ * migration. This class is only to demonstrate the package structure to be
  * followed
  * 
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -46,7 +46,7 @@ public class V2_31_4__Sample_java_based_migration extends BaseJavaMigration
         throws Exception
     {
         // See V2_30_0__Populate_dhis2_schema_if_empty_database.java class for a real java
-        // migration. This class simply is to demonstrate the package structure to be
+        // migration. This class is only to demonstrate the package structure to be
         // followed
     }
 
