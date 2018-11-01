@@ -32,15 +32,16 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
@@ -61,22 +60,22 @@ import javax.annotation.PostConstruct;
  * @author Torgeir Lorange Ostby
  */
 public class DefaultUserSettingService implements UserSettingService
-{    
+{
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test phase.
      */
     private Cache<Serializable> userSettingCache;
- 
+
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     @Autowired
     private TransactionTemplate transactionTemplate;
-    
+
     @Autowired
     private CacheProvider cacheProvider;
 
@@ -111,15 +110,15 @@ public class DefaultUserSettingService implements UserSettingService
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-    
+
     @PostConstruct
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
             .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
-    
+
     }
-    
+
     // -------------------------------------------------------------------------
     // UserSettingService implementation
     // -------------------------------------------------------------------------
@@ -251,6 +250,7 @@ public class DefaultUserSettingService implements UserSettingService
             if ( !result.containsKey( userSettingKey.getName() ) )
             {
                 Optional<SettingKey> systemSettingKey = SettingKey.getByName( userSettingKey.getName() );
+
                 if ( useFallback && systemSettingKey.isPresent() )
                 {
                     result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
@@ -326,11 +326,11 @@ public class DefaultUserSettingService implements UserSettingService
 
     /**
      * Get user setting optional. The database call is executed in a
-     * programmatic transaction. If the user setting exists and has a value, 
+     * programmatic transaction. If the user setting exists and has a value,
      * the value is returned. If not, the default value for the key is returned,
      * if not present, an empty optional is returned.
      *
-     * @param key the user setting key.
+     * @param key      the user setting key.
      * @param username the username of the user.
      * @return an optional user setting value.
      */
@@ -352,7 +352,7 @@ public class DefaultUserSettingService implements UserSettingService
         } );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
-        
+
         return Optional.ofNullable( value );
     }
 

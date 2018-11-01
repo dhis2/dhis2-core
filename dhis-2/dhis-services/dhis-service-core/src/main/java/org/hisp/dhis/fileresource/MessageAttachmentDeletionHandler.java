@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,10 +28,39 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public enum ChartType
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class MessageAttachmentDeletionHandler extends DeletionHandler
 {
-    COLUMN, STACKED_COLUMN, BAR, STACKED_BAR, LINE, AREA, PIE, RADAR, GAUGE, YEAR_OVER_YEAR_LINE
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    protected String getClassName()
+    {
+        return FileResource.class.getName();
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
+    }
 }
