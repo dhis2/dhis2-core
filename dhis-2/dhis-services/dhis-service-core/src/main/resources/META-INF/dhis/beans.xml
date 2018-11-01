@@ -1798,7 +1798,12 @@
   </bean>
 
   <bean id="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler"
-    class="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler">
+        class="org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fileresource.MessageAttachmentDeletionHandler"
+        class="org.hisp.dhis.fileresource.MessageAttachmentDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
