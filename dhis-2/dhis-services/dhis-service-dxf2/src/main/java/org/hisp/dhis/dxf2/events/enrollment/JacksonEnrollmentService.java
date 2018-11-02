@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
  */
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -178,13 +179,11 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     private List<Enrollment> parseXmlEnrollments ( String input ) throws IOException {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        JsonNode root = XML_MAPPER.readTree( input );
-
-        if ( root.get( "enrollments" ) != null ) {
+        try {
             Enrollments fromXml = fromXml( input, Enrollments.class );
             enrollments.addAll( fromXml.getEnrollments() );
         }
-        else {
+        catch ( JsonMappingException ex ) {
             Enrollment fromXml = fromXml( input, Enrollment.class );
             enrollments.add( fromXml );
         }
