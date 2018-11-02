@@ -18,8 +18,6 @@
 
         <property name="key" column="namespacekey" type="string" length="255" not-null="true" unique-key="keyjsonvalue_unique_key_in_namespace" />
 
-        <property name="plainValue" column="value" type="text" access="property"/>
-        
         <property name="jbPlainValue" type="jbPlain" column="jbvalue" access="property" />
 
         <property name="encryptedValue" column="encrypted_value" type="Aes128EncryptedString" access="property" />
