@@ -176,7 +176,7 @@ public class ProgramRuleEngine
 
         List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroupWithMembers();
 
-        groups.stream().forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        groups.forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
 
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
