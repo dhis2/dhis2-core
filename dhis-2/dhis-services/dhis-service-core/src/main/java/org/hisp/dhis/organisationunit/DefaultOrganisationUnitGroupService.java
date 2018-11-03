@@ -162,6 +162,12 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
+    public List<OrganisationUnitGroup> getAllOrganisationUnitGroupWithMembers()
+    {
+        return organisationUnitGroupStore.getOrganisationUnitGroupsWithMembers();
+    }
+
+    @Override
     public List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSets()
     {
         List<OrganisationUnitGroupSet> groupSets = new ArrayList<>();
@@ -176,6 +182,7 @@ public class DefaultOrganisationUnitGroupService
 
         return groupSets;
     }
+
 
     @Override
     public List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsWithMembers()

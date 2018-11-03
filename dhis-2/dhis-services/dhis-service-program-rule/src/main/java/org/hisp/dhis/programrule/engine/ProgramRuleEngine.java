@@ -174,7 +174,7 @@ public class ProgramRuleEngine
             supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
 
-        List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
+        List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroupWithMembers();
 
         groups.stream().forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
 

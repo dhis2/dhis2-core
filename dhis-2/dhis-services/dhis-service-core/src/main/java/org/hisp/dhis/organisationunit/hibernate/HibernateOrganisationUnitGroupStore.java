@@ -47,4 +47,11 @@ public class HibernateOrganisationUnitGroupStore
     {
         return getQuery( "from OrganisationUnitGroup o where o.groupSet is not null" ).list();
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithMembers()
+    {
+        return getQuery( "select distinct og from OrganisationUnitGroup og left join fetch og.members" ).list();
+    }
 }

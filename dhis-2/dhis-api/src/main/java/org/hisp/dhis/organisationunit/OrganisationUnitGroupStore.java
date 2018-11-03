@@ -39,4 +39,6 @@ public interface OrganisationUnitGroupStore
     extends IdentifiableObjectStore<OrganisationUnitGroup>
 {
     List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
+
+    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithMembers();
 }

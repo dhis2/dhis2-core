@@ -161,6 +161,13 @@ public interface OrganisationUnitGroupService
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSets();
 
     /**
+     * Returns OrganisationUnitGroups including members using join
+     *
+     * @return a list of all OrganisationUnitGroups including their members
+     */
+    List<OrganisationUnitGroup> getAllOrganisationUnitGroupWithMembers();
+
+    /**
      * Returns all compulsory OrganisationUnitGroupSets which have one ore more
      * members.
      * 
