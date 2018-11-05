@@ -153,6 +153,12 @@ public class DefaultProgramRuleEntityMapperService
     }
 
     @Override
+    public Rule toMappedProgramRule( ProgramRule programRule )
+    {
+        return toRule( programRule );
+    }
+
+    @Override
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
         if( enrollment == null )
