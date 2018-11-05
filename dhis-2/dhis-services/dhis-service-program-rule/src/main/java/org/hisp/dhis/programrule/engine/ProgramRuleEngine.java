@@ -190,20 +190,20 @@ public class ProgramRuleEngine
 
                 Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
 
-                while( matcher.find() )
+                while ( matcher.find() )
                 {
                     orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
                 }
             }
         }
 
-        if( !orgUnitGroups.isEmpty() )
+        if ( !orgUnitGroups.isEmpty() )
         {
             supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
                 .stream().map( OrganisationUnit::getUid ).collect(Collectors.toList() ) ) );
         }
 
-        if( currentUserService.getCurrentUser() != null )
+        if ( currentUserService.getCurrentUser() != null )
         {
             supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
