@@ -214,7 +214,7 @@ public class ProgramRuleEngine
             .calculatedValueMap( inMemoryMap.getVariablesMap() )
             .rules( rules )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-            .build().toEngineBuilder();
+            .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
     }
 
     private List<ProgramRule> getImplementableRules( Program program )
