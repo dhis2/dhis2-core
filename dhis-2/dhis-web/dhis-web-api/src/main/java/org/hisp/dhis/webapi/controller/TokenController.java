@@ -74,7 +74,8 @@ public class TokenController
     @PostConstruct
     public void init()
     {
-        TOKEN_CACHE = cacheProvider.newCacheBuilder( GoogleAccessToken.class ).forRegion( "googleAccessToken" )
+        TOKEN_CACHE = cacheProvider.newCacheBuilder( GoogleAccessToken.class )
+            .forRegion( "googleAccessToken" )
             .expireAfterAccess( 10, TimeUnit.MINUTES )
             .withMaximumSize( SystemUtils.isTestRun() ? 0 : 1 ).build();
     }

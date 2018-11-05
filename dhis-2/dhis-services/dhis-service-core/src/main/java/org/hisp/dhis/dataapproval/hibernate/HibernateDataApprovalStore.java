@@ -94,7 +94,8 @@ public class HibernateDataApprovalStore
     @PostConstruct
     public void init()
     {
-        IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class ).forRegion( "isDataApproved" )
+        IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "isDataApproved" )
             .expireAfterAccess( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
     }
