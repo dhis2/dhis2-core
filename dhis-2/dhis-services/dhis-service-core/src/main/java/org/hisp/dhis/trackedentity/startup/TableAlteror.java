@@ -120,7 +120,6 @@ public class TableAlteror
 
         executeSql( "UPDATE program SET programstage_dataelements=false WHERE displayInReports is null" );
 
-        executeSql( "UPDATE programstage SET validCompleteOnly=false WHERE validCompleteOnly is null" );
         executeSql( "UPDATE program SET ignoreOverdueEvents=false WHERE ignoreOverdueEvents is null" );
 
         executeSql( "UPDATE programstage SET displayGenerateEventBox=true WHERE displayGenerateEventBox is null" );
