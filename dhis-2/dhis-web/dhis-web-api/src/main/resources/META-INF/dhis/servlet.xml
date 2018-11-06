@@ -180,7 +180,7 @@
 
   <mvc:interceptors>
     <bean class="org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor" />
-    <bean class="org.hisp.dhis.webapi.mvc.interceptor.WebRequestInterceptor" />
+    <!-- <bean class="org.hisp.dhis.webapi.mvc.interceptor.WebRequestInterceptor" /> -->
   </mvc:interceptors>
 
   <bean id="customPathExtensionContentNegotiationStrategy" class="org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy">
