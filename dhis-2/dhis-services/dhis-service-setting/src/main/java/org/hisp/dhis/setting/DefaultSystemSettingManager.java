@@ -81,7 +81,6 @@ public class DefaultSystemSettingManager
      */
     private Cache<Serializable> settingCache;
 
-
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
