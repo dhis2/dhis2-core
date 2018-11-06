@@ -158,7 +158,7 @@ public class InitTableAlteror
         executeSql( "UPDATE programstage SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
         executeSql( "UPDATE programstage SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramStageInstanceCoordinates();
-        
+
         executeSql( "UPDATE program SET featuretype = 'POINT' WHERE capturecoordinates = true AND featuretype IS NULL" );
         executeSql( "UPDATE program SET featuretype = 'NONE' WHERE capturecoordinates = false AND featuretype IS NULL" );
         updateAndRemoveOldProgramInstanceCoordinates();
@@ -221,7 +221,7 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude " );
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude " );
     }
-    
+
     private void updateAndRemoveOldProgramInstanceCoordinates()
     {
         executeSql( "UPDATE programinstance " +
