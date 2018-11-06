@@ -1,7 +1,7 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,60 +28,46 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Properties;
 
 /**
  * @author Henning Håkonsen
  */
-public class AnalyticsJobParameters
-    implements JobParameters
+@SuppressWarnings("rawtypes")
+public class JsonJobParametersType extends JsonBinaryType
 {
-    private static final long serialVersionUID = 4613054056442242637L;
-
-    @JsonProperty
-    private Integer lastYears = 0;
-
-    @JsonProperty
-    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>( );
-
-    @JsonProperty
-    private boolean skipResourceTables = false;
-
-    public AnalyticsJobParameters()
-    {
-    }
-
-    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
-    {
-        this.lastYears = lastYears;
-        this.skipTableTypes = skipTableTypes;
-        this.skipResourceTables = skipResourceTables;
-    }
-
-    public Integer getLastYears()
-    {
-        return lastYears;
-    }
-
-    public Set<AnalyticsTableType> getSkipTableTypes()
-    {
-        return skipTableTypes;
-    }
-
-    public boolean isSkipResourceTables()
-    {
-        return skipResourceTables;
-    }
-
     @Override
-    public ErrorReport validate()
+    public void setParameterValues( Properties parameters )
     {
-        return null;
+        final String clazz = (String) parameters.get( "clazz" );
+
+        if ( clazz == null )
+        {
+            throw new IllegalArgumentException(
+                String.format( "Required parameter '%s' is not configured", "clazz" ) );
+        }
+
+        try
+        {
+            init( classForName( clazz ) );
+        }
+        catch ( ClassNotFoundException e )
+        {
+            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
+        }
+    }
+
+    private void init( Class klass )
+    {
+        ObjectMapper MAPPER = new ObjectMapper();
+        MAPPER.enableDefaultTyping();
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+
+        returnedClass = klass;
+        reader = MAPPER.readerFor( klass );
+        writer = MAPPER.writerFor( klass );
     }
 }

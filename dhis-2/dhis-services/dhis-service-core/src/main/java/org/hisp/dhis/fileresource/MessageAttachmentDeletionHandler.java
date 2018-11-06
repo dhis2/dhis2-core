@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v31;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,26 +28,39 @@ package org.hisp.dhis.db.migration.v31;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * See V2_30_0__Populate_dhis2_schema_if_empty_database.java class for a real java
- * migration. This class is only to demonstrate the package structure to be
- * followed
- * 
- * @author Ameen Mohamed <ameen@dhis2.org>
- *
- */
-public class V2_31_4__Sample_java_based_migration extends BaseJavaMigration
+public class MessageAttachmentDeletionHandler extends DeletionHandler
 {
+    private JdbcTemplate jdbcTemplate;
 
-    public void migrate( Context context )
-        throws Exception
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
-        // See V2_30_0__Populate_dhis2_schema_if_empty_database.java class for a real java
-        // migration. This class is only to demonstrate the package structure to be
-        // followed
+        this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
+    protected String getClassName()
+    {
+        return FileResource.class.getName();
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
+    }
 }

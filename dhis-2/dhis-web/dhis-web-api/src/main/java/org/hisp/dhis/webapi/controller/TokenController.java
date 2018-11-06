@@ -28,20 +28,22 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
@@ -64,8 +66,19 @@ public class TokenController
 
     private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
 
-    private static final Cache<String, Optional<GoogleAccessToken>> TOKEN_CACHE = Caffeine.newBuilder().
-        maximumSize( 1 ).expireAfterWrite( 10, TimeUnit.MINUTES ).build();
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    private Cache<GoogleAccessToken> TOKEN_CACHE;
+
+    @PostConstruct
+    public void init()
+    {
+        TOKEN_CACHE = cacheProvider.newCacheBuilder( GoogleAccessToken.class )
+            .forRegion( "googleAccessToken" )
+            .expireAfterAccess( 10, TimeUnit.MINUTES )
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 1 ).build();
+    }
 
     @Autowired
     private DhisConfigurationProvider config;
@@ -76,7 +89,7 @@ public class TokenController
     {
         setNoStore( response );
 
-        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken() );
+        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken().get() );
 
         if ( !tokenOptional.isPresent() )
         {
