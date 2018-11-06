@@ -41,18 +41,18 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Populates default I18nLocales if none exists.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class I18nLocalePopulator
     extends TransactionContextStartupRoutine
 {
     private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
-    
+
     @Autowired
     private I18nLocaleService localeService;
-    
-    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of( 
+
+    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
         "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",
         "km","lo","my","ne","nl","no","ps","pt","ru","rw","sw","tg","vi","zh" );
 
@@ -60,12 +60,12 @@ public class I18nLocalePopulator
     public void executeInTransaction()
     {
         int count = localeService.getI18nLocaleCount();
-        
+
         if ( count > 0 )
         {
             return;
         }
-        
+
         for ( String locale : DEFAULT_LOCALES )
         {
             localeService.saveI18nLocale( new I18nLocale( new Locale( locale ) ) );
