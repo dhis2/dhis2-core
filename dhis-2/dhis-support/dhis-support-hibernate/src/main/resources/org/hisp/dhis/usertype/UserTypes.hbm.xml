@@ -18,7 +18,7 @@
     <param name="clazz">java.lang.Object</param>
   </typedef>
   
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainType" name="jbPlain">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType" name="jbPlainString">
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObjectStyle">

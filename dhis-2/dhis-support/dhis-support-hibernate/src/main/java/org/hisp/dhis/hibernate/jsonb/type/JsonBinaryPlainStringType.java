@@ -30,46 +30,27 @@ package org.hisp.dhis.hibernate.jsonb.type;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.ParameterizedType;
-import org.hibernate.usertype.UserType;
 import org.postgresql.util.PGobject;
 
-import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Properties;
 
 /**
+ * User defined type to handle dynamic json structures to be stored in jsonb.
+ * Always deserializes into java Strings.
+ * 
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @SuppressWarnings("rawtypes")
-public class JsonBinaryPlainType implements UserType, ParameterizedType
+public class JsonBinaryPlainStringType extends JsonBinaryType
 {
-
-    @Override
-    public int[] sqlTypes()
-    {
-        return new int[]{ Types.JAVA_OBJECT };
-    }
 
     @Override
     public Class returnedClass()
     {
         return String.class;
-    }
-
-    @Override
-    public boolean equals( Object x, Object y ) throws HibernateException
-    {
-        return x == y || !(x == null || y == null) && x.equals( y );
-    }
-
-    @Override
-    public int hashCode( Object x ) throws HibernateException
-    {
-        return null == x ? 0 : x.hashCode();
     }
 
     @Override
@@ -121,30 +102,6 @@ public class JsonBinaryPlainType implements UserType, ParameterizedType
     public Object deepCopy( Object value ) throws HibernateException
     {
         return value == null ? null : value.toString();
-    }
-
-    @Override
-    public boolean isMutable()
-    {
-        return true;
-    }
-
-    @Override
-    public Serializable disassemble( Object value ) throws HibernateException
-    {
-        return (Serializable) this.deepCopy( value );
-    }
-
-    @Override
-    public Object assemble( Serializable cached, Object owner ) throws HibernateException
-    {
-        return this.deepCopy( cached );
-    }
-
-    @Override
-    public Object replace( Object original, Object target, Object owner ) throws HibernateException
-    {
-        return this.deepCopy( original );
     }
 
     @Override
