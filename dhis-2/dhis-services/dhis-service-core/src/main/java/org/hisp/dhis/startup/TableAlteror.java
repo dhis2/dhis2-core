@@ -1118,6 +1118,7 @@ public class TableAlteror
         // 2.31, migrate to Flyway
         executeSql( "alter table trackedentityattribute alter column shortname set not null" );
         executeSql( "UPDATE keyjsonvalue SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
+        executeSql( "delete from systemsetting where name = 'keyCorsWhitelist';" );
 
         log.info( "Tables updated" );
     }
