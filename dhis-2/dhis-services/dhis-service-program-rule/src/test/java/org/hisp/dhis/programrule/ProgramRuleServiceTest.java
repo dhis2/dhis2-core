@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -148,6 +149,34 @@ public class ProgramRuleServiceTest
         assertEquals( ruleD.getId(), programRuleService.getProgramRuleByName( "RuleD", programB ).getId() );
 
         assertEquals( 3, programRuleService.getProgramRules( programB ,"rule" ).size() );
+    }
+
+    @Test
+    public void testGetImplementableProgramRules()
+    {
+        ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
+        ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
+        //Add a rule that is not part of programB....
+        ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
+
+        programRuleService.addProgramRule( ruleD );
+        programRuleService.addProgramRule( ruleE );
+        programRuleService.addProgramRule( ruleG );
+
+        ProgramRuleAction actionD = createProgramRuleAction( 'D' );
+        actionD.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        actionD.setProgramRule( ruleD );
+
+        programRuleActonService.addProgramRuleAction( actionD );
+        ruleD.setProgramRuleActions( Sets.newHashSet( actionD ) );
+        programRuleService.updateProgramRule( ruleD );
+
+
+        //Get all the 3 rules for programB
+        List<ProgramRule> rules = programRuleService.getImplementableProgramRules( programB, ProgramRuleActionType.getImplementedActions() );
+        assertEquals( 1, rules.size() );
+        assertTrue( rules.contains( ruleD ) );
+        assertFalse( rules.contains( ruleG ) );
     }
     
     @Test

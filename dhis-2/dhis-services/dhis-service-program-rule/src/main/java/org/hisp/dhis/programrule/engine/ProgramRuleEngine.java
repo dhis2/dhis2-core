@@ -64,6 +64,8 @@ public class ProgramRuleEngine
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
+    private static final Set<ProgramRuleActionType> implementableTypes = ProgramRuleActionType.getImplementedActions();
+
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -95,7 +97,6 @@ public class ProgramRuleEngine
         List<RuleEffect> ruleEffects = new ArrayList<>();
         
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
-
 
         if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
         {
@@ -219,23 +220,6 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        List<ProgramRule> rules =  programRuleService.getProgramRule( program );
-
-        return rules.stream().filter( this::isImplementable ).collect( Collectors.toList() );
-    }
-
-    private boolean isImplementable( ProgramRule rule )
-    {
-        Set<ProgramRuleAction> actions = rule.getProgramRuleActions();
-
-        for( ProgramRuleAction action : actions )
-        {
-            if ( action.getProgramRuleActionType().isImplementable() )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return programRuleService.getImplementableProgramRules( program, implementableTypes );
     }
 }
