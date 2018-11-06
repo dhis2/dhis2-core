@@ -74,6 +74,9 @@ public class FileResourceCleanUpJob
     @Autowired
     private DataElementService dataElementService;
 
+    @Autowired
+    private FileResourceContentStore fileResourceContentStore;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -87,15 +90,23 @@ public class FileResourceCleanUpJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting(SettingKey.FILE_RESOURCE_RETENTION_STRATEGY);
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         List<Pair<String, String>> deletedOrphans = new ArrayList<>();
 
         List<Pair<String, String>> deletedAuditFiles = new ArrayList<>();
 
         fileResourceService.getOrphanedFileResources().stream()
+            .filter( fr -> !isFileStored( fr ) )
             .filter( fr -> safeDelete( fr ) )
             .forEach( fr -> deletedOrphans.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
+
+        fileResourceService.getOrphanedFileResources().stream()
+            .filter( fr -> isFileStored( fr ) )
+            .forEach( fr -> {
+                fr.setStorageStatus( FileResourceStorageStatus.STORED );
+                fileResourceService.updateFileResource( fr );
+            } );
 
         if ( retentionStrategy != FileResourceRetentionStrategy.FOREVER )
         {
@@ -146,6 +157,11 @@ public class FileResourceCleanUpJob
         sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
 
         return sb.toString();
+    }
+
+    private boolean isFileStored( FileResource fileResource )
+    {
+        return fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
     }
 
     /**
