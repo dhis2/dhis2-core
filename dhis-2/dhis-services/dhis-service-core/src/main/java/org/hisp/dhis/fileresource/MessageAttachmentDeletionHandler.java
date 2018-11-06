@@ -1,4 +1,4 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,23 +28,11 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * @author Lars Helge Overland
- */
-public class TableCreator
-    extends AbstractStartupRoutine
+public class MessageAttachmentDeletionHandler extends DeletionHandler
 {
-    private static final Log log = LogFactory.getLog( TableCreator.class );
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -52,29 +40,27 @@ public class TableCreator
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // StartupRoutine implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public void execute()
+    protected String getClassName()
     {
-        createSilently( "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)", "dataapproval_unique" );
-        createSilently( "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)", "in_datavalueaudit" );
-        createSilently( "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)", "in_trackedentityattributevalue_attributeid" );
+        return FileResource.class.getName();
     }
 
-    private void createSilently( final String sql, final String name )
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
     {
-        try
-        {
-            jdbcTemplate.execute( sql );
+        String sql = "SELECT COUNT(*) FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
 
-            log.info( "Created table/index " + name );
-        }
-        catch ( Exception ex )
-        {
-            log.debug( "Table/index " + name + " exists" );
-        }
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
     }
 }
