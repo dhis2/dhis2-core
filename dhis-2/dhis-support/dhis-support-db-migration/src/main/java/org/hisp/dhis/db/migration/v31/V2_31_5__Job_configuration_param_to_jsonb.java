@@ -58,9 +58,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public class V2_31_4__Job_configuration_param_to_jsonb extends BaseJavaMigration
+public class V2_31_5__Job_configuration_param_to_jsonb extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_4__Job_configuration_param_to_jsonb.class );
+    private static final Log log = LogFactory.getLog( V2_31_5__Job_configuration_param_to_jsonb.class );
    
     private ObjectWriter writer;
     
