@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.springframework.util.MimeTypeUtils;
 
 import java.util.UUID;
 
@@ -41,6 +42,10 @@ import java.util.UUID;
 public class FileResource
     extends BaseIdentifiableObject
 {
+    public static final String DEFAULT_FILENAME = "untitled";
+
+    public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+
     /**
      * MIME type.
      */
@@ -76,7 +81,7 @@ public class FileResource
     /**
      * Current storage status of content.
      */
-    private FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
+    private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
 
     // -------------------------------------------------------------------------
     // Constructors

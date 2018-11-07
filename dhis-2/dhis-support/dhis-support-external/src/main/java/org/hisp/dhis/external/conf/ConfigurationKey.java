@@ -48,7 +48,7 @@ public enum ConfigurationKey
     CONNECTION_USERNAME( "connection.username", "", false ),
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
-    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "", false ),
+    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -87,6 +87,7 @@ public enum ConfigurationKey
     REDIS_PASSWORD( "redis.password", "", true ),
     REDIS_ENABLED( "redis.enabled", "false", false ),
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate.out.of.order", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );

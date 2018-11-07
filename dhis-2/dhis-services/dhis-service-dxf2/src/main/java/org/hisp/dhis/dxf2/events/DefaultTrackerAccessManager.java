@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -364,9 +365,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+            if ( isWritableInSearchScopeOrgUnit( programStageInstance ) )
             {
-                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+                if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+                {
+                    errors.add( "User has no write access for scheduled events to organisation unit: " + ou.getUid() );
+                }
+            }
+            else
+            {
+                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+                {
+                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+                }
             }
         }
 
@@ -579,5 +590,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isNull( ProgramStage programStage )
     {
         return programStage == null || programStage.getProgram() == null;
+    }
+    
+    private boolean isWritableInSearchScopeOrgUnit( ProgramStageInstance programStageInstance )
+    {
+        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getDataValues().isEmpty()
+            && programStageInstance.getExecutionDate() == null;
     }
 }

@@ -200,7 +200,7 @@ public class DefaultQueryParser implements QueryParser
             }
             case "token":
             {
-                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
+                return Restrictions.token( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
             case "!token":
             {

@@ -44,7 +44,7 @@ import java.lang.reflect.Method;
  * @author Lars Helge Overland
  */
 @RunWith( SpringRunner.class )
-@ContextConfiguration( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
+@ContextConfiguration( classes = UnitTestConfiguration.class )
 @Transactional
 public abstract class DhisSpringTest
     extends DhisConvenienceTest

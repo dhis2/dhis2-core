@@ -48,6 +48,7 @@
     </set>
 
     <set name="compulsoryDataElementOperands" table="datasetoperands" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_datasetoperands_datasetid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
         foreign-key="fk_dataset_dataelementoperandid" />

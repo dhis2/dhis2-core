@@ -66,6 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -116,6 +117,9 @@ public class DefaultDimensionService
     private PeriodService periodService;
 
     @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
     private AclService aclService;
 
     @Autowired
@@ -128,6 +132,7 @@ public class DefaultDimensionService
     // DimensionService implementation
     //--------------------------------------------------------------------------
 
+    @Override
     public List<DimensionalItemObject> getCanReadDimensionItems( String uid )
     {
         DimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
@@ -556,11 +561,13 @@ public class DefaultDimensionService
                         }
                         else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
                         {
-                            int level = DimensionalObjectUtils.getLevelFromLevelParam( ou );
+                            String level = DimensionalObjectUtils.getValueFromKeywordParam( ou );
 
-                            if ( level > 0 )
+                            Integer orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevelOrUid( level );
+
+                            if ( orgUnitLevel != null )
                             {
-                                object.getOrganisationUnitLevels().add( level );
+                                object.getOrganisationUnitLevels().add( orgUnitLevel );
                             }
                         }
                         else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )

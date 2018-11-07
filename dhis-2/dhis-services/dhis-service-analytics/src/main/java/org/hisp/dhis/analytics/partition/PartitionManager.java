@@ -30,9 +30,11 @@ package org.hisp.dhis.analytics.partition;
 
 import java.util.Set;
 
+import org.hisp.dhis.analytics.Partitions;
+
 /**
  * Manager for analytics table partitions.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface PartitionManager
@@ -46,14 +48,23 @@ public interface PartitionManager
      * Returns a set of names of current event analytics partitions.
      */
     Set<String> getEventAnalyticsPartitions();
-    
+
     /**
      * Indicates whether the given analytics table exists.
-     * 
+     *
      * @param table the analytics table name.
      */
     boolean tableExists( String table );
-    
+
+    /**
+     * Filters the set of integers for which a database partition table
+     * exists.
+     *
+     * @param partitions the partitions.
+     * @param tableName the table name.
+     */
+    void filterNonExistingPartitions( Partitions partitions, String tableName );
+
     /**
      * Clears the partition name caches.
      */

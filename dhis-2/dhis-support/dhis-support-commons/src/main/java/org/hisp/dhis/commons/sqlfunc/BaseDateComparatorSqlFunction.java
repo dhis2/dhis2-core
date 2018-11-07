@@ -30,14 +30,14 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates a relation between two given dates.
- * 
+ *
  * @author Markus Bekken
  */
 public abstract class BaseDateComparatorSqlFunction
     implements SqlFunction
 {
     protected abstract String compare( String startDate, String endDate );
-    
+
     @Override
     public String evaluate( String... args )
     {
@@ -45,10 +45,10 @@ public abstract class BaseDateComparatorSqlFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
         }
-        
+
         String startDate = args[0];
         String endDate = args[1];
-        
+
         return compare( startDate, endDate );
     }
 }

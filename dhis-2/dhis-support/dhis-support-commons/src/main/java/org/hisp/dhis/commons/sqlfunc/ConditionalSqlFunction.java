@@ -30,7 +30,7 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates conditional statements.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ConditionalSqlFunction
@@ -45,13 +45,13 @@ public class ConditionalSqlFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 3 arguments: condition, true-value, false-value" );
         }
-        
+
         String condition = args[0];
         String trueValue = args[1];
         String falseValue = args[2];
-        
+
         String conditional = condition.replaceAll( "^\"|^'|\"$|'$", "" ).replaceAll( "==", "=" );
-        
+
         return "case when (" + conditional + ") then " + trueValue + " else " + falseValue + " end";
     }
 }

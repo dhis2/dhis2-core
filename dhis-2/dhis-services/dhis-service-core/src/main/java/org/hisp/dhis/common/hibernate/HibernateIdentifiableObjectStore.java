@@ -79,6 +79,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author bobj
@@ -133,46 +134,55 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
     }
 
+    @Override
     public final Criteria getDataSharingCriteria( String access )
     {
         return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
     }
 
+    @Override
     public final Criteria getDataSharingCriteria( User user, String access )
     {
         return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
     }
 
+    @Override
     public final Criteria getSharingCriteria( String access )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
     }
 
+    @Override
     public final Criteria getSharingCriteria( User user )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
     }
 
+    @Override
     public final DetachedCriteria getSharingDetachedCriteria()
     {
         return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
+    @Override
     public final DetachedCriteria getSharingDetachedCriteria( String access )
     {
         return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
     }
 
+    @Override
     public final DetachedCriteria getDataSharingDetachedCriteria( String access )
     {
         return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
     }
 
+    @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
         return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
     }
 
+    @Override
     public final DetachedCriteria getDataSharingDetachedCriteria( User user )
     {
         return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
@@ -199,7 +209,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+            BaseIdentifiableObject identifiableObject = object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
 
@@ -226,7 +236,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( user != null && aclService.isShareable( clazz ) )
         {
-            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+            BaseIdentifiableObject identifiableObject = object;
 
             if ( clearSharing )
             {
@@ -256,7 +266,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( MetadataObject.class.isInstance( object ) )
         {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
     }
 
@@ -275,7 +285,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             object.setAutoFields();
 
-            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+            BaseIdentifiableObject identifiableObject = object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
 
@@ -300,7 +310,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( MetadataObject.class.isInstance( object ) )
         {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
     }
 
@@ -332,7 +342,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final T get( int id )
     {
-        T object = (T) getSession().get( getClazz(), id );
+        T object = getSession().get( getClazz(), id );
 
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
@@ -531,7 +541,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             conjunction.add( root -> builder.like( builder.lower( root.get( "name") ), "%" + word.toLowerCase() + "%" ) ) ;
         }
 
-        param.addPredicate( root -> builder.and( conjunction.toArray( new Predicate[0] ) ) );
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0]) ) );
 
         return getList( builder, param );
     }
@@ -861,6 +871,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Creates a criteria with sharing restrictions relative to the given
      * user and access string.
      */
+    @Override
     public final Criteria getSharingCriteria()
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
@@ -982,36 +993,43 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // JPA support methods
     // ----------------------------------------------------------------------
 
+    @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
     }
 
+    @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user )
     {
         return getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA );
     }
 
+    @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
     {
         return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
+    @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
     }
 
+    @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
         return  getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
 
+    @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
+    @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user )
     {
         return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
@@ -1029,6 +1047,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param user User
      * @return List of Function<Root<T>, Predicate>
      */
+    @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
     {
         return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
@@ -1040,6 +1059,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access Access String
      * @return List of Function<Root<T>, Predicate>
      */
+    @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
         return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
@@ -1052,6 +1072,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access Access String
      * @return List of Function<Root<T>, Predicate>
      */
+    @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
@@ -1102,6 +1123,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return predicates;
     }
 
+    @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
@@ -1212,7 +1234,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
-            IdentifiableObject idObject = (IdentifiableObject) object;
+            IdentifiableObject idObject = object;
 
             if ( sharingEnabled( user ) )
             {
@@ -1227,7 +1249,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
-            IdentifiableObject idObject = (IdentifiableObject) object;
+            IdentifiableObject idObject = object;
 
             if ( aclService.isShareable( clazz ) )
             {
@@ -1242,7 +1264,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
-            IdentifiableObject idObject = (IdentifiableObject) object;
+            IdentifiableObject idObject = object;
 
             if ( aclService.isShareable( clazz ) )
             {

@@ -50,6 +50,7 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -67,7 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -233,6 +233,11 @@ public class MeController
         if ( user.getUserCredentials() != null )
         {
             updatePassword( currentUser, user.getUserCredentials().getPassword() );
+        }
+
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp(user.getWhatsApp() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() +  "'" ) );
         }
 
         manager.update( currentUser );

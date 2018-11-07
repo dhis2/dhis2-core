@@ -32,7 +32,6 @@ package org.hisp.dhis.program;
  */
 public enum ValidationStrategy
 {
-    NONE,
     ON_COMPLETE,
     ON_UPDATE_AND_INSERT;
 }

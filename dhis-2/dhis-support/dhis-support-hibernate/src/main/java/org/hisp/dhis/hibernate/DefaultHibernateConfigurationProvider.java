@@ -48,6 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -79,11 +80,11 @@ public class DefaultHibernateConfigurationProvider
     // -------------------------------------------------------------------------
 
     private String defaultPropertiesFile = "hibernate-default.properties";
-    
+
     private List<Resource> jarResources = new ArrayList<>();
     private List<Resource> dirResources = new ArrayList<>();
     private List<String> clusterHostnames = new ArrayList<>();
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -107,8 +108,6 @@ public class DefaultHibernateConfigurationProvider
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        boolean testing = "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
-
         // ---------------------------------------------------------------------
         // Add mapping resources
         // ---------------------------------------------------------------------
@@ -124,9 +123,9 @@ public class DefaultHibernateConfigurationProvider
                 URL jarFile = ResourceUtils.extractJarFileURL( resource );
 
                 File file = ResourceUtils.getFile( jarFile );
-                
+
                 jarResources.add( new FileSystemResource( file.getAbsolutePath() ) );
-                
+
                 log.debug( String.format( "Adding jar in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
 
                 config.addJar( file );
@@ -136,9 +135,9 @@ public class DefaultHibernateConfigurationProvider
                 File file = ResourceUtils.getFile( resource );
 
                 dirResources.add( new FileSystemResource( file ) );
-                
+
                 log.debug( String.format( "Adding directory in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
-                
+
                 config.addDirectory( file );
             }
         }
@@ -154,59 +153,39 @@ public class DefaultHibernateConfigurationProvider
         // ---------------------------------------------------------------------
         // Add custom properties from file system
         // ---------------------------------------------------------------------
-        
-        if ( !testing )
-        {
-            try
-            {
-                Properties fileProperties = configurationProvider.getProperties();
-                
-                mapToHibernateProperties( fileProperties );
 
-                if ( configurationProvider.isReadOnlyMode() )
-                {
-                    fileProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
-                    
-                    log.info( "Read-only mode enabled, setting hibernate.hbm2ddl.auto to 'validate'" );
-                }
-                
-                config.addProperties( fileProperties );
-            }
-            catch ( LocationManagerException ex )
-            {
-                log.info( "Could not read external configuration from file system" );
-            }
+        try
+        {
+            Properties fileHibernateProperties = getHibernateProperties();
+
+            config.addProperties( fileHibernateProperties );
+        }
+        catch ( LocationManagerException ex )
+        {
+            log.info( "Could not read external configuration from file system" );
         }
 
         // ---------------------------------------------------------------------
         // Handle cache replication
         // ---------------------------------------------------------------------
-        
+
         if ( configurationProvider.isClusterEnabled() )
         {
             config.setProperty( "net.sf.ehcache.configurationResourceName", FILENAME_EHCACHE_REPLICATION );
-            
+
             setCacheReplicationConfigSystemProperties();
-            
+
             log.info( "Clustering and cache replication enabled" );
         }
 
-        // ---------------------------------------------------------------------
-        // Disable second-level cache during testing
-        // ---------------------------------------------------------------------
+        log.info( String.format(
+            "Hibernate configuration loaded: dialect: '%s', region factory: '%s', connection pool max size: %s",
+            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ),
+            config.getProperty( Environment.C3P0_MAX_SIZE ) ) );
 
-        if ( testing )
-        {
-            config.setProperty( Environment.USE_SECOND_LEVEL_CACHE, "false" );
-            config.setProperty( Environment.USE_QUERY_CACHE, "false" );
-        }
-
-        log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
-            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
-        
         this.configuration = config;
     }
-    
+
     // -------------------------------------------------------------------------
     // HibernateConfigurationProvider implementation
     // -------------------------------------------------------------------------
@@ -227,39 +206,45 @@ public class DefaultHibernateConfigurationProvider
     public List<Resource> getDirectoryResources()
     {
         return dirResources;
-    }    
+    }
 
     @Override
     public List<String> getClusterHostnames()
     {
         return clusterHostnames;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void mapToHibernateProperties( Properties properties )
+    private Properties getHibernateProperties()
     {
-        putIfExists( properties, ConfigurationKey.CONNECTION_DIALECT.getKey(), Environment.DIALECT );
-        putIfExists( properties, ConfigurationKey.CONNECTION_DRIVER_CLASS.getKey(), Environment.DRIVER );
-        putIfExists( properties, ConfigurationKey.CONNECTION_URL.getKey(), Environment.URL );
-        putIfExists( properties, ConfigurationKey.CONNECTION_USERNAME.getKey(), Environment.USER );
-        putIfExists( properties, ConfigurationKey.CONNECTION_PASSWORD.getKey(), Environment.PASS );
-        putIfExists( properties, ConfigurationKey.CONNECTION_SCHEMA.getKey(), Environment.HBM2DDL_AUTO );
-        putIfExists( properties, ConfigurationKey.CONNECTION_POOL_MAX_SIZE.getKey(), Environment.C3P0_MAX_SIZE );
-    }
-    
-    private void putIfExists( Properties properties, String from, String to )
-    {
-        String value = properties.getProperty( from );
+        Properties props = new Properties();
+
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), Environment.DIALECT, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), Environment.DRIVER, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_URL ), Environment.URL, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
+
+        if ( SystemUtils.isTestRun() )
+        {
+            putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );
+        }
         
+        return props;
+    }
+
+    private void putIfExists( String value, String to, Properties props )
+    {
         if ( value != null && !value.isEmpty() )
         {
-            properties.put( to, value );
+            props.put( to, value );
         }
     }
-    
+
     private Properties getProperties( String path )
         throws IOException
     {
@@ -274,19 +259,19 @@ public class DefaultHibernateConfigurationProvider
         catch ( SecurityException ex )
         {
             log.warn( "Not permitted to read properties file: " + path, ex );
-            
+
             return null;
         }
     }
-    
+
     private Properties getProperties( InputStream inputStream )
         throws IOException
     {
         try
         {
-            Properties properties = new Properties();            
+            Properties properties = new Properties();
             properties.load( inputStream );
-            
+
             return properties;
         }
         finally
@@ -294,9 +279,9 @@ public class DefaultHibernateConfigurationProvider
             inputStream.close();
         }
     }
-    
+
     /**
-     * Sets system properties to be resolved in the Ehcache cache replication 
+     * Sets system properties to be resolved in the Ehcache cache replication
      * configuration.
      */
     private void setCacheReplicationConfigSystemProperties()
@@ -305,15 +290,15 @@ public class DefaultHibernateConfigurationProvider
         String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_PORT );
         String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
-        
+
         // Split using comma delimiter along with possible spaces in between
-        
+
         String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
-        
+
         List<String> cacheNames = getCacheNames();
-        
+
         final StringBuilder rmiUrlBuilder = new StringBuilder();
-        
+
         for ( int i = 0; i < clusterMemberList.length; i++ )
         {
             final String clusterUrl = "//" + clusterMemberList[i] + "/";
@@ -324,14 +309,14 @@ public class DefaultHibernateConfigurationProvider
 
             log.info( "Found cluster instance: " + clusterMemberList[i] );
         }
-        
+
         String rmiUrls = StringUtils.removeEnd( rmiUrlBuilder.toString(), "|" );
-        
+
         if ( StringUtils.isBlank( rmiUrls ) )
         {
             log.warn( "At least one cluster instance must be specified when clustering is enabled" );
         }
-        
+
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_HOSTNAME, instanceHost );
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_PORT, instancePort );
         System.setProperty( PROP_EHCACHE_PEER_PROVIDER_RIM_URLS, rmiUrls );
@@ -339,7 +324,7 @@ public class DefaultHibernateConfigurationProvider
 
         log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls + ", " + remoteObjectPort  );
     }
-    
+
     /**
      * Returns a list of names of all Hibernate caches.
      */
@@ -352,6 +337,6 @@ public class DefaultHibernateConfigurationProvider
         catch ( IOException ex )
         {
             throw new UncheckedIOException( ex );
-        }        
+        }
     }
 }
