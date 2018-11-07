@@ -203,33 +203,6 @@
   <bean id="pushAnalysisJob" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
   <bean id="predictorJob" class="org.hisp.dhis.predictor.PredictorJob" />
 
-  <!-- Startup routine definitions -->
-
-  <bean id="org.hisp.dhis.common.ReportingIdentityPopulator" class="org.hisp.dhis.common.IdentityPopulator">
-    <property name="name" value="ReportingIdentityPopulator" />
-    <property name="runlevel" value="4" />
-    <property name="skipInTests" value="true" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="tables">
-      <list>
-        <value>reporttable</value>
-        <value>chart</value>
-        <value>map</value>
-        <value>mapview</value>
-        <value>maplegend</value>
-        <value>maplegendset</value>
-        <value>report</value>
-        <value>messageconversation</value>
-        <value>message</value>
-        <value>document</value>
-        <value>dashboard</value>
-        <value>dashboarditem</value>
-        <value>interpretation</value>
-        <value>interpretationcomment</value>
-      </list>
-    </property>
-  </bean>
-
   <!-- DeletionHandler -->
 
   <bean id="org.hisp.dhis.report.ReportDeletionHandler" class="org.hisp.dhis.report.ReportDeletionHandler">
