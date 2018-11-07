@@ -14,3 +14,8 @@ DROP CONSTRAINT IF EXISTS fk_yearlyseries_chartid;
 ALTER TABLE chart_yearlyseries
 ADD CONSTRAINT chart_yearlyseries_pkey PRIMARY KEY (chartid, sort_order),
 ADD CONSTRAINT fk_yearlyseries_chartid FOREIGN KEY (chartid) REFERENCES chart(chartid);
+
+
+ALTER TABLE chart 
+ADD COLUMN IF NOT EXISTS startdate timestamp,
+ADD COLUMN IF NOT EXISTS enddate timestamp;
