@@ -130,7 +130,7 @@ public class V2_31_5__Job_configuration_param_to_jsonb extends BaseJavaMigration
         
         
        //3. Delete old byte array column for jobparameters in jobconfiguration
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
           stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
         }
