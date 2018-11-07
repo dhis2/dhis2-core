@@ -35,7 +35,6 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleStore;
 import org.hisp.dhis.query.JpaQueryUtils;
 
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.Set;
@@ -67,16 +66,12 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
-        Query q = getQuery("FROM ProgramRule pr " +
-            "JOIN FETCH pr.programRuleActions pra  WHERE pr.program = :programId AND pra.programRuleActionType IN (:implementableTypes)" );
-
-        q.setParameter( "programId", program );
-        q.setParameter( "implementableTypes", types );
-
-        return (List<ProgramRule>) q.getResultList();
+        return getQuery("FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.program = :programId AND pra.programRuleActionType IN (:implementableTypes)" )
+            .setParameter( "programId", program )
+            .setParameter( "implementableTypes", types )
+            .getResultList();
     }
 
     @Override
