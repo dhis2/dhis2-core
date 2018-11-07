@@ -32,6 +32,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -48,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload
@@ -72,6 +74,9 @@ public class FileResourceCleanUpJob
     @Autowired
     private DataElementService dataElementService;
 
+    @Autowired
+    private FileResourceContentStore fileResourceContentStore;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -85,23 +90,23 @@ public class FileResourceCleanUpJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting(SettingKey.FILE_RESOURCE_RETENTION_STRATEGY);
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         List<Pair<String, String>> deletedOrphans = new ArrayList<>();
 
         List<Pair<String, String>> deletedAuditFiles = new ArrayList<>();
 
-        fileResourceService.getOrphanedFileResources()
-            .forEach( fr -> {
-                deletedOrphans.add( ImmutablePair.of( fr.getName(), fr.getUid() ) );
-                fileResourceService.deleteFileResource( fr.getUid() );
-            } );
+        fileResourceService.getOrphanedFileResources().stream()
+            .filter( fr -> !isFileStored( fr ) )
+            .filter( fr -> safeDelete( fr ) )
+            .forEach( fr -> deletedOrphans.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
+
 
         if ( retentionStrategy != FileResourceRetentionStrategy.FOREVER )
         {
-            deletedAuditFiles = getExpiredFileResources( retentionStrategy );
-
-            deletedAuditFiles.forEach( pair -> fileResourceService.deleteFileResource( pair.getRight() ) );
+            deletedAuditFiles = getExpiredFileResources( retentionStrategy ).stream()
+                .filter( pair -> safeDelete( fileResourceService.getFileResource( pair.getRight() ) ) )
+                .collect( Collectors.toList() );
         }
 
         if ( !deletedOrphans.isEmpty() )
@@ -146,6 +151,33 @@ public class FileResourceCleanUpJob
         sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
 
         return sb.toString();
+    }
+
+    private boolean isFileStored( FileResource fileResource )
+    {
+        return fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
+    }
+
+    /**
+     * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced by something else
+     * @param fileResource the fileresource to delete
+     * @return true if the delete was successful
+     */
+    private boolean safeDelete( FileResource fileResource )
+    {
+        try
+        {
+            fileResourceService.deleteFileResource( fileResource.getUid() );
+            return true;
+        }
+        catch ( DeleteNotAllowedException e )
+        {
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+            log.info( String.format( "corrected the assigned status of fileresource '%s'", fileResource.getUid() ) );
+        }
+
+        return false;
     }
 
 }
