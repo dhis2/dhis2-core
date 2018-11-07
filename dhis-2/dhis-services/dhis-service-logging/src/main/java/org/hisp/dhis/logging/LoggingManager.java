@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.InitializingBean;
@@ -82,18 +83,16 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
 
     public void log( Log log )
     {
-        if ( log.getUsername() != null )
+        if ( StringUtils.isEmpty( log.getUsername() ) )
         {
-            return;
-        }
+            SecurityContext context = SecurityContextHolder.getContext();
 
-        SecurityContext context = SecurityContextHolder.getContext();
-
-        if ( context.getAuthentication() != null )
-        {
-            if ( context.getAuthentication().getPrincipal() instanceof String )
+            if ( context.getAuthentication() != null )
             {
-                log.setUsername( (String) context.getAuthentication().getPrincipal() );
+                if ( context.getAuthentication().getPrincipal() instanceof String )
+                {
+                    log.setUsername( (String) context.getAuthentication().getPrincipal() );
+                }
             }
         }
 
