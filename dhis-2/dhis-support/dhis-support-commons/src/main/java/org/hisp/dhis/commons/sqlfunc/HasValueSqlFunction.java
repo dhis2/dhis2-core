@@ -50,4 +50,9 @@ public class HasValueSqlFunction
 
         return "((" + expression + ") is not null)";
     }
+    
+    public String getSampleValue()
+    {
+        return "true";
+    }
 }
