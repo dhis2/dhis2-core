@@ -20,6 +20,7 @@
      <groupId>org.flywaydb</groupId>
      <artifactId>flyway-core</artifactId>
     </dependency>
+<<<<<<< HEAD
      <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
@@ -34,6 +35,12 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+=======
+      <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+>>>>>>> master
     
     <!-- Test -->
     <dependency>
