@@ -19,3 +19,7 @@ ADD CONSTRAINT fk_yearlyseries_chartid FOREIGN KEY (chartid) REFERENCES chart(ch
 ALTER TABLE chart 
 ADD COLUMN IF NOT EXISTS startdate timestamp,
 ADD COLUMN IF NOT EXISTS enddate timestamp;
+
+ALTER TABLE reporttable 
+ADD COLUMN IF NOT EXISTS startdate timestamp,
+ADD COLUMN IF NOT EXISTS enddate timestamp;
