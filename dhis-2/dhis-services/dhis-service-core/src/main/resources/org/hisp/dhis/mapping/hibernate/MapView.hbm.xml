@@ -43,6 +43,10 @@
         foreign-key="fk_mapview_periods_periodid" />
     </list>
 
+    <property name="startDate" />
+
+    <property name="endDate" />    
+
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
 
