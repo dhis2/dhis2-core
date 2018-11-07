@@ -109,7 +109,7 @@ public class V2_31_5__Job_configuration_param_to_jsonb extends BaseJavaMigration
             }
 
             try (PreparedStatement ps = context.getConnection()
-                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ))
+                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ) )
             {
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
