@@ -84,7 +84,7 @@ public class V2_31_5__Job_configuration_param_to_jsonb extends BaseJavaMigration
         Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
         try (Statement stmt = context.getConnection().createStatement())
         {
-            try (ResultSet rows = stmt.executeQuery( "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ))
+            try ( ResultSet rows = stmt.executeQuery( "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ) )
             {
                 while ( rows.next() )
                 {
