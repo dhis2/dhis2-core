@@ -18,8 +18,6 @@
     <property name="name" column="name" not-null="true" length="230"
       unique-key="key_sectionnamedataset" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <property name="description" type="text" />
 
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"

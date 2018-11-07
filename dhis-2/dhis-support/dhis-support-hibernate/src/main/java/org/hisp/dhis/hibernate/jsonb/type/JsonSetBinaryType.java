@@ -28,7 +28,9 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Set;
@@ -39,6 +41,13 @@ import java.util.Set;
 public class JsonSetBinaryType
     extends JsonBinaryType
 {
+    static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static
+    {
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+    }
+
     @Override
     protected String convertObjectToJson( Object value )
     {
