@@ -168,7 +168,7 @@ public enum SettingKey
     LOGGING_ADAPTER_CONSOLE( "keyLoggingConsole", Boolean.TRUE, Boolean.class ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "keyLoggingConsoleLevel", "INFO", String.class ),
     LOGGING_ADAPTER_CONSOLE_FORMAT( "keyLoggingConsoleFormat", "TEXT", String.class ),
-    LOGGING_ADAPTER_FILE( "keyLoggingFile", Boolean.TRUE, Boolean.class ),
+    LOGGING_ADAPTER_FILE( "keyLoggingFile", Boolean.FALSE, Boolean.class ),
     LOGGING_ADAPTER_FILE_NAME( "keyLoggingFileName", "dhis2.log", String.class ),
     LOGGING_ADAPTER_FILE_LEVEL( "keyLoggingFileLevel", "INFO", String.class ),
     LOGGING_ADAPTER_FILE_FORMAT( "keyLoggingFileFormat", "JSON", String.class ),
