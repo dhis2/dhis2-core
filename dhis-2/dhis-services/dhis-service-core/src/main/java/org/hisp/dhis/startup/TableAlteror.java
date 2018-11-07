@@ -175,7 +175,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP COLUMN uuid" );
 
         executeSql( "DROP INDEX datamart_crosstab" );
-        
+
         // prepare uid function
         insertUidDbFunction();
 
@@ -444,7 +444,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE indicator ALTER COLUMN code TYPE varchar(50)" );
 
         // remove uuid
-                
+
         executeSql( "ALTER TABLE attribute DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categorycombo DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categoryoptioncombo DROP COLUMN uuid" );
@@ -1082,13 +1082,13 @@ public class TableAlteror
 
         executeSql( "delete from systemsetting where name='dataSyncCron'" );
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
-        
+
         updateDimensionFilterToText();
 
         renameAnalyticsPeriodBoundaryTableToPeriodBoundary();
-        
+
         insertDefaultBoundariesForBoundlessProgramIndicators();
-        
+
         executeSql( "UPDATE trackedentitytype SET publicaccess='rwrw----' WHERE publicaccess IS NULL;" );
         executeSql( "UPDATE programstage SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
 
@@ -1106,7 +1106,7 @@ public class TableAlteror
         executeSql( "alter table program_userroles drop constraint fkd6350dd7a3100c9f;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
-        
+
         // Update leaderOnlyJob flag in jobconfiguration
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='File resource clean up';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Dataset notification';" );
@@ -1114,13 +1114,13 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Validation result notification';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Remove expired reserved values';" );
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
-        
+
         // 2.31, migrate to Flyway
         executeSql( "alter table trackedentityattribute alter column shortname set not null" );
         executeSql( "UPDATE keyjsonvalue SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
-        
-        log.info( "Tables updated" );
+        executeSql( "delete from systemsetting where name = 'keyCorsWhitelist';" );
 
+        log.info( "Tables updated" );
     }
 
     /**
@@ -1600,20 +1600,20 @@ public class TableAlteror
 
         return idMap;
     }
-    
+
     private void updateHideEmptyRows()
     {
-        executeSql( 
+        executeSql(
             "update chart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
             "update chart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
             "alter table chart alter column hideemptyrowitems set not null; " +
             "alter table chart drop column hideemptyrows;" );
-        
+
         executeSql(
             "update eventchart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
             "update eventchart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
             "alter table eventchart alter column hideemptyrowitems set not null; " +
-            "alter table eventchart drop column hideemptyrows;" );        
+            "alter table eventchart drop column hideemptyrows;" );
     }
 
     private void updateSortOrder( String table, String col1, String col2 )
@@ -1709,10 +1709,10 @@ public class TableAlteror
             ") " +
             "where di.dataelementoperandid is not null; " +
             "alter table datadimensionitem drop column dataelementoperandid;";
-        
+
         executeSql( sql );
     }
-    
+
     /**
      * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
      * as metric.
@@ -1726,9 +1726,9 @@ public class TableAlteror
 
         executeSql( sql );
     }
-    
+
     /**
-     * Upgrades data dimension items to use embedded 
+     * Upgrades data dimension items to use embedded
      * ProgramTrackedEntityAttributeDimensionItem class.
      */
     private void upgradeDataDimensionItemToEmbeddedProgramAttribute()
@@ -1740,12 +1740,12 @@ public class TableAlteror
             "where programattributeid is not null " +
             "and (programattribute_programid is null and programattribute_attributeid is null); " +
             "alter table datadimensionitem drop column programattributeid;";
-        
+
         executeSql( sql );
     }
 
     /**
-     * Upgrades data dimension items to use embedded 
+     * Upgrades data dimension items to use embedded
      * ProgramDataElementDimensionItem class.
      */
     private void upgradeDataDimensionItemToEmbeddedProgramDataElement()
@@ -1759,56 +1759,56 @@ public class TableAlteror
             "alter table datadimensionitem drop column programdataelementid; " +
             "drop table programdataelementtranslations; " +
             "drop table programdataelement;"; // Remove if program data element is to be reintroduced
-        
+
         executeSql( sql );
     }
-    
+
     /**
      * Creates an utility function in the database for generating uid values in select statements.
      * Example usage: select uid();
      */
     private void insertUidDbFunction()
     {
-        String uidFunction = 
-            "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' " + 
-            "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' " + 
+        String uidFunction =
+            "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' " +
+            "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' " +
             " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
         executeSql( uidFunction );
     }
-    
+
     /**
      * Inserts default {@link AnalyticsPeriodBoundary} objects for program indicators that has no boundaries defined.
-     * Based on the analyticsType if the program indicator, the insert is made 
+     * Based on the analyticsType if the program indicator, the insert is made
      */
     private void insertDefaultBoundariesForBoundlessProgramIndicators()
     {
-        String findBoundlessAndInsertDefaultBoundaries = 
+        String findBoundlessAndInsertDefaultBoundaries =
             "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
 
-            "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
+            "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " +
             "from programindicator pi left join periodboundary pb on pb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " +
             "having count(pb.*) = 0;" +
 
             "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " +
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
 
             "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " +
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" +
 
             "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " +
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" +
 
             "insert into periodboundary (periodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " +
             "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
 
         executeSql( findBoundlessAndInsertDefaultBoundaries );
-        
+
     }
-    
+
     private int executeSql( String sql )
     {
         try
@@ -1967,7 +1967,7 @@ public class TableAlteror
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
     }
-    
+
     private void updateDimensionFilterToText()
     {
         executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
