@@ -43,6 +43,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,7 @@ public class DefaultFileResourceService
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
-        ( fr -> !fr.isAssigned() || fr.getStorageStatus() != FileResourceStorageStatus.STORED );
+        ( fr -> !fr.isAssigned() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -100,14 +101,16 @@ public class DefaultFileResourceService
     @Transactional
     public FileResource getFileResource( String uid )
     {
-        return fileResourceStore.getByUid( uid );
+        return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
 
     @Override
     @Transactional
     public List<FileResource> getFileResources( List<String> uids )
     {
-        return fileResourceStore.getByUid( uids );
+        return fileResourceStore.getByUid( uids ).stream()
+            .map( this::checkStorageStatus )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -202,5 +205,24 @@ public class DefaultFileResourceService
         saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
 
         return uid;
+    }
+
+    private FileResource checkStorageStatus( FileResource fileResource )
+    {
+        if ( fileResource != null )
+        {
+            boolean exists = fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
+
+            if ( exists )
+            {
+                fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
+            }
+            else
+            {
+                fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+            }
+        }
+
+        return fileResource;
     }
 }

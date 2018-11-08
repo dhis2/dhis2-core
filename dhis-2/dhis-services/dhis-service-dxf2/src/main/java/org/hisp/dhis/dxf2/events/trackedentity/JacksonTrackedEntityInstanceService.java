@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -131,13 +132,11 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        JsonNode root = XML_MAPPER.readTree( input );
-
-        if ( root.get( "trackedEntityInstances" ) != null ) {
+        try {
             TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
         }
-        else {
+        catch ( JsonMappingException ex ) {
             TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromXml );
         }
