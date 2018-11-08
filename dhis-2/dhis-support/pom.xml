@@ -18,6 +18,7 @@
     <module>dhis-support-test</module>
     <module>dhis-support-commons</module>
     <module>dhis-support-hibernate</module>
+    <module>dhis-support-db-migration</module>
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
     <module>dhis-support-kafka</module>

@@ -1414,13 +1414,7 @@
   </bean>
 
   <!-- Startup routine definitions -->
-
-  <bean id="org.hisp.dhis.startup.InitTableAlteror" class="org.hisp.dhis.startup.InitTableAlteror">
-    <property name="name" value="InitTableAlteror" />
-    <property name="runlevel" value="1" />
-    <property name="skipInTests" value="true" />
-  </bean>
-
+  
   <bean id="org.hisp.dhis.period.PeriodTypePopulator" class="org.hisp.dhis.period.PeriodTypePopulator">
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="name" value="PeriodTypePopulator" />
@@ -1458,86 +1452,6 @@
     <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="name" value="DataElementDefaultDimensionPopulator" />
     <property name="runlevel" value="3" />
-  </bean>
-
-  <bean id="org.hisp.dhis.common.IdentityPopulator" class="org.hisp.dhis.common.IdentityPopulator">
-    <property name="name" value="IdentityPopulator" />
-    <property name="runlevel" value="4" />
-    <property name="skipInTests" value="true" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="tables">
-      <list>
-        <value>constant</value>
-        <value>attribute</value>
-        <value>indicatortype</value>
-        <value>indicator</value>
-        <value>indicatorgroup</value>
-        <value>indicatorgroupset</value>
-        <value>jobconfiguration</value>
-        <value>validationrule</value>
-        <value>validationrulegroup</value>
-        <value>predictor</value>
-        <value>dataset</value>
-        <value>section</value>
-        <value>orgunitlevel</value>
-        <value>organisationunit</value>
-        <value>orgunitgroup</value>
-        <value>orgunitgroupset</value>
-        <value>dataelement</value>
-        <value>dataelementgroup</value>
-        <value>dataelementgroupset</value>
-        <value>dataelementcategory</value>
-        <value>dataelementcategoryoption</value>
-        <value>dataapprovalworkflow</value>
-        <value>categorycombo</value>
-        <value>categoryoptioncombo</value>
-        <value>userinfo</value>
-        <value>users</value>
-        <value>usergroup</value>
-        <value>userrole</value>
-        <value>optionset</value>
-        <value>optionvalue</value>
-        <value>trackedentitytype</value>
-        <value>trackedentityinstance</value>
-        <value>trackedentityattribute</value>
-        <value>program</value>
-        <value>programindicator</value>
-        <value>programstage</value>
-        <value>programstagesection</value>
-        <value>programstagedataelement</value>
-        <value>programinstance</value>
-        <value>programstageinstance</value>
-        <value>programstagesection</value>
-        <value>program_attributes</value>
-        <value>programrule</value>
-        <value>programruleaction</value>
-        <value>programrulevariable</value>
-        <value>relationshiptype</value>
-        <value>sqlview</value>
-        <value>dataentryform</value>
-        <value>smscommands</value>
-      </list>
-    </property>
-  </bean>
-
-  <bean id="org.hisp.dhis.startup.TableCreator" class="org.hisp.dhis.startup.TableCreator">
-    <property name="name" value="TableCreator" />
-    <property name="runlevel" value="5" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
-  <bean id="org.hisp.dhis.startup.TableAlteror" class="org.hisp.dhis.startup.TableAlteror">
-    <property name="name" value="TableAlteror" />
-    <property name="runlevel" value="6" />
-    <property name="skipInTests" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentity.startup.TableAlteror" class="org.hisp.dhis.trackedentity.startup.TableAlteror">
-    <property name="statementManager" ref="statementManager" />
-    <property name="name" value="TrackedEntityTableAlteror" />
-    <property name="runlevel" value="7" />
-    <property name="skipInTests" value="true" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
   <bean id="org.hisp.dhis.startup.ModelUpgrader" class="org.hisp.dhis.startup.ModelUpgrader">

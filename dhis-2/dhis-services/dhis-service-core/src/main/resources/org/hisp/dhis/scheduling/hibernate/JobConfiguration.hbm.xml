@@ -38,6 +38,6 @@
 			<column name="leaderonlyjob" default="false" />
 		</property>
 
-        <property name="jobParameters" not-null="false" type="serializable" length="65535" />
+        <property name="jobParameters" column="jsonbjobparameters" type="jbJobParameters" />
     </class>
 </hibernate-mapping>
