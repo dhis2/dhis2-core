@@ -83,6 +83,16 @@ public interface AggregateAccessManager
     List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOption );
 
     /**
+     * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
+     * result is cached.
+     *
+     * @param user
+     * @param categoryOption
+     * @return List of errors
+     */
+    List<String> canWriteCached( User user, DataElementCategoryOptionCombo categoryOptionCombo );
+
+    /**
      * Check if given User has DATA_READ access for given CategoryOptionCombo
      * @param user
      * @param categoryOption
@@ -97,4 +107,5 @@ public interface AggregateAccessManager
      * @return List of errors
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );
+
 }
