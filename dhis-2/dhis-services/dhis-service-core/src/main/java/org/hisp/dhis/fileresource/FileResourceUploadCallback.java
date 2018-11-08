@@ -42,10 +42,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  */
 public class FileResourceUploadCallback
 {
-    Log log = LogFactory.getLog( FileResourceUploadCallback.class );
-
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private Log log = LogFactory.getLog( FileResourceUploadCallback.class );
 
     public ListenableFutureCallback<String> newInstance( String fileResourceUid )
     {
@@ -57,16 +54,6 @@ public class FileResourceUploadCallback
             public void onFailure( Throwable ex )
             {
                 log.error( "Saving content for file resource '" + fileResourceUid + "' failed", ex );
-
-                FileResource fileResource = idObjectManager.get( FileResource.class, fileResourceUid );
-
-                if ( fileResource != null )
-                {
-                    log.info( "File resource '" + fileResource.getUid() + "' storageStatus set to FAILED." );
-
-                    fileResource.setStorageStatus( FileResourceStorageStatus.FAILED );
-                    idObjectManager.update( fileResource );
-                }
             }
 
             @Override
@@ -75,18 +62,6 @@ public class FileResourceUploadCallback
                 Period timeDiff = new Period( startTime, DateTime.now() );
 
                 log.info( "File stored with key: '" + result + "'. Upload finished in " + timeDiff.toString( PeriodFormat.getDefault() ) );
-
-                FileResource fileResource = idObjectManager.get( FileResource.class, fileResourceUid );
-
-                if ( result != null && fileResource != null )
-                {
-                    fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
-                    idObjectManager.update( fileResource );
-                }
-                else
-                {
-                    log.error( "Conflict: content was stored but FileResource with uid '" + fileResourceUid + "' could not be found." );
-                }
             }
         };
     }
