@@ -59,7 +59,7 @@ public abstract class BaseCountIfProgramIndicatorFunction
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
             String columnName = "\"" + de + "\"";
             return "(select count(" + columnName + ") from " + eventTableName + " where " + eventTableName +
-                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
                 " and " + columnName + condition + " " +
                 (programIndicator.getEndEventBoundary() != null ? ("and " + 
                     sb.getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
