@@ -50,7 +50,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
-import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
 import java.util.*;
@@ -242,7 +241,10 @@ public class DataElement
      */
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
-        return ObjectUtils.getAll( getCategoryCombos(), CategoryCombo::getOptionCombos );
+        return getCategoryCombos().stream()
+            .map( c -> c.getOptionCombos() )
+            .flatMap( c -> c.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -534,6 +536,7 @@ public class DataElement
      *
      * @return true if this data element has an option set.
      */
+    @Override
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -566,6 +569,7 @@ public class DataElement
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
@@ -681,6 +685,7 @@ public class DataElement
         this.zeroIsSignificant = zeroIsSignificant;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OptionSet getOptionSet()
