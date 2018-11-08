@@ -30,10 +30,12 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 
+import org.hisp.dhis.jdbc.StatementBuilder;
+
 /**
  * @author Markus Bekken
  */
 public interface ProgramIndicatorFunction
 {   
-    String evaluate( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String... args );
+    String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args );
 }

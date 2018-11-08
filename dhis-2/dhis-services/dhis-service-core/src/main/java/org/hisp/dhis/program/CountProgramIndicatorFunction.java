@@ -3,6 +3,8 @@ package org.hisp.dhis.program;
 import java.util.Arrays;
 import java.util.Date;
 
+import org.hisp.dhis.jdbc.StatementBuilder;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -43,7 +45,7 @@ public class CountProgramIndicatorFunction
     public static final String KEY = "count";
     
     @Override
-    public String evaluate( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String... args )
+    public String evaluate( ProgramIndicator programIndicator, StatementBuilder sb, Date reportingStartDate, Date reportingEndDate, String... args )
     {
         if ( args == null || args.length != 1 )
         {
@@ -53,6 +55,6 @@ public class CountProgramIndicatorFunction
         
         String condition = " is not null";
         
-        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, args[0], condition );
+        return this.countWhereCondition( programIndicator, sb, reportingStartDate, reportingEndDate, args[0], condition );
     }
 }

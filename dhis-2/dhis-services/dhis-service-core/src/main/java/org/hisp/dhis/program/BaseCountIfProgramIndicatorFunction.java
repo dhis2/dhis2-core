@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.hisp.dhis.jdbc.StatementBuilder;
+
 /**
  * @author Markus Bekken
  */
@@ -45,7 +47,7 @@ public abstract class BaseCountIfProgramIndicatorFunction
     public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "#\\{(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11}).(?<"+ DATA_ELEMENT_REGEX_GROUP + ">\\w{11})\\}"; 
     public static final Pattern COHORT_HAVING_DATA_ELEMENT_PATTERN = Pattern.compile( COHORT_HAVING_DATA_ELEMENT_REGEX );
 
-    public String countWhereCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String element, String condition )
+    public String countWhereCondition( ProgramIndicator programIndicator, StatementBuilder sb, Date reportingStartDate, Date reportingEndDate, String element, String condition )
     {   
         Matcher matcher = COHORT_HAVING_DATA_ELEMENT_PATTERN.matcher( element );
         
@@ -60,9 +62,9 @@ public abstract class BaseCountIfProgramIndicatorFunction
                 ".pi = enrollmenttable.pi and " + columnName + " is not null " +
                 " and " + columnName + condition + " " +
                 (programIndicator.getEndEventBoundary() != null ? ("and " + 
-                programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + 
+                    sb.getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
                 " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
-                programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) +
+                    sb.getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
                 " ") : "") + "and ps = '" + ps + "')";
         }
         else
