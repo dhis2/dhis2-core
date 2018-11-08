@@ -617,6 +617,10 @@ public class DefaultProgramIndicatorService
             {
                 matcher.appendReplacement( expr, SQL_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
             }
+            else if ( PI_FUNC_MAP.containsKey( d2FunctionName ) )
+            {
+                matcher.appendReplacement( expr, PI_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
+            }
         }
 
         matcher.appendTail( expr );
