@@ -25,6 +25,8 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 
@@ -73,13 +75,6 @@
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <one-to-many class="org.hisp.dhis.program.AnalyticsPeriodBoundary" />
-    </set>
-    
-    <!-- Object Translation -->
-    <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programindicatorid" foreign-key="fk_objecttranslation_programindicatorid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

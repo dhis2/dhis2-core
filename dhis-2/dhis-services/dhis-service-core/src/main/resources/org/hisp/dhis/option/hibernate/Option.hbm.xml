@@ -32,6 +32,8 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
@@ -39,13 +41,6 @@
       <cache usage="read-write" />
       <key column="optionvalueid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="optionvaluetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optionvalueid" foreign-key="fk_objecttranslation_optionvalueid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
