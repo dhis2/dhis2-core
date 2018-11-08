@@ -206,7 +206,7 @@ public class DefaultMetadataVersionServiceTest
 
         //testing hash code for the given metadata string
         KeyJsonValue metadaVersionSnap = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_2" );
-        String hashCode = HashCodeGenerator.getHashCode( metadaVersionSnap.getPlainValue() );
+        String hashCode = HashCodeGenerator.getHashCode( metadaVersionSnap.getJbPlainValue() );
         assertEquals( hashCode, versionService.getCurrentVersion().getHashCode() );
 
         //testing if correct version is saved in keyjsonvalue table
@@ -226,7 +226,7 @@ public class DefaultMetadataVersionServiceTest
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
-        assertEquals( true, expectedJson.getPlainValue().contains( "DataElementA" ) );
+        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
     }
 
     @Test
@@ -244,8 +244,8 @@ public class DefaultMetadataVersionServiceTest
 
         KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
 
-        assertEquals( false, expectedJson.getPlainValue().contains( "DataElementA" ) );
-        assertEquals( true, expectedJson.getPlainValue().contains( "DataElementB" ) );
+        assertEquals( false, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
+        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementB" ) );
     }
 
     @Test
@@ -254,7 +254,7 @@ public class DefaultMetadataVersionServiceTest
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
         keyJsonValue.setKey( "myVersion" );
-        keyJsonValue.setPlainValue( "myJson" );
+        keyJsonValue.setJbPlainValue( "myJson" );
 
         keyJsonValueService.addKeyJsonValue( keyJsonValue );
 
@@ -272,7 +272,7 @@ public class DefaultMetadataVersionServiceTest
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
 
-        assertEquals( "mySnapshot", keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "myVersion" ).getPlainValue() );
+        assertEquals( "mySnapshot", keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "myVersion" ).getJbPlainValue() );
     }
 
     @Test( expected = MetadataVersionServiceException.class )

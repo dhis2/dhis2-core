@@ -53,18 +53,11 @@ import java.util.Properties;
 @SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
+    ObjectWriter writer;
 
-    static
-    {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-    }
+    ObjectReader reader;
 
-    private ObjectWriter writer;
-
-    private ObjectReader reader;
-
-    private Class returnedClass;
+    Class returnedClass;
 
     @Override
     public int[] sqlTypes()
@@ -189,12 +182,15 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     private void init( Class klass )
     {
+        ObjectMapper MAPPER = new ObjectMapper();
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );
     }
 
-    private static Class classForName( String name ) throws ClassNotFoundException
+    static Class classForName( String name ) throws ClassNotFoundException
     {
         try
         {

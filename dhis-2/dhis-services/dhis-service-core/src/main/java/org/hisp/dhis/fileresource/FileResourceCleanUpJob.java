@@ -101,12 +101,6 @@ public class FileResourceCleanUpJob
             .filter( fr -> safeDelete( fr ) )
             .forEach( fr -> deletedOrphans.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
 
-        fileResourceService.getOrphanedFileResources().stream()
-            .filter( fr -> isFileStored( fr ) )
-            .forEach( fr -> {
-                fr.setStorageStatus( FileResourceStorageStatus.STORED );
-                fileResourceService.updateFileResource( fr );
-            } );
 
         if ( retentionStrategy != FileResourceRetentionStrategy.FOREVER )
         {

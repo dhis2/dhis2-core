@@ -1,0 +1,1 @@
+delete from systemsetting where name = 'keyCorsWhitelist';
