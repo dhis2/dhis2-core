@@ -16,8 +16,6 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <property name="level" column="level" not-null="true" index="in_dataapprovallevel_level" />
 
     <properties name="dataapprovallevel_orgunitlevel_categoryoptiongroupset_unique_key" unique="true">
@@ -25,6 +23,13 @@
       <many-to-one name="categoryOptionGroupSet" class="org.hisp.dhis.category.CategoryOptionGroupSet"
         column="categoryoptiongroupsetid" foreign-key="fK_dataapprovallevel_categoryoptiongroupsetid" not-null="false" />
     </properties>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataapprovalleveltranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataapprovallevelid" foreign-key="fk_objecttranslation_dataapprovallevelid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataapprovallevel_userid" />

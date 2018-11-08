@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.ObjectTranslation;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,7 +89,7 @@ public class TranslationUtils
         return translations;
     }
 
-    public static Map<String, String> convertTranslations( Set<Translation> translations, Locale locale )
+    public static Map<String, String> convertTranslations( Set<ObjectTranslation> translations, Locale locale )
     {
 
         if ( !ObjectUtils.allNonNull( translations, locale ) )
@@ -99,7 +99,7 @@ public class TranslationUtils
 
         Map<String, String> translationMap = new Hashtable<>();
 
-        for ( Translation translation : translations )
+        for ( ObjectTranslation translation : translations )
         {
             if ( StringUtils.isNotEmpty( translation.getValue() ) && translation.getLocale().equalsIgnoreCase( locale.toString() ) )
             {

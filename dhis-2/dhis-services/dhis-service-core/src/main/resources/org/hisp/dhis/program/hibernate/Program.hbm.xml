@@ -67,8 +67,6 @@
     <property name="maxTeiCountToReturn" />
 
     <property name="style" type="jbObjectStyle" column="style" />
-
-    <property name="translations" type="jblTranslations"/>
     
     <property name="featureType" column="featuretype">
       <type name="org.hibernate.type.EnumType">
@@ -143,6 +141,13 @@
       <cache usage="read-write" />
       <key column="programid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="programtranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" foreign-key="fk_objecttranslation_programid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

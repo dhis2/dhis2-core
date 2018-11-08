@@ -19,8 +19,6 @@
 
     <property name="description" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <set name="members" table="userrolemembers" inverse="true">
       <key column="userroleid" />
       <many-to-many column="userid" class="org.hisp.dhis.user.UserCredentials" />
@@ -47,6 +45,13 @@
       <cache usage="read-write" />
       <key column="userroleid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="userroletranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="userroleid" foreign-key="fk_objecttranslation_userroleid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>

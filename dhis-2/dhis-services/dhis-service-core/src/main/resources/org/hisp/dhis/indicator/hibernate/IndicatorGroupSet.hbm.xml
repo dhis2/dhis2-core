@@ -21,8 +21,6 @@
 
     <property name="compulsory" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <list name="members" table="indicatorgroupsetmembers">
       <cache usage="read-write" />
       <key column="indicatorgroupsetid" foreign-key="fk_indicatorgroupsetmembers_indicatorgroupsetid" />
@@ -30,6 +28,13 @@
       <many-to-many class="org.hisp.dhis.indicator.IndicatorGroup" column="indicatorgroupid" unique="true"
         foreign-key="fk_indicatorgroupset_indicatorgroupid" />
     </list>
+
+    <!-- Object Translation -->
+    <set name="translations" table="indicatorgroupsettranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorgroupsetid" foreign-key="fk_objecttranslation_indicatorgroupsetid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicatorgroupset_userid" />

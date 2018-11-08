@@ -88,7 +88,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -333,28 +333,28 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( Translation.class );
+        TypeReport typeReport = new TypeReport( ObjectTranslation.class );
 
-        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        List<ObjectTranslation> objectTranslations = Lists.newArrayList( object.getTranslations() );
 
         for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
         {
-            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
-            Translation translation = objectTranslations.get( idx );
+            ObjectReport objectReport = new ObjectReport( ObjectTranslation.class, idx );
+            ObjectTranslation translation = objectTranslations.get( idx );
 
             if ( translation.getLocale() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
             }
 
             if ( translation.getProperty() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
             }
 
             if ( translation.getValue() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
             }
 
             typeReport.addObjectReport( objectReport );

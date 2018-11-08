@@ -31,7 +31,12 @@
 
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
-    <property name="translations" type="jblTranslations"/>
+    <!-- Object Translation -->
+    <set name="translations" table="categoryoptiongroupsettranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupsetid" foreign-key="fk_objecttranslation_categoryoptiongroupsetid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categoryoptiongroupset_userid" />

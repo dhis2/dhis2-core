@@ -16,8 +16,6 @@
     <property name="text" column="text" not-null="true" unique="false" length="500" />
     <property name="subject" column="subject" not-null="false" unique="false" length="200" />
     <property name="processedDate" column= "processeddate" type="timestamp" not-null="false"/>
-
-    <property name="translations" type="jblTranslations"/>
     
     <set name="deliveryChannels" table="programmessage_deliverychannels" fetch="select">
       <key column="programmessagedeliverychannelsid" />
@@ -63,6 +61,13 @@
 
     <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
       column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programmessagetranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="id" foreign-key="fk_objecttranslation_programmessageid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
   </class>
 

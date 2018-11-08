@@ -25,11 +25,16 @@
       </type>
     </property>
 
+    <!-- Object Translation -->
+    <set name="translations" table="dataentryformtranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataentryformid" foreign-key="fk_objecttranslation_dataentryformid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
     <property name="htmlCode" column="htmlcode" type="text" />
 
     <property name="format" />
-
-    <property name="translations" type="jblTranslations"/>
 
   </class>
 
