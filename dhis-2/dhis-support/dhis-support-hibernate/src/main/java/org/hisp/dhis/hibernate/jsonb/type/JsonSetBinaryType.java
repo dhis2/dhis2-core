@@ -1,4 +1,4 @@
-package org.hisp.dhis.translation;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,61 +28,51 @@ package org.hisp.dhis.translation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.HashSet;
-import java.util.Locale;
+import java.io.IOException;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class TranslationServiceTest
-    extends DhisSpringTest
+public class JsonSetBinaryType
+    extends JsonBinaryType
 {
-    @Autowired
-    private UserService injectUserService;
+    static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
-
-    private User user;
-
-    @Override
-    public void setUpTest() 
+    static
     {
-        this.userService = injectUserService;
-        user = createUserAndInjectSecurityContext( true );
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
-    @Test
-    public void testOK()
+    @Override
+    protected String convertObjectToJson( Object value )
     {
-        Locale locale = Locale.FRENCH;
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        try
+        {
+            return MAPPER.writeValueAsString( value );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
 
-        DataElement dataElementA = createDataElement( 'A' );
-        identifiableObjectManager.save( dataElementA );
+    @Override
+    protected Object convertJsonToObject( String content )
+    {
+        try
+        {
+            JavaType type = MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass() );
 
-        String translatedValue = "translated";
-
-        Set<Translation> listObjectTranslation = new HashSet<>( dataElementA.getTranslations() );
-
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedValue ) );
-
-        identifiableObjectManager.updateTranslations( dataElementA, listObjectTranslation );
-
-        assertEquals( translatedValue, dataElementA.getDisplayName() );
+            return MAPPER.readValue( content, type );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 }
