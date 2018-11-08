@@ -337,7 +337,7 @@ public class DefaultProgramIndicatorService
                 
                 if ( piFunction != null )
                 {
-                    result = piFunction.evaluate( programIndicator, reportingStartDate, reportingEndDate, args );
+                    result = piFunction.evaluate( programIndicator, statementBuilder, reportingStartDate, reportingEndDate, args );
                 }
                 else
                 {
