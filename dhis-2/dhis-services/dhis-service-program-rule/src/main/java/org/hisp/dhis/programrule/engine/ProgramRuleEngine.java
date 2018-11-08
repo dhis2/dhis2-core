@@ -160,7 +160,7 @@ public class ProgramRuleEngine
             ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
-            
+
             ruleEffects.stream().map( RuleEffect::ruleAction )
                 .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
