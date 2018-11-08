@@ -35,7 +35,7 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 public abstract class BaseDateComparatorSqlFunction
     implements SqlFunction
-{   
+{
     protected abstract String compare( String startDate, String endDate );
 
     @Override
@@ -45,7 +45,7 @@ public abstract class BaseDateComparatorSqlFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
         }
-        
+
         String startDate = args[0];
         String endDate = args[1];
 
