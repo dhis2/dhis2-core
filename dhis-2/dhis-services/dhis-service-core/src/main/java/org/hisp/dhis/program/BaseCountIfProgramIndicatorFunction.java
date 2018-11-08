@@ -73,4 +73,9 @@ public abstract class BaseCountIfProgramIndicatorFunction
                 + " for program indciator:" + programIndicator.getUid() );
         }
     }
+    
+    public String getSampleValue()
+    {
+        return "1";
+    }
 }

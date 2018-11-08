@@ -38,4 +38,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 public interface ProgramIndicatorFunction
 {   
     String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args );
+    
+    String getSampleValue();
 }
