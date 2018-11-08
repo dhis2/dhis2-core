@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 
@@ -240,24 +239,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
                 errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
             }
         } );
-
-        return errors;
-    }
-
-    @Override
-    public List<String> canWrite( User user, Option option )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        if ( !aclService.canDataWrite( user, option ) )
-        {
-            errors.add( "User doesn't have data write access for Option: " + option.getUid() );
-        }
 
         return errors;
     }
