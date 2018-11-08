@@ -1,8 +1,5 @@
 package org.hisp.dhis.commons.sqlfunc;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -54,7 +51,7 @@ public abstract class BaseDateComparatorSqlFunction
 
         return compare( startDate, endDate );
     }
-    
+
     public String getSampleValue()
     {
         return "1";
