@@ -109,7 +109,7 @@ public class V2_31_9__Program_notification_template_to_templateid extends BaseJa
 
         try ( Statement stmt = context.getConnection().createStatement() )
         {
-            stmt.executeUpdate( "ALTER TABLE programruleaction DROP COLUMN programnotificationtemplateid" );
+            stmt.executeUpdate( "ALTER TABLE programruleaction DROP COLUMN IF EXISTS programnotificationtemplateid" );
         }
     }
 }
