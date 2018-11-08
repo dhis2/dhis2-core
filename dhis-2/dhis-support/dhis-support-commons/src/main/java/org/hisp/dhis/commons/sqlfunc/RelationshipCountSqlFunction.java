@@ -29,20 +29,42 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Functional interface for SQL operations.
- * 
- * @author Lars Helge Overland
+ * Function which counts the number of relationships each tracked entity instance has of a given type.
+ *
+ * @author Markus Bekken
  */
-public interface SqlFunction
+public class RelationshipCountSqlFunction
+    implements SqlFunction
 {
-    /**
-     * Evaluates the function using the given column name.
-     * 
-     * @param args the arguments.
-     * 
-     * @return the result of the evaluation.
-     */
-    String evaluate( String... args );
+    public static final String KEY = "relationshipCount";
+
+    @Override
+    public String evaluate( String... args )
+    {
+        if ( args.length > 1 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 1 or 0 arguments." );
+        }
+
+        String relationshipIdConstraint = "";
+        
+        if ( args != null )
+        {
+            String relationShipId = args[0].replaceAll( "^\"|^'|\"$|'$", "" ).trim();
+            if ( relationShipId.length() == 11 )
+            {
+                relationshipIdConstraint = " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '" 
+                    + relationShipId + "'";
+            }
+        }
+
+        return "(select count(*) from relationship r" + relationshipIdConstraint +
+                " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid" +
+                " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+    }
     
-    String getSampleValue();
+    public String getSampleValue()
+    {
+        return "1";
+    }
 }
