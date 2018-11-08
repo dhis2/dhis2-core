@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
@@ -84,21 +85,27 @@ public class DefaultProgramIndicatorService
         .put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() )
         .put( MinutesBetweenSqlFunction.KEY, new MinutesBetweenSqlFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
-        .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
+        .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
+        .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
 
     private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
-        .put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" )
-        .put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" )
-        .put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" ).put( ProgramIndicator.VAR_EVENT_COUNT, "1" )
+        .put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" )
+        .put( ProgramIndicator.VAR_EVENT_COUNT, "1" )
         .put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" )
         .put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" )
         .put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" )
-        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-01'" )
         .put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" )
         .put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
-        .put( ProgramIndicator.VAR_TEI_COUNT, "1" ).put( ProgramIndicator.VAR_VALUE_COUNT, "1" )
-        .put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" ).build();
+        .put( ProgramIndicator.VAR_TEI_COUNT, "1" )
+        .put( ProgramIndicator.VAR_VALUE_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_END, "'2017-07-07'" ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -455,7 +462,7 @@ public class DefaultProgramIndicatorService
     @Transactional
     public String expressionIsValid( String expression )
     {
-        String expr = getSubstitutedExpression( expression );
+        String expr = getSubstitutedSQLFunc( getSubstitutedExpression( expression ) );
 
         if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
             || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
@@ -474,7 +481,7 @@ public class DefaultProgramIndicatorService
     @Transactional
     public String filterIsValid( String filter )
     {
-        String expr = getSubstitutedExpression( filter );
+        String expr = getSubstitutedSQLFunc( getSubstitutedExpression( filter ) );
 
         if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
             || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
@@ -565,6 +572,32 @@ public class DefaultProgramIndicatorService
                 {
                     return ProgramIndicator.UNKNOWN_VARIABLE;
                 }
+            }
+        }
+
+        matcher.appendTail( expr );
+        
+        return expr.toString();
+    }
+    
+    /**
+     * Generates an expression where all d2:functions are substituted with a sample
+     * value in order to maintain a valid expression syntax.
+     *
+     * @param expression the expression.
+     */
+    private String getSubstitutedSQLFunc( String expression )
+    {
+        StringBuffer expr = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.SQL_FUNC_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String d2FunctionName = matcher.group( "func" );
+            if ( SQL_FUNC_MAP.containsKey( d2FunctionName ) )
+            {
+                matcher.appendReplacement( expr, SQL_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
             }
         }
 
