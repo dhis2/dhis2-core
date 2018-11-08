@@ -1,4 +1,8 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
+
+import java.util.Date;
+
+import org.hisp.dhis.jdbc.StatementBuilder;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,18 +33,31 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of days between two given dates.
+ * Function which evaluates a relation between two given dates.
  *
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public class DaysBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public abstract class BaseDateComparatorProgramIndicatorFunction
+    implements ProgramIndicatorFunction
 {
-    public static final String KEY = "daysBetween";
+    protected abstract String compare( String startDate, String endDate );
 
     @Override
-    protected String compare( String startDate, String endDate )
+    public String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingPeriodStartDate, Date reportingPeriodEndDate, String... args )
     {
-        return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+
+        String startDate = args[0];
+        String endDate = args[1];
+
+        return compare( startDate, endDate );
+    }
+
+    public String getSampleValue()
+    {
+        return "1";
     }
 }
