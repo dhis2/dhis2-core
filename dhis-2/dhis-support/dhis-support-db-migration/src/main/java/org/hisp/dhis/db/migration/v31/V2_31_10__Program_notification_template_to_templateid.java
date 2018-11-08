@@ -69,23 +69,26 @@ public class V2_31_10__Program_notification_template_to_templateid extends BaseJ
             throw new FlywayException( ex );
         }
 
-        String sql_IN = StringUtils.join( ids, "," );
-
-        try( PreparedStatement ps = context.getConnection().prepareStatement( "SELECT programnotificationtemplateid, uid FROM programnotificationtemplate WHERE programnotificationtemplateid IN ("+ sql_IN +")" ) )
+        if( ids.size() > 0 )
         {
-            ResultSet templates = null;
-
-            templates = ps.executeQuery();
-
-            while ( templates.next() )
+            String sql_IN = StringUtils.join( ids, "," );
+    
+            try( PreparedStatement ps = context.getConnection().prepareStatement( "SELECT programnotificationtemplateid, uid FROM programnotificationtemplate WHERE programnotificationtemplateid IN ("+ sql_IN +")" ) )
             {
-                templateIdUidMap.put( templates.getInt( 1 ), templates.getString( 2 ) );
+                ResultSet templates = null;
+    
+                templates = ps.executeQuery();
+    
+                while ( templates.next() )
+                {
+                    templateIdUidMap.put( templates.getInt( 1 ), templates.getString( 2 ) );
+                }
             }
-        }
-        catch ( SQLException e )
-        {
-            log.error( "Flyway java migration error:", e );
-            throw new FlywayException( e );
+            catch ( SQLException e )
+            {
+                log.error( "Flyway java migration error:", e );
+                throw new FlywayException( e );
+            }
         }
 
         try ( Statement stmt = context.getConnection().createStatement() )
