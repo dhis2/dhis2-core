@@ -30,7 +30,6 @@ package org.hisp.dhis.db.migration.helper;
 
 import java.io.*;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,9 +77,6 @@ public class JdbcSqlFileExecutor
         this.connection = connection;
         this.autoCommit = autoCommit;
         this.stopOnError = stopOnError;
-        String timeStamp = new SimpleDateFormat( "dd/mm/yyyy HH:mm:ss" ).format( new java.util.Date() );
-        println( "\n-------\n" + timeStamp + "\n-------\n" );
-        printlnError( "\n-------\n" + timeStamp + "\n-------\n" );
     }
 
     public void setDelimiter( String delimiter, boolean fullLineDelimiter )
@@ -160,15 +156,15 @@ public class JdbcSqlFileExecutor
                 }
                 else if ( trimmedLine.startsWith( "--" ) )
                 {
-                    println( trimmedLine );
+                    log.debug( trimmedLine );
                 }
                 else if ( trimmedLine.length() < 1 || trimmedLine.startsWith( "--" ) )
                 {
                     // Do nothing
                 }
-                else if ( !fullLineDelimiter && trimmedLine.endsWith( getDelimiter() ) || fullLineDelimiter && trimmedLine.equals( getDelimiter() ) )
+                else if ( !fullLineDelimiter && trimmedLine.endsWith( this.delimiter ) || fullLineDelimiter && trimmedLine.equals( this.delimiter ) )
                 {
-                    command.append( line.substring( 0, line.lastIndexOf( getDelimiter() ) ) );
+                    command.append( line.substring( 0, line.lastIndexOf( this.delimiter ) ) );
                     command.append( " " );
                     this.execCommand( conn, command, lineReader );
                     command = null;
@@ -203,7 +199,7 @@ public class JdbcSqlFileExecutor
     {
         Statement statement = conn.createStatement();
 
-        println( command );
+        log.debug( command );
 
         boolean hasResults = false;
         try
@@ -213,8 +209,7 @@ public class JdbcSqlFileExecutor
         catch ( SQLException e )
         {
             final String errText = String.format( "Error executing '%s' (line %d): %s", command, lineReader.getLineNumber(), e.getMessage() );
-            printlnError( errText );
-            System.err.println( errText );
+            log.error( errText );
             if ( stopOnError )
             {
                 throw new SQLException( errText, e );
@@ -234,17 +229,17 @@ public class JdbcSqlFileExecutor
             for ( int i = 1; i <= cols; i++ )
             {
                 String name = md.getColumnLabel( i );
-                print( name + "\t" );
+                log.debug( name + "\t" );
             }
-            println( "" );
+            log.debug( "" );
             while ( rs.next() )
             {
                 for ( int i = 1; i <= cols; i++ )
                 {
                     String value = rs.getString( i );
-                    print( value + "\t" );
+                    log.debug( value + "\t" );
                 }
-                println( "" );
+                log.debug( "" );
             }
         }
 
@@ -256,26 +251,6 @@ public class JdbcSqlFileExecutor
         {
             // Ignore to workaround a bug in Jakarta DBCP
         }
-    }
-
-    private String getDelimiter()
-    {
-        return delimiter;
-    }
-
-    private void print( Object o )
-    {
-        log.debug( o );
-    }
-
-    private void println( Object o )
-    {
-        log.debug( o );
-    }
-
-    private void printlnError( Object o )
-    {
-        log.error( o );
     }
 
 }
