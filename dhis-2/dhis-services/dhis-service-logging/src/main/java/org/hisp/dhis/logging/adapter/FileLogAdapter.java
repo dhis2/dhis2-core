@@ -62,7 +62,7 @@ public class FileLogAdapter implements LogAdapter
     @Override
     public void log( Log log, LoggingConfig config )
     {
-        Path path = Paths.get( logDirectory, "dhis2.log" );
+        Path path = Paths.get( logDirectory, config.getFileName() );
         String logText = logFormat( log, config );
 
         try
