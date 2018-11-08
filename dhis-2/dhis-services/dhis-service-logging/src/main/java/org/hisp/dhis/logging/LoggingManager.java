@@ -96,6 +96,12 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
             }
         }
 
+        // if username is still null, this is probably an internal process.. so mark it as such
+        if ( StringUtils.isEmpty( log.getUsername() ) )
+        {
+            log.setUsername( "system-process" );
+        }
+
         publisher.publishEvent( new LogEvent( this, log, getLoggingConfig() ) );
     }
 
