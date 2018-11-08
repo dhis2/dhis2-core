@@ -48,23 +48,6 @@
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
-    <!-- Access properties -->
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_option_userid" />
-
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="optionusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optionvalueid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="optionuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optionvalueid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
-
   </class>
 
 </hibernate-mapping>

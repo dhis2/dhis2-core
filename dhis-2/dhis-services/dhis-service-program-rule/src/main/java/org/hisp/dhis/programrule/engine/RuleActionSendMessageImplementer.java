@@ -57,7 +57,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction != null && ruleAction instanceof RuleActionSendMessage;
+        return ruleAction instanceof RuleActionSendMessage;
     }
 
     @Override

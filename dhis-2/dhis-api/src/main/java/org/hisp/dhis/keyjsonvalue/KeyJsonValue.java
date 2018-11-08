@@ -50,9 +50,9 @@ public class KeyJsonValue
     private String key;
 
     /**
-     * A value referenced by a key and namespace, JSON-formatted data stored as a string.
+     * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a jsonb column.
      */
-    private String plainValue;
+    private String jbPlainValue;
 
     /**
      * Whether or not this KeyJsonValue is encrypted or not. Default is false.
@@ -128,7 +128,7 @@ public class KeyJsonValue
     @JsonProperty
     public String getValue()
     {
-        return encrypted ? encryptedValue : plainValue;
+        return encrypted ? encryptedValue : jbPlainValue;
     }
 
     public void setValue( String value )
@@ -146,14 +146,14 @@ public class KeyJsonValue
         this.encrypted = encrypted;
     }
 
-    public String getPlainValue()
+    public String getJbPlainValue()
     {
-        return !this.encrypted && this.value != null ? this.value : this.plainValue;
+        return !this.encrypted && this.value != null ? this.value : this.jbPlainValue;
     }
 
-    public void setPlainValue( String plainValue )
+    public void setJbPlainValue( String jbPlainValue )
     {
-        this.plainValue = plainValue;
+        this.jbPlainValue = jbPlainValue;
     }
 
     public String getEncryptedValue()

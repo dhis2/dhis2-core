@@ -41,9 +41,8 @@
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_programruleaction_programstage" />
 
-    <many-to-one name="programNotificationTemplate" class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"
-                 column="programnotificationtemplateid" foreign-key="fk_programruleaction_programnotification" />
-    
+    <property name="templateUid" column="templateuid"/>
+
     <many-to-one name="option" class="org.hisp.dhis.option.Option"
       column="optionid" foreign-key="fk_programruleaction_option" />             
 

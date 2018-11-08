@@ -51,4 +51,9 @@ public abstract class BaseDateComparatorSqlFunction
 
         return compare( startDate, endDate );
     }
+    
+    public String getSampleValue()
+    {
+        return "1";
+    }
 }

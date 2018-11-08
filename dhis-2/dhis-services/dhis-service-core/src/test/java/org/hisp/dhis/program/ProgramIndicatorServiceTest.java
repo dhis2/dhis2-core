@@ -660,4 +660,28 @@ public class ProgramIndicatorServiceTest
         assertEquals( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION, programIndicatorService.filterIsValid( filterC ) );
         assertEquals( ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programIndicatorService.filterIsValid( filterD ) );
     }
+    
+    
+    @Test
+    public void testd2relationshipCountFilter()
+    {
+        String expected = "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join " + 
+            "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+        
+        String filter = "d2:relationshipCount()";
+        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        assertEquals( expected, actual );        
+    }
+    
+    @Test
+    public void testd2relationshipCountForOneRelationshipTypeFilter()
+    {
+        String expected = "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and " + 
+            "rt.uid = 'Zx7OEwPBUwD' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " + 
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+        
+        String filter = "d2:relationshipCount('Zx7OEwPBUwD')";
+        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        assertEquals( expected, actual );        
+    }
 }
