@@ -54,8 +54,6 @@
 
     <property name="autoGenerateEvent" />
 
-    <property name="validCompleteOnly" />
-
     <property name="validationStrategy" column="validationstrategy" length="32">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.ValidationStrategy</param>
