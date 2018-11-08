@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;

@@ -29,13 +29,9 @@
 package org.hisp.dhis;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.ClassRule;
 import org.springframework.context.annotation.*;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.startupcheck.StartupCheckStrategy;
 
 import java.util.Properties;
 

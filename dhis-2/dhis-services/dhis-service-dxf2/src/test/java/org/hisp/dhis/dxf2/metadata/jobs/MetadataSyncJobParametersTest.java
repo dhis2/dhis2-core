@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;

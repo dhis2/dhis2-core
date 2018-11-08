@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events;
 
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -59,7 +58,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashSet;

@@ -29,7 +29,6 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
