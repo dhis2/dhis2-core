@@ -84,7 +84,7 @@
                 $( '#fileDeleteConfirmationDialog' ).dialog( {
                     title: i18n_confirm_deletion,
                     resizable: false,
-                    height: 140,
+                    height: 180,
                     modal: true,
                     buttons: {
                         'Delete': function() {

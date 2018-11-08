@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -77,6 +78,9 @@ public class DefaultQueryPlanner
     @Autowired
     private QueryValidator queryValidator;
 
+    @Autowired
+    private PartitionManager partitionManager;
+
     // -------------------------------------------------------------------------
     // QueryPlanner implementation
     // -------------------------------------------------------------------------
@@ -91,6 +95,8 @@ public class DefaultQueryPlanner
         // ---------------------------------------------------------------------
 
         params = withTableNameAndPartitions( params, plannerParams );
+
+        partitionManager.filterNonExistingPartitions( params.getPartitions(), plannerParams.getTableName() );
 
         final List<DataQueryParams> queries = Lists.newArrayList( params );
 
@@ -306,7 +312,7 @@ public class DefaultQueryPlanner
     }
 
     @Override
-    public List<DataQueryParams> groupByStartEndDate( DataQueryParams params )
+    public List<DataQueryParams> groupByStartEndDateRestriction( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
@@ -317,8 +323,8 @@ public class DefaultQueryPlanner
                 Period period = (Period) item;
 
                 DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withStartDate( period.getStartDate() )
-                    .withEndDate( period.getEndDate() ).build();
+                    .withStartDateRestriction( period.getStartDate() )
+                    .withEndDateRestriction( period.getEndDate() ).build();
 
                 BaseDimensionalObject staticPeriod = (BaseDimensionalObject) query.getDimension( PERIOD_DIM_ID );
                 staticPeriod.setDimensionName( period.getIsoDate() );
@@ -332,8 +338,8 @@ public class DefaultQueryPlanner
             Period period = (Period) params.getFilterPeriods().get( 0 );
 
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withStartDate( period.getStartDate() )
-                .withEndDate( period.getEndDate() )
+                .withStartDateRestriction( period.getStartDate() )
+                .withEndDateRestriction( period.getEndDate() )
                 .removeFilter( PERIOD_DIM_ID ).build();
 
             queries.add( query );

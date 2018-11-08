@@ -30,14 +30,15 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates to the number of weeks between two given dates.
- * 
+ *
  * @author Markus Bekken
  */
 public class WeeksBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "weeksBetween";
-    
+
+    @Override
     protected String compare( String startDate, String endDate )
     {
         return "((cast(" + endDate + " as date) - cast(" + startDate + " as date))/7)";

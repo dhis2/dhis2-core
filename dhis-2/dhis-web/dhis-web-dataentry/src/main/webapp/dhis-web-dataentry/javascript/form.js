@@ -81,6 +81,9 @@ dhis2.de.currentExistingValue = null;
 // Associative array with currently-displayed period choices, keyed by iso
 dhis2.de.periodChoices = [];
 
+// Periods locked because of data input periods start and end dates
+dhis2.de.blackListedPeriods = [];
+
 // Username of user who marked the current data set as complete if any
 dhis2.de.currentCompletedByUser = null;
 
@@ -1217,6 +1220,10 @@ function dataSetSelected()
 
     dhis2.de.currentDataSetId = $( '#selectedDataSetId' ).val();
     
+    dhis2.de.blackListedPeriods = dhis2.de.dataSets[dhis2.de.currentDataSetId].dataInputPeriods
+        .filter(function(dip) { return ( dip.openingDate != "" && new Date( dip.openingDate ) > Date.now() ) || ( dip.closingDate != "" && new Date( dip.closingDate ) < Date.now() ); })
+        .map(function(dip) { return dip.period.isoPeriod; });
+    
     if ( dhis2.de.currentDataSetId && dhis2.de.currentDataSetId !== -1 )
     {
         $( '#selectedPeriodId' ).removeAttr( 'disabled' );
@@ -1271,7 +1278,7 @@ function periodSelected()
     var periodName = $( '#selectedPeriodId :selected' ).text();
 
     $( '#currentPeriod' ).html( periodName );
-    
+        
     dhis2.de.setAttributesMarkup();
     
     if ( dhis2.de.inputSelected() )
@@ -1329,17 +1336,6 @@ function displayPeriods()
     var periods = dhis2.period.generator.generateReversedPeriods( periodType, dhis2.de.currentPeriodOffset );
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
-
-    var periodWhitelist = dhis2.de.dataSets[dataSetId].dataInputPeriods
-        .filter(function(dip) { return ( dip.openingDate == "" || new Date( dip.openingDate ) <= Date.now() ) && ( dip.closingDate == "" || Date.now() <= new Date( dip.closingDate )); })
-        .map(function(dip) { return dip.period.isoPeriod; });
-  
-    if ( periodWhitelist.length > 0 ) {
-        periods = periods
-            .filter(function (period) {
-                return periodWhitelist.indexOf(period.iso) > -1
-            });
-    }
 
     clearListById( 'selectedPeriodId' );
 
@@ -1760,7 +1756,9 @@ function insertDataValues( json )
     var dataValueMap = []; // Reset
     dhis2.de.currentMinMaxValueMap = []; // Reset
     
-	if ( json.locked )
+    var period = dhis2.de.getSelectedPeriod();
+        
+	if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 )
 	{
 		dhis2.de.lockForm();
 		setHeaderDelayMessage( i18n_dataset_is_locked );
@@ -1775,10 +1773,7 @@ function insertDataValues( json )
     // Set the data-disabled attribute on any file upload fields
     $( '#contentDiv .entryfileresource' ).data( 'disabled', json.locked );
 
-    // Set data values, works for selects too as data value=select value
-    
-    var period = dhis2.de.getSelectedPeriod();
-    
+    // Set data values, works for selects too as data value=select value    
     if ( !dhis2.de.multiOrganisationUnit  )
     {	
     	if ( period )
@@ -1976,12 +1971,6 @@ function insertDataValues( json )
         $( '#completeButton' ).removeAttr( 'disabled' );
         $( '#undoButton' ).attr( 'disabled', 'disabled' );
         $( '#infoDiv' ).hide();
-    }
-
-    if ( json.locked ) 
-    {
-        $( '#contentDiv input' ).css( 'backgroundColor', '#eee' );
-        $( '.sectionFilter' ).css( 'backgroundColor', '#fff' );
     }
 }
 
@@ -3402,21 +3391,17 @@ dhis2.de.insertOptionSets = function()
         
         DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
-                    var options = [];
-                    $.each( obj.optionSet.options, function( inx, option ) {
-                        if ( !option.access.data.write ) return;
 
+                    $.each( obj.optionSet.options, function( inx, option ) {
                         option.text = option.displayName;
                         option.id = option.code;
-
-                        options.push(option);
                     } );
                     
                     $("#" + item).select2({
                         placeholder: i18n_select_option ,
                         allowClear: true,
                         dataType: 'json',
-                        data: options
+                        data: obj.optionSet.options
                     }).on("change", function(e){
                         saveVal( dataElementId, optionComboId, fieldId );
                     });
@@ -3516,6 +3501,9 @@ dhis2.de.lockForm = function()
     $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
     $( '.sectionFilter').removeAttr( 'disabled' );
     $( '#completenessDiv' ).hide();
+    
+    $( '#contentDiv input' ).css( 'backgroundColor', '#eee' );
+    $( '.sectionFilter' ).css( 'backgroundColor', '#fff' );
 }
 
 /*

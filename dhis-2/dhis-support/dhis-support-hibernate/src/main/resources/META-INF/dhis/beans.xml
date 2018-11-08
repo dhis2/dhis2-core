@@ -46,7 +46,7 @@
     <property name="hibernateConfigurationProvider" ref="hibernateConfigurationProvider" />
   </bean>
 
-  <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+  <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" depends-on="flyway">
     <property name="dataSource" ref="dataSource" />
     <property name="hibernateProperties" ref="hibernateProperties" />
     <property name="mappingJarLocations" ref="hibernateMappingJarLocations" />
@@ -70,9 +70,11 @@
     <property name="jdbcUrl" ref="url" />
     <property name="user" ref="username" />
     <property name="password" ref="password" />
+    <property name="minPoolSize" value="5" />
+    <property name="initialPoolSize" value="5" />
     <property name="maxPoolSize" ref="maxPoolSize" />
-    <property name="acquireIncrement" value="6" />
-    <property name="maxIdleTime" value="21600" />
+    <property name="acquireIncrement" value="5" />
+    <property name="maxIdleTime" value="7200" />
   </bean>
   
   <bean id="readOnlyDataSource" class="org.hisp.dhis.datasource.ReadOnlyDataSourceFactoryBean">

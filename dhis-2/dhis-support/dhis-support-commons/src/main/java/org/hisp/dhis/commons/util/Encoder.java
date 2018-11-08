@@ -32,7 +32,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Utility class for encoding.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class Encoder
@@ -93,11 +93,11 @@ public class Encoder
 
     /**
      * JavaScript-escaped the given String.
-     * 
+     *
      * @param object the object.
      * @param quoteChar the quote char.
      * @return the escaped representation.
-     * 
+     *
      * See {@link #jsEncode(String)}.
      * @deprecated quoteChar is ignored.
      */

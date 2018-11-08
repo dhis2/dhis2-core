@@ -34,6 +34,13 @@
     <property name="series" />
 
     <property name="category" />
+    
+    <list name="yearlySeries" table="chart_yearlyseries">
+      <cache usage="read-write" />
+      <key column="chartid" foreign-key="fk_yearlyseries_chartid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="yearlyseries" />
+    </list>
 
     <list name="filterDimensions" table="chart_filters">
       <cache usage="read-write" />
@@ -93,6 +100,10 @@
       <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
         foreign-key="fk_chart_periods_periodid" />
     </list>
+
+    <property name="startDate" />
+
+    <property name="endDate" />
 
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_chart_relativeperiodsid" />

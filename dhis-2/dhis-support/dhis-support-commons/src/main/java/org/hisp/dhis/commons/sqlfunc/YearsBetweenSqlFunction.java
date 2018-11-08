@@ -30,14 +30,15 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates to the number of years between two given dates.
- * 
+ *
  * @author Markus Bekken
  */
 public class YearsBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "yearsBetween";
-    
+
+    @Override
     protected String compare( String startDate, String endDate )
     {
         return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";

@@ -1,0 +1,44 @@
+# Default ignored files
+/.idea/shelf/
+/.idea/workspace.xml
+
+# Project exclude paths
+/dhis-api/target/
+/dhis-services/dhis-service-acl/target/
+/dhis-services/dhis-service-administration/target/
+/dhis-services/dhis-service-analytics/target/
+/dhis-services/dhis-service-core/target/
+/dhis-services/dhis-service-dxf2/target/
+/dhis-services/dhis-service-mobile/target/
+/dhis-services/dhis-service-node/target/
+/dhis-services/dhis-service-program-rule/target/
+/dhis-services/dhis-service-reporting/target/
+/dhis-services/dhis-service-schema/target/
+/dhis-services/dhis-service-setting/target/
+/dhis-services/dhis-service-validation/target/
+/dhis-support/dhis-support-commons/target/
+/dhis-support/dhis-support-external/target/
+/dhis-support/dhis-support-hibernate/target/
+/dhis-support/dhis-support-jdbc/target/
+/dhis-support/dhis-support-system/target/
+/dhis-support/dhis-support-test/target/
+/dhis-web/dhis-web-api/target/
+/dhis-web/dhis-web-api-mobile/target/
+/dhis-web/dhis-web-api-test/target/
+/dhis-web/dhis-web-apps/target/
+/dhis-web/dhis-web-commons/target/
+/dhis-web/dhis-web-commons-resources/target/
+/dhis-web/dhis-web-dataentry/target/
+/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/target/
+/dhis-web/dhis-web-portal/target/
+/dhis-web/dhis-web-reporting/target/
+/dhis-web/dhis-web-uaa/target/
+
+# Datasource local storage ignored files
+/.idea/dataSources/
+dataSources.local.xml
+
+# Editor-based HTTP Client requests
+/.idea/httpRequests/
+rest-client.private.env.json
+http-client.private.env.json

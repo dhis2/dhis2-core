@@ -30,14 +30,15 @@ package org.hisp.dhis.commons.sqlfunc;
 
 /**
  * Function which evaluates to the number of months between two given dates.
- * 
+ *
  * @author Markus Bekken
  */
 public class MonthsBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "monthsBetween";
-    
+
+    @Override
     protected String compare( String startDate, String endDate )
     {
         return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";

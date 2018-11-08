@@ -52,7 +52,6 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     //TODO program indicator, tracked entity attribute
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( Indicator indicator )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator";
@@ -60,77 +59,68 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( DataElement dataElement )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement";
-        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();        
+        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataElementDimensions d where d.dataElement = :dataElement";
-        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();        
+        return getQuery( hql ).setParameter( "dataElement", dataElement ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.attributeDimensions d where d.attribute = :attribute";
-        return getQuery( hql ).setParameter( "attribute", attribute ).list();        
+        return getQuery( hql ).setParameter( "attribute", attribute ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( DataSet dataSet )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.reportingRate.dataSet = :dataSet";
-        return getQuery( hql ).setParameter( "dataSet", dataSet ).list(); 
+        return getQuery( hql ).setParameter( "dataSet", dataSet ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( ProgramIndicator programIndicator )
     {
         String hql = "select distinct c from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator";
-        return getQuery( hql ).setParameter( "programIndicator", programIndicator ).list(); 
+        return getQuery( hql ).setParameter( "programIndicator", programIndicator ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( Period period )
     {
         String hql = "from " + clazz.getName() + " c where :period in elements(c.periods)";
-        return getQuery( hql ).setParameter( "period", period ).list(); 
+        return getQuery( hql ).setParameter( "period", period ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( OrganisationUnit organisationUnit )
     {
         String hql = "from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)";
-        return getQuery( hql ).setParameter( "organisationUnit", organisationUnit ).list(); 
+        return getQuery( hql ).setParameter( "organisationUnit", organisationUnit ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         String hql = "from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)";
-        return getQuery( hql ).setParameter( "categoryOptionGroup", categoryOptionGroup ).list(); 
+        return getQuery( hql ).setParameter( "categoryOptionGroup", categoryOptionGroup ).list();
     }
-    
+
     @Override
-    @SuppressWarnings("unchecked")
     public List<T> getAnalyticalObjects( LegendSet legendSet )
     {
         String hql = "from " + clazz.getName() + " c where c.legendSet = :legendSet";
         return getQuery( hql ).setParameter( "legendSet", legendSet ).list();
-    }    
-    
+    }
+
     @Override
     public int countAnalyticalObjects( Indicator indicator )
     {
@@ -166,7 +156,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
 
         return ((Long) query.uniqueResult()).intValue();
     }
-    
+
     @Override
     public int countAnalyticalObjects( Period period )
     {
