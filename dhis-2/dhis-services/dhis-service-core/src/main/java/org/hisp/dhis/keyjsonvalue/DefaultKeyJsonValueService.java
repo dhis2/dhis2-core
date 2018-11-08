@@ -112,12 +112,12 @@ public class DefaultKeyJsonValueService
     {
         KeyJsonValue value = getKeyJsonValue( namespace, key );
 
-        if ( value == null || value.getPlainValue() == null )
+        if ( value == null || value.getJbPlainValue() == null )
         {
             return null;
         }
         
-        return JacksonUtils.fromJson( value.getPlainValue(), clazz );
+        return JacksonUtils.fromJson( value.getJbPlainValue(), clazz );
     }
 
     @Override
