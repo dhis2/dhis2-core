@@ -79,7 +79,7 @@ public class FileLogAdapter implements LogAdapter
         switch ( config.getFileFormat() )
         {
             case TEXT:
-                return log.toString();
+                return log.toString() + "\n";
             case JSON:
                 return LoggingManager.toJson( log ) + "\n";
             default:
