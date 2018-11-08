@@ -25,8 +25,6 @@
 
     <property name="renderType" type="jbRenderType" column="rendertype" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_program_programstageid" />
 
@@ -45,6 +43,13 @@
     </list>
 
     <property name="sortOrder" column="sortorder" not-null="true" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programstagesectiontranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstagesectionid" foreign-key="fk_objecttranslation_programstagesectionid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
   </class>
 

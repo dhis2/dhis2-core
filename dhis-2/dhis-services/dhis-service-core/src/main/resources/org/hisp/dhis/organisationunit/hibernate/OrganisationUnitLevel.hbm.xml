@@ -21,7 +21,12 @@
 
     <property name="offlineLevels" />
 
-    <property name="translations" type="jblTranslations"/>
+    <!-- Object Translation -->
+    <set name="translations" table="orgunitleveltranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitlevelid" foreign-key="fk_objecttranslation_orgunitlevelid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
   </class>
 

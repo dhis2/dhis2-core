@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid" not-null="true" foreign-key="fk_dataapprovalworkflow_periodtypeid" />
 
     <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo" column="categorycomboid" foreign-key="fk_dataapprovalworkflow_categorycomboid" />
@@ -32,6 +30,13 @@
     <set name="dataSets" inverse="true">
       <key column="workflowid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSet" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataapprovalworkflowtranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="workflowid" foreign-key="fk_objecttranslation_workflowid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

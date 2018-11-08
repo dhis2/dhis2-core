@@ -30,7 +30,7 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
@@ -156,7 +156,7 @@ public interface IdentifiableObjectManager
 
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
-    void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
+    void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
 

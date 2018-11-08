@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <set name="members" table="usergroupmembers">
       <cache usage="read-write" />
       <key column="usergroupid" foreign-key="fk_usergroupmembers_usergroupid" />
@@ -60,6 +58,12 @@
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
+    <!-- Object Translation -->
+    <set name="translations" table="usergrouptranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="usergroupid" foreign-key="fk_objecttranslation_usergroupid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
   </class>
 

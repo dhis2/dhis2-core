@@ -23,8 +23,6 @@
 
     <property name="dataDimension" column="datadimension" not-null="true" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <list name="members" table="dataelementgroupsetmembers">
       <cache usage="read-write" />
       <key column="dataelementgroupsetid" foreign-key="fk_dataelementgroupsetmembers_dataelementgroupsetid" />
@@ -32,6 +30,13 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid"
         foreign-key="fk_dataelementgroupset_dataelementgroupid" />
     </list>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataelementgroupsettranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataelementgroupsetid" foreign-key="fk_objecttranslation_dataelementgroupsetid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelementgroupset_userid" />

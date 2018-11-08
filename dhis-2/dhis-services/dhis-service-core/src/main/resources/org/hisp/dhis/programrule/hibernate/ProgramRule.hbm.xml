@@ -19,8 +19,6 @@
 
     <property name="description" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programrule_program" not-null="true" />
 
@@ -35,6 +33,13 @@
     <property name="condition" column="rulecondition" type="text" not-null="false" />
 
     <property name="priority" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programruletranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programruleid" foreign-key="fk_objecttranslation_programruleid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
   </class>
 

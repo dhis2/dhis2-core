@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <property name="valueType" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.ValueType</param>
@@ -58,6 +56,13 @@
       <cache usage="read-write" />
       <key column="optionsetid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="optionsettranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="optionsetid" foreign-key="fk_objecttranslation_optionsetid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>

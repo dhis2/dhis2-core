@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="translations" type="jblTranslations"/>
-
     <list name="categories" table="categorycombos_categories">
       <cache usage="read-write" />
       <key column="categorycomboid" foreign-key="fk_categorycombos_categories_categorycomboid" />
@@ -37,6 +35,13 @@
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" not-null="true" />
 
     <property name="skipTotal" column="skiptotal" not-null="true" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="categorycombotranslations" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categorycomboid" foreign-key="fk_objecttranslation_categorycomboid" />
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
