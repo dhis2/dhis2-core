@@ -31,3 +31,5 @@ dhis-2/projectFilesBackup
 coverage
 node_modules
 **/rebel.xml
+package-lock.json
+

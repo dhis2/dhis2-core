@@ -1042,7 +1042,9 @@ public class TableAlteror
         //TODO: remove - not needed in release 2.26.
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
-       
+
+        executeSql( "DELETE FROM systemsetting where name = 'keyCorsWhitelist';" );
+
         updateDimensionFilterToText();
 
         log.info( "Tables updated" );
@@ -1509,20 +1511,20 @@ public class TableAlteror
 
         return idMap;
     }
-    
+
     private void updateHideEmptyRows()
     {
-        executeSql( 
+        executeSql(
             "update chart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
             "update chart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
             "alter table chart alter column hideemptyrowitems set not null; " +
             "alter table chart drop column hideemptyrows;" );
-        
+
         executeSql(
             "update eventchart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
             "update eventchart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
             "alter table eventchart alter column hideemptyrowitems set not null; " +
-            "alter table eventchart drop column hideemptyrows;" );        
+            "alter table eventchart drop column hideemptyrows;" );
     }
 
     private void updateSortOrder( String table, String col1, String col2 )
@@ -1618,10 +1620,10 @@ public class TableAlteror
             ") " +
             "where di.dataelementoperandid is not null; " +
             "alter table datadimensionitem drop column dataelementoperandid;";
-        
+
         executeSql( sql );
     }
-    
+
     /**
      * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
      * as metric.
@@ -1635,9 +1637,9 @@ public class TableAlteror
 
         executeSql( sql );
     }
-    
+
     /**
-     * Upgrades data dimension items to use embedded 
+     * Upgrades data dimension items to use embedded
      * ProgramTrackedEntityAttributeDimensionItem class.
      */
     private void upgradeDataDimensionItemToEmbeddedProgramAttribute()
@@ -1649,12 +1651,12 @@ public class TableAlteror
             "where programattributeid is not null " +
             "and (programattribute_programid is null and programattribute_attributeid is null); " +
             "alter table datadimensionitem drop column programattributeid;";
-        
+
         executeSql( sql );
     }
 
     /**
-     * Upgrades data dimension items to use embedded 
+     * Upgrades data dimension items to use embedded
      * ProgramDataElementDimensionItem class.
      */
     private void upgradeDataDimensionItemToEmbeddedProgramDataElement()
@@ -1668,10 +1670,10 @@ public class TableAlteror
             "alter table datadimensionitem drop column programdataelementid; " +
             "drop table programdataelementtranslations; " +
             "drop table programdataelement;"; // Remove if program data element is to be reintroduced
-        
+
         executeSql( sql );
     }
-    
+
     private int executeSql( String sql )
     {
         try
@@ -1830,7 +1832,7 @@ public class TableAlteror
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
     }
-    
+
     private void updateDimensionFilterToText()
     {
         executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
