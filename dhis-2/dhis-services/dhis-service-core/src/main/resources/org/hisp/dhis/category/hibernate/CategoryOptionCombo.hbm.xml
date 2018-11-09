@@ -17,6 +17,8 @@
 
     <property name="name" column="name" access="property" unique="false" not-null="false" type="text" index="in_categoryoptioncombo_name" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <set name="categoryOptions" table="categoryoptioncombos_categoryoptions">
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptioncomboid" />
@@ -28,13 +30,6 @@
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="categoryoptioncombotranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="categoryoptioncomboid" foreign-key="fk_objecttranslation_categoryoptioncomboid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <property name="ignoreApproval" column="ignoreapproval" />

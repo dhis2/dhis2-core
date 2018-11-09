@@ -19,19 +19,14 @@
     
     <property name="description" type="text" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <list name="items" table="dashboard_items"  cascade="all-delete-orphan">
       <key column="dashboardid" foreign-key="fk_dashboard_items_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="dashboarditemid" class="org.hisp.dhis.dashboard.DashboardItem"
         foreign-key="fk_dashboard_items_dashboarditemid" />
     </list>
-
-    <!-- Object Translation -->
-    <set name="translations" table="dashboardtranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="dashboardid" foreign-key="fk_objecttranslation_dashboardid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dashboard_userid" />
