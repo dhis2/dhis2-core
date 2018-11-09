@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.regex.Matcher;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.springframework.util.Assert;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
