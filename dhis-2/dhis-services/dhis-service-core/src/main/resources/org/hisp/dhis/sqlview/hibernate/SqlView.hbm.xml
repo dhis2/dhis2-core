@@ -46,7 +46,7 @@
   <set name="userGroupAccesses" table="sqlviewusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sqlviewid" foreign-key="fk_sqlview_usergroupaccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" foreign-key="fk_usergroupaccess_sqlview">
             <column name="usergroupaccessid" unique-key="uk_sqlview_usergroupaccessid"/>
  </many-to-many>
     </set>
@@ -54,7 +54,7 @@
   <set name="userAccesses" table="sqlviewuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sqlviewid" foreign-key="fk_sqlview_useraccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess">
+      <many-to-many class="org.hisp.dhis.user.UserAccess" foreign-key="fk_useraccess_sqlview">
             <column name="useraccessid" unique-key="uk_sqlview_useraccessid"/>
  </many-to-many>
     </set>

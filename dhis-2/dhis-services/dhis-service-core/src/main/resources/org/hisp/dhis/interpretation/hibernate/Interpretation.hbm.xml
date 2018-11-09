@@ -72,7 +72,7 @@
   <set name="userAccesses" table="interpretationuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_useraccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess">
+      <many-to-many class="org.hisp.dhis.user.UserAccess" foreign-key="fk_useraccess_interpretation">
             <column name="useraccessid" unique-key="uk_interpretation_useraccessid"/>
  </many-to-many>
     </set>

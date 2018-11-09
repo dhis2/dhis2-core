@@ -77,7 +77,7 @@
   <set name="userGroupAccesses" table="indicatorusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorid" foreign-key="fk_indicator_usergroupaccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" foreign-key="fk_usergroupaccess_indicator">
             <column name="usergroupaccessid" unique-key="uk_indicator_usergroupaccessid"/>
  </many-to-many>
     </set>
@@ -85,7 +85,7 @@
   <set name="userAccesses" table="indicatoruseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorid" foreign-key="fk_indicator_useraccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess">
+      <many-to-many class="org.hisp.dhis.user.UserAccess" foreign-key="fk_useraccess_indicator">
             <column name="useraccessid" unique-key="uk_indicator_useraccessid"/>
  </many-to-many>
     </set>

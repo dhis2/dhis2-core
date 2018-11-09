@@ -155,7 +155,7 @@
   <set name="userGroupAccesses" table="programusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_program_usergroupaccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" foreign-key="fk_usergroupaccess_program">
             <column name="usergroupaccessid" unique-key="uk_program_usergroupaccessid"/>
  </many-to-many>
     </set>
@@ -163,7 +163,7 @@
   <set name="userAccesses" table="programuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_program_useraccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess">
+      <many-to-many class="org.hisp.dhis.user.UserAccess" foreign-key="fk_useraccess_program">
             <column name="useraccessid" unique-key="uk_program_useraccessid"/>
  </many-to-many>
     </set>

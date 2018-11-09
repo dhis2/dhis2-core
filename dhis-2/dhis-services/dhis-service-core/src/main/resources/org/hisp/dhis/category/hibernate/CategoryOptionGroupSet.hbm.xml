@@ -42,7 +42,7 @@
   <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_categoryoptiongroupset_usergroupaccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" foreign-key="fk_usergroupaccess_categoryoptiongroupset">
             <column name="usergroupaccessid" unique-key="uk_categoryoptiongroupset_usergroupaccessid"/>
  </many-to-many>
     </set>
@@ -50,7 +50,7 @@
   <set name="userAccesses" table="categoryoptiongroupsetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_categoryoptiongroupset_useraccessid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess">
+      <many-to-many class="org.hisp.dhis.user.UserAccess" foreign-key="fk_useraccess_categoryoptiongroupset">
             <column name="useraccessid" unique-key="uk_categoryoptiongroupset_useraccessid"/>
  </many-to-many>
     </set>
