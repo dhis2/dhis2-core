@@ -160,7 +160,6 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -1549,7 +1548,7 @@ public abstract class DhisConvenienceTest
         indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
 
-        List<AnalyticsPeriodBoundary> boundaries = new ArrayList<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
         if ( analyticsType == AnalyticsType.EVENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
@@ -1560,6 +1559,13 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         }
+        
+        for ( AnalyticsPeriodBoundary boundary : boundaries ) 
+        {
+            boundary.setAutoFields();
+        }
+        
+        indicator.setAnalyticsPeriodBoundaries( boundaries );
 
         return indicator;
     }

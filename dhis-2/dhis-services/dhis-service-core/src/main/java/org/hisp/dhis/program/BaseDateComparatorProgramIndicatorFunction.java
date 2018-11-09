@@ -1,8 +1,10 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
+import java.util.regex.Matcher;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.springframework.util.Assert;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -43,13 +45,25 @@ public abstract class BaseDateComparatorProgramIndicatorFunction
     protected abstract String compare( String startDate, String endDate );
 
     @Override
-    public String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingPeriodStartDate, Date reportingPeriodEndDate, String... args )
+    public String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args )
     {
         if ( args == null || args.length != 2 )
         {
             throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
         }
 
+        for ( int i = 0; i < args.length; i++ )
+        {
+            String arg = args[i].replaceAll( "^\"|^'|\"$|'$", "" ).trim();
+            
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN.matcher( arg );
+            if ( matcher.find() ) 
+            {
+                String programStageUid = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
+                args[i] =  statementBuilder.getProgramIndicatorColumnSelectSql( programStageUid, "executiondate", reportingStartDate, reportingEndDate, programIndicator );
+            }
+        }
+        
         String startDate = args[0];
         String endDate = args[1];
 
