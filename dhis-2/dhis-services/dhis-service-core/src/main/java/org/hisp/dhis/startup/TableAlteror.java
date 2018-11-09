@@ -59,7 +59,7 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
-    
+
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -221,10 +221,10 @@ public class TableAlteror
 
         executeSql( "update dataset set categorycomboid = " + defaultCategoryComboId + " where categorycomboid is null" );
         executeSql( "alter table dataset alter column categorycomboid set not null" );
-        
+
         executeSql( "update program set categorycomboid = " + defaultCategoryComboId + " where categorycomboid is null" );
         executeSql( "alter table program alter column categorycomboid set not null" );
-        
+
         // categories_categoryoptions
         // set to 0 temporarily
         int c1 = executeSql( "UPDATE categories_categoryoptions SET sort_order=0 WHERE sort_order is NULL OR sort_order=0" );
@@ -905,9 +905,9 @@ public class TableAlteror
         executeSql( "update programstage set repeatable = false where repeatable is null" );
         executeSql( "alter table programstage drop column reportdatedescription" );
         executeSql( "alter table programstage drop column irregular" );
-        
+
         executeSql( "update smscodes set compulsory = false where compulsory is null" );
-        
+
         executeSql( "alter table programmessage drop column storecopy" );
 
         executeSql( "alter table programindicator drop column missingvaluereplacement" );
@@ -937,9 +937,9 @@ public class TableAlteror
 
         executeSql( "alter table datastatisticsevent alter column eventtype type character varying" );
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
-        
+
         executeSql( "update interpretation set likes = 0 where likes is null" );
-        
+
         executeSql( "update chart set regressiontype = 'NONE' where regression is false or regression is null" );
         executeSql( "update chart set regressiontype = 'LINEAR' where regression is true" );
         executeSql( "alter table chart alter column regressiontype set not null" );
@@ -956,11 +956,11 @@ public class TableAlteror
         executeSql( "alter table validationrule drop column sequentialsamplecount" );
         executeSql( "alter table validationrule drop column annualsamplecount" );
         executeSql( "alter table validationrule drop column sequentialskipcount" );
-        
+
         updateEnums();
 
         upgradeDataValueSoftDelete();
-        
+
         initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
@@ -990,25 +990,27 @@ public class TableAlteror
         removeOutdatedTranslationProperties();
 
         updateLegendRelationship();
-        
+
         executeSql( "update programindicator set analyticstype = 'EVENT' where analyticstype is null" );
         executeSql( "alter table programindicator alter column analyticstype set not null" );
-        
+
         //TODO: remove - not needed in release 2.26.
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
-       
+
+        executeSql( "DELETE FROM systemsetting where name = 'keyCorsWhitelist';" );
+
         updateDimensionFilterToText();
 
         log.info( "Tables updated" );
     }
-    
+
     private void removeOutdatedTranslationProperties()
     {
         executeSql( "delete from indicatortranslations where objecttranslationid in (select objecttranslationid from objecttranslation where property in ('numeratorDescription', 'denominatorDescription'))" );
         executeSql( "delete from objecttranslation where property in ('numeratorDescription', 'denominatorDescription')" );
     }
-    
+
     private void upgradeDataValueSoftDelete()
     {
         executeSql( "update datavalue set deleted = false where deleted is null" );
@@ -1111,8 +1113,8 @@ public class TableAlteror
     {
         String autoIncr = statementBuilder.getAutoIncrementValue();
         String uid = statementBuilder.getUid();
-        
-        String insertSql = 
+
+        String insertSql =
             "insert into datasetelement(datasetelementid,uid,datasetid,dataelementid,created,lastupdated) " +
             "select " + autoIncr + "  as datasetelementid, " +
             uid + " as uid, " +
@@ -1121,16 +1123,16 @@ public class TableAlteror
             "now() as created, " +
             "now() as lastupdated " +
             "from datasetmembers dsm; " +
-            "drop table datasetmembers; ";        
-        
+            "drop table datasetmembers; ";
+
         executeSql( insertSql );
-        
+
         executeSql( "alter table datasetelement alter column uid set not null" );
         executeSql( "alter table datasetelement alter column created set not null" );
         executeSql( "alter table datasetelement alter column lastupdated set not null" );
         executeSql( "alter table datasetelement alter column datasetid drop not null" );
     }
-    
+
     private void upgradeAggregationType( String table )
     {
         executeSql( "update " + table + " set aggregationtype='SUM' where aggregationtype='sum'" );
@@ -1702,7 +1704,7 @@ public class TableAlteror
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
     }
-    
+
     private void updateDimensionFilterToText()
     {
         executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );

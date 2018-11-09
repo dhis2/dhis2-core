@@ -706,7 +706,7 @@
       <dependency>
         <groupId>commons-fileupload</groupId>
         <artifactId>commons-fileupload</artifactId>
-        <version>1.3.1</version>
+        <version>1.3.3</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -1114,7 +1114,7 @@
     <spring.version>4.3.6.RELEASE</spring.version>
     <spring.security.version>3.2.10.RELEASE</spring.security.version>
     <spring.security.oauth2.version>2.0.5.RELEASE</spring.security.oauth2.version>
-    <struts.version>2.3.32</struts.version>
+    <struts.version>2.3.36</struts.version>
     <hibernate.version>5.1.3.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
     <jclouds.version>1.9.3</jclouds.version>
