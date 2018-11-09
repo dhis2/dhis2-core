@@ -98,17 +98,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementusergroupaccesses" cascade="all-delete-orphan">
+  <set name="userGroupAccesses" table="dataelementusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="dataelementid" />
+      <key column="dataelementid" foreign-key="fk_dataelement_usergroupaccessid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
             <column name="usergroupaccessid" unique-key="uk_dataelement_usergroupaccessid"/>
  </many-to-many>
     </set>
 
-    <set name="userAccesses" table="dataelementuseraccesses" cascade="all-delete-orphan">
+  <set name="userAccesses" table="dataelementuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="dataelementid" />
+      <key column="dataelementid" foreign-key="fk_dataelement_useraccessid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess">
             <column name="useraccessid" unique-key="uk_dataelement_useraccessid"/>
  </many-to-many>

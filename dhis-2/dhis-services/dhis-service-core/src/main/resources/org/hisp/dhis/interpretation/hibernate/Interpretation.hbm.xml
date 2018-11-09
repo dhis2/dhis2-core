@@ -69,9 +69,9 @@
  </many-to-many>
     </set>
 
-    <set name="userAccesses" table="interpretationuseraccesses" cascade="all-delete-orphan">
+  <set name="userAccesses" table="interpretationuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="interpretationid" />
+      <key column="interpretationid" foreign-key="fk_interpretation_useraccessid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess">
             <column name="useraccessid" unique-key="uk_interpretation_useraccessid"/>
  </many-to-many>

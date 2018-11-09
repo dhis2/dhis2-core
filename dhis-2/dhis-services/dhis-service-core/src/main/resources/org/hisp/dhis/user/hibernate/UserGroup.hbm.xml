@@ -42,17 +42,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="usergroupusergroupaccesses" cascade="all-delete-orphan">
+  <set name="userGroupAccesses" table="usergroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="usergroupid" />
+      <key column="usergroupid" foreign-key="fk_usergroup_usergroupaccessid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
             <column name="usergroupaccessid" unique-key="uk_usergroup_usergroupaccessid"/>
  </many-to-many>
     </set>
 
-    <set name="userAccesses" table="usergroupuseraccesses" cascade="all-delete-orphan">
+  <set name="userAccesses" table="usergroupuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="usergroupid" />
+      <key column="usergroupid" foreign-key="fk_usergroup_useraccessid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess">
             <column name="useraccessid" unique-key="uk_usergroup_useraccessid"/>
  </many-to-many>

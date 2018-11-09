@@ -40,17 +40,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataapprovalworkflowusergroupaccesses" cascade="all-delete-orphan">
+  <set name="userGroupAccesses" table="dataapprovalworkflowusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="workflowid" />
+      <key column="workflowid" foreign-key="fk_workflow_usergroupaccessid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
             <column name="usergroupaccessid" unique-key="uk_workflow_usergroupaccessid"/>
  </many-to-many>
     </set>
 
-    <set name="userAccesses" table="dataapprovalworkflowuseraccesses" cascade="all-delete-orphan">
+  <set name="userAccesses" table="dataapprovalworkflowuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="workflowid" />
+      <key column="workflowid" foreign-key="fk_workflow_useraccessid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess">
             <column name="useraccessid" unique-key="uk_workflow_useraccessid"/>
  </many-to-many>

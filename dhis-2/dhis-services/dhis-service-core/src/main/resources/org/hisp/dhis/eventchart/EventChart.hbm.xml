@@ -260,17 +260,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="eventchartusergroupaccesses" cascade="all-delete-orphan">
+  <set name="userGroupAccesses" table="eventchartusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="eventchartid" />
+      <key column="eventchartid" foreign-key="fk_eventchart_usergroupaccessid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
             <column name="usergroupaccessid" unique-key="uk_eventchart_usergroupaccessid"/>
  </many-to-many>
     </set>
 
-    <set name="userAccesses" table="eventchartuseraccesses" cascade="all-delete-orphan">
+  <set name="userAccesses" table="eventchartuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="eventchartid" />
+      <key column="eventchartid" foreign-key="fk_eventchart_useraccessid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess">
             <column name="useraccessid" unique-key="uk_eventchart_useraccessid"/>
  </many-to-many>
