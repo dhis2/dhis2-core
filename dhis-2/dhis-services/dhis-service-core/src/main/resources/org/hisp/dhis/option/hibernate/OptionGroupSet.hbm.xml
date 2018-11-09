@@ -16,7 +16,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="name" column="name" not-null="true" unique-key="uk_name_&tablename;" length="230" />
 
     <property name="description" type="text" />
 
@@ -28,8 +28,10 @@
       <cache usage="read-write" />
       <key column="optiongroupsetid" foreign-key="fk_optiongroupsetmembers_optiongroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.option.OptionGroup" column="optiongroupid" unique="true"
-        foreign-key="fk_optiongroupsetmembers_optiongroupid" />
+      <many-to-many class="org.hisp.dhis.option.OptionGroup"
+        foreign-key="fk_optiongroupsetmembers_optiongroupid">
+          <column name="optiongroupid" unique-key="uk_optiongroupsetmembers_optiongroupid"/>
+       </many-to-many>
     </list>
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroupset_optionsetid" />

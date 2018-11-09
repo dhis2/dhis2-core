@@ -12,7 +12,7 @@
       <generator class="native" />
     </id>
 
-    <property name="uid" column="uid" unique="true" length="11" />
+    <property name="uid" column="uid" unique-key="uk_uid_programinstance" length="11" />
 
     <property name="created" type="timestamp" not-null="true" />
 

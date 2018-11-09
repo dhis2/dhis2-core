@@ -10,9 +10,9 @@
       <generator class="native" />
     </id>
 
-    <property name="uid" column="uid" unique="true" length="11" />
+    <property name="uid" column="uid" unique-key="uk_uid_programstageinstance" length="11" />
 
-    <property name="code" column="code" not-null="false" unique="true" length="50" />
+    <property name="code" column="code" not-null="false" unique-key="uk_code_programstageinstance" length="50" />
 
     <property name="created" type="timestamp" not-null="true" />
 

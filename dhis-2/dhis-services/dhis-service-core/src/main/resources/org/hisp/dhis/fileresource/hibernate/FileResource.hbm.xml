@@ -25,7 +25,7 @@
 
     <property name="contentMd5" column="contentmd5" not-null="true" length="32" />
 
-    <property name="storageKey" column="storagekey" not-null="true" unique="true" length="1024" />
+    <property name="storageKey" column="storagekey" not-null="true" unique-key="uk_storagekey_&tablename;" length="1024" />
 
     <property name="assigned" column="isassigned" not-null="true" />
 

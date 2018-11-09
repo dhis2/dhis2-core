@@ -16,7 +16,7 @@
         </id>
         &identifiableProperties;
 
-        <property name="name" column="name" not-null="true" unique="true" length="230"/>
+        <property name="name" column="name" not-null="true" unique-key="uk_name_&tablename;" length="230"/>
 
         <property name="description" column="description" not-null="false" />
 
@@ -26,16 +26,14 @@
                      column="from_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_from_relationshipconstraintid"
                      not-null="false"
-                     unique="true"
-                     unique-key="relationshiptype_from_key"
+                     unique-key="uk_relationshiptype_from_key"
                      cascade="all-delete-orphan"/>
 
         <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="to_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_to_relationshipconstraintid"
                      not-null="false"
-                     unique="true"
-                     unique-key="relationshiptype_to_key"
+                     unique-key="uk_relationshiptype_to_key"
                      cascade="all-delete-orphan"/>
 
         <!-- Access properties -->
