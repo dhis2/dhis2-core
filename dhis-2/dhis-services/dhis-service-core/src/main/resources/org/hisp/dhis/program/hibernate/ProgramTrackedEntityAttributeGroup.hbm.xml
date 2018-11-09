@@ -32,11 +32,12 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "program_attribute_group">] 
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup" table="program_attribute_group">
+  <class name="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup" table="&tablename;">
 
     <id name="id" column="programtrackedentityattributegroupid">
       <generator class="native" />

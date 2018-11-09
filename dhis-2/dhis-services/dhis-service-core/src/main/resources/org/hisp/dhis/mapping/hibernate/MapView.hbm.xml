@@ -2,11 +2,12 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "mapview">] 
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.mapping.MapView" table="mapview">
+  <class name="org.hisp.dhis.mapping.MapView" table="&tablename;">
 
     <id name="id" column="mapviewid">
       <generator class="native" />

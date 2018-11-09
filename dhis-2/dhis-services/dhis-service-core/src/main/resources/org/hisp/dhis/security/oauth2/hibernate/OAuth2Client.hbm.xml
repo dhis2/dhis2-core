@@ -2,11 +2,12 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "oauth2client">] 
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.security.oauth2.OAuth2Client" table="oauth2client">
+  <class name="org.hisp.dhis.security.oauth2.OAuth2Client" table="&tablename;">
 
     <cache usage="read-write" />
 

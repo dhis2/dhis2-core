@@ -2,11 +2,12 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "optionset">] 
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.option.OptionSet" table="optionset">
+  <class name="org.hisp.dhis.option.OptionSet" table="&tablename;">
 
     <cache usage="read-write" />
 

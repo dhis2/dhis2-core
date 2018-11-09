@@ -2,11 +2,12 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "programrulevariable">] 
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.programrule.ProgramRuleVariable" table="programrulevariable">
+  <class name="org.hisp.dhis.programrule.ProgramRuleVariable" table="&tablename;">
 
     <cache usage="read-write" />
 

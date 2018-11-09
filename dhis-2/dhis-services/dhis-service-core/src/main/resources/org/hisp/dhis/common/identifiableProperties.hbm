@@ -1,5 +1,5 @@
-    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
-    <property name="code" column="code" not-null="false" unique="true" length="50" />
+    <property name="uid" column="uid" length="11" not-null="true" unique-key="uk_&tablename;_uid" />
+    <property name="code" column="code" not-null="false" length="50" unique-key="uk_&tablename;_code" />
     <property name="created" type="timestamp" not-null="true" />
     <property name="lastUpdated" type="timestamp" not-null="true"/>
     <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />

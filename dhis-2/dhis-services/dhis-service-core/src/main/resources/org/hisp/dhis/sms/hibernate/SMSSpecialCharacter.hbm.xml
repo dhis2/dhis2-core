@@ -2,10 +2,11 @@
 <!DOCTYPE hibernate-mapping PUBLIC
     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    [ <!ENTITY  identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm"> 
+ <!ENTITY  tablename "smsspecialcharacter">] 
     >
 <hibernate-mapping package="org.hisp.dhis.sms.command">
-	<class name="SMSSpecialCharacter" table="smsspecialcharacter">
+	<class name="SMSSpecialCharacter" table="&tablename;">
 
 		<id name="id" column="specialcharacterid">
 			<generator class="increment" />
