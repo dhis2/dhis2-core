@@ -87,10 +87,12 @@
     </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="dataelementattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="dataelementattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="dataelementid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="dataelementid" foreign-key="fk_dataelement_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_dataelement">
+       <column name="attributevalueid" unique-key="uk_dataelement_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

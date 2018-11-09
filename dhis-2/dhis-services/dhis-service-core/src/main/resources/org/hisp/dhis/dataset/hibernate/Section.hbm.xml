@@ -55,10 +55,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="sectionattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="sectionattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="sectionid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="sectionid" foreign-key="fk_section_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_section">
+       <column name="attributevalueid" unique-key="uk_section_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

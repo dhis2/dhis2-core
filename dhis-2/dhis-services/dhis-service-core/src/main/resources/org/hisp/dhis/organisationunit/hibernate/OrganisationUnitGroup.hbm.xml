@@ -63,10 +63,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="orgunitgroupattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="orgunitgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="orgunitgroupid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="orgunitgroupid" foreign-key="fk_orgunitgroup_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_orgunitgroup">
+       <column name="attributevalueid" unique-key="uk_orgunitgroup_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

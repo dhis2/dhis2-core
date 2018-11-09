@@ -86,10 +86,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="validationruleattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="validationruleattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="validationruleid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="validationruleid" foreign-key="fk_validationrule_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_validationrule">
+       <column name="attributevalueid" unique-key="uk_validationrule_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

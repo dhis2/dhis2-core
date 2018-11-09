@@ -100,10 +100,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="organisationunitattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="organisationunitattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="organisationunitid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="organisationunitid" foreign-key="fk_organisationunit_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_organisationunit">
+       <column name="attributevalueid" unique-key="uk_organisationunit_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

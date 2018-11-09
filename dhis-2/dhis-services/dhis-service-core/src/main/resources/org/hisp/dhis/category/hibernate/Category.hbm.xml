@@ -41,10 +41,12 @@
     <property name="dataDimension" column="datadimension" not-null="true" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="categoryattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="categoryattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="categoryid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="categoryid" foreign-key="fk_category_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_category">
+       <column name="attributevalueid" unique-key="uk_category_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

@@ -60,10 +60,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="sqlviewattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="sqlviewattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="sqlviewid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="sqlviewid" foreign-key="fk_sqlview_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_sqlview">
+       <column name="attributevalueid" unique-key="uk_sqlview_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

@@ -59,10 +59,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="usergroupattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="usergroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="usergroupid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="usergroupid" foreign-key="fk_usergroup_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_usergroup">
+       <column name="attributevalueid" unique-key="uk_usergroup_attributevalue"/>
+     </many-to-many>
     </set>
 
 

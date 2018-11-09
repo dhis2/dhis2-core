@@ -108,10 +108,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="trackedentityattributeid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="trackedentityattributeid" foreign-key="fk_trackedentityattribute_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_trackedentityattribute">
+       <column name="attributevalueid" unique-key="uk_trackedentityattribute_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

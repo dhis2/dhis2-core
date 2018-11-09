@@ -33,10 +33,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="optiongroupattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="optiongroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="optiongroupid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="optiongroupid" foreign-key="fk_optiongroup_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_optiongroup">
+       <column name="attributevalueid" unique-key="uk_optiongroup_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

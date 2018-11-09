@@ -48,10 +48,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="constantattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="constantattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="constantid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="constantid" foreign-key="fk_constant_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_constant">
+       <column name="attributevalueid" unique-key="uk_constant_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

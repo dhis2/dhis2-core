@@ -31,10 +31,12 @@
     <property name="translations" type="jblTranslations"/>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="documentattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="documentattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="documentid" foreign-key="fk_document_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_document">
+       <column name="attributevalueid" unique-key="uk_document_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

@@ -49,10 +49,12 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="programindicatorgroupattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="programindicatorgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="programindicatorgroupid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="programindicatorgroupid" foreign-key="fk_programindicatorgroup_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_programindicatorgroup">
+       <column name="attributevalueid" unique-key="uk_programindicatorgroup_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

@@ -47,10 +47,12 @@
     </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="trackedentitytypeattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="trackedentitytypeattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="trackedentitytypeid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="trackedentitytypeid" foreign-key="fk_trackedentitytype_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_trackedentitytype">
+       <column name="attributevalueid" unique-key="uk_trackedentitytype_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

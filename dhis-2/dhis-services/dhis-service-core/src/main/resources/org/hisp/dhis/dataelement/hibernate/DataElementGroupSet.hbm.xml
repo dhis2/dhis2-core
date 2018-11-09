@@ -57,10 +57,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="dataelementgroupsetattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="dataelementgroupsetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="dataelementgroupsetid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="dataelementgroupsetid" foreign-key="fk_dataelementgroupset_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_dataelementgroupset">
+       <column name="attributevalueid" unique-key="uk_dataelementgroupset_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

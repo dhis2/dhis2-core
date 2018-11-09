@@ -37,10 +37,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="orgunitgroupsetattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="orgunitgroupsetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="orgunitgroupsetid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="orgunitgroupsetid" foreign-key="fk_orgunitgroupset_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_orgunitgroupset">
+       <column name="attributevalueid" unique-key="uk_orgunitgroupset_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->

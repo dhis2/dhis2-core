@@ -38,10 +38,12 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="optionattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="optionattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="optionvalueid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="optionvalueid" foreign-key="fk_option_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_option">
+       <column name="attributevalueid" unique-key="uk_option_attributevalue"/>
+     </many-to-many>
     </set>
 
   </class>

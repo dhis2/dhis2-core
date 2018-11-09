@@ -100,10 +100,12 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="programstageattributevalues" cascade="all-delete-orphan">
+   <set name="attributeValues" table="programstageattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="programstageid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+      <key column="programstageid" foreign-key="fk_programstage_attributevalues"  />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" foreign-key="fk_attributevalue_programstage">
+       <column name="attributevalueid" unique-key="uk_programstage_attributevalue"/>
+     </many-to-many>
     </set>
 
     <!-- Access properties -->
