@@ -44,9 +44,9 @@ import java.util.Map;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_31_10__Program_notification_template_to_templateid extends BaseJavaMigration
+public class V2_31_3__Program_notification_template_to_templateid extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_10__Program_notification_template_to_templateid.class );
+    private static final Log log = LogFactory.getLog( V2_31_3__Program_notification_template_to_templateid.class );
 
     @Override
     public void migrate( Context context ) throws Exception
