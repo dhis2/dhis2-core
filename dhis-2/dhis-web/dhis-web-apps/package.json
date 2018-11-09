@@ -17,7 +17,6 @@
     "dashboard-app": "github:d2-ci/dashboards-app",
     "data-administration-app": "github:d2-ci/data-administration-app",
     "data-quality-app": "github:d2-ci/data-quality-app",
-    "data-visualizer-app": "github:d2-ci/data-visualizer-app",
     "datastore-app": "github:d2-ci/datastore-app",
     "event-capture-app": "github:d2-ci/event-capture-app",
     "event-reports-app": "github:d2-ci/event-reports-app",
