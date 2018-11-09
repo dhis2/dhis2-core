@@ -28,49 +28,39 @@ package org.hisp.dhis.security.ldap.authentication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * Authenticator which checks whether LDAP authentication is configured. If not,
- * the authentication will be aborted, otherwise authentication is delegated to
- * Spring BindAuthenticator.
- * 
- * @author Lars Helge Overland
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public class DhisBindAuthenticator
-    extends BindAuthenticator
+public class CustomLdapAuthenticationProvider
+    extends LdapAuthenticationProvider
 {
     @Autowired
-    private UserService userService;
-    
-    public DhisBindAuthenticator( BaseLdapPathContextSource contextSource )
+    private DhisConfigurationProvider configurationProvider;
+
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator )
     {
-        super( contextSource );
+        super( authenticator, authoritiesPopulator );
+    }
+
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator )
+    {
+       super( authenticator );
     }
 
     @Override
-    public DirContextOperations authenticate( Authentication authentication )
+    public boolean supports( Class<?> authentication )
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( authentication.getName() );
-                
-        if ( userCredentials == null )
+        if ( !configurationProvider.isLdapConfigured() )
         {
-            throw new BadCredentialsException( "Incorrect user credentials" );
+            return false;
         }
-        
-        if ( userCredentials.hasLdapId() )
-        {
-            authentication = new UsernamePasswordAuthenticationToken( userCredentials.getLdapId(), authentication.getCredentials() );
-        }
-        
-        return super.authenticate( authentication );
+
+        return super.supports( authentication );
     }
 }
