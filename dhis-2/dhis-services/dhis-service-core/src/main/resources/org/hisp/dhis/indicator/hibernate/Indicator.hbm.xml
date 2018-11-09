@@ -77,13 +77,13 @@
     <set name="userGroupAccesses" table="indicatorusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_indicator_usergroupaccessid" />
     </set>
 
     <set name="userAccesses" table="indicatoruseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_indicator_useraccessid" />
     </set>
 
     <!-- Dynamic attribute values -->

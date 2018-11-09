@@ -51,13 +51,13 @@
     <set name="userGroupAccesses" table="dataelementgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_dataelementgroup_usergroupaccessid" />
     </set>
 
     <set name="userAccesses" table="dataelementgroupuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_dataelementgroup_useraccessid" />
     </set>
 
   </class>

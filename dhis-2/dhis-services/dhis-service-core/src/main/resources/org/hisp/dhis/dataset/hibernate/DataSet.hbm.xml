@@ -140,13 +140,13 @@
     <set name="userGroupAccesses" table="datasetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_dataset_usergroupaccessid" />
     </set>
 
     <set name="userAccesses" table="datasetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_dataset_useraccessid" />
     </set>
 
   </class>

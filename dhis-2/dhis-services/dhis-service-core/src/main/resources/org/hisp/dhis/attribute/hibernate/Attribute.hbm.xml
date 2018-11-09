@@ -109,13 +109,13 @@
     <set name="userGroupAccesses" table="attributeusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="attributeid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_attribute_usergroupaccessid" />
     </set>
 
     <set name="userAccesses" table="attributeuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="attributeid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_attribute_useraccessid" />
     </set>
 
   </class>
