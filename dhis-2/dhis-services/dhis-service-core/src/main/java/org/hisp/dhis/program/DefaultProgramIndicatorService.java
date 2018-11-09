@@ -33,14 +33,9 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
-import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
-import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
-import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
-import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
-import org.hisp.dhis.commons.sqlfunc.MinutesBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
@@ -79,14 +74,19 @@ public class DefaultProgramIndicatorService
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
         .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
-        .put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() )
-        .put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() )
-        .put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() )
-        .put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() )
-        .put( MinutesBetweenSqlFunction.KEY, new MinutesBetweenSqlFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
+    
+    private static final Map<String, ProgramIndicatorFunction> PI_FUNC_MAP = ImmutableMap.<String, ProgramIndicatorFunction> builder()
+        .put( CountIfValueProgramIndicatorFunction.KEY, new CountIfValueProgramIndicatorFunction() )
+        .put( CountProgramIndicatorFunction.KEY, new CountProgramIndicatorFunction() )
+        .put( CountIfConditionProgramIndicatorFunction.KEY, new CountIfConditionProgramIndicatorFunction() )
+        .put( DaysBetweenProgramIndicatorFunction.KEY, new DaysBetweenProgramIndicatorFunction() )
+        .put( WeeksBetweenProgramIndicatorFunction.KEY, new WeeksBetweenProgramIndicatorFunction() )
+        .put( MonthsBetweenProgramIndicatorFunction.KEY, new MonthsBetweenProgramIndicatorFunction() )
+        .put( YearsBetweenProgramIndicatorFunction.KEY, new YearsBetweenProgramIndicatorFunction() )
+        .put( MinutesBetweenProgramIndicatorFunction.KEY, new MinutesBetweenProgramIndicatorFunction() ).build();
 
     private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
@@ -324,23 +324,36 @@ public class DefaultProgramIndicatorService
 
             if ( func != null && arguments != null )
             {
+                String result = "";
+                
                 String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
 
-                for ( int i = 0; i < args.length; i++ )
+                ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
+                
+                if ( piFunction != null )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
-                        reportingStartDate, reportingEndDate );
-                    args[i] = arg;
+                    result = piFunction.evaluate( programIndicator, statementBuilder, reportingStartDate, reportingEndDate, args );
                 }
-
-                SqlFunction function = SQL_FUNC_MAP.get( func );
-
-                if ( function == null )
+                else
                 {
-                    throw new IllegalStateException( "Function not recognized: " + func );
+                    SqlFunction sqlFunction = SQL_FUNC_MAP.get( func );
+    
+                    if ( sqlFunction != null )
+                    {
+                        for ( int i = 0; i < args.length; i++ )
+                        {
+                            String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
+                                reportingStartDate, reportingEndDate );
+                            args[i] = arg;
+                        }
+                        
+                        result = sqlFunction.evaluate( args );
+                    }
+                    else
+                    {
+                        throw new IllegalStateException( "Function not recognized: " + func );
+                    }
                 }
-
-                String result = function.evaluate( args );
 
                 matcher.appendReplacement( buffer, result );
             }
@@ -598,6 +611,10 @@ public class DefaultProgramIndicatorService
             if ( SQL_FUNC_MAP.containsKey( d2FunctionName ) )
             {
                 matcher.appendReplacement( expr, SQL_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
+            }
+            else if ( PI_FUNC_MAP.containsKey( d2FunctionName ) )
+            {
+                matcher.appendReplacement( expr, PI_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
             }
         }
 

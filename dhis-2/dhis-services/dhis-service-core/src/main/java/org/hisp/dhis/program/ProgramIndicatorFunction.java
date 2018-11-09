@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,16 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+
+import org.hisp.dhis.jdbc.StatementBuilder;
+
 /**
- * Function which evaluates to the number of minutes between two given dates.
- *
  * @author Markus Bekken
  */
-public class MinutesBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
-{
-    public static final String KEY = "minutesBetween";
-
-    @Override
-    protected String compare( String startDate, String endDate )
-    {
-        return "(extract(epoch from (cast(" + endDate + " as timestamp) - cast(" + startDate + " as timestamp))) / 60)";
-    }
+public interface ProgramIndicatorFunction
+{   
+    String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args );
+    
+    String getSampleValue();
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,18 +29,18 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of days between two given dates.
+ * Function which evaluates to the number of weeks between two given dates.
  *
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public class DaysBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public class WeeksBetweenProgramIndicatorFunction
+    extends BaseDateComparatorProgramIndicatorFunction
 {
-    public static final String KEY = "daysBetween";
+    public static final String KEY = "weeksBetween";
 
     @Override
     protected String compare( String startDate, String endDate )
     {
-        return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
+        return "((cast(" + endDate + " as date) - cast(" + startDate + " as date))/7)";
     }
 }

@@ -1,4 +1,9 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
+
+import java.util.Date;
+import java.util.regex.Matcher;
+
+import org.hisp.dhis.jdbc.StatementBuilder;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,18 +34,43 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of weeks between two given dates.
+ * Function which evaluates a relation between two given dates.
  *
  * @author Markus Bekken
  */
-public class WeeksBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public abstract class BaseDateComparatorProgramIndicatorFunction
+    implements ProgramIndicatorFunction
 {
-    public static final String KEY = "weeksBetween";
+    protected abstract String compare( String startDate, String endDate );
 
     @Override
-    protected String compare( String startDate, String endDate )
+    public String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args )
     {
-        return "((cast(" + endDate + " as date) - cast(" + startDate + " as date))/7)";
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+
+        for ( int i = 0; i < args.length; i++ )
+        {
+            String arg = args[i].replaceAll( "^\"|^'|\"$|'$", "" ).trim();
+            
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN.matcher( arg );
+            if ( matcher.find() ) 
+            {
+                String programStageUid = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
+                args[i] =  statementBuilder.getProgramIndicatorColumnSelectSql( programStageUid, "executiondate", reportingStartDate, reportingEndDate, programIndicator );
+            }
+        }
+        
+        String startDate = args[0];
+        String endDate = args[1];
+
+        return compare( startDate, endDate );
+    }
+
+    public String getSampleValue()
+    {
+        return "1";
     }
 }

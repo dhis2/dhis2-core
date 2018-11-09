@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,18 +29,18 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of years between two given dates.
+ * Function which evaluates to the number of months between two given dates.
  *
  * @author Markus Bekken
  */
-public class YearsBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public class MonthsBetweenProgramIndicatorFunction
+    extends BaseDateComparatorProgramIndicatorFunction
 {
-    public static final String KEY = "yearsBetween";
+    public static final String KEY = "monthsBetween";
 
     @Override
     protected String compare( String startDate, String endDate )
     {
-        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+        return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }
