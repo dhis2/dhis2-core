@@ -39,13 +39,17 @@
     <set name="userGroupAccesses" table="dashboardusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dashboardid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_dashboard_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_dashboard_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="dashboarduseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dashboardid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_dashboard_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_dashboard_useraccessid"/>
+ </many-to-many>
     </set>
     
     <property name="favorites" type="jbSet" />

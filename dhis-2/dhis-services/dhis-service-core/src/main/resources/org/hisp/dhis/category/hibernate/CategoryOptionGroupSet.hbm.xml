@@ -42,13 +42,17 @@
     <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_categoryoptiongroupset_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_categoryoptiongroupset_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="categoryoptiongroupsetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_categoryoptiongroupset_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_categoryoptiongroupset_useraccessid"/>
+ </many-to-many>
     </set>
 
     <!-- Dynamic attribute values -->

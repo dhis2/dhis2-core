@@ -70,13 +70,17 @@
     <set name="userGroupAccesses" table="dataelementcategoryoptionusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_categoryoption_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_categoryoption_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="dataelementcategoryoptionuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_categoryoption_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_categoryoption_useraccessid"/>
+ </many-to-many>
     </set>
 
   </class>

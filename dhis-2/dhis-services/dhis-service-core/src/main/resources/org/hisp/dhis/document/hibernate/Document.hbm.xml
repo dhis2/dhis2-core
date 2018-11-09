@@ -47,13 +47,17 @@
     <set name="userGroupAccesses" table="documentusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_document_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_document_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="documentuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_document_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_document_useraccessid"/>
+ </many-to-many>
     </set>
 
   </class>

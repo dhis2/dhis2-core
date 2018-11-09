@@ -115,13 +115,17 @@
     <set name="userGroupAccesses" table="programstageusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_program_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_program_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="programstageuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programstageid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_programstage_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_programstage_useraccessid"/>
+ </many-to-many>
     </set>
 
   </class>

@@ -86,13 +86,17 @@
     <set name="userGroupAccesses" table="programindicatorusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique-key="uk_programindicator_usergroupaccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess">
+            <column name="usergroupaccessid" unique-key="uk_programindicator_usergroupaccessid"/>
+ </many-to-many>
     </set>
 
     <set name="userAccesses" table="programindicatoruseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique-key="uk_programindicator_useraccessid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess">
+            <column name="useraccessid" unique-key="uk_programindicator_useraccessid"/>
+ </many-to-many>
     </set>
 
     <!-- Dynamic attribute values -->
