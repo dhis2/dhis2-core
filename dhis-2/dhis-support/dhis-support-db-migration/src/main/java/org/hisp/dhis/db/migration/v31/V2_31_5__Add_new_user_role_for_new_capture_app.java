@@ -44,9 +44,9 @@ import java.util.List;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_31_13__Add_new_user_role extends BaseJavaMigration
+public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_13__Add_new_user_role.class );
+    private static final Log log = LogFactory.getLog( V2_31_5__Add_new_user_role_for_new_capture_app.class );
 
     @Override
     public void migrate( Context context ) throws Exception

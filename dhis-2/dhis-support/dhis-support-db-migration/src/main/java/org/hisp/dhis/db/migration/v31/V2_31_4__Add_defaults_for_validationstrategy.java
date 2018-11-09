@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * @author David Katuscak
  */
-public class V2_31_12__Sets_better_validationstrategy_defaults extends BaseJavaMigration
+public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigration
 {
     @Override
     public void migrate( Context context ) throws Exception
