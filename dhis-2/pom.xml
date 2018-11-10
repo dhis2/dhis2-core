@@ -137,6 +137,19 @@
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>verify-phase-checkstyle-execution</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>checkstyle</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -276,6 +289,28 @@
             <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
             <xmlOutput>true</xmlOutput>
             <excludeFilterFile>${rootDir}findbugs-exclude.xml</excludeFilterFile>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.0.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.12</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <linkXRef>false</linkXRef>
+            <violationSeverity>error</violationSeverity>
+            <encoding>UTF-8</encoding>
+            <configLocation>checkstyle.xml</configLocation>
+            <headerLocation>checkstyle-license.txt</headerLocation>
+            <consoleOutput>true</consoleOutput>
+            <failOnViolation>false</failOnViolation>
           </configuration>
         </plugin>
 
