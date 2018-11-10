@@ -51,7 +51,7 @@
     <!-- Checks that are different from the sun coding conventions ones -->
     <!-- ************************************************************** -->
     <module name="Header">
-        <property name="headerFile" value="${maven.checkstyle.header.file}"/>
+        <property name="headerFile" value="${checkstyle.header.file}"/>
         <property name="ignoreLines" value="1,2,3,4,5,6"/>
     </module>
 
