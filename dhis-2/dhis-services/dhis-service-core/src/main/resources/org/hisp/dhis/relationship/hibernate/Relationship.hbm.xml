@@ -32,14 +32,14 @@
                      column="from_relationshipitemid"
                      foreign-key="fk_relationship_from_relationshipitemid"
                      not-null="false"
-                     unique="true"
+                     unique-key="uk_relationship_from_relationshipitemid"
                      cascade="all-delete-orphan"/>
 
         <many-to-one name="to" class="org.hisp.dhis.relationship.RelationshipItem"
                      column="to_relationshipitemid"
                      foreign-key="fk_relationship_to_relationshipitemid"
                      not-null="false"
-                     unique="true"
+                     unique-key="uk_relationship_to_relationshipitemid"
                      cascade="all-delete-orphan"/>
 
     </class>

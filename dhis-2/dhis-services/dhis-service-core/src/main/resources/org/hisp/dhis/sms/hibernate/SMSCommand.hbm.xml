@@ -49,15 +49,17 @@
 			column="datasetid" foreign-key="fk_dataset_datasetid" />
 
 		<set name="codes" table="smscommandcodes" cascade="all">
-			<key column="id" />
-			<many-to-many class="org.hisp.dhis.sms.command.code.SMSCode"
-				column="codeid" unique="true" />
+			<key column="id" foreign-key="fk_id_smscommandcodes_commands" />
+			<many-to-many class="org.hisp.dhis.sms.command.code.SMSCode">
+                <column name="codeid" unique-key="uk_codes_smscommand" />
+             </many-to-many>
 		</set>
 
 		<set name="specialCharacters" table="smscommandspecialcharacters" cascade="all">
-			<key column="smscommandid" />
-			<many-to-many class="org.hisp.dhis.sms.command.SMSSpecialCharacter"
-				column="specialcharacterid" unique="true" />
+			<key column="smscommandid" foreign-key="fk_smsspecialcharacters_command" />
+			<many-to-many class="org.hisp.dhis.sms.command.SMSSpecialCharacter">
+				<column name="specialcharacterid" unique-key="uk_specialcharacter_smscommands" />
+             </many-to-many>
 		</set>
 
 		<many-to-one name="userGroup" class="org.hisp.dhis.user.UserGroup"

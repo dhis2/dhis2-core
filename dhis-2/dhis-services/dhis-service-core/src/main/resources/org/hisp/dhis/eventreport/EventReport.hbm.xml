@@ -36,7 +36,7 @@
         foreign-key="fk_eventreport_periods_periodid" />
     </list>
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one name="relatives" unique-key="uk_eventreport_relativeperiodsid" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_eventreport_relativeperiodsid" />
 
     <list name="categoryDimensions" table="eventreport_categorydimensions" cascade="all-delete-orphan">

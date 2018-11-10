@@ -23,7 +23,9 @@
     <list name="colors" table="colorset_colors" cascade="all-delete-orphan">
       <key column="colorsetid" foreign-key="fk_colorset_colors_colorsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.color.Color" column="colorid" unique="true" foreign-key="fk_colorset_colors_colorid" />
+      <many-to-many class="org.hisp.dhis.color.Color" foreign-key="fk_colorset_colors_colorid">
+        <column name="colorid" unique-key="uk_colorset_colors_colorid"/>
+      </many-to-many>
     </list>
 
   </class>

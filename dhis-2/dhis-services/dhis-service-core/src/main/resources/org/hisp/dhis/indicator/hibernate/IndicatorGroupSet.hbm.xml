@@ -28,8 +28,10 @@
       <cache usage="read-write" />
       <key column="indicatorgroupsetid" foreign-key="fk_indicatorgroupsetmembers_indicatorgroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.indicator.IndicatorGroup" column="indicatorgroupid" unique="true"
-        foreign-key="fk_indicatorgroupset_indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.indicator.IndicatorGroup"
+        foreign-key="fk_indicatorgroupset_indicatorgroupid" >
+          <column name="indicatorgroupid" unique-key="uk_indicatorgroupset_indicatorgroupid"/>
+       </many-to-many>
     </list>
 
     <!-- Access properties -->

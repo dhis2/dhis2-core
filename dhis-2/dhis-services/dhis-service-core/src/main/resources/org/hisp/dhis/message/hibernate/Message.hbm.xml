@@ -27,8 +27,10 @@
 
     <set name="attachments" table="messageattachments" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="messageid" />
-      <many-to-many column="fileresourceid" unique="true" class="org.hisp.dhis.fileresource.FileResource" />
+      <key column="messageid" foreign-key="fk_message_attachments" />
+      <many-to-many class="org.hisp.dhis.fileresource.FileResource">
+       <column name="fileresourceid" unique-key="uk_fileresourceid_attachment"/>
+      </many-to-many>
     </set>
 
   </class>

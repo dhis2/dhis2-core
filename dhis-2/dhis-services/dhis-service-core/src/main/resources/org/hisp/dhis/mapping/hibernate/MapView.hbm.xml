@@ -48,7 +48,7 @@
 
     <property name="endDate" />    
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one name="relatives" unique-key="uk_mapview_relativeperiodsid" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
 
     <list name="organisationUnitLevels" table="mapview_orgunitlevels">

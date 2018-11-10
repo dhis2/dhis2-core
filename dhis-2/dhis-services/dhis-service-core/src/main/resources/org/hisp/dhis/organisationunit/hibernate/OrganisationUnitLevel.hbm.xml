@@ -18,7 +18,7 @@
 
     <property name="name" not-null="true" length="230" />
 
-    <property name="level" not-null="true" unique="true" />
+    <property name="level" not-null="true" unique-key="uk_level_orgunitlevel" />
 
     <property name="offlineLevels" />
 

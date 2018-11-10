@@ -33,7 +33,7 @@
     <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" column="reporttableid"
       foreign-key="fk_report_reporttableid" />
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one name="relatives" unique-key="uk_report_relativeperiodsid" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_report_relativeperiodsid" />
 
     <component name="reportParams">

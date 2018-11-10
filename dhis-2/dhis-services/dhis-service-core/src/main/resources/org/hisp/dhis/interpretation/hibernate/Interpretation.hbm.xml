@@ -45,8 +45,9 @@
     <list name="comments" table="interpretation_comments" cascade="all,delete-orphan">
       <key column="interpretationid" foreign-key="fk_interpretation_comments_interpretationid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" column="interpretationcommentid"
-        unique="true" foreign-key="fk_interpretation_comments_interpretationcommentid" />
+      <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" foreign-key="fk_interpretation_comments_interpretationcommentid">
+          <column name="interpretationcommentid" unique-key="uk_interpretation_comments_interpretationcommentid"/>
+       </many-to-many>
     </list>
 
     <property name="likes" />

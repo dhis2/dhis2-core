@@ -25,7 +25,7 @@
     </property>
 
     <property name="importDate" type="timestamp" />
-    <property name="hashCode" not-null="true" unique="true" length="50"/>
+    <property name="hashCode" not-null="true" unique-key="uk_hashcode_&tablename;" length="50"/>
 
   </class>
 </hibernate-mapping>

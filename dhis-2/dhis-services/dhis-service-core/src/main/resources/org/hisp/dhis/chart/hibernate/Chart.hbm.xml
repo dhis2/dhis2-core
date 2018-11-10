@@ -106,7 +106,7 @@
 
     <property name="endDate" />
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one name="relatives" unique-key="uk_chart_relativeperiodsid" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_chart_relativeperiodsid" />
 
     <list name="categoryDimensions" table="chart_categorydimensions" cascade="all-delete-orphan">

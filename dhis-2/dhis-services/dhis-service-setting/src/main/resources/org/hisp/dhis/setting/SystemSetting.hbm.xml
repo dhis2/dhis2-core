@@ -13,7 +13,7 @@
     </id>
 
     <property name="name">
-      <column name="name" not-null="true" unique="true" />
+      <column name="name" not-null="true" unique-key="uk_name_systemsetting" />
     </property>
 
     <property name="value" type="serializable" length="65535" />

@@ -73,8 +73,9 @@
     <list name="comments" table="programinstancecomments" cascade="all-delete-orphan">
       <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
-        unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />
+      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" foreign-key="fk_programinstancecomments_trackedentitycommentid">
+          <column name="trackedentitycommentid" unique-key="uk_programinstancecomments_trackedentitycommentid"/>
+      </many-to-many>
     </list>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
