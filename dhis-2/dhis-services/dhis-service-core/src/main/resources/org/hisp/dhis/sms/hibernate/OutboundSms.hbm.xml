@@ -11,7 +11,7 @@
     </id>
 
     <set name="recipients" table="outbound_sms_recipients" fetch="join">
-      <key column="outbound_sms_id" />
+      <key column="outbound_sms_id" foreign-key="fk_recipients_outboundsmsid" />
       <element type="text"/>
     </set>
     

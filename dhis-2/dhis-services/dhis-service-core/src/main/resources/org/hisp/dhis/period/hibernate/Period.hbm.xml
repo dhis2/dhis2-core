@@ -12,7 +12,7 @@
       <generator class="native" />
     </id>
 
-    <properties name="uniqueGroup" unique="true">
+    <properties name="uk_period_uniquekey" unique="true">
       <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" lazy="false" column="periodtypeid"
         foreign-key="fk_period_periodtypeid" />
       <property name="startDate" not-null="true" type="date" column="startdate" />

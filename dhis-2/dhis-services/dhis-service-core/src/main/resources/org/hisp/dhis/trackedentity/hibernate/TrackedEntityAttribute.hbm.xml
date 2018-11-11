@@ -45,7 +45,7 @@
 
     <list name="legendSets" table="trackedentityattributelegendsets">
       <cache usage="read-write" />
-      <key column="trackedentityattributeid" />
+      <key column="trackedentityattributeid" foreign-key="fk_trackedentityattributeid_legendsets" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
         foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>

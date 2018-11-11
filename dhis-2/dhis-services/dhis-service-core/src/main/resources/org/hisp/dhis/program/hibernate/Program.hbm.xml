@@ -115,7 +115,7 @@
     </set>
 
     <set name="notificationTemplates">
-      <key column="programid" />
+      <key column="programid" foreign-key="fk_notificationtemplate_programstageid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 

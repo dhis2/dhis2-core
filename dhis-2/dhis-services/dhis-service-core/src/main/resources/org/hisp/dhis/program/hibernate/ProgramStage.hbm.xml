@@ -49,7 +49,7 @@
     <property name="dueDateLabel" column="duedatelabel" />
 
     <set name="notificationTemplates">
-      <key column="programstageid" />
+      <key column="programstageid" foreign-key="fk_notificationtemplate_programstageid"/>
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 

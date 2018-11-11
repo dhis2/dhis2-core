@@ -17,7 +17,7 @@
 
         <property name="rightsideValue"/>
 
-        <properties name="unique-group" unique="true">
+        <properties name="uk_validationresult_uniquekey" unique="true">
 
             <many-to-one name="validationRule" class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
                          foreign-key="fk_validationresult_validationruleid"/>

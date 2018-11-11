@@ -13,7 +13,7 @@
         <property name="expiryDate" not-null="true"/>
         <property name="created" not-null="true"/>
 
-        <properties name="reserved_value_unique_group" unique="true">
+        <properties name="uk_reserved_value_unique_key" unique="true">
             <property name="ownerObject"/>
             <property name="ownerUid"/>
             <property name="key"/>
