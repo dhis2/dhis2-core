@@ -46,10 +46,10 @@
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
 
     <list name="messageConversations" table="programstageinstance_messageconversation">
-      <key column="programstageinstanceid" />
+      <key column="programstageinstanceid"  foreign-key="fk_programstageinstanceid_messageconversation"/>
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.MessageConversation"
-        column="messageconversationid" />
+        column="messageconversationid" foreign-key="fk_messageconversationid_programstageinstance" />
     </list>
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />

@@ -81,7 +81,7 @@
 
     <list name="legendSets" table="dataelementlegendsets">
       <cache usage="read-write" />
-      <key column="dataelementid" />
+      <key column="dataelementid" foreign-key="fk_legendsets_dataelementid"/>
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" />
     </list>

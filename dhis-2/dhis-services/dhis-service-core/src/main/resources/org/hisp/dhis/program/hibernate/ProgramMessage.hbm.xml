@@ -21,7 +21,7 @@
     <property name="translations" type="jblTranslations"/>
     
     <set name="deliveryChannels" table="programmessage_deliverychannels" fetch="select">
-      <key column="programmessagedeliverychannelsid" />
+      <key column="programmessagedeliverychannelsid"  foreign-key="fk_programmessage_deliverychannelsid"/>
       <element column="deliverychannel">
         <type name="org.hibernate.type.EnumType">
           <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>
@@ -48,12 +48,12 @@
       column="organisationUnitId" foreign-key="fk_programmessage_organisationunitid" not-null="false" />
 
      <set name="phoneNumbers" table="programmessage_phonenumbers" fetch="join">
-      <key column="programmessagephonenumberid" />
+      <key column="programmessagephonenumberid" foreign-key="fk_programmessage_phonenumberid"/>
       <element type="text"  column="phoneNumber" />
      </set>
     
      <set name="emailAddresses" table="programmessage_emailAddresses" fetch="join">
-      <key column="programmessageemailAddressid" />
+      <key column="programmessageemailAddressid" foreign-key="fk_programmessage_emailaddressid"/>
       <element type="text" column="email" />
      </set>
 

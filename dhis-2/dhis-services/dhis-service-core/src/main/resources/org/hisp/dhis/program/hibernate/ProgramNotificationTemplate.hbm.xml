@@ -54,7 +54,7 @@
     </property>
 
     <set name="deliveryChannels" table="programnotificationtemplate_deliverychannel" fetch="select">
-      <key column="programnotificationtemplatedeliverychannelid" />
+      <key column="programnotificationtemplatedeliverychannelid" foreign-key="fk_programnotificationtemplate_deliverychannelid" />
       <element column="deliverychannel">
         <type name="org.hibernate.type.EnumType">
           <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>

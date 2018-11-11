@@ -45,7 +45,7 @@
 
     <list name="filterDimensions" table="chart_filters">
       <cache usage="read-write" />
-      <key column="chartid" />
+      <key column="chartid" foreign-key="fk_chartid_chartfilters"/>
       <list-index column="sort_order" base="0" />
       <element type="string" column="filter" />
     </list>

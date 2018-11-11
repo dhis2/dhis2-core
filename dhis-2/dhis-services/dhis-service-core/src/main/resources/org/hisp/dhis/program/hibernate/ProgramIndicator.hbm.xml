@@ -53,7 +53,7 @@
 
     <list name="legendSets" table="programindicatorlegendsets">
       <cache usage="read-write" />
-      <key column="programindicatorid" />
+      <key column="programindicatorid" foreign-key="fk_programindicatorid_legendsets"/>
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" />
     </list>

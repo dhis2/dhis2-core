@@ -60,7 +60,7 @@
         </set>
 
         <set name="deliveryChannels" table="datasetnotificationtemplate_deliverychannel" fetch="select">
-            <key column="datasetnotificationtemplateid" />
+            <key column="datasetnotificationtemplateid" foreign-key="fk_datasetnotificationtemplateid_deliverychannel"/>
             <element column="deliverychannel">
                 <type name="org.hibernate.type.EnumType">
                     <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>

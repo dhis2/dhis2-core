@@ -119,7 +119,7 @@
 
     <list name="legendSets" table="datasetlegendsets">
       <cache usage="read-write" />
-      <key column="datasetid" />
+      <key column="datasetid" foreign-key="fk_datasetid_legendsets"/>
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataset_legendsetid"></many-to-many>
     </list>
