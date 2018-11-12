@@ -19,6 +19,8 @@
 
     <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <set name="members" table="optiongroupmembers">
       <cache usage="read-write" />
       <key column="optiongroupid" foreign-key="fk_optiongroupmembers_optionid" />
@@ -34,13 +36,6 @@
       <cache usage="read-write" />
       <key column="optiongroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="optiongrouptranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optiongroupid" foreign-key="fk_objecttranslation_optiongroupid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

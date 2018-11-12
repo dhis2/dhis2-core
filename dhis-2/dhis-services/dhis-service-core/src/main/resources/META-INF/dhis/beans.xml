@@ -42,8 +42,6 @@
 
   <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
 
-  <bean class="org.hisp.dhis.kafka.DefaultKafkaManager" />
-
   <!-- Store definitions -->
 
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

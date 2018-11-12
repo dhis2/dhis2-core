@@ -177,12 +177,7 @@
     
     <property name="styleDataItem" type="jbObject" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="mapviewtranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="mapviewid" foreign-key="fk_objecttranslation_mapviewid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="translations" type="jblTranslations"/>
 
   </class>
 

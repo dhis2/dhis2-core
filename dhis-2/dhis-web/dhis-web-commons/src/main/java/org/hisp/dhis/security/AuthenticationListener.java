@@ -72,6 +72,8 @@ public class AuthenticationListener
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
+
+        securityService.registerFailedLogin( auth.getName() );
     }
 
     @EventListener
