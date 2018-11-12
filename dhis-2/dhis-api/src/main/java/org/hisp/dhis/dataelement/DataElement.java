@@ -37,7 +37,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -50,10 +57,14 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
-import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -242,7 +253,10 @@ public class DataElement
      */
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
-        return ObjectUtils.getAll( getCategoryCombos(), CategoryCombo::getOptionCombos );
+        return getCategoryCombos().stream()
+            .map( c -> c.getOptionCombos() )
+            .flatMap( c -> c.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -534,6 +548,7 @@ public class DataElement
      *
      * @return true if this data element has an option set.
      */
+    @Override
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -566,6 +581,7 @@ public class DataElement
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
@@ -681,6 +697,7 @@ public class DataElement
         this.zeroIsSignificant = zeroIsSignificant;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OptionSet getOptionSet()

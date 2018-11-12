@@ -28,7 +28,6 @@ package org.hisp.dhis.security.ldap.authentication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +49,6 @@ public class DhisBindAuthenticator
     extends BindAuthenticator
 {
     @Autowired
-    private DhisConfigurationProvider configurationProvider;
-    
-    @Autowired
     private UserService userService;
     
     public DhisBindAuthenticator( BaseLdapPathContextSource contextSource )
@@ -63,13 +59,6 @@ public class DhisBindAuthenticator
     @Override
     public DirContextOperations authenticate( Authentication authentication )
     {
-        boolean ldapConf = configurationProvider.isLdapConfigured();
-        
-        if ( !ldapConf )
-        {
-            throw new BadCredentialsException( "LDAP authentication is not configured" );
-        }
-
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( authentication.getName() );
                 
         if ( userCredentials == null )

@@ -72,7 +72,7 @@ public class ConfigurationPopulator
         {
             log.warn( "Encryption not configured: " + status.getKey() );
         }
-        else 
+        else
         {
             log.info( "Encryption is available" );
         }

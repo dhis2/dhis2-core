@@ -161,7 +161,7 @@ public class DefaultPredictionService
         Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
         Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
 
-        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroupss(), jobId );
+        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), jobId );
     }
 
     @Override
@@ -687,12 +687,12 @@ public class DefaultPredictionService
             dataValues = getAggregateDataValues( dataElements, dataElementOperands, existingPeriods, orgUnits );
         }
 
-        if ( !eventAttributeOptionObjects.isEmpty() )
+        if ( !eventAttributeOptionObjects.isEmpty() && !allPeriods.isEmpty() )
         {
             dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, allPeriods, orgUnits ) );
         }
 
-        if ( !eventNonAttributeOptionObjects.isEmpty() )
+        if ( !eventNonAttributeOptionObjects.isEmpty() && !allPeriods.isEmpty() )
         {
             dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, allPeriods, orgUnits ) );
         }

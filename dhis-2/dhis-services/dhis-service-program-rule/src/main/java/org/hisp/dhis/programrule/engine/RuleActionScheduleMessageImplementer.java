@@ -65,7 +65,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction != null && ruleAction instanceof RuleActionScheduleMessage;
+        return ruleAction instanceof RuleActionScheduleMessage;
     }
 
     @Override

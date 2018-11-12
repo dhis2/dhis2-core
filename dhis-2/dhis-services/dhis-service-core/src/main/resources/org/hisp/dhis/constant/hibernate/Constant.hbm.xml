@@ -23,12 +23,7 @@
 
     <property name="value" not-null="true" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="constanttranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="colorid" foreign-key="fk_objecttranslation_colorid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="translations" type="jblTranslations"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_constant_userid" />
