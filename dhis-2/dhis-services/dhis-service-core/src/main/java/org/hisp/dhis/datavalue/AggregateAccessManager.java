@@ -43,14 +43,6 @@ import java.util.List;
 public interface AggregateAccessManager
 {
     /**
-     * Check if given User has DATA_WRITE access for given DataValue
-     * @param user
-     * @param dataValue
-     * @return List of errors
-     */
-    List<String> canWrite( User user, DataValue dataValue );
-
-    /**
      * Check if given User has DATA_READ access for given DataValue
      * @param user
      * @param dataValue

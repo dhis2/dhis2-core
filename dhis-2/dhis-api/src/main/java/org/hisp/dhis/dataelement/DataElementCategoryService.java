@@ -448,7 +448,8 @@ public interface DataElementCategoryService
 
     /**
      * Returns the category option combo with the given uid. Respects access control
-     * by only returning objects which all category options are accessible.
+     * by only returning objects which the current user has {@code data write} access
+     * to.
      *
      * @param property the property.
      * @param id       the id.
@@ -481,10 +482,10 @@ public interface DataElementCategoryService
      * @return the Operands for the given Collection of DataElements.
      */
     List<DataElementOperand> getOperands( Collection<DataElement> dataElements, boolean includeTotals );
-    
+
     /**
      * Returns generated Operands for the given data set. Totals are included.
-     * 
+     *
      * @param dataSet the data set.
      * @param includeTotals whether to include DataElement totals.
      * @return the Operands for the given DataSet.

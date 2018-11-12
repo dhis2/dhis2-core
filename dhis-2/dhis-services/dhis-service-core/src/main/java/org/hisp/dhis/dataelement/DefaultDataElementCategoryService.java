@@ -634,7 +634,7 @@ public class DefaultDataElementCategoryService
 
             for ( DataElementCategoryOption categoryOption : coc.getCategoryOptions() )
             {
-                if ( !aclService.canRead( user, categoryOption ) )
+                if ( !aclService.canDataWrite( user, categoryOption ) )
                 {
                     return null;
                 }

@@ -71,42 +71,6 @@ public class DefaultAggregateAccessManager
     // ---------------------------------------------------------------------
 
     @Override
-    public List<String> canWrite( User user, DataValue dataValue )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        Set<DataElementCategoryOption> options = new HashSet<>();
-
-        DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-
-        if ( categoryOptionCombo != null )
-        {
-            options.addAll( categoryOptionCombo.getCategoryOptions() );
-        }
-
-        DataElementCategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
-        {
-            options.addAll( attributeOptionCombo.getCategoryOptions() );
-        }
-
-        options.forEach( option -> {
-            if ( !aclService.canDataWrite( user, option ) )
-            {
-                errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
-            }
-        } );
-
-        return errors;
-    }
-
-    @Override
     public List<String> canRead( User user, DataValue dataValue )
     {
         List<String> errors = new ArrayList<>();
