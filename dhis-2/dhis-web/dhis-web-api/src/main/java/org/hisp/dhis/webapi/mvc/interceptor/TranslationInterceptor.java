@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

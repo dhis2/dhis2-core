@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -75,7 +74,7 @@ import java.util.Map;
 @Transactional
 public class DefaultMetadataImportService implements MetadataImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultMetadataImportService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataImportService.class );
 
     @Autowired
     private CurrentUserService currentUserService;
