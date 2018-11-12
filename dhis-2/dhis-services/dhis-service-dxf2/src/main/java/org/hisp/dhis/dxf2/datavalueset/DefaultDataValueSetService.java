@@ -178,7 +178,7 @@ public class DefaultDataValueSetService
 
     @Autowired
     private CalendarService calendarService;
-    
+
     @Autowired
     private DataValueService dataValueService;
 
@@ -225,7 +225,7 @@ public class DefaultDataValueSetService
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
                 DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
-        
+
         if ( periods != null && !periods.isEmpty() )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
@@ -248,10 +248,10 @@ public class DefaultDataValueSetService
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
                 OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
         }
-        
+
         if ( attributeOptionCombos != null )
         {
-            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
+            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
                 CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
@@ -1123,7 +1123,7 @@ public class DefaultDataValueSetService
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
             }
-            
+
             DataValue actualDataValue = null;
             if ( strategy.isDelete() && dataElement.isFileType() )
             {
@@ -1153,18 +1153,6 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
-
-            // -----------------------------------------------------------------
-            // Check if current user has permission to save this value
-            // -----------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, internalValue );
-
-            if ( !errors.isEmpty() )
-            {
-                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
-                continue;
-            }
 
             // -----------------------------------------------------------------
             // Save, update or delete data value
@@ -1230,7 +1218,7 @@ public class DefaultDataValueSetService
 
                             fileResourceService.updateFileResource( fr );
                         }
-                      
+
                         dataValueBatchHandler.updateObject( internalValue );
 
                         auditBatchHandler.addObject( auditValue );
