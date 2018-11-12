@@ -1,6 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
-
-/*
+package org.hisp.dhis.db.migration.v31;/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -28,21 +26,45 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Functional interface for SQL operations.
- * 
- * @author Lars Helge Overland
+ * @author David Katuscak
  */
-public interface SqlFunction
+public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigration
 {
-    /**
-     * Evaluates the function using the given column name.
-     * 
-     * @param args the arguments.
-     * 
-     * @return the result of the evaluation.
-     */
-    String evaluate( String... args );
-    
-    String getSampleValue();
+    @Override
+    public void migrate( Context context ) throws Exception
+    {
+
+        List<Integer> programStageIds = new ArrayList<>();
+
+        try ( Statement stmt = context.getConnection().createStatement() )
+        {
+            ResultSet rs = stmt.executeQuery( "SELECT programstageid FROM programstage ps JOIN program p ON p.programid = ps.programid WHERE p.type = 'WITHOUT_REGISTRATION'" );
+
+            while ( rs.next() )
+            {
+                programStageIds.add( rs.getInt( "programstageid" ) );
+            }
+        }
+
+        if( programStageIds.size() > 0 )
+        {
+            String inStatement = StringUtils.join( programStageIds, "," );
+            String sql = "UPDATE programstage SET validationstrategy = 'ON_UPDATE_AND_INSERT' WHERE programstageid IN (" + inStatement + ")";
+
+            try (Statement stmt = context.getConnection().createStatement())
+            {
+                stmt.executeUpdate( sql );
+            }
+        }
+    }
 }

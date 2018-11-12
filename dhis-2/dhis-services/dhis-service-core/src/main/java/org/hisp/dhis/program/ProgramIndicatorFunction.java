@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,16 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Function which evaluates to the number of days between two given dates.
- *
- * @author Lars Helge Overland
- */
-public class DaysBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
-{
-    public static final String KEY = "daysBetween";
+import java.util.Date;
 
-    @Override
-    protected String compare( String startDate, String endDate )
-    {
-        return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
-    }
+import org.hisp.dhis.jdbc.StatementBuilder;
+
+/**
+ * @author Markus Bekken
+ */
+public interface ProgramIndicatorFunction
+{   
+    String evaluate( ProgramIndicator programIndicator, StatementBuilder statementBuilder, Date reportingStartDate, Date reportingEndDate, String... args );
+    
+    String getSampleValue();
 }

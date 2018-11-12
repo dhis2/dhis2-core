@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,20 +29,18 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Functional interface for SQL operations.
- * 
- * @author Lars Helge Overland
+ * Function which evaluates to the number of weeks between two given dates.
+ *
+ * @author Markus Bekken
  */
-public interface SqlFunction
+public class WeeksBetweenProgramIndicatorFunction
+    extends BaseDateComparatorProgramIndicatorFunction
 {
-    /**
-     * Evaluates the function using the given column name.
-     * 
-     * @param args the arguments.
-     * 
-     * @return the result of the evaluation.
-     */
-    String evaluate( String... args );
-    
-    String getSampleValue();
+    public static final String KEY = "weeksBetween";
+
+    @Override
+    protected String compare( String startDate, String endDate )
+    {
+        return "((cast(" + endDate + " as date) - cast(" + startDate + " as date))/7)";
+    }
 }

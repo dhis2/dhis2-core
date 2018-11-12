@@ -1,4 +1,9 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
+
+import java.util.Arrays;
+import java.util.Date;
+
+import org.hisp.dhis.jdbc.StatementBuilder;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,20 +34,27 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Functional interface for SQL operations.
+ * Function which counts the number of occurrences of a data value within an enrollment.
  * 
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public interface SqlFunction
+public class CountProgramIndicatorFunction
+    extends BaseCountIfProgramIndicatorFunction
 {
-    /**
-     * Evaluates the function using the given column name.
-     * 
-     * @param args the arguments.
-     * 
-     * @return the result of the evaluation.
-     */
-    String evaluate( String... args );
+ 
+    public static final String KEY = "count";
     
-    String getSampleValue();
+    @Override
+    public String evaluate( ProgramIndicator programIndicator, StatementBuilder sb, Date reportingStartDate, Date reportingEndDate, String... args )
+    {
+        if ( args == null || args.length != 1 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 1 arguments: source data element to count."
+                + " Arguments passed: " + Arrays.toString( args ) );
+        }
+        
+        String condition = " is not null";
+        
+        return this.countWhereCondition( programIndicator, sb, reportingStartDate, reportingEndDate, args[0], condition );
+    }
 }

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -138,7 +139,7 @@ public class ProgramRuleAction
      * <li>sendmessage</li>
      * </ul>
      */
-    private ProgramNotificationTemplate programNotificationTemplate;
+    private String templateUid;
 
     /**
      * Used to determine which widget to display data for the two action types:
@@ -221,7 +222,7 @@ public class ProgramRuleAction
 
     public boolean hasNotification()
     {
-        return this.programNotificationTemplate != null;
+        return StringUtils.isNotBlank( this.templateUid );
     }
     
     public boolean hasOption()
@@ -277,16 +278,15 @@ public class ProgramRuleAction
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramNotificationTemplate getProgramNotificationTemplate()
+    public String getTemplateUid()
     {
-        return programNotificationTemplate;
+        return templateUid;
     }
 
-    public void setProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    public void setTemplateUid( String programNotificationTemplate )
     {
-        this.programNotificationTemplate = programNotificationTemplate;
+        this.templateUid = programNotificationTemplate;
     }
 
     @JsonProperty( "trackedEntityAttribute" )

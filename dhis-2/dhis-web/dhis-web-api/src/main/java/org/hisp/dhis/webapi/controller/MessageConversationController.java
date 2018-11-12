@@ -350,6 +350,11 @@ public class MessageConversationController
         }
 
         Set<FileResource> fileResources = new HashSet<>(  );
+        
+        if ( attachments == null )
+        {
+            attachments = new HashSet<>();
+        }
 
         for( String fileResourceUid : attachments )
         {

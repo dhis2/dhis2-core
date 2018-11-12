@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,8 +33,8 @@ package org.hisp.dhis.commons.sqlfunc;
  *
  * @author Markus Bekken
  */
-public class MinutesBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public class MinutesBetweenProgramIndicatorFunction
+    extends BaseDateComparatorProgramIndicatorFunction
 {
     public static final String KEY = "minutesBetween";
 

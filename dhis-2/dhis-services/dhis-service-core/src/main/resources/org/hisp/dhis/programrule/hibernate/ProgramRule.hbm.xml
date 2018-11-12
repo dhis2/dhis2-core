@@ -28,6 +28,7 @@
       column="programstageid" foreign-key="fk_programrule_programstage" />
 
     <set name="programRuleActions" cascade="all-delete-orphan">
+      <cache usage="read-write"/>
       <key column="programruleid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleAction" />
     </set>

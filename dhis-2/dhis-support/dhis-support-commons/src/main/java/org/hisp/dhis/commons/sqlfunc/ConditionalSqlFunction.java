@@ -54,4 +54,9 @@ public class ConditionalSqlFunction
 
         return "case when (" + conditional + ") then " + trueValue + " else " + falseValue + " end";
     }
+    
+    public String getSampleValue()
+    {
+        return "1";
+    }
 }

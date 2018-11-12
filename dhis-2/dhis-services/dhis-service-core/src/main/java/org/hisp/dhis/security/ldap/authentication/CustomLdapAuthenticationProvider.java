@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.security.ldap.authentication;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,39 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+
 /**
- * Function which evaluates to the number of years between two given dates.
- *
- * @author Markus Bekken
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public class YearsBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public class CustomLdapAuthenticationProvider
+    extends LdapAuthenticationProvider
 {
-    public static final String KEY = "yearsBetween";
+    @Autowired
+    private DhisConfigurationProvider configurationProvider;
+
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator )
+    {
+        super( authenticator, authoritiesPopulator );
+    }
+
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator )
+    {
+       super( authenticator );
+    }
 
     @Override
-    protected String compare( String startDate, String endDate )
+    public boolean supports( Class<?> authentication )
     {
-        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+        if ( !configurationProvider.isLdapConfigured() )
+        {
+            return false;
+        }
+
+        return super.supports( authentication );
     }
 }
