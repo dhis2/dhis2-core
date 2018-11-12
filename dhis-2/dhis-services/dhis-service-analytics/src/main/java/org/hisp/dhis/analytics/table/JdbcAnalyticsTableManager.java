@@ -137,6 +137,7 @@ public class JdbcAnalyticsTableManager
     {
         if ( isApprovalEnabled( null ) )
         {
+            resourceTableService.generateDataApprovalRemapLevelTable();
             resourceTableService.generateDataApprovalMinLevelTable();
         }
     }
