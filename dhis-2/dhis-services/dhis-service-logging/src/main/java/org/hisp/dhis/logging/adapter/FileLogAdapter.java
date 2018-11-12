@@ -45,7 +45,6 @@ import java.nio.file.StandardOpenOption;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
 public class FileLogAdapter implements LogAdapter
 {
     private final LocationManager locationManager;
