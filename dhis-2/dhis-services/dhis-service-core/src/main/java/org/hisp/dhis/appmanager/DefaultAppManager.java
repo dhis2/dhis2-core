@@ -78,9 +78,9 @@ public class DefaultAppManager
     public List<App> getApps( String contextPath )
     {
         List<App> apps = Lists.newArrayList( getAppMap().values() );
-        
+
         apps.forEach( a -> a.init( contextPath ) );
-        
+
         return apps;
     }
 
@@ -92,7 +92,7 @@ public class DefaultAppManager
             .limit( max )
             .collect( Collectors.toList() );
     }
-    
+
     @Override
     public App getApp( String appName )
     {
@@ -254,9 +254,11 @@ public class DefaultAppManager
 
         UserCredentials userCredentials = user.getUserCredentials();
 
-        return userCredentials.getAllAuthorities().contains( "ALL" ) ||
-            userCredentials.getAllAuthorities().contains( "M_dhis-web-maintenance-appmanager" ) ||
-            userCredentials.getAllAuthorities().contains( "See " + app.getName().trim() );
+        Set<String> auths = userCredentials.getAllAuthorities();
+
+        return auths.contains( "ALL" ) ||
+            auths.contains( "M_dhis-web-maintenance-appmanager" ) ||
+            auths.contains( "See " + app.getName().trim() );
     }
 
     @Override
