@@ -28,13 +28,11 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -130,7 +128,7 @@ public class ObjectUtils
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -173,22 +171,5 @@ public class ObjectUtils
         List<String> list = collection.stream().map( stringMapper ).collect( Collectors.toList() );
 
         return StringUtils.join( list, separator );
-    }
-
-    /**
-     * Returns a Set of unique items based on the given collection of items. For
-     * each item the given collectionMapper function is applied, and the produced
-     * collection of items are added to the final set.
-     *
-     * @param items            a collection of items.
-     * @param collectionMapper a function expected to produce a collection for
-     *                         each item in the given collection.
-     * @return a Set of items.
-     */
-    public static <T, U, V extends Collection<U>> Set<U> getAll( Collection<T> items, Function<T, V> collectionMapper )
-    {
-        Set<U> set = Sets.newHashSet();
-        items.forEach( item -> set.addAll( collectionMapper.apply( item ) ) );
-        return set;
     }
 }

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.31-SNAPSHOT</version>
+  <version>2.32-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
   <url>http://dhis2.org</url>
@@ -390,6 +390,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-logging</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-node</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -472,6 +477,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-external</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-kafka</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -947,7 +957,7 @@
         <artifactId>postgresql</artifactId>
         <version>42.2.5</version>
       </dependency>
-      
+
       <!-- Flyway -->
       <dependency>
         <groupId>org.flywaydb</groupId>
@@ -1092,6 +1102,16 @@
         <artifactId>jackson-dataformat-csv</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
       <!-- GeoTools -->
       <dependency>
@@ -1222,7 +1242,7 @@
         <artifactId>spring-restdocs-mockmvc</artifactId>
         <version>1.1.2.RELEASE</version>
         <scope>test</scope>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>com.vividsolutions</groupId>
         <artifactId>jts-io</artifactId>
