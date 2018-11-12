@@ -69,7 +69,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -523,11 +522,14 @@ public abstract class AbstractEnrollmentService
         // We allow import of CANCELLED and COMPLETED enrollments because the endpoint is used for bulk import and sync purposes as well
         if ( enrollment.getStatus() != EnrollmentStatus.CANCELLED )
         {
-            params.setProgramStatus( ProgramStatus.ACTIVE );
             List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
 
+            Set<Enrollment> activeEnrollments = enrollments.stream()
+                .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE )
+                .collect( Collectors.toSet());
+
             // When an enrollment with status COMPLETED or CANCELLED is being imported, no check whether there is already some ACTIVE one is needed
-            if ( !enrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE )
+            if ( !activeEnrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
@@ -540,11 +542,12 @@ public abstract class AbstractEnrollmentService
             // The error of enrolling more than once is possible only if the imported enrollment has a state other than CANCELLED
             if ( program.getOnlyEnrollOnce() )
             {
-                // In addition find whether there is some COMPLETED enrollment as well (there can be only 1 enrollment with status either ACTIVE or COMPLETED ever)
-                params.setProgramStatus( ProgramStatus.COMPLETED );
-                enrollments.addAll( getEnrollments( programInstanceService.getProgramInstances( params ) ) );
 
-                if ( !enrollments.isEmpty() )
+                Set<Enrollment> activeOrCompletedEnrollments = enrollments.stream()
+                    .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE || e.getStatus() == EnrollmentStatus.COMPLETED )
+                    .collect( Collectors.toSet());
+
+                if ( !activeOrCompletedEnrollments.isEmpty() )
                 {
                     importSummary.setStatus( ImportStatus.ERROR );
                     importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
