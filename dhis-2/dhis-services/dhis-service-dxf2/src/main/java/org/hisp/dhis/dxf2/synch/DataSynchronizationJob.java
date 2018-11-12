@@ -93,7 +93,7 @@ public class DataSynchronizationJob
         }
         catch ( WebMessageParseException e )
         {
-            log.error("Error while executing data completeness task. "+ e.getMessage(), e );
+            log.error( "Error while executing data completeness task. "+ e.getMessage(), e );
         }
 
         try

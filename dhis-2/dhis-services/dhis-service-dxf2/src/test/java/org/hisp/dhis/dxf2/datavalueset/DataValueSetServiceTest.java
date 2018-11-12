@@ -206,8 +206,8 @@ public class DataValueSetServiceTest
         dsA = createDataSet( 'A', new MonthlyPeriodType() );
         dsA.setCategoryCombo( categoryComboDef );
 
-        dsB = createDataSet('B');
-        dsB.setCategoryCombo(categoryComboDef);
+        dsB = createDataSet( 'B' );
+        dsB.setCategoryCombo( categoryComboDef );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -294,7 +294,7 @@ public class DataValueSetServiceTest
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        _userService.addUser(user);
+        _userService.addUser( user );
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration(dsA, peA, ouA, categoryOptionCombo,
                 getDate( 2012, 1, 9 ), "userA", user, new
                 Date(), true);
@@ -324,8 +324,8 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals("10002", ((List<DataValue>) dataValues).get(1).getValue());
-        assertEquals("10003", ((List<DataValue>) dataValues).get(2).getValue());
+        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
+        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
 
@@ -359,8 +359,8 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals("10002", ((List<DataValue>) dataValues).get(1).getValue());
-        assertEquals("10003", ((List<DataValue>) dataValues).get(2).getValue());
+        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
+        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
 
@@ -941,8 +941,8 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals("10002", ((List<DataValue>) dataValues).get(1).getValue());
-        assertEquals("10003", ((List<DataValue>) dataValues).get(2).getValue());
+        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
+        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
 
         assertEquals( 3, auditValues.size() );
     }

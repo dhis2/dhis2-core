@@ -54,5 +54,5 @@ public interface CompleteDataSetRegistrationExchangeStore
      */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 
-    void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 }

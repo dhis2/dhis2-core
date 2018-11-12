@@ -80,7 +80,7 @@ public interface CompleteDataSetRegistrationExchangeService
      */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
 
-    void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream,IdSchemes idSchemes);
+    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,IdSchemes idSchemes );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from an XML payload.

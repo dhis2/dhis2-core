@@ -39,7 +39,7 @@ import org.hisp.dhis.user.User;
 /**
  * @author Halvdan Hoem Grelland
  */
-@JacksonXmlRootElement( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = ":", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
 {
     //--------------------------------------------------------------------------
@@ -121,8 +121,8 @@ public class CompleteDataSetRegistration
                 .add( FIELD_DATE, date )
                 .add( FIELD_STORED_BY, storedBy )
                 .add( FIELD_LAST_UPDATED_BY, lastUpdatedBy )
-                .add(FIELD_LAST_UPDATED, lastUpdated)
-                .add(FIELD_IS_COMPLETED,completed)
+                .add( FIELD_LAST_UPDATED, lastUpdated )
+                .add( FIELD_IS_COMPLETED,completed )
                 .toString();
     }
 
@@ -225,7 +225,7 @@ public class CompleteDataSetRegistration
         return lastUpdated;
     }
 
-    public void setLastUpdated(String lastUpdated )
+    public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
     }

@@ -73,9 +73,9 @@ public class DataValueSynchronization
 
 
     @Autowired
-    public DataValueSynchronization(DataValueService dataValueService, DataValueSetService dataValueSetService,
+    public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService,
                                     SystemSettingManager systemSettingManager, RestTemplate restTemplate,
-                                    SynchronizationManager synchronizationManager)
+                                    SynchronizationManager synchronizationManager )
     {
         this.dataValueService = dataValueService;
         this.dataValueSetService = dataValueSetService;
@@ -152,7 +152,8 @@ public class DataValueSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
 
-    public SynchronizationResult syncCompleteness() {
+    public SynchronizationResult syncCompleteness()
+    {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
             return SynchronizationResult.newFailureResultWithMessage( "Completeness Synchronisation failed. Remote " +
@@ -167,13 +168,13 @@ public class DataValueSynchronization
         ImportSummary importSummary;
         try {
             importSummary = synchronizationManager.executeDataSetCompletenessPush();
-            if (checkSummaryStatus(importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS)) {
+            if ( checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) ) {
                 clock.logTime( "SUCCESS! Completeness Synchronisation job is done. It took" );
                 setLastDataValueSynchronizationSuccess( new Date( clock.getStartTime() ) );
                 return SynchronizationResult.newSuccessResultWithMessage( "Completeness Synchronisation done. It took " + clock.getTime() + " ms." );
             }
 
-        } catch (Exception ex) {
+        } catch ( Exception ex ) {
             log.error( "Exception happened while trying to completeness push " + ex.getMessage(), ex );
         }
         return SynchronizationResult.newFailureResultWithMessage( "Completeness Synchronisation failed.");

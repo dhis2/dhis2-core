@@ -2074,7 +2074,7 @@ function getPreviousEntryField( field )
 // Data completeness
 // -----------------------------------------------------------------------------
 
-function registerCompleteDataSet(completedStatus)
+function registerCompleteDataSet( completedStatus )
 {
 	if ( !confirm( i18n_confirm_complete ) )
 	{

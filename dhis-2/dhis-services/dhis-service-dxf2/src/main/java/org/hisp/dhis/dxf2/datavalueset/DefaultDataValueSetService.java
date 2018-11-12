@@ -1360,7 +1360,7 @@ public class DefaultDataValueSetService
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username,completeAlready.getLastUpdatedBy(),completeDate,completeAlready.getCompleted());
+                    attributeOptionCombo, completeDate, username, completeAlready.getLastUpdatedBy(), completeDate, completeAlready.getCompleted() );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }

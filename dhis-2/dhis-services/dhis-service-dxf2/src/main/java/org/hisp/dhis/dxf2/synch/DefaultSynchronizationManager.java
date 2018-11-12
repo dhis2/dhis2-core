@@ -139,8 +139,8 @@ public class DefaultSynchronizationManager
         }
 
         String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "api/completeDataSetRegistrations";
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        String username = ( String ) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        String password = ( String ) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
         SystemInstance instance = new SystemInstance( url, username, password );
 
@@ -154,7 +154,7 @@ public class DefaultSynchronizationManager
 
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
-        final int lastUpdatedCount = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter(lastSuccessTime );
+        final int lastUpdatedCount = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter( lastSuccessTime );
 
         log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
 
@@ -164,8 +164,6 @@ public class DefaultSynchronizationManager
             log.debug( "Skipping completeness synch, no new or updated data values" );
             return null;
         }
-
-        log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
 
         log.info( "Remote server POST URL: " + instance.getUrl() );
 
@@ -179,6 +177,7 @@ public class DefaultSynchronizationManager
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
         ImportSummary summary = null;
+
         try
         {
             summary = restTemplate

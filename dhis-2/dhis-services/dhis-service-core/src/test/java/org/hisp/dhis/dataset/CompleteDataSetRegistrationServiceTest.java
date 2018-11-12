@@ -123,7 +123,7 @@ public class CompleteDataSetRegistrationServiceTest
         sourceC = createOrganisationUnit( 'C' );
 
         user = createUser( 'A' );
-        userService.addUser(user);
+        userService.addUser( user );
 
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
@@ -210,7 +210,7 @@ public class CompleteDataSetRegistrationServiceTest
     public void testSaveGet()
     {
         registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "",user,new Date(  ),true );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" ,user,new Date(  ),true);
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" ,user,new Date(  ),true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -260,9 +260,9 @@ public class CompleteDataSetRegistrationServiceTest
     public void testDeleteByDataSet()
     {
         registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "",user, onTimeA,true );
-        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true);
-        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true);
-        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true);
+        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
+        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
+        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );

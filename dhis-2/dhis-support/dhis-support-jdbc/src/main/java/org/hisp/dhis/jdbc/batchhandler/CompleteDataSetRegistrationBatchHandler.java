@@ -141,7 +141,7 @@ public class CompleteDataSetRegistrationBatchHandler
             getLongDateString( registration.getDate() ),
             registration.getStoredBy(),
             registration.getLastUpdatedBy().getId(),
-                getLongDateString(registration.getLastUpdated()),
+                getLongDateString( registration.getLastUpdated() ),
             registration.getCompleted() );
     }
 

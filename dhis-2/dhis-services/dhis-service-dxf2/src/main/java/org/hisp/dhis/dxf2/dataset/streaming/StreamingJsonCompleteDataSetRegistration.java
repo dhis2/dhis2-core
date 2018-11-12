@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.user.User;
+import org.jfree.util.Log;
 
 import java.io.IOException;
 
@@ -141,7 +142,7 @@ public class StreamingJsonCompleteDataSetRegistration
     @Override
     public void setLastUpdatedBy( User lastUpdatedBy )
     {
-        writeObject( lastUpdatedBy);
+        writeObject( lastUpdatedBy );
     }
 
 
@@ -162,7 +163,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            // Intentionally ignored
+            Log.error( e.getMessage() );
         }
     }
 
@@ -175,11 +176,11 @@ public class StreamingJsonCompleteDataSetRegistration
 
         try
         {
-            generator.writeFieldName( FIELD_LAST_UPDATED_BY);
+            generator.writeFieldName( FIELD_LAST_UPDATED_BY );
 
             generator.writeStartObject();
 
-            generator.writeObjectField( "id", user.getUid());
+            generator.writeObjectField( "id", user.getUid() );
             generator.writeObjectField( "name", user.getDisplayName() );
 
             generator.writeEndObject();
@@ -187,7 +188,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            // Intentionally ignored
+            Log.error( e.getMessage() );
         }
     }
 
@@ -205,7 +206,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            // Intentionally ignored
+            Log.error( e.getMessage() );
         }
     }
 }

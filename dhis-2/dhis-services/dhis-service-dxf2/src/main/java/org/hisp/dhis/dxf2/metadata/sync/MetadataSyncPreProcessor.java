@@ -260,7 +260,7 @@ public class MetadataSyncPreProcessor
         return null;
     }
 
-    public void handleDataSetCompletenessPush(MetadataRetryContext context) {
+    public void handleDataSetCompletenessPush( MetadataRetryContext context ) {
         SynchronizationResult completenessSynchronizationResult = dataValueSync.syncCompleteness();
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )

@@ -189,7 +189,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
             criteria.add( Restrictions.ge( "lastUpdated", date ) );
         }
 
-        Number rs = (Number) criteria.uniqueResult();
+        Number rs = ( Number ) criteria.uniqueResult();
 
         return rs != null ? rs.intValue() : 0;
     }

@@ -95,7 +95,7 @@ public class CompleteDataSetRegistration
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
         CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, User lastUpdatedBy, Date lastUpdated,
-                                        Boolean isCompleted )
+                                        Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
@@ -105,7 +105,7 @@ public class CompleteDataSetRegistration
         this.storedBy = storedBy;
         this.lastUpdatedBy = lastUpdatedBy;
         this.lastUpdated = lastUpdated;
-        this.completed = isCompleted;
+        this.completed = completed;
     }
 
     // -------------------------------------------------------------------------
@@ -334,7 +334,7 @@ public class CompleteDataSetRegistration
                 .add( "attributeOptionCombo", attributeOptionCombo )
                 .add( "date", date )
                 .add( "storedBy", storedBy )
-                .add("lastUpdatedBy", lastUpdatedBy )
+                .add( "lastUpdatedBy", lastUpdatedBy )
                 .add( "periodName", periodName )
                 .add( "lastUpdated", lastUpdated )
                 .add( "isCompleted", completed )

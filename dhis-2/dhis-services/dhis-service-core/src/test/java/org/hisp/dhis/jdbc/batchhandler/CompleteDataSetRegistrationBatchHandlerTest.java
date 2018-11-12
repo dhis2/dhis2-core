@@ -95,7 +95,7 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     
     private String storedBy = "johndoe";
 
-    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore = mock(CompleteDataSetRegistrationStore.class);
+    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore = mock( CompleteDataSetRegistrationStore.class );
     
     // -------------------------------------------------------------------------
     // Fixture
@@ -127,11 +127,11 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         User lastUpdatedBy = new User();
-        lastUpdatedBy.setId(1);
+        lastUpdatedBy.setId( 1 );
 
-        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy,lastUpdatedBy,now,true);
-        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy,lastUpdatedBy, now,true);
-        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, lastUpdatedBy, now,true);
+        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy,lastUpdatedBy,now,true );
+        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy,lastUpdatedBy, now,true );
+        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, lastUpdatedBy, now,true );
         regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy,lastUpdatedBy, now,true );
 
         batchHandler.init();
@@ -162,14 +162,14 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         batchHandler.addObject( regD );
 
         List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
-        completeDataSetRegistrations.add(regA);
-        completeDataSetRegistrations.add(regB);
-        completeDataSetRegistrations.add(regC);
-        completeDataSetRegistrations.add(regD);
+        completeDataSetRegistrations.add( regA );
+        completeDataSetRegistrations.add( regB );
+        completeDataSetRegistrations.add( regC );
+        completeDataSetRegistrations.add( regD );
 
-        when(completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations()).thenReturn(completeDataSetRegistrations);
+        when( completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations() ).thenReturn( completeDataSetRegistrations );
         registrationService = new DefaultCompleteDataSetRegistrationService();
-        ((DefaultCompleteDataSetRegistrationService) registrationService).setCompleteDataSetRegistrationStore(completeDataSetRegistrationStore);
+        ( ( DefaultCompleteDataSetRegistrationService ) registrationService ).setCompleteDataSetRegistrationStore( completeDataSetRegistrationStore );
 
         batchHandler.flush();
 

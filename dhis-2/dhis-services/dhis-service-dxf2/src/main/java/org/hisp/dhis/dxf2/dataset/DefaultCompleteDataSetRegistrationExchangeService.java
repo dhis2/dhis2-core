@@ -523,21 +523,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 lastUpdatedBy = cdsr.getLastUpdatedBy();
 
-                if (lastUpdatedBy == null)
+                if ( lastUpdatedBy == null  )
                 {
                     lastUpdatedBy = currentUserService.getCurrentUser();
                 }
                 else
                 {
-                    lastUpdatedBy = userService.getUser(cdsr.getLastUpdatedBy().getUid());
+                    lastUpdatedBy = userService.getUser( cdsr.getLastUpdatedBy().getUid() );
                 }
 
-                cdsr.setLastUpdatedBy(lastUpdatedBy);
+                cdsr.setLastUpdatedBy( lastUpdatedBy );
 
                 boolean DEFAULT_COMPLETENESS_STATUS = true;
                 isCompleted = cdsr.getCompleted();
-                isCompleted = (isCompleted == null) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
-                cdsr.setCompleted(isCompleted);
+                isCompleted = ( isCompleted == null ) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
+                cdsr.setCompleted( isCompleted );
 
                 // TODO Check if Period is within range of data set?
             }

@@ -138,11 +138,11 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
                         "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.iscompleted " +
                         "from completedatasetregistration cdr " +
-                        "join dataset ds on (cdr.datasetid=ds.datasetid) " +
-                        "join period pe on (cdr.periodid=pe.periodid) " +
-                        "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-                        "join organisationunit ou on (cdr.sourceid=ou.organisationunitid) " +
-                        "join categoryoptioncombo aoc on (cdr.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
+                        "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
+                        "join period pe on ( cdr.periodid=pe.periodid ) " +
+                        "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
+                        "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
+                        "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
                         "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
 
         writeCompleteness( completenessSql, completeDataSetRegistrations );
@@ -166,7 +166,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 CompleteDataSetRegistration completeDataSetRegistration = completeDataSetRegistrations.getCompleteDataSetRegistrationInstance();
                 PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
 
-                User user = userService.getUser(rs.getInt( "lastupdatedby" ));
+                User user = userService.getUser( rs.getInt( "lastupdatedby" ) );
 
                 completeDataSetRegistration.open();
                 completeDataSetRegistration.setDataSet( rs.getString( "dsid" ) );
@@ -176,7 +176,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 completeDataSetRegistration.setDate( removeTime( rs.getString( "date" ) ) );
                 completeDataSetRegistration.setStoredBy( rs.getString( "storedby" ) );
                 completeDataSetRegistration.setLastUpdatedBy( user );
-                completeDataSetRegistration.setLastUpdated( removeTime(rs.getString( "lastupdated" )) );
+                completeDataSetRegistration.setLastUpdated( removeTime( rs.getString( "lastupdated" ) ) );
                 completeDataSetRegistration.setCompleted( rs.getBoolean( "iscompleted" ) );
                 completeDataSetRegistration.close();
             }
@@ -223,11 +223,11 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
                 "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
                 "FROM completedatasetregistration cdsr " +
-                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-                "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
-                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+                "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
+                "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +
+                "INNER JOIN periodtype pt ON ( pe.periodtypeid=pt.periodtypeid ) " +
+                "INNER JOIN organisationunit ou ON ( cdsr.sourceid=ou.organisationunitid ) " +
+                "INNER JOIN categoryoptioncombo aoc ON ( cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid ) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
@@ -246,7 +246,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     private static String createOrgUnitGroupJoin( ExportParams params )
     {
         return params.hasOrganisationUnitGroups() ?
-                " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) " : "";
+                " LEFT JOIN orgunitgroupmembers ougm on ( ou.organisationunitid=ougm.organisationunitid ) " : "";
     }
 
     private static String createDataSetClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
