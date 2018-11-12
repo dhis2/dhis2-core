@@ -220,18 +220,25 @@ public class DefaultResourceTableService
     }
 
     @Override
+    public void generateDataApprovalRemapLevelTable()
+    {
+        resourceTableStore.generateResourceTable( new DataApprovalRemapLevelResourceTable(
+            null, statementBuilder.getColumnQuote() ) );
+    }
+
+    @Override
     public void generateDataApprovalMinLevelTable()
     {
-        List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList( 
+        List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList(
             dataApprovalLevelService.getOrganisationUnitApprovalLevels() );
-        
+
         if ( orgUnitLevels.size() > 0 )
         {
             resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( 
                 orgUnitLevels, statementBuilder.getColumnQuote() ) );
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // SQL Views. Each view is created/dropped in separate transactions so that
     // process continues even if individual operations fail.
