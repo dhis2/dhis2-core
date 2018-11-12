@@ -1116,6 +1116,8 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
 
         executeSql( "delete from systemsetting where name = 'keyCorsWhitelist';" );
+        
+        executeSql( "update program set accesslevel='OPEN' where accesslevel is NULL" );
 
         log.info( "Tables updated" );
 
