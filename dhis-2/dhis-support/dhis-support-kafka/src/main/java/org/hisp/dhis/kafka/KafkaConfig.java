@@ -38,7 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "kafka", namespace = DxfNamespaces.DXF_2_0 )
-public class Kafka
+public class KafkaConfig
 {
     private String bootstrapServers;
 
@@ -48,11 +48,11 @@ public class Kafka
 
     private int maxPollRecords;
 
-    public Kafka()
+    public KafkaConfig()
     {
     }
 
-    public Kafka( String bootstrapServers, String clientId, int retries, int maxPollRecords )
+    public KafkaConfig( String bootstrapServers, String clientId, int retries, int maxPollRecords )
     {
         this.bootstrapServers = bootstrapServers;
         this.clientId = clientId;
@@ -67,7 +67,7 @@ public class Kafka
         return bootstrapServers;
     }
 
-    public Kafka setBootstrapServers( String bootstrapServers )
+    public KafkaConfig setBootstrapServers( String bootstrapServers )
     {
         this.bootstrapServers = bootstrapServers;
         return this;
@@ -92,7 +92,7 @@ public class Kafka
         return retries;
     }
 
-    public Kafka setRetries( int retries )
+    public KafkaConfig setRetries( int retries )
     {
         this.retries = retries;
         return this;

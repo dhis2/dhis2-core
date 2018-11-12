@@ -35,49 +35,50 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * These methods should be considered utility methods, don't call these for every single kafka call. Get the template 
+ * These methods should be considered utility methods, don't call these for every single kafka call. Get the template
  * or factory you need and reuse it for your requests.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service
 public class DefaultKafkaManager implements KafkaManager
 {
-    private final SystemService systemService;
+    private final DhisConfigurationProvider dhisConfig;
+    private KafkaConfig kafkaConfig;
 
-    public DefaultKafkaManager( SystemService systemService )
+    public DefaultKafkaManager( DhisConfigurationProvider dhisConfig )
     {
-        this.systemService = systemService;
+        this.dhisConfig = dhisConfig;
     }
 
     @Override
     public boolean isEnabled()
     {
-        SystemInfo systemInfo = systemService.getSystemInfo();
-        Kafka kafka = systemInfo != null ? systemInfo.getKafka() : null;
-
-        return kafka != null && kafka.isValid();
+        KafkaConfig kafkaConfig = getKafkaConfig();
+        return kafkaConfig != null && kafkaConfig.isValid();
     }
 
     @Override
     public KafkaAdmin getAdmin()
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafkaConfig = getKafkaConfig();
 
         Map<String, Object> props = new HashMap<>();
-        props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
+        props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers() );
 
         return new KafkaAdmin( props );
     }
@@ -118,17 +119,17 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group )
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafkaConfig = getKafkaConfig();
 
         Map<String, Object> props = new HashMap<>();
-        props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
-        props.put( ConsumerConfig.CLIENT_ID_CONFIG, kafka.getClientId() );
+        props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers() );
+        props.put( ConsumerConfig.CLIENT_ID_CONFIG, kafkaConfig.getClientId() );
         props.put( ConsumerConfig.GROUP_ID_CONFIG, group );
         props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false );
         props.put( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest" );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );
-        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kafka.getMaxPollRecords() );
+        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kafkaConfig.getMaxPollRecords() );
 
         return new DefaultKafkaConsumerFactory<>(
             props, keyDeserializer, deserializer
@@ -138,12 +139,12 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer )
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        KafkaConfig kafkaConfig = getKafkaConfig();
 
         Map<String, Object> props = new HashMap<>();
-        props.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
-        props.put( ConsumerConfig.CLIENT_ID_CONFIG, kafka.getClientId() );
-        props.put( ProducerConfig.RETRIES_CONFIG, kafka.getRetries() );
+        props.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers() );
+        props.put( ConsumerConfig.CLIENT_ID_CONFIG, kafkaConfig.getClientId() );
+        props.put( ProducerConfig.RETRIES_CONFIG, kafkaConfig.getRetries() );
         props.put( ProducerConfig.BATCH_SIZE_CONFIG, "16384" );
         props.put( ProducerConfig.LINGER_MS_CONFIG, "10" );
         props.put( ProducerConfig.BUFFER_MEMORY_CONFIG, "33554432" );
@@ -152,5 +153,22 @@ public class DefaultKafkaManager implements KafkaManager
         return new DefaultKafkaProducerFactory<>(
             props, keySerializer, serializer
         );
+    }
+
+    private KafkaConfig getKafkaConfig()
+    {
+        if ( kafkaConfig != null )
+        {
+            return kafkaConfig;
+        }
+
+        kafkaConfig = new KafkaConfig(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
+        );
+
+        return kafkaConfig;
     }
 }
