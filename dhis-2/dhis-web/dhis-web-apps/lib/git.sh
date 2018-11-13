@@ -26,11 +26,13 @@ function clone {
     if [[ ! -d "$path" ]]; then
         git clone --depth 1 -b "$branch" "$repo" "$path"
     else
-        pushd "$path"
-        git reset HEAD --hard
-        git fetch origin "$branch"
-        git checkout "$branch"
-        git merge
-        popd
+        #pushd "$path"
+        #git reset HEAD --hard
+        #git fetch origin "$branch"
+        #git checkout "$branch"
+        #git merge
+        #popd
+        echo "using local copy of apps"
+        echo "use 'mvn clean install' to update apps"
     fi
 }

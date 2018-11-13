@@ -112,6 +112,7 @@ function build_index {
     local templatePath="./src/main/webapp/dhis-web-apps/template.html"
     local targetIndex="${TARGET}/${ARTIFACT}/$ARTIFACT/index.html" 
 
+    mkdir -p "${TARGET}/${ARTIFACT}/$ARTIFACT/"
     cp "$templatePath" "$targetIndex"
 
     for dir in $TARGET/apps/*/
@@ -130,6 +131,7 @@ function build_struts {
     local templatePath="./src/main/resources/struts.xml"
     local targetStruts="${TARGET}/classes/struts.xml"  
 
+    mkdir -p "${TARGET}/classes"
     cp "$templatePath" "$targetStruts"
 
     for dir in $TARGET/apps/*/
@@ -162,7 +164,7 @@ function copy_apps {
 }
 
 function main {
-    #clone_all
+    clone_all
     build_index 
     build_struts
     copy_apps
