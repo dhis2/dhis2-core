@@ -220,8 +220,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 .put( ATTR_OPT_COMBO_SCHEME, idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
 
         String sql =
-                "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+            "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
+                { "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
                 "FROM completedatasetregistration cdsr " +
                 "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
                 "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +

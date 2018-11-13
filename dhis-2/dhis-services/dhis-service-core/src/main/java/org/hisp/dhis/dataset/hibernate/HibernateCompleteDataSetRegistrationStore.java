@@ -181,8 +181,8 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
         }
 
         Criteria criteria = sessionFactory.getCurrentSession()
-                .createCriteria( CompleteDataSetRegistration.class )
-                .setProjection( Projections.rowCount() );
+            .createCriteria( CompleteDataSetRegistration.class )
+            .setProjection( Projections.rowCount() );
 
         if ( date != null )
         {

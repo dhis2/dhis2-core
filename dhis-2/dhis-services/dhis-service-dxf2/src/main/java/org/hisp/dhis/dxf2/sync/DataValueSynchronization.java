@@ -166,9 +166,11 @@ public class DataValueSynchronization
         // subsequently part of next synch process without being ignored
         // ---------------------------------------------------------------------
         ImportSummary importSummary;
-        try {
+        try
+        {
             importSummary = synchronizationManager.executeDataSetCompletenessPush();
-            if ( checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) ) {
+            if ( checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
+            {
                 clock.logTime( "SUCCESS! Completeness Synchronisation job is done. It took" );
                 setLastDataValueSynchronizationSuccess( new Date( clock.getStartTime() ) );
                 return SynchronizationResult.newSuccessResultWithMessage( "Completeness Synchronisation done. It took " + clock.getTime() + " ms." );
