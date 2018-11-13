@@ -402,13 +402,13 @@ public class DefaultProgramInstanceService
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+        return enrollTrackedEntityInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,
-        Program program, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
         // Add program instance
@@ -442,7 +442,7 @@ public class DefaultProgramInstanceService
             programInstance.setIncidentDate( new Date() );
         }
 
-        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setStatus( programStatus );
         addProgramInstance( programInstance );
 
         // -----------------------------------------------------------------
