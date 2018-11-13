@@ -31,6 +31,7 @@ package org.hisp.dhis.logging.adapter;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.logging.Log;
 import org.hisp.dhis.logging.LogAdapter;
+import org.hisp.dhis.logging.LogEvent;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.logging.LoggingManager;
 import org.springframework.stereotype.Component;
@@ -49,14 +50,28 @@ import java.nio.file.StandardOpenOption;
 public class FileLogAdapter implements LogAdapter
 {
     private final LocationManager locationManager;
-    private final String logDirectory;
+    private String logDirectory;
 
     public FileLogAdapter( LocationManager locationManager )
     {
         this.locationManager = locationManager;
 
-        File externalDirectory = locationManager.getExternalDirectory();
-        this.logDirectory = externalDirectory.getAbsolutePath() + "/logs";
+        if ( locationManager.externalDirectorySet() )
+        {
+            File externalDirectory = locationManager.getExternalDirectory();
+            this.logDirectory = externalDirectory.getAbsolutePath() + "/logs";
+        }
+    }
+
+    @Override
+    public boolean isEnabled( LogEvent event )
+    {
+        if ( logDirectory == null )
+        {
+            return false;
+        }
+
+        return LogAdapter.super.isEnabled( event );
     }
 
     @Override
