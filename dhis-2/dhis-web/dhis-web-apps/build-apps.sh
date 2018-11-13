@@ -178,4 +178,8 @@ function main {
 ## start
 #
 
-main
+if [[ ! -d "${TARGET}/apps" ]]; then
+    main
+else
+    echo "Using existing apps, use 'mvn clean install' to update apps"
+fi

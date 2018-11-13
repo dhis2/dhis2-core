@@ -29,7 +29,7 @@
                         </goals>
                         <configuration>
                             <commandlineArgs>${project.build.directory} ${project.artifactId}</commandlineArgs>
-                            <executable>build-apps.sh</executable>
+                            <executable>${basedir}/build-apps.sh</executable>
                         </configuration>
                     </execution>
                 </executions>
