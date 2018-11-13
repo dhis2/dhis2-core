@@ -58,7 +58,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 /**
  * @author Abyot Asalefew
@@ -400,13 +402,13 @@ public class DefaultProgramInstanceService
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+        return enrollTrackedEntityInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,
-        Program program, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
         // Add program instance
@@ -440,7 +442,7 @@ public class DefaultProgramInstanceService
             programInstance.setIncidentDate( new Date() );
         }
 
-        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setStatus( programStatus );
         addProgramInstance( programInstance );
 
         // -----------------------------------------------------------------
