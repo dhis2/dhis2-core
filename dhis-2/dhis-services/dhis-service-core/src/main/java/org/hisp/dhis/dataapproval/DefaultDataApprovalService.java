@@ -466,6 +466,30 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    public Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses( List<DataApproval> dataApprovalList )
+    {
+        Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
+
+        DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
+
+        Map<DataApproval, DataApprovalStatus> returnMap = new HashMap<>();
+
+        for ( DataApproval da : dataApprovalList )
+        {
+            DataApprovalStatus status = statusMap.get( daKey( da ) );
+
+            if ( status != null )
+            {
+                permissionsEvaluator.evaluatePermissions( status, da.getWorkflow() );
+            }
+
+            returnMap.put( da, statusMap.get( daKey( da ) ) );
+        }
+
+        return returnMap;
+    }
+
+    @Override
     public DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -518,8 +542,6 @@ public class DefaultDataApprovalService
             orgUnit == null ? 0 : orgUnit.getHierarchyLevel(),
             attributeCombo, null );
 
-        //TODO reuse or remove
-        
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
         for ( DataApprovalStatus status : statusList )
@@ -638,9 +660,9 @@ public class DefaultDataApprovalService
 
             for ( DataApprovalStatus status : statuses )
             {
-                makePermissionsEvaluator().evaluatePermissions( status, da.getWorkflow() );
+                evaluator.evaluatePermissions( status, da.getWorkflow() );
 
-                statusMap.put( daKey( da, status.getAttributeOptionComboUid() ), status );
+                statusMap.put( daKey( da, status.getOrganisationUnitUid(), status.getAttributeOptionComboUid() ), status );
             }
         }
 
@@ -668,14 +690,14 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key consisting of organisation unit level, period, and workflow.
+     * Returns a key consisting of organisation unit, period, and workflow.
      * Approval status with these three values in common can be fetched in
      * one call for many values of attributeOptionCombo.
      */
     private String statusKey( DataApproval approval )
     {
         return approval == null ? null :
-            approval.getOrganisationUnit().getHierarchyLevel() +
+            approval.getOrganisationUnit().getId() +
                 IdentifiableObjectUtils.SEPARATOR + approval.getPeriod().getId() +
                 IdentifiableObjectUtils.SEPARATOR + approval.getWorkflow().getId();
     }
@@ -758,14 +780,18 @@ public class DefaultDataApprovalService
      * This can identify a particular DataApproval object in the return
      * set of statuses.
      */
-    private String daKey ( DataApproval approval )
+    private String daKey ( DataApproval da )
     {
-        return daKey( approval, approval.getAttributeOptionCombo() == null ? "null" : approval.getAttributeOptionCombo().getUid() );
+        return daKey( da, da.getOrganisationUnit().getUid(),
+            da.getAttributeOptionCombo() == null ? "null" : da.getAttributeOptionCombo().getUid() );
     }
 
-    private String daKey ( DataApproval approval, String attributeOptionComboUid )
+    private String daKey ( DataApproval da, String orgUnitUid, String attributeOptionComboUid )
     {
-        return statusKey( approval ) + IdentifiableObjectUtils.SEPARATOR + attributeOptionComboUid;
+        return da.getWorkflow().getUid()
+            + da.getPeriod().getCode()
+            + orgUnitUid
+            + attributeOptionComboUid;
     }
 
     /**

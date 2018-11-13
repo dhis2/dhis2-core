@@ -409,7 +409,7 @@ public class DefaultAdxDataService
 
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
             CategoryCombo attributeCombo = dataSet.getCategoryCombo();
-            convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, 
+            convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo,
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
 
@@ -470,9 +470,9 @@ public class DefaultAdxDataService
 
             //TODO expand to allow for category combos part of DataSetElements.
 
-            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
+            CategoryCombo categoryCombo = dataElement.getCategoryCombo();
 
-            convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, 
+            convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo,
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
 
@@ -583,8 +583,8 @@ public class DefaultAdxDataService
         return catOptionCombo;
     }
 
-    private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, 
-            CategoryCombo catCombo, 
+    private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName,
+            CategoryCombo catCombo,
             IdScheme catOptIdScheme, IdScheme catOptComboIdScheme )
         throws AdxException
     {
