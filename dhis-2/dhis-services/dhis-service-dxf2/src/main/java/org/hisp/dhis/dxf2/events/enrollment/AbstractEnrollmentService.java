@@ -444,6 +444,10 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
+        if ( enrollment.getStatus() == null ) {
+            enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        }
+
         ProgramStatus status = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE :
             enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
 

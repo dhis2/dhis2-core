@@ -204,6 +204,7 @@ public interface ProgramInstanceService
      *
      * @param trackedEntityInstance TrackedEntityInstance
      * @param program               Program
+     * @param programStatus         ProgramStatus
      * @param enrollmentDate        The date of enrollment
      * @param incidentDate          The date of incident
      * @param orgunit               Organisation Unit
