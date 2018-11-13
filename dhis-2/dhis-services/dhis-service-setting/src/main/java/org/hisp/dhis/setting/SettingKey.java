@@ -136,7 +136,7 @@ public enum SettingKey
     CALENDAR( "keyCalendar", "iso8601", String.class ),
     DATE_FORMAT( "keyDateFormat", "yyyy-MM-dd", String.class ),
     APP_STORE_URL( "appStoreUrl", "https://www.dhis2.org/appstore", String.class ),
-    APP_STORE_INDEX_URL( "appStoreIndexUrl", "https://s3-eu-west-1.amazonaws.com/dhis2-appstore/appstore.json", String.class ),
+    APP_STORE_INDEX_URL( "keyAppStoreIndexUrl", "https://s3-eu-west-1.amazonaws.com/dhis2-appstore/appstore.json", String.class ),
     APP_STORE( "keyAppStoreUrl", "https://play.dhis2.org/appstore/", String.class ),
     APP_STORE_API_URL( "keyAppStoreApiUrl", "https://play.dhis2.org/appstore/api/apps", String.class ),
     STYLE( "keyStyle", "light_blue/light_blue.css", String.class ),
