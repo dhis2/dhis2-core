@@ -497,7 +497,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         metadata.putValue( DataElement.class, dataElement );
         handleAttributes( metadata, dataElement );
 
-        handleCategoryCombo( metadata, dataElement.getDataElementCategoryCombo() );
+        handleCategoryCombo( metadata, dataElement.getCategoryCombo() );
         handleOptionSet( metadata, dataElement.getOptionSet() );
         handleOptionSet( metadata, dataElement.getCommentOptionSet() );
 
