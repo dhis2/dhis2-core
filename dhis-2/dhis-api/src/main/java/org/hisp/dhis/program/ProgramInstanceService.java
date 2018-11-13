@@ -204,6 +204,7 @@ public interface ProgramInstanceService
      *
      * @param trackedEntityInstance TrackedEntityInstance
      * @param program               Program
+     * @param programStatus         ProgramStatus / EnrollmentStatus
      * @param enrollmentDate        The date of enrollment
      * @param incidentDate          The date of incident
      * @param orgunit               Organisation Unit
@@ -211,7 +212,7 @@ public interface ProgramInstanceService
      * @return ProgramInstance
      */
     ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
      * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
