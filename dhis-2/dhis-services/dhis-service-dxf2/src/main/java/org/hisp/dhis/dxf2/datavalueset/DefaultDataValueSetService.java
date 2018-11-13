@@ -751,7 +751,7 @@ public class DefaultDataValueSetService
         CategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         CategoryOptionCombo outerAttrOptionCombo = null;
-        
+
         Set<DataElement> dataSetDataElements = dataSet != null ? dataSet.getDataElements() : new HashSet<>();
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
@@ -778,11 +778,11 @@ public class DefaultDataValueSetService
             summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid() ) );
             summary.setStatus( ImportStatus.ERROR );
         }
-        
+
         if ( dataSet == null && strictDataElements )
         {
             summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid datset is required" ) );
-            summary.setStatus( ImportStatus.ERROR );            
+            summary.setStatus( ImportStatus.ERROR );
         }
 
         if ( outerOrgUnit == null && trimToNull( dataValueSet.getOrgUnit() ) != null )
@@ -901,7 +901,7 @@ public class DefaultDataValueSetService
 
             if ( categoryOptionCombo == null && trimToNull( dataValue.getCategoryOptionCombo() ) != null )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getCategoryOptionCombo(), "Category option combo not found or not accessible" ) );
+                summary.getConflicts().add( new ImportConflict( dataValue.getCategoryOptionCombo(), "Category option combo not found or not accessible for writing data" ) );
                 continue;
             }
 
@@ -918,7 +918,7 @@ public class DefaultDataValueSetService
 
             if ( attrOptionCombo == null && trimToNull( dataValue.getAttributeOptionCombo() ) != null )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
+                summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible for writing data" ) );
                 continue;
             }
 
@@ -1012,7 +1012,7 @@ public class DefaultDataValueSetService
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
                 continue;
             }
-            
+
             if ( strictDataElements && !dataSetDataElements.contains( dataElement ) )
             {
                 summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS",
@@ -1171,18 +1171,6 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
-
-            // -----------------------------------------------------------------
-            // Check if current user has permission to save this value
-            // -----------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, internalValue );
-
-            if ( !errors.isEmpty() )
-            {
-                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
-                continue;
-            }
 
             // -----------------------------------------------------------------
             // Save, update or delete data value
