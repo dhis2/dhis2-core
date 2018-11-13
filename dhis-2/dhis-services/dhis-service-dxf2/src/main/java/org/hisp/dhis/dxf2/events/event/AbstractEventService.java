@@ -1176,10 +1176,7 @@ public abstract class AbstractEventService
             programStageInstanceService.completeProgramStageInstance( programStageInstance,
                 importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
 
-            if ( !importOptions.isSkipNotifications() )
-            {
-                enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
-            }
+            sendProgramNotification( programStageInstance, importOptions );
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
         {
