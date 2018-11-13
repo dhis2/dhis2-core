@@ -28,8 +28,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <workingDirectory>${basedir}/</workingDirectory>
-                            <executable>clone-all.sh</executable>
+                            <commandlineArgs>${project.build.directory} ${project.artifactId}</commandlineArgs>
+                            <executable>build-apps.sh</executable>
                         </configuration>
                     </execution>
                 </executions>
