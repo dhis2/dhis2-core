@@ -16,6 +16,7 @@
     "core-resource-app": "github:d2-ci/core-resource-app#master",
     "dashboard-app": "github:d2-ci/dashboards-app#2.29",
     "datastore-app": "github:d2-ci/datastore-app#v29",
+    "data-administration-app": "github:d2-ci/data-administration-app#v29",
     "event-capture-app": "github:d2-ci/event-capture-app#v29",
     "event-visualizer-app": "github:d2-ci/event-charts-app#v29",
     "event-reports-app": "github:d2-ci/event-reports-app#v29",
