@@ -221,7 +221,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
         String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-                "{ "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
                 "FROM completedatasetregistration cdsr " +
                 "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
                 "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +
