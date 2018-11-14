@@ -26,14 +26,14 @@
                      column="from_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_from_relationshipconstraintid"
                      not-null="false"
-                     unique-key="uk_relationshiptype_from_key"
+                     unique="true"
                      cascade="all-delete-orphan"/>
 
         <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="to_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_to_relationshipconstraintid"
                      not-null="false"
-                     unique-key="uk_relationshiptype_to_key"
+                     unique="true"
                      cascade="all-delete-orphan"/>
 
         <!-- Access properties -->

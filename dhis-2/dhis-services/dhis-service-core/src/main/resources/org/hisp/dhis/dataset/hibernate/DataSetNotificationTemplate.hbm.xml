@@ -56,7 +56,7 @@
         <set name="dataSets" table="datasetnotification_datasets">
             <key column="datasetnotificationtemplateid"
                  foreign-key="fk_datasets_datasetnotificationtemplateid" />
-            <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" foreign-key="fk_datasetid_datasetnotifcationdatasets />
+            <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" foreign-key="fk_datasetid_datasetnotifcationdatasets" />
         </set>
 
         <set name="deliveryChannels" table="datasetnotificationtemplate_deliverychannel" fetch="select">
