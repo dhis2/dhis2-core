@@ -69,6 +69,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -463,8 +464,18 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( daoTrackedEntityInstance, program,
+        if ( enrollment.getStatus() == null )
+        {
+            enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        }
+
+        ProgramStatus programStatus = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE :
+            enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
+
+        ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+
+        programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
 
