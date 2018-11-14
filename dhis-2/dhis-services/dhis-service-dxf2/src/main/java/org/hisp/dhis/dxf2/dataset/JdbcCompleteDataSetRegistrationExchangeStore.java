@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -41,13 +43,15 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 import java.io.OutputStream;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 
@@ -57,9 +61,12 @@ import java.util.stream.Collectors;
  * @author Halvdan Hoem Grelland
  */
 public class JdbcCompleteDataSetRegistrationExchangeStore
-    implements CompleteDataSetRegistrationExchangeStore
+        implements CompleteDataSetRegistrationExchangeStore
 {
     private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
+
+    @Autowired
+    private UserService userService;
 
     //--------------------------------------------------------------------------
     // Id scheme parameters
@@ -116,9 +123,65 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         write( params, cdsr );
     }
 
+    @Override
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes
+            idSchemes )
+    {
+        String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
+        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
+        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+
+        CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingJsonCompleteDataSetRegistrations( outputStream );
+
+        final String completenessSql =
+                "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
+                        "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.iscompleted " +
+                        "from completedatasetregistration cdr " +
+                        "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
+                        "join period pe on ( cdr.periodid=pe.periodid ) " +
+                        "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
+                        "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
+                        "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
+                        "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
+
+        writeCompleteness( completenessSql, completeDataSetRegistrations );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
+
+    private void writeCompleteness( String sql, CompleteDataSetRegistrations completeDataSetRegistrations )
+    {
+        final Calendar calendar = PeriodType.getCalendar();
+
+        completeDataSetRegistrations.open();
+
+        jdbcTemplate.query( sql, new RowCallbackHandler()
+        {
+            @Override
+            public void processRow( ResultSet rs ) throws SQLException
+            {
+                CompleteDataSetRegistration completeDataSetRegistration = completeDataSetRegistrations.getCompleteDataSetRegistrationInstance();
+                PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
+
+                User user = userService.getUser( rs.getInt( "lastupdatedby" ) );
+
+                completeDataSetRegistration.open();
+                completeDataSetRegistration.setDataSet( rs.getString( "dsid" ) );
+                completeDataSetRegistration.setPeriod( pt.createPeriod( rs.getDate( "pestart" ), calendar ).getIsoDate() );
+                completeDataSetRegistration.setOrganisationUnit( rs.getString( "ouid" ) );
+                completeDataSetRegistration.setAttributeOptionCombo( rs.getString( "aocid" ) );
+                completeDataSetRegistration.setDate( removeTime( rs.getString( "date" ) ) );
+                completeDataSetRegistration.setStoredBy( rs.getString( "storedby" ) );
+                completeDataSetRegistration.setLastUpdatedBy( user );
+                completeDataSetRegistration.setLastUpdated( removeTime( rs.getString( "lastupdated" ) ) );
+                completeDataSetRegistration.setCompleted( rs.getBoolean( "iscompleted" ) );
+                completeDataSetRegistration.close();
+            }
+        } );
+        completeDataSetRegistrations.close();
+    }
 
     private void write( ExportParams params, final CompleteDataSetRegistrations items )
     {
@@ -151,19 +214,19 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         ImmutableMap.Builder<String, String> namedParamsBuilder = ImmutableMap.<String, String>builder()
-            .put( DATA_SET_SCHEME, idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase() )
-            .put( ORG_UNIT_SCHEME, idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
-            .put( ATTR_OPT_COMBO_SCHEME, idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
+                .put( DATA_SET_SCHEME, idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase() )
+                .put( ORG_UNIT_SCHEME, idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
+                .put( ATTR_OPT_COMBO_SCHEME, idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
 
         String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-            "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
-            "FROM completedatasetregistration cdsr " +
-            "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-            "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-            "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
-            "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-            "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+                "FROM completedatasetregistration cdsr " +
+                "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
+                "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +
+                "INNER JOIN periodtype pt ON ( pe.periodtypeid=pt.periodtypeid ) " +
+                "INNER JOIN organisationunit ou ON ( cdsr.sourceid=ou.organisationunitid ) " +
+                "INNER JOIN categoryoptioncombo aoc ON ( cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid ) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
@@ -182,7 +245,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     private static String createOrgUnitGroupJoin( ExportParams params )
     {
         return params.hasOrganisationUnitGroups() ?
-            " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) " : "";
+                " LEFT JOIN orgunitgroupmembers ougm on ( ou.organisationunitid=ougm.organisationunitid ) " : "";
     }
 
     private static String createDataSetClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
@@ -233,8 +296,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         if ( params.hasStartEndDate() )
         {
             namedParamsBuilder
-                .put( "startDate", DateUtils.getMediumDateString( params.getStartDate() ) )
-                .put( "endDate", DateUtils.getMediumDateString( params.getEndDate() ) );
+                    .put( "startDate", DateUtils.getMediumDateString( params.getStartDate() ) )
+                    .put( "endDate", DateUtils.getMediumDateString( params.getEndDate() ) );
 
             return " AND ( pe.startdate >= '${startDate}' AND pe.enddate <= '${endDate}' ) ";
         }
@@ -242,7 +305,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         else if ( params.hasPeriods() )
         {
             namedParamsBuilder
-                .put( "periods", commaDelimitedIds( params.getPeriods() ) );
+                    .put( "periods", commaDelimitedIds( params.getPeriods() ) );
 
             return " AND cdsr.periodid in ( ${periods} ) ";
         }
@@ -261,7 +324,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         else if ( params.hasCreatedDuration() )
         {
             namedParamsBuilder.put( "createdDuration",
-                DateUtils.getLongGmtDateString( DateUtils.nowMinusDuration( params.getCreatedDuration() ) ) );
+                    DateUtils.getLongGmtDateString( DateUtils.nowMinusDuration( params.getCreatedDuration() ) ) );
 
             return " AND cdsr.date >= '${createdDuration}' ";
         }

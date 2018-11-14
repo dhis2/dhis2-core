@@ -9,7 +9,7 @@
   -->
 
   <defaultCache
-    maxElementsInMemory="800000" 
+    maxElementsInMemory="1000000" 
     eternal="false" 
     timeToIdleSeconds="21600" 
     timeToLiveSeconds="21600"
@@ -19,10 +19,10 @@
   <!-- Hibernate query cache -->
 
   <cache name="org.hibernate.cache.internal.StandardQueryCache"
-    maxElementsInMemory="800000" 
+    maxElementsInMemory="1000000" 
     eternal="false" 
-    timeToIdleSeconds="10800" 
-    timeToLiveSeconds="10800"
+    timeToIdleSeconds="21600" 
+    timeToLiveSeconds="21600"
     overflowToDisk="false" 
     diskPersistent="false" />
 

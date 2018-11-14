@@ -33,23 +33,31 @@ package org.hisp.dhis.analytics;
 */
 public enum AnalyticsTableType
 {
-    DATA_VALUE( "analytics" ),
-    COMPLETENESS( "analytics_completeness" ),
-    COMPLETENESS_TARGET( "analytics_completenesstarget" ),
-    ORG_UNIT_TARGET( "analytics_orgunittarget" ),
-    EVENT( "analytics_event" ),
-    ENROLLMENT( "analytics_enrollment" ),
-    VALIDATION_RESULT( "analytics_validationresult" );
+    DATA_VALUE( "analytics", true ),
+    COMPLETENESS( "analytics_completeness", true ),
+    COMPLETENESS_TARGET( "analytics_completenesstarget", false ),
+    ORG_UNIT_TARGET( "analytics_orgunittarget", false ),
+    EVENT( "analytics_event", false ),
+    ENROLLMENT( "analytics_enrollment", false ),
+    VALIDATION_RESULT( "analytics_validationresult", true );
 
     private String tableName;
-    
-    AnalyticsTableType( String tableName )
+
+    private boolean periodDimension;
+
+    AnalyticsTableType( String tableName, boolean periodDimension )
     {
         this.tableName = tableName;
+        this.periodDimension = periodDimension;
     }
 
     public String getTableName()
     {
         return tableName;
+    }
+
+    public boolean hasPeriodDimension()
+    {
+        return periodDimension;
     }
 }

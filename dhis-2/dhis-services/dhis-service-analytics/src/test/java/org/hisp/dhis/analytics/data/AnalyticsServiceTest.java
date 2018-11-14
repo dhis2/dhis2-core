@@ -59,6 +59,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
@@ -928,7 +929,7 @@ public class AnalyticsServiceTest
 
             CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
                 organisationUnit, ocDef, now,
-                storedBy );
+                storedBy, new User(), new Date(), true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
 

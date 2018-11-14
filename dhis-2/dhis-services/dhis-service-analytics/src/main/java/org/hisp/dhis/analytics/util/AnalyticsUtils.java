@@ -572,12 +572,12 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
-                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
+                    String isoDate = period.getPeriodType().getIsoDate( dateTimeUnit );
+                    map.put( isoDate, new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
                 else
                 {
-                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetadataDetails ? item : null ) );
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )

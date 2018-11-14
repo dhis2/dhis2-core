@@ -52,9 +52,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -540,7 +537,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleActionForSendMessage = createProgramRuleAction( 'C', programRuleC );
         programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionForSendMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForSendMessage.setTemplateUid(  pnt.getUid() );
         programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
         programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
 
@@ -565,7 +562,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleActionForScheduleMessage = createProgramRuleAction( 'S', programRuleS );
         programRuleActionForScheduleMessage.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
-        programRuleActionForScheduleMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForScheduleMessage.setTemplateUid(  pnt.getUid() );
         programRuleActionForScheduleMessage.setContent( "STATIC-TEXT-SCHEDULE" );
         programRuleActionForScheduleMessage.setData( dataExpression );
         programRuleActionService.addProgramRuleAction( programRuleActionForScheduleMessage );

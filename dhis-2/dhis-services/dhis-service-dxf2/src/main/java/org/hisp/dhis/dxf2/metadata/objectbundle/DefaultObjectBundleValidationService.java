@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -45,6 +43,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
@@ -81,7 +80,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class DefaultObjectBundleValidationService implements ObjectBundleValidationService
 {
-    private static final Log log = LogFactory.getLog( DefaultObjectBundleValidationService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultObjectBundleValidationService.class );
 
     @Autowired
     private SchemaService schemaService;
@@ -105,7 +104,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
         ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper() ) && bundle.isSkipValidation() )
+        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
         {
             log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
             return validation;

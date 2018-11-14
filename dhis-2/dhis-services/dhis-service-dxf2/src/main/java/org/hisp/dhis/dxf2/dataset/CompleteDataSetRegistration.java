@@ -34,11 +34,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-@JacksonXmlRootElement( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = ":", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
 {
     //--------------------------------------------------------------------------
@@ -59,6 +60,12 @@ public class CompleteDataSetRegistration
 
     protected static final String FIELD_STORED_BY = "storedBy";
 
+    protected static final String FIELD_LAST_UPDATED_BY = "lastUpdatedBy";
+
+    protected static final String FIELD_LAST_UPDATED = "lastUpdated";
+
+    protected static final String FIELD_IS_COMPLETED = "completed";
+
     //--------------------------------------------------------------------------
     // Properties
     //--------------------------------------------------------------------------
@@ -74,10 +81,17 @@ public class CompleteDataSetRegistration
     protected String date;
 
     protected String storedBy;
-    
+
+    protected User lastUpdatedBy;
+
     protected String cc;
-    
+
     protected String cp;
+
+    protected String lastUpdated;
+
+    protected Boolean completed;
+
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -100,13 +114,16 @@ public class CompleteDataSetRegistration
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( FIELD_DATASET, dataSet )
-            .add( FIELD_PERIOD, period )
-            .add( FIELD_ORGUNIT, organisationUnit )
-            .add( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo )
-            .add( FIELD_DATE, date )
-            .add( FIELD_STORED_BY, storedBy )
-            .toString();
+                .add( FIELD_DATASET, dataSet )
+                .add( FIELD_PERIOD, period )
+                .add( FIELD_ORGUNIT, organisationUnit )
+                .add( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo )
+                .add( FIELD_DATE, date )
+                .add( FIELD_STORED_BY, storedBy )
+                .add( FIELD_LAST_UPDATED_BY, lastUpdatedBy )
+                .add( FIELD_LAST_UPDATED, lastUpdated )
+                .add( FIELD_IS_COMPLETED,completed )
+                .toString();
     }
 
     //--------------------------------------------------------------------------
@@ -203,6 +220,18 @@ public class CompleteDataSetRegistration
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( String lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
     public String getCc()
     {
         return cc;
@@ -223,6 +252,30 @@ public class CompleteDataSetRegistration
     public void setCp( String cp )
     {
         this.cp = cp;
-    }    
-    
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( User lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Boolean getCompleted()
+    {
+        return completed;
+    }
+
+    public void setCompleted( Boolean completed )
+    {
+        this.completed = completed;
+    }
 }

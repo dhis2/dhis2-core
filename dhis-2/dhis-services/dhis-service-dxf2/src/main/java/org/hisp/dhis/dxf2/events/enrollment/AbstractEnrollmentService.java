@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.GeometryFactory;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
@@ -181,11 +180,12 @@ public abstract class AbstractEnrollmentService
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
-    
+
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
 
+    @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
@@ -445,8 +445,18 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( daoTrackedEntityInstance, program,
-            enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+        if ( enrollment.getStatus() == null )
+        {
+            enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        }
+
+        ProgramStatus programStatus = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE :
+            enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
+
+        ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
+        enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+
+        programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
 
@@ -519,35 +529,46 @@ public abstract class AbstractEnrollmentService
         params.setSkipPaging( true );
         params.setProgram( program );
         params.setTrackedEntityInstance( entityInstance );
-        params.setProgramStatus( ProgramStatus.ACTIVE );
 
-        List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
-
-        if ( !enrollments.isEmpty() )
+        // When imported enrollment has status CANCELLED, it is safe to import it, otherwise do additional checks
+        // We allow import of CANCELLED and COMPLETED enrollments because the endpoint is used for bulk import and sync purposes as well
+        if ( enrollment.getStatus() != EnrollmentStatus.CANCELLED )
         {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
-                + " already has an active enrollment in program " + program.getUid() );
-            importSummary.incrementIgnored();
+            List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
 
-            return importSummary;
-        }
+            Set<Enrollment> activeEnrollments = enrollments.stream()
+                .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE )
+                .collect( Collectors.toSet());
 
-        if ( program.getOnlyEnrollOnce() )
-        {
-            params.setProgramStatus( ProgramStatus.COMPLETED );
-
-            enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
-
-            if ( !enrollments.isEmpty() )
+            // When an enrollment with status COMPLETED or CANCELLED is being imported, no check whether there is already some ACTIVE one is needed
+            if ( !activeEnrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
-                    + " already has a completed enrollment in program " + program.getUid() +
-                    ", and this program only allows enrolling one time" );
+                    + " already has an active enrollment in program " + program.getUid() );
                 importSummary.incrementIgnored();
 
                 return importSummary;
+            }
+
+            // The error of enrolling more than once is possible only if the imported enrollment has a state other than CANCELLED
+            if ( program.getOnlyEnrollOnce() )
+            {
+
+                Set<Enrollment> activeOrCompletedEnrollments = enrollments.stream()
+                    .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE || e.getStatus() == EnrollmentStatus.COMPLETED )
+                    .collect( Collectors.toSet());
+
+                if ( !activeOrCompletedEnrollments.isEmpty() )
+                {
+                    importSummary.setStatus( ImportStatus.ERROR );
+                    importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
+                        + " already has an active or completed enrollment in program " + program.getUid() +
+                        ", and this program only allows enrolling one time" );
+                    importSummary.incrementIgnored();
+
+                    return importSummary;
+                }
             }
         }
 
@@ -897,7 +918,7 @@ public abstract class AbstractEnrollmentService
             queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
         }
     }
-    
+
     private void updateFeatureType( Program program, Enrollment enrollment, ProgramInstance programInstance )
     {
         if ( program.getFeatureType() != null )
@@ -911,6 +932,10 @@ public abstract class AbstractEnrollmentService
                 GeometryFactory gf = new GeometryFactory();
                 com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate( enrollment.getCoordinate().getLongitude(), enrollment.getCoordinate().getLatitude() );
                 programInstance.setGeometry( gf.createPoint( co ) );
+            }
+            else
+            {
+                programInstance.setGeometry( null );
             }
         }
     }

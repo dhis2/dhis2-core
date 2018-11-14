@@ -81,7 +81,7 @@ public class FileResource
     /**
      * Current storage status of content.
      */
-    private FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
+    private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
 
     // -------------------------------------------------------------------------
     // Constructors

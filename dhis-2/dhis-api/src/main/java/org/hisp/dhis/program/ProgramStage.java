@@ -94,9 +94,7 @@ public class ProgramStage
 
     private Boolean autoGenerateEvent = true;
 
-    private Boolean validCompleteOnly = false;
-
-    private ValidationStrategy validationStrategy = ValidationStrategy.NONE;
+    private ValidationStrategy validationStrategy = ValidationStrategy.ON_COMPLETE;
 
     private Boolean displayGenerateEventBox = true;
 
@@ -383,18 +381,6 @@ public class ProgramStage
     public void setAutoGenerateEvent( Boolean autoGenerateEvent )
     {
         this.autoGenerateEvent = autoGenerateEvent;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getValidCompleteOnly()
-    {
-        return validCompleteOnly;
-    }
-
-    public void setValidCompleteOnly( Boolean validCompleteOnly )
-    {
-        this.validCompleteOnly = validCompleteOnly;
     }
 
     @JsonProperty

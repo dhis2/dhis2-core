@@ -112,6 +112,11 @@ public class DefaultQueryValidator
             violation = "Start date cannot be after end date";
         }
 
+        if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
+        {
+            violation = "Start and end dates cannot be specified for reporting rates";
+        }
+
         if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             violation = "Only a single indicator can be specified as filter";

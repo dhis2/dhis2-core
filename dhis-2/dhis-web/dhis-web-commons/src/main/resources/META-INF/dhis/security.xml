@@ -101,6 +101,8 @@
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
 
+  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.security.BasicAuthenticationEntryPoint"/>
+
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
     authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
@@ -125,7 +127,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic />
+    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -420,6 +422,7 @@
       <set>
         <value>ALL</value>
         <!-- Import - export -->
+        <value>F_VIEW_EVENT_ANALYTICS</value>
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
         <value>F_EXPORT_DATA</value>
