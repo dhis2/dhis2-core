@@ -110,6 +110,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
+    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
 
     public static final int DX_INDEX = 0;
 
@@ -269,6 +270,11 @@ public class DataQueryParams
      * The time field used as basis for aggregation.
      */
     protected String timeField;
+
+    /**
+     * The organisation unit field used as basis for aggregation in the hierarchy.
+     */
+    protected String orgUnitField;
 
     /**
      * The API version used for the request.
@@ -1193,6 +1199,23 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether a (non-default) organisation unit field is specified.
+     */
+    public boolean hasOrgUnitField()
+    {
+        return orgUnitField != null;
+    }
+
+    /**
+     * Returns the organisation unit field if specified; if not
+     * returns the default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
+     */
+    public String getOrgUnitFieldFallback()
+    {
+        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
+    }
+
+    /**
      * Indicates whether this object has a program.
      */
     public boolean hasProgram()
@@ -1909,6 +1932,11 @@ public class DataQueryParams
     public String getTimeField()
     {
         return timeField;
+    }
+
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
     }
 
     public DhisApiVersion getApiVersion()
@@ -2770,6 +2798,12 @@ public class DataQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 

@@ -448,6 +448,33 @@ public class EventQueryParams
     }
 
     /**
+     * Indicates whether the given organisation unit field is valid, i.e.
+     * whether it matches the identifier of an attribute or data element of
+     * organisation unit value type part of the query program.
+     */
+    public boolean orgUnitFieldIsValid()
+    {
+        if ( orgUnitField == null )
+        {
+            return true;
+        }
+
+        if ( program.getTrackedEntityAttributes().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+
+        if ( program.getDataElements().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Gets program status
      */
     public ProgramStatus getProgramStatus()
@@ -1079,6 +1106,12 @@ public class EventQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 
