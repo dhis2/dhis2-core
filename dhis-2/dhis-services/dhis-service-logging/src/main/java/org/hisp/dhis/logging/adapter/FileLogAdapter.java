@@ -49,13 +49,10 @@ import java.nio.file.StandardOpenOption;
 @Component
 public class FileLogAdapter implements LogAdapter
 {
-    private final LocationManager locationManager;
     private String logDirectory;
 
     public FileLogAdapter( LocationManager locationManager )
     {
-        this.locationManager = locationManager;
-
         if ( locationManager.externalDirectorySet() )
         {
             File externalDirectory = locationManager.getExternalDirectory();
