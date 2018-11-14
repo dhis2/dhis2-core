@@ -452,6 +452,7 @@ public class DataQueryParams
         params.endDate = this.endDate;
         params.order = this.order;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.currentUser = this.currentUser;

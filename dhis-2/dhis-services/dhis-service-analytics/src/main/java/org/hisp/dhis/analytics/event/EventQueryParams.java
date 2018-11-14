@@ -222,6 +222,7 @@ public class EventQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
