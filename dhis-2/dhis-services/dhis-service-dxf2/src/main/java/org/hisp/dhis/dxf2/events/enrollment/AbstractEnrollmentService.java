@@ -444,7 +444,8 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        if ( enrollment.getStatus() == null ) {
+        if ( enrollment.getStatus() == null )
+        {
             enrollment.setStatus( EnrollmentStatus.ACTIVE );
         }
 
