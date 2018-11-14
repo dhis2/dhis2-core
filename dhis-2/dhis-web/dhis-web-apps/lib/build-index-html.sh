@@ -3,17 +3,19 @@
 function save_index {
     local itemHtml=$1
     local targetIndex=$2
+    local targetBak="${targetIndex}.bak"
 
     local pattern="<!-- INJECT HTML HERE -->"
 
-    sed -i -e'
-    /'"$pattern"'/ a\
+    sed '/'"$pattern"'/ a\
     '"$itemHtml"'
-    ' "$targetIndex"
+    ' "$targetIndex" > "$targetBak"
+    mv "$targetBak" "$targetIndex"
 }
 
 function save_build_info {
     local targetIndex=$1
+    local targetBak="${targetIndex}.bak"
 
     local sha=$(git rev-parse HEAD)
     local created=$(date)
@@ -22,10 +24,10 @@ function save_build_info {
 
     local pattern="<!-- INJECT BUILD INFO HERE -->"
 
-    sed -i -e'
-    /'"$pattern"'/ a\
+    sed '/'"$pattern"'/ a\
     '"$info"'
-    ' "$targetIndex"
+    ' "$targetIndex" > "$targetBak"
+    mv "$targetBak" "$targetIndex"
 }
 
 function list_item {

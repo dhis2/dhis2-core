@@ -3,12 +3,13 @@
 function save_struts {
     local itemXml=$1
     local targetStruts=$2
+    local targetBak="${targetStruts}.bak"
                 
-    local pattern="<!-- Apps pulled from NPM -->"
-    sed -i -e'
-    /'"$pattern"'/ a\
+    local pattern="<!-- INJECT BUNDLED APPS HERE -->"
+    sed '/'"$pattern"'/ a\
     '"$itemXml"'
-    ' "$targetStruts"
+    ' "$targetStruts" > "$targetBak"
+    mv "$targetBak" "$targetStruts"
 }
 
 function struts_item {
