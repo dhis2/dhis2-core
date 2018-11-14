@@ -16,7 +16,7 @@ else
     set -eo pipefail
 fi
 set -x
-shopt -s nullglob globstar
+shopt -s nullglob
 
 
 
@@ -158,8 +158,12 @@ function copy_apps {
 
         local src="$dir"
         local dest="${TARGET}/${ARTIFACT}/dhis-web-${name}"
+        mkdir -p "$dest"
 
-        cp --archive --verbose "$src" "$dest"
+        #cp --archive --verbose "$src" "$dest"
+        pushd "$dir"
+        git archive HEAD | tar -x -C "$dest"
+        popd
     done
 }
 
