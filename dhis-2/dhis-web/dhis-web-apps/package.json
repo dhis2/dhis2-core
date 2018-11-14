@@ -1,0 +1,11 @@
+{
+  "name": "dhis-web-apps",
+  "version": "1.0.0",
+  "repository": "",
+  "description": "Wrapper for all frontend application apps",
+  "scripts": {
+    "bundle-apps": "node ./scripts/bundle-apps.js"
+  },
+  "author": "Viktor Varland",
+  "license": "BSD-3-Clause"
+}
