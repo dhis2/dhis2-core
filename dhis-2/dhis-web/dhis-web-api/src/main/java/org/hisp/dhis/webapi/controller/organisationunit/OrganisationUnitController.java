@@ -110,7 +110,9 @@ public class OrganisationUnitController
 {
     /* static configurations for Distribution Chart */
     private static final int DISTRIBUTION_CHART_HEIGHT = 600;
+
     private static final int DISTRIBUTION_CHART_WIDTH = 800;
+
     private static final String DISTRIBUTION_CHART_IMAGE_FORMAT = "png";
 
     @Autowired
@@ -142,7 +144,8 @@ public class OrganisationUnitController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<OrganisationUnit> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<OrganisationUnit> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<OrganisationUnit> objects = Lists.newArrayList();
@@ -150,7 +153,8 @@ public class OrganisationUnitController
         User currentUser = currentUserService.getCurrentUser();
 
         boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
-            options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ), options.isTrue( "levelSorted" ) );
+            options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ),
+            options.isTrue( "levelSorted" ) );
         boolean anyQueryPropertySet = ObjectUtils.firstNonNull( options.get( "query" ), options.getInt( "level" ),
             options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" );
         String memberObject = options.get( "memberObject" );
@@ -195,7 +199,8 @@ public class OrganisationUnitController
             params.setQuery( options.get( "query" ) );
             params.setLevel( options.getInt( "level" ) );
             params.setMaxLevels( options.getInt( "maxLevel" ) );
-            params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits() : Sets.newHashSet() );
+            params.setParents(
+                options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits() : Sets.newHashSet() );
 
             objects = organisationUnitService.getOrganisationUnitsByQuery( params );
         }
@@ -226,7 +231,8 @@ public class OrganisationUnitController
         {
             for ( OrganisationUnit unit : list )
             {
-                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
+                Long count = organisationUnitService
+                    .getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
 
                 unit.setMemberCount( (count != null ? count.intValue() : 0) );
             }
@@ -272,7 +278,8 @@ public class OrganisationUnitController
             int level = options.getInt( "level" );
             int ouLevel = organisationUnit.getLevel();
             int targetLevel = ouLevel + level;
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
+            organisationUnits
+                .addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
         }
         else
         {
@@ -283,9 +290,11 @@ public class OrganisationUnitController
     }
 
     @RequestMapping( value = "/{uid}/parents", method = RequestMethod.GET )
-    public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
+    public @ResponseBody
+    List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         setUserContext( translateParams );
         OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
@@ -308,12 +317,14 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/json+geo", "application/json+geojson" } )
+    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/json+geo",
+        "application/json+geojson" } )
     public void getGeoJson(
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
         @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        User currentUser, HttpServletResponse response ) throws IOException
+        User currentUser, HttpServletResponse response )
+        throws IOException
     {
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
@@ -330,7 +341,8 @@ public class OrganisationUnitController
             parents.addAll( organisationUnitService.getRootOrganisationUnits() );
         }
 
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels, parents );
+        List<OrganisationUnit> organisationUnits = organisationUnitService
+            .getOrganisationUnitsAtLevels( rpLevels, parents );
 
         response.setContentType( "application/json" );
 
@@ -390,20 +402,9 @@ public class OrganisationUnitController
         List<DataSetCompletenessResult> mainResults;
         List<DataSetCompletenessResult> footerResults = new ArrayList<>();
         DataSetCompletenessService completenessService = serviceProvider.provide( criteria );
-
         Set<Integer> groupIds = new HashSet<>();
-        if ( groupUids != null )
-        {
-            for ( String groupUid : groupUids )
-            {
-                OrganisationUnitGroup organisationUnitGroup = organisationUnitGroupService
-                    .getOrganisationUnitGroup( groupUid );
-                if ( organisationUnitGroup != null )
-                {
-                    groupIds.add( organisationUnitGroup.getId() );
-                }
-            }
-        }
+
+        processGroupUids( groupIds, groupUids );
 
         if ( selectedDataSet != null )
         {
@@ -426,13 +427,9 @@ public class OrganisationUnitController
         // Write response
         // ---------------------------------------------------------------------
         I18n i18n = i18nManager.getI18n();
-        String title =
-            (selectedOrgunit != null ? selectedOrgunit.getName() : "") +
-                (selectedDataSet != null ? "-" + selectedDataSet.getName() : "") +
-                (selectedPeriod != null ? "-" + i18nManager.getI18nFormat().formatPeriod( selectedPeriod ) : "");
+        String title = getTitle( selectedOrgunit, selectedDataSet, selectedPeriod );
 
         Grid grid = new ListGrid().setTitle( title );
-
         grid.addHeader( new GridHeader( i18n.getString( "name" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "actual_reports" ), false, false ) );
         grid.addHeader( new GridHeader( i18n.getString( "expected_reports" ), false, false ) );
@@ -440,32 +437,14 @@ public class OrganisationUnitController
         grid.addHeader( new GridHeader( i18n.getString( "reports_on_time" ), false, false ) );
         grid.addHeader( new GridHeader( i18n.getString( "percent_on_time" ), false, false ) );
 
-        for ( DataSetCompletenessResult result : mainResults )
-        {
-            grid.addRow();
-            grid.addValue( result.getName() );
-            grid.addValue( result.getRegistrations() );
-            grid.addValue( result.getSources() );
-            grid.addValue( result.getPercentage() );
-            grid.addValue( result.getRegistrationsOnTime() );
-            grid.addValue( result.getPercentageOnTime() );
-        }
+        processGridResults( grid, mainResults );
 
         if ( grid.getWidth() >= 4 )
         {
             grid.sortGrid( 4, 1 );
         }
 
-        for ( DataSetCompletenessResult result : footerResults )
-        {
-            grid.addRow();
-            grid.addValue( result.getName() );
-            grid.addValue( result.getRegistrations() );
-            grid.addValue( result.getSources() );
-            grid.addValue( result.getPercentage() );
-            grid.addValue( result.getRegistrationsOnTime() );
-            grid.addValue( result.getPercentageOnTime() );
-        }
+        processGridResults( grid, footerResults );
 
         Writer output = response.getWriter();
         GridUtils.toHtmlCss( grid, output );
@@ -474,10 +453,12 @@ public class OrganisationUnitController
     @RequestMapping( value = "{ou}/distributionReport", method = RequestMethod.GET )
     public void getDistributionReport( @PathVariable( "ou" ) String ou,
         @RequestParam String groupSetId,
-        HttpServletResponse response) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
-        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
+        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService
+            .getOrganisationUnitGroupSet( groupSetId );
 
         if ( selectedOrgunit == null )
         {
@@ -486,13 +467,15 @@ public class OrganisationUnitController
 
         if ( selectedGroupSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
         }
 
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
         // ---------------------------------------------------------------------
         // Assemble report
@@ -507,12 +490,15 @@ public class OrganisationUnitController
     }
 
     @RequestMapping( value = "{ou}/distributionChart", method = RequestMethod.GET )
-    public @ResponseBody byte[] getDistributionChart( @PathVariable( "ou" ) String ou,
+    public @ResponseBody
+    byte[] getDistributionChart( @PathVariable( "ou" ) String ou,
         @RequestParam String groupSetId,
-        HttpServletResponse response) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         OrganisationUnit selectedOrgunit = organisationUnitService.getOrganisationUnit( ou );
-        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
+        OrganisationUnitGroupSet selectedGroupSet = organisationUnitGroupService
+            .getOrganisationUnitGroupSet( groupSetId );
 
         if ( selectedOrgunit == null )
         {
@@ -521,26 +507,29 @@ public class OrganisationUnitController
 
         if ( selectedGroupSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal organisation unit group set identifier: " + groupSetId ) );
         }
 
         // ---------------------------------------------------------------------
         // Assemble chart
         // ---------------------------------------------------------------------
-        JFreeChart chart = distributionService.getOrganisationUnitDistributionChart( selectedGroupSet, selectedOrgunit );
+        JFreeChart chart = distributionService
+            .getOrganisationUnitDistributionChart( selectedGroupSet, selectedOrgunit );
 
         // ---------------------------------------------------------------------
         // Write response
         // ---------------------------------------------------------------------
-        BufferedImage bufferedImage = chart.createBufferedImage(DISTRIBUTION_CHART_WIDTH, DISTRIBUTION_CHART_HEIGHT);
+        BufferedImage bufferedImage = chart.createBufferedImage( DISTRIBUTION_CHART_WIDTH, DISTRIBUTION_CHART_HEIGHT );
         ByteArrayOutputStream bas = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, DISTRIBUTION_CHART_IMAGE_FORMAT, bas);
+        ImageIO.write( bufferedImage, DISTRIBUTION_CHART_IMAGE_FORMAT, bas );
 
         return bas.toByteArray();
     }
 
     public void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
-        boolean includeProperties, User user ) throws IOException
+        boolean includeProperties, User user )
+        throws IOException
     {
         if ( organisationUnit.getFeatureType() == null || organisationUnit.getCoordinates() == null )
         {
@@ -599,6 +588,43 @@ public class OrganisationUnitController
         generator.writeEndObject();
 
         generator.writeEndObject();
+    }
+
+    private void processGroupUids( Set<Integer> groupIds, Set<String> groupUids )
+    {
+        if ( groupUids != null )
+        {
+            for ( String groupUid : groupUids )
+            {
+                OrganisationUnitGroup organisationUnitGroup = organisationUnitGroupService
+                    .getOrganisationUnitGroup( groupUid );
+                if ( organisationUnitGroup != null )
+                {
+                    groupIds.add( organisationUnitGroup.getId() );
+                }
+            }
+        }
+    }
+
+    private void processGridResults( Grid grid, List<DataSetCompletenessResult> results )
+    {
+        for ( DataSetCompletenessResult result : results )
+        {
+            grid.addRow();
+            grid.addValue( result.getName() );
+            grid.addValue( result.getRegistrations() );
+            grid.addValue( result.getSources() );
+            grid.addValue( result.getPercentage() );
+            grid.addValue( result.getRegistrationsOnTime() );
+            grid.addValue( result.getPercentageOnTime() );
+        }
+    }
+
+    private String getTitle( OrganisationUnit selectedOrgunit, DataSet selectedDataSet, Period selectedPeriod )
+    {
+        return (selectedOrgunit != null ? selectedOrgunit.getName() : "") +
+            (selectedDataSet != null ? "-" + selectedDataSet.getName() : "") +
+            (selectedPeriod != null ? "-" + i18nManager.getI18nFormat().formatPeriod( selectedPeriod ) : "");
     }
 
     @Override
