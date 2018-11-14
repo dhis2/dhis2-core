@@ -47,7 +47,7 @@ public class CompleteDataSetRegistrationBatchHandler
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
- 
+
     public CompleteDataSetRegistrationBatchHandler( JdbcConfiguration config )
     {
         super( config );
@@ -74,7 +74,7 @@ public class CompleteDataSetRegistrationBatchHandler
     {
         return true;
     }
-    
+
     @Override
     public List<String> getIdentifierColumns()
     {
@@ -84,7 +84,7 @@ public class CompleteDataSetRegistrationBatchHandler
             "sourceid",
             "attributeoptioncomboid" );
     }
-    
+
     @Override
     public List<Object> getIdentifierValues( CompleteDataSetRegistration registration )
     {
@@ -104,10 +104,10 @@ public class CompleteDataSetRegistrationBatchHandler
             "sourceid",
             "attributeoptioncomboid" );
     }
-    
+
     @Override
     public List<Object> getUniqueValues( CompleteDataSetRegistration registration )
-    {        
+    {
         return getObjectList(
             registration.getDataSet().getId(),
             registration.getPeriod().getId(),
@@ -124,9 +124,12 @@ public class CompleteDataSetRegistrationBatchHandler
             "sourceid",
             "attributeoptioncomboid",
             "date",
-            "storedby" );
+            "storedby",
+            "lastupdatedby",
+            "lastupdated",
+            "completed" );
     }
-    
+
     @Override
     public List<Object> getValues( CompleteDataSetRegistration registration )
     {
@@ -136,7 +139,10 @@ public class CompleteDataSetRegistrationBatchHandler
             registration.getSource().getId(),
             registration.getAttributeOptionCombo().getId(),
             getLongDateString( registration.getDate() ),
-            registration.getStoredBy() );
+            registration.getStoredBy(),
+            registration.getLastUpdatedBy().getId(),
+                getLongDateString( registration.getLastUpdated() ),
+            registration.getCompleted() );
     }
 
     @Override
@@ -144,9 +150,9 @@ public class CompleteDataSetRegistrationBatchHandler
         throws SQLException
     {
         CompleteDataSetRegistration cdr = new CompleteDataSetRegistration();
-        
+
         cdr.setStoredBy( resultSet.getString( "storedby" ) );
-        
+
         return cdr;
     }
 }

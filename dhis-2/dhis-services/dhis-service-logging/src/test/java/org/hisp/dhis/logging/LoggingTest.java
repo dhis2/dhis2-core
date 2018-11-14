@@ -66,13 +66,4 @@ public class LoggingTest extends DhisSpringTest
         assertFalse( LogLevel.WARN.isEnabled( LogLevel.TRACE ) );
         assertFalse( LogLevel.INFO.isEnabled( LogLevel.DEBUG ) );
     }
-
-    @Test
-    public void toJsonTest()
-    {
-        LoggingManager.Logger logger = LoggingManager.createLogger( LoggingTest.class );
-        Log log = new Log( "Logging with Log instance" );
-
-        System.err.println( LoggingManager.toJson( log ) );
-    }
 }

@@ -114,7 +114,7 @@ public class DataElement
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
-    private CategoryCombo dataElementCategoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -225,7 +225,7 @@ public class DataElement
                 .filter( DataSetElement::hasCategoryCombo )
                 .map( dse -> dse.getCategoryCombo() )
                 .collect( Collectors.toSet() ) )
-            .add( dataElementCategoryCombo ).build();
+            .add( categoryCombo ).build();
     }
 
     /**
@@ -243,7 +243,7 @@ public class DataElement
             }
         }
 
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
     /**
@@ -623,14 +623,14 @@ public class DataElement
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getDataElementCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
-    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
-        this.dataElementCategoryCombo = dataElementCategoryCombo;
+        this.categoryCombo = categoryCombo;
     }
 
     @JsonProperty
