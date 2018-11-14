@@ -419,6 +419,7 @@
       <set>
         <value>ALL</value>
         <!-- Import - export -->
+        <value>F_VIEW_EVENT_ANALYTICS</value>
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
         <value>F_EXPORT_DATA</value>
