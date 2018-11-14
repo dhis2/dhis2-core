@@ -444,8 +444,18 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( daoTrackedEntityInstance, program,
-            enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+        if ( enrollment.getStatus() == null )
+        {
+            enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        }
+
+        ProgramStatus programStatus = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE :
+            enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
+
+        ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
+        enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+
+        programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
 
