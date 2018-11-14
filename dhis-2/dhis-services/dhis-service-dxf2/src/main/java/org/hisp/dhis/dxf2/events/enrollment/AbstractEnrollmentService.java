@@ -69,7 +69,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -180,11 +179,12 @@ public abstract class AbstractEnrollmentService
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
-    
+
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
 
+    @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
@@ -907,7 +907,7 @@ public abstract class AbstractEnrollmentService
             queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
         }
     }
-    
+
     private void updateFeatureType( Program program, Enrollment enrollment, ProgramInstance programInstance )
     {
         if ( program.getFeatureType() != null )

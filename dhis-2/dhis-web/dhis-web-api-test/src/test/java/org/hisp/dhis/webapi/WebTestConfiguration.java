@@ -1,3 +1,5 @@
+package org.hisp.dhis.webapi;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -26,14 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi;
+
 import org.hisp.dhis.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com

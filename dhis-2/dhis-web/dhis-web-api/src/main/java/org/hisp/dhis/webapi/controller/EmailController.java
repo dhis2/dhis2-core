@@ -60,7 +60,6 @@ public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
     private static final String SMTP_ERROR = "SMTP server not configured";
-    private static final String EMAIL_DISABLED = "Email message notifications system setting disabled";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -94,7 +93,7 @@ public class EmailController
     }
 
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
-    public void sendSystemNotificationEmail( @RequestBody Email email, 
+    public void sendSystemNotificationEmail( @RequestBody Email email,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
@@ -140,7 +139,7 @@ public class EmailController
             webMessageService.send( WebMessageUtils.error( "Email sending failed" ), response, request );
         }
     }
-    
+
     private void checkEmailSettings() throws WebMessageException
     {
         if ( !emailService.emailConfigured() )
