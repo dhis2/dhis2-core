@@ -1,31 +1,7 @@
-const fs = require('fs-extra')
-const path = require('path')
+const fs = require('fs')
 const { execSync } = require('child_process')
 
-const log = require('@vardevs/log')({
-    level: 2,
-    prefix: 'WEBAPPS'
-})
-
-const { appName } = require('./lib/sanitize')
-
-const root = process.cwd()
-const pkg =  require(path.join(root, 'package.json'))
-const deps = pkg.dependencies
-
-const indexPath = path.join(root, 'src', 'main', 'webapp', 'dhis-web-apps', 'template.html')
-const targetDir = path.join(root, 'target', 'dhis-web-apps', 'dhis-web-apps')
-const targetPath = path.join(targetDir, 'index.html')
-
-try {
-    fs.accessSync(targetDir)
-    log.info('target dir:', targetDir)
-} catch (err) {
-    log.error('no target dir!')
-    fs.ensureDirSync(targetDir)
-}
-
-function listEl (name) {
+function list_item (name) {
     return `
         <li>
             <a href="../${name}">
@@ -50,26 +26,27 @@ function buildInfo () {
         </p>`
 }
 
-try {
-    const html = fs.readFileSync(indexPath, 'utf8')
-
-    const apps = []
-    for (let name in deps) {
-        apps.push(listEl(appName(name)))
+module.exports = function generate_index (apps, appsPath, templatePath, indexPath) {
+    let list = []
+    for (const app of apps) {
+        list.push(list_item(app))
     }
-
-    const targetHtml = html
-        .replace('<!-- INJECT HTML HERE -->', apps.join('\n'))
-        .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo())
 
     try {
-        fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
-    } catch (err) {
-        log.error('Failed to write', err)
-        process.exit(1)
-    }
-} catch (err) {
-    log.error('Failed to write', err)
-    process.exit(1)
-}
+        const html = fs.readFileSync(indexPath, 'utf8')
 
+        const targetHtml = html
+            .replace('<!-- INJECT HTML HERE -->', list.join('\n'))
+            .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo())
+
+        try {
+            fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
+        } catch (err) {
+            console.error('Failed to write', err)
+            throw err
+        }
+    } catch (err) {
+        console.error('Failed to write', err)
+        throw err
+    }
+}
