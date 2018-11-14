@@ -399,21 +399,8 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
-    {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
-            incidentDate, organisationUnit, CodeGenerator.generateUid() );
-    }
-
-    @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,Program program,
-        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
-    {
-        // ---------------------------------------------------------------------
-        // Add program instance
-        // ---------------------------------------------------------------------
-
+    public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid ) {
         if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
@@ -443,6 +430,28 @@ public class DefaultProgramInstanceService
         }
 
         programInstance.setStatus( programStatus );
+
+        return programInstance;
+    }
+
+    @Override
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
+    {
+        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+            incidentDate, organisationUnit, CodeGenerator.generateUid() );
+    }
+
+    @Override
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,Program program,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+    {
+        // ---------------------------------------------------------------------
+        // Add program instance
+        // ---------------------------------------------------------------------
+
+        ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
+            incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
         // -----------------------------------------------------------------
