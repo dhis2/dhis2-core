@@ -1,5 +1,7 @@
+const { promisify } = require('util')
+
 const fs = require('fs')
-const { execSync } = require('child_process')
+const { exec } = promisify(require('child_process'))
 
 function list_item (name) {
     return `
@@ -15,7 +17,7 @@ function buildInfo () {
     let sha = 'n/a'
     try {
         created = Date()
-        sha = execSync('git rev-parse HEAD', { encoding: 'utf8' })
+        sha = exec('git rev-parse HEAD', { encoding: 'utf8' })
     } catch (e) {
         console.error(e)
     }
