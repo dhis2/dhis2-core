@@ -1,7 +1,9 @@
 const { promisify } = require('util')
+const path = require('path')
 
-const fs = require('fs')
-const { exec } = promisify(require('child_process'))
+const read_file = promisify(require('fs').readFile)
+const write_file = promisify(require('fs').writeFile)
+const mkdir = promisify(require('fs').mkdir)
 
 function list_item (name) {
     return `
@@ -12,15 +14,8 @@ function list_item (name) {
         </li>`
 }
 
-function buildInfo () {
-    let created = 'n/a'
-    let sha = 'n/a'
-    try {
-        created = Date()
-        sha = exec('git rev-parse HEAD', { encoding: 'utf8' })
-    } catch (e) {
-        console.error(e)
-    }
+function buildInfo (sha = 'n/a') {
+    const created = Date()
     return `
         <p>
             ${created}<br>
@@ -28,27 +23,35 @@ function buildInfo () {
         </p>`
 }
 
-module.exports = function generate_index (apps, appsPath, templatePath, indexPath) {
+module.exports = async function generate_index (apps, core_sha, templatePath, indexPath) {
     let list = []
     for (const app of apps) {
-        list.push(list_item(app))
+        list.push(list_item(app.web_name))
     }
 
     try {
-        const html = fs.readFileSync(indexPath, 'utf8')
+        const html = await read_file(templatePath, 'utf8')
 
-        const targetHtml = html
+        const indexHtml = html
             .replace('<!-- INJECT HTML HERE -->', list.join('\n'))
-            .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo())
+            .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo(core_sha))
 
+        const rel_path = path.relative(process.cwd(), path.dirname(indexPath))
         try {
-            fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
+            await mkdir(rel_path)
         } catch (err) {
-            console.error('Failed to write', err)
-            throw err
+            if (err.code === 'EEXIST') {
+                console.log(`[index] ${rel_path} exists already`)
+            } else {
+                console.error(`[index] could not create ${rel_path}`, err)
+                process.exit(1)
+            }
         }
+
+        await write_file(indexPath, indexHtml, { encoding: 'utf8' })
+        console.log(`[index] index.html written`)
     } catch (err) {
-        console.error('Failed to write', err)
-        throw err
+        console.error('[index] generate index.html failed', err)
+        process.exit(1)
     }
 }

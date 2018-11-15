@@ -1,7 +1,7 @@
 {
   "name": "dhis-web-apps",
   "version": "1.0.0",
-  "repository": "",
+  "repository": "github.com/dhis2/dhis2-core",
   "description": "Wrapper for all frontend application apps",
   "scripts": {
     "bundle-apps": "node ./scripts/bundle-apps.js"
