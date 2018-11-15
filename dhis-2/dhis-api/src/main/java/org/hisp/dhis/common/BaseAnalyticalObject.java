@@ -139,6 +139,8 @@ public abstract class BaseAnalyticalObject
 
     protected String timeField;
 
+    protected String orgUnitField;
+
     protected String title;
 
     protected String subtitle;
@@ -1117,6 +1119,19 @@ public abstract class BaseAnalyticalObject
     public void setTimeField( String timeField )
     {
         this.timeField = timeField;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
+    public void setOrgUnitField( String orgUnitField )
+    {
+        this.orgUnitField = orgUnitField;
     }
 
     @Override
