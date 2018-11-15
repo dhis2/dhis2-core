@@ -73,7 +73,6 @@ public class CompleteDataSetRegistration
 
     private transient String periodName;
 
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -275,16 +274,6 @@ public class CompleteDataSetRegistration
         this.storedBy = storedBy;
     }
 
-    public String getPeriodName()
-    {
-        return periodName;
-    }
-
-    public void setPeriodName( String periodName )
-    {
-        this.periodName = periodName;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLastUpdatedBy()
@@ -321,20 +310,30 @@ public class CompleteDataSetRegistration
         this.completed = isCompleted;
     }
 
+    public String getPeriodName()
+    {
+        return periodName;
+    }
+
+    public void setPeriodName( String periodName )
+    {
+        this.periodName = periodName;
+    }
+
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( "dataSet", dataSet )
-                .add( "period", period )
-                .add( "source", source )
-                .add( "attributeOptionCombo", attributeOptionCombo )
-                .add( "date", date )
-                .add( "storedBy", storedBy )
-                .add( "lastUpdatedBy", lastUpdatedBy )
-                .add( "periodName", periodName )
-                .add( "lastUpdated", lastUpdated )
-                .add( "isCompleted", completed )
-                .toString();
+            .add( "dataSet", dataSet )
+            .add( "period", period )
+            .add( "source", source )
+            .add( "attributeOptionCombo", attributeOptionCombo )
+            .add( "date", date )
+            .add( "storedBy", storedBy )
+            .add( "lastUpdatedBy", lastUpdatedBy )
+            .add( "periodName", periodName )
+            .add( "lastUpdated", lastUpdated )
+            .add( "isCompleted", completed )
+            .toString();
     }
 }
