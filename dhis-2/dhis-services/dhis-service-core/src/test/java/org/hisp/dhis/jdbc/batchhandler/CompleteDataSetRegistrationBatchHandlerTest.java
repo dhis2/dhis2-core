@@ -32,23 +32,24 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Lars Helge Overland
@@ -93,6 +94,8 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     private Date now = new Date();
     
     private String storedBy = "johndoe";
+
+    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore = mock( CompleteDataSetRegistrationStore.class );
     
     // -------------------------------------------------------------------------
     // Fixture
@@ -121,13 +124,16 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         idObjectManager.save( unitA );
         idObjectManager.save( unitB );
         
-        attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();        
-        
-        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy );
-        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy );
-        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy );
-        regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy );
-        
+        attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        User lastUpdatedBy = new User();
+        lastUpdatedBy.setId( 1 );
+
+        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy,lastUpdatedBy,now,true );
+        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy,lastUpdatedBy, now,true );
+        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, lastUpdatedBy, now,true );
+        regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy,lastUpdatedBy, now,true );
+
         batchHandler.init();
     }
 
@@ -155,8 +161,18 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         batchHandler.addObject( regC );
         batchHandler.addObject( regD );
 
+        List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+        completeDataSetRegistrations.add( regA );
+        completeDataSetRegistrations.add( regB );
+        completeDataSetRegistrations.add( regC );
+        completeDataSetRegistrations.add( regD );
+
+        when( completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations() ).thenReturn( completeDataSetRegistrations );
+        registrationService = new DefaultCompleteDataSetRegistrationService();
+        ( ( DefaultCompleteDataSetRegistrationService ) registrationService ).setCompleteDataSetRegistrationStore( completeDataSetRegistrationStore );
+
         batchHandler.flush();
-        
+
         List<CompleteDataSetRegistration> registrations = registrationService.getAllCompleteDataSetRegistrations();
 
         assertNotNull( registrations );

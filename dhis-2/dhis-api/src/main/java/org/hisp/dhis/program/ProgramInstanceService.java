@@ -258,4 +258,19 @@ public interface ProgramInstanceService
      * @param programInstance ProgramInstance
      */
     void incompleteProgramInstanceStatus( ProgramInstance programInstance );
+
+    /**
+     * Prepare a ProgramInstance for storing
+     *
+     * @param trackedEntityInstance TrackedEntityInstance
+     * @param program               Program
+     * @param programStatus         ProgramStatus
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgUnit               Organisation Unit
+     * @param uid                   UID to use for new instance
+     * @return ProgramInstance
+     */
+    ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }

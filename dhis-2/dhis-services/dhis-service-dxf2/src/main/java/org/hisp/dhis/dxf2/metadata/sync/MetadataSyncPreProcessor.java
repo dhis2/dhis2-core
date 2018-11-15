@@ -260,4 +260,14 @@ public class MetadataSyncPreProcessor
 
         return null;
     }
+
+    public void handleDataSetCompletenessPush( MetadataRetryContext context ) {
+        SynchronizationResult completenessSynchronizationResult = dataValueSync.syncCompleteness();
+
+        if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        {
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, completenessSynchronizationResult.message, null, null );
+            throw new MetadataSyncServiceException( completenessSynchronizationResult.message );
+        }
+    }
 }

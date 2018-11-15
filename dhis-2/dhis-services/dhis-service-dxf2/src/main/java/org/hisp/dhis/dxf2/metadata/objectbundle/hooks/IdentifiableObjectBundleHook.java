@@ -49,7 +49,11 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
     {
-        ((BaseIdentifiableObject) identifiableObject).setAutoFields();
+        ( ( BaseIdentifiableObject ) identifiableObject ).setAutoFields();
+
+        BaseIdentifiableObject identifableObject = ( BaseIdentifiableObject ) identifiableObject;
+        identifableObject.setAutoFields();
+        identifableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
