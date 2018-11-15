@@ -1,7 +1,7 @@
 const { promisify } = require('util')
 
 const exec = promisify(require('child_process').exec)
-const fs = require('fs')
+const rename = promisify(require('fs').rename)
 const path = require('path')
 
 const {
@@ -10,99 +10,106 @@ const {
     ex_clone_path
 } = require('./lib/sanitize')
 
-function rename (app_path, target, complete_callback) {
-    const app_name = require(path.join(app_path, 'package.json')).name
+async function rename_app (app_name, app_path, target) {
     const sane_name = sanitize_app_name(app_name)
     const app_target = path.join(target, sane_name)
 
-    console.log(`[rename] '${app_path}' => '${app_target}'`)
-    
-    fs.rename(app_path, app_target, function (err) {
-        if (err) {
-            const attempt = retry('rename', app_name)
+    console.log(`[rename] [${app_name}] '${app_path}' => '${app_target}'`)
 
-            if (attempt > 10) {
-                throw err
+    let retries = 0
+    while (retries <= 10) {
+        try {
+            await rename(app_path, app_target)
+            return sane_name
+        } catch (err) {
+            if (retries >= 10) {
+                console.error(`[rename] failed to rename ${app_name} to ${sane_name}`)
+                process.exit(1)
             }
-
-            return rename(app_path, target, complete_callback)
+            retries++
         }
-        console.log(`[rename] [${app_name}] OK!`)
-        return complete_callback(sane_name)
-    })
+    }
 }
 
-function fetch (name, path, callback) {
-    const git = spawn('git', [
-        'fetch', '--deepen', '10'
-    ], {
-        cwd: path
-    })
-
-    git.stdout.on('data', data => console.log(`[fetch] [${name}] stdout: ${data}`))
-    git.stderr.on('data', data => console.log(`[fetch] [${name}] stderr: ${data}`))
-    git.on('close', code => {
-        console.log(`[fetch] [${name}] exit code: ${code}`)
-        if (code > 0) {
-            throw new Error('fetch deepen failed')
-        }
-
-        return callback()
-    })
-}
-
-
-function checkout (name, path, hash, rename_callback) {
-    const treeish = hash ? hash : 'master'
-    const git = spawn('git', [
-        'checkout', treeish
-    ], {
-        cwd: path
-    })
-
-    git.stdout.on('data', data => console.log(`[checkout] [${name}] stdout: ${data}`))
-    git.stderr.on('data', data => console.log(`[checkout] [${name}] stderr: ${data}`))
-
-    git.on('close', code => {
-        console.log(`[checkout] [${name}] git checkout for '${treeish}' exit code: ${code}`)
-
-        if (code > 0) {
-            const attempt = retry('checkout', name)
-
-            if (attempt > 100) {
-                throw new Error(`[checkout] could not find '${treeish}' in the last 1000 commits .. are you sure it's there?`)
-            }
-
-            return fetch(name, path, () => {
-                return checkout(name, path, hash, rename_callback)
-            })
-        }
-
-        return rename_callback()
-    })
-}
-
-async function clone (name, url, clone_path) {
-    const { stdout, stderr } = await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
-
-    if (stderr) {
-        console.log(stderr)
+async function fetch (name, path) {
+    console.log(`[fetch] [${name}] fetching more commits...`)
+    try {
+        await exec(`git fetch --deepen 10`, { cwd: path })
+    } catch (err) {
+        console.error(`[fetch] problem when fetching ${name}`, err)
     }
 }
 
 
-module.exports = async function clone_app (repo, target, complete_callback) {
+async function checkout (name, path, hash) {
+    const treeish = hash ? hash : 'master'
+
+    let retries = 0
+    while (retries <= 100) {
+        try {
+            await exec(`git checkout ${treeish}`, { cwd: path })
+            console.log(`[checkout] [${name}] successfully checked out: ${treeish}`)
+            return treeish
+        } catch (err) {
+            if (retries >= 100) {
+                console.error(`[checkout] [${name}] could not find '${treeish}' in the last 1000 commits .. are you sure it's there?`)
+                process.exit(1)
+            }
+
+            console.log(`[checkout] [${name}] failed to checkout: ${treeish}`)
+            await fetch(name, path)
+            retries++
+        }
+    }
+}
+
+async function clone (name, url, clone_path) {
+    console.log(`[clone] [${name}] clone started`)
+    try {
+        await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
+        console.log(`[clone] [${name}] clone successful`)
+    } catch (err) {
+        console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
+        process.exit(1)
+    }
+}
+
+async function show_sha (repo_path) {
+    try {
+        const { stderr, stdout } = await exec(`git rev-parse --verify HEAD`, { cwd: repo_path})
+        const refspec = stdout.trim()
+        return refspec
+    } catch (err) {
+        console.error(`[show_sha] could not fetch refspec for ${repo_path}`, err)
+        process.exit(1)
+    }
+}
+
+async function clone_app (repo, target, complete_callback) {
     const { url, hash } = split_repo_path(repo)
     const repo_name = ex_clone_path(url)
+
     const clone_path = path.join(target, repo_name)
 
     try {
         await clone(repo_name, url, clone_path)
-        //checkout(repo_name, clone_path, hash)
-        //const new_repo_name = rename(clone_path, target)
+        const ref = await checkout(repo_name, clone_path, hash)
+        const sha = await show_sha(clone_path)
+
+        const pkg_name = require(path.join(clone_path, 'package.json')).name
+        const web_name = await rename_app(pkg_name, clone_path, target)
+
+        return {
+            ref,
+            sha,
+            pkg_name,
+            web_name,
+            url,
+            path: path.join(target, web_name),
+        }
     } catch (err) {
         throw err
     }
-    
-    //return new_repo_name
 }
+
+module.exports = { clone_app, show_sha }

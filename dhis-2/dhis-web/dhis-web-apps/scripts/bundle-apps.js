@@ -2,11 +2,14 @@
  * deps
  */
 
+const { promisify } = require('util')
 const path = require('path')
+const access = promisify(require('fs').access)
 
-const clone_app = require('./git.js')
-//const generate_index = require('./write-index-html.js')
-//const generate_struts = require('./write-struts-html.js')
+const { clone_app, show_sha } = require('./git.js')
+const generate_index = require('./write-index-html.js')
+const generate_struts = require('./write-struts-xml.js')
+const generate_bundle = require('./write-bundle-json.js')
 
 
 
@@ -29,12 +32,38 @@ const build_dir = process.env.BUILD_DIR
  * functions
  */
 
-function main(opts = {}) {
+async function main(opts = {}) {
     const { apps, artifact, build_dir, root } = opts
 
-    for (const app of apps) {
-        clone_app(app, path.join(build_dir, artifact))
+    // paths for resources
+    const bundle_path = path.join(build_dir, artifact, artifact, 'apps-bundle.json')
+    const html_template_path = path.join(root, 'src', 'main', 'webapp', 'dhis-web-apps', 'template.html')
+    const html_index_path = path.join(build_dir, artifact, artifact, 'index.html')
+    const xml_template_path = path.join(root, 'src', 'main', 'resources', 'struts.xml')
+    const xml_struts_path = path.join(build_dir, 'classes', 'struts.xml')
+
+    try {
+        await access(bundle_path)
+        console.log(`${path.basename(bundle_path)} exists; re-use cached apps for bundle`)
+        process.exit(0)
+    } catch (err) {
+        console.log(`${path.basename(bundle_path)} doesn't exist; run full bundle operation`)
     }
+
+    const new_apps = []
+    for (const app of apps) {
+        const promise = clone_app(app, path.join(build_dir, artifact))
+        new_apps.push(promise)
+    }
+
+    const final = await Promise.all(new_apps)
+    console.dir(final)
+
+    const core_sha = await show_sha(root)
+
+    await generate_index(final, core_sha, html_template_path, html_index_path)
+    await generate_struts(final, xml_template_path, xml_struts_path)
+    await generate_bundle(final, bundle_path)
 }
 
 
