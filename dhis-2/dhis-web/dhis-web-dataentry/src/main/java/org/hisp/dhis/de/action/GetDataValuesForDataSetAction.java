@@ -316,7 +316,7 @@ public class GetDataValuesForDataSetAction
                 complete = registration.getCompleted();
                 date = registration.getDate();
                 storedBy = registration.getStoredBy();
-                lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
+                lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
             locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
@@ -344,7 +344,7 @@ public class GetDataValuesForDataSetAction
                     if( registration != null )
                     {
                         complete = registration.getCompleted();
-                        lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
+                        lastUpdatedBy = registration.getLastUpdatedBy();
                     }
                 }
             }

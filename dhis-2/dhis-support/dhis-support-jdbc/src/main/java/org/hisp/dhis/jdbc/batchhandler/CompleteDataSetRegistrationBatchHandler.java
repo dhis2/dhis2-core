@@ -140,8 +140,8 @@ public class CompleteDataSetRegistrationBatchHandler
             registration.getAttributeOptionCombo().getId(),
             getLongDateString( registration.getDate() ),
             registration.getStoredBy(),
-            registration.getLastUpdatedBy().getId(),
-                getLongDateString( registration.getLastUpdated() ),
+            registration.getLastUpdatedBy(),
+            getLongDateString( registration.getLastUpdated() ),
             registration.getCompleted() );
     }
 
