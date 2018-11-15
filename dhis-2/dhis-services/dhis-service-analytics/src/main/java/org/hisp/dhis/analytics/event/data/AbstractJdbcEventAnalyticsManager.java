@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 
 import java.util.Date;
 import java.util.List;
@@ -433,15 +434,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns an SQL to select the expression or column of the item. If the item is
-     * a program indicator, the program indicator expression is returned - if the item
-     * is a data element, the correct column name is returned.
-     * or boolean.
+     * a program indicator, the program indicator expression is returned; if the item
+     * is a data element, the item column name is returned.
      *
      * @param item the {@link QueryItem}.
      */
     protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
     {
-        if( item.isProgramIndicator() )
+        if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
             return programIndicatorService.getAnalyticsSQl(
@@ -467,7 +467,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the analytics table alias for the program dimension.
+     * Returns the analytics table alias for the period dimension.
      *
      * @param params the event query parameters.
      */
@@ -477,14 +477,35 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
+     * Returns the analytics table alias for the organisation unit dimension.
+     *
+     * @param params the event query parameters.
+     */
+    protected String getOrgUnitAlias( EventQueryParams params )
+    {
+        return params.hasOrgUnitField() ? ORG_UNIT_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+    }
+
+    /**
      * Returns the analytics table alias.
      *
      * @param params the event query parameters.
-     * @param
+     * @param dimensionType the dimension type.
      */
     protected String getAlias( EventQueryParams params, DimensionType dimensionType )
     {
-        return params.hasTimeField() && DimensionType.PERIOD == dimensionType ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+        if ( params.hasTimeField() && DimensionType.PERIOD == dimensionType )
+        {
+            return DATE_PERIOD_STRUCT_ALIAS;
+        }
+        else if ( params.hasOrgUnitField() && DimensionType.ORGANISATION_UNIT == dimensionType )
+        {
+            return ORG_UNIT_STRUCT_ALIAS;
+        }
+        else
+        {
+            return ANALYTICS_TBL_ALIAS;
+        }
     }
 
     /**
