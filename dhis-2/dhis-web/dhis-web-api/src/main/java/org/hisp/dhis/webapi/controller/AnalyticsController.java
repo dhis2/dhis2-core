@@ -90,6 +90,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -123,8 +124,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -142,6 +143,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -175,8 +177,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -195,6 +197,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -228,9 +231,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );       
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -248,6 +251,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -281,9 +285,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );        
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -301,6 +305,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -334,9 +339,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );        
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -354,6 +359,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -387,9 +393,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );        
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -432,7 +438,7 @@ public class AnalyticsController
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
             .apiVersion( apiVersion ).order( order ).build();
-        
+
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
@@ -452,6 +458,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -485,9 +492,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );               
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
@@ -521,8 +528,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
             .allowAllPeriods( true ).apiVersion( apiVersion ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );        
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
@@ -552,7 +559,7 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
             .allowAllPeriods( true ).apiVersion( apiVersion ).build();
-        
+
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
@@ -608,8 +615,8 @@ public class AnalyticsController
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .apiVersion( apiVersion ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );       
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
@@ -658,8 +665,8 @@ public class AnalyticsController
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .apiVersion( apiVersion ).build();
-        
-        DataQueryParams params = dataQueryService.getFromRequest( request );   
+
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );

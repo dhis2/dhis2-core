@@ -58,72 +58,72 @@ public class EventQueryValidatorTest
     extends DhisSpringTest
 {
     private Program prA;
-    
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
     private DataElement deD;
-        
+
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
-        
+
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
     private OrganisationUnit ouC;
-    
-    private LegendSet lsA;    
+
+    private LegendSet lsA;
     private OptionSet osA;
-    
+
     @Autowired
     private EventQueryValidator queryValidator;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Override
     public void setUpTest()
     {
         prA = createProgram( 'A' );
         prA.setUid( "programuida" );
-        
+
         idObjectManager.save( prA );
-        
+
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
-        
+
         idObjectManager.save( deA );
         idObjectManager.save( deB );
         idObjectManager.save( deC );
         idObjectManager.save( deD );
-        
+
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
-        
+
         idObjectManager.save( atA );
         idObjectManager.save( atB );
-        
+
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouA );
-        
+
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
-        
+
         lsA = createLegendSet( 'A' );
-        
+
         idObjectManager.save( lsA );
-        
+
         osA = new OptionSet( "OptionSetA", ValueType.TEXT );
-        
+
         idObjectManager.save( osA );
     }
-    
+
     @Test
     public void validateSuccesA()
     {
@@ -132,7 +132,7 @@ public class EventQueryValidatorTest
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -146,7 +146,7 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
-        queryValidator.validate( params );        
+        queryValidator.validate( params );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -155,7 +155,7 @@ public class EventQueryValidatorTest
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
             .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -168,7 +168,7 @@ public class EventQueryValidatorTest
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -182,6 +182,19 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
-        queryValidator.validate( params );        
+        queryValidator.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateInvalidOrgUnitField()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrgUnitField( "notAUid" ).build();
+
+        queryValidator.validate( params );
     }
 }

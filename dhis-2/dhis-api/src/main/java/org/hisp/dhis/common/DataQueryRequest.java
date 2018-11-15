@@ -51,8 +51,10 @@ public class DataQueryRequest
     protected Date endDate;
 
     protected SortOrder order;
-    
+
     protected String timeField;
+
+    protected String orgUnitField;
 
     protected boolean skipMeta;
 
@@ -138,7 +140,12 @@ public class DataQueryRequest
     {
         return timeField;
     }
-    
+
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
     public boolean isSkipMeta()
     {
         return skipMeta;
@@ -304,10 +311,16 @@ public class DataQueryRequest
             this.request.order = order;
             return this;
         }
-        
+
         public DataQueryRequestBuilder timeField( String timeField )
         {
             this.request.timeField = timeField;
+            return this;
+        }
+
+        public DataQueryRequestBuilder orgUnitField( String orgUnitField )
+        {
+            this.request.orgUnitField = orgUnitField;
             return this;
         }
 
