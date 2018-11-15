@@ -290,8 +290,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
         {
-            validationError(
-                "At least one valid period, start/end dates, created or created duration must be specified" );
+            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
@@ -332,15 +331,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         limitToValidIdSchemes( params );
     }
 
-    /*
+    /**
      * Limit valid IdSchemes for export to UID, CODE, NAME
      */
     private static void limitToValidIdSchemes( ExportParams params )
     {
         IdSchemes schemes = params.getOutputIdSchemes();
 
-        // If generic IdScheme is set to ID -> override to UID
-        // For others: nullify field (inherits from generic scheme)
+        // If generic IdScheme is set to ID -> override to UID, for others: nullify field (inherits from generic scheme)
 
         if ( !EXPORT_ID_SCHEMES.contains( schemes.getIdScheme() ) )
         {
@@ -601,6 +599,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 else if ( strategy.isDelete() )
                 {
                     // TODO Does 'delete' even make sense for CDSR?
+
                     // Replace existing CDSR
 
                     deleteCount++;
@@ -818,8 +817,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
-        // TODO Consider need for checking/re-heating attrOptCombo and period
-        // caches
+        // TODO Consider need for checking/re-heating attrOptCombo and period caches
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
@@ -838,13 +836,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     public MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
-        String
-                ds = StringUtils.trimToNull( cdsr.getDataSet() ),
-                pe = StringUtils.trimToNull( cdsr.getPeriod() ),
-                ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
-                aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
+        String ds = StringUtils.trimToNull( cdsr.getDataSet() );
+        String pe = StringUtils.trimToNull( cdsr.getPeriod() );
+        String ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() );
+        String aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
 
-        if( aoc == null )
+        if ( aoc == null )
         {
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
@@ -904,8 +901,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
             }
 
-            // Ensure AOC is set is required, or is otherwise set to the default
-            // COC
+            // Ensure AOC is set is required, or is otherwise set to the default COC
 
             if ( attrOptCombo == null )
             {
@@ -1011,8 +1007,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static class ImportConflictException
-        extends
-        RuntimeException
+        extends RuntimeException
     {
         private final ImportConflict importConflict;
 
