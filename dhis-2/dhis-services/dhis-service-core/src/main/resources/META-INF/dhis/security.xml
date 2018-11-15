@@ -29,7 +29,7 @@
     <property name="password" ref="ldapManagerPassword" />
   </bean>
 
-  <bean id="ldapAuthenticationProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+  <bean id="ldapAuthenticationProvider" class="org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider">
     <constructor-arg>
       <bean class="org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator">
         <constructor-arg ref="contextSource" />

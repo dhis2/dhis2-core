@@ -37,7 +37,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -52,7 +59,12 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -102,7 +114,7 @@ public class DataElement
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
-    private CategoryCombo dataElementCategoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -213,7 +225,7 @@ public class DataElement
                 .filter( DataSetElement::hasCategoryCombo )
                 .map( dse -> dse.getCategoryCombo() )
                 .collect( Collectors.toSet() ) )
-            .add( dataElementCategoryCombo ).build();
+            .add( categoryCombo ).build();
     }
 
     /**
@@ -231,7 +243,7 @@ public class DataElement
             }
         }
 
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
     /**
@@ -611,14 +623,14 @@ public class DataElement
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getDataElementCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
-    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
-        this.dataElementCategoryCombo = dataElementCategoryCombo;
+        this.categoryCombo = categoryCombo;
     }
 
     @JsonProperty

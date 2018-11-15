@@ -169,7 +169,7 @@ public class DefaultValidationRuleService
 
             CategoryCombo catCombo = dataSetElement.hasCategoryCombo()
                 ? dataSetElement.getCategoryCombo()
-                : dataElement.getDataElementCategoryCombo();
+                : dataElement.getCategoryCombo();
 
             for ( CategoryOptionCombo optionCombo : catCombo.getOptionCombos() )
             {

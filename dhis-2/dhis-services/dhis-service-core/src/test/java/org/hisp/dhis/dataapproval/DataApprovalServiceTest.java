@@ -57,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -1532,6 +1533,42 @@ public class DataApprovalServiceTest
         assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getPermissions().isMayUnapprove());
     }
 
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testGetDataApprovalStatuses()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        Date date = new Date();
+
+        DataApproval dataApprovalA = new DataApproval( level1, workflow1234, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflow1234, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalC = new DataApproval( level3, workflow1234, periodA, organisationUnitC, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalD = new DataApproval( level4, workflow1234, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalE = new DataApproval( level3, workflow1234, periodA, organisationUnitE, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalF = new DataApproval( level4, workflow1234, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+
+        dataApprovalStore.addDataApproval( dataApprovalD );
+        dataApprovalStore.addDataApproval( dataApprovalF );
+        dataApprovalStore.addDataApproval( dataApprovalE );
+
+        List<DataApproval> approvals = newArrayList( dataApprovalA, dataApprovalB, dataApprovalC, dataApprovalD, dataApprovalE, dataApprovalF );
+
+        Map<DataApproval, DataApprovalStatus> map = dataApprovalService.getDataApprovalStatuses( approvals );
+
+        assertEquals( "null", statusString( map.get( dataApprovalA ) ) );
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalB ) ) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalC ) ) );
+        assertEquals( "APPROVED_HERE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalD ) ) );
+        assertEquals( "APPROVED_HERE level=level3 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalE ) ) );
+        assertEquals( "APPROVED_ABOVE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalF ) ) );
+    }
+
     // -------------------------------------------------------------------------
     // Test with Categories
     // -------------------------------------------------------------------------
@@ -1786,6 +1823,22 @@ public class DataApprovalServiceTest
         CategoryOptionCombo attributeOptionCombo )
     {
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( workflow, period, organisationUnit, attributeOptionCombo );
+
+        return statusString( status );
+    }
+
+    /**
+     * Returns approval status as a string.
+     *
+     * @param status Approval status
+     * @return A string representing the state, level, and allowed user actions
+     */
+    private String statusString( DataApprovalStatus status )
+    {
+        if ( status == null )
+        {
+            return "null";
+        }
 
         DataApprovalPermissions permissions = status.getPermissions();
 
