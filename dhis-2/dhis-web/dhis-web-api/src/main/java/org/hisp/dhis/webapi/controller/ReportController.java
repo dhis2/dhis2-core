@@ -42,7 +42,6 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -100,9 +99,6 @@ public class ReportController
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -186,8 +182,15 @@ public class ReportController
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF,
-            false );
+        Report report = reportService.getReport( uid );
+
+        if ( report == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+        }
+
+        getReport( request, response, report, organisationUnitUid, period, date, "pdf", ContextUtils
+            .CONTENT_TYPE_PDF, false );
     }
 
     @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
@@ -198,8 +201,14 @@ public class ReportController
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL,
-            true );
+        Report report = reportService.getReport( uid );
+
+        if ( report == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+        }
+        getReport( request, response, report, organisationUnitUid, period, date, "xls", ContextUtils
+            .CONTENT_TYPE_EXCEL, true );
     }
 
     @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
@@ -210,8 +219,14 @@ public class ReportController
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML,
-            false );
+        Report report = reportService.getReport( uid );
+
+        if ( report == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+        }
+        getReport( request, response, report, organisationUnitUid, period, date, "html", ContextUtils
+            .CONTENT_TYPE_HTML, false );
     }
 
     // -------------------------------------------------------------------------
@@ -339,39 +354,30 @@ public class ReportController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid,
+    private void getReport( HttpServletRequest request, HttpServletResponse response, Report report,
         String organisationUnitUid, String isoPeriod,
         Date date, String type, String contentType, boolean attachment )
         throws Exception
     {
-        Report report = reportService.getReport( uid );
-        date = date != null ? date : isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ).getStartDate
-            () : null;
 
-        if ( report == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
-        }
-
-        if ( organisationUnitUid == null && report.hasReportTable() && report.getReportTable().hasReportParams()
-            && report.getReportTable().getReportParams().isOrganisationUnitSet() )
-        {
-            organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
-        }
+        Date processedDate = processRequestedReportDate( date, isoPeriod );
+        String processedOrganisationUnitUid = organisationUnitUid != null ? organisationUnitUid :
+            processOrganisationUnitUid( report );
 
         if ( report.isTypeHtml() )
         {
             contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, report.getCacheStrategy() );
 
-            reportService.renderHtmlReport( response.getWriter(), uid, date, organisationUnitUid );
+            reportService
+                .renderHtmlReport( response.getWriter(), report.getUid(), processedDate, processedOrganisationUnitUid );
         }
         else
         {
-            date = date != null ? date : new DateTime().minusMonths( 1 ).toDate();
+            processedDate = processedDate != null ? processedDate : new DateTime().minusMonths( 1 ).toDate();
 
             Period period = isoPeriod != null ?
                 PeriodType.getPeriodFromIsoString( isoPeriod ) :
-                new MonthlyPeriodType().createPeriod( date );
+                new MonthlyPeriodType().createPeriod( processedDate );
 
             String filename = CodecUtils.filenameEncode( report.getName() ) + "." + type;
 
@@ -379,12 +385,29 @@ public class ReportController
                 .configureResponse( response, contentType, report.getCacheStrategy(), filename, attachment );
 
             JasperPrint print = reportService
-                .renderReport( response.getOutputStream(), uid, period, organisationUnitUid, type );
+                .renderReport( response.getOutputStream(), report.getUid(), period, processedOrganisationUnitUid,
+                    type );
 
             if ( "html".equals( type ) )
             {
                 request.getSession().setAttribute( BaseHttpServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE, print );
             }
         }
+    }
+
+    private Date processRequestedReportDate( Date date, String isoPeriod )
+    {
+        return date != null ? date : isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ).getStartDate
+            () : null;
+    }
+
+    private String processOrganisationUnitUid( Report report )
+    {
+        if ( report.hasReportTable() && report.getReportTable().hasReportParams()
+            && report.getReportTable().getReportParams().isOrganisationUnitSet() )
+        {
+            return organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
+        }
+        return null;
     }
 }
