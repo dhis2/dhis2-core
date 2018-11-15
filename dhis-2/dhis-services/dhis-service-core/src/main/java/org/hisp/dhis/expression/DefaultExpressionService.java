@@ -30,6 +30,7 @@ package org.hisp.dhis.expression;
 
 import com.google.common.collect.Sets;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -40,6 +41,7 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
@@ -186,14 +188,14 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
-    
+
     @Override
     public Double getIndicatorValue( Indicator indicator, Period period,
         Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
         IndicatorValue value = getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
-        
+
         return value != null ? value.getValue() : null;
     }
 
@@ -275,48 +277,48 @@ public class DefaultExpressionService
     @Override
     public Set<CategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression, 
+        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression,
             ( m ) -> categoryService.getCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
     {
-        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
+        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression,
             ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( GROUP_ID ) ) );
     }
 
     /**
      * Returns a set of identifiable objects which are referenced in
      * the given expression based on the given regular expression pattern.
-     * 
+     *
      * @param pattern the regular expression pattern to match identifiable objects on.
      * @param expression the expression where identifiable objects are referenced.
-     * @param provider the provider of identifiable objects, accepts a matcher and 
+     * @param provider the provider of identifiable objects, accepts a matcher and
      *        provides the object.
      * @return a set of identifiable objects.
      */
     private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
     {
         Set<T> objects = new HashSet<>();
-        
+
         if ( expression == null )
         {
             return  objects;
         }
-        
+
         final Matcher matcher = pattern.matcher( expression );
 
         while ( matcher.find() )
         {
             final T object = provider.apply( matcher );
-            
+
             if ( object != null )
             {
                 objects.add( object );
             }
         }
-        
+
         return objects;
     }
 
@@ -451,7 +453,7 @@ public class DefaultExpressionService
         while ( matcher.find() )
         {
             String dimensionItem = matcher.group( GROUP_ID );
-            
+
             DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
 
             if ( dimensionItemObject != null )
@@ -466,17 +468,24 @@ public class DefaultExpressionService
     @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
-        Set<DimensionalItemObject> items = Sets.newHashSet();
+        Set<String> expressions = new HashSet<>();
 
         for ( Indicator indicator : indicators )
         {
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getNumerator() ) );
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getDenominator() ) );
+            CollectionUtils.addIgnoreNull( expressions, indicator.getNumerator() );
+            CollectionUtils.addIgnoreNull( expressions, indicator.getDenominator() );
         }
 
-        return items;
+        Set<String> dimensionItems = new HashSet<>();
+
+        for ( String expression : expressions )
+        {
+            dimensionItems.addAll( RegexUtils.getMatches( VARIABLE_PATTERN, expression, GROUP_ID ) );
+        }
+
+        return dimensionService.getDataDimensionalItemObjects( dimensionItems );
     }
-    
+
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
     {
@@ -778,7 +787,7 @@ public class DefaultExpressionService
 
     /**
      * Generates an expression based on the given data maps.
-     * 
+     *
      * @param expression the expression.
      * @param valueMap the value map.
      * @param constantMap the constant map.
@@ -790,14 +799,14 @@ public class DefaultExpressionService
      */
     private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy, 
+        MissingValueStrategy missingValueStrategy,
         Map<String, List<Double>> aggregateMap )
     {
         if ( expression == null || expression.isEmpty() )
         {
             return null;
         }
-        
+
         expression = ExpressionUtils.normalizeExpression( expression );
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().

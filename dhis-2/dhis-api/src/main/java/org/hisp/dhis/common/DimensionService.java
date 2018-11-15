@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.user.User;
 
@@ -56,17 +57,17 @@ public interface DimensionService
     void mergeEventAnalyticalObject( EventAnalyticalObject object );
 
     /**
-     * Gets a dimension item object which are among the data dimension item 
-     * objects. The composite dimensional items themselves will be transient 
+     * Gets a dimension item object which are among the data dimension item
+     * objects. The composite dimensional items themselves will be transient
      * and the associated objects will be persistent.
      *
      * @param dimensionItem the dimension item identifier.
      * @return a dimensional item object.
      */
     DimensionalItemObject getDataDimensionalItemObject( String dimensionItem );
-    
+
     /**
-     * Gets a dimension item object which are among the data dimension item 
+     * Gets a dimension item object which are among the data dimension item
      * objects. The composite dimensional items will be transient and the
      * associated objects will be persistent.
      *
@@ -75,4 +76,6 @@ public interface DimensionService
      * @return a dimensional item object.
      */
     DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
+
+    Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<String> dimensionItems );
 }

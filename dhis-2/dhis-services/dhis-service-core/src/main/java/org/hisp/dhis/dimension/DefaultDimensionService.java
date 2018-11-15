@@ -44,12 +44,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElement;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -89,9 +91,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.hisp.dhis.common.DimensionType.*;
@@ -338,11 +342,31 @@ public class DefaultDimensionService
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
-        return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
+        return getDataDimensionalItemObject( new CachingMap<>(), IdScheme.UID, dimensionItem );
     }
 
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
+    {
+        return getDataDimensionalItemObject( new CachingMap<>(), idScheme, dimensionItem );
+    }
+
+    @Override
+    public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<String> dimensionItems )
+    {
+        Set<DimensionalItemObject> items = new HashSet<>();
+
+        CachingMap<String, IdentifiableObject> cache = new CachingMap<>();
+
+        for ( String dimensionItem : dimensionItems )
+        {
+            CollectionUtils.addIgnoreNull( items, getDataDimensionalItemObject( cache, IdScheme.UID, dimensionItem ) );
+        }
+
+        return items;
+    }
+
+    private DimensionalItemObject getDataDimensionalItemObject( CachingMap<String, IdentifiableObject> cache, IdScheme idScheme, String dimensionItem )
     {
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
         {
@@ -355,27 +379,27 @@ public class DefaultDimensionService
             ProgramDataElementDimensionItem programDataElement = null;
             ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
 
-            if ( ( operand = getDataElementOperand( idScheme, id0, id1, id2 ) ) != null )
+            if ( ( operand = getDataElementOperand( cache, idScheme, id0, id1, id2 ) ) != null )
             {
                 return operand;
             }
-            else if ( ( reportingRate = getReportingRate( idScheme, id0, id1 ) ) != null )
+            else if ( ( reportingRate = getReportingRate( cache, idScheme, id0, id1 ) ) != null )
             {
                 return reportingRate;
             }
-            else if ( ( programDataElement = getProgramDataElementDimensionItem( idScheme, id0, id1 ) ) != null )
+            else if ( ( programDataElement = getProgramDataElementDimensionItem( cache, idScheme, id0, id1 ) ) != null )
             {
                 return programDataElement;
             }
-            else if ( ( programAttribute = getProgramAttributeDimensionItem( idScheme, id0, id1 ) ) != null )
+            else if ( ( programAttribute = getProgramAttributeDimensionItem( cache, idScheme, id0, id1 ) ) != null )
             {
                 return programAttribute;
             }
         }
         else if ( !idScheme.is( IdentifiableProperty.UID ) || CodeGenerator.isValidUid( dimensionItem ) )
         {
-            DimensionalItemObject itemObject = idObjectManager.
-                get( DataDimensionItem.DATA_DIMENSION_CLASSES, idScheme, dimensionItem );
+            DimensionalItemObject itemObject = (DimensionalItemObject) cache.get( dimensionItem, k ->
+                idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES, idScheme, dimensionItem ) );
 
             if ( itemObject != null )
             {
@@ -395,15 +419,15 @@ public class DefaultDimensionService
      * {@link ExpressionService#SYMBOL_WILDCARD}, the relevant property
      * will be null.
      *
-     * @param idScheme              the identifier scheme.
-     * @param dataElementId         the data element identifier.
+     * @param idScheme  the identifier scheme.
+     * @param dataElementId the data element identifier.
      * @param categoryOptionComboId the category option combo identifier.
      */
-    private DataElementOperand getDataElementOperand( IdScheme idScheme, String dataElementId, String categoryOptionComboId, String attributeOptionComboId )
+    private DataElementOperand getDataElementOperand( CachingMap<String, IdentifiableObject> cache, IdScheme idScheme, String dataElementId, String categoryOptionComboId, String attributeOptionComboId )
     {
-        DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
-        CategoryOptionCombo categoryOptionCombo = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, categoryOptionComboId );
-        CategoryOptionCombo attributeOptionCombo = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, attributeOptionComboId );
+        DataElement dataElement = (DataElement) cache.get( dataElementId, k -> idObjectManager.getObject( DataElement.class, idScheme, dataElementId ) );
+        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) cache.get( categoryOptionComboId, k -> idObjectManager.getObject( CategoryOptionCombo.class, idScheme, categoryOptionComboId ) );
+        CategoryOptionCombo attributeOptionCombo = (CategoryOptionCombo) cache.get( attributeOptionComboId, k -> idObjectManager.getObject( CategoryOptionCombo.class, idScheme, attributeOptionComboId ) );
 
         if ( dataElement == null || (categoryOptionCombo == null && !SYMBOL_WILDCARD.equals( categoryOptionComboId )) )
         {
@@ -420,9 +444,9 @@ public class DefaultDimensionService
      * @param dataSetId the data set identifier.
      * @param metric    the reporting rate metric.
      */
-    private ReportingRate getReportingRate( IdScheme idScheme, String dataSetId, String metric )
+    private ReportingRate getReportingRate( CachingMap<String, IdentifiableObject> cache, IdScheme idScheme, String dataSetId, String metric )
     {
-        DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
+        DataSet dataSet = (DataSet) cache.get( dataSetId, k -> idObjectManager.getObject( DataSet.class, idScheme, dataSetId ) );
         boolean metricValid = isValidEnum( ReportingRateMetric.class, metric );
 
         if ( dataSet == null || !metricValid )
@@ -440,10 +464,10 @@ public class DefaultDimensionService
      * @param programId   the program identifier.
      * @param attributeId the attribute identifier.
      */
-    private ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme, String programId, String attributeId )
+    private ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( CachingMap<String, IdentifiableObject> cache, IdScheme idScheme, String programId, String attributeId )
     {
-        Program program = idObjectManager.getObject( Program.class, idScheme, programId );
-        TrackedEntityAttribute attribute = idObjectManager.getObject( TrackedEntityAttribute.class, idScheme, attributeId );
+        Program program = (Program) cache.get( programId, k -> idObjectManager.getObject( Program.class, idScheme, programId ) );
+        TrackedEntityAttribute attribute = (TrackedEntityAttribute) cache.get( attributeId, k -> idObjectManager.getObject( TrackedEntityAttribute.class, idScheme, attributeId ) );
 
         if ( program == null || attribute == null )
         {
@@ -460,10 +484,10 @@ public class DefaultDimensionService
      * @param programId     the program identifier.
      * @param dataElementId the data element identifier.
      */
-    private ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId, String dataElementId )
+    private ProgramDataElementDimensionItem getProgramDataElementDimensionItem( CachingMap<String, IdentifiableObject> cache, IdScheme idScheme, String programId, String dataElementId )
     {
-        Program program = idObjectManager.getObject( Program.class, idScheme, programId );
-        DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
+        Program program = (Program) cache.get( programId, k -> idObjectManager.getObject( Program.class, idScheme, programId ) );
+        DataElement dataElement = (DataElement) cache.get( dataElementId, k -> idObjectManager.getObject( DataElement.class, idScheme, dataElementId ) );
 
         if ( program == null || dataElement == null )
         {
