@@ -32,8 +32,6 @@ import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -145,11 +143,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private CurrentUserService currentUserService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private CompleteDataSetRegistrationService registrationService;
-    
+
     @Autowired
     private InputUtils inputUtils;
 
@@ -214,6 +209,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         cdsrStore.writeCompleteDataSetRegistrationsXml( params, out );
     }
 
+    @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -488,7 +484,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             String storedBy;
-            User lastUpdatedBy;
+            String lastUpdatedBy;
             Boolean isCompleted;
 
             try
@@ -522,15 +518,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
 
                 lastUpdatedBy = cdsr.getLastUpdatedBy();
-
-                if ( lastUpdatedBy == null  )
-                {
-                    lastUpdatedBy = currentUserService.getCurrentUser();
-                }
-                else
-                {
-                    lastUpdatedBy = userService.getUser( cdsr.getLastUpdatedBy().getUid() );
-                }
+                validateStoredBy( lastUpdatedBy, i18n );
+                lastUpdatedBy = StringUtils.isBlank( lastUpdatedBy ) ? currentUser : lastUpdatedBy;
 
                 cdsr.setLastUpdatedBy( lastUpdatedBy );
 
@@ -854,13 +843,13 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 pe = StringUtils.trimToNull( cdsr.getPeriod() ),
                 ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
                 aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
-        
+
         if( aoc == null )
         {
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
-        
+
         return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),

@@ -209,8 +209,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testSaveGet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "",user,new Date(  ),true );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" ,user,new Date(  ),true );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", "", new Date(), true );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" ,"", new Date(), true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -224,8 +224,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDelete()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "",user, new Date(),true );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "",user,new Date(),true  );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", "", new Date(),true );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", "", new Date(),true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -242,8 +242,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testGetAll()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "",user,new Date(),true  );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "",user,new Date(),true  );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", "", new Date(), true  );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", "", new Date(), true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -259,10 +259,10 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDeleteByDataSet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "",user, onTimeA,true );
-        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
-        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
-        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "" ,user, onTimeA,true );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "", "", onTimeA, true );
+        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "", "", onTimeA, true );
+        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "", "", onTimeA, true );
+        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "", "", onTimeA, true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );

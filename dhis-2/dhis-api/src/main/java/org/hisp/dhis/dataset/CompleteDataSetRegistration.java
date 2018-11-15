@@ -38,8 +38,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -67,13 +65,13 @@ public class CompleteDataSetRegistration
 
     private String storedBy;
 
-    private transient String periodName;
-
     private Date lastUpdated;
 
-    private User lastUpdatedBy;
+    private String lastUpdatedBy;
 
     private Boolean completed;
+
+    private transient String periodName;
 
 
     // -------------------------------------------------------------------------
@@ -94,8 +92,7 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, User lastUpdatedBy, Date lastUpdated,
-                                        Boolean completed )
+        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, String lastUpdatedBy, Date lastUpdated, Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
@@ -290,12 +287,12 @@ public class CompleteDataSetRegistration
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getLastUpdatedBy()
+    public String getLastUpdatedBy()
     {
         return lastUpdatedBy;
     }
 
-    public void setLastUpdatedBy( User lastUpdatedBy )
+    public void setLastUpdatedBy( String lastUpdatedBy )
     {
         this.lastUpdatedBy = lastUpdatedBy;
     }

@@ -25,7 +25,7 @@
 
     <property name="lastUpdated" column="lastupdated" type="timestamp"/>
 
-    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
+    <property name="lastUpdatedBy" column="lastupdatedby" />
 
     <property name="completed" type="boolean" column="completed" not-null="true"/>
 
