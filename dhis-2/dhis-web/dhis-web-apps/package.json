@@ -1,46 +1,11 @@
 {
   "name": "dhis-web-apps",
   "version": "1.0.0",
+  "repository": "github.com/dhis2/dhis2-core",
   "description": "Wrapper for all frontend application apps",
   "scripts": {
-    "copy-apps": "node ./scripts/copy-apps.js",
-    "generate-struts": "node ./scripts/write-struts-xml.js",
-    "generate-index": "node ./scripts/write-index-html.js"
+    "bundle-apps": "node ./scripts/bundle-apps.js"
   },
   "author": "Viktor Varland",
-  "license": "BSD-3-Clause",
-  "dependencies": {
-    "app-management-app": "github:d2-ci/app-management-app#v31",
-    "cache-cleaner-app": "github:d2-ci/cache-cleaner-app#v31",
-    "capture-app": "github:d2-ci/capture-app#v31",
-    "core-resource-app": "github:d2-ci/core-resource-app#v31",
-    "dashboard-app": "github:d2-ci/dashboards-app#v31",
-    "data-administration-app": "github:d2-ci/data-administration-app#v31",
-    "data-quality-app": "github:d2-ci/data-quality-app#v31",
-    "datastore-app": "github:d2-ci/datastore-app#v31",
-    "event-capture-app": "github:d2-ci/event-capture-app#v31",
-    "event-reports-app": "github:d2-ci/event-reports-app#v31",
-    "event-visualizer-app": "github:d2-ci/event-charts-app#v31",
-    "importexport-app": "github:d2-ci/import-export-app#v31",
-    "interpretation-app": "github:d2-ci/interpretation-app#v31",
-    "maintenance-app": "github:d2-ci/maintenance-app#v31",
-    "mapping-app": "github:d2-ci/gis-app#v31",
-    "maps-app": "github:d2-ci/maps-app#v31",
-    "menu-management-app": "github:d2-ci/menu-management-app#v31",
-    "messaging-app": "github:d2-ci/messaging-app#v31",
-    "pivot-app": "github:d2-ci/pivot-tables-app#v31",
-    "scheduler-app": "github:d2-ci/scheduler-app#v31",
-    "settings-app": "github:d2-ci/settings-app#v31",
-    "tracker-capture-app": "github:d2-ci/tracker-capture-app#v31",
-    "translations-app": "github:d2-ci/translations-app#v31",
-    "usage-analytics-app": "github:d2-ci/usage-analytics-app#v31",
-    "user-app": "github:d2-ci/user-app#v31",
-    "user-profile-app": "github:d2-ci/user-profile-app#v31",
-    "visualizer-app": "github:d2-ci/charts-app#v31"
-  },
-  "devDependencies": {
-    "@vardevs/log": "^1.0.0",
-    "fs-extra": "^7.0.0",
-    "xml2js": "^0.4.19"
-  }
+  "license": "BSD-3-Clause"
 }
