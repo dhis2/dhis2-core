@@ -1,4 +1,6 @@
-const { spawn } = require('child_process')
+const { promisify } = require('util')
+
+const exec = promisify(require('child_process').exec)
 const fs = require('fs')
 const path = require('path')
 
@@ -7,22 +9,6 @@ const {
     split_repo_path,
     ex_clone_path
 } = require('./lib/sanitize')
-
-const retries = {
-    rename: {},
-    checkout: {}
-}
-
-const completed = []
-
-function retry (phase, app) {
-    if (!retries[phase][app]) {
-        retries[phase][app] = 0
-    }
-    console.log(`[${phase}] [${app}] failed .. retry: ${retries[phase][app]}`)
-    return ++retries[phase][app]
-}
-
 
 function rename (app_path, target, complete_callback) {
     const app_name = require(path.join(app_path, 'package.json')).name
@@ -96,41 +82,27 @@ function checkout (name, path, hash, rename_callback) {
     })
 }
 
-function clone (name, url, target, hash, rename_callback) {
-    const clone_path = path.join(target, name)
+async function clone (name, url, clone_path) {
+    const { stdout, stderr } = await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
 
-    const git = spawn('git', [
-        'clone', '--depth', '1', '--no-single-branch', url, clone_path
-    ])
-
-    git.stdout.on('data', data => console.log(`[clone] [${name}] stdout: ${data}`))
-    git.stderr.on('data', data => console.log(`[clone] [${name}] stderr: ${data}`))
-    git.on('close', code => {
-        console.log(`[clone] [${name}] git clone for '${url}' exit code: ${code}`)
-
-        if (code > 0) {
-            throw new Error('Something went very wrong with the clone.')
-        }
-
-        return checkout(name, clone_path, hash, rename_callback)
-    })
+    if (stderr) {
+        console.log(stderr)
+    }
 }
 
 
-module.exports = function clone_apps (repos, target, complete_callback) {
-    for (const repo of repos) {
-        const { url, hash } = split_repo_path(repo)
-        const repo_name = ex_clone_path(url)
-        const clone_path = path.join(target, repo_name)
+module.exports = async function clone_app (repo, target, complete_callback) {
+    const { url, hash } = split_repo_path(repo)
+    const repo_name = ex_clone_path(url)
+    const clone_path = path.join(target, repo_name)
 
-        clone(repo_name, url, target, hash, () => {
-            rename(clone_path, target, (name) => {
-                completed.push(name)
-
-                if (completed.length === repos.length) {
-                    return complete_callback(completed)
-                }
-            })
-        })
+    try {
+        await clone(repo_name, url, clone_path)
+        //checkout(repo_name, clone_path, hash)
+        //const new_repo_name = rename(clone_path, target)
+    } catch (err) {
+        throw err
     }
+    
+    //return new_repo_name
 }
