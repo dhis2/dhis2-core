@@ -59,8 +59,7 @@ public class CachingMap<K, V>
     /**
      * Returns the cached value if available or executes the {@link Callable} and returns
      * the value, which is also cached. Will not attempt to fetch values for null
-     * keys, to avoid potentially expensive and pointless operations. Will cache
-     * entries with null values.
+     * keys. Will cache entries with null values.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
@@ -78,7 +77,6 @@ public class CachingMap<K, V>
         if ( super.containsKey( key ) )
         {
             value = super.get( key );
-
             cacheHitCount++;
         }
         else
@@ -86,9 +84,48 @@ public class CachingMap<K, V>
             try
             {
                 value = callable.call();
-
                 super.put( key, value );
+                cacheMissCount++;
+            }
+            catch ( Exception ex )
+            {
+                throw new RuntimeException( ex );
+            }
+        }
 
+        return value;
+    }
+
+    /**
+     * Returns the cached value if available or invokes the mapping function and returns
+     * the value, which is also cached. Will not attempt to fetch values for null
+     * keys, to avoid potentially expensive and pointless operations. Will cache
+     * entries with null values.
+     *
+     * @param key the key.
+     * @param mappingFunction the function to compute a value.
+     * @return the return value of the mapping function, either from cache or computation.
+     */
+    public V get( K key, Function<K, V> mappingFunction )
+    {
+        if ( key == null )
+        {
+            return null;
+        }
+
+        V value = null;
+
+        if ( super.containsKey( key ) )
+        {
+            value = super.get( key );
+            cacheHitCount++;
+        }
+        else
+        {
+            try
+            {
+                value = mappingFunction.apply( key );
+                super.put( key, value );
                 cacheMissCount++;
             }
             catch ( Exception ex )
@@ -102,18 +139,34 @@ public class CachingMap<K, V>
 
     /**
      * Returns the cached value if available or executes the {@link Callable} and returns
-     * the value, which is also cached. If the value produced, the default value
-     * will be returned. Will not attempt to fetch values for null keys, to
-     * avoid potentially expensive and pointless operations.
+     * the value, which is also cached. If the computed value is null, the default value
+     * will be returned. Will not attempt to fetch values for null keys.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
      * @param defaultValue the default value.
-     * @return the return value of the {@link Callable}, either from cache or immediate execution.
+     * @return the return value of the {@link Callable}, either from cache or computation.
      */
     public V get( K key, Callable<V> callable, V defaultValue )
     {
         V value = get( key, callable );
+
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * Returns the cached value if available or invokes the mapping function and returns
+     * the value, which is also cached. If the computed value is null, the default value
+     * will be returned. Will not attempt to fetch values for null keys.
+     *
+     * @param key the key.
+     * @param mappingFunction the function to compute a value.
+     * @param defaultValue the default value.
+     * @return the return value of the mapping function, either from cache or computation.
+     */
+    public V get( K key, Function<K, V> mappingFunction, V defaultValue )
+    {
+        V value = get( key, mappingFunction );
 
         return value != null ? value : defaultValue;
     }

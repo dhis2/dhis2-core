@@ -39,7 +39,7 @@ import static org.junit.Assert.*;
 public class CachingMapTest
 {
     private static final Callable<Animal> FN = () -> null;
-    
+
     @Test
     public void testGetLoad()
     {
@@ -53,10 +53,36 @@ public class CachingMapTest
         assertEquals( 3, cache.size() );
         assertEquals( "horse", cache.get( 1, FN ).getName() );
         assertEquals( "dog", cache.get( 2, FN ).getName() );
-        assertEquals( "cat", cache.get( 3, FN ).getName() );        
+        assertEquals( "cat", cache.get( 3, FN ).getName() );
         assertFalse( cache.containsKey( 5 ) );
     }
-        
+
+    @Test
+    public void testGetValueWithFunction()
+    {
+        CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
+
+        Animal horse = cache.get( 1, key -> new Animal( key, "horse" ) );
+
+        assertNotNull( horse );
+        assertEquals( "horse", horse.getName() );
+
+        Animal dog = cache.get( 2, key -> null );
+
+        assertNull( dog );
+    }
+
+    @Test
+    public void testGetValueWithFunctionAndDefaultValue()
+    {
+        CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
+
+        Animal horse = cache.get( 1, key -> null, new Animal( 1, "horse" ) );
+
+        assertNotNull( horse );
+        assertEquals( "horse", horse.getName() );
+    }
+
     @Test
     public void testLoadWithNull()
     {
@@ -68,18 +94,18 @@ public class CachingMapTest
         CachingMap<String, Animal> cache = new CachingMap<String, Animal>().load( animals, a -> a.getName() );
 
         assertEquals( 2, cache.size() );
-        assertEquals( 1, cache.get( "horse", FN ).getId() );       
+        assertEquals( 1, cache.get( "horse", FN ).getId() );
         assertFalse( cache.containsKey( "dog" ) );
     }
-    
+
     @Test
     public void testCacheHitMissCount()
     {
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
-        
+
         cache.put( 1, new Animal( 1, "horse" ) );
         cache.put( 2, new Animal( 2, "dog" ) );
-        
+
         cache.get( 1, FN ); // Hit
         cache.get( 1, FN ); // Hit
         cache.get( 1, FN ); // Hit
@@ -91,7 +117,7 @@ public class CachingMapTest
         cache.get( 4, FN ); // Hit null-value
         cache.get( 4, FN ); // Hit null-value
         cache.get( 5, FN ); // Miss
-        
+
         assertEquals( 8, cache.getCacheHitCount() );
         assertEquals( 3, cache.getCacheMissCount() );
     }
@@ -105,9 +131,9 @@ public class CachingMapTest
         animals.add( new Animal( 3, "cat" ) );
 
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
-        
+
         assertEquals( 0, cache.getCacheLoadCount() );
-        
+
         cache.load( animals, a -> a.getId() );
 
         assertEquals( 1, cache.getCacheLoadCount() );
@@ -121,9 +147,9 @@ public class CachingMapTest
         animals.add( new Animal( 3, "cat" ) );
 
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
-        
+
         assertFalse( cache.isCacheLoaded() );
-        
+
         cache.load( animals, a -> a.getId() );
 
         assertTrue( cache.isCacheLoaded() );
@@ -139,28 +165,28 @@ public class CachingMapTest
         Set<Animal> animals = new HashSet<>();
         animals.add( new Animal( 1, "horse" ) );
         animals.add( new Animal( 2, "dog" ) );
-        
+
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>().load( animals, a -> a.getId() );
-        
+
         assertNull( cache.get( 5, FN ) ); // Miss
         assertNull( cache.get( 5, FN ) ); // Hit null-value
         assertNull( cache.get( 5, FN ) ); // Hit null-value
-        
+
         assertEquals( 1, cache.getCacheMissCount() );
         assertEquals( 2, cache.getCacheHitCount() );
     }
-    
+
     private class Animal
     {
         private int id;
         private String name;
-        
+
         public Animal( int id, String name )
         {
             this.id = id;
             this.name = name;
         }
-        
+
         public int getId()
         {
             return id;
