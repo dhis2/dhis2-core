@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -82,7 +81,7 @@ public class CompleteDataSetRegistration
 
     protected String storedBy;
 
-    protected User lastUpdatedBy;
+    protected String lastUpdatedBy;
 
     protected String cc;
 
@@ -256,12 +255,12 @@ public class CompleteDataSetRegistration
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getLastUpdatedBy()
+    public String getLastUpdatedBy()
     {
         return lastUpdatedBy;
     }
 
-    public void setLastUpdatedBy( User lastUpdatedBy )
+    public void setLastUpdatedBy( String lastUpdatedBy )
     {
         this.lastUpdatedBy = lastUpdatedBy;
     }
