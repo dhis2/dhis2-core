@@ -28,6 +28,7 @@
 
 package org.hisp.dhis;
 
+import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
