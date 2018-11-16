@@ -106,7 +106,7 @@ public abstract class IntegrationTestBase
     {
         SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
         Session session = sessionFactory.openSession();
-
+        session.setHibernateFlushMode(FlushMode.ALWAYS);
         TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
     }
 
