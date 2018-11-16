@@ -37,14 +37,17 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
@@ -83,6 +86,12 @@ public class EventAnalyticsServiceTest
     private EventAnalyticsService eventAnalyticsService;
 
     @Autowired
+    private PeriodService periodService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
@@ -106,20 +115,20 @@ public class EventAnalyticsServiceTest
         Period peMar = createPeriod( "2017-03" );
         Period peApril = createPeriod( "2017-04" );
 
-        idObjectManager.save( peJan );
-        idObjectManager.save( peFeb );
-        idObjectManager.save( peMar );
-        idObjectManager.save( peApril );
+        periodService.addPeriod( peJan );
+        periodService.addPeriod( peFeb );
+        periodService.addPeriod( peMar );
+        periodService.addPeriod( peApril );
 
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
         DataElement deC = createDataElement( 'C' );
         DataElement deD = createDataElement( 'D' );
 
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
-        idObjectManager.save( deD );
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
 
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );

@@ -86,13 +86,13 @@ import static org.junit.Assert.assertEquals;
 public class AnalyticsServiceTest
     extends IntegrationTestBase
 {
-    private static CategoryOptionCombo ocDef;
+    private CategoryOptionCombo ocDef;
 
-    private static Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
+    private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
-    private static Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
+    private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
-    private static Map<String, Map<String, Double>> results = new HashMap<>();
+    private Map<String, Map<String, Double>> results = new HashMap<>();
 
     @Autowired
     private DataElementService dataElementService;
@@ -160,12 +160,10 @@ public class AnalyticsServiceTest
     //
     // --------------------------------------------------------------------
 
-    private static boolean isSetupDone = false;
     @Override
     public void setUpTest()
             throws IOException, InterruptedException {
 
-        if (isSetupDone) return;
         // Set up meta data for data values
         // --------------------------------------------------------------------
         ReportingRate reportingRateA;
@@ -797,21 +795,18 @@ public class AnalyticsServiceTest
         results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
         results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
 
-        Thread.sleep(15000);
-        isSetupDone = true;
-
     }
 
     @Override
     public boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     @Override
     public void tearDownTest()
     {
-        //analyticsTableGenerator.dropTables();
+        analyticsTableGenerator.dropTables();
     }
 
     @Test

@@ -64,8 +64,9 @@ public abstract class IntegrationTestBase
     public void before()
         throws Exception
     {
-        beforeAll();
-        setUpTest();
+         bindSession();
+         executeStartupRoutines();
+         setUpTest();
     }
 
     @After
@@ -79,13 +80,6 @@ public abstract class IntegrationTestBase
         {
             dbmsManager.emptyDatabase();
         }
-    }
-
-    protected void beforeAll()
-        throws Exception
-    {
-        bindSession();
-        executeStartupRoutines();
     }
 
     private void executeStartupRoutines()
