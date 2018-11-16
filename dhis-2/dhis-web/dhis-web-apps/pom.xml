@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.hisp.dhis</groupId>
@@ -9,82 +9,65 @@
         <version>2.29</version>
     </parent>
 
-	<artifactId>dhis-web-apps</artifactId>
-	<packaging>war</packaging>
-	<name>DHIS Web Apps</name>
+    <artifactId>dhis-web-apps</artifactId>
+    <packaging>war</packaging>
+    <name>DHIS Web Apps</name>
 
-	<build>
-		<finalName>dhis-web-apps</finalName>
+    <build>
+        <finalName>dhis-web-apps</finalName>
 
-		<plugins>
-			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.6</version>
-				<executions>
+        <plugins>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <installDirectory>target</installDirectory>
+                    <environmentVariables>
+                        <BUILD_DIR>${project.build.directory}</BUILD_DIR>
+                        <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
+                        <APPS>./apps-to-bundle.json</APPS>
+                    </environmentVariables> 
+                </configuration>
+                <executions>
 
-					<execution>
-						<id>install node and npm</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>install-node-and-npm</goal>
-						</goals>
-						<configuration>
-							<nodeVersion>v8.11.1</nodeVersion>
-							<npmVersion>5.6.0</npmVersion>
-						</configuration>
-					</execution>
+                    <execution>
+                        <id>install node and npm</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v8.11.1</nodeVersion>
+                        </configuration>
+                    </execution>
 
-					<execution>
-						<id>npm install</id>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<phase>process-resources</phase>
-						<configuration>
-							<arguments>install</arguments>
-						</configuration>
-					</execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                    </execution>
 
-					<execution>
-						<id>node generate struts xml config</id>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<phase>process-resources</phase>
-						<configuration>
-							<arguments>run generate-struts</arguments>
-						</configuration>
-					</execution>
+                    <execution>
+                        <id>clone apps</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run bundle-apps</arguments>
+                        </configuration>
+                    </execution>
 
-					<execution>
-						<id>node generate index to target</id>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<phase>prepare-package</phase>
-						<configuration>
-							<arguments>run generate-index</arguments>
-						</configuration>
-					</execution>
+                </executions>
+            </plugin>
 
-					<execution>
-						<id>node copy apps to target</id>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<phase>prepare-package</phase>
-						<configuration>
-							<arguments>run copy-apps -- ${project.build.directory}/${project.artifactId}</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+        </plugins>
+    </build>
 
-		</plugins>
-	</build>
-
-	<properties>
-		<rootDir>../../</rootDir>
-	</properties>
+    <properties>
+        <rootDir>../../</rootDir>
+    </properties>
 </project>
