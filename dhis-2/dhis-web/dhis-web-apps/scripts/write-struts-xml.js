@@ -19,7 +19,7 @@ function list_item (name) {
     <package 
         name="${name}" 
         extends="dhis-web-commons"
-        namespace="${name}">
+        namespace="/${name}">
             <action name="index"
                 class="org.hisp.dhis.commons.action.NoAction">
                 <result
