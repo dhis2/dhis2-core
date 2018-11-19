@@ -217,7 +217,7 @@ public class TableAlteror
 
         executeSql( "UPDATE datasetnotificationtemplate SET notifyParentOrganisationUnitOnly = false WHERE notifyParentOrganisationUnitOnly IS NULL" );
         executeSql( "UPDATE datasetnotificationtemplate SET notifyUsersInHierarchyOnly = false WHERE notifyUsersInHierarchyOnly IS NULL" );
-        executeSql( "UPDATE programrulevariable SET usecodeforoptionset = false WHERE usecodeforoptionset IS NULL;" );
+        executeSql( "UPDATE programrulevariable SET usecodeforoptionset = false WHERE usecodeforoptionset IS NULL" );
 
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
