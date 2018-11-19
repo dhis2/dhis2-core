@@ -1,1 +1,1 @@
-alter table deletedobject drop constraint key_deleted_object_klass_code;
+alter table deletedobject drop constraint if exists key_deleted_object_klass_code;
