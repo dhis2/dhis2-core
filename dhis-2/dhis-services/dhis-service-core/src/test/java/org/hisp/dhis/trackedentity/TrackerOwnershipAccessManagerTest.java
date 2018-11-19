@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -90,6 +91,7 @@ public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
         entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
         programA = createProgram( 'A' );
+        programA.setAccessLevel( AccessLevel.PROTECTED );
         programService.addProgram( programA );
 
         userA = createUser( "userA" );

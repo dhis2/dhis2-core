@@ -176,7 +176,7 @@ public class Program
     /**
      * Property indicating level of access
      */
-    private AccessLevel accessLevel;
+    private AccessLevel accessLevel = AccessLevel.OPEN;
 
     // -------------------------------------------------------------------------
     // Constructors
