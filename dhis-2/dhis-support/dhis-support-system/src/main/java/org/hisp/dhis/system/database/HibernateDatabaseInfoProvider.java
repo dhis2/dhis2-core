@@ -64,7 +64,8 @@ public class HibernateDatabaseInfoProvider
     {
         boolean spatialSupport = isSpatialSupport();
         
-        // Check if postgis is installed. if not, fail startup
+        // Check if postgis is installed. If not, fail startup.
+
         if ( !spatialSupport && !SystemUtils.isTestRun() )
         {
             log.error( POSTGIS_MISSING_ERROR );
