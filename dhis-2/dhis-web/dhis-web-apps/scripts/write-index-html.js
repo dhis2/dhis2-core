@@ -1,31 +1,11 @@
-const fs = require('fs-extra')
+const { promisify } = require('util')
 const path = require('path')
-const { execSync } = require('child_process')
 
-const log = require('@vardevs/log')({
-    level: 2,
-    prefix: 'WEBAPPS'
-})
+const read_file = promisify(require('fs').readFile)
+const write_file = promisify(require('fs').writeFile)
+const mkdir = promisify(require('fs').mkdir)
 
-const { appName } = require('./lib/sanitize')
-
-const root = process.cwd()
-const pkg =  require(path.join(root, 'package.json'))
-const deps = pkg.dependencies
-
-const indexPath = path.join(root, 'src', 'main', 'webapp', 'dhis-web-apps', 'template.html')
-const targetDir = path.join(root, 'target', 'dhis-web-apps', 'dhis-web-apps')
-const targetPath = path.join(targetDir, 'index.html')
-
-try {
-    fs.accessSync(targetDir)
-    log.info('target dir:', targetDir)
-} catch (err) {
-    log.error('no target dir!')
-    fs.ensureDirSync(targetDir)
-}
-
-function listEl (name) {
+function list_item (name) {
     return `
         <li>
             <a href="../${name}">
@@ -34,15 +14,8 @@ function listEl (name) {
         </li>`
 }
 
-function buildInfo () {
-    let created = 'n/a'
-    let sha = 'n/a'
-    try {
-        created = Date()
-        sha = execSync('git rev-parse HEAD', { encoding: 'utf8' })
-    } catch (e) {
-        console.error(e)
-    }
+function buildInfo (sha = 'n/a') {
+    const created = Date()
     return `
         <p>
             ${created}<br>
@@ -50,26 +23,35 @@ function buildInfo () {
         </p>`
 }
 
-try {
-    const html = fs.readFileSync(indexPath, 'utf8')
-
-    const apps = []
-    for (let name in deps) {
-        apps.push(listEl(appName(name)))
+module.exports = async function generate_index (apps, core_sha, templatePath, indexPath) {
+    let list = []
+    for (const app of apps) {
+        list.push(list_item(app.web_name))
     }
-
-    const targetHtml = html
-        .replace('<!-- INJECT HTML HERE -->', apps.join('\n'))
-        .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo())
 
     try {
-        fs.writeFileSync(targetPath, targetHtml, { encoding: 'utf8' })
+        const html = await read_file(templatePath, 'utf8')
+
+        const indexHtml = html
+            .replace('<!-- INJECT HTML HERE -->', list.join('\n'))
+            .replace('<!-- INJECT BUILD INFO HERE -->', buildInfo(core_sha))
+
+        const rel_path = path.relative(process.cwd(), path.dirname(indexPath))
+        try {
+            await mkdir(rel_path)
+        } catch (err) {
+            if (err.code === 'EEXIST') {
+                console.log(`[index] ${rel_path} exists already`)
+            } else {
+                console.error(`[index] could not create ${rel_path}`, err)
+                process.exit(1)
+            }
+        }
+
+        await write_file(indexPath, indexHtml, { encoding: 'utf8' })
+        console.log(`[index] index.html written`)
     } catch (err) {
-        log.error('Failed to write', err)
+        console.error('[index] generate index.html failed', err)
         process.exit(1)
     }
-} catch (err) {
-    log.error('Failed to write', err)
-    process.exit(1)
 }
-

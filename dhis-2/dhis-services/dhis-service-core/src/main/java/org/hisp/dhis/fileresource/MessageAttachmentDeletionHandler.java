@@ -49,7 +49,7 @@ public class MessageAttachmentDeletionHandler extends DeletionHandler
     @Override
     public String allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+        String sql = "SELECT COUNT(*) FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
 
         int result = jdbcTemplate.queryForObject( sql, Integer.class );
 
@@ -59,7 +59,7 @@ public class MessageAttachmentDeletionHandler extends DeletionHandler
     @Override
     public void deleteFileResource( FileResource fileResource )
     {
-        String sql = "DELETE FROM message_attachments WHERE fileresourceid=" + fileResource.getId();
+        String sql = "DELETE FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
 
         jdbcTemplate.execute( sql );
     }
