@@ -206,14 +206,14 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
         }
 
-        List<String> categoryOptionComboErrors = accessManager.canWrite( currentUser, categoryOptionCombo );
+        List<String> categoryOptionComboErrors = accessManager.canWriteCached( currentUser, categoryOptionCombo );
 
         if ( !categoryOptionComboErrors.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "User does not have write access to category option combo: " + co + ", errors: " + categoryOptionComboErrors ) );
         }
 
-        List<String> attributeOptionComboErrors = accessManager.canWrite( currentUser, attributeOptionCombo );
+        List<String> attributeOptionComboErrors = accessManager.canWriteCached( currentUser, attributeOptionCombo );
 
         if ( !attributeOptionComboErrors.isEmpty() )
         {
