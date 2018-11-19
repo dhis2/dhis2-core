@@ -1118,6 +1118,9 @@ public class TableAlteror
         executeSql( "delete from systemsetting where name = 'keyCorsWhitelist';" );
         
         executeSql( "update program set accesslevel='OPEN' where accesslevel is NULL" );
+        
+        //Remove unique code,klass from deletedobject table
+        executeSql("alter table deletedobject drop constraint key_deleted_object_klass_code;");
 
         log.info( "Tables updated" );
 
