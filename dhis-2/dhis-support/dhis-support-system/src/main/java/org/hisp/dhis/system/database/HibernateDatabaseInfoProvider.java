@@ -30,6 +30,7 @@ package org.hisp.dhis.system.database;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public class HibernateDatabaseInfoProvider
         boolean spatialSupport = isSpatialSupport();
         
         // Check if postgis is installed. if not, fail startup
-        if ( !spatialSupport )
+        if ( !spatialSupport && !SystemUtils.isTestRun() )
         {
             log.error( POSTGIS_MISSING_ERROR );
             throw new IllegalStateException( POSTGIS_MISSING_ERROR );
