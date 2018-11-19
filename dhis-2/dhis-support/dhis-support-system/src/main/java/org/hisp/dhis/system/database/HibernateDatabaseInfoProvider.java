@@ -82,7 +82,6 @@ public class HibernateDatabaseInfoProvider
         info.setPassword( password );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
-        
     }
     
     // -------------------------------------------------------------------------
