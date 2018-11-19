@@ -1090,6 +1090,9 @@ public class TableAlteror
         executeSql( "alter table program_userroles drop constraint fkd6350dd7a3100c9f;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
         executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
+        
+        //Remove unique code,klass from deletedobject table
+        executeSql("alter table deletedobject drop constraint key_deleted_object_klass_code;");
 
         log.info( "Tables updated" );
 
