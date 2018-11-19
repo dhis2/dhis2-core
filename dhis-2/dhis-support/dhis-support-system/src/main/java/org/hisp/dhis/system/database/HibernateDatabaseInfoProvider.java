@@ -43,9 +43,7 @@ public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {    
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
-
     private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
-    
     private static final String DEL_A = "/";
     private static final String DEL_B = ":";
     private static final String DEL_C = "?";
