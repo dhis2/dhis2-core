@@ -28,23 +28,35 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * @author Lars Helge Overland
+ * Remaps approval levels within a workflow for analytics tables approved
+ * data visibility. This handles the case where a workflow does not include
+ * all data approval levels. Where approval levels are skipped by the workflow,
+ * they are remapped upwords so that higher-level users can see the approved
+ * data.
+ * <p/>
+ * For example, if a workfow includes approval levels 1,2,4, and 5, the approved
+ * data will be tagged at levels 1,2,3, and 5. This allows level 2 users to see
+ * data in this workflow that is approved at level 4.
+ * <p/>
+ * As another example, if a workflow includes levels 3,4,5, and 7, the approved
+ * data will be tagged at levels 1,4,5, and 6. This allows level 1 users to see
+ * level 3 approved data, and level 5 users to see level 7 approved data.
+ *
+ * @author Jim Grace
  */
-public class DataApprovalMinLevelResourceTable
-    extends ResourceTable<OrganisationUnitLevel>
+public class DataApprovalRemapLevelResourceTable
+    extends ResourceTable<DataApprovalWorkflow>
 {
-    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects, String columnQuote )
+    public DataApprovalRemapLevelResourceTable( List<DataApprovalWorkflow> objects, String columnQuote  )
     {
         super( objects, columnQuote );
     }
@@ -52,7 +64,7 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public ResourceTableType getTableType()
     {
-        return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
+        return ResourceTableType.DATA_APPROVAL_REMAP_LEVEL;
     }
 
     @Override
@@ -60,11 +72,9 @@ public class DataApprovalMinLevelResourceTable
     {
         String sql = "create table " + getTempTableName() + "(" +
             "workflowid integer not null, " +
-            "periodid integer not null, " +
-            "organisationunitid integer not null, " +
-            "attributeoptioncomboid integer not null, " +
-            "minlevel integer not null, " +
-            "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
+            "dataapprovallevelid integer not null, " +
+            "level integer not null, " +
+            "primary key (workflowid,dataapprovallevelid))";
         
         return sql;
     }
@@ -72,29 +82,18 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
+        String sql =
             "insert into " + getTempTableName() + 
-            " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) " +
-            "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel " +
-            "from dataapproval da " +
-            "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid " +
-            "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid " +
-            "where not exists ( " +
-                "select 1 from dataapproval da2 " +
-                "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid " +
-                "where da.workflowid=da2.workflowid " +
-                    "and da.periodid=da2.periodid " +
-                    "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +
-                    "and dal.level > dal2.level " +
-                    "and ( ";
-        
-        for ( OrganisationUnitLevel level : objects )
-        {
-            sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
-        }
-        
-        sql = TextUtils.removeLastOr( sql ) + ") )";
-        
+            " (workflowid,dataapprovallevelid,level) " +
+            "select w.workflowid, w.dataapprovallevelid, " +
+                "1 + coalesce((select max(l2.level) " +
+                "from dataapprovalworkflowlevels w2 " +
+                "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid " +
+                "where w2.workflowid = w.workflowid " +
+                "and l2.level < l.level), 0) as level " +
+            "from dataapprovalworkflowlevels w " +
+            "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
+
         return Optional.of( sql );
     }
 

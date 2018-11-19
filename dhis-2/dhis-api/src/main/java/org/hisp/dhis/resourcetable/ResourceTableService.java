@@ -95,12 +95,17 @@ public interface ResourceTableService
      * option combinations.
      */
     void generateDataElementCategoryOptionComboTable();
-    
+
+    /**
+     * Generates a resource table for remapping any skipped approval levels.
+     */
+    void generateDataApprovalRemapLevelTable();
+
     /**
      * Generates a resource table for data approval aggregated to minimum level.
      */
     void generateDataApprovalMinLevelTable();
-    
+
     /**
      * Create all SQL views.
      */
