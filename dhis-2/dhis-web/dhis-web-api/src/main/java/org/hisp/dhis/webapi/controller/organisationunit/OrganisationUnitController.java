@@ -148,10 +148,6 @@ public class OrganisationUnitController
         List<Order> orders )
         throws QueryParserException
     {
-        List<OrganisationUnit> objects = Lists.newArrayList();
-
-        User currentUser = currentUserService.getCurrentUser();
-
         boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
             options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ),
             options.isTrue( "levelSorted" ) );
@@ -163,7 +159,54 @@ public class OrganisationUnitController
         // ---------------------------------------------------------------------
         // Special parameter handling
         // ---------------------------------------------------------------------
+        User currentUser = currentUserService.getCurrentUser();
+        List<OrganisationUnit> objects = Lists.newArrayList();
 
+        objects = getOrganisationUnits( options, objects, currentUser, anyQueryPropertySet );
+
+        // ---------------------------------------------------------------------
+        // Standard Query handling
+        // ---------------------------------------------------------------------
+
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        query.setUser( currentUser );
+        query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+        if ( anySpecialPropertySet || anyQueryPropertySet )
+        {
+            query.setObjects( objects );
+        }
+
+        List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
+
+        // ---------------------------------------------------------------------
+        // Collection member count in hierarchy handling
+        // ---------------------------------------------------------------------
+
+        getMembers( memberObject, memberCollection, list );
+
+        return list;
+    }
+
+    private void getMembers( String memberObject, String memberCollection, List<OrganisationUnit> list )
+    {
+        IdentifiableObject member;
+        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
+        {
+            for ( OrganisationUnit unit : list )
+            {
+                Long count = organisationUnitService
+                    .getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
+
+                unit.setMemberCount( (count != null ? count.intValue() : 0) );
+            }
+        }
+    }
+
+    private List<OrganisationUnit> getOrganisationUnits( WebOptions options, List<OrganisationUnit> objects,
+        User currentUser, boolean anyQueryPropertySet )
+    {
         if ( options.isTrue( "userOnly" ) )
         {
             objects = new ArrayList<>( currentUser.getOrganisationUnits() );
@@ -204,41 +247,7 @@ public class OrganisationUnitController
 
             objects = organisationUnitService.getOrganisationUnitsByQuery( params );
         }
-
-        // ---------------------------------------------------------------------
-        // Standard Query handling
-        // ---------------------------------------------------------------------
-
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
-        query.setUser( currentUser );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-
-        if ( anySpecialPropertySet || anyQueryPropertySet )
-        {
-            query.setObjects( objects );
-        }
-
-        List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
-
-        // ---------------------------------------------------------------------
-        // Collection member count in hierarchy handling
-        // ---------------------------------------------------------------------
-
-        IdentifiableObject member = null;
-
-        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
-        {
-            for ( OrganisationUnit unit : list )
-            {
-                Long count = organisationUnitService
-                    .getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
-
-                unit.setMemberCount( (count != null ? count.intValue() : 0) );
-            }
-        }
-
-        return list;
+        return objects;
     }
 
     @Override
