@@ -3391,21 +3391,17 @@ dhis2.de.insertOptionSets = function()
         
         DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
-                    var options = [];
-                    $.each( obj.optionSet.options, function( inx, option ) {
-                        if ( !option.access.data.write ) return;
 
+                    $.each( obj.optionSet.options, function( inx, option ) {
                         option.text = option.displayName;
                         option.id = option.code;
-
-                        options.push(option);
                     } );
                     
                     $("#" + item).select2({
                         placeholder: i18n_select_option ,
                         allowClear: true,
                         dataType: 'json',
-                        data: options
+                        data: obj.optionSet.options
                     }).on("change", function(e){
                         saveVal( dataElementId, optionComboId, fieldId );
                     });
