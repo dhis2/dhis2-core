@@ -2,7 +2,6 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 
 <hibernate-mapping>
@@ -11,7 +10,6 @@
     <id name="id" column="trackedentitycommentid">
       <generator class="native" />
     </id>
-    &identifiableProperties;
 
     <property name="commentText" column="commenttext" type="text" />
 
