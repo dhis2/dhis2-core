@@ -38,8 +38,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -67,14 +65,13 @@ public class CompleteDataSetRegistration
 
     private String storedBy;
 
-    private transient String periodName;
-
     private Date lastUpdated;
 
-    private User lastUpdatedBy;
+    private String lastUpdatedBy;
 
     private Boolean completed;
 
+    private transient String periodName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -94,8 +91,7 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, User lastUpdatedBy, Date lastUpdated,
-                                        Boolean completed )
+        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, String lastUpdatedBy, Date lastUpdated, Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
@@ -278,24 +274,14 @@ public class CompleteDataSetRegistration
         this.storedBy = storedBy;
     }
 
-    public String getPeriodName()
-    {
-        return periodName;
-    }
-
-    public void setPeriodName( String periodName )
-    {
-        this.periodName = periodName;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getLastUpdatedBy()
+    public String getLastUpdatedBy()
     {
         return lastUpdatedBy;
     }
 
-    public void setLastUpdatedBy( User lastUpdatedBy )
+    public void setLastUpdatedBy( String lastUpdatedBy )
     {
         this.lastUpdatedBy = lastUpdatedBy;
     }
@@ -324,20 +310,30 @@ public class CompleteDataSetRegistration
         this.completed = isCompleted;
     }
 
+    public String getPeriodName()
+    {
+        return periodName;
+    }
+
+    public void setPeriodName( String periodName )
+    {
+        this.periodName = periodName;
+    }
+
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( "dataSet", dataSet )
-                .add( "period", period )
-                .add( "source", source )
-                .add( "attributeOptionCombo", attributeOptionCombo )
-                .add( "date", date )
-                .add( "storedBy", storedBy )
-                .add( "lastUpdatedBy", lastUpdatedBy )
-                .add( "periodName", periodName )
-                .add( "lastUpdated", lastUpdated )
-                .add( "isCompleted", completed )
-                .toString();
+            .add( "dataSet", dataSet )
+            .add( "period", period )
+            .add( "source", source )
+            .add( "attributeOptionCombo", attributeOptionCombo )
+            .add( "date", date )
+            .add( "storedBy", storedBy )
+            .add( "lastUpdatedBy", lastUpdatedBy )
+            .add( "periodName", periodName )
+            .add( "lastUpdated", lastUpdated )
+            .add( "isCompleted", completed )
+            .toString();
     }
 }

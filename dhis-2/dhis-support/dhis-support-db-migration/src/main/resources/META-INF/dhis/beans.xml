@@ -9,7 +9,7 @@
   <!-- Flyway configuration -->
   <beans profile="!test">
     <bean id="flywayConfig"
-      class="org.flywaydb.core.api.configuration.ClassicConfiguration">
+      class="org.flywaydb.core.api.configuration.ClassicConfiguration" depends-on="databaseInfoProvider">
       <property name="dataSource" ref="dataSource" />
       <property name="baselineOnMigrate" value="true" />
       <property name="outOfOrder" ref="flywayOutOfOrder" />
