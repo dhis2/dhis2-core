@@ -359,25 +359,23 @@ public class ReportController
         Date date, String type, String contentType, boolean attachment )
         throws Exception
     {
-
-        Date processedDate = processRequestedReportDate( date, isoPeriod );
-        String processedOrganisationUnitUid = organisationUnitUid != null ? organisationUnitUid :
-            processOrganisationUnitUid( report );
+        Date processedDate = getRequestedReportDate( date, isoPeriod );
+        String processedOrganisationUnitUid = getOrganisationUnitUid( organisationUnitUid, report );
 
         if ( report.isTypeHtml() )
         {
             contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, report.getCacheStrategy() );
-
             reportService
                 .renderHtmlReport( response.getWriter(), report.getUid(), processedDate, processedOrganisationUnitUid );
         }
         else
         {
-            processedDate = processedDate != null ? processedDate : new DateTime().minusMonths( 1 ).toDate();
+            if ( processedDate == null )
+            {
+                processedDate = new DateTime().minusMonths( 1 ).toDate();
+            }
 
-            Period period = isoPeriod != null ?
-                PeriodType.getPeriodFromIsoString( isoPeriod ) :
-                new MonthlyPeriodType().createPeriod( processedDate );
+            Period period = getIsoPeriod( isoPeriod, processedDate );
 
             String filename = CodecUtils.filenameEncode( report.getName() ) + "." + type;
 
@@ -395,19 +393,33 @@ public class ReportController
         }
     }
 
-    private Date processRequestedReportDate( Date date, String isoPeriod )
+    private Date getRequestedReportDate( Date date, String isoPeriod )
     {
         return date != null ? date : isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ).getStartDate
             () : null;
     }
 
-    private String processOrganisationUnitUid( Report report )
+    private String getOrganisationUnitUid( String organisationUnitUid, Report report )
     {
+        if ( organisationUnitUid != null )
+        {
+            return organisationUnitUid;
+        }
         if ( report.hasReportTable() && report.getReportTable().hasReportParams()
             && report.getReportTable().getReportParams().isOrganisationUnitSet() )
         {
             return organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
         }
         return null;
+    }
+
+    private Period getIsoPeriod( String isoPeriod, Date processedDate )
+    {
+        if ( isoPeriod != null )
+        {
+            return PeriodType.getPeriodFromIsoString( isoPeriod );
+        }
+
+        return new MonthlyPeriodType().createPeriod( processedDate );
     }
 }
