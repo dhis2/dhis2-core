@@ -410,6 +410,7 @@ public class AnalyticsServiceTest
         validationResultStore.save( validationResultBBB );
         validationResultStore.save( validationResultBBA );
 
+        Thread.sleep(1000);
         // Generate analytics tables
         // --------------------------------------------------------------------
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
