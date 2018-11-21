@@ -182,8 +182,6 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS uid varchar(11) unique;" );
         executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS created timestamp;" );
         executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS lastupdated timestamp;" );
-        executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS code varchar(50) unique;" );
-        executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS lastupdatedby integer;" );
 
         executeSql( "UPDATE trackedentitycomment SET uid = generate_uid() WHERE uid IS NULL;" );
         executeSql( "UPDATE trackedentitycomment SET created = now() WHERE created IS NULL;" );
@@ -192,9 +190,6 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN uid SET NOT NULL;" );
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN created SET NOT NULL;" );
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN lastupdated SET NOT NULL;" );
-
-        executeSql( "ALTER TABLE trackedentitycomment DROP CONSTRAINT IF EXISTS fk_lastupdateby_userid;" );
-        executeSql( "ALTER TABLE trackedentitycomment ADD CONSTRAINT fk_lastupdateby_userid FOREIGN KEY (lastupdatedby) REFERENCES userinfo(userinfoid);" );
     }
 
     private void addGenerateUidFunction()
