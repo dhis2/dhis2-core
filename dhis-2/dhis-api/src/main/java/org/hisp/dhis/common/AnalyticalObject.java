@@ -45,39 +45,41 @@ public interface AnalyticalObject
     extends IdentifiableObject, InterpretableObject, SubscribableObject
 {
     void populateAnalyticalProperties();
-    
+
     List<DimensionalObject> getColumns();
-    
+
     List<DimensionalObject> getRows();
-    
+
     List<DimensionalObject> getFilters();
-    
+
     Map<String, String> getParentGraphMap();
-    
+
     Date getRelativePeriodDate();
-    
+
     OrganisationUnit getRelativeOrganisationUnit();
-    
+
     List<Period> getPeriods();
-    
+
     List<OrganisationUnit> getOrganisationUnits();
-    
+
     boolean addDataDimensionItem( DimensionalItemObject object );
-    
+
     boolean removeDataDimensionItem( DimensionalItemObject object );
-    
+
     void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension );
-    
+
     void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
-    
+
     void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
 
     boolean isCompletedOnly();
-    
+
     String getTimeField();
-    
+
+    String getOrgUnitField();
+
     String getTitle();
-    
+
     boolean hasUserOrgUnit();
 
     void clearTransientState();

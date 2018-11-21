@@ -1136,8 +1136,6 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter          A unique character to identify the object.
      * @param expressionString         The expression string.
-     * @param dataElementsInExpression A collection of the data elements
-     *                                 entering into the expression.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {

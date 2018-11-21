@@ -35,11 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StrSubstitutor;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
@@ -82,7 +80,7 @@ public class DefaultDhisConfigurationProvider
      * Cache for properties.
      */
     private Properties properties;
-    
+
     /**
      * Cache for Google credential.
      */
@@ -105,7 +103,7 @@ public class DefaultDhisConfigurationProvider
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
-            
+
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
         catch ( LocationManagerException ex )
@@ -120,15 +118,15 @@ public class DefaultDhisConfigurationProvider
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into GoogleCredential
         // ---------------------------------------------------------------------
-        
+
         try ( InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             GoogleCredential credential = GoogleCredential
                 .fromStream( credentialIn )
                 .createScoped( Collections.singleton( GOOGLE_EE_SCOPE ) );
-            
+
             this.googleCredential = Optional.of( credential );
-            
+
             log.info( "Loaded dhis-google-auth.json authentication file" );
         }
         catch ( LocationManagerException ex )
@@ -165,7 +163,7 @@ public class DefaultDhisConfigurationProvider
 
     @Override
     public boolean hasProperty( ConfigurationKey key )
-    {        
+    {
         return StringUtils.isNotEmpty( properties.getProperty( key.getKey() ) );
     }
 
@@ -189,38 +187,38 @@ public class DefaultDhisConfigurationProvider
 
     @Override
     public Optional<GoogleAccessToken> getGoogleAccessToken()
-    {        
+    {
         if ( !getGoogleCredential().isPresent() )
         {
             return Optional.empty();
         }
-        
+
         GoogleCredential credential = getGoogleCredential().get();
-        
+
         try
         {
             if ( !credential.refreshToken() || credential.getExpiresInSeconds() == null )
             {
                 log.warn( "There is no refresh token to be retrieved" );
-                
+
                 return Optional.empty();
-            }            
+            }
         }
         catch ( IOException ex )
         {
             throw new IllegalStateException( "Could not retrieve refresh token: " + ex.getMessage(), ex );
         }
-        
+
         GoogleAccessToken token = new GoogleAccessToken();
-        
-        token.setAccessToken( credential.getAccessToken() );        
+
+        token.setAccessToken( credential.getAccessToken() );
         token.setClientId( getProperty( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID ) );
         token.setExpiresInSeconds( credential.getExpiresInSeconds() );
         token.setExpiresOn( LocalDateTime.now().plusSeconds( token.getExpiresInSeconds() ) );
-        
+
         return Optional.of( token );
     }
-    
+
     @Override
     public boolean isReadOnlyMode()
     {
@@ -229,7 +227,7 @@ public class DefaultDhisConfigurationProvider
 
     @Override
     public boolean isClusterEnabled()
-    {        
+    {
         return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
     }
 
@@ -247,11 +245,11 @@ public class DefaultDhisConfigurationProvider
     public EncryptionStatus getEncryptionStatus()
     {
         String password;
-        
+
         int maxKeyLength;
 
         // Check for JCE files is present (key length > 128) and AES is available
-        
+
         try
         {
             maxKeyLength = Cipher.getMaxAllowedKeyLength( "AES" );

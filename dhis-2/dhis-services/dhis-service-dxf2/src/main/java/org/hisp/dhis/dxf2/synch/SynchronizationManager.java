@@ -46,6 +46,7 @@ public interface SynchronizationManager
      * @return an {@link ImportSummary}.
      */
     ImportSummary executeDataPush() throws WebMessageParseException;
+    ImportSummary executeDataSetCompletenessPush() throws WebMessageParseException;
 
     /**
      * Executes an event push to remote server.
@@ -81,5 +82,5 @@ public interface SynchronizationManager
      * 
      * @return the {@link AvailabilityStatus} of the remote server.
      */
-    AvailabilityStatus isRemoteServerAvailable();    
+    AvailabilityStatus isRemoteServerAvailable();
 }

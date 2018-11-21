@@ -84,7 +84,7 @@ import static org.junit.Assert.assertEquals;
  * <li>Add to 'dataQueryParams'/'analyticalObjectHashMap' map.</li>
  * <li>Add HashMap<String, Double> with expected output to results map.</li>
  * </ul>
- * 
+ *
  * @author Henning Haakonsen
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
@@ -918,6 +918,7 @@ public class AnalyticsServiceTest
     private void parseDataSetRegistrations( List<String[]> lines )
     {
         String storedBy = "johndoe";
+        String lastUpdatedBy = "johndoe";
         Date now = new Date();
 
         for ( String[] line : lines )
@@ -928,7 +929,7 @@ public class AnalyticsServiceTest
 
             CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
                 organisationUnit, ocDef, now,
-                storedBy );
+                storedBy, lastUpdatedBy, new Date(), true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
 

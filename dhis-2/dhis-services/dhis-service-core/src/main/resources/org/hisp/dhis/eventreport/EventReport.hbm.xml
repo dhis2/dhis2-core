@@ -133,6 +133,8 @@
     
     <property name="timeField" column="timefield" />
 
+    <property name="orgUnitField" column="orgunitfield" />
+    
     <property name="title" />
     
     <property name="subtitle" />

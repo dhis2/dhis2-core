@@ -73,7 +73,7 @@ public enum ValueType
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ).build();
-    
+
     public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.<ValueType>builder().add(
         NUMBER, UNIT_INTERVAL, PERCENTAGE ).build();
 
@@ -88,7 +88,7 @@ public enum ValueType
 
     public static final Set<ValueType> FILE_TYPES = ImmutableSet.<ValueType>builder().add(
         FILE_RESOURCE, IMAGE ).build();
-    
+
     public static final Set<ValueType> GEO_TYPES = ImmutableSet.<ValueType>builder().add(
         COORDINATE ).build();
 
@@ -120,7 +120,7 @@ public enum ValueType
     {
         return INTEGER_TYPES.contains( this );
     }
-    
+
     public boolean isDecimal()
     {
         return DECIMAL_TYPES.contains( this );
@@ -145,10 +145,15 @@ public enum ValueType
     {
         return FILE_TYPES.contains( this );
     }
-    
+
     public boolean isGeo()
     {
         return GEO_TYPES.contains( this );
+    }
+
+    public boolean isOrganisationUnit()
+    {
+        return ORGANISATION_UNIT == this;
     }
 
     /**

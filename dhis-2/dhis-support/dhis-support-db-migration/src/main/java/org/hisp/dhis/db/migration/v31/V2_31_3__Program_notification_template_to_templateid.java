@@ -72,13 +72,13 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
         if( ids.size() > 0 )
         {
             String sql_IN = StringUtils.join( ids, "," );
-    
+
             try( PreparedStatement ps = context.getConnection().prepareStatement( "SELECT programnotificationtemplateid, uid FROM programnotificationtemplate WHERE programnotificationtemplateid IN ("+ sql_IN +")" ) )
             {
                 ResultSet templates = null;
-    
+
                 templates = ps.executeQuery();
-    
+
                 while ( templates.next() )
                 {
                     templateIdUidMap.put( templates.getInt( 1 ), templates.getString( 2 ) );
@@ -98,7 +98,7 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
 
         try( PreparedStatement preparedStmt = context.getConnection().prepareStatement( "UPDATE programruleaction SET templateuid=? WHERE programnotificationtemplateid=?" ) )
         {
-            for ( Map.Entry entry : templateIdUidMap.entrySet() )
+            for ( Map.Entry<Integer, String> entry : templateIdUidMap.entrySet() )
             {
                 preparedStmt.setObject( 1, entry.getValue() ); preparedStmt.setObject( 2, entry.getKey() );
                 preparedStmt.execute();

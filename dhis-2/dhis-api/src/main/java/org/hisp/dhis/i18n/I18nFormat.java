@@ -31,6 +31,7 @@ package org.hisp.dhis.i18n;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.joda.time.DateTime;
 
@@ -39,6 +40,9 @@ import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.ResourceBundle;
 
@@ -52,7 +56,7 @@ public class I18nFormat
     private static final DecimalFormat FORMAT_VALUE = new DecimalFormat( "#.#" ); // Fixed for now
     private static final String EMPTY = "";
     private static final String NAN = "NaN";
-    
+
     private static final String INVALID_DATE = "Invalid date format";
 
     public static final String FORMAT_DATE = "yyyy-MM-dd";
@@ -221,12 +225,26 @@ public class I18nFormat
             return null;
         }
 
-        String typeName = period.getPeriodType().getName();
+        PeriodType periodType = period.getPeriodType();
+        String typeName = periodType.getName();
 
-        if ( typeName.contains( WeeklyPeriodType.NAME ) ) // Use ISO dates due to potential week confusion
+        if ( periodType instanceof WeeklyAbstractPeriodType ) // Use ISO dates due to potential week confusion
         {
             DateTime dateTime = new DateTime( period.getStartDate() );
-            return "W" + dateTime.weekOfWeekyear().getAsText() + " " + (typeName.equals( WeeklyPeriodType.NAME ) ? dateTime.year().getAsText() : dateTime.dayOfWeek().getAsShortText() + " " + dateTime.year().getAsText());
+            LocalDate date = period.getStartDate().toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+            WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
+
+            String year = String.valueOf( date.get( weekFields.weekBasedYear() ) );
+            String week = String.valueOf( date.get( weekFields.weekOfWeekBasedYear() ) );
+
+            if ( periodType instanceof WeeklyPeriodType )
+            {
+                return String.format( "W%s %s", week, year );
+            }
+
+            year += dateTime.dayOfWeek().getAsShortText() + " " + year;
+
+            return String.format( "W%s %s", week, year );
         }
 
         String keyStartDate = "format." + typeName + ".startDate";
@@ -270,6 +288,7 @@ public class I18nFormat
             return INVALID_DATE;
         }
     }
+
     /**
      * Formats value. Returns empty string if value is null. Returns NaN if value
      * is not a number. Return a formatted string if value is an instance of Number,
@@ -283,7 +302,7 @@ public class I18nFormat
         {
             return EMPTY;
         }
-        
+
         if ( value instanceof Number )
         {
             try

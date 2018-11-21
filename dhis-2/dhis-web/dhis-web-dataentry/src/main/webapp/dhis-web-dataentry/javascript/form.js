@@ -1737,6 +1737,7 @@ function getOfflineDataValueJson( params )
 	json.complete = complete;
 	json.date = "";
 	json.storedBy = "";
+    json.lastUpdatedBy = "";
 		
 	for ( var i = 0; i < dataValues.length; i++ )
 	{
@@ -1957,13 +1958,13 @@ function insertDataValues( json )
         $( '#completeButton' ).attr( 'disabled', 'disabled' );
         $( '#undoButton' ).removeAttr( 'disabled' );
 
-        if ( json.storedBy )
+        if ( json.lastUpdatedBy )
         {
             $( '#infoDiv' ).show();
-            $( '#completedBy' ).html( json.storedBy );
+            $( '#completedBy' ).html( json.lastUpdatedBy );
             $( '#completedDate' ).html( json.date );
 
-            dhis2.de.currentCompletedByUser = json.storedBy;
+            dhis2.de.currentCompletedByUser = json.lastUpdatedBy;
         }
     }
     else
@@ -2073,7 +2074,7 @@ function getPreviousEntryField( field )
 // Data completeness
 // -----------------------------------------------------------------------------
 
-function registerCompleteDataSet()
+function registerCompleteDataSet( completedStatus )
 {
 	if ( !confirm( i18n_confirm_complete ) )
 	{
@@ -2086,6 +2087,8 @@ function registerCompleteDataSet()
 
         var cc = dhis2.de.getCurrentCategoryCombo();
         var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
+
+        params.isCompleted = completedStatus;
         
         if ( cc && cp )
         {
@@ -2102,14 +2105,14 @@ function registerCompleteDataSet()
             $.each( organisationUnitList, function( idx, item )
             {
                 if( item.uid )
-                {    			  	        
-                    cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: item.uid} );
+                {
+                    cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: item.uid, completed: params.isCompleted} );
                 }            
             } );
         }
         else
         {
-            cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: params.ou} );
+            cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: params.ou, completed: params.isCompleted} );
         }
 	
 	    $.ajax( {
@@ -2124,7 +2127,7 @@ function registerCompleteDataSet()
                 if( data && data.status == 'SUCCESS' )
                 {
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                    disableCompleteButton();                    
+                    disableCompleteButton( params.isCompleted );
                 }
                 else if( data && data.status == 'ERROR' )
                 {
@@ -2140,7 +2143,7 @@ function registerCompleteDataSet()
 	        	else // Offline, keep local value
 	        	{
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-	        		disableCompleteButton();
+	        		disableCompleteButton( params.isCompleted );
 	        		setHeaderMessage( i18n_offline_notification );
 	        	}
 		    }
@@ -2177,7 +2180,7 @@ function undoCompleteDataSet()
 
     var cc = dhis2.de.getCurrentCategoryCombo();
     var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
-    
+
     var params = 
     	'?ds=' + params.ds +
     	'&pe=' + params.pe +
@@ -2198,7 +2201,7 @@ function undoCompleteDataSet()
         {
             dhis2.de.storageManager.clearCompleteDataSet( params );
             $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-            disableUndoButton();         
+            disableCompleteButton( params );
         },
         error: function( xhr, textStatus, errorThrown )
         {
@@ -2224,10 +2227,17 @@ function disableUndoButton()
     $( '#undoButton' ).attr( 'disabled', 'disabled' );
 }
 
-function disableCompleteButton()
+function disableCompleteButton( status )
 {
-    $( '#completeButton' ).attr( 'disabled', 'disabled' );
-    $( '#undoButton' ).removeAttr( 'disabled' );
+    if( status == true )
+    {
+        $( '#completeButton' ).attr( 'disabled', 'disabled' );
+        $( '#undoButton' ).removeAttr( 'disabled' );
+    }
+    else
+	{
+        disableUndoButton();
+    }
 }
 
 function displayUserDetails()
@@ -3094,8 +3104,6 @@ function StorageManager()
         try
         {
         	localStorage[KEY_COMPLETEDATASETS] = JSON.stringify( completeDataSets );
-        	
-        	log( 'Successfully stored complete registration' );
         }
         catch ( e )
         {
