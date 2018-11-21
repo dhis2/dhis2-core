@@ -143,6 +143,12 @@ public interface EventService
     ImportSummary deleteEvent( String uid );
 
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
+    
+    // -------------------------------------------------------------------------
+    // CREATE + UPDATE + DELETE
+    // -------------------------------------------------------------------------
+    
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
     void validate( EventSearchParams params );
 }

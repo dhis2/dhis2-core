@@ -794,7 +794,7 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
-    public void postXmlEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         importOptions.setImportStrategy( strategy );
@@ -839,7 +839,7 @@ public class EventController
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         importOptions.setImportStrategy( strategy );
