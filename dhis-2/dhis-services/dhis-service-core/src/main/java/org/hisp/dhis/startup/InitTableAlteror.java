@@ -177,6 +177,19 @@ public class InitTableAlteror
         executeSql( "UPDATE categorycombo SET publicaccess = 'rw------' WHERE name = 'default' or code = 'default'" );
 
         executeSql( "UPDATE userroleauthorities SET authority = 'F_RELATIONSHIPTYPE_PUBLIC_ADD' WHERE authority = 'F_RELATIONSHIPTYPE_ADD'" );
+
+        //Fixing problem with missing columns and default values in trackedentitycomment table
+        executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS uid varchar(11) unique;" );
+        executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS created timestamp;" );
+        executeSql( "ALTER TABLE trackedentitycomment ADD COLUMN IF NOT EXISTS lastupdated timestamp;" );
+
+        executeSql( "UPDATE trackedentitycomment SET uid = generate_uid() WHERE uid IS NULL;" );
+        executeSql( "UPDATE trackedentitycomment SET created = now() WHERE created IS NULL;" );
+        executeSql( "UPDATE trackedentitycomment SET lastupdated = now() WHERE lastupdated IS NULL;" );
+
+        executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN uid SET NOT NULL;" );
+        executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN created SET NOT NULL;" );
+        executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN lastupdated SET NOT NULL;" );
     }
 
     private void addGenerateUidFunction()

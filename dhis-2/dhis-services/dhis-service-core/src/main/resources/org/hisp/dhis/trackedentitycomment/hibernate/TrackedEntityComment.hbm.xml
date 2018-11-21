@@ -2,7 +2,6 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 
 <hibernate-mapping>
@@ -11,7 +10,12 @@
     <id name="id" column="trackedentitycommentid">
       <generator class="native" />
     </id>
-    &identifiableProperties;
+
+    <property name="uid" column="uid" unique="true" length="11" not-null="false" />
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
+    <property name="created" type="timestamp" not-null="false" />
+    <property name="lastUpdated" type="timestamp" not-null="false"/>
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
 
     <property name="commentText" column="commenttext" type="text" />
 
