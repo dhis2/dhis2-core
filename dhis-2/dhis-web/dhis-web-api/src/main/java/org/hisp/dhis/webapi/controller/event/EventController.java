@@ -949,7 +949,7 @@ public class EventController
 
     private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
     {
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions, false );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }

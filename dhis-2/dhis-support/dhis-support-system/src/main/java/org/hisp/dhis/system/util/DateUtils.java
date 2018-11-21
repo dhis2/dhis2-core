@@ -744,4 +744,11 @@ public class DateUtils
     {
         return new java.sql.Date( date.getTime() );
     }
+    
+    public static Date getCalendarToday()
+    {        
+        Calendar today = Calendar.getInstance();
+        PeriodType.clearTimeOfDay( today );
+        return today.getTime();
+    }
 }
