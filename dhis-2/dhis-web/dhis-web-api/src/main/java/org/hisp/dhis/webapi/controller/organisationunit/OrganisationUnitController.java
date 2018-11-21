@@ -160,9 +160,6 @@ public class OrganisationUnitController
         // Special parameter handling
         // ---------------------------------------------------------------------
         User currentUser = currentUserService.getCurrentUser();
-        List<OrganisationUnit> objects = Lists.newArrayList();
-
-        objects = getOrganisationUnits( options, objects, currentUser, anyQueryPropertySet );
 
         // ---------------------------------------------------------------------
         // Standard Query handling
@@ -175,7 +172,7 @@ public class OrganisationUnitController
 
         if ( anySpecialPropertySet || anyQueryPropertySet )
         {
-            query.setObjects( objects );
+            query.setObjects( getOrganisationUnits( options, currentUser, anyQueryPropertySet ) );
         }
 
         List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
@@ -204,32 +201,33 @@ public class OrganisationUnitController
         }
     }
 
-    private List<OrganisationUnit> getOrganisationUnits( WebOptions options, List<OrganisationUnit> objects,
-        User currentUser, boolean anyQueryPropertySet )
+    private List<OrganisationUnit> getOrganisationUnits( WebOptions options, User currentUser, boolean
+        anyQueryPropertySet )
     {
         if ( options.isTrue( "userOnly" ) )
         {
-            objects = new ArrayList<>( currentUser.getOrganisationUnits() );
+            return new ArrayList<>( currentUser.getOrganisationUnits() );
         }
         else if ( options.isTrue( "userDataViewOnly" ) )
         {
-            objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
+            return new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
         }
         else if ( options.isTrue( "userDataViewFallback" ) )
         {
             if ( currentUser.hasDataViewOrganisationUnit() )
             {
-                objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
+                return new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
             }
             else
             {
-                objects = organisationUnitService.getOrganisationUnitsAtLevel( 1 );
+                return organisationUnitService.getOrganisationUnitsAtLevel( 1 );
             }
         }
         else if ( options.isTrue( "levelSorted" ) )
         {
-            objects = new ArrayList<>( manager.getAll( getEntityClass() ) );
+            List<OrganisationUnit> objects = new ArrayList<>( manager.getAll( getEntityClass() ) );
             Collections.sort( objects, OrganisationUnitByLevelComparator.INSTANCE );
+            return objects;
         }
 
         // ---------------------------------------------------------------------
@@ -245,9 +243,9 @@ public class OrganisationUnitController
             params.setParents(
                 options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits() : Sets.newHashSet() );
 
-            objects = organisationUnitService.getOrganisationUnitsByQuery( params );
+            return organisationUnitService.getOrganisationUnitsByQuery( params );
         }
-        return objects;
+        return new ArrayList<>();
     }
 
     @Override
