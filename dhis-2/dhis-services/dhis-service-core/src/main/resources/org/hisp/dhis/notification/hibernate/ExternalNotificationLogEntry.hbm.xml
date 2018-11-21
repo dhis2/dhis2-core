@@ -10,7 +10,7 @@
             <generator class="native" />
         </id>
 
-        <property name="uid" column="uid" unique-key="uk_uid_externalnotificationlogentry" length="11" />
+        <property name="uid" column="uid" unique="true" length="11" />
 
         <property name="created" type="timestamp" not-null="true" />
 
@@ -20,7 +20,7 @@
 
         <property name="retries" column="retries" not-null="false" />
 
-        <property name="key" column="key" not-null="true" type="text" unique-key="uk_key_externalnotificationlogentry" />
+        <property name="key" column="key" not-null="true" type="text" unique="true" />
 
         <property name="notificationTemplateUid" column="templateuid" not-null="true" type="text" />
 

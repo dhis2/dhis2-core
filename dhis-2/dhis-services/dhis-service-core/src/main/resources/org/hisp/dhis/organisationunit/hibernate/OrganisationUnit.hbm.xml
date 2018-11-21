@@ -29,7 +29,7 @@
     <many-to-one name="parent" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="parentid"
       foreign-key="fk_parentid" index="in_parentid" />
 
-    <property name="path" column="path" access="property" unique-key="uk_path_&tablename;" index="in_organisationunit_path" />
+    <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
 
     <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
 

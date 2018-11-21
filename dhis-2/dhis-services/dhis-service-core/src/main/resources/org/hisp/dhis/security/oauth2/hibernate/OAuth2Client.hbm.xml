@@ -16,9 +16,9 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique-key="uk_name_&tablename;" length="230" />
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="cid" column="cid" not-null="true" unique-key="uk_cid_&tablename;" length="230" />
+    <property name="cid" column="cid" not-null="true" unique="true" length="230" />
 
     <property name="secret" column="secret" not-null="true" unique="false" length="512" />
 

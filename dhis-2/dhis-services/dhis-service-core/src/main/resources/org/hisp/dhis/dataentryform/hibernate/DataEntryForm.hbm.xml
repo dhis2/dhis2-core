@@ -16,7 +16,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" not-null="true" unique-key="uk_name_dataentryform" length="160" />
+    <property name="name" not-null="true" unique="true" length="160" />
 
     <property name="style" length="40">
       <type name="org.hibernate.type.EnumType">

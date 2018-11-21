@@ -14,7 +14,7 @@
 
     <property name="uid" column="uid" length="11" />
 
-    <property name="code" column="code" not-null="false" unique-key="uk_code_userinfo" length="50" />
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 

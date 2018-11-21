@@ -16,7 +16,7 @@
     </id>
     &identifiableProperties;
     
-    <property name="name" unique-key="uk_name_&tablename;" not-null="true" />
+    <property name="name" unique="true" not-null="true" />
     
     <property name="phase" column="analyticstablephase" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
