@@ -74,6 +74,7 @@ public class IntegrationTestConfig
             .withPassword( POSTGRES_CREDENTIALS );
 
         postgisContainer.start();
+        System.out.println(postgisContainer);
 
         System.out.println( "Postgis container initialized: " + postgisContainer.getJdbcUrl() );
 
