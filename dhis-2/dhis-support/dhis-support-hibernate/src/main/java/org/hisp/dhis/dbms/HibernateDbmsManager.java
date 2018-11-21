@@ -176,7 +176,7 @@ public class HibernateDbmsManager
         emptyTable( "eventchartusergroupaccesses" );
         emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
-        
+
         emptyTable( "dataelementgroupsetdimension_items" );
         emptyTable( "dataelementgroupsetdimension" );
         emptyTable( "categoryoptiongroupsetdimension" );
@@ -257,6 +257,7 @@ public class HibernateDbmsManager
         emptyTable( "program_organisationunits" );
         emptyTable( "programusergroupaccesses" );
         emptyTable( "program_attributes" );
+        emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
 
