@@ -434,7 +434,6 @@ public abstract class AbstractEventService
 
         if (  programStageInstance != null && programStageInstance.isDeleted() )
         {
-            System.out.println( "trying to update deleted event ..." + programStageInstance.getUid() );
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and deleted. This event can not be modified." )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
