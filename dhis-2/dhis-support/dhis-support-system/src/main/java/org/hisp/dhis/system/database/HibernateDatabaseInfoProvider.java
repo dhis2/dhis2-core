@@ -82,6 +82,7 @@ public class HibernateDatabaseInfoProvider
         info.setPassword( password );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
+        info.setDatabaseVersion( getDatabaseVersion() );
     }
     
     // -------------------------------------------------------------------------
@@ -123,6 +124,19 @@ public class HibernateDatabaseInfoProvider
      * Attempts to create a spatial database extension. Checks if spatial operations
      * are supported.
      */
+
+    private String getDatabaseVersion()
+    {
+        try
+        {
+            return jdbcTemplate.queryForObject( "select version();", String.class );
+        }
+        catch ( Exception ex )
+        {
+            return "";
+        }
+    }
+
     private boolean isSpatialSupport()
     {
         try
