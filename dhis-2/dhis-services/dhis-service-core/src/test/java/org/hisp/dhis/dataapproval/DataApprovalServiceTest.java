@@ -1763,7 +1763,6 @@ public class DataApprovalServiceTest
         assertEquals( "APPROVED_HERE level=level3 approve=F unapprove=T accept=F unaccept=F read=T", statusAndPermissions( workflow3, periodA, organisationUnitC, defaultOptionCombo ) );
     }
 
-    @Ignore
     @Test
     public void testPeriodsEndingDuringWorkflowApproval()
     {
