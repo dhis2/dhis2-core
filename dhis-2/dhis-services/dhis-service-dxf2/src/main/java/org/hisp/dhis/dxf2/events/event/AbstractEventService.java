@@ -403,6 +403,8 @@ public abstract class AbstractEventService
                 clearSession( importOptions.getUser() );
             }
         }
+        
+        updateEntities( importOptions.getUser() );
 
         return importSummaries;
     }
@@ -2258,13 +2260,18 @@ public abstract class AbstractEventService
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
-
-    private void clearSession( User user )
+    
+    private void updateEntities( User user )
     {
-        
         programInstancesToUpdate.forEach( pi -> manager.update( pi, user ) );
         trackedEntityInstancesToUpdate.forEach( tei -> manager.update( tei, user ) );
         
+        programInstancesToUpdate.clear();
+        trackedEntityInstancesToUpdate.clear();
+    }
+
+    private void clearSession( User user )
+    {        
         organisationUnitCache.clear();
         programCache.clear();
         programStageCache.clear();
@@ -2275,8 +2282,8 @@ public abstract class AbstractEventService
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
         defaultObjectsCache.clear();
-        programInstancesToUpdate.clear();
-        trackedEntityInstancesToUpdate.clear();
+        
+        updateEntities( user );
 
         dbmsManager.clearSession();
     }
