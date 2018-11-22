@@ -57,8 +57,7 @@ import java.util.Date;
 @Entity
 @Table( name = "deletedobject",
 uniqueConstraints = {
-    @UniqueConstraint(name = "key_deleted_object_klass_uid",columnNames={"klass", "uid"}),
-    @UniqueConstraint( name="key_deleted_object_klass_code",columnNames={"klass", "code"} ) })
+    @UniqueConstraint(name = "key_deleted_object_klass_uid",columnNames={"klass", "uid"}) })
 @JacksonXmlRootElement( localName = "deletedObject", namespace = DxfNamespaces.DXF_2_0 )
 public class DeletedObject
     implements Serializable
