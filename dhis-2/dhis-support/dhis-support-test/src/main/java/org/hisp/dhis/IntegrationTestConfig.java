@@ -29,6 +29,8 @@
 package org.hisp.dhis;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.*;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
@@ -42,6 +44,7 @@ import java.util.Properties;
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
 public class IntegrationTestConfig
 {
+    private static final Logger log = LoggerFactory.getLogger(IntegrationTestConfig.class);
     private static final String POSTGRES_DATABASE_NAME = "dhis";
 
     private static final String POSTGRES_CREDENTIALS = "dhis";
@@ -75,7 +78,8 @@ public class IntegrationTestConfig
 
         postgisContainer.start();
 
-        System.out.println( "Postgis container initialized: " + postgisContainer.getJdbcUrl() );
+
+        log.info("Postgis container initialized: " + postgisContainer.getJdbcUrl());
 
         return postgisContainer;
     }
