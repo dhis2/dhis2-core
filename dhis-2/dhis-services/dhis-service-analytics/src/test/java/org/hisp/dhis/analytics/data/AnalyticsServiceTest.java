@@ -410,7 +410,7 @@ public class AnalyticsServiceTest
         validationResultStore.save( validationResultBBB );
         validationResultStore.save( validationResultBBA );
 
-        Thread.sleep( 1000 );
+        Thread.sleep( 1000 ); //to ensure that hibernate has flushed validation results before generating tables.
         // Generate analytics tables
         // --------------------------------------------------------------------
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
