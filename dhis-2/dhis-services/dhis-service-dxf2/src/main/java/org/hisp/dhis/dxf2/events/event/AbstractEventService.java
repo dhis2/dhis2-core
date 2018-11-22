@@ -287,13 +287,13 @@ public abstract class AbstractEventService
     
     private CachingMap<String, ProgramStageInstance> programStageInstanceCache = new CachingMap<>();
     
-    private CachingMap<String, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstanceCache = new CachingMap<>();
+    private CachingMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new CachingMap<>();
 
     private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
     
-    Set<ProgramInstance> programInstancesToUpdate = new HashSet<>();
+    private Set<ProgramInstance> programInstancesToUpdate = new HashSet<>();
     
-    Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+    private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -447,6 +447,13 @@ public abstract class AbstractEventService
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
         ProgramStage programStage = getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
+        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
+        
+        if ( organisationUnit == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() )
+                .setReference( event.getEvent() ).incrementIgnored();
+        }
 
         ProgramInstance programInstance;        
 
@@ -476,7 +483,7 @@ public abstract class AbstractEventService
                     .setReference( event.getEvent() ).incrementIgnored();
             }
 
-            org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
+            TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
 
             if ( entityInstance == null )
             {
@@ -566,21 +573,13 @@ public abstract class AbstractEventService
                     }
                 }
             }
-        }
-
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
+        }        
 
         program = programInstance.getProgram();
 
         if ( programStageInstance != null )
         {
             programStage = programStageInstance.getProgramStage();
-        }
-
-        if ( organisationUnit == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() )
-                .setReference( event.getEvent() ).incrementIgnored();
         }
 
         if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
@@ -2035,9 +2034,9 @@ public abstract class AbstractEventService
         return programStageInstance;
     }
     
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String uid )
+    private TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
-        org.hisp.dhis.trackedentity.TrackedEntityInstance tei = trackedEntityInstanceCache.get( uid );
+        TrackedEntityInstance tei = trackedEntityInstanceCache.get( uid );
         
         if ( tei == null )
         {
