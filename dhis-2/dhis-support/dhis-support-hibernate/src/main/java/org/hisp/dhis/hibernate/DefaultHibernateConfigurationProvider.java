@@ -233,7 +233,7 @@ public class DefaultHibernateConfigurationProvider
         {
             putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );
             putIfExists( "false", "hibernate.cache.use_second_level_cache", props);
-            putIfExists( "false", "hibernate.cache.use_query_cache", props);
+            putIfExists( "false", "hibernate.cache.use_query_cache", props );
         }
         
         return props;
