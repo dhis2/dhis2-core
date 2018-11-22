@@ -518,7 +518,7 @@ public abstract class AbstractEventService
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
             }
         }
-        else if ( event.getCoordinate() != null )
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
         {
             Coordinate coordinate = event.getCoordinate();
 
