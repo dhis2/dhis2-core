@@ -358,6 +358,15 @@ public interface DataElementCategoryService
      */
     void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo );
 
+
+    /**
+     * Deletes a DataElementCategoryOptionCombo don't rollback for DeleteNotAllowedException
+     *
+     * @param dataElementCategoryOptionCombo the DataElementCategoryOptionCombo
+     *                                       to delete.
+     */
+    void deleteDataElementCategoryOptionComboNoRollback( DataElementCategoryOptionCombo dataElementCategoryOptionCombo );
+
     /**
      * Retrieves the DataElementCategoryOptionCombo with the given identifier.
      *
