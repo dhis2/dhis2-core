@@ -59,7 +59,7 @@ public class MessageConversation
 
     private Set<UserGroup> userGroups = new HashSet<>();
 
-    private Set<FileResource> attachments = new HashSet();
+    private Set<FileResource> attachments = new HashSet<>();
 
     public MessageConversation()
     {

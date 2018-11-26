@@ -29,19 +29,14 @@ package org.hisp.dhis.analytics.data;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -59,7 +54,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
@@ -85,12 +79,12 @@ import static org.junit.Assert.assertEquals;
  * <li>Add to 'dataQueryParams'/'analyticalObjectHashMap' map.</li>
  * <li>Add HashMap<String, Double> with expected output to results map.</li>
  * </ul>
- * 
+ *
  * @author Henning Haakonsen
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
 public class AnalyticsServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private CategoryOptionCombo ocDef;
 
@@ -168,8 +162,8 @@ public class AnalyticsServiceTest
 
     @Override
     public void setUpTest()
-        throws IOException
-    {
+            throws IOException, InterruptedException {
+
         // Set up meta data for data values
         // --------------------------------------------------------------------
         ReportingRate reportingRateA;
@@ -220,12 +214,6 @@ public class AnalyticsServiceTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
-
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-        idObjectManager.save( ouD );
-        idObjectManager.save( ouE );
 
         OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
         organisationUnitGroupA.setUid( "a2345groupA" );
@@ -422,6 +410,7 @@ public class AnalyticsServiceTest
         validationResultStore.save( validationResultBBB );
         validationResultStore.save( validationResultBBA );
 
+        Thread.sleep( 1000 ); //to ensure that hibernate has flushed validation results before generating tables.
         // Generate analytics tables
         // --------------------------------------------------------------------
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
@@ -806,6 +795,7 @@ public class AnalyticsServiceTest
         results.put( "ou_2017_validationruleA", ou_2017_validationruleA_keyValue );
         results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
         results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
+
     }
 
     @Override
@@ -919,6 +909,7 @@ public class AnalyticsServiceTest
     private void parseDataSetRegistrations( List<String[]> lines )
     {
         String storedBy = "johndoe";
+        String lastUpdatedBy = "johndoe";
         Date now = new Date();
 
         for ( String[] line : lines )
@@ -929,7 +920,7 @@ public class AnalyticsServiceTest
 
             CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
                 organisationUnit, ocDef, now,
-                storedBy, new User(), new Date(), true );
+                storedBy, lastUpdatedBy, new Date(), true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
 

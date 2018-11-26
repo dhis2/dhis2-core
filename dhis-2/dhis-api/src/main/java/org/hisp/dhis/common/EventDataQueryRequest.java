@@ -83,7 +83,7 @@ public class EventDataQueryRequest
     protected boolean aggregateData;
 
     protected boolean includeMetadataDetails;
-    
+
     protected IdScheme dataIdScheme;
 
     protected DisplayProperty displayProperty;
@@ -101,6 +101,8 @@ public class EventDataQueryRequest
     protected Set<String> desc;
 
     protected String timeField;
+
+    protected String orgUnitField;
 
     protected boolean coordinatesOnly;
 
@@ -265,6 +267,11 @@ public class EventDataQueryRequest
         return timeField;
     }
 
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
     public boolean isCoordinatesOnly()
     {
         return coordinatesOnly;
@@ -287,7 +294,7 @@ public class EventDataQueryRequest
 
     /**
      * Copies all properties of this request onto the given request.
-     * 
+     *
      * @param request the request to copy properties onto.
      * @return the given request with all properties of this request set.
      */
@@ -489,7 +496,7 @@ public class EventDataQueryRequest
             this.request.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
-        
+
         public EventDataQueryRequestBuilder dataIdScheme( IdScheme dataIdScheme )
         {
             this.request.dataIdScheme = dataIdScheme;
@@ -543,7 +550,13 @@ public class EventDataQueryRequest
             this.request.timeField = timeField;
             return this;
         }
-        
+
+        public EventDataQueryRequestBuilder orgUnitField( String orgUnitField )
+        {
+            this.request.orgUnitField = orgUnitField;
+            return this;
+        }
+
         public EventDataQueryRequestBuilder coordinatesOnly( boolean coordinatesOnly )
         {
             this.request.coordinatesOnly = coordinatesOnly;

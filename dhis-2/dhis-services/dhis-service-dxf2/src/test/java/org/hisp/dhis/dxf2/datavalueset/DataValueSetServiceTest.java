@@ -181,7 +181,7 @@ public class DataValueSetServiceTest
         categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryComboDef = categoryService.getDefaultCategoryCombo();
-        
+
         ocDef = categoryService.getDefaultCategoryOptionCombo();
         ocDef.setCode( "OC_DEF_CODE" );
         categoryService.updateCategoryOptionCombo( ocDef );
@@ -296,8 +296,7 @@ public class DataValueSetServiceTest
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         _userService.addUser( user );
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration(dsA, peA, ouA, categoryOptionCombo,
-                getDate( 2012, 1, 9 ), "userA", user, new
-                Date(), true);
+            getDate( 2012, 1, 9 ), "userA", "userA", new Date(), true);
         registrationService.saveCompleteDataSetRegistration(completeDataSetRegistration);
     }
 
@@ -334,7 +333,7 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-        
+
         assertEquals( 0, auditValues.size() );
     }
 
@@ -345,7 +344,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
 
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true );
-        
+
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
         assertNotNull( summary );
@@ -369,7 +368,7 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-        
+
         assertEquals( 0, auditValues.size() );
     }
 
@@ -402,7 +401,7 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-        
+
         assertEquals( 0, auditValues.size() );
     }
 
@@ -477,7 +476,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBAttributeIdScheme.xml" ).getInputStream();
 
         // Identifier schemes specified in XML message
-        
+
         ImportOptions importOptions = new ImportOptions();
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
@@ -653,9 +652,9 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetCCode.xml" ).getInputStream();
 
         ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme( "CODE" );
-        
+
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
-        
+
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -925,7 +924,7 @@ public class DataValueSetServiceTest
         throws Exception
     {
         mockDataValueBatchHandler.withFindSelf( true );
-        
+
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
@@ -963,9 +962,9 @@ public class DataValueSetServiceTest
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
         assertNotNull( dataValues );
-        assertEquals( 1, dataValues.size() );        
+        assertEquals( 1, dataValues.size() );
     }
-    
+
     @Test
     public void testImportDataValuesWithDataSetAllowsPeriods()
         throws Exception

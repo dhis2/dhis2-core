@@ -37,11 +37,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.mock.MockI18n;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,26 +64,16 @@ public class DataEntryFormServiceTest
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private ProgramStageService programStageService;
-
-
     private PeriodType periodType;
-    
+
     private DataElement dataElement;
-    
+
     private CategoryOptionCombo categoryOptionCombo;
-    
+
     private I18n i18n;
-    
+
     private String dataElementUid;
-    
+
     private String categoryOptionComboUid;
 
 
@@ -99,16 +86,16 @@ public class DataEntryFormServiceTest
         throws Exception
     {
         periodType = new MonthlyPeriodType();
-        
+
         dataElement = createDataElement( 'A' );
-        
+
         dataElementService.addDataElement( dataElement );
-        
+
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        
+
         dataElementUid = dataElement.getUid();
         categoryOptionComboUid = categoryOptionCombo.getUid();
-        
+
         i18n = new MockI18n();
     }
 
@@ -205,7 +192,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
         DataEntryForm dataEntryFormB = createDataEntryForm( 'B' );
-        
+
         dataEntryFormService.addDataEntryForm( dataEntryFormA );
         dataEntryFormService.addDataEntryForm( dataEntryFormB );
 
@@ -215,28 +202,28 @@ public class DataEntryFormServiceTest
         assertTrue( dataEntryForms.contains( dataEntryFormA ) );
         assertTrue( dataEntryForms.contains( dataEntryFormB ) );
     }
-    
+
     @Test
     public void testPrepareForSave()
     {
         String html = "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"[ 1434 - Expected Births - 11 - (default) - int ]\" value=\"[ Expected Births - (default) ]\" /></td></tr></table>";
         String expected = "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
         String actual = dataEntryFormService.prepareDataEntryFormForSave( html );
-        
+
         assertEquals( expected, actual );
     }
-    
+
     @Test
     public void testPrepareForEdit()
-    {        
+    {
         String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
         String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - " + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
         String value = "[ " + dataElement.getName() + " " + categoryOptionCombo.getName() + " ]";
         String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value + "\" /></td></tr></table>";
-        
+
         DataSet dsA = createDataSet( 'A', null );
         DataEntryForm dfA = createDataEntryForm( 'A', html );
-        
+
         String actual = dataEntryFormService.prepareDataEntryFormForEdit( dfA, dsA, i18n );
 
         assertEquals( expected.length(), actual.length() );

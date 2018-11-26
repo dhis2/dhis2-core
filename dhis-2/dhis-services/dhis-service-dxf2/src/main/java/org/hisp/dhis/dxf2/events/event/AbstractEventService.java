@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -501,7 +500,7 @@ public abstract class AbstractEventService
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
             }
         }
-        else if ( event.getCoordinate() != null )
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
         {
             Coordinate coordinate = event.getCoordinate();
 
@@ -759,13 +758,13 @@ public abstract class AbstractEventService
     public EventRows getEventRows( EventSearchParams params )
     {
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-        
+
         User user = currentUserService.getCurrentUser();
 
         EventRows eventRows = new EventRows();
 
         List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
-        
+
         for ( EventRow eventRow : eventRowList )
         {
             if ( trackerOwnershipAccessManager.hasAccess( user, eventRow.getTrackedEntityInstance(), eventRow.getProgram() ) )
@@ -773,7 +772,7 @@ public abstract class AbstractEventService
                 eventRows.getEventRows().add( eventRow );
             }
         }
-        
+
         return eventRows;
     }
 
@@ -1342,9 +1341,9 @@ public abstract class AbstractEventService
         {
             return;
         }
-        
+
         List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
-        
+
         if ( !errors.isEmpty() )
         {
             return;
@@ -1399,7 +1398,7 @@ public abstract class AbstractEventService
         if ( existsEvent )
         {
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
-            
+
             List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
 
             if ( !errors.isEmpty() )

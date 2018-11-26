@@ -436,11 +436,11 @@ public abstract class DhisConvenienceTest
 
         if ( categoryCombo != null )
         {
-            dataElement.setDataElementCategoryCombo( categoryCombo );
+            dataElement.setCategoryCombo( categoryCombo );
         }
         else if ( categoryService != null )
         {
-            dataElement.setDataElementCategoryCombo( categoryService.getDefaultCategoryCombo() );
+            dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         }
 
         return dataElement;
@@ -1340,7 +1340,7 @@ public abstract class DhisConvenienceTest
 
         role.setUid( BASE_UID + uniqueCharacter );
         role.setName( "UserAuthorityGroup" + uniqueCharacter );
-        
+
         for ( String auth : auths )
         {
             role.getAuthorities().add( auth );
@@ -1557,12 +1557,12 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         }
-        
-        for ( AnalyticsPeriodBoundary boundary : boundaries ) 
+
+        for ( AnalyticsPeriodBoundary boundary : boundaries )
         {
             boundary.setAutoFields();
         }
-        
+
         indicator.setAnalyticsPeriodBoundaries( boundaries );
 
         return indicator;
@@ -1659,7 +1659,7 @@ public abstract class DhisConvenienceTest
 
         return attribute;
     }
-    
+
     public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
     {
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
