@@ -35,6 +35,7 @@ import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.program.EventSyncStore;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
@@ -60,7 +61,7 @@ public class HibernateEventSyncStore implements EventSyncStore
     
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ProgramStageInstance> getEventsIncludeDeleted( List<String> uids )
+    public List<ProgramStageInstance> getEvents( List<String> uids )
     {
         if ( uids.isEmpty() )
         {
@@ -81,5 +82,14 @@ public class HibernateEventSyncStore implements EventSyncStore
         criteria.add( Restrictions.eq( "uid", uid ) );
 
         return (ProgramStageInstance) criteria.uniqueResult();
+    }
+
+    @Override
+    public ProgramInstance getEnrollment( String uid )
+    {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramInstance.class );
+        criteria.add( Restrictions.eq( "uid", uid ) );
+
+        return (ProgramInstance) criteria.uniqueResult();
     }
 }

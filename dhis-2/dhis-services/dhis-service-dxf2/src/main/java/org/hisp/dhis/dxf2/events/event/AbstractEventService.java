@@ -285,6 +285,8 @@ public abstract class AbstractEventService
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
     
+    private CachingMap<String, ProgramInstance> programInstanceCache = new CachingMap<>();
+    
     private CachingMap<String, ProgramStageInstance> programStageInstanceCache = new CachingMap<>();
     
     private CachingMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new CachingMap<>();
@@ -446,88 +448,65 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and deleted. This event can not be modified." )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
+        
+        if ( programStageInstance == null && !StringUtils.isEmpty( event.getEvent() ) && !CodeGenerator.isValidUid( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
+        }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
         ProgramStage programStage = getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
+        TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
+        ProgramInstance programInstance = getProgramInstance( event.getEnrollment() );
         
         if ( organisationUnit == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() )
                 .setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        ProgramInstance programInstance;        
+        }        
 
         if ( program == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event.program does not point to a valid program: " + event.getProgram() )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
+        
+        programStage = program.isWithoutRegistration() && programStage == null ? program.getProgramStageByStage( 1 ) : programStage;
 
-        if ( programStage == null && program.isRegistration() )
+        if ( programStage == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage, and program is multi-stage: " + event.getProgramStage() )
-                .setReference( event.getEvent() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
         }
-        else if ( programStage == null )
-        {
-            programStage = program.getProgramStageByStage( 1 );
-        }
-
-        Assert.notNull( programStage, "Program stage cannot be null" );
 
         if ( program.isRegistration() )
         {
-            if ( event.getTrackedEntityInstance() == null )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "No Event.trackedEntityInstance was provided for registration based program" )
-                    .setReference( event.getEvent() ).incrementIgnored();
-            }
-
-            TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
-
             if ( entityInstance == null )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
                     + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
             }
-
-            List<ProgramInstance> programInstances = new ArrayList<>(
-                programInstanceService.getProgramInstances( entityInstance, program, ProgramStatus.ACTIVE ) );
-
-            if ( programInstances.isEmpty() )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                    + " is not enrolled in program: " + program.getUid() ).setReference( event.getEvent() )
-                    .incrementIgnored();
-            }
-            else if ( programInstances.size() > 1 )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                    + " has multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
-            }
-
-            programInstance = programInstances.get( 0 );
             
-            if ( !StringUtils.isEmpty( event.getEvent() ) )
+            if ( programInstance == null )
             {
-                programStageInstance = getProgramStageInstance( event.getEvent() );
-
-                if ( programStageInstance == null )
+                List<ProgramInstance> programInstances = new ArrayList<>( programInstanceService.getProgramInstances( entityInstance, program, ProgramStatus.ACTIVE ) );
+                
+                if ( programInstances.isEmpty() )
                 {
-                    if ( !CodeGenerator.isValidUid( event.getEvent() ) )
-                    {
-                        return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() )
-                            .setReference( event.getEvent() ).incrementIgnored();
-                    }
+                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid() + " is not enrolled in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+                }
+                else if ( programInstances.size() > 1 )
+                {
+                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid() + " has multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
                 }
                 
-                if ( programStageInstance != null && programStageInstance.getProgramStage().getRepeatable() )
-                {
-                    return new ImportSummary( ImportStatus.ERROR, "Program stage is not repeatable and an event already exists" )
-                        .setReference( event.getEvent() ).incrementIgnored();
-                }
+                programInstance = programInstances.get( 0 );
+            }            
+            
+            if ( !programStage.getRepeatable() && programInstance.hasActiveProgramStageInstance( programStage ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Program stage is not repeatable and an event already exists" )
+                    .setReference( event.getEvent() ).incrementIgnored();
             }
         }
         else
@@ -539,8 +518,7 @@ public abstract class AbstractEventService
             {
                 // Create PI if it doesn't exist (should only be one)
 
-                String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy()
-                    : importOptions.getUser().getUsername();
+                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
@@ -560,21 +538,6 @@ public abstract class AbstractEventService
             }
 
             programInstance = programInstances.get( 0 );
-
-            if ( !StringUtils.isEmpty( event.getEvent() ) )
-            {
-                programStageInstance = getProgramStageInstance( event.getEvent() );
-
-                if ( programStageInstance == null )
-                {
-                    if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID )
-                        && !CodeGenerator.isValidUid( event.getEvent() ) )
-                    {
-                        return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() )
-                            .setReference( event.getEvent() ).incrementIgnored();
-                    }
-                }
-            }
         }        
 
         program = programInstance.getProgram();
@@ -1581,13 +1544,19 @@ public abstract class AbstractEventService
         
         if ( !eventIds.isEmpty() )
         {
-            eventSyncService.getEventsIncludeDeleted( (List<String>) eventIds ).forEach( psi -> programStageInstanceCache.put( psi.getUid(), ( ProgramStageInstance ) psi ) );
+            eventSyncService.getEvents( (List<String>) eventIds ).forEach( psi -> programStageInstanceCache.put( psi.getUid(), ( ProgramStageInstance ) psi ) );
             
             manager.getObjects( TrackedEntityInstance.class, IdentifiableProperty.UID, 
                 events.stream()
                 .filter( event -> event.getTrackedEntityInstance() != null )
-                .map( Event::getTrackedEntityInstance ).collect( Collectors.toList() ) )
-            .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), (TrackedEntityInstance) tei ) );            
+                .map( Event::getTrackedEntityInstance ).collect( Collectors.toSet() ) )
+            .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), (TrackedEntityInstance) tei ) );
+            
+            manager.getObjects( ProgramInstance.class, IdentifiableProperty.UID, 
+                events.stream()
+                .filter( event -> event.getEnrollment() != null )
+                .map( Event::getEnrollment ).collect( Collectors.toSet() ) )
+            .forEach( tei -> programInstanceCache.put( tei.getUid(), (ProgramInstance) tei ) );
         }
     }
 
@@ -1767,8 +1736,6 @@ public abstract class AbstractEventService
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
-                
-                saveTrackedEntityComment( programStageInstance, event, storedBy );
             }
             else
             {
@@ -2024,6 +1991,11 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance getProgramStageInstance( String uid )
     {
+        if ( uid == null )
+        {
+           return null; 
+        }
+        
         ProgramStageInstance programStageInstance = programStageInstanceCache.get( uid );
         
         if ( programStageInstance == null )
@@ -2036,15 +2008,37 @@ public abstract class AbstractEventService
         return programStageInstance;
     }
     
-    private TrackedEntityInstance getTrackedEntityInstance( String uid )
+    private ProgramInstance getProgramInstance( String uid )
     {
-        TrackedEntityInstance tei = trackedEntityInstanceCache.get( uid );
+        if ( uid == null )
+        {
+            return null;
+        }
+        
+        ProgramInstance programInstance = programInstanceCache.get( uid );
+        
+        if ( programInstance == null )
+        {
+            eventSyncService.getEnrollment( uid );
+        }
+        
+        return programInstance;
+    }
+    
+    private TrackedEntityInstance getTrackedEntityInstance( String uid )
+    {        
+        if ( uid == null )
+        {
+            return null;            
+        }
+        
+        TrackedEntityInstance tei =  trackedEntityInstanceCache.get( uid );
         
         if ( tei == null )
         {
             tei = entityInstanceService.getTrackedEntityInstance( uid );
             
-            trackedEntityInstanceCache.put( uid, tei );                
+            trackedEntityInstanceCache.put( uid, tei );
         }
         
         return tei;
@@ -2052,17 +2046,27 @@ public abstract class AbstractEventService
 
     private Program getProgram( IdScheme idScheme, String id )
     {
+        if ( id == null )
+        {
+            return null;
+        }
+        
         Program program = programCache.get( id );
         
         if ( program == null )
         {
             program = manager.getObject( Program.class, idScheme, id );
-            
-            programStageCache.putAll( program.getProgramStages().stream().collect( Collectors.toMap( ProgramStage::getUid, ps -> ps ) ) );
-            
-            for ( ProgramStage programStage : program.getProgramStages() )
+        
+            if( program != null )
             {
-                dataElementCache.putAll( programStage.getAllDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                programCache.put( id, program );
+                
+                programStageCache.putAll( program.getProgramStages().stream().collect( Collectors.toMap( ProgramStage::getUid, ps -> ps ) ) );
+                
+                for ( ProgramStage programStage : program.getProgramStages() )
+                {
+                    dataElementCache.putAll( programStage.getAllDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                }
             }
         }
         
@@ -2071,6 +2075,11 @@ public abstract class AbstractEventService
 
     private ProgramStage getProgramStage( IdScheme idScheme, String id )
     {
+        if ( id == null )
+        {
+            return null;
+        }
+        
         ProgramStage programStage = programStageCache.get( id );
         
         if ( programStage == null )
@@ -2116,7 +2125,7 @@ public abstract class AbstractEventService
             return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
         } );
     }
-
+    
     private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
     {
         return defaultObjectsCache.get( key, () -> manager.getByName( CategoryOptionCombo.class , "default" ) );
@@ -2276,11 +2285,13 @@ public abstract class AbstractEventService
         programCache.clear();
         programStageCache.clear();
         programStageInstanceCache.clear();
+        programInstanceCache.clear();
+        activeProgramInstanceCache.clear();
+        trackedEntityInstanceCache.clear();
         dataElementCache.clear();
         categoryOptionCache.clear();
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
-        activeProgramInstanceCache.clear();
         defaultObjectsCache.clear();
         
         updateEntities( user );

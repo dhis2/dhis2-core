@@ -52,14 +52,20 @@ public class DefaultEventSyncService implements EventSyncService
     // -------------------------------------------------------------------------
     
     @Override
-    public List<ProgramStageInstance> getEventsIncludeDeleted( List<String> uids )
+    public List<ProgramStageInstance> getEvents( List<String> uids )
     {
-        return eventSyncStore.getEventsIncludeDeleted( uids );
+        return eventSyncStore.getEvents( uids );
     }
 
     @Override
     public ProgramStageInstance getEvent( String uid )
     {
         return eventSyncStore.getEvent( uid );
+    }
+
+    @Override
+    public ProgramInstance getEnrollment( String uid )
+    {
+        return eventSyncStore.getEnrollment( uid );
     }
 }

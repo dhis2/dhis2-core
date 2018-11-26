@@ -46,10 +46,19 @@ public interface EventSyncStore
     ProgramStageInstance getEvent( String uid );
     
     /**
+     * Returns the {@link ProgramInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramInstance with the given UID, or null if no
+     * match.
+     */
+    ProgramInstance getEnrollment( String uid );
+    
+    /**
      * Get events (including deleted)
      * 
      * @param uids UIDs of events to be fetched
      * @return list of events
      */
-    List<ProgramStageInstance> getEventsIncludeDeleted( List<String> uids );
+    List<ProgramStageInstance> getEvents( List<String> uids );
 }
