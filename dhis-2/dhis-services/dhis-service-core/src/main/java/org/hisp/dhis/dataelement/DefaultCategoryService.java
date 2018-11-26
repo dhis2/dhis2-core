@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
@@ -430,6 +431,13 @@ public class DefaultCategoryService
     public void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.delete( dataElementCategoryOptionCombo );
+    }
+
+    @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
+    public void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo )
+    {
+        categoryOptionComboStore.delete( categoryOptionCombo );
     }
 
     @Override
