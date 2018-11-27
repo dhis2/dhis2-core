@@ -50,7 +50,7 @@ public class HibernateDatabaseInfoProvider
     private static final String DEL_A = "/";
     private static final String DEL_B = ":";
     private static final String DEL_C = "?";
-    private static final String POSTGRES_REGEX = "^PostgreSQL (\\d+\\.+\\d+)? .*$";
+    private static final String POSTGRES_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)? .*$";
 
     private static final Pattern PATTERN = Pattern.compile( POSTGRES_REGEX );
 
