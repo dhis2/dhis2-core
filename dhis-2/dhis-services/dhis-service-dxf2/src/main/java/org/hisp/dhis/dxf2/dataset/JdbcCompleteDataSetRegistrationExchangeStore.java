@@ -130,7 +130,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
         final String completenessSql =
                 "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
-                        "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.iscompleted " +
+                        "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.completed as iscompleted " +
                         "from completedatasetregistration cdr " +
                         "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
                         "join period pe on ( cdr.periodid=pe.periodid ) " +
