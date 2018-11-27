@@ -58,4 +58,9 @@ public class ZeroPositiveValueCountFunction
 
         return TextUtils.removeLast( sql, "+" ).trim() + ") as double precision),0)";
     }
+    
+    public String getSampleValue()
+    {
+        return "-1";
+    }
 }

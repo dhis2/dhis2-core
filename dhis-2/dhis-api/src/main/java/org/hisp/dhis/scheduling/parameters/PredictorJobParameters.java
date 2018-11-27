@@ -96,7 +96,7 @@ public class PredictorJobParameters
         this.predictors = predictors;
     }
 
-    public List<String> getPredictorGroupss()
+    public List<String> getPredictorGroups()
     {
         return predictorGroups;
     }

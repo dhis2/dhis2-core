@@ -82,4 +82,9 @@ public enum ProgramRuleActionType
     {
         return IMPLEMENTED_ACTIONS.contains( this );
     }
+
+    public static Set<ProgramRuleActionType> getImplementedActions()
+    {
+        return IMPLEMENTED_ACTIONS;
+    }
 }

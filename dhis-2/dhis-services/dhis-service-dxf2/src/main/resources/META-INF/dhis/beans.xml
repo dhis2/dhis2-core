@@ -36,6 +36,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramNotificationTemplateObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramRuleVariableObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DocumentObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramObjectBundleHook" />
@@ -165,6 +167,8 @@
   </bean>
 
   <bean id="inputUtils" class="org.hisp.dhis.dxf2.utils.InputUtils" />
+  
+  <bean id="categoryUtils" class="org.hisp.dhis.dxf2.utils.CategoryUtils" />
 
   <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
 

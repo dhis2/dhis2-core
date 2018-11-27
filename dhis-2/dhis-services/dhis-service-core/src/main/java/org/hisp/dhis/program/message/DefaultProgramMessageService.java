@@ -228,7 +228,7 @@ public class DefaultProgramMessageService
             programInstance = params.getProgramStageInstance().getProgramInstance();
         }
 
-        programs = programService.getUserPrograms( user );
+        programs = new HashSet<>( programService.getUserPrograms( user ) );
 
         if ( user != null && !programs.contains( programInstance.getProgram() ) )
         {

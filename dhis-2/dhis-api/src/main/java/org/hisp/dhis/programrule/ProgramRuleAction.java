@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -41,7 +42,6 @@ import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -60,31 +60,40 @@ public class ProgramRuleAction
      * The type of action that is performed when the action is effectuated
      * <p>
      * The actual action the ruleaction row is performing. Allowed values are:
-     * displaytext
+     * <ul>
+     * <li>{@code displaytext}
      * Shows a text in the rulebound widget with the matching location string.
      * location: the location code of the widget to display data in
      * content: A hardcoded string to display
-     * data: a variable to be evaluated and displayed at the end of the string, can be null.
-     * displaykeyvaluepair
+     * data: a variable to be evaluated and displayed at the end of the string, can be null.</li>
+     *
+     * <li>{@code displaykeyvaluepair}
      * Shows a key data box with a hardcoded name and a variable value.
      * location: the location code of the widget to display data in
      * content: A hardcoded string to display as title in the key data box
-     * data: The variable to be evaluated and display in the lower half of the key data box.
-     * hidefield
+     * data: The variable to be evaluated and display in the lower half of the key data box.</li>
+     *
+     * <li>{@code hidefield}
      * Hides a dataelement from the page, as long as the dataelement is not containing a value.
-     * dataelement: the dataelement to hide.
-     * assignvariable
-     * Assigns/calculates a value that can be further used by other rules. Make sure the priorities is set so the rules that depend on the calculation is run after the assignvariable-rule.
+     * dataelement: the dataelement to hide.</li>
+     *
+     * <li>{@code assignvariable}
+     * Assigns/calculates a value that can be further used by other rules. Make sure the priorities is set so the rules
+     * that depend on the calculation is run after the assignvariable-rule.
      * content: the variable name to be assigned. “$severeanemia” for example.
-     * data: the expression to be evaluated and assigned to the content field. Can contain a hardcoded value(f.ex. “true”) or an expression that is evaluated(for exampple “$hemoglobin < 7”).
-     * showwarning
+     * data: the expression to be evaluated and assigned to the content field. Can contain a hardcoded value(f.ex. “true”)
+     * or an expression that is evaluated(for exampple “$hemoglobin < 7”).</li>
+     *
+     * <li>{@code showwarning}
      * Shows a validation warning connected to a designated dataelement
      * dataelement: the dataelement to show validationerror for
-     * content: the validation error itself
-     * showerror
+     * content: the validation error itself</li>
+     *
+     * <li>{@code showerror}
      * Shows a validation error connected to a designated dataelement
      * dataelement: the dataelement to show validationerror for
-     * content: the validation error itself
+     * content: the validation error itself</li>
+     * </ul>
      */
     private ProgramRuleActionType programRuleActionType;
 
@@ -138,7 +147,7 @@ public class ProgramRuleAction
      * <li>sendmessage</li>
      * </ul>
      */
-    private ProgramNotificationTemplate programNotificationTemplate;
+    private String templateUid;
 
     /**
      * Used to determine which widget to display data for the two action types:
@@ -159,14 +168,14 @@ public class ProgramRuleAction
      * Used by all the different actions. See “actions”. The data field will be evaluated, so it can contain a rich expression.
      */
     private String data;
-    
+
     /**
      * Option affected by the rule action
      */
     private Option option;
-    
+
     /**
-     * Option group affected by the rule action 
+     * Option group affected by the rule action
      */
     private OptionGroup optionGroup;
 
@@ -221,14 +230,14 @@ public class ProgramRuleAction
 
     public boolean hasNotification()
     {
-        return this.programNotificationTemplate != null;
+        return StringUtils.isNotBlank( this.templateUid );
     }
-    
+
     public boolean hasOption()
     {
         return this.option != null;
     }
-    
+
     public boolean hasOptionGroup()
     {
         return this.optionGroup != null;
@@ -277,16 +286,15 @@ public class ProgramRuleAction
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramNotificationTemplate getProgramNotificationTemplate()
+    public String getTemplateUid()
     {
-        return programNotificationTemplate;
+        return templateUid;
     }
 
-    public void setProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    public void setTemplateUid( String programNotificationTemplate )
     {
-        this.programNotificationTemplate = programNotificationTemplate;
+        this.templateUid = programNotificationTemplate;
     }
 
     @JsonProperty( "trackedEntityAttribute" )
@@ -399,5 +407,5 @@ public class ProgramRuleAction
     public void setOptionGroup( OptionGroup optionGroup )
     {
         this.optionGroup = optionGroup;
-    }    
+    }
 }

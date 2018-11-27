@@ -72,10 +72,11 @@ public class EventQueryParamsTest
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
+    private DataElement deD;
     private OrganisationUnit ouA;
     private Program prA;
     private ProgramStage psA;
-    
+
     @Before
     public void before()
     {
@@ -85,21 +86,24 @@ public class EventQueryParamsTest
         opD = createOption( 'D' );
         osA = createOptionSet( 'A', opA, opB );
         osB = createOptionSet( 'B', opC, opD );
-        
+
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
         deC.setValueType( ValueType.DATE );
-        
+        deD = createDataElement( 'D' );
+        deD.setValueType( ValueType.ORGANISATION_UNIT );
+
         ouA = createOrganisationUnit( 'A' );
-        
+
         psA = createProgramStage( 'A', prA );
         psA.addDataElement( deA, 0 );
         psA.addDataElement( deB, 1 );
         psA.addDataElement( deC, 2 );
+        psA.addDataElement( deD, 3 );
         prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
     }
-    
+
     @Test
     public void testReplacePeriodsWithStartEndDates()
     {
@@ -110,35 +114,35 @@ public class EventQueryParamsTest
 
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
-        
+
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
-        
+
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods().build();
-        
+
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
-        assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );        
+        assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
     }
-    
+
     @Test
     public void testGetItemLegends()
     {
         Legend leA = createLegend( 'A', 0d, 1d );
-        Legend leB = createLegend( 'B', 1d, 2d );        
+        Legend leB = createLegend( 'B', 1d, 2d );
         LegendSet lsA = createLegendSet( 'A', leA, leB );
-        
+
         QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
-        
+
         EventQueryParams params = new EventQueryParams.Builder()
             .addItem( qiA )
             .build();
-        
+
         Set<Legend> expected = Sets.newHashSet( leA, leB );
-        
+
         assertEquals( expected, params.getItemLegends() );
     }
-    
+
     @Test
     public void testGetItemOptions()
     {
@@ -149,12 +153,12 @@ public class EventQueryParamsTest
             .addItem( qiA )
             .addItem( qiB )
             .build();
-        
+
         Set<Option> expected = Sets.newHashSet( opA, opB, opC, opD );
-        
+
         assertEquals( expected, params.getItemOptions() );
     }
-    
+
     @Test
     public void testGetDuplicateQueryItems()
     {
@@ -168,23 +172,23 @@ public class EventQueryParamsTest
             .addItem( iB )
             .addItem( iC )
             .addItem( iD ).build();
-        
+
         List<QueryItem> duplicates = params.getDuplicateQueryItems();
-        
+
         assertEquals( 1, duplicates.size() );
-        assertTrue( duplicates.contains( iC ) );        
+        assertTrue( duplicates.contains( iC ) );
     }
-    
+
     @Test
     public void testIsTimeFieldValid()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        
+
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
             .withTimeField( deC.getUid() )
             .addItem( iA ).build();
-        
+
         assertTrue( params.timeFieldIsValid() );
 
         params = new EventQueryParams.Builder()
@@ -196,9 +200,29 @@ public class EventQueryParamsTest
 
         params = new EventQueryParams.Builder()
             .withProgram( prA )
-            .withTimeField( "someInvalidField" )
+            .withTimeField( "someInvalidTimeField" )
             .addItem( iA ).build();
 
         assertFalse( params.timeFieldIsValid() );
+    }
+
+    @Test
+    public void testIsOrgUnitFieldValid()
+    {
+        QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrgUnitField( deD.getUid() )
+            .addItem( iA ).build();
+
+        assertTrue( params.orgUnitFieldIsValid() );
+
+        params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrgUnitField( "someInvalidOrgUnitField" )
+            .addItem( iA ).build();
+
+        assertFalse( params.orgUnitFieldIsValid() );
     }
 }

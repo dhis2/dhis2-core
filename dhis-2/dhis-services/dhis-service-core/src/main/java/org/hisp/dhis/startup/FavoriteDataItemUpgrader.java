@@ -91,36 +91,36 @@ public class FavoriteDataItemUpgrader
             return;
         }
     }
-    
+
     private void upgradeFavorites( Class<? extends BaseAnalyticalObject> favoriteClass, String favoriteTablename,
         Class<? extends IdentifiableObject> objectClass, String objectTablename )
     {
         String linkTablename = favoriteTablename + "_" + objectTablename + "s";
-        
+
         String selectSql = "select " + favoriteTablename + "id, " + objectTablename + "id from " + linkTablename + " " +
             "order by " + favoriteTablename + "id, sort_order";
-        
+
         SqlRowSet rs = jdbcTemplate.queryForRowSet( selectSql );
-        
+
         while ( rs.next() )
         {
             int rtId = rs.getInt( 1 );
             int obId = rs.getInt( 2 );
-            
+
             BaseAnalyticalObject favorite = idObjectManager.get( favoriteClass, rtId );
             DimensionalItemObject object = (DimensionalItemObject) idObjectManager.get( objectClass, obId );
             DataDimensionItem item = DataDimensionItem.create( object );
-                        
+
             favorite.getDataDimensionItems().add( item );
             idObjectManager.update( favorite );
-            
+
             log.debug( "Upgraded " + favoriteTablename + " " + favorite.getUid() + " for " + objectTablename + " " + object.getUid() );
         }
-        
+
         String dropSql = "drop table " + linkTablename;
-        
+
         jdbcTemplate.update( dropSql );
-        
+
         log.info( "Update done, dropped table " + linkTablename );
     }
 }

@@ -132,6 +132,8 @@
     
     <property name="timeField" column="timefield" />
 
+    <property name="orgUnitField" column="orgunitfield" />
+    
     <property name="title" />
     
     <property name="subtitle" />
@@ -244,6 +246,8 @@
 
     <property name="topLimit" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <!-- Access properties -->
     <property name="externalAccess" />
 
@@ -261,13 +265,6 @@
       <cache usage="read-write" />
       <key column="eventreportid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="eventreporttranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="eventreportid" foreign-key="fk_objecttranslation_eventreportid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <property name="favorites" type="jbSet" />
