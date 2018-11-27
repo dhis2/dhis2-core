@@ -202,38 +202,57 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
         List<TrackedEntityInstance> delete = new ArrayList<>();
-        List<Relationship> createRelationships = new ArrayList<>();
-        List<Relationship> updateRelationships = new ArrayList<>();
+//        List<Relationship> createRelationships = new ArrayList<>();
+//        List<Relationship> updateRelationships = new ArrayList<>();
+//
+//
+//        if ( !importOptions.getImportStrategy().isDelete() )
+//        {
+//            trackedEntityInstances.stream()
+//
+//                // Skip teis with no relationships
+//                .filter( tei -> !tei.getRelationships().isEmpty() )
+//                .forEach( tei ->
+//                {
+//                    RelationshipItem relationshipItem = new RelationshipItem();
+//                    relationshipItem.setTrackedEntityInstance( tei );
+//
+//                    // Update from since it might be empty, which means this tei is "from".
+//                    tei.getRelationships().forEach( rel ->
+//                    {
+//                        rel.setFrom( relationshipItem );
+//                        if ( rel.getRelationship() == null || !_relationshipService.relationshipExists( rel.getRelationship() ) )
+//                        {
+//                            createRelationships.add(rel);
+//                        }
+//                        else
+//                        {
+//                            updateRelationships.add( rel );
+//                        }
+//                    } );
+//
+//                    tei.setRelationships( new ArrayList<>(  ) );
+//                } );
+//        }
 
+        List<Relationship> relationships = new ArrayList<>();
+        trackedEntityInstances.stream()
+            .filter( tei -> !tei.getRelationships().isEmpty() )
+            .forEach( tei ->
+            {
+                RelationshipItem item = new RelationshipItem();
+                item.setTrackedEntityInstance( tei );
 
-        if ( !importOptions.getImportStrategy().isDelete() )
-        {
-            trackedEntityInstances.stream()
-
-                // Skip teis with no relationships
-                .filter( tei -> !tei.getRelationships().isEmpty() )
-                .forEach( tei ->
+                tei.getRelationships().forEach( rel ->
                 {
-                    RelationshipItem relationshipItem = new RelationshipItem();
-                    relationshipItem.setTrackedEntityInstance( tei );
-
-                    // Update from since it might be empty, which means this tei is "from".
-                    tei.getRelationships().forEach( rel ->
+                    // Update from if it is empty. Current tei is then "from"
+                    if( rel.getFrom() == null )
                     {
-                        rel.setFrom( relationshipItem );
-                        if ( rel.getRelationship() == null || !_relationshipService.relationshipExists( rel.getRelationship() ) )
-                        {
-                            createRelationships.add(rel);
-                        }
-                        else
-                        {
-                            updateRelationships.add( rel );
-                        }
-                    } );
-
-                    tei.setRelationships( new ArrayList<>(  ) );
+                        rel.setFrom( item );
+                    }
+                    relationships.add( rel );
                 } );
-        }
+            } );
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -273,9 +292,11 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
         importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
 
-        // Setting to null so it will be updated by relationshipService. Otherwise it will cause problems with session.
-        importSummaries.addImportSummaries( relationshipService.addRelationships( createRelationships, importOptions ) );
-        importSummaries.addImportSummaries( relationshipService.updateRelationships( updateRelationships, importOptions ) );
+        relationshipService.processRelationshipList( relationships, importOptions );
+
+//        // Setting to null so it will be updated by relationshipService. Otherwise it will cause problems with session.
+//        importSummaries.addImportSummaries( relationshipService.addRelationships( createRelationships, importOptions ) );
+//        importSummaries.addImportSummaries( relationshipService.updateRelationships( updateRelationships, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {

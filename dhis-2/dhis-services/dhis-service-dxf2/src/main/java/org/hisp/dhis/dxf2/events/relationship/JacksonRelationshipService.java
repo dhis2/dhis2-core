@@ -121,7 +121,7 @@ public class JacksonRelationshipService
             relationships.add( fromJson );
         }
 
-        return addRelationshipList( relationships, updateImportOptions( importOptions ) );
+        return processRelationshipList( relationships, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -140,7 +140,7 @@ public class JacksonRelationshipService
             relationships.add( fromXml );
         }
 
-        return addRelationshipList( relationships, updateImportOptions( importOptions ) );
+        return processRelationshipList( relationships, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -178,7 +178,7 @@ public class JacksonRelationshipService
         return importOptions;
     }
 
-    private ImportSummaries addRelationshipList( List<Relationship> relationships, ImportOptions importOptions )
+    public ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
