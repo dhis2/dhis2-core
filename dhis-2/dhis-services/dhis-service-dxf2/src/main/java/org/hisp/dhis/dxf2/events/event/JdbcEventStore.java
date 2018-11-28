@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -636,26 +637,46 @@ public class JdbcEventStore
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
+            final String optCol = item.getItemId() + "opt";
 
             if ( !joinedColumns.contains( col ) )
             {
-                sql += (item.hasFilter() ? "inner" : "left") + " join trackedentitydatavalue as " + col + " " + "on " + col
+                final String joinClause = item.hasFilter() ? "inner join" : "left join";
+
+                sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
+
+                if ( item.hasOptionSet() && item.hasFilter() )
+                {
+                    sql += joinClause + " " + "optionvalue as " + optCol + " on lower(" + optCol + ".code) = " + "lower(" + col + ".value) and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
+                }
 
                 joinedColumns.add( col );
             }
 
-            for ( QueryFilter filter : item.getFilters() )
+            if ( item.hasFilter() )
             {
-                final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                for ( QueryFilter filter : item.getFilters() )
+                {
+                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
-                final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
-                    : "lower(" + col + ".value)";
+                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                        : "lower(" + col + ".value)";
 
-                sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                    filter.getSqlFilter( encodedFilter ) ) + " ";
+                    if ( !item.hasOptionSet() || QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                    {
+                        sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
+                    else
+                    {
+                        sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
+                }
             }
         }
 
@@ -792,6 +813,7 @@ public class JdbcEventStore
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = statementBuilder.columnQuote( item.getItemId() );
+            final String optCol = item.getItemId() + "opt";
 
             if ( !joinedColumns.contains( col ) )
             {
@@ -800,6 +822,11 @@ public class JdbcEventStore
                 sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
                     + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
                     + item.getItem().getId() + " ";
+
+                if ( item.hasOptionSet() && item.hasFilter() )
+                {
+                    sql += joinClause + " " + "optionvalue as " + optCol + " on lower(" + optCol + ".code) = " + "lower(" + col + ".value) and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
+                }
 
                 joinedColumns.add( col );
             }
@@ -813,8 +840,17 @@ public class JdbcEventStore
                     final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
                         : "lower(" + col + ".value)";
 
-                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                        + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    if ( !item.hasOptionSet() || QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                    {
+                        sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
+                    else
+                    {
+                        sql += "and lower( " + optCol + ".name)" + " " + filter.getSqlOperator() + " "
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                    }
+
                 }
             }
         }
