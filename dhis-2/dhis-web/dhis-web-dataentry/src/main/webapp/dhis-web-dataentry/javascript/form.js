@@ -2571,10 +2571,9 @@ function updateForms()
         .done( function() {
         	dhis2.availability.startAvailabilityCheck();
         	console.log( 'Started availability check' );
-            selection.responseReceived();
 
-            setDisplayNamePreferences();
-            selection.responseReceived();
+                setDisplayNamePreferences();
+                selection.responseReceived();
         } );
 }
 
