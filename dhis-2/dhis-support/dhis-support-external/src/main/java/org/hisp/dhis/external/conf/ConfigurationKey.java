@@ -87,7 +87,7 @@ public enum ConfigurationKey
     REDIS_PASSWORD( "redis.password", "", true ),
     REDIS_ENABLED( "redis.enabled", "false", false ),
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
-    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate.out.of.order", "false", false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
