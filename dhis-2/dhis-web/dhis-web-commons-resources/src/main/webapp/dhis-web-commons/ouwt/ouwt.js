@@ -102,12 +102,12 @@ function Selection()
     this.setDisplayShortNames = function( useShortName ) {
         sessionStorage[ OU_USESHORTNAME_KEY ] = useShortName;
         subtree.reloadTree();
-    }
+    };
      this.getDisplayShortNames = function() {
         return sessionStorage[ OU_USESHORTNAME_KEY ] 
             ? sessionStorage[ OU_USESHORTNAME_KEY ] === "true" 
             : false;
-    }
+    };
 
     this.setOfflineLevel = function( level ) {
         offlineLevel = level;
