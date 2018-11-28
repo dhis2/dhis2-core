@@ -93,7 +93,7 @@ public class ProgramRuleVariable
      * If the dataElement or trackedEntityAttribute is connected to an option set,
      * use this option sets code(and not the name) as value
      */
-    private Boolean useCodeForOptionSet;
+    private boolean useCodeForOptionSet;
 
     /**
      * Specification of the program stage that the variable should be fetched
@@ -115,7 +115,7 @@ public class ProgramRuleVariable
         ProgramRuleVariableSourceType sourceType,
         TrackedEntityAttribute attribute,
         DataElement dataElement,
-        Boolean useCodeForOptionSet,
+        boolean useCodeForOptionSet,
         ProgramStage programStage )
     {
         this.name = name;
@@ -146,12 +146,12 @@ public class ProgramRuleVariable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getUseCodeForOptionSet()
+    public boolean getUseCodeForOptionSet()
     {
         return useCodeForOptionSet;
     }
 
-    public void setUseCodeForOptionSet( Boolean useCodeForOptionSet )
+    public void setUseCodeForOptionSet( boolean useCodeForOptionSet )
     {
         this.useCodeForOptionSet = useCodeForOptionSet;
     }
