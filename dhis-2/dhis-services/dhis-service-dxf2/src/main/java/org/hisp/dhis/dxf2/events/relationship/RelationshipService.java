@@ -101,4 +101,5 @@ public interface RelationshipService
 
     Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user );
 
+    ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions );
 }

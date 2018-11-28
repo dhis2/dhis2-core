@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.query.Query;
@@ -74,7 +75,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 @Transactional
 public abstract class AbstractRelationshipService
@@ -148,6 +151,57 @@ public abstract class AbstractRelationshipService
 
         return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions )
+    {
+        ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
+
+        List<Relationship> create = new ArrayList<>();
+        List<Relationship> update = new ArrayList<>();
+        List<Relationship> delete = new ArrayList<>();
+
+        //TODO: Logic "delete relationships missing in the payload" is missing. Has to be implemented later.
+
+        if ( importOptions.getImportStrategy().isCreate() )
+        {
+            create.addAll( relationships );
+        }
+        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                sortCreatesAndUpdates( relationship, create, update );
+            }
+        }
+        else if ( importOptions.getImportStrategy().isUpdate() )
+        {
+            update.addAll( relationships );
+        }
+        else if ( importOptions.getImportStrategy().isDelete() )
+        {
+            delete.addAll( relationships );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                sortCreatesAndUpdates( relationship, create, update );
+            }
+        }
+
+        importSummaries.addImportSummaries( addRelationships( create, importOptions ) );
+        importSummaries.addImportSummaries( updateRelationships( update, importOptions ) );
+        importSummaries.addImportSummaries( deleteRelationships( delete, importOptions ) );
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+        }
+
+        return importSummaries;
     }
 
     @Override
@@ -808,5 +862,25 @@ public abstract class AbstractRelationshipService
     private Function<org.hisp.dhis.relationship.Relationship, Relationship> mapDaoToDto( User user )
     {
         return relationship -> getRelationship( relationship, user );
+    }
+
+    private void sortCreatesAndUpdates( Relationship relationship, List<Relationship> create,
+        List<Relationship> update )
+    {
+        if ( StringUtils.isEmpty( relationship.getRelationship() ) )
+        {
+            create.add( relationship );
+        }
+        else
+        {
+            if ( !relationshipService.relationshipExists( relationship.getRelationship() ) )
+            {
+                create.add( relationship );
+            }
+            else
+            {
+                update.add( relationship );
+            }
+        }
     }
 }
