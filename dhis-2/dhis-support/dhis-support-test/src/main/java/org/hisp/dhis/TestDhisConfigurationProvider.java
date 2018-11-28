@@ -158,4 +158,9 @@ public class TestDhisConfigurationProvider
             return new Properties();
         }
     }
+
+    public void addProperties( Properties properties )
+    {
+        this.properties.putAll( properties );
+    }
 }

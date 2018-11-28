@@ -75,14 +75,15 @@ async function clone (name, url, clone_path) {
 }
 
 async function show_sha (repo_path) {
+    let refspec
     try {
         const { stderr, stdout } = await exec(`git rev-parse --verify HEAD`, { cwd: repo_path})
-        const refspec = stdout.trim()
-        return refspec
+        refspec = stdout.trim()
     } catch (err) {
-        console.error(`[show_sha] could not fetch refspec for ${repo_path}`, err)
-        process.exit(1)
+        console.error(`[show_sha] could not fetch refspec for ${repo_path}, using fallback`, err)
+        refspec = 'n/a'
     }
+    return refspec
 }
 
 async function clone_app (repo, target, complete_callback) {

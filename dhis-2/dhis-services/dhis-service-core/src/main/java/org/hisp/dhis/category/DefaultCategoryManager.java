@@ -33,6 +33,7 @@ package org.hisp.dhis.category;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,9 +97,9 @@ public class DefaultCategoryManager
             {
                 try
                 {
-                    categoryService.deleteCategoryOptionCombo( optionCombo );
+                    categoryService.deleteCategoryOptionComboNoRollback( optionCombo );
                 }
-                catch ( Exception ex )
+                catch ( DeleteNotAllowedException ex )
                 {
                     log.warn( "Could not delete category option combo: " + optionCombo );
                     continue;

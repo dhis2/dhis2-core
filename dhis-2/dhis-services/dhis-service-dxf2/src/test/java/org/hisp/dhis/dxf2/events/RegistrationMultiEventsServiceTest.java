@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.events;
 
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -68,8 +68,9 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Category( IntegrationTest.class )
 public class RegistrationMultiEventsServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -108,6 +109,12 @@ public class RegistrationMultiEventsServiceTest
     private DataElement dataElementB;
     private ProgramStage programStageA;
     private ProgramStage programStageB;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -187,7 +194,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveWithoutProgramStageShouldFail()
     {
         Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(),
@@ -199,7 +205,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveWithoutEnrollmentShouldFail()
     {
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -210,7 +215,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -226,8 +230,6 @@ public class RegistrationMultiEventsServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         importSummary = eventService.addEvent( event, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        sessionFactory.getCurrentSession().flush();
 
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
@@ -246,7 +248,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -262,9 +263,6 @@ public class RegistrationMultiEventsServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         importSummary = eventService.addEvent( event, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        sessionFactory.getCurrentSession().flush();
-
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
         params.setOrgUnit( organisationUnitA );
@@ -276,7 +274,7 @@ public class RegistrationMultiEventsServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         event.setEvent( importSummary.getReference() );
         importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
