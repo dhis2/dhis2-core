@@ -1231,17 +1231,19 @@ public abstract class AbstractEventService
                     ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
             }
         }
-        else if ( event.getCoordinate() != null )
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
         {
             Coordinate coordinate = event.getCoordinate();
 
             try
             {
-                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+                event
+                    .setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
             }
             catch ( IOException e )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
+                return new ImportSummary( ImportStatus.ERROR,
+                    "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
 
