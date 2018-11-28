@@ -2580,10 +2580,10 @@ function updateForms()
 function setDisplayNamePreferences() {
     var settings = dhis2.de.storageManager.getUserSettings();
     var useShortNames = true;
-     if ( settings !== null ) {
+    if ( settings !== null ) {
         useShortNames = settings.keyAnalysisDisplayProperty === "shortName";
     }
-     selection.setDisplayShortNames(useShortNames);
+    selection.setDisplayShortNames(useShortNames);
 }
 
 function purgeLocalForms()
