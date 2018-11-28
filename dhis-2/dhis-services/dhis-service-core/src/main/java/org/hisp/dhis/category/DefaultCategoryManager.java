@@ -33,6 +33,7 @@ package org.hisp.dhis.category;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -99,9 +100,9 @@ public class DefaultCategoryManager
             {
                 try
                 {
-                    categoryService.deleteDataElementCategoryOptionCombo( optionCombo );
+                    categoryService.deleteDataElementCategoryOptionComboNoRollback( optionCombo );
                 }
-                catch ( Exception ex )
+                catch ( DeleteNotAllowedException ex )
                 {
                     log.warn( "Could not delete category option combo: " + optionCombo );
                     continue;
