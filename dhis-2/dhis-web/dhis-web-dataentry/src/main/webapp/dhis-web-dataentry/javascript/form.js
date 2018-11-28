@@ -19,6 +19,9 @@ dhis2.de.api.getSelections = function() {
 	return sel;
 }
 
+// whether the browser is offline or not.
+dhis2.de.isOffline = false;
+
 // whether current user has any organisation units
 dhis2.de.emptyOrganisationUnits = false;
 
@@ -181,6 +184,8 @@ DAO.store = new dhis2.storage.Store( {
 } )( jQuery );
 
 $(document).bind('dhis2.online', function( event, loggedIn ) {
+    dhis2.de.isOffline = false;
+
     if( loggedIn ) {
         if( dhis2.de.storageManager.hasLocalData() ) {
             var message = i18n_need_to_sync_notification
@@ -216,6 +221,8 @@ $(document).bind('dhis2.online', function( event, loggedIn ) {
 });
 
 $(document).bind('dhis2.offline', function() {
+    dhis2.de.isOffline = true;
+
     if( dhis2.de.emptyOrganisationUnits ) {
         setHeaderMessage(i18n_no_orgunits);
     }
@@ -247,7 +254,7 @@ $( document ).ready( function()
                 
         $.when( dhis2.de.getMultiOrgUnitSetting(), dhis2.de.loadMetaData(), dhis2.de.loadDataSetAssociations() ).done( function() {
         	dhis2.de.setMetaDataLoaded();
-          organisationUnitSelected( ids, names );
+            organisationUnitSelected( ids, names );
         } );
     } );
 } );
@@ -960,7 +967,8 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
 
   if( dhis2.de.shouldFetchDataSets(orgUnits) ) {
     dhis2.de.fetchDataSets( orgUnits[0] ).always(function() {
-      selection.responseReceived();
+        setDisplayNamePreferences();
+        selection.responseReceived();
     });
 
     return false;
@@ -2567,13 +2575,28 @@ function updateForms()
     DAO.store.open()
         .then(purgeLocalForms)
         .then(updateExistingLocalForms)
+        .then(getUserSetting)
         .then(downloadRemoteForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
         	dhis2.availability.startAvailabilityCheck();
-        	console.log( 'Started availability check' );
-          selection.responseReceived();
+            console.log( 'Started availability check' );
+
+            setDisplayNamePreferences();
+
+            selection.responseReceived();
         } );
+}
+
+function setDisplayNamePreferences() {
+    var settings = dhis2.de.storageManager.getUserSettings();
+    var useShortNames = true;
+
+    if ( settings !== null ) {
+        useShortNames = settings.keyAnalysisDisplayProperty === "shortName";
+    }
+
+    selection.setDisplayShortNames(useShortNames);
 }
 
 function purgeLocalForms()
@@ -2665,6 +2688,7 @@ function StorageManager()
     var KEY_FORM_VERSIONS = 'formversions';
     var KEY_DATAVALUES = 'datavalues';
     var KEY_COMPLETEDATASETS = 'completedatasets';
+    var KEY_USER_SETTINGS = 'usersettings';
 
     /**
      * Gets the content of a data entry form.
@@ -3156,6 +3180,25 @@ function StorageManager()
     };
 
     /**
+     * Returns the cached user settings
+     */
+    this.getUserSettings = function()
+    {
+        return localStorage[ KEY_USER_SETTINGS ] !== null 
+            ? JSON.parse(localStorage[ KEY_USER_SETTINGS ])
+            : null;
+    }
+
+    /**
+     * Caches the user settings
+     * @param settings The user settings object (JSON) to serialize into cache
+     */
+    this.setUserSettings = function(settings)
+    {
+        localStorage[ KEY_USER_SETTINGS ] = JSON.stringify(settings);
+    }
+
+    /**
      * Indicates whether there exists data values or complete data set
      * registrations in the local storage.
      *
@@ -3589,4 +3632,26 @@ function printBlankForm()
 	$( '#contentDiv input, select' ).css( 'display', 'none' );
 	window.print();
 	$( '#contentDiv input, select' ).css( 'display', '' );	
+}
+
+
+function getUserSetting()
+{   
+    if ( dhis2.de.isOffline && settings !== null ) {
+        return;
+    }
+
+    var def = $.Deferred();
+
+    var url = '../api/userSettings.json?key=keyAnalysisDisplayProperty';
+
+    //Gets the user setting for whether it should display short names for org units or not.
+    $.getJSON(url, function( data ) {
+            console.log("User settings loaded: ", data);
+            dhis2.de.storageManager.setUserSettings(data);
+            def.resolve();
+        }
+    );
+
+    return def;
 }
