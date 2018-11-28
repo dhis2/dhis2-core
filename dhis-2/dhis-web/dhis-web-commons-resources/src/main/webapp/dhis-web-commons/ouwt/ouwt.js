@@ -33,6 +33,7 @@ var OU_ROOTS_KEY = "ouRoots";
 var OU_VERSION_KEY = "ouVersion";
 var OU_USERNAME_KEY = "ouUsername";
 var OU_SELECTED_KEY = "ouSelected";
+var OU_USESHORTNAME_KEY = "ouUseShortName";
 
 dhis2.ou.event.orgUnitSelected = "dhis2.ou.event.orgUnitSelected";
 
@@ -97,6 +98,16 @@ function Selection()
             } );
         }
     };
+
+    this.setDisplayShortNames = function( useShortName ) {
+        sessionStorage[ OU_USESHORTNAME_KEY ] = useShortName;
+        subtree.reloadTree();
+    }
+     this.getDisplayShortNames = function() {
+        return sessionStorage[ OU_USESHORTNAME_KEY ] 
+            ? sessionStorage[ OU_USESHORTNAME_KEY ] === "true" 
+            : false;
+    }
 
     this.setOfflineLevel = function( level ) {
         offlineLevel = level;
@@ -803,11 +814,12 @@ function Subtree() {
         }
 
         var rootId = array.length < 1 ? ou : array[0];
+        var useOuShortNames = selection.getDisplayShortNames();
 
         if( $( "#" + getTagId( rootId ) ).length < 1 ) {
             var expand = organisationUnits[rootId];
             // var $parentTag = $( "#" + getTagId( rootId ) );
-            $rootsTag.append( createTreeElementTag( expand ) );
+            $rootsTag.append( createTreeElementTag( expand, useOuShortNames ) );
         }
 
         $.each( array, function( i, item ) {
@@ -929,12 +941,13 @@ function Subtree() {
 
     function createChildren( parentTag, parent ) {
         var $childrenTag = $( "<ul/>" );
+        var useOuShortNames = selection.getDisplayShortNames();
 
         $.each( parent.c, function( i, item ) {
             var ou = organisationUnits[item];
 
             if( ou !== undefined ) {
-                $childrenTag.append( createTreeElementTag( ou ) );
+                $childrenTag.append( createTreeElementTag( ou, useOuShortNames ) );
             }
         } );
 
@@ -944,7 +957,7 @@ function Subtree() {
         $( parentTag ).append( $childrenTag );
     }
 
-    function createTreeElementTag( ou ) {
+    function createTreeElementTag( ou, displayShortNames ) {
         var $toggleTag = $( "<span/>" );
         $toggleTag.addClass( "toggle" );
 
@@ -958,7 +971,7 @@ function Subtree() {
 
         var $linkTag = $( "<a/>" );
         $linkTag.attr( "href", "javascript:void selection.select( \"" + ou.id + "\" )" );
-        $linkTag.append( ou.n );
+        $linkTag.append( displayShortNames ? ou.sn : ou.n );
 
         var $childTag = $( "<li/>" );
 
