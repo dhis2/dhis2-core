@@ -30,10 +30,13 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Transactional
 public class DefaultEventSyncService implements EventSyncService
 {
     // -------------------------------------------------------------------------
