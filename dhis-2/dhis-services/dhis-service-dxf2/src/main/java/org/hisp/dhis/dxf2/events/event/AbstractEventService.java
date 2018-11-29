@@ -1123,6 +1123,8 @@ public abstract class AbstractEventService
                 clearSession( importOptions.getUser() );
             }
         }
+        
+        updateEntities( importOptions.getUser() );
 
         return importSummaries;
     }
