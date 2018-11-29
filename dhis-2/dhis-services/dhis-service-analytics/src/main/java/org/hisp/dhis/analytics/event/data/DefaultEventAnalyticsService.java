@@ -406,7 +406,7 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
-        securityManager.decideAccess( params );
+        securityManager.decideAccessEventQuery( params );
 
         queryValidator.validate( params );
 
@@ -635,7 +635,7 @@ public class DefaultEventAnalyticsService
             .withStartEndDatesForPeriods()
             .build();
 
-        securityManager.decideAccess( params );
+        securityManager.decideAccessEventQuery( params );
 
         queryValidator.validate( params );
 
@@ -674,7 +674,7 @@ public class DefaultEventAnalyticsService
             .withStartEndDatesForPeriods()
             .build();
 
-        securityManager.decideAccess( params );
+        securityManager.decideAccessEventQuery( params );
 
         queryValidator.validate( params );
 
