@@ -405,8 +405,8 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
-        securityManager.decideAccess( params );
-        
+        securityManager.decideAccessEventQuery( params );
+
         queryValidator.validate( params );
         
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
@@ -606,9 +606,9 @@ public class DefaultEventAnalyticsService
             .withGeometryOnly( true )
             .withStartEndDatesForPeriods()
             .build();
-        
-        securityManager.decideAccess( params );
-        
+
+        securityManager.decideAccessEventQuery( params );
+
         queryValidator.validate( params );
         
         Grid grid = new ListGrid();
@@ -645,9 +645,9 @@ public class DefaultEventAnalyticsService
             .withGeometryOnly( true )
             .withStartEndDatesForPeriods()
             .build();
-        
-        securityManager.decideAccess( params );
-        
+
+        securityManager.decideAccessEventQuery( params );
+
         queryValidator.validate( params );
 
         params = queryPlanner.planEventQuery( params );
