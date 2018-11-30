@@ -298,7 +298,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
     }
 
     @Override
@@ -307,6 +307,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
     }
 }
