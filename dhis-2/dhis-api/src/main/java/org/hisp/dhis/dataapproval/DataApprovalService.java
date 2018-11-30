@@ -34,6 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Jim Grace
@@ -142,6 +143,15 @@ public interface DataApprovalService
      */
     boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Returns a map showing each data approval status for a list of
+     * data approval objects.
+     *
+     * @param dataApprovalList the data approvals to check.
+     * @return the data approvals with status.
+     */
+    Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses( List<DataApproval> dataApprovalList );
 
     /**
      * Returns the data approval status and permissions for a given data set,
