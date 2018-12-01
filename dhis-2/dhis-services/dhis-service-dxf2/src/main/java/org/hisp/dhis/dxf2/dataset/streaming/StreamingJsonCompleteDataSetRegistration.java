@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
+import org.jfree.util.Log;
 
 import java.io.IOException;
 
@@ -55,7 +56,7 @@ public class StreamingJsonCompleteDataSetRegistration
     // -------------------------------------------------------------------------
 
     @Override
-    protected void open()
+    public void open()
     {
         try
         {
@@ -68,7 +69,7 @@ public class StreamingJsonCompleteDataSetRegistration
     }
 
     @Override
-    protected void close()
+    public void close()
     {
         if ( generator == null )
         {
@@ -125,9 +126,44 @@ public class StreamingJsonCompleteDataSetRegistration
         writeField( FIELD_STORED_BY, storedBy );
     }
 
+    @Override
+    public void setLastUpdated( String lastUpdated )
+    {
+        writeField( FIELD_LAST_UPDATED, lastUpdated );
+    }
+
+    @Override
+    public void setCompleted( Boolean completed )
+    {
+        writeField( FIELD_IS_COMPLETED, completed );
+    }
+
+    @Override
+    public void setLastUpdatedBy( String lastUpdatedBy )
+    {
+        writeField( FIELD_LAST_UPDATED_BY, lastUpdatedBy );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private void writeField( String fieldName, Boolean value )
+    {
+        if ( value == null )
+        {
+            return;
+        }
+
+        try
+        {
+            generator.writeObjectField( fieldName, value );
+        }
+        catch ( IOException e )
+        {
+            Log.error( e.getMessage() );
+        }
+    }
 
     @Override
     protected void writeField( String fieldName, String value )
@@ -143,7 +179,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            // Intentionally ignored
+            Log.error( e.getMessage() );
         }
     }
 }

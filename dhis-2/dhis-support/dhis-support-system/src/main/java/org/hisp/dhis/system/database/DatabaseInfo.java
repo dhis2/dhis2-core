@@ -45,7 +45,9 @@ public class DatabaseInfo
     private String password;
     
     private String url;
-    
+
+    private String databaseVersion;
+
     private boolean spatialSupport;
     
     // -------------------------------------------------------------------------
@@ -94,6 +96,16 @@ public class DatabaseInfo
     public void setUser( String user )
     {
         this.user = user;
+    }
+
+    public String getDatabaseVersion()
+    {
+        return databaseVersion;
+    }
+
+    public void setDatabaseVersion( String databaseVersion )
+    {
+        this.databaseVersion = databaseVersion;
     }
 
     public String getPassword()

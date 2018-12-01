@@ -79,6 +79,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 {
     private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
     private static final String STORED_BY = "CGhost";
+    private static final String LAST_UPDATED_BY = "CGhost";
     private static final String DATA_ENTRY_COMMAND = "dataentrycommand";
     private static final String SUCCESS_MESSAGE = "data entered successfully";
     private static final String SMS_TEXT = DATA_ENTRY_COMMAND + " " + "de=sample";
@@ -428,7 +429,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         fetchedDataValue = createDataValue( dataElement, period, organisationUnitA, FETCHED_DATA_VALUE, categoryOptionCombo );
 
-        fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA, categoryOptionCombo, new Date(), STORED_BY );
+        fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA,
+            categoryOptionCombo, new Date(), STORED_BY, LAST_UPDATED_BY, new Date(), true );
 
         smsCode = new SMSCode();
         smsCode.setCode( "de" );

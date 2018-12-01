@@ -33,7 +33,6 @@ package org.hisp.dhis.datavalue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
@@ -43,14 +42,6 @@ import java.util.List;
  */
 public interface AggregateAccessManager
 {
-    /**
-     * Check if given User has DATA_WRITE access for given DataValue
-     * @param user
-     * @param dataValue
-     * @return List of errors
-     */
-    List<String> canWrite( User user, DataValue dataValue );
-
     /**
      * Check if given User has DATA_READ access for given DataValue
      * @param user
@@ -84,6 +75,16 @@ public interface AggregateAccessManager
     List<String> canWrite( User user, CategoryOptionCombo categoryOption );
 
     /**
+     * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
+     * result is cached.
+     *
+     * @param user
+     * @param categoryOption
+     * @return List of errors
+     */
+    List<String> canWriteCached( User user, CategoryOptionCombo categoryOptionCombo );
+
+    /**
      * Check if given User has DATA_READ access for given CategoryOptionCombo
      * @param user
      * @param categoryOption
@@ -99,5 +100,4 @@ public interface AggregateAccessManager
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );
 
-    List<String> canWrite( User user, Option option );
 }

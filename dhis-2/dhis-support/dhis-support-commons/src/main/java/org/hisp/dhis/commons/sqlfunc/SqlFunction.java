@@ -43,4 +43,6 @@ public interface SqlFunction
      * @return the result of the evaluation.
      */
     String evaluate( String... args );
+    
+    String getSampleValue();
 }

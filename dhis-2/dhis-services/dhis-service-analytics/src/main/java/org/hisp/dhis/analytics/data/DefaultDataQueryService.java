@@ -166,6 +166,7 @@ public class DefaultDataQueryService
             .withEndDate( request.getEndDate() )
             .withOrder( request.getOrder() )
             .withTimeField( request.getTimeField() )
+            .withOrgUnitField( request.getOrgUnitField() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )
@@ -418,11 +419,13 @@ public class DefaultDataQueryService
                 }
                 else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
                 {
-                    int level = DimensionalObjectUtils.getLevelFromLevelParam( ou );
+                    String level = DimensionalObjectUtils.getValueFromKeywordParam( ou );
 
-                    if ( level > 0 )
+                    Integer orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevelOrUid( level );
+
+                    if ( orgUnitLevel != null )
                     {
-                        levels.add( level );
+                        levels.add( orgUnitLevel );
                     }
                 }
                 else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )

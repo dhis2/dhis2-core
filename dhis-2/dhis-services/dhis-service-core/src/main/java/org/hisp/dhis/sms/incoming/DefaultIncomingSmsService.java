@@ -35,6 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 
+import javax.transaction.Transactional;
+
+@Transactional
 public class DefaultIncomingSmsService
     implements IncomingSmsService
 {

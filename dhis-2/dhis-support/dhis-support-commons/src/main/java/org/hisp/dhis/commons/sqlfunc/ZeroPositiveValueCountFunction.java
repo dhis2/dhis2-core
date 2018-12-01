@@ -33,14 +33,14 @@ import org.hisp.dhis.commons.util.TextUtils;
 /**
  * Function which returns the number of zero or positive values among the given
  * arguments, or null if there are zero occurrences.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ZeroPositiveValueCountFunction
     implements SqlFunction
 {
     public static final String KEY = "zpvc";
-    
+
     @Override
     public String evaluate( String... args )
     {
@@ -48,14 +48,19 @@ public class ZeroPositiveValueCountFunction
         {
             throw new IllegalArgumentException( "Illegal arguments, expected at least one argument" );
         }
-        
+
         String sql = "nullif(cast((";
-        
+
         for ( String value : args )
         {
             sql += "case when " + value + " >= 0 then 1 else 0 end + ";
         }
-        
+
         return TextUtils.removeLast( sql, "+" ).trim() + ") as double precision),0)";
+    }
+    
+    public String getSampleValue()
+    {
+        return "-1";
     }
 }

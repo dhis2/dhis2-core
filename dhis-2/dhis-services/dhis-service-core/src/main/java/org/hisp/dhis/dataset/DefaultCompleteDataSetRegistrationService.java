@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -212,5 +213,11 @@ public class DefaultCompleteDataSetRegistrationService
         }
 
         return missingDataElementOperands;
+    }
+
+    @Override
+    public int getCompleteDataSetCountLastUpdatedAfter( Date date )
+    {
+        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedBetween( date );
     }
 }

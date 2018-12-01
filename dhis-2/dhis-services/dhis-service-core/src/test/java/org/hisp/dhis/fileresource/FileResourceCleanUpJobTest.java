@@ -45,6 +45,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -149,6 +150,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
+    @Ignore
     public void testFalsePositive()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
@@ -168,6 +170,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
+    @Ignore
     public void testFailedUpload()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );

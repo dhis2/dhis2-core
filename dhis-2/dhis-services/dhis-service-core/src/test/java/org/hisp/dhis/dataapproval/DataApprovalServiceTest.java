@@ -28,8 +28,8 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -51,11 +51,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -67,7 +69,7 @@ import static org.junit.Assert.*;
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DataApprovalServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private static final String AUTH_APPR_LEVEL = "F_SYSTEM_SETTING";
 
@@ -615,7 +617,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testAddAllAndGetDataApprovalStatus()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -680,7 +681,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testDeleteDataApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -711,7 +711,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalState()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -864,7 +863,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateOrgUnitAssignments()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -911,7 +909,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateAbove()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -931,7 +928,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateWithMultipleChildren()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -982,7 +978,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -999,8 +994,8 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.UNAPPROVED_READY, dataApprovalService.getDataApprovalStatus( workflow1234, periodW, organisationUnitD, defaultOptionCombo ).getState() );
     }
 
+    @Ignore
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1156,7 +1151,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1224,7 +1218,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameAndLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1282,7 +1275,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1309,7 +1301,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1369,7 +1360,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1428,7 +1418,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveWithAcceptAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1487,7 +1476,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1545,12 +1533,47 @@ public class DataApprovalServiceTest
         assertFalse( dataApprovalService.getDataApprovalStatus( workflow1234, periodA, organisationUnitF, defaultOptionCombo ).getPermissions().isMayUnapprove());
     }
 
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testGetDataApprovalStatuses()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        Date date = new Date();
+
+        DataApproval dataApprovalA = new DataApproval( level1, workflow1234, periodA, organisationUnitA, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflow1234, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalC = new DataApproval( level3, workflow1234, periodA, organisationUnitC, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalD = new DataApproval( level4, workflow1234, periodA, organisationUnitD, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalE = new DataApproval( level3, workflow1234, periodA, organisationUnitE, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalF = new DataApproval( level4, workflow1234, periodA, organisationUnitF, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+
+        dataApprovalStore.addDataApproval( dataApprovalD );
+        dataApprovalStore.addDataApproval( dataApprovalF );
+        dataApprovalStore.addDataApproval( dataApprovalE );
+
+        List<DataApproval> approvals = newArrayList( dataApprovalA, dataApprovalB, dataApprovalC, dataApprovalD, dataApprovalE, dataApprovalF );
+
+        Map<DataApproval, DataApprovalStatus> map = dataApprovalService.getDataApprovalStatuses( approvals );
+
+        assertEquals( "null", statusString( map.get( dataApprovalA ) ) );
+        assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalB ) ) );
+        assertEquals( "UNAPPROVED_READY level=null approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalC ) ) );
+        assertEquals( "APPROVED_HERE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalD ) ) );
+        assertEquals( "APPROVED_HERE level=level3 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalE ) ) );
+        assertEquals( "APPROVED_ABOVE level=level4 approve=F unapprove=F accept=F unaccept=F read=T", statusString( map.get( dataApprovalF ) ) );
+    }
+
     // -------------------------------------------------------------------------
     // Test with Categories
     // -------------------------------------------------------------------------
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testApprovalsWithCategories()
     {
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
@@ -1715,7 +1738,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testWorkflows()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1742,7 +1764,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPeriodsEndingDuringWorkflowApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitC );
@@ -1801,6 +1822,22 @@ public class DataApprovalServiceTest
         CategoryOptionCombo attributeOptionCombo )
     {
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( workflow, period, organisationUnit, attributeOptionCombo );
+
+        return statusString( status );
+    }
+
+    /**
+     * Returns approval status as a string.
+     *
+     * @param status Approval status
+     * @return A string representing the state, level, and allowed user actions
+     */
+    private String statusString( DataApprovalStatus status )
+    {
+        if ( status == null )
+        {
+            return "null";
+        }
 
         DataApprovalPermissions permissions = status.getPermissions();
 

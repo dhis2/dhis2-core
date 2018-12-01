@@ -87,9 +87,19 @@ public enum ConfigurationKey
     REDIS_PASSWORD( "redis.password", "", true ),
     REDIS_ENABLED( "redis.enabled", "false", false ),
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
-    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
+    LOGGING_LEVEL( "logging.level", "INFO" ),
+    LOGGING_FORMAT( "logging.format", "TEXT" ),
+    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
+    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
+    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
+    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
+    LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
+    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" );
 
     private final String key;
 
@@ -101,6 +111,13 @@ public enum ConfigurationKey
     {
         this.key = key;
         this.defaultValue = null;
+        this.confidential = false;
+    }
+
+    ConfigurationKey( String key, String defaultValue )
+    {
+        this.key = key;
+        this.defaultValue = defaultValue;
         this.confidential = false;
     }
 

@@ -1005,7 +1005,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params )
     {
-        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.DATA_VALUE.getTableName(), Lists.newArrayList() ) );
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.DATA_VALUE, Lists.newArrayList() ) );
     }
 
     /**
@@ -1018,7 +1018,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Object> getAggregatedDataValueMapObjectTyped( DataQueryParams params )
     {
-        return getAggregatedValueMap( params, AnalyticsTableType.DATA_VALUE.getTableName(), Lists.newArrayList() );
+        return getAggregatedValueMap( params, AnalyticsTableType.DATA_VALUE, Lists.newArrayList() );
     }
 
     /**
@@ -1031,7 +1031,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedCompletenessValueMap( DataQueryParams params )
     {
-        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.COMPLETENESS.getTableName(), Lists.newArrayList() ) );
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.COMPLETENESS, Lists.newArrayList() ) );
     }
 
     /**
@@ -1045,9 +1045,9 @@ public class DefaultAnalyticsService
     private Map<String, Double> getAggregatedCompletenessTargetMap( DataQueryParams params )
     {
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
-        queryGroupers.add( q -> queryPlanner.groupByStartEndDate( q ) );
+        queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
 
-        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.COMPLETENESS_TARGET.getTableName(), queryGroupers ) );
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.COMPLETENESS_TARGET, queryGroupers ) );
     }
 
     /**
@@ -1061,7 +1061,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedOrganisationUnitTargetMap( DataQueryParams params )
     {
-        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.ORG_UNIT_TARGET.getTableName(), Lists.newArrayList() ) );
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.ORG_UNIT_TARGET, Lists.newArrayList() ) );
     }
 
     /**
@@ -1072,7 +1072,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedValidationResultMapObjectTyped( DataQueryParams params )
     {
-        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.VALIDATION_RESULT.getTableName(), Lists.newArrayList() ) );
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.VALIDATION_RESULT, Lists.newArrayList() ) );
     }
 
     /**
@@ -1081,12 +1081,12 @@ public class DefaultAnalyticsService
      * separated by "-".
      *
      * @param params the {@link DataQueryParams}.
-     * @param tableName the table name to use for the query.
+     * @param tableType the {@link AnalyticsTableType}.
      * @param queryGroupers the list of additional query groupers to use for
      *        query planning, use empty list for none.
      * @return a mapping between a dimension key and aggregated values.
      */
-    private Map<String, Object> getAggregatedValueMap( DataQueryParams params, String tableName, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
+    private Map<String, Object> getAggregatedValueMap( DataQueryParams params, AnalyticsTableType tableType, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
         queryValidator.validateMaintenanceMode();
 
@@ -1098,7 +1098,7 @@ public class DefaultAnalyticsService
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( optimalQueries )
-            .withTableName( tableName )
+            .withTableName( tableType.getTableName() )
             .withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
@@ -1113,7 +1113,7 @@ public class DefaultAnalyticsService
 
             for ( DataQueryParams query : queries )
             {
-                futures.add( analyticsManager.getAggregatedDataValues( query, maxLimit ) );
+                futures.add( analyticsManager.getAggregatedDataValues( query, tableType, maxLimit ) );
             }
 
             for ( Future<Map<String, Object>> future : futures )

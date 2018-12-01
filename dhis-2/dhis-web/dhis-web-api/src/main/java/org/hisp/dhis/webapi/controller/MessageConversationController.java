@@ -69,7 +69,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -350,6 +349,11 @@ public class MessageConversationController
         }
 
         Set<FileResource> fileResources = new HashSet<>(  );
+
+        if ( attachments == null )
+        {
+            attachments = new HashSet<>();
+        }
 
         for( String fileResourceUid : attachments )
         {

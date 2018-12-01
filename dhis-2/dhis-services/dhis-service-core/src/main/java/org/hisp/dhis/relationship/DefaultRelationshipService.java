@@ -88,6 +88,7 @@ public class DefaultRelationshipService
     @Override
     public void updateRelationship( Relationship relationship )
     {
+        //TODO: Do we need next 2 lines? relationship never changes during update
         relationship.getFrom().setRelationship( relationship );
         relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );

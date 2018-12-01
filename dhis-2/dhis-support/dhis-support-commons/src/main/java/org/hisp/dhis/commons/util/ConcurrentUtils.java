@@ -38,16 +38,16 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Utility class for concurrency operations.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ConcurrentUtils
 {
     private static final Log log = LogFactory.getLog( ConcurrentUtils.class );
-    
+
     /**
      * Blocks and waits for all Futures in the given collection to complete.
-     * 
+     *
      * @param futures the collection of Futures.
      */
     public static void waitForCompletion( Collection<Future<?>> futures )
@@ -65,16 +65,16 @@ public class ConcurrentUtils
             catch ( InterruptedException ex )
             {
                 log.warn( "Thread interrupted", ex );
-                
+
                 Thread.currentThread().interrupt();
             }
         }
     }
-    
+
     /**
      * Returns a {@link Future} which is immediately completed and has its
      * value set to an empty string.
-     * 
+     *
      * @return a future which is immediately completed.
      */
     public static Future<?> getImmediateFuture()
