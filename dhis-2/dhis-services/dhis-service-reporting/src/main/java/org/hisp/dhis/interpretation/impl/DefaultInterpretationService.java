@@ -32,6 +32,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -281,7 +282,7 @@ public class DefaultInterpretationService
             String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
         ) );
         
-        return messageService.sendSystemMessage( users, subject, fullBody );
+        return messageService.sendSystemMessage( users, subject, TextUtils.htmlLinks( fullBody ) );
     }
 
     private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
@@ -329,7 +330,7 @@ public class DefaultInterpretationService
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
         
-        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta", null );
+        messageService.sendPrivateMessage( users, subjectContent.toString(), TextUtils.htmlLinks( messageContent.toString() ), "Meta", null );
     }
 
     private String getInterpretationLink( Interpretation interpretation ) {
