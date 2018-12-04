@@ -143,7 +143,7 @@ public class EventSecurityTests
         createAndInjectAdminUser();
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertTrue( importSummary.getConflicts().isEmpty() );
@@ -162,7 +162,7 @@ public class EventSecurityTests
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -188,7 +188,7 @@ public class EventSecurityTests
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -214,7 +214,7 @@ public class EventSecurityTests
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -240,7 +240,7 @@ public class EventSecurityTests
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -265,7 +265,7 @@ public class EventSecurityTests
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -286,7 +286,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -329,7 +329,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -372,7 +372,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -414,7 +414,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -456,7 +456,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -499,7 +499,7 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );

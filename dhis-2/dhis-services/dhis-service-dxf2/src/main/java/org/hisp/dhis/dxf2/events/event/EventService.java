@@ -83,7 +83,7 @@ public interface EventService
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummary addEvent( Event event, ImportOptions importOptions );
+    ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport );
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
@@ -101,9 +101,9 @@ public interface EventService
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateEvent( Event event, boolean singleValue );
+    ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate );
 
-    ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
+    ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 
     ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
 

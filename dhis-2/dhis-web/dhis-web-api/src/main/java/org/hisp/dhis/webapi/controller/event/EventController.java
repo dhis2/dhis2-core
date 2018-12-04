@@ -580,7 +580,7 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
-    public void postXmlEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         importOptions.setImportStrategy( strategy );
@@ -623,7 +623,7 @@ public class EventController
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         importOptions.setImportStrategy( strategy );
@@ -719,7 +719,7 @@ public class EventController
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions, false );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
@@ -737,7 +737,7 @@ public class EventController
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions, false );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
@@ -762,7 +762,7 @@ public class EventController
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, false );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
