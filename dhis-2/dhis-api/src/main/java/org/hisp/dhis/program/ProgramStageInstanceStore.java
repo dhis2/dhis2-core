@@ -98,4 +98,6 @@ public interface ProgramStageInstanceStore
      * @return a list of ProgramStageInstance.
      */
     List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
+
+    boolean existsIncludingDeleted( String uid );
 }

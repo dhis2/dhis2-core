@@ -317,6 +317,12 @@ public abstract class AbstractEventService
             importOptions = new ImportOptions();
         }
 
+        if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used. The ID is unique and cannot be used more than once" )
+                .setReference( event.getEvent() ).incrementIgnored();
+        }
+
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
         ProgramStage programStage = getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
             event.getProgramStage() );

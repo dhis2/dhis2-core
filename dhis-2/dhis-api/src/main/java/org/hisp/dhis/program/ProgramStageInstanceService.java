@@ -1,5 +1,8 @@
 package org.hisp.dhis.program;
 
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import java.util.Date;
 
 /*
@@ -29,9 +32,6 @@ import java.util.Date;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Abyot Asalefew
@@ -137,4 +137,6 @@ public interface ProgramStageInstanceService
      */
     ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
+
+    boolean programStageInstanceExistsIncludingDeleted( String uid );
 }
