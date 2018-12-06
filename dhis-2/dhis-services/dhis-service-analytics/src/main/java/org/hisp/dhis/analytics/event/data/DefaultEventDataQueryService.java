@@ -58,6 +58,7 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
 
 /**
  * @author Lars Helge Overland
@@ -342,14 +343,22 @@ public class DefaultEventDataQueryService
 
     private DimensionalItemObject getSortItem( String item, Program program )
     {
-        QueryItem queryItem = getQueryItem( item, program );
+        QueryItem queryItem = null;
 
-        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && queryItem == null )
+        if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
+        {
+            item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+            queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
+        }
+        else
+        {
+            queryItem = getQueryItem( item, program );
+        }
+
+        if ( queryItem == null )
         {
             throw new IllegalQueryException( "Sort item is invalid: " + item );
         }
-
-        item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
 
         return queryItem.getItem();
     }
