@@ -58,7 +58,6 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
 
 /**
  * @author Lars Helge Overland
