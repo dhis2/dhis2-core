@@ -70,6 +70,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -207,6 +208,98 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( AggregationType.AVERAGE, params.getAggregationType() );
+    }
+    
+    @Test
+    public void testGetFromUrlWithEventdateSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( "eventdate" );
+
+        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null, null, null, dimensionParams, filterParams, null, null, desc, false, false,
+            false, false, false, null, null, null, null, null, null, null, null, null );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( "executiondate".equals( params.getDesc().get( 0 ).getName() ) );
+    }
+
+    @Test
+    public void testGetFromUrlWithOrgUnitNameSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( "ouname" );
+
+        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null, null, null, dimensionParams, filterParams, null, null, desc, false, false,
+            false, false, false, null, null, null, null, null, null, null, null, null );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( "ouname".equals( params.getDesc().get( 0 ).getName() ) );
+    }
+
+    @Test
+    public void testGetFromUrlWithDataElementSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( deA.getUid() );
+
+        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null, null, null, dimensionParams, filterParams, null, null, desc, false, false,
+            false, false, false, null, null, null, null, null, null, null, null, null );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( deA.getUid().equals( params.getDesc().get( 0 ).getUid() ) );
+    }
+
+    @Test
+    public void testGetFromUrlWithProgramAttributeSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( atA.getUid() );
+
+        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null, null, null, dimensionParams, filterParams, null, null, desc, false, false,
+            false, false, false, null, null, null, null, null, null, null, null, null );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( atA.getUid().equals( params.getDesc().get( 0 ).getUid() ) );
     }
 
     @Test
