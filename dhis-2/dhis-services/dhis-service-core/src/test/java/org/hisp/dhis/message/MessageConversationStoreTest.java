@@ -29,6 +29,8 @@ package org.hisp.dhis.message;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -75,7 +77,10 @@ public class MessageConversationStoreTest
         userService = _userService;
 
         // 'A' used as currentUser
-        setupUser( 'A' );
+        
+        CurrentUserService currentUserService = new MockCurrentUserService( setupUser( 'A' ) );
+        setDependency( messageService, "currentUserService", currentUserService );
+        
         userB = setupUser( 'B' );
         userC = setupUser( 'C' );
 
