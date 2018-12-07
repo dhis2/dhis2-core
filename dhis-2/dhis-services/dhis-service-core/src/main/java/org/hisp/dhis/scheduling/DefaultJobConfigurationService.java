@@ -70,6 +70,7 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
+            jobConfiguration.setDefaultJobParameters();
             jobConfigurationStore.save( jobConfiguration );
         }
         return jobConfiguration.getId();
@@ -78,7 +79,10 @@ public class DefaultJobConfigurationService
     @Override
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ) );
+        jobConfigurations.forEach( jobConfiguration -> {
+            jobConfiguration.setDefaultJobParameters();
+            jobConfigurationStore.save( jobConfiguration );
+        } );
     }
 
     @Override
@@ -86,6 +90,7 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
+            jobConfiguration.setDefaultJobParameters();
             sessionFactory.getCurrentSession().update( jobConfiguration );
         }
 
