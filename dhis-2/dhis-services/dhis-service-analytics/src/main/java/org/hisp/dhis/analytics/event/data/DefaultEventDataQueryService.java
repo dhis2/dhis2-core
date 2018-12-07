@@ -360,6 +360,7 @@ public class DefaultEventDataQueryService
     private DimensionalItemObject getSortItem( String item, Program program )
     {
         QueryItem queryItem = null;
+        
         if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
         {
             item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
