@@ -30,6 +30,8 @@ package org.hisp.dhis.message;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -82,6 +84,9 @@ public class MessageServiceTest
 
         userService.addUser( userB );
         userService.addUserCredentials( userB.getUserCredentials() );
+        
+        CurrentUserService currentUserService = new MockCurrentUserService( sender );
+        setDependency( messageService, "currentUserService", currentUserService );
 
         users = new HashSet<>();
         users.add( userA );
@@ -175,7 +180,7 @@ public class MessageServiceTest
         
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
-        assertEquals( 2, conversation.getUserMessages().size() );
+        assertEquals( 3, conversation.getUserMessages().size() );
         assertEquals( 1, conversation.getMessages().size() );
         assertTrue( conversation.getMessages().iterator().next().getText().equals( "Text" ) );
     }
