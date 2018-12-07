@@ -1123,6 +1123,9 @@ public class TableAlteror
         
         //Remove unique code,klass from deletedobject table
         executeSql("alter table deletedobject drop constraint key_deleted_object_klass_code;");
+        
+        //Remove unused storagestatus column from fileresource table
+        executeSql("alter table fileresource drop column storagestatus;");
 
         log.info( "Tables updated" );
 
