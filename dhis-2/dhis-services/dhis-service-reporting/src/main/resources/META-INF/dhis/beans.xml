@@ -220,6 +220,10 @@
 
   <bean id="org.hisp.dhis.document.DocumentDeletionHandler" class="org.hisp.dhis.document.DocumentDeletionHandler"/>
 
+  <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler"
+        class="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler">
+  </bean>
+
   <!-- AOP definitions -->
 
   <aop:config>
