@@ -363,9 +363,4 @@ public class JobConfiguration
     {
         return uid + ", " + name + ", " + jobType + ", " + cronExpression;
     }
-
-    public void setDefaultJobParameters()
-    {
-        jobParameters =  jobParameters != null ? jobParameters : (JobParameters) () -> null;
-    }
 }
