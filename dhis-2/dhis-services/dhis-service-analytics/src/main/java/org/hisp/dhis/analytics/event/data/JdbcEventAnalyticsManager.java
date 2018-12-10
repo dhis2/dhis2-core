@@ -88,7 +88,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
+        List<String> fixedCols = Lists.newArrayList( "psi", "tei", "pi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
 
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
 
