@@ -44,6 +44,8 @@ import java.util.List;
 public interface EventAnalyticsService
 {    
     String ITEM_EVENT = "psi";
+    String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
+    String ITEM_PROGRAM_INSTANCE = "pi";
     String ITEM_PROGRAM_STAGE = "ps";
     String ITEM_EVENT_DATE = "eventdate";
     String ITEM_LONGITUDE = "longitude";

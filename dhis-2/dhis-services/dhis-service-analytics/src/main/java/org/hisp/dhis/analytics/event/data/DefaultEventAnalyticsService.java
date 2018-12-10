@@ -111,6 +111,8 @@ public class DefaultEventAnalyticsService
     implements EventAnalyticsService
 {
     private static final String NAME_EVENT = "Event";
+    private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
+    private static final String NAME_PROGRAM_INSTANCE = "Program instance";
     private static final String NAME_PROGRAM_STAGE = "Program stage";
     private static final String NAME_EVENT_DATE = "Event date";
     private static final String NAME_LONGITUDE = "Longitude";
@@ -534,6 +536,8 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
