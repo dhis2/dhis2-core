@@ -167,7 +167,7 @@ public class FileResourceCleanUpJob
     {
         try
         {
-            fileResourceService.deleteFileResource( fileResource.getUid() );
+            fileResourceService.deleteFileResource( fileResource );
             return true;
         }
         catch ( DeleteNotAllowedException e )
