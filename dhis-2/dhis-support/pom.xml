@@ -22,6 +22,7 @@
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
     <module>dhis-support-kafka</module>
+    <module>dhis-support-queue</module>
   </modules>
   <properties>
     <rootDir>../</rootDir>
