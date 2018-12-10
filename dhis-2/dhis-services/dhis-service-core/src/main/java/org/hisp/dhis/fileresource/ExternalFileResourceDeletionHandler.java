@@ -57,14 +57,6 @@ public class ExternalFileResourceDeletionHandler
 
         int result = jdbcTemplate.queryForObject( sql, Integer.class );
 
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
-    }
-
-    @Override
-    public void deleteFileResource( FileResource fileResource )
-    {
-        String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
-
-        jdbcTemplate.execute( sql );
+        return result > 0 ? ERROR : null;
     }
 }
