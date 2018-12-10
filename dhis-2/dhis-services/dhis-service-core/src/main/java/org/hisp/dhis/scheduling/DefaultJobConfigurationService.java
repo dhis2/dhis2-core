@@ -71,7 +71,11 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            jobConfiguration.setDefaultJobParameters();
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
             jobConfigurationStore.save( jobConfiguration );
         }
         return jobConfiguration.getId();
@@ -81,7 +85,12 @@ public class DefaultJobConfigurationService
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
         jobConfigurations.forEach( jobConfiguration -> {
-            jobConfiguration.setDefaultJobParameters();
+
+            if ( jobConfiguration.getJobParameters() == null  )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
             jobConfigurationStore.save( jobConfiguration );
         } );
     }
@@ -91,7 +100,11 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            jobConfiguration.setDefaultJobParameters();
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
             sessionFactory.getCurrentSession().update( jobConfiguration );
         }
 
@@ -196,5 +209,23 @@ public class DefaultJobConfigurationService
             .set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
         return String.join( " ", fieldStrings );
+    }
+
+    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.getJobType().getJobParameters() == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return jobConfiguration.getJobType().getJobParameters().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException ignored )
+        {
+        }
+
+        return null;
     }
 }
