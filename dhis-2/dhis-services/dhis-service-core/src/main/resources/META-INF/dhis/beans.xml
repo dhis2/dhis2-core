@@ -2120,6 +2120,9 @@
       <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationCriteriaService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
+      <aop:before
+              pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )"
+              method="intercept" />
     </aop:aspect>
 
   </aop:config>

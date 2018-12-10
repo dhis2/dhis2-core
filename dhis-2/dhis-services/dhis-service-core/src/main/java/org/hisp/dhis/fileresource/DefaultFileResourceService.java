@@ -146,6 +146,26 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional
+    public void deleteFileResource( FileResource fileResource )
+    {
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        FileResource fileResourcePersisted = fileResourceStore.getByUid( fileResource.getUid() );
+
+        if ( fileResourcePersisted == null )
+        {
+            return;
+        }
+
+        fileResourceContentStore.deleteFileResourceContent( fileResourcePersisted.getStorageKey() );
+        fileResourceStore.delete( fileResourcePersisted );
+    }
+
+    @Override
     public ByteSource getFileResourceContent( FileResource fileResource )
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
