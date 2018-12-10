@@ -175,7 +175,11 @@ public enum SettingKey
     LOGGING_ADAPTER_KAFKA( "keyLoggingKafka", Boolean.FALSE, Boolean.class ),
     LOGGING_ADAPTER_KAFKA_LEVEL( "keyLoggingKafkaLevel", "INFO", String.class ),
     LOGGING_ADAPTER_KAFKA_FORMAT( "keyLoggingKafkaFormat", "JSON", String.class ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "keyLoggingKafkaTopic", "dhis2-log", String.class );
+    LOGGING_ADAPTER_KAFKA_TOPIC( "keyLoggingKafkaTopic", "dhis2-log", String.class ),
+    ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class );
 
     private final String name;
 
