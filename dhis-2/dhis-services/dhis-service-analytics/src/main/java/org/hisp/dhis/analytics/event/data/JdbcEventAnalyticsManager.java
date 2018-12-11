@@ -445,14 +445,9 @@ public class JdbcEventAnalyticsManager
             sql += sqlHelper.whereAnd() + " psistatus = '" + params.getEventStatus().name() + "' ";
         }
 
-        if ( params.isCoordinatesOnly() )
+        if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
             sql += sqlHelper.whereAnd() + " (longitude is not null and latitude is not null) ";
-        }
-
-        if ( params.isGeometryOnly() )
-        {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) + " is not null ";
         }
 
         if ( params.isCompletedOnly() )
