@@ -69,12 +69,4 @@ public class DocumentDeletionHandler extends DeletionHandler
 
         return result > 0 ? ERROR : null;
     }
-
-    @Override
-    public void deleteFileResource( FileResource fileResource )
-    {
-        String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
-
-        jdbcTemplate.execute( sql );
-    }
 }
