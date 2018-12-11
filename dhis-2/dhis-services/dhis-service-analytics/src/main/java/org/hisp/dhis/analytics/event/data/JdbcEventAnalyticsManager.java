@@ -447,7 +447,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
-            sql += sqlHelper.whereAnd() + " (longitude is not null and latitude is not null) ";
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) + " is not null ";
         }
 
         if ( params.isCompletedOnly() )
