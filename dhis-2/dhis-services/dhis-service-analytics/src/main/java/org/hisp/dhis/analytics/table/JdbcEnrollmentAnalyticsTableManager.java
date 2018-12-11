@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -46,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
@@ -95,7 +97,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
         final String tableName = partition.getTempTableName();
@@ -130,6 +132,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
             "where pr.programid=" + program.getId() + " " +
             "and pi.organisationunitid is not null " +
+            "and pi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
 
@@ -209,10 +212,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-        if ( databaseInfo.isSpatialSupport() )
-        {
-            columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", "pi.geometry", false, "gist" ) );
-        }
+        columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "pi.geometry", false, "gist" ) );
 
         if ( program.isRegistration() )
         {

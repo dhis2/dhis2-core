@@ -30,12 +30,14 @@ package org.hisp.dhis.category;
  *
  */
 
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -338,6 +340,8 @@ public interface CategoryService
      */
     void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
+    void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo );
+
     /**
      * Retrieves the CategoryOptionCombo with the given identifier.
      *
@@ -419,7 +423,8 @@ public interface CategoryService
 
     /**
      * Returns the category option combo with the given uid. Respects access control
-     * by only returning objects which all category options are accessible.
+     * by only returning objects which the current user has {@code data write} access
+     * to.
      *
      * @param property the property.
      * @param id       the id.

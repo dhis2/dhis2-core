@@ -97,6 +97,10 @@ public abstract class BaseAnalyticalObject
 
     protected List<Period> periods = new ArrayList<>();
 
+    private Date startDate;
+
+    private Date endDate;
+
     protected RelativePeriods relatives;
 
     protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
@@ -132,8 +136,10 @@ public abstract class BaseAnalyticalObject
     protected AggregationType aggregationType;
 
     protected boolean completedOnly;
-    
+
     protected String timeField;
+
+    protected String orgUnitField;
 
     protected String title;
 
@@ -146,7 +152,6 @@ public abstract class BaseAnalyticalObject
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     protected Set<String> subscribers = new HashSet<>();
-
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -182,6 +187,7 @@ public abstract class BaseAnalyticalObject
     @Override
     public abstract void populateAnalyticalProperties();
 
+    @Override
     public boolean hasUserOrgUnit()
     {
         return userOrganisationUnit || userOrganisationUnitChildren || userOrganisationUnitGrandChildren;
@@ -241,6 +247,7 @@ public abstract class BaseAnalyticalObject
      *
      * @return true if a data dimension was added, false if not.
      */
+    @Override
     public boolean addDataDimensionItem( DimensionalItemObject object )
     {
         if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
@@ -256,6 +263,7 @@ public abstract class BaseAnalyticalObject
      *
      * @return true if a data dimension was removed, false if not.
      */
+    @Override
     public boolean removeDataDimensionItem( DimensionalItemObject object )
     {
         if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
@@ -271,6 +279,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension )
     {
         dataElementGroupSetDimensions.add( dimension );
@@ -281,6 +290,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension )
     {
         organisationUnitGroupSetDimensions.add( dimension );
@@ -291,6 +301,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension )
     {
         categoryOptionGroupSetDimensions.add( dimension );
@@ -815,6 +826,7 @@ public abstract class BaseAnalyticalObject
         this.dataDimensionItems = dataDimensionItems;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseNameableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -829,6 +841,7 @@ public abstract class BaseAnalyticalObject
         this.organisationUnits = organisationUnits;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentUsing = JacksonPeriodSerializer.class )
     @JsonDeserialize( contentUsing = JacksonPeriodDeserializer.class )
@@ -842,6 +855,30 @@ public abstract class BaseAnalyticalObject
     public void setPeriods( List<Period> periods )
     {
         this.periods = periods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
     }
 
     @JsonProperty( value = "relativePeriods" )
@@ -1058,6 +1095,7 @@ public abstract class BaseAnalyticalObject
         this.aggregationType = aggregationType;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompletedOnly()
@@ -1070,6 +1108,7 @@ public abstract class BaseAnalyticalObject
         this.completedOnly = completedOnly;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTimeField()
@@ -1082,6 +1121,20 @@ public abstract class BaseAnalyticalObject
         this.timeField = timeField;
     }
 
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
+    public void setOrgUnitField( String orgUnitField )
+    {
+        this.orgUnitField = orgUnitField;
+    }
+
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTitle()
@@ -1130,6 +1183,7 @@ public abstract class BaseAnalyticalObject
         this.hideSubtitle = hideSubtitle;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )

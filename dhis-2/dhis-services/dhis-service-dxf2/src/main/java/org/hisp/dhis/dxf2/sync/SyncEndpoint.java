@@ -36,6 +36,7 @@ public enum SyncEndpoint
     TRACKED_ENTITY_INSTANCES( "/api/trackedEntityInstances" ),
     ENROLLMENTS( "/api/enrollments" ),
     EVENTS( "/api/events" ),
+    COMPLETE_DATA_SET_REGISTRATIONS( "/api/completeDataSetRegistrations" ),
     DATA_VALUE_SETS( "/api/dataValueSets" );
 
     private String path;

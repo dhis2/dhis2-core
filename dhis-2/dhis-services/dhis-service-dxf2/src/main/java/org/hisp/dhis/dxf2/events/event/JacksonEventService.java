@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event;
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -98,10 +99,10 @@ public class JacksonEventService extends AbstractEventService
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
 
@@ -175,13 +176,11 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try
-        {
+        try {
             Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex )
-        {
+        catch ( JsonMappingException ex ) {
             Event single = fromXml( input, Event.class );
             events.add( single );
         }
@@ -193,13 +192,13 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try
-        {
-            Events multiple = fromJson( input, Events.class );
-            events.addAll( multiple.getEvents() );
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "events" ) != null ) {
+                Events multiple = fromJson( input, Events.class );
+                events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             Event single = fromJson( input, Event.class );
             events.add( single );
         }

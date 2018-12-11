@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -86,13 +87,27 @@ public class UserSettingController
     public Map<String, Serializable> getAllUserSettings(
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
+        @RequestParam( value = "userId", required = false ) String userId,
+        @RequestParam( value = "key", required = false ) Set<String> keys
     )
         throws WebMessageException
     {
         User user = getUser( userId, username );
 
-        return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
+        if ( keys == null )
+        {
+            return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
+        }
+
+        Map<String, Serializable> result = new HashMap<>();
+
+        for ( String key : keys )
+        {
+            UserSettingKey userSettingKey = getUserSettingKey( key );
+            result.put( userSettingKey.getName(), userSettingService.getUserSetting( userSettingKey ) );
+        }
+
+        return result;
     }
 
     @GetMapping( value = "/{key}" )

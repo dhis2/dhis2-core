@@ -110,6 +110,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
+    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
 
     public static final int DX_INDEX = 0;
 
@@ -271,6 +272,11 @@ public class DataQueryParams
     protected String timeField;
 
     /**
+     * The organisation unit field used as basis for aggregation in the hierarchy.
+     */
+    protected String orgUnitField;
+
+    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -354,6 +360,18 @@ public class DataQueryParams
     protected boolean restrictByCategoryOptionStartEndDate;
 
     /**
+     * Used to set restrictions on start date, e.g. by organisation unit opening date,
+     * or category option start date.
+     */
+    protected Date startDateRestriction;
+
+    /**
+     * Used to set restrictions on end date, e.g. by organisation unit closed date,
+     * or category option end date.
+     */
+    protected Date endDateRestriction;
+
+    /**
      * Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels.
      */
     protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
@@ -413,8 +431,6 @@ public class DataQueryParams
         params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
         params.measureCriteria = new HashMap<>( this.measureCriteria );
         params.preAggregateMeasureCriteria = new HashMap<>( this.preAggregateMeasureCriteria );
-        params.startDate = this.startDate;
-        params.endDate = this.endDate;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -436,6 +452,7 @@ public class DataQueryParams
         params.endDate = this.endDate;
         params.order = this.order;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.currentUser = this.currentUser;
@@ -449,6 +466,8 @@ public class DataQueryParams
         params.orgUnitLevels = this.orgUnitLevels;
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
+        params.startDateRestriction = this.startDateRestriction;
+        params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
 
         return params;
@@ -1135,6 +1154,14 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query has a start and end date restriction.
+     */
+    public boolean hasStartEndDateRestriction()
+    {
+        return startDateRestriction != null && endDateRestriction != null;
+    }
+
+    /**
      * Indicates whether this query requires ordering of data values.
      *
      * @return true if ordering is required , false otherwise.
@@ -1170,6 +1197,23 @@ public class DataQueryParams
     public String getTimeFieldAsFieldFallback()
     {
         return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
+    }
+
+    /**
+     * Indicates whether a (non-default) organisation unit field is specified.
+     */
+    public boolean hasOrgUnitField()
+    {
+        return orgUnitField != null;
+    }
+
+    /**
+     * Returns the organisation unit field if specified; if not
+     * returns the default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
+     */
+    public String getOrgUnitFieldFallback()
+    {
+        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
     }
 
     /**
@@ -1891,6 +1935,11 @@ public class DataQueryParams
         return timeField;
     }
 
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
     public DhisApiVersion getApiVersion()
     {
         return apiVersion;
@@ -1973,6 +2022,16 @@ public class DataQueryParams
     public boolean isRestrictByCategoryOptionStartEndDate()
     {
         return restrictByCategoryOptionStartEndDate;
+    }
+
+    public Date getStartDateRestriction()
+    {
+        return startDateRestriction;
+    }
+
+    public Date getEndDateRestriction()
+    {
+        return endDateRestriction;
     }
 
     public Map<OrganisationUnit, Integer> getDataApprovalLevels()
@@ -2671,6 +2730,18 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withStartDateRestriction( Date startDateRestriction )
+        {
+            this.params.startDateRestriction = startDateRestriction;
+            return this;
+        }
+
+        public Builder withEndDateRestriction( Date endDateRestriction )
+        {
+            this.params.endDateRestriction = endDateRestriction;
+            return this;
+        }
+
         public Builder ignoreDataApproval()
         {
             this.params.dataApprovalLevels = new HashMap<>();
@@ -2728,6 +2799,12 @@ public class DataQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 

@@ -44,6 +44,7 @@ public class AnalyticsSqlUtils
     public static final String SINGLE_QUOTE = "'";
     public static final String ANALYTICS_TBL_ALIAS = "ax";
     public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
+    public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
     private static final String SEPARATOR = ".";
 
     /**

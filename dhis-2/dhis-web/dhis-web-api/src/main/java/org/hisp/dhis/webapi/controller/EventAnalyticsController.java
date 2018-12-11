@@ -72,7 +72,7 @@ public class EventAnalyticsController
 
     @Autowired
     private ContextUtils contextUtils;
-    
+
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
@@ -104,6 +104,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -120,7 +121,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).includeMetadataDetails( includeMetadataDetails )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -154,6 +155,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -168,7 +170,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -203,6 +205,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -217,8 +220,8 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-   
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
@@ -252,6 +255,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -266,7 +270,7 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -301,6 +305,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -315,8 +320,8 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-   
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
@@ -350,6 +355,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String timeField,
+        @RequestParam( required = false ) String orgUnitField,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String columns,
         @RequestParam( required = false ) String rows,
@@ -364,8 +370,8 @@ public class EventAnalyticsController
             .sortOrder( sortOrder ).limit( limit ).outputType( outputType ).eventStatus( eventStatus )
             .programStatus( programStatus ).collapseDataDimensions( collapseDataDimensions )
             .aggregateData( aggregateData ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
-            .timeField( timeField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
-  
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
@@ -516,7 +522,7 @@ public class EventAnalyticsController
             .dataIdScheme( dataIdScheme ).eventStatus( eventStatus ).programStatus( programStatus )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
-   
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -561,7 +567,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
-     
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
@@ -605,7 +611,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
-   
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
@@ -649,7 +655,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
-     
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
@@ -693,7 +699,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
-      
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
@@ -737,7 +743,7 @@ public class EventAnalyticsController
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
             .apiVersion( apiVersion ).build();
-     
+
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );

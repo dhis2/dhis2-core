@@ -17,6 +17,8 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <property name="description" type="text" />
 
     <set name="members" table="validationrulegroupmembers">
@@ -41,13 +43,6 @@
       <cache usage="read-write" />
       <key column="validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="validationrulegrouptranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="validationrulegroupid" foreign-key="fk_objecttranslation_validationrulegroupid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Dynamic attribute values -->

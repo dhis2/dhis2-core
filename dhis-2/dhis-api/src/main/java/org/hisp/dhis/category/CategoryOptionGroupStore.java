@@ -30,7 +30,6 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;

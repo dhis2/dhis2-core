@@ -40,6 +40,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -653,6 +654,25 @@ public class DefaultOrganisationUnitService
     public void forceUpdatePaths()
     {
         organisationUnitStore.forceUpdatePaths();
+    }
+
+    @Override
+    public Integer getOrganisationUnitLevelByLevelOrUid( String level )
+    {
+        if ( level.matches( ExpressionService.INT_EXPRESSION ) )
+        {
+            Integer orgUnitLevel = Integer.parseInt( level );
+
+            return orgUnitLevel > 0 ? orgUnitLevel : null;
+        }
+        else if ( level.matches( ExpressionService.UID_EXPRESSION ) )
+        {
+            OrganisationUnitLevel orgUnitLevel = getOrganisationUnitLevel( level );
+
+            return orgUnitLevel != null ? orgUnitLevel.getLevel() : null;
+        }
+
+        return null;
     }
 
     /**

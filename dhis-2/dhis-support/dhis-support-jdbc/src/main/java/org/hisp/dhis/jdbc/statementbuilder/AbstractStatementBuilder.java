@@ -303,10 +303,16 @@ public abstract class AbstractStatementBuilder
     public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
+        String columnName = this.columnQuote( dataElementUid );
+        return getProgramIndicatorColumnSelectSql( programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator );
+    }
+    
+    public String getProgramIndicatorColumnSelectSql( String programStageUid, String columnName, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            String columnName = "\"" + dataElementUid + "\"";
             return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                 ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
                 ( programIndicator.getEndEventBoundary() != null ? ("and " + 
@@ -317,7 +323,7 @@ public abstract class AbstractStatementBuilder
         }
         else
         {
-            return this.columnQuote( dataElementUid );
+            return columnName;
         }
     }
     

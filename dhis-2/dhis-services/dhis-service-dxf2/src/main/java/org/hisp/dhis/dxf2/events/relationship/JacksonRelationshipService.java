@@ -30,17 +30,16 @@ package org.hisp.dhis.dxf2.events.relationship;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationships;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
@@ -79,10 +78,10 @@ public class JacksonRelationshipService
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
 
@@ -109,18 +108,18 @@ public class JacksonRelationshipService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Relationship> relationships = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "relationships" ) != null ) {
             Relationships fromJson = fromJson( input, Relationships.class );
             relationships.addAll( fromJson.getRelationships() );
         }
-        catch ( JsonMappingException ex )
-        {
+        else {
             Relationship fromJson = fromJson( input, Relationship.class );
             relationships.add( fromJson );
         }
 
-        return addRelationshipList( relationships, updateImportOptions( importOptions ) );
+        return processRelationshipList( relationships, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -130,18 +129,16 @@ public class JacksonRelationshipService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Relationship> relationships = new ArrayList<>();
 
-        try
-        {
+        try {
             Relationships fromXml = fromXml( input, Relationships.class );
             relationships.addAll( fromXml.getRelationships() );
         }
-        catch ( JsonMappingException ex )
-        {
+        catch ( JsonMappingException ex ) {
             Relationship fromXml = fromXml( input, Relationship.class );
             relationships.add( fromXml );
         }
 
-        return addRelationshipList( relationships, updateImportOptions( importOptions ) );
+        return processRelationshipList( relationships, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -177,74 +174,6 @@ public class JacksonRelationshipService
         }
 
         return importOptions;
-    }
-
-    private ImportSummaries addRelationshipList( List<Relationship> relationships, ImportOptions importOptions )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-
-        List<Relationship> create = new ArrayList<>();
-        List<Relationship> update = new ArrayList<>();
-        List<Relationship> delete = new ArrayList<>();
-
-        if ( importOptions.getImportStrategy().isCreate() )
-        {
-            create.addAll( relationships );
-        }
-        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
-        {
-            for ( Relationship relationship : relationships )
-            {
-                sortCreatesAndUpdates( relationship, create, update );
-            }
-        }
-        else if ( importOptions.getImportStrategy().isUpdate() )
-        {
-            update.addAll( relationships );
-        }
-        else if ( importOptions.getImportStrategy().isDelete() )
-        {
-            delete.addAll( relationships );
-        }
-        else if ( importOptions.getImportStrategy().isSync() )
-        {
-            for ( Relationship relationship : relationships )
-            {
-                sortCreatesAndUpdates( relationship, create, update );
-            }
-        }
-
-        importSummaries.addImportSummaries( addRelationships( create, importOptions ) );
-        importSummaries.addImportSummaries( updateRelationships( update, importOptions ) );
-        importSummaries.addImportSummaries( deleteRelationships( delete, importOptions ) );
-
-        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
-        {
-            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
-        }
-
-        return importSummaries;
-    }
-
-    private void sortCreatesAndUpdates( Relationship relationship, List<Relationship> create,
-        List<Relationship> update )
-    {
-        if ( StringUtils.isEmpty( relationship.getRelationship() ) )
-        {
-            create.add( relationship );
-        }
-        else
-        {
-            if ( !relationshipService.relationshipExists( relationship.getRelationship() ) )
-            {
-                create.add( relationship );
-            }
-            else
-            {
-                update.add( relationship );
-            }
-        }
     }
 
     @SuppressWarnings( "unchecked" )

@@ -314,9 +314,9 @@ public class EventImportTest extends DhisSpringTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    @SuppressWarnings("unchecked")
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person, DataElement dataElement, String value )
     {
-
         JSONObject eventJsonPayload = new JSONObject();
         eventJsonPayload.put( "program", program );
         eventJsonPayload.put( "programStage", programStage );

@@ -27,6 +27,8 @@
     
     <property name="text" column="textcontent" type="text" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <list name="users" table="dashboarditem_users">
       <key column="dashboarditemid" foreign-key="fk_dashboarditem_users_dashboardid" />
       <list-index column="sort_order" base="0" />
@@ -45,13 +47,6 @@
       <many-to-many column="resourceid" class="org.hisp.dhis.document.Document" foreign-key="fk_dashboarditem_resources_resourceid" />
     </list>
 
-    <!-- Object Translation -->
-    <set name="translations" table="dashboarditemtranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="dashboarditemid" foreign-key="fk_objecttranslation_dashboarditemid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
-    
     <property name="messages" />
 
     <property name="appKey" />

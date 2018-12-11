@@ -61,6 +61,7 @@ import java.util.concurrent.Future;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized
@@ -137,6 +138,7 @@ public class JdbcAnalyticsTableManager
     {
         if ( isApprovalEnabled( null ) )
         {
+            resourceTableService.generateDataApprovalRemapLevelTable();
             resourceTableService.generateDataApprovalMinLevelTable();
         }
     }
@@ -150,7 +152,7 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
@@ -162,13 +164,13 @@ public class JdbcAnalyticsTableManager
             "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
             numericClause;
 
-        populateTable( partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
-        populateTable( partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
 
-        populateTable( partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-        populateTable( partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
 
     /**
@@ -180,8 +182,8 @@ public class JdbcAnalyticsTableManager
      * @param valueTypes data element value types to include data for.
      * @param whereClause where clause to constrain data query.
      */
-    private void populateTable( AnalyticsTablePartition partition, String valueExpression,
-        String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
+    private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
@@ -232,6 +234,7 @@ public class JdbcAnalyticsTableManager
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
             "and ps.year = " + partition.getYear() + " " +
+            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -358,7 +361,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );

@@ -77,9 +77,9 @@ public class TranslationServiceTest
 
         String translatedValue = "translated";
 
-        Set<ObjectTranslation> listObjectTranslation = new HashSet<>( dataElementA.getTranslations() );
+        Set<Translation> listObjectTranslation = new HashSet<>( dataElementA.getTranslations() );
 
-        listObjectTranslation.add( new ObjectTranslation( locale.getLanguage(), TranslationProperty.NAME, translatedValue ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedValue ) );
 
         identifiableObjectManager.updateTranslations( dataElementA, listObjectTranslation );
 

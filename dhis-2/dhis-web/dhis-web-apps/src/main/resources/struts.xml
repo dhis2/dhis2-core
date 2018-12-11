@@ -12,5 +12,5 @@
     </action>
   </package>
 
-  <!-- Apps pulled from NPM -->
+  <!-- INJECT BUNDLED APPS HERE -->
 </struts>
