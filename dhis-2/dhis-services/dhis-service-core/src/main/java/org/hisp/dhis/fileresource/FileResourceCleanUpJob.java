@@ -95,7 +95,6 @@ public class FileResourceCleanUpJob
 
         List<Pair<String, String>> deletedAuditFiles = new ArrayList<>();
 
-        System.out.println(  "\n\n size of orphan FR "+fileResourceService.getOrphanedFileResources().size()  +"\n\n");
         fileResourceService.getOrphanedFileResources().stream()
             .filter( fr -> !isFileStored( fr ) )
             .filter( fr -> safeDelete( fr ) )
