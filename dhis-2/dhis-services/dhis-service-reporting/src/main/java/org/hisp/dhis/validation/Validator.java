@@ -64,7 +64,7 @@ public class Validator
                 
         int threadPoolSize = getThreadPoolSize( context );
 
-        if ( threadPoolSize == 0 )
+        if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
         {
             return context.getValidationResults();
         }
