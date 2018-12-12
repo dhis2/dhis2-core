@@ -51,6 +51,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,9 @@ public class EventAnalyticsServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -109,6 +113,7 @@ public class EventAnalyticsServiceTest
     public void setUpTest()
         throws IOException
     {
+        userService = _userService;
         Period peJan = createPeriod( "2017-01" );
         Period peFeb = createPeriod( "2017-02" );
         Period peMar = createPeriod( "2017-03" );
@@ -220,6 +225,7 @@ public class EventAnalyticsServiceTest
 
         results.put( "events_2017", events_2017_keyValue );
 
+        createAndInjectAdminUser();
     }
 
     @Override
