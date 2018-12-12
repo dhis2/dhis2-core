@@ -1,4 +1,4 @@
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.userkeyjsonvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,30 +28,27 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * Configuration registered if {@link RedisEnabledCondition} matches to true.
- * Redis backed Spring Session will be configured due to the
- * {@link EnableRedisHttpSession} annotation.
- * 
- * @author Ameen Mohamed
- *
- */
-@Configuration
-@DependsOn( "dhisConfigurationProvider" )
-@Conditional( RedisEnabledCondition.class )
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration
+public class UserKeyJsonValueDeletionHandler
+    extends DeletionHandler
 {
-    @Bean
-    public static ConfigureRedisAction configureRedisAction() {
-            return ConfigureRedisAction.NO_OP;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
+    @Override
+    protected String getClassName()
+    {
+        return UserKeyJsonValue.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId());
     }
 }
