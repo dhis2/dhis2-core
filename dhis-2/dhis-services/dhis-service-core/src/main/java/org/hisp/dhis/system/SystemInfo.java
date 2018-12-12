@@ -129,6 +129,8 @@ public class SystemInfo
 
     private String systemMonitoringUrl;
 
+    private String clusterHostname;
+
     private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
@@ -612,6 +614,18 @@ public class SystemInfo
     public void setSystemMonitoringUrl( String systemMonitoringUrl )
     {
         this.systemMonitoringUrl = systemMonitoringUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getClusterHostname()
+    {
+        return clusterHostname;
+    }
+
+    public void setClusterHostname( String clusterHostname )
+    {
+        this.clusterHostname = clusterHostname;
     }
 
     @JsonProperty
