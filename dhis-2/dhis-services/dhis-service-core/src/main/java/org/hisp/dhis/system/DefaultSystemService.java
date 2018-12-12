@@ -243,6 +243,7 @@ public class DefaultSystemService
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
+        info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
 
         // ---------------------------------------------------------------------
         // Database

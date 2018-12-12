@@ -53,7 +53,7 @@ public class IntegrationTestConfig
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         TestDhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider();
-        JdbcDatabaseContainer postgreSQLContainer = initContainer();
+        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         Properties properties = new Properties();
 
@@ -68,9 +68,9 @@ public class IntegrationTestConfig
         return dhisConfigurationProvider;
     }
 
-    private JdbcDatabaseContainer initContainer()
+    private JdbcDatabaseContainer<?> initContainer()
     {
-        JdbcDatabaseContainer postgisContainer = new PostgisContainerProvider()
+        JdbcDatabaseContainer<?> postgisContainer = new PostgisContainerProvider()
             .newInstance()
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_CREDENTIALS )
