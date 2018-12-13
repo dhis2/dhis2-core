@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -46,6 +47,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -250,6 +252,9 @@ public class RegistrationMultiEventsServiceTest
     @Test
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -273,14 +278,15 @@ public class RegistrationMultiEventsServiceTest
         event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         event.setEvent( importSummary.getReference() );
-        importSummary = eventService.addEvent( event, null, false );
+        importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
-        importSummary = eventService.addEvent( event, null, false );
+        importSummary = eventService.addEvent( event, importOptions, false );
+        
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );

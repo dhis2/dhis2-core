@@ -428,9 +428,9 @@ public abstract class AbstractEventService
         
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
-        if (  programStageInstance != null && programStageInstance.isDeleted() )
+        if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and deleted. This event can not be modified." )
+            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
         
@@ -457,7 +457,7 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
         
-        programStage = program.isWithoutRegistration() && programStage == null ? program.getProgramStageByStage( 1 ) : programStage;
+        programStage = programStage == null && program.isWithoutRegistration() ? program.getProgramStageByStage( 1 ) : programStage;
 
         if ( programStage == null )
         {
@@ -486,9 +486,9 @@ public abstract class AbstractEventService
                 }
                 
                 programInstance = programInstances.get( 0 );
-            }            
+            }
             
-            if ( !programStage.getRepeatable() && programInstance.hasActiveProgramStageInstance( programStage ) )
+            if ( !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Program stage is not repeatable and an event already exists" )
                     .setReference( event.getEvent() ).incrementIgnored();
@@ -1803,6 +1803,8 @@ public abstract class AbstractEventService
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
+                
+                programInstance.getProgramStageInstances().add( programStageInstance );
             }
             else
             {
@@ -1870,6 +1872,8 @@ public abstract class AbstractEventService
                 importSummary.getImportCount().incrementIgnored();
             }
         }
+        
+        programInstanceCache.put( programInstance.getUid(), programInstance );
 
         sendProgramNotification( programStageInstance, importOptions );
 
