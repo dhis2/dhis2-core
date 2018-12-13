@@ -188,6 +188,19 @@ public class ProgramInstance
 
         return null;
     }
+    
+    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramStage().equals( programStage ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
     // -------------------------------------------------------------------------
     // equals and hashCode
