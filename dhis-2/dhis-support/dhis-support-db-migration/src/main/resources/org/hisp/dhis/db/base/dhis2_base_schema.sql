@@ -1,4 +1,3 @@
---
 -- Name: attribute; Type: TABLE; Schema: public; Owner: -
 --
 
