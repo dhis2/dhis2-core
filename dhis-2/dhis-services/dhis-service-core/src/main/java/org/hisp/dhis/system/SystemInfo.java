@@ -118,6 +118,10 @@ public class SystemInfo
     private boolean encryption;
 
     private boolean emailConfigured;
+    
+    private String redisEnabled;
+    
+    private String redisHostname;
 
     private String systemId;
 
@@ -554,6 +558,30 @@ public class SystemInfo
     public void setEmailConfigured( boolean emailConfigured )
     {
         this.emailConfigured = emailConfigured;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRedisEnabled()
+    {
+        return redisEnabled;
+    }
+
+    public void setRedisEnabled( String redisEnabled )
+    {
+        this.redisEnabled = redisEnabled;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRedisHostname()
+    {
+        return redisHostname;
+    }
+
+    public void setRedisHostname( String redisHostname )
+    {
+        this.redisHostname = redisHostname;
     }
 
     @JsonProperty

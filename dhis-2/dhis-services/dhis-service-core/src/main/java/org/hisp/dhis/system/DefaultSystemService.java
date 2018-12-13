@@ -244,6 +244,12 @@ public class DefaultSystemService
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
         info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
+        info.setRedisEnabled( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) );
+
+        if ( "true".equalsIgnoreCase( info.getRedisEnabled() ) )
+        {
+            info.setRedisHostname( dhisConfig.getProperty( ConfigurationKey.REDIS_HOST ) );
+        }
 
         // ---------------------------------------------------------------------
         // Database
