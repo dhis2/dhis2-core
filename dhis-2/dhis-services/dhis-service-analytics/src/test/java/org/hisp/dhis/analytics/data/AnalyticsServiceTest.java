@@ -136,9 +136,6 @@ public class AnalyticsServiceTest
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 

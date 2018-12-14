@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -310,9 +311,9 @@ public enum SettingKey
 
     private static ImmutableSet<String> getNameSet()
     {
-        Set<String> names = Sets.newHashSet();
-        Sets.newHashSet( SettingKey.values() ).forEach( s -> names.add( s.getName() ) );
-        return ImmutableSet.copyOf( names );
+        return ImmutableSet.copyOf( Sets.newHashSet( SettingKey.values() ).stream()
+            .map( s -> s.getName() )
+            .collect( Collectors.toSet() ) );
     }
 
     // -------------------------------------------------------------------------

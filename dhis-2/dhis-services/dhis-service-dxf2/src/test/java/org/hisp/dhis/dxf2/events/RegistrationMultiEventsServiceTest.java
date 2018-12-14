@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hamcrest.CoreMatchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -88,9 +87,6 @@ public class RegistrationMultiEventsServiceTest
 
     @Autowired
     private EnrollmentService enrollmentService;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     @Autowired
     private IdentifiableObjectManager manager;
