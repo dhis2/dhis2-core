@@ -232,4 +232,10 @@ public class DefaultProgramStageInstanceService
 
         return programStageInstance;
     }
+
+    @Override
+    public boolean programStageInstanceExistsIncludingDeleted( String uid )
+    {
+        return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
 }

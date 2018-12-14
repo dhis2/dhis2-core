@@ -158,4 +158,11 @@ public class HibernateProgramStageInstanceStore
     {
         return ( programStageInstance == null || programStageInstance.isDeleted() ) ? null : programStageInstance;
     }
+
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
+        return result != null && result > 0;
+    }
 }
