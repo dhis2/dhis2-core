@@ -166,6 +166,8 @@ public class DefaultSchemaService
         add( new DataElementGroupSetDimensionSchemaDescriptor() ).
         add( new OrganisationUnitGroupSetDimensionSchemaDescriptor() ).
         add( new RelationshipSchemaDescriptor() ).
+        add( new ProgramStageInstanceSchemaDescriptor() ).
+        add( new ProgramInstanceSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
