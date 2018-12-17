@@ -62,6 +62,8 @@ public class HibernateDatabaseInfoProvider
         
     public void init()
     {
+        checkDatabaseConnectivity();
+        
         boolean spatialSupport = isSpatialSupport();
         
         // Check if postgis is installed. if not, fail startup
@@ -140,7 +142,13 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            log.error( "Exception when checking postgis version:", ex );
             return false;
         }
+    }
+    
+    private void checkDatabaseConnectivity()
+    {
+        jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
     }
 }
