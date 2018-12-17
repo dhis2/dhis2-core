@@ -92,7 +92,7 @@ public class DefaultQueryValidator
             violation = "At least one dimension must be specified";
         }
 
-        if ( params.getDataDimensionAndFilterOptions().isEmpty() && params.getAllDataElementGroups().isEmpty() )
+        if ( !params.isSkipData() && params.getDataDimensionAndFilterOptions().isEmpty() && params.getAllDataElementGroups().isEmpty() )
         {
             violation = "At least one data dimension item or data element group set dimension item must be specified";
         }
