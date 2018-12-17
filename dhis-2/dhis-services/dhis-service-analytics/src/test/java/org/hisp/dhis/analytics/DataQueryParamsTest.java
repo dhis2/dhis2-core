@@ -561,6 +561,7 @@ public class DataQueryParamsTest
         assertEquals( expected, params.getCategoryOptions() );
     }
 
+    @Test
     public void testGetDataElementGroups()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
