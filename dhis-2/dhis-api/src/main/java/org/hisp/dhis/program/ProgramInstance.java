@@ -188,6 +188,32 @@ public class ProgramInstance
 
         return null;
     }
+    
+    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public boolean hasProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            {
+                return true;
+            }
+        }
+        
+        return false;        
+    }
 
     // -------------------------------------------------------------------------
     // equals and hashCode
