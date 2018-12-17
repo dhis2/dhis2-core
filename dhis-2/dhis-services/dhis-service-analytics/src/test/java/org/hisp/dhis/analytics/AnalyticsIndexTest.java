@@ -45,13 +45,8 @@ public class AnalyticsIndexTest
         AnalyticsIndex indexB = new AnalyticsIndex( "analytics_2018_temp", Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
         AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ), null );
 
-        System.out.println( indexA.getIndexName( AnalyticsTableType.DATA_VALUE ) );
-        System.out.println( indexB.getIndexName( AnalyticsTableType.DATA_VALUE ) );
-        System.out.println( indexC.getIndexName( AnalyticsTableType.DATA_VALUE ) );
         assertTrue( indexA.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
         assertTrue( indexB.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_ax_co_ax_2018_" ) );
         assertTrue( indexC.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_YtbsuPPo010_ax_2019_" ) );
-
     }
-
 }
