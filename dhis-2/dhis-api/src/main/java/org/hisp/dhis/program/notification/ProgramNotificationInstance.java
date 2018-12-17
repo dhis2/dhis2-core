@@ -93,7 +93,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     }
 
     @JsonProperty()
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramNotificationTemplate getProgramNotificationTemplate()
     {
