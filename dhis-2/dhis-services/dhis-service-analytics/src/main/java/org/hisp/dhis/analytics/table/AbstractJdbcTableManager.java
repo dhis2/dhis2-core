@@ -156,8 +156,9 @@ public abstract class AbstractJdbcTableManager
 
             final String indexName = getIndexName( inx );
             final String indexType = inx.hasType() ? " using " + inx.getType() : "";
+            final String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + inx.getColumn() + ")";
+            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
             log.debug( "Create index: " + indexName + " SQL: " + sql );
 
@@ -296,7 +297,9 @@ public abstract class AbstractJdbcTableManager
      */
     protected String getIndexName( AnalyticsIndex inx )
     {
-        return quote( PREFIX_INDEX + removeQuote( inx.getColumn() ) + "_" + shortenTableName( inx.getTable() ) + "_" + CodeGenerator.generateCode( 5 ) );
+        String columnName = StringUtils.join( inx.getColumns(), "_" );
+
+        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( inx.getTable() ) + "_" + CodeGenerator.generateCode( 5 ) );
     }
 
     /**

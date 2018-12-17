@@ -28,6 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Class representing an index on a database table column.
  *
@@ -41,9 +44,9 @@ public class AnalyticsIndex
     private String table;
 
     /**
-     * Table column name.
+     * Table column names.
      */
-    private String column;
+    private List<String> columns = new ArrayList<>();
 
     /**
      * Index type.
@@ -55,10 +58,10 @@ public class AnalyticsIndex
      * @param column column name.
      * @param type index type.
      */
-    public AnalyticsIndex( String table, String column, String type )
+    public AnalyticsIndex( String table, List<String> columns, String type )
     {
         this.table = table;
-        this.column = column;
+        this.columns = columns;
         this.type = type;
     }
 
@@ -80,19 +83,9 @@ public class AnalyticsIndex
         return table;
     }
 
-    public void setTable( String table )
+    public List<String> getColumns()
     {
-        this.table = table;
-    }
-
-    public String getColumn()
-    {
-        return column;
-    }
-
-    public void setColumn( String column )
-    {
-        this.column = column;
+        return columns;
     }
 
     public String getType()
@@ -100,17 +93,12 @@ public class AnalyticsIndex
         return type;
     }
 
-    public void setType( String type )
-    {
-        this.type = type;
-    }
-
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + column.hashCode();
+        result = prime * result + columns.hashCode();
         result = prime * result + table.hashCode();
         return result;
     }
@@ -135,6 +123,6 @@ public class AnalyticsIndex
 
         AnalyticsIndex other = (AnalyticsIndex) object;
 
-        return column.equals( other.column ) && table.equals( other.table );
+        return table.equals( other.table ) && columns.equals( other.columns );
     }
 }

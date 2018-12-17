@@ -44,6 +44,8 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -331,7 +333,9 @@ public class DefaultAnalyticsTableService
             {
                 if ( !col.isSkipIndex() )
                 {
-                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
+                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns() : Lists.newArrayList( col.getName() );
+
+                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
                 }
             }
         }
