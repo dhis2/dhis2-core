@@ -34,7 +34,6 @@ import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -947,41 +946,35 @@ public class DataQueryParams
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
     }
 
+    /**
+     * Retrieves the dimension items for the given dimension. If the given dimension
+     * is {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID}, the category option
+     * combinations associated with all data elements in this query through their
+     * category combinations are retrieved.
+     */
     private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
     {
-        List<DimensionalItemObject> items = new ArrayList<>();
-
         if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            List<DimensionalItemObject> des = getDataElements();
-
-            if ( !des.isEmpty() )
-            {
-                Set<CategoryCombo> categoryCombos = Sets.newHashSet();
-
-                for ( DimensionalItemObject de : des )
-                {
-                    categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
-                }
-
-                for ( CategoryCombo cc : categoryCombos )
-                {
-                    items.addAll( cc.getSortedOptionCombos() );
-                }
-            }
+            return getDataElements().stream()
+                .map( de -> ((DataElement) de).getCategoryCombos() )
+                .flatMap( cc -> cc.stream() )
+                .distinct() // Get unique category combinations
+                .map( cc -> cc.getSortedOptionCombos() )
+                .flatMap( coc -> coc.stream() )
+                .collect( Collectors.toList() );
         }
         else
         {
-            items.addAll( getDimensionOptions( dimension ) );
+            return getDimensionOptions( dimension );
         }
-
-        return items;
     }
 
     /**
-     * Retrieves the options for the given dimension identifier. If the "co"
-     * dimension is specified, all category option combinations for the first data
-     * element is returned. Returns an empty array if the dimension is not present.
+     * Retrieves the options for the given dimension identifier. If the
+     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all
+     * category option combinations for the first data element is returned. Returns an
+     * empty array if the dimension is not present.
      */
     public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {

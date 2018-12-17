@@ -559,6 +559,7 @@ public abstract class DhisConvenienceTest
         categoryOptionCombo.setAutoFields();
 
         categoryOptionCombo.setCategoryCombo( categoryCombo );
+        categoryCombo.getOptionCombos().add( categoryOptionCombo );
 
         for ( CategoryOption categoryOption : categoryOptions )
         {
