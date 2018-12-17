@@ -113,6 +113,9 @@ public class DataQueryParamsTest
         cocA = createCategoryOptionCombo( ccA, coA );
         cocB = createCategoryOptionCombo( ccA, coB );
 
+        ccA.getOptionCombos().add( cocA );
+        ccA.getOptionCombos().add( cocB );
+
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );
         deC = createDataElement( 'C', ccA );
@@ -137,10 +140,6 @@ public class DataQueryParamsTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-        caA = createCategory( 'A', coA, coB );
     }
 
     @Test
