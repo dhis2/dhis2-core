@@ -33,6 +33,8 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -90,6 +92,10 @@ public class DataQueryParamsTest
     private Program prA;
     private Program prB;
 
+    private DataElementGroup degA;
+    private DataElementGroup degB;
+    private DataElementGroupSet degsA;
+
     private TrackedEntityAttribute atA;
 
     private Period peA;
@@ -132,6 +138,12 @@ public class DataQueryParamsTest
 
         prA = createProgram( 'A' );
         prB = createProgram( 'B' );
+
+        degA = createDataElementGroup( 'A' );
+        degB = createDataElementGroup( 'B' );
+        degsA = createDataElementGroupSet( 'A' );
+        degsA.addDataElementGroup( degA );
+        degsA.addDataElementGroup( degB );
 
         atA = createTrackedEntityAttribute( 'A' );
 
@@ -547,6 +559,19 @@ public class DataQueryParamsTest
         Set<DimensionalItemObject> expected = Sets.newHashSet( coA, coB );
 
         assertEquals( expected, params.getCategoryOptions() );
+    }
+
+    public void testGetDataElementGroups()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElementGroupSet( degsA )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+
+        List<DimensionalItemObject> expected = Lists.newArrayList( degA, degB );
+
+        assertEquals( expected, params.getAllDataElementGroups() );
     }
 
     @Test
