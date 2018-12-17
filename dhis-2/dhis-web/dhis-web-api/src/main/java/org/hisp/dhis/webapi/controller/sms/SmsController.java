@@ -28,9 +28,14 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -46,10 +51,13 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -86,6 +94,43 @@ public class SmsController
 
     @Autowired
     private UserService userService;
+
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
+    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+
+    @Autowired
+    private ProgramMessageService programMessageService;
+
+    // -------------------------------------------------------------------------
+    // GET
+    // -------------------------------------------------------------------------
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
+    public void getScheduledMessage( HttpServletResponse response ) throws IOException
+    {
+        List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
+
+        renderService.toJson( response.getOutputStream(), instances );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
+    public void getScheduledSentMessage(
+        @RequestParam( required = false ) String programInstance,
+        @RequestParam( required = false ) String programStageInstance,
+        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        HttpServletResponse response ) throws IOException
+    {
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
+            null, page, pageSize, afterDate, null );
+
+        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
+
+        renderService.toJson( response.getOutputStream(), programMessages );
+    }
+
 
     // -------------------------------------------------------------------------
     // POST
