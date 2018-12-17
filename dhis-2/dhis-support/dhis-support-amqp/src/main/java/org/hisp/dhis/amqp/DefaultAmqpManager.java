@@ -28,9 +28,14 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,10 +51,38 @@ public class DefaultAmqpManager implements AmqpManager
         this.dhisConfig = dhisConfig;
     }
 
+    @PostConstruct
+    public void initAmqp() throws Exception
+    {
+        AmqpConfig amqpConfig = getAmqpConfig();
+
+        if ( AmqpMode.NATIVE == amqpConfig.getMode() )
+        {
+            return;
+        }
+
+        EmbeddedActiveMQ embeddedActiveMQ = createEmbeddedServer( amqpConfig );
+        embeddedActiveMQ.start();
+    }
+
     @Override
     public AmqpClient getClient()
     {
         return null;
+    }
+
+    private EmbeddedActiveMQ createEmbeddedServer( AmqpConfig amqpConfig ) throws Exception
+    {
+        EmbeddedActiveMQ server = new EmbeddedActiveMQ();
+
+        Configuration config = new ConfigurationImpl();
+        config.addAcceptorConfiguration( "tcp", "tcp://127.0.0.1:15672?protocols=AMQP" );
+        config.setSecurityEnabled( false );
+        config.setPersistenceEnabled( false );
+
+        server.setConfiguration( config );
+
+        return server;
     }
 
     private AmqpConfig getAmqpConfig()
