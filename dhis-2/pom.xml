@@ -1173,6 +1173,29 @@
         <version>2.2.6</version>
       </dependency>
 
+      <!-- AMQP -->
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-server</artifactId>
+        <version>${artemis.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-amqp-protocol</artifactId>
+        <version>${artemis.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.qpid</groupId>
+        <artifactId>qpid-jms-client</artifactId>
+        <version>0.39.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.qpid</groupId>
+        <artifactId>proton-j</artifactId>
+        <version>0.31.0</version>
+      </dependency>
+
       <!-- SMS -->
       <dependency>
         <groupId>org.rxtx</groupId>
@@ -1285,8 +1308,9 @@
     <slf4j.version>1.7.5</slf4j.version>
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
-    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <jacoco.version>0.8.2</jacoco.version>
+    <artemis.version>2.6.3</artemis.version>
+    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   </properties>
 </project>
