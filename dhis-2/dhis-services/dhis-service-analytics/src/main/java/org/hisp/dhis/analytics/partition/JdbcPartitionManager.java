@@ -106,7 +106,7 @@ public class JdbcPartitionManager
             "where table_name = '" + table + "' " +
             "and table_type = 'BASE TABLE'";
 
-        log.info( "Table exists SQL: " + sql );
+        log.debug( "Table exists SQL: " + sql );
 
         int count = jdbcTemplate.queryForObject( sql, Integer.class );
 

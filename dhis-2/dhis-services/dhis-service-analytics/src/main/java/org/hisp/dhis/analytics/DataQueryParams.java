@@ -685,7 +685,7 @@ public class DataQueryParams
      */
     public boolean isDataType( DataType dataType )
     {
-        return this.dataType != null && this.dataType.equals( dataType );
+        return this.dataType != null && this.dataType == dataType;
     }
 
     /**
@@ -878,20 +878,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( DimensionType dimensionType )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        if ( dimensionType != null )
-        {
-            for ( DimensionalObject dimension : getDimensionsAndFilters() )
-            {
-                if ( dimension.getDimensionType().equals( dimensionType ) )
-                {
-                    list.add( dimension );
-                }
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionType == d.getDimensionType() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -899,17 +888,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        for ( DimensionalObject dimension : getDimensionsAndFilters() )
-        {
-            if ( dimensionTypes.contains( dimension.getDimensionType() ) )
-            {
-                list.add( dimension );
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -938,6 +919,17 @@ public class DataQueryParams
         List<DimensionalItemObject> dimensionOptions = getDimensionOptions( key );
 
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
+    }
+
+    /**
+     * Returns all dimension items part of dimensions of the given dimension type.
+     */
+    public List<DimensionalItemObject> getDimensionalItemObjects( DimensionType dimensionType )
+    {
+        return getDimensionsAndFilters( dimensionType ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -1464,7 +1456,7 @@ public class DataQueryParams
 
         while ( dimensionIter.hasNext() )
         {
-            if ( !dimensionIter.next().getDimensionType().equals( type ) )
+            if ( dimensionIter.next().getDimensionType() != type )
             {
                 dimensionIter.remove();
             }
@@ -1474,7 +1466,7 @@ public class DataQueryParams
 
         while ( filterIter.hasNext() )
         {
-            if ( !filterIter.next().getDimensionType().equals( type ) )
+            if ( filterIter.next().getDimensionType() != type )
             {
                 filterIter.remove();
             }
@@ -2046,7 +2038,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicatfors()
+    public List<DimensionalItemObject> getAllIndicators()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -2124,7 +2116,16 @@ public class DataQueryParams
     public List<DimensionalObject> getDataElementGroupSets()
     {
         return ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
+            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET == d.getDimensionType() ).collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns all data element groups part of dimensions and filters of type
+     * data element group set.
+     */
+    public List<DimensionalItemObject> getAllDataElementGroups()
+    {
+        return getDimensionalItemObjects( DimensionType.DATA_ELEMENT_GROUP_SET );
     }
 
     /**
@@ -2133,13 +2134,10 @@ public class DataQueryParams
      */
     public Set<DimensionalItemObject> getCategoryOptions()
     {
-        final Set<DimensionalItemObject> categoryOptions = new HashSet<>();
-
-        ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.CATEGORY.equals( d.getDimensionType() ) )
-            .forEach( d -> categoryOptions.addAll( d.getItems() ) );
-
-        return categoryOptions;
+        return getDimensionsAndFilters( DimensionType.CATEGORY ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
