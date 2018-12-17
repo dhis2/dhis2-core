@@ -65,6 +65,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -105,9 +107,16 @@ public class SmsController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
-    public void getScheduledMessage( HttpServletResponse response ) throws IOException
+    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response ) throws IOException
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
+
+        if ( scheduledAt != null )
+        {
+            instances = instances.parallelStream().filter( Objects::nonNull )
+                .filter( i -> scheduledAt.equals( i.getScheduledAt() ) )
+                .collect( Collectors.toList() );
+        }
 
         renderService.toJson( response.getOutputStream(), instances );
     }
@@ -186,7 +195,7 @@ public class SmsController
     public void receiveSMSMessage( @RequestParam String originator, @RequestParam( required = false ) Date receivedTime,
         @RequestParam String message, @RequestParam( defaultValue = "Unknown", required = false ) String gateway,
         HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException
+        throws WebMessageException
     {
         if ( originator == null || originator.length() <= 0 )
         {
@@ -206,7 +215,7 @@ public class SmsController
     @RequestMapping( value = "/inbound", method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void receiveSMSMessage( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException, IOException
+        throws WebMessageException, IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
         sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
@@ -219,7 +228,6 @@ public class SmsController
     @RequestMapping( value = "/import", method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void importUnparsedSMSMessages( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException, IOException
     {
         List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
 
