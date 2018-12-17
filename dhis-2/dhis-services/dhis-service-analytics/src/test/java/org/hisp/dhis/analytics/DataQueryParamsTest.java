@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -65,6 +66,13 @@ public class DataQueryParamsTest
     private Indicator inA;
     private Indicator inB;
 
+    private CategoryOption coA;
+    private CategoryOption coB;
+    private Category caA;
+    private CategoryCombo ccA;
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
@@ -90,10 +98,6 @@ public class DataQueryParamsTest
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
-    private CategoryOption coA;
-    private CategoryOption coB;
-    private Category caA;
-
     @Before
     public void setUpTest()
     {
@@ -102,9 +106,19 @@ public class DataQueryParamsTest
         inA = createIndicator( 'A', it );
         inB = createIndicator( 'A', it );
 
-        deA = createDataElement( 'A', new CategoryCombo() );
-        deB = createDataElement( 'B', new CategoryCombo() );
-        deC = createDataElement( 'C', new CategoryCombo() );
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+        caA = createCategory( 'A', coA, coB );
+        ccA = createCategoryCombo( 'A', caA );
+        cocA = createCategoryOptionCombo( ccA, coA );
+        cocB = createCategoryOptionCombo( ccA, coB );
+
+        ccA.getOptionCombos().add( cocA );
+        ccA.getOptionCombos().add( cocB );
+
+        deA = createDataElement( 'A', ccA );
+        deB = createDataElement( 'B', ccA );
+        deC = createDataElement( 'C', ccA );
 
         dsA = createDataSet( 'A' );
         dsB = createDataSet( 'B' );
@@ -126,10 +140,6 @@ public class DataQueryParamsTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-        caA = createCategory( 'A', coA, coB );
     }
 
     @Test
@@ -300,6 +310,22 @@ public class DataQueryParamsTest
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deC ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrA ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrB ) );
+    }
+
+    @Test
+    public void testGetDimensionItemArrayExplodeCoc()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, Lists.newArrayList( deA, deB, deC ) )
+            .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, Lists.newArrayList( peA, peB ) ).build();
+
+        DimensionalItemObject[] items = params.getDimensionItemArrayExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
+
+        List<DimensionalItemObject> itemsList = Lists.newArrayList( items );
+
+        assertEquals( 2, items.length );
+        assertTrue( itemsList.contains( cocA ) );
+        assertTrue( itemsList.contains( cocB ) );
     }
 
     @Test

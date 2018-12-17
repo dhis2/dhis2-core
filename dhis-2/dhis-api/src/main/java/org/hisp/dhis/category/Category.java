@@ -92,16 +92,16 @@ public class Category
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addCategoryOption( CategoryOption dataElementCategoryOption )
+    public void addCategoryOption( CategoryOption categoryOption )
     {
-        categoryOptions.add( dataElementCategoryOption );
-        dataElementCategoryOption.getCategories().add( this );
+        categoryOptions.add( categoryOption );
+        categoryOption.getCategories().add( this );
     }
 
-    public void removeCategoryOption( CategoryOption dataElementCategoryOption )
+    public void removeCategoryOption( CategoryOption categoryOption )
     {
-        categoryOptions.remove( dataElementCategoryOption );
-        dataElementCategoryOption.getCategories().remove( this );
+        categoryOptions.remove( categoryOption );
+        categoryOption.getCategories().remove( this );
     }
 
     public void removeAllCategoryOptions()
