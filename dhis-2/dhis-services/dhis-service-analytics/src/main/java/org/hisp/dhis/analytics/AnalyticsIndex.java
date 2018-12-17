@@ -31,6 +31,13 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+
 /**
  * Class representing an index on a database table column.
  *
@@ -38,6 +45,8 @@ import java.util.List;
  */
 public class AnalyticsIndex
 {
+    public static final String PREFIX_INDEX = "in_";
+
     /**
      * Table name.
      */
@@ -68,6 +77,32 @@ public class AnalyticsIndex
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns index name for column. Purpose of code suffix is to avoid uniqueness
+     * collision between indexes for temporary and real tables.
+     *
+     * @param tableType the {@link AnalyticsTableType}.
+     */
+    public String getIndexName( AnalyticsTableType tableType )
+    {
+        String columnName = StringUtils.join( this.getColumns(), "_" );
+
+        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType ) + "_" + CodeGenerator.generateCode( 5 ) );
+    }
+
+    /**
+     * Shortens the given table name.
+     *
+     * @param table the table name.
+     */
+    private static String shortenTableName( String table, AnalyticsTableType tableType )
+    {
+        table = table.replaceAll( tableType.getTableName(), "ax" );
+        table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
+
+        return table;
+    }
 
     public boolean hasType()
     {
