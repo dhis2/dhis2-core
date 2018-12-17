@@ -85,11 +85,6 @@ public class HibernateDatabaseInfoProvider
         info.setSpatialSupport( spatialSupport );
     }
     
-    private void checkDatabaseConnectivity()
-    {
-        jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
-    }
-
     // -------------------------------------------------------------------------
     // DatabaseInfoProvider implementation
     // -------------------------------------------------------------------------
@@ -150,5 +145,10 @@ public class HibernateDatabaseInfoProvider
             log.error( "Exception when checking postgis version:", ex );
             return false;
         }
+    }
+    
+    private void checkDatabaseConnectivity()
+    {
+        jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
     }
 }
