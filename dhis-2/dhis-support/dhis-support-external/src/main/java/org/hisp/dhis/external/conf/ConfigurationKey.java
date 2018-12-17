@@ -78,6 +78,7 @@ public enum ConfigurationKey
     RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
     RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
     KAFKA_BOOTSTRAP_SERVERS( "kafka.bootstrap-servers", null, false ),
     KAFKA_CLIENT_ID( "kafka.client-id", "dhis2", false ),
     KAFKA_RETRIES( "kafka.retries", "10", false ),
@@ -90,16 +91,13 @@ public enum ConfigurationKey
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
-    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
-    LOGGING_LEVEL( "logging.level", "INFO" ),
-    LOGGING_FORMAT( "logging.format", "TEXT" ),
-    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
-    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
-    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
-    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
-    LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" );
+    AMQP_MODE( "amqp.mode", "EMBEDDED" ),
+    AMQP_HOST( "amqp.host", "127.0.0.1" ),
+    AMQP_PORT( "amqp.port", "15672" ),
+    AMQP_USERNAME( "amqp.username", "guest", true ),
+    AMQP_PASSWORD( "amqp.password", "guest", true ),
+    AMQP_EMBEDDED_SECURITY( "amqp.embedded.security", "false" ),
+    AMQP_EMBEDDED_PERSISTENCE( "amqp.embedded.persistence", "false" );
 
     private final String key;
 

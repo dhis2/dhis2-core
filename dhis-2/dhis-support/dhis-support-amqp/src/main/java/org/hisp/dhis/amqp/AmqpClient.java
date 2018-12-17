@@ -28,50 +28,17 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import javax.jms.ConnectionFactory;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
-public class DefaultAmqpManager implements AmqpManager
+public class AmqpClient
 {
-    private final DhisConfigurationProvider dhisConfig;
-    private AmqpConfig amqpConfig;
+    private final ConnectionFactory connectionFactory;
 
-    public DefaultAmqpManager( DhisConfigurationProvider dhisConfig )
+    public AmqpClient( ConnectionFactory connectionFactory )
     {
-        this.dhisConfig = dhisConfig;
-    }
-
-    @Override
-    public AmqpClient getClient()
-    {
-        return null;
-    }
-
-    private AmqpConfig getAmqpConfig()
-    {
-        if ( amqpConfig != null )
-        {
-            return amqpConfig;
-        }
-
-        amqpConfig = new AmqpConfig();
-        amqpConfig.setMode( AmqpMode.valueOf( dhisConfig.getProperty( ConfigurationKey.AMQP_MODE ) ) );
-        amqpConfig.setHost( dhisConfig.getProperty( ConfigurationKey.AMQP_HOST ) );
-        amqpConfig.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.AMQP_PORT ) ) );
-        amqpConfig.setUsername( dhisConfig.getProperty( ConfigurationKey.AMQP_USERNAME ) );
-        amqpConfig.setPassword( dhisConfig.getProperty( ConfigurationKey.AMQP_PASSWORD ) );
-
-        AmqpEmbeddedConfig amqpEmbeddedConfig = new AmqpEmbeddedConfig();
-        amqpEmbeddedConfig.setSecurity( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.AMQP_EMBEDDED_SECURITY ) ) );
-        amqpEmbeddedConfig.setPersistence( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.AMQP_EMBEDDED_PERSISTENCE ) ) );
-
-        amqpConfig.setEmbedded( amqpEmbeddedConfig );
-
-        return amqpConfig;
+        this.connectionFactory = connectionFactory;
     }
 }

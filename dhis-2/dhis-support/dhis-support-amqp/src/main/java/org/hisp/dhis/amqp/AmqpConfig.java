@@ -41,9 +41,11 @@ public class AmqpConfig
 {
     private AmqpMode mode = AmqpMode.EMBEDDED;
 
-    private String url = "127.0.0.1";
+    private String host = "127.0.0.1";
 
-    private int port = 5672;
+    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
+    // so we keep 15672 as default port (since we default to embedded server).
+    private int port = 15672;
 
     private String username = "guest";
 
@@ -69,14 +71,14 @@ public class AmqpConfig
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUrl()
+    public String getHost()
     {
-        return url;
+        return host;
     }
 
-    public void setUrl( String url )
+    public void setHost( String host )
     {
-        this.url = url;
+        this.host = host;
     }
 
     @JsonProperty

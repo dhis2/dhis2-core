@@ -33,4 +33,5 @@ package org.hisp.dhis.amqp;
  */
 public interface AmqpManager
 {
+    AmqpClient getClient();
 }
