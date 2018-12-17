@@ -28,6 +28,16 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+
 /**
  * Class representing an index on a database table column.
  *
@@ -35,15 +45,17 @@ package org.hisp.dhis.analytics;
  */
 public class AnalyticsIndex
 {
+    public static final String PREFIX_INDEX = "in_";
+
     /**
      * Table name.
      */
     private String table;
 
     /**
-     * Table column name.
+     * Table column names.
      */
-    private String column;
+    private List<String> columns = new ArrayList<>();
 
     /**
      * Index type.
@@ -55,16 +67,42 @@ public class AnalyticsIndex
      * @param column column name.
      * @param type index type.
      */
-    public AnalyticsIndex( String table, String column, String type )
+    public AnalyticsIndex( String table, List<String> columns, String type )
     {
         this.table = table;
-        this.column = column;
+        this.columns = columns;
         this.type = type;
     }
 
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns index name for column. Purpose of code suffix is to avoid uniqueness
+     * collision between indexes for temporary and real tables.
+     *
+     * @param tableType the {@link AnalyticsTableType}.
+     */
+    public String getIndexName( AnalyticsTableType tableType )
+    {
+        String columnName = StringUtils.join( this.getColumns(), "_" );
+
+        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType ) + "_" + CodeGenerator.generateCode( 5 ) );
+    }
+
+    /**
+     * Shortens the given table name.
+     *
+     * @param table the table name.
+     */
+    private static String shortenTableName( String table, AnalyticsTableType tableType )
+    {
+        table = table.replaceAll( tableType.getTableName(), "ax" );
+        table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
+
+        return table;
+    }
 
     public boolean hasType()
     {
@@ -80,19 +118,9 @@ public class AnalyticsIndex
         return table;
     }
 
-    public void setTable( String table )
+    public List<String> getColumns()
     {
-        this.table = table;
-    }
-
-    public String getColumn()
-    {
-        return column;
-    }
-
-    public void setColumn( String column )
-    {
-        this.column = column;
+        return columns;
     }
 
     public String getType()
@@ -100,17 +128,12 @@ public class AnalyticsIndex
         return type;
     }
 
-    public void setType( String type )
-    {
-        this.type = type;
-    }
-
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + column.hashCode();
+        result = prime * result + columns.hashCode();
         result = prime * result + table.hashCode();
         return result;
     }
@@ -135,6 +158,6 @@ public class AnalyticsIndex
 
         AnalyticsIndex other = (AnalyticsIndex) object;
 
-        return column.equals( other.column ) && table.equals( other.table );
+        return table.equals( other.table ) && columns.equals( other.columns );
     }
 }

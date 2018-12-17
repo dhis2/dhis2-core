@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Class representing an analytics database table column.
@@ -37,17 +39,40 @@ import java.util.Date;
  */
 public class AnalyticsTableColumn
 {
+    /**
+     * The column name.
+     */
     private String name;
 
+    /**
+     * The column data type.
+     */
     private String dataType;
 
+    /**
+     * The column SQL alias.
+     */
     private String alias;
 
+    /**
+     * Date of creation of the underlying data dimension.
+     */
     private Date created;
 
+    /**
+     * Whether to skip building an index for this column.
+     */
     private boolean skipIndex = false;
 
+    /**
+     * Explicit index type, defaults to database default type.
+     */
     private String indexType;
+
+    /**
+     * Explicit index column names, defaults to column name.
+     */
+    private List<String> indexColumns = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -63,6 +88,20 @@ public class AnalyticsTableColumn
         this.name = name;
         this.dataType = dataType;
         this.alias = alias;
+    }
+
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     * @param indexColumns columns to index, defaults to this column name.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias, List<String> indexColumns )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+        this.indexColumns = indexColumns;
     }
 
     /**
@@ -110,6 +149,19 @@ public class AnalyticsTableColumn
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Indicates whether explicit index columns have been specified,
+     * defaults to this column name.
+     */
+    public boolean hasIndexColumns()
+    {
+        return !indexColumns.isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
 
@@ -141,5 +193,10 @@ public class AnalyticsTableColumn
     public String getIndexType()
     {
         return indexType;
+    }
+
+    public List<String> getIndexColumns()
+    {
+        return indexColumns;
     }
 }
