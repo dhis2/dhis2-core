@@ -60,7 +60,7 @@ public class DefaultAmqpManager implements AmqpManager
         }
 
         amqpConfig = new AmqpConfig();
-        amqpConfig.setMode( AmqpMode.valueOf( dhisConfig.getProperty( ConfigurationKey.AMQP_MODE ) ) );
+        amqpConfig.setMode( AmqpMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.AMQP_MODE )).toUpperCase() ) );
         amqpConfig.setHost( dhisConfig.getProperty( ConfigurationKey.AMQP_HOST ) );
         amqpConfig.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.AMQP_PORT ) ) );
         amqpConfig.setUsername( dhisConfig.getProperty( ConfigurationKey.AMQP_USERNAME ) );
