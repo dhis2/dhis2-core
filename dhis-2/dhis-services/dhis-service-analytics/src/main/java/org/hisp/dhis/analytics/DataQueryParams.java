@@ -529,10 +529,7 @@ public class DataQueryParams
      */
     public boolean hasPeriods()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( PERIOD_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( PERIOD_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( PERIOD_DIM_ID ).isEmpty();
     }
 
     /**
@@ -597,10 +594,7 @@ public class DataQueryParams
      */
     public boolean hasOrganisationUnits()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( ORGUNIT_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( ORGUNIT_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( ORGUNIT_DIM_ID ).isEmpty();
     }
 
     /**
