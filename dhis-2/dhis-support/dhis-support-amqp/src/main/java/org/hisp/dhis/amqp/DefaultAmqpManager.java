@@ -31,11 +31,19 @@ package org.hisp.dhis.amqp;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.qpid.jms.JmsConnectionFactory;
+import org.hisp.dhis.amqp.config.AmqpConfig;
+import org.hisp.dhis.amqp.config.AmqpEmbeddedConfig;
+import org.hisp.dhis.amqp.config.AmqpMode;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.jms.Connection;
+import javax.jms.JMSException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,7 +52,9 @@ import javax.annotation.PostConstruct;
 public class DefaultAmqpManager implements AmqpManager
 {
     private final DhisConfigurationProvider dhisConfig;
-    private AmqpConfig amqpConfig;
+    private AmqpConfig amqpConfig = null;
+    private JmsConnectionFactory connectionFactory = null;
+    private EmbeddedActiveMQ embeddedActiveMQ = null;
 
     public DefaultAmqpManager( DhisConfigurationProvider dhisConfig )
     {
@@ -52,7 +62,7 @@ public class DefaultAmqpManager implements AmqpManager
     }
 
     @PostConstruct
-    public void initAmqp() throws Exception
+    public void startAmqp() throws Exception
     {
         AmqpConfig amqpConfig = getAmqpConfig();
 
@@ -61,14 +71,74 @@ public class DefaultAmqpManager implements AmqpManager
             return;
         }
 
-        EmbeddedActiveMQ embeddedActiveMQ = createEmbeddedServer( amqpConfig );
+        embeddedActiveMQ = createEmbeddedServer( amqpConfig );
         embeddedActiveMQ.start();
+    }
+
+    @PreDestroy
+    public void stopAmqp() throws Exception
+    {
+        if ( embeddedActiveMQ == null )
+        {
+            return;
+        }
+
+        embeddedActiveMQ.stop();
+        embeddedActiveMQ = null;
+        connectionFactory = null;
     }
 
     @Override
     public AmqpClient getClient()
     {
-        return null;
+        AmqpConfig amqpConfig = getAmqpConfig();
+        Connection connection = createConnection( amqpConfig );
+
+        try
+        {
+            connection.start();
+            connection.setExceptionListener( exception -> System.err.println( exception.getMessage() ) );
+        }
+        catch ( JMSException e )
+        {
+            e.printStackTrace();
+        }
+
+        return new AmqpClient( connection );
+    }
+
+    private Connection createConnection( AmqpConfig amqpConfig )
+    {
+        if ( connectionFactory == null )
+        {
+            connectionFactory = createConnectionFactory( amqpConfig );
+        }
+
+        Connection connection = null;
+
+        try
+        {
+            if ( StringUtils.isEmpty( amqpConfig.getUsername() ) || StringUtils.isEmpty( amqpConfig.getPassword() ) )
+            {
+                connection = connectionFactory.createConnection();
+            }
+            else
+            {
+                connection = connectionFactory.createConnection( amqpConfig.getUsername(), amqpConfig.getPassword() );
+            }
+        }
+        catch ( JMSException e )
+        {
+            e.printStackTrace();
+        }
+
+        return connection;
+    }
+
+    private JmsConnectionFactory createConnectionFactory( AmqpConfig amqpConfig )
+    {
+        connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", amqpConfig.getHost(), amqpConfig.getPort() ) );
+        return connectionFactory;
     }
 
     private EmbeddedActiveMQ createEmbeddedServer( AmqpConfig amqpConfig ) throws Exception
@@ -76,9 +146,11 @@ public class DefaultAmqpManager implements AmqpManager
         EmbeddedActiveMQ server = new EmbeddedActiveMQ();
 
         Configuration config = new ConfigurationImpl();
-        config.addAcceptorConfiguration( "tcp", "tcp://127.0.0.1:15672?protocols=AMQP" );
-        config.setSecurityEnabled( false );
-        config.setPersistenceEnabled( false );
+
+        config.addAcceptorConfiguration( "tcp",
+            String.format( "tcp://%s:%d?protocols=AMQP", amqpConfig.getHost(), amqpConfig.getPort() ) );
+        config.setSecurityEnabled( amqpConfig.getEmbedded().isSecurity() );
+        config.setPersistenceEnabled( amqpConfig.getEmbedded().isPersistence() );
 
         server.setConfiguration( config );
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp;
+package org.hisp.dhis.amqp.config;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

@@ -28,56 +28,51 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.Assert;
+import org.apache.qpid.jms.JmsQueue;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AmqpClient
+@Component
+public class AmqpDemo
 {
-    private final Connection connection;
+    private final AmqpManager amqpManager;
 
-    public AmqpClient( Connection connection )
+    public AmqpDemo( AmqpManager amqpManager )
     {
-        Assert.notNull( connection, "connection is a required dependency of AmqpClient." );
-        this.connection = connection;
+        this.amqpManager = amqpManager;
     }
 
-    public Connection getConnection()
+    @Scheduled( fixedRate = 5_000 )
+    public void produce() throws Exception
     {
-        return connection;
+        AmqpClient client = amqpManager.getClient();
+        Session session = client.createSession();
+        MessageProducer producer = session.createProducer( new JmsQueue( "example" ) );
+
+        TextMessage textMessage = session.createTextMessage( "Hello World" );
+        producer.send( textMessage );
+
+        session.close();
     }
 
-    public Session createSession() throws JMSException
+    @Scheduled( fixedRate = 3_000, initialDelay = 5_000 )
+    public void listen() throws Exception
     {
-        return createSession( false );
-    }
+        AmqpClient client = amqpManager.getClient();
+        Session session = client.createSession();
+        MessageConsumer consumer = session.createConsumer( new JmsQueue( "example" ) );
 
-    public Session createSession( boolean transacted ) throws JMSException
-    {
-        return connection.createSession( transacted, Session.AUTO_ACKNOWLEDGE );
-    }
+        TextMessage textMessage = (TextMessage) consumer.receive( 500 );
+        System.err.println( "recv: " + textMessage.getText() );
 
-    public void close()
-    {
-        if ( connection == null )
-        {
-            return;
-        }
-
-        try
-        {
-            connection.close();
-        }
-        catch ( JMSException e )
-        {
-        }
+        session.close();
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp;
+package org.hisp.dhis.amqp.config;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -36,38 +36,92 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "amqpEmbedded", namespace = DxfNamespaces.DXF_2_0 )
-public class AmqpEmbeddedConfig
+@JacksonXmlRootElement( localName = "amqp", namespace = DxfNamespaces.DXF_2_0 )
+public class AmqpConfig
 {
-    private boolean security = false;
+    private AmqpMode mode = AmqpMode.EMBEDDED;
 
-    private boolean persistence = false;
+    private String host = "127.0.0.1";
 
-    public AmqpEmbeddedConfig()
+    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
+    // so we keep 15672 as default port (since we default to embedded server).
+    private int port = 15672;
+
+    private String username = "guest";
+
+    private String password = "guest";
+
+    private AmqpEmbeddedConfig embedded = new AmqpEmbeddedConfig();
+
+    public AmqpConfig()
     {
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSecurity()
+    public AmqpMode getMode()
     {
-        return security;
+        return mode;
     }
 
-    public void setSecurity( boolean security )
+    public void setMode( AmqpMode mode )
     {
-        this.security = security;
+        this.mode = mode;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isPersistence()
+    public String getHost()
     {
-        return persistence;
+        return host;
     }
 
-    public void setPersistence( boolean persistence )
+    public void setHost( String host )
     {
-        this.persistence = persistence;
+        this.host = host;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPort()
+    {
+        return port;
+    }
+
+    public void setPort( int port )
+    {
+        this.port = port;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AmqpEmbeddedConfig getEmbedded()
+    {
+        return embedded;
+    }
+
+    public void setEmbedded( AmqpEmbeddedConfig embedded )
+    {
+        this.embedded = embedded;
     }
 }
