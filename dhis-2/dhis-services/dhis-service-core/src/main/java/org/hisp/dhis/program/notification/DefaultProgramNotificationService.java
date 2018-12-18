@@ -442,7 +442,7 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-                                                        TrackedEntityInstance tei, ProgramInstance pi)
+                                                        TrackedEntityInstance tei, ProgramInstance pi )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
