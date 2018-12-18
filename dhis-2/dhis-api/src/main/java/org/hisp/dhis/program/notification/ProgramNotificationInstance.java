@@ -29,6 +29,7 @@ package org.hisp.dhis.program.notification;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -79,6 +80,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramInstance getProgramInstance()
     {
@@ -91,6 +93,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramNotificationTemplate getProgramNotificationTemplate()
     {
@@ -103,6 +106,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStageInstance getProgramStageInstance()
     {
