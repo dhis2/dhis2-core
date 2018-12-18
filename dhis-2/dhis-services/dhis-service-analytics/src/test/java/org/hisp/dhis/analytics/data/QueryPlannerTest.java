@@ -680,13 +680,13 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits on 3 queries on organisation units for an optimal of 3 queries. No
-     * data elements specified.
+     * Splits on 3 queries on organisation units for an optimal of 3 queries.
      */
     @Test
     public void planQueryF()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ),
             createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
@@ -908,6 +908,23 @@ public class QueryPlannerTest
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
             assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
+    }
+
+    /**
+     * No data dimension items or data element group set dimension items
+     * specified, illegal query.
+     */
+    @Test( expected = IllegalQueryException.class )
+    public void planQueryNoDataItems()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ) ) )
+            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
+
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+
+        queryPlanner.planQuery( params, plannerParams );
     }
 
     /**
