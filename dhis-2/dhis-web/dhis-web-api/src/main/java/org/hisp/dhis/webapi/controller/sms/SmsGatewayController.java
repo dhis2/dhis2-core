@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -44,6 +45,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +61,12 @@ import java.io.IOException;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsGatewayController
 {
+    private static final ImmutableMap<String, Class<? extends SmsGatewayConfig>> TYPE_MAPPER = new
+        ImmutableMap.Builder<String, Class<? extends SmsGatewayConfig>>()
+        .put( "http", GenericHttpGatewayConfig.class  )
+        .put( "bulksms", BulkSmsGatewayConfig.class  )
+        .put( "clickatell", ClickatellGatewayConfig.class  )
+        .build();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -105,7 +113,7 @@ public class SmsGatewayController
         HttpServletResponse response )
         throws WebMessageException, IOException
     {
-        SmsGatewayConfig gateway = gatewayAdminService.getGatewayConfigurationByUid( uid );
+        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
         if ( gateway == null )
         {
@@ -179,7 +187,7 @@ public class SmsGatewayController
     public void setDefault( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException
     {
-        SmsGatewayConfig gateway = gatewayAdminService.getGatewayConfigurationByUid( uid );
+        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
         if ( gateway == null )
         {
@@ -191,6 +199,46 @@ public class SmsGatewayController
         webMessageService.send( WebMessageUtils.ok( gateway.getName() + " is set to default" ), response, request );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
+    public void updateGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+            throws WebMessageException, IOException
+    {
+        SmsGatewayConfig config = gatewayAdminService.getByUid( uid );
+
+        if ( config == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
+        }
+
+        Class<? extends SmsGatewayConfig> gatewayType = gatewayAdminService.getGatewayType( config );
+
+        config = renderService.fromJson( request.getInputStream(), gatewayType );
+
+        gatewayAdminService.updateGateway( config );
+
+        webMessageService.send( WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) ), response, request );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( method = RequestMethod.POST )
+    public void addGateway( @RequestParam String type, HttpServletRequest request, HttpServletResponse response )
+        throws IOException, WebMessageException
+    {
+        Class<? extends SmsGatewayConfig> gatewayType = TYPE_MAPPER.getOrDefault( type, null );
+
+        if ( gatewayType == null )
+        {
+            throw new WebMessageException(WebMessageUtils.notFound( String.format( "No gateway of type: %s is supported ", type ) ) );
+        }
+
+        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  gatewayType );
+
+        gatewayAdminService.addGateway( config );
+
+        webMessageService.send( WebMessageUtils.ok( "Gateway configuration added" ), response, request );
+    }
+
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
@@ -200,7 +248,7 @@ public class SmsGatewayController
     public void removeGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException
     {
-        SmsGatewayConfig gateway = gatewayAdminService.getGatewayConfigurationByUid( uid );
+        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
         if ( gateway == null )
         {

@@ -50,11 +50,15 @@ public interface GatewayAdministrationService
 
     List<SmsGatewayConfig> listGateways();
 
-    SmsGatewayConfig getGatewayConfigurationByUid( String uid );
-
-    SmsGatewayConfig getGatewayConfigurationByName( String gatewayName );
+    SmsGatewayConfig getByUid(String uid );
 
     boolean addOrUpdateGateway( SmsGatewayConfig config, Class<?> klass );
 
+    boolean addGateway( SmsGatewayConfig config );
+
+    boolean updateGateway( SmsGatewayConfig config );
+
     boolean loadGatewayConfigurationMap( SmsConfiguration smsConfiguration );
+
+    Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config );
 }
