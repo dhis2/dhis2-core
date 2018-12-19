@@ -123,7 +123,7 @@ public class SmsGatewayController
     @RequestMapping( value = "/clickatell", method = { RequestMethod.POST,
         RequestMethod.PUT }, produces = "application/json" )
     public void addOrUpdateClickatellConfiguration( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws IOException
     {
         SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), ClickatellGatewayConfig.class );
 
@@ -141,7 +141,7 @@ public class SmsGatewayController
     @RequestMapping( value = "/bulksms", method = { RequestMethod.POST,
         RequestMethod.PUT }, produces = "application/json" )
     public void addOrUpdatebulksmsConfiguration( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws IOException
     {
         BulkSmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(), BulkSmsGatewayConfig.class );
 
@@ -159,7 +159,7 @@ public class SmsGatewayController
     @RequestMapping( value = "/generichttp", method = { RequestMethod.POST,
         RequestMethod.PUT }, produces = "application/json" )
     public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws IOException
     {
         GenericHttpGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
             GenericHttpGatewayConfig.class );
