@@ -50,7 +50,7 @@ public class AmqpDemo
         this.amqpManager = amqpManager;
     }
 
-    @Scheduled( fixedRate = 5_000 )
+    @Scheduled( fixedRate = 10_000, initialDelay = 10_000 )
     public void produce() throws Exception
     {
         AmqpClient client = amqpManager.getClient();

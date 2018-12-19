@@ -31,10 +31,7 @@ package org.hisp.dhis.amqp;
 import org.springframework.util.Assert;
 
 import javax.jms.Connection;
-import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 /**
@@ -57,7 +54,7 @@ public class AmqpClient
 
     public Session createSession() throws JMSException
     {
-        return createSession( false );
+        return createSession( true );
     }
 
     public Session createSession( boolean transacted ) throws JMSException
