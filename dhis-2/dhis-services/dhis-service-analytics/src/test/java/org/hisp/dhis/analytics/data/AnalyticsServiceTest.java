@@ -796,8 +796,7 @@ public class AnalyticsServiceTest
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( line[2] );
 
             CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
-                organisationUnit, ocDef, now,
-                storedBy, lastUpdatedBy, new Date(), true );
+                organisationUnit, ocDef, now, storedBy, new Date(), lastUpdatedBy, true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
 

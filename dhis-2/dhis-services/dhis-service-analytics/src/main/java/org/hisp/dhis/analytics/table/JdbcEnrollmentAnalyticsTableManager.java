@@ -212,7 +212,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-        columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "pi.geometry", false, "gist" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry", false, "gist" ) );
 
         if ( program.isRegistration() )
         {
