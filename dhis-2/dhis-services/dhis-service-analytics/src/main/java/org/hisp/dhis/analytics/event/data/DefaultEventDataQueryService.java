@@ -273,7 +273,12 @@ public class DefaultEventDataQueryService
     {
         if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            return "geom";
+            return "psigeometry";
+        }
+
+        if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
+        {
+            return "pigeometry";
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
