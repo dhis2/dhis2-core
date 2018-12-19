@@ -58,6 +58,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -980,5 +981,14 @@ public abstract class DeletionHandler
     public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
     {
         return null;
+    }
+
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        return null;
+    }
+
+    public void deleteFileResource( FileResource fileResource )
+    {
     }
 }
