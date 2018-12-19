@@ -673,8 +673,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now,
         String storedBy )
     {
+        Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
+
         return new CompleteDataSetRegistration( mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo,
-                cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now, storedBy, cdsr.getLastUpdatedBy(), cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now, cdsr.getCompleted() );
+            date, storedBy, date, cdsr.getLastUpdatedBy(), cdsr.getCompleted() );
     }
 
     private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
