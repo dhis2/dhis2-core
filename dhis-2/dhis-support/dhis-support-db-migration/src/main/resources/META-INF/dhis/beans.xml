@@ -12,21 +12,16 @@
       class="org.flywaydb.core.api.configuration.ClassicConfiguration" depends-on="databaseInfoProvider">
       <property name="dataSource" ref="dataSource" />
       <property name="baselineOnMigrate" value="true" />
-      <property name="outOfOrder" ref="flywayOutOfOrder" />
       <property name="ignoreMissingMigrations" value="true" />
       <property name="ignoreFutureMigrations" value="false" />
       <property name="group" value="true" />
+      <property name="target" value="2.32.3" />
       <property name="locations">
         <bean class="org.flywaydb.core.api.Location">
           <constructor-arg index="0"
             value="org/hisp/dhis/db/migration" />
         </bean>
       </property>
-    </bean>
-
-    <bean id="flywayOutOfOrder"
-      class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
-      <constructor-arg value="FLYWAY_OUT_OF_ORDER_MIGRATION" />
     </bean>
 
     <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">
