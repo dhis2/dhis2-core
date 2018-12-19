@@ -70,6 +70,7 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return name;
@@ -80,6 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
+    @JsonProperty( value = "default" )
     public boolean isDefault()
     {
         return isDefault;
@@ -100,10 +102,6 @@ public abstract class SmsGatewayConfig
     {
         this.uid = uid;
     }
-
-    public abstract boolean isInbound();
-
-    public abstract boolean isOutbound();
 
     @JsonIgnore
     public String getPassword()
