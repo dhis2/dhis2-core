@@ -28,15 +28,22 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
+import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.hisp.dhis.amqp.config.AmqpConfig;
 import org.hisp.dhis.amqp.config.AmqpEmbeddedConfig;
 import org.hisp.dhis.amqp.config.AmqpMode;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -52,13 +59,15 @@ import javax.jms.JMSException;
 public class DefaultAmqpManager implements AmqpManager
 {
     private final DhisConfigurationProvider dhisConfig;
+    private final LocationManager locationManager;
     private AmqpConfig amqpConfig = null;
     private JmsConnectionFactory connectionFactory = null;
     private EmbeddedActiveMQ embeddedActiveMQ = null;
 
-    public DefaultAmqpManager( DhisConfigurationProvider dhisConfig )
+    public DefaultAmqpManager( DhisConfigurationProvider dhisConfig, LocationManager locationManager )
     {
         this.dhisConfig = dhisConfig;
+        this.locationManager = locationManager;
     }
 
     @PostConstruct
@@ -93,6 +102,11 @@ public class DefaultAmqpManager implements AmqpManager
     {
         AmqpConfig amqpConfig = getAmqpConfig();
         Connection connection = createConnection( amqpConfig );
+
+        if ( connection == null )
+        {
+            return null;
+        }
 
         try
         {
@@ -151,6 +165,40 @@ public class DefaultAmqpManager implements AmqpManager
             String.format( "tcp://%s:%d?protocols=AMQP", amqpConfig.getHost(), amqpConfig.getPort() ) );
         config.setSecurityEnabled( amqpConfig.getEmbedded().isSecurity() );
         config.setPersistenceEnabled( amqpConfig.getEmbedded().isPersistence() );
+
+        if ( locationManager.externalDirectorySet() && amqpConfig.getEmbedded().isPersistence() )
+        {
+            String dataDir = locationManager.getExternalDirectoryPath();
+            config.setJournalDirectory( dataDir + "/artemis/journal" );
+
+            config.setJournalType( JournalType.NIO );
+            config.setLargeMessagesDirectory( dataDir + "/artemis/largemessages" );
+            config.setBindingsDirectory( dataDir + "/artemis/bindings" );
+            config.setPagingDirectory( dataDir + "/artemis/paging" );
+        }
+
+        config.addAddressesSetting( "#",
+            new AddressSettings()
+                .setDeadLetterAddress( SimpleString.toSimpleString( "DLQ" ) )
+                .setExpiryAddress( SimpleString.toSimpleString( "ExpiryQueue" ) ) );
+
+        config.addAddressConfiguration(
+            new CoreAddressConfiguration()
+                .setName( "DLQ" )
+                .addRoutingType( RoutingType.ANYCAST )
+                .addQueueConfiguration(
+                    new CoreQueueConfiguration()
+                        .setName( "DLQ" )
+                        .setRoutingType( RoutingType.ANYCAST ) ) );
+
+        config.addAddressConfiguration(
+            new CoreAddressConfiguration()
+                .setName( "ExpiryQueue" )
+                .addRoutingType( RoutingType.ANYCAST )
+                .addQueueConfiguration(
+                    new CoreQueueConfiguration()
+                        .setName( "ExpiryQueue" )
+                        .setRoutingType( RoutingType.ANYCAST ) ) );
 
         server.setConfiguration( config );
 

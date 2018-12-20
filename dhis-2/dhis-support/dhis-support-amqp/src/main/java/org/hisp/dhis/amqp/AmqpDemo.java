@@ -28,12 +28,13 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -50,29 +51,61 @@ public class AmqpDemo
         this.amqpManager = amqpManager;
     }
 
-    @Scheduled( fixedRate = 10_000, initialDelay = 10_000 )
-    public void produce() throws Exception
+    @PostConstruct
+    public void init() throws Exception
     {
         AmqpClient client = amqpManager.getClient();
-        Session session = client.createSession();
-        MessageProducer producer = session.createProducer( new JmsQueue( "example" ) );
-
-        TextMessage textMessage = session.createTextMessage( "Hello World" );
-        producer.send( textMessage );
-
-        session.close();
+        client.createTopic( "example" );
     }
 
-    @Scheduled( fixedRate = 3_000, initialDelay = 5_000 )
-    public void listen() throws Exception
+    @Scheduled( fixedRate = 5_000, initialDelay = 10_000 )
+    public void produce()
     {
         AmqpClient client = amqpManager.getClient();
-        Session session = client.createSession();
-        MessageConsumer consumer = session.createConsumer( new JmsQueue( "example" ) );
+        client.sendTopic( "example", "Hello World" );
+        client.close();
+    }
 
-        TextMessage textMessage = (TextMessage) consumer.receive( 500 );
-        System.err.println( "recv: " + textMessage.getText() );
+    @Scheduled( fixedRate = 500 )
+    public void listen()
+    {
+        AmqpClient client = null;
+        Session session = null;
 
-        session.close();
+        try
+        {
+            client = amqpManager.getClient();
+            session = client.createSession();
+            MessageConsumer consumer = session.createConsumer( new JmsTopic( "example" ) );
+
+            TextMessage textMessage = (TextMessage) consumer.receive( 100 );
+
+            if ( textMessage != null )
+            {
+                System.err.println( "recv: " + textMessage.getText() );
+            }
+
+            session.close();
+            client.close();
+        }
+        catch ( JMSException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                if ( session != null )
+                {
+                    session.close();
+                    client.close();
+                }
+            }
+            catch ( JMSException ex )
+            {
+                ex.printStackTrace();
+            }
+        }
     }
 }

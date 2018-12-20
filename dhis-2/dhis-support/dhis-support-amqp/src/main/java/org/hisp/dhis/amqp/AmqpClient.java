@@ -28,11 +28,18 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
 import org.springframework.util.Assert;
 
 import javax.jms.Connection;
+import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,12 +61,56 @@ public class AmqpClient
 
     public Session createSession() throws JMSException
     {
-        return createSession( true );
+        return createSession( false );
     }
 
     public Session createSession( boolean transacted ) throws JMSException
     {
         return connection.createSession( transacted, Session.AUTO_ACKNOWLEDGE );
+    }
+
+    public Topic createTopic( String topic ) throws JMSException
+    {
+        Session session = createSession();
+        Topic sessionTopic = session.createTopic( topic );
+        session.close();
+
+        return sessionTopic;
+    }
+
+    public Queue createQueue( String queue ) throws JMSException
+    {
+        Session session = createSession();
+        Queue sessionQueue = session.createQueue( queue );
+        session.close();
+
+        return sessionQueue;
+    }
+
+    public void sendQueue( String queue, String message )
+    {
+        send( new JmsQueue( queue ), message );
+    }
+
+    public void sendTopic( String topic, String message )
+    {
+        send( new JmsTopic( topic ), message );
+    }
+
+    public void send( Destination destination, String message )
+    {
+        try
+        {
+            Session session = createSession();
+            MessageProducer producer = session.createProducer( destination );
+            TextMessage textMessage = session.createTextMessage( message );
+            producer.send( textMessage );
+            session.close();
+        }
+        catch ( JMSException ex )
+        {
+            ex.printStackTrace();
+        }
     }
 
     public void close()
@@ -73,8 +124,9 @@ public class AmqpClient
         {
             connection.close();
         }
-        catch ( JMSException e )
+        catch ( JMSException ex )
         {
+            ex.printStackTrace();
         }
     }
 }
