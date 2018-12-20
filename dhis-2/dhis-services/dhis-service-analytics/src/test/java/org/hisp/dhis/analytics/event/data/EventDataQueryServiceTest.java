@@ -179,7 +179,7 @@ public class EventDataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
-        
+
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).build();
 
@@ -213,7 +213,7 @@ public class EventDataQueryServiceTest
         assertEquals( deA, params.getValue() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
-    
+
     @Test
     public void testGetFromUrlWithEventdateSorting()
     {
@@ -223,7 +223,7 @@ public class EventDataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-        
+
         Set<String> desc = new HashSet<String>();
         desc.add( "eventdate" );
 
@@ -241,7 +241,7 @@ public class EventDataQueryServiceTest
         assertTrue( "executiondate".equals( params.getDesc().get( 0 ).getName() ) );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
-    
+
     @Test
     public void testGetFromUrlWithOrgUnitNameSorting()
     {
@@ -251,7 +251,7 @@ public class EventDataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-        
+
         Set<String> desc = new HashSet<String>();
         desc.add( "ouname" );
 
@@ -269,7 +269,7 @@ public class EventDataQueryServiceTest
         assertTrue( "ouname".equals( params.getDesc().get( 0 ).getName() ) );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
-    
+
     @Test
     public void testGetFromUrlWithDataElementSorting()
     {
@@ -279,7 +279,7 @@ public class EventDataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-        
+
         Set<String> desc = new HashSet<String>();
         desc.add( deA.getUid() );
 
@@ -297,7 +297,7 @@ public class EventDataQueryServiceTest
         assertTrue( deA.getUid().equals( params.getDesc().get( 0 ).getUid() ) );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
-    
+
     @Test
     public void testGetFromUrlWithProgramAttributeSorting()
     {
@@ -307,7 +307,7 @@ public class EventDataQueryServiceTest
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-        
+
         Set<String> desc = new HashSet<String>();
         desc.add( atA.getUid() );
 
@@ -468,8 +468,9 @@ public class EventDataQueryServiceTest
     @Test
     public void testGetCoordinateField()
     {
-        assertEquals( "geom", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
-        assertEquals( "geom", dataQueryService.getCoordinateField( null ) );
+        assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
+        assertEquals( "pigeometry", dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
+        assertEquals( "psigeometry", dataQueryService.getCoordinateField( null ) );
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }
 
