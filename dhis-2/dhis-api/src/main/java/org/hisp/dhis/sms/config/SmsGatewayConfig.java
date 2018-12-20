@@ -35,6 +35,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.user.UserCredentials;
 
 /**
  * Super class for gateway configurations
@@ -123,5 +124,41 @@ public abstract class SmsGatewayConfig
     public void setUsername(String username)
     {
         this.username = username;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null )
+        {
+            return false;
+        }
+
+        if ( !( o instanceof SmsGatewayConfig ) )
+        {
+            return false;
+        }
+
+        final SmsGatewayConfig other = (SmsGatewayConfig) o;
+
+        return uid.equals( other.getUid() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SmsGatewayConfig{" +
+                "uid='" + uid + '\'' +
+                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", isDefault=" + isDefault +
+                ", urlTemplate='" + urlTemplate + '\'' +
+                '}';
     }
 }

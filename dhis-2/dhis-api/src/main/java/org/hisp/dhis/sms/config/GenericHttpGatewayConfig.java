@@ -46,10 +46,6 @@ public class GenericHttpGatewayConfig
     
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
-    public GenericHttpGatewayConfig()
-    {
-    }
-
     @JsonProperty( value = "parameters" )
     public List<GenericGatewayParameter> getParameters()
     {

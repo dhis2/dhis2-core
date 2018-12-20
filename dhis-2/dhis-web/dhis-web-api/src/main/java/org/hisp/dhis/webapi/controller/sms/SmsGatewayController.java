@@ -194,7 +194,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        gatewayAdminService.setDefaultGateway( uid );
+        gatewayAdminService.setDefaultGateway( gateway );
 
         webMessageService.send( WebMessageUtils.ok( gateway.getName() + " is set to default" ), response, request );
     }
@@ -213,9 +213,14 @@ public class SmsGatewayController
 
         Class<? extends SmsGatewayConfig> gatewayType = gatewayAdminService.getGatewayType( config );
 
-        config = renderService.fromJson( request.getInputStream(), gatewayType );
+        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), gatewayType );
 
-        gatewayAdminService.updateGateway( config );
+        if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Default gateway already exists" ) );
+        }
+
+        gatewayAdminService.updateGateway( config, updatedConfig  );
 
         webMessageService.send( WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) ), response, request );
     }
