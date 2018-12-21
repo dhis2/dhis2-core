@@ -1,0 +1,1 @@
+delete from jobconfiguration where name='Kafka Tracker Consume';
