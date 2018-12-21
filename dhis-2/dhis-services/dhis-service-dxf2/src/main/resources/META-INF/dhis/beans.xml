@@ -182,4 +182,12 @@
 
   <bean id="programDataSyncJob" class="org.hisp.dhis.dxf2.sync.ProgramDataSynchronizationJob" />
 
+  <!-- Document -->
+  <bean id="org.hisp.dhis.document.DocumentService" class="org.hisp.dhis.document.impl.DefaultDocumentService"/>
+
+  <bean id="org.hisp.dhis.document.DocumentStore" class="org.hisp.dhis.document.impl.HibernateDocumentStore">
+    <property name="clazz" value="org.hisp.dhis.document.Document" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
 </beans>
