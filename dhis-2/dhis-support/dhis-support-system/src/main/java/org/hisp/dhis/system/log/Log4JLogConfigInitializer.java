@@ -51,7 +51,7 @@ public class Log4JLogConfigInitializer
 {
     private static final PatternLayout PATTERN_LAYOUT = new PatternLayout( "* %-5p %d{ISO8601} %m (%F [%t])%n" );
 
-    private static final String MAX_FILE_SIZE = "50MB";
+    private static final String MAX_FILE_SIZE = "100MB";
 
     private static final String LOG_DIR = "logs";
     private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
@@ -147,6 +147,7 @@ public class Log4JLogConfigInitializer
         appender.setThreshold( Level.INFO );
         appender.setFile( file );
         appender.setMaxFileSize( MAX_FILE_SIZE );
+        appender.setMaxBackupIndex( 0 );
         appender.setLayout( PATTERN_LAYOUT );
         appender.activateOptions();
 
