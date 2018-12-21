@@ -369,6 +369,9 @@ dhis2.de.loadDataSetAssociations = function()
 dhis2.de.setMetaDataLoaded = function()
 {
     dhis2.de.metaDataIsLoaded = true;
+    dhis2.availability._isAvailable = true;
+    dhis2.availability._isLoggedIn = true;
+
     $( '#loaderSpan' ).hide();
     console.log( 'Meta-data loaded' );
 
@@ -1765,7 +1768,7 @@ function insertDataValues( json )
     dhis2.de.currentMinMaxValueMap = []; // Reset
     
     var period = dhis2.de.getSelectedPeriod();
-        
+
 	if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 )
 	{
 		dhis2.de.lockForm();
@@ -2110,7 +2113,7 @@ function registerCompleteDataSet()
             $.each( organisationUnitList, function( idx, item )
             {
                 if( item.uid )
-                {    			  	        
+                {
                     cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: item.uid} );
                 }            
             } );
@@ -2132,7 +2135,7 @@ function registerCompleteDataSet()
                 if( data && data.status == 'SUCCESS' )
                 {
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                    disableCompleteButton();                    
+                    disableCompleteButton();
                 }
                 else if( data && data.status == 'ERROR' )
                 {
@@ -2185,7 +2188,7 @@ function undoCompleteDataSet()
 
     var cc = dhis2.de.getCurrentCategoryCombo();
     var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
-    
+
     var params = 
     	'?ds=' + params.ds +
     	'&pe=' + params.pe +
@@ -2206,7 +2209,7 @@ function undoCompleteDataSet()
         {
             dhis2.de.storageManager.clearCompleteDataSet( params );
             $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-            disableUndoButton();         
+            disableUndoButton();
         },
         error: function( xhr, textStatus, errorThrown )
         {
@@ -2569,9 +2572,7 @@ function updateForms()
         .then(downloadRemoteForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
-        	dhis2.availability.startAvailabilityCheck();
-        	console.log( 'Started availability check' );
-
+            dhis2.availability.syncCheckAvailability();
             setDisplayNamePreferences();
             selection.responseReceived();
         } );
@@ -3115,7 +3116,7 @@ function StorageManager()
         try
         {
         	localStorage[KEY_COMPLETEDATASETS] = JSON.stringify( completeDataSets );
-        	
+
         	log( 'Successfully stored complete registration' );
         }
         catch ( e )
