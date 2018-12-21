@@ -210,7 +210,7 @@ public class ListGrid
 
         return this;
     }
-    
+
     @Override
     public Grid addHeaders( int headerIndex, List<GridHeader> gridHeaders )
     {
@@ -218,14 +218,14 @@ public class ListGrid
         {
             return this;
         }
-        
+
         for ( int i = gridHeaders.size() - 1; i >= 0; i-- )
         {
             headers.add( headerIndex, gridHeaders.get( i ) );
         }
-        
+
         updateColumnIndexMap();
-        
+
         return this;
     }
 
@@ -379,13 +379,13 @@ public class ListGrid
     @Override
     public Grid addValuesVar( Object... values )
     {
-        return addValues( values );        
+        return addValues( values );
     }
 
     @Override
     public Grid addValuesAsList( List<Object> values )
     {
-        return addValues( values.toArray() );        
+        return addValues( values.toArray() );
     }
 
     @Override
@@ -431,7 +431,7 @@ public class ListGrid
     {
         return grid;
     }
-    
+
     @Override
     public List<List<Object>> getVisibleRows()
     {
@@ -462,17 +462,17 @@ public class ListGrid
 
     @Override
     public List<Object> getColumn( int columnIndex )
-    {        
+    {
         List<Object> column = new ArrayList<>();
-        
+
         for ( List<Object> row : grid )
         {
             column.add( row.get( columnIndex ) );
         }
-        
+
         return column;
     }
-    
+
     @Override
     public Object getValue( int rowIndex, int columnIndex )
     {
@@ -532,20 +532,20 @@ public class ListGrid
         Validate.inclusiveBetween( 0, getWidth() - 1, referenceColumnIndex );
         Validate.notNull( valueMap );
         verifyGridState();
-                
+
         for ( List<Object> row : grid )
         {
             Object refVal = row.get( referenceColumnIndex );
             List<?> list = valueMap.get( refVal );
-            
+
             for ( int i = 0; i < newColumns; i++ )
-            {                
+            {
                 Object value = list == null ? null : Iterables.get( list, i, null );
                 int index = referenceColumnIndex + i;
                 row.add( index, value );
             }
         }
-        
+
         return this;
     }
 
@@ -556,9 +556,9 @@ public class ListGrid
         {
             return this;
         }
-        
+
         int lastCol = getWidth() - 1;
-        
+
         for ( int i = lastCol; i >= 0; i-- )
         {
             if ( columnIsEmpty( i ) )
@@ -566,7 +566,7 @@ public class ListGrid
                 removeColumn( i );
             }
         }
-        
+
         return this;
     }
 
@@ -574,20 +574,20 @@ public class ListGrid
     public boolean columnIsEmpty( int columnIndex )
     {
         verifyGridState();
-        
+
         for ( List<Object> row : grid )
         {
             Object val = row.get( columnIndex );
-            
+
             if ( val != null )
             {
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     @Override
     public Grid removeColumn( int columnIndex )
     {
@@ -642,7 +642,7 @@ public class ListGrid
     {
         return internalMetaData != null && internalMetaData.containsKey( key );
     }
-    
+
     @Override
     public Grid limitGrid( int limit )
     {
@@ -691,7 +691,7 @@ public class ListGrid
 
         return this;
     }
-    
+
     @Override
     public Grid addRegressionColumn( int columnIndex, boolean addHeader )
     {
@@ -904,6 +904,7 @@ public class ListGrid
         return values;
     }
 
+    @Override
     @SuppressWarnings( "unchecked" )
     public <T> Map<String, T> getAsMap( int valueIndex, String keySeparator )
     {
@@ -1030,7 +1031,7 @@ public class ListGrid
             for ( int i = 1; i <= cols; i++ )
             {
                 addValue( rs.getObject( i ) );
-                
+
                 if ( maxLimit > 0 && i > maxLimit )
                 {
                     throw new IllegalStateException( "Number of rows produced by query is larger than the max limit: " + maxLimit );

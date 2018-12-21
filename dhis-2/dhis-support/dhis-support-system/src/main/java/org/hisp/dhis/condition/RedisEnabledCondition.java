@@ -37,7 +37,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * Condition that matches to true if redis.enabled property is set to true in
  * dhis.conf
- * 
+ *
  * @author Ameen Mohamed
  *
  */

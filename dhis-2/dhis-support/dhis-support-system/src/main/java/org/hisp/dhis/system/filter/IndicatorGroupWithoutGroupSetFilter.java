@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.predicate;
+package org.hisp.dhis.system.filter;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,23 +28,18 @@ package org.hisp.dhis.system.predicate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.function.Predicate;
-
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.commons.filter.Filter;
 
 /**
-* @author Lars Helge Overland
-*/
-public class ArithmeticValueTypeTrackedEntityAttributeFilter
-    implements Predicate<TrackedEntityAttribute>
+ * @author Lars Helge Overland
+ */
+public class IndicatorGroupWithoutGroupSetFilter
+    implements Filter<IndicatorGroup>
 {
-    public static final ArithmeticValueTypeTrackedEntityAttributeFilter INSTANCE = new ArithmeticValueTypeTrackedEntityAttributeFilter();
-    
     @Override
-    public boolean test( TrackedEntityAttribute attribute )
+    public boolean retain( IndicatorGroup object )
     {
-        return attribute != null && attribute.getValueType() != null && 
-            DimensionalObject.ARITHMETIC_VALUE_TYPES.contains( attribute.getValueType() );
+        return object == null || object.getGroupSet() == null;
     }
 }
