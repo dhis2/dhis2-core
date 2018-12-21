@@ -40,9 +40,9 @@ import java.util.List;
  * Default implementation of StartupRoutineExecutor. The execute method will
  * execute the added StartupRoutines ordered by their run levels. Startup routines
  * can be ignored from the command line by appending the below.
- * 
+ *
  * <code>-Ddhis.skip.startup=true</code>
- * 
+ *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
 public class DefaultStartupRoutineExecutor
@@ -52,10 +52,10 @@ public class DefaultStartupRoutineExecutor
 
     private static final String TRUE = "true";
     private static final String SKIP_PROP = "dhis.skip.startup";
-    
+
     @Autowired
     private DhisConfigurationProvider config;
-    
+
     @Autowired( required = false )
     private List<StartupRoutine> startupRoutines;
 
@@ -69,14 +69,14 @@ public class DefaultStartupRoutineExecutor
     {
         execute( false );
     }
-    
+
     @Override
     public void executeForTesting()
         throws Exception
     {
         execute( true );
     }
-    
+
     private void execute( boolean testing )
         throws Exception
     {
@@ -85,19 +85,19 @@ public class DefaultStartupRoutineExecutor
             log.debug( "No startup routines found" );
             return;
         }
-        
+
         if ( TRUE.equalsIgnoreCase( System.getProperty( SKIP_PROP ) ) )
         {
             log.info( "Skipping startup routines, system property " + SKIP_PROP + " is true" );
             return;
         }
-        
+
         if ( config.isReadOnlyMode() )
         {
             log.info( "Skipping startup routines, read-only mode is enabled" );
             return;
         }
-        
+
         Collections.sort( startupRoutines, new StartupRoutineComparator() );
 
         int total = startupRoutines.size();
@@ -111,7 +111,7 @@ public class DefaultStartupRoutineExecutor
                     + "]: " + routine.getName() );
 
                 routine.execute();
-                
+
                 ++index;
             }
         }
