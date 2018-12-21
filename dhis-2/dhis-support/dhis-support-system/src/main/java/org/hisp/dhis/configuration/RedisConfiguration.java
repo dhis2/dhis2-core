@@ -43,7 +43,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Configuration registered if {@link RedisEnabledCondition} matches to true.
  * This class deals with the configuration properties for establishing
  * connection to a redis server.
- * 
+ *
  * @author Ameen Mohamed
  *
  */
@@ -52,7 +52,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Conditional( RedisEnabledCondition.class )
 public class RedisConfiguration
 {
-
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory()
         throws Exception
@@ -88,7 +87,7 @@ public class RedisConfiguration
     {
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_USE_SSL );
     }
-    
+
     @Bean
     public RedisTemplate<?, ?> redisTemplate()
         throws Exception

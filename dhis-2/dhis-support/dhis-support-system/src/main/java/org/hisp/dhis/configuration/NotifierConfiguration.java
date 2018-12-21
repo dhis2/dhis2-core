@@ -43,7 +43,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 /**
  * This class deals with the configuring an appropriate notifier depending on
  * whether redis is enabled or not.
- * 
+ *
  * @author Ameen Mohamed
  *
  */

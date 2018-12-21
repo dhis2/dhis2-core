@@ -46,7 +46,8 @@ public abstract class TransactionContextStartupRoutine
     * Work performed in this method will run inside a transaction context.
     */
    public abstract void executeInTransaction();
-   
+
+   @Override
    public final void execute()
    {
        transactionTemplate.execute( new TransactionCallback<Object>()
@@ -54,7 +55,7 @@ public abstract class TransactionContextStartupRoutine
            @Override
            public Object doInTransaction( TransactionStatus status )
            {
-               executeInTransaction();                
+               executeInTransaction();
                return null;
            }
        } );
