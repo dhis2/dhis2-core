@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.kafka;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,47 +28,25 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.render.DefaultRenderService;
-import org.junit.Test;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import java.io.IOException;
-
-import static org.junit.Assert.assertNotNull;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class KafkaMessageTest
+public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
 {
-    @Test
-    public void testSerialize() throws IOException
+
+    public static final String SINGULAR = "programStageInstance";
+
+    public static final String PLURAL = "programStageInstances";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        ObjectMapper mapper = DefaultRenderService.getJsonMapper();
+        Schema schema = new Schema( ProgramStageInstance.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
 
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setOrgUnit( CodeGenerator.generateUid() );
-        event.setStatus( EventStatus.COMPLETED );
-
-        KafkaEvent kafkaEvent = new KafkaEvent(
-            CodeGenerator.generateUid(),
-            CodeGenerator.generateUid(),
-            CodeGenerator.generateUid(),
-            ImportOptions.getDefaultImportOptions(),
-            event
-        );
-
-        String eventString = mapper.writeValueAsString( kafkaEvent );
-
-        KafkaEvent value = mapper.readValue( eventString, KafkaEvent.class );
-
-        assertNotNull( value );
-        assertNotNull( value.getImportOptions() );
-        assertNotNull( value.getPayload() );
+        return schema;
     }
 }

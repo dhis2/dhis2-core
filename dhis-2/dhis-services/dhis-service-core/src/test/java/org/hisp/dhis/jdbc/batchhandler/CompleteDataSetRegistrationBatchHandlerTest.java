@@ -126,10 +126,10 @@ public class CompleteDataSetRegistrationBatchHandlerTest
 
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy, lastUpdatedBy, now, true );
-        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy, lastUpdatedBy, now, true );
-        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, lastUpdatedBy, now, true );
-        regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy, lastUpdatedBy, now, true );
+        regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy, now, lastUpdatedBy, true );
+        regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy, now, lastUpdatedBy, true );
+        regC = new CompleteDataSetRegistration( dataSetA, periodB, unitA, attributeOptionCombo, now, storedBy, now, lastUpdatedBy, true );
+        regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy, now, lastUpdatedBy, true );
 
         batchHandler.init();
     }

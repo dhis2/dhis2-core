@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.kafka;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,48 +28,25 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class KafkaTrackerJob
-    extends AbstractJob
+public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
 {
-    private static final Log log = LogFactory.getLog( KafkaTrackerJob.class );
 
-    @Autowired
-    private SystemService systemService;
+    public static final String SINGULAR = "programInstance";
 
-    @Autowired
-    private TrackerKafkaManager trackerKafkaManager;
+    public static final String PLURAL = "programInstances";
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.KAFKA_TRACKER;
-    }
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public void execute( JobConfiguration jobConfiguration ) throws Exception
+    public Schema getSchema()
     {
-        SystemInfo systemInfo = systemService.getSystemInfo();
+        Schema schema = new Schema( ProgramInstance.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
 
-        if ( !systemInfo.isKafka() )
-        {
-            log.debug( "Kafka integration is not enabled, skipping scheduled kafka job." );
-            return;
-        }
-
-        trackerKafkaManager.consumeTrackedEntities( jobConfiguration );
-        trackerKafkaManager.consumeEnrollments( jobConfiguration );
-        trackerKafkaManager.consumeEvents( jobConfiguration );
+        return schema;
     }
 }

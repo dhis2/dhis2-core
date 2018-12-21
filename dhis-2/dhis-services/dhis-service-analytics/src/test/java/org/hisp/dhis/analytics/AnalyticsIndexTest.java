@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.kafka;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,25 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.junit.Test;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class KafkaEnrollment extends AbstractKafkaMessage<Enrollment>
+import com.google.common.collect.Lists;
+
+import static org.junit.Assert.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
+public class AnalyticsIndexTest
 {
-    @JsonCreator
-    public KafkaEnrollment(
-        @JsonProperty( "id" ) String id,
-        @JsonProperty( "jobId" ) String jobId,
-        @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions,
-        @JsonProperty( "payload" ) Enrollment payload )
+    @Test
+    public void testGetIndexName()
     {
-        super( id, jobId, user, importOptions, payload );
+        AnalyticsIndex indexA = new AnalyticsIndex( "analytics_2017_temp", Lists.newArrayList( quote( "quarterly" ) ), null );
+        AnalyticsIndex indexB = new AnalyticsIndex( "analytics_2018_temp", Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
+        AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ), null );
+
+        assertTrue( indexA.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
+        assertTrue( indexB.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_ax_co_ax_2018_" ) );
+        assertTrue( indexC.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_YtbsuPPo010_ax_2019_" ) );
     }
 }

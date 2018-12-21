@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.kafka;
+package org.hisp.dhis.userkeyjsonvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,27 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class KafkaTrackedEntity extends AbstractKafkaMessage<TrackedEntityInstance>
+public class UserKeyJsonValueDeletionHandler
+    extends DeletionHandler
 {
-    @JsonCreator
-    public KafkaTrackedEntity(
-        @JsonProperty( "id" ) String id,
-        @JsonProperty( "jobId" ) String jobId,
-        @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions,
-        @JsonProperty( "payload" ) TrackedEntityInstance payload )
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
+    @Override
+    protected String getClassName()
     {
-        super( id, jobId, user, importOptions, payload );
+        return UserKeyJsonValue.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId());
     }
 }

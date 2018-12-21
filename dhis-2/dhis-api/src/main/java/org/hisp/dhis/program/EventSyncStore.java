@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,37 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public interface KafkaManager
+public interface EventSyncStore
 {
-    boolean isEnabled();
-
-    KafkaAdmin getAdmin();
-
-    //--------------------------------------------------------------------------
-    // String based kafka serializer/deserializer
-    //--------------------------------------------------------------------------
-
-    KafkaTemplate<String, String> getTemplate();
-
-    ConsumerFactory<String, String> getConsumerFactory( String group );
-
-    ProducerFactory<String, String> getProducerFactory();
-
-    //--------------------------------------------------------------------------
-    // Generic implementations, requires serializer/deserializer instances
-    //--------------------------------------------------------------------------
-
-    <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory );
-
-    <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
-
-    <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
-
-    <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
+    /**
+     * Returns the {@link ProgramStageInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramStageInstance with the given UID, or null if no
+     * match.
+     */
+    ProgramStageInstance getEvent( String uid );
+    
+    /**
+     * Returns the {@link ProgramInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramInstance with the given UID, or null if no
+     * match.
+     */
+    ProgramInstance getEnrollment( String uid );
+    
+    /**
+     * Get events (including deleted)
+     * 
+     * @param uids UIDs of events to be fetched
+     * @return list of events
+     */
+    List<ProgramStageInstance> getEvents( List<String> uids );
 }

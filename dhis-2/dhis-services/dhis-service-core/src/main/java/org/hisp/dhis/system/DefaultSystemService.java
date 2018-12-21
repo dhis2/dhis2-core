@@ -41,7 +41,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.kafka.KafkaConfig;
 import org.hisp.dhis.logging.LogFormat;
 import org.hisp.dhis.logging.LogLevel;
 import org.hisp.dhis.logging.LoggingConfig;
@@ -149,22 +148,6 @@ public class DefaultSystemService
 
         setSystemMetadataVersionInfo( info );
 
-        // ---------------------------------------------------------------------
-        // Kafka
-        // ---------------------------------------------------------------------
-
-        KafkaConfig kafka = new KafkaConfig(
-            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
-            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
-        );
-
-        if ( kafka.isValid() )
-        {
-            info.setKafka( kafka );
-        }
-
         info.setLogging( new LoggingConfig(
             LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
             LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
@@ -243,6 +226,13 @@ public class DefaultSystemService
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
+        info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
+        info.setRedisEnabled( Boolean.valueOf( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+
+        if ( info.isRedisEnabled() )
+        {
+            info.setRedisHostname( dhisConfig.getProperty( ConfigurationKey.REDIS_HOST ) );
+        }
 
         // ---------------------------------------------------------------------
         // Database

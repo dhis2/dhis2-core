@@ -1,4 +1,4 @@
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,30 +28,39 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import java.util.List;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true.
- * Redis backed Spring Session will be configured due to the
- * {@link EnableRedisHttpSession} annotation.
- * 
- * @author Ameen Mohamed
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-@Configuration
-@DependsOn( "dhisConfigurationProvider" )
-@Conditional( RedisEnabledCondition.class )
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration
+public interface EventSyncService
 {
-    @Bean
-    public static ConfigureRedisAction configureRedisAction() {
-            return ConfigureRedisAction.NO_OP;
-    }
+    
+    /**
+     * Returns the {@link ProgramStageInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramStageInstance with the given UID, or null if no
+     * match.
+     */
+    ProgramStageInstance getEvent( String uid );
+    
+    /**
+     * Returns the {@link ProgramInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramInstance with the given UID, or null if no
+     * match.
+     */
+    ProgramInstance getEnrollment( String uid );    
+    
+    /**
+     * Returns events (including deleted)
+     * 
+     * @param uids UIDs of events to be fetched
+     * @return list of events
+     */
+    List<ProgramStageInstance> getEvents( List<String> uids );
+
 }

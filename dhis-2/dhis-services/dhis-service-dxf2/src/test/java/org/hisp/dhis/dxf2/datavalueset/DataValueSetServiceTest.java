@@ -296,7 +296,7 @@ public class DataValueSetServiceTest
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         _userService.addUser( user );
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration(dsA, peA, ouA, categoryOptionCombo,
-            getDate( 2012, 1, 9 ), "userA", "userA", new Date(), true);
+            getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true);
         registrationService.saveCompleteDataSetRegistration(completeDataSetRegistration);
     }
 

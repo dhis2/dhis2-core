@@ -62,6 +62,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized
@@ -104,7 +105,7 @@ public class JdbcAnalyticsTableManager
     {
         AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
 
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
 
     @Override
@@ -146,7 +147,7 @@ public class JdbcAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList(
+        return newArrayList(
             "year = " + partition.getYear() + "",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
@@ -358,8 +359,8 @@ public class JdbcAnalyticsTableManager
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid", newArrayList( quote( "dx" ), quote( "co" ) ) ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid", newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
