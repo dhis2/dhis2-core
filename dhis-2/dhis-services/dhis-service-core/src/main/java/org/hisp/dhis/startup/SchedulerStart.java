@@ -34,7 +34,6 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -142,14 +141,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                         + oldExecutionTime );
                 }
 
-                if ( JobType.KAFKA_TRACKER == jobConfig.getJobType() && !systemService.getSystemInfo().isKafka() )
-                {
-                    log.info( "Kafka is not enabled, disabling scheduled Kafka job." );
-                }
-                else
-                {
-                    schedulingManager.scheduleJob( jobConfig );
-                }
+                schedulingManager.scheduleJob( jobConfig );
             }
         }) );
 
