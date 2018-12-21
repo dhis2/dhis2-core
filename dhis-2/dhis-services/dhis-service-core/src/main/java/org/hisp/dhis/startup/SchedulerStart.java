@@ -70,7 +70,6 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
-    private final String DEFAULT_KAFKA_TRACKER = "Kafka Tracker Consume";
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
     @Autowired
@@ -209,13 +208,6 @@ public class SchedulerStart extends AbstractStartupRoutine
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
             addAndScheduleJob( removeExpiredReservedValues );
-        }
-
-        if ( verifyNoJobExist( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
-        {
-            JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
-                KAFKA_TRACKER, "* * * * * ?", null, true, true );
-            addAndScheduleJob( kafkaTracker );
         }
 
         if ( verifyNoJobExist( DEFAULT_LEADER_ELECTION, jobConfigurations ) && "true".equalsIgnoreCase( redisEnabled ) )
