@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.kafka;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,49 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
+import java.util.List;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class KafkaEvent extends AbstractKafkaMessage<Event>
+@Transactional
+public class DefaultEventSyncService implements EventSyncService
 {
-    @JsonCreator
-    public KafkaEvent(
-        @JsonProperty( "id" ) String id,
-        @JsonProperty( "jobId" ) String jobId,
-        @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions,
-        @JsonProperty( "payload" ) Event payload )
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private EventSyncStore eventSyncStore;
+
+    public void setEventSyncStore( EventSyncStore eventSyncStore )
     {
-        super( id, jobId, user, importOptions, payload );
+        this.eventSyncStore = eventSyncStore;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public List<ProgramStageInstance> getEvents( List<String> uids )
+    {
+        return eventSyncStore.getEvents( uids );
+    }
+
+    @Override
+    public ProgramStageInstance getEvent( String uid )
+    {
+        return eventSyncStore.getEvent( uid );
+    }
+
+    @Override
+    public ProgramInstance getEnrollment( String uid )
+    {
+        return eventSyncStore.getEnrollment( uid );
     }
 }

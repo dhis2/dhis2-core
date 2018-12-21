@@ -273,7 +273,12 @@ public class DefaultEventDataQueryService
     {
         if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            return "geom";
+            return "psigeometry";
+        }
+
+        if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
+        {
+            return "pigeometry";
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
@@ -343,14 +348,22 @@ public class DefaultEventDataQueryService
 
     private DimensionalItemObject getSortItem( String item, Program program )
     {
-        QueryItem queryItem = getQueryItem( item, program );
+        QueryItem queryItem = null;
 
-        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && queryItem == null )
+        if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
+        {
+            item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+            queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
+        }
+        else
+        {
+            queryItem = getQueryItem( item, program );
+        }
+
+        if ( queryItem == null )
         {
             throw new IllegalQueryException( "Sort item is invalid: " + item );
         }
-
-        item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
 
         return queryItem.getItem();
     }

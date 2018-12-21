@@ -44,7 +44,6 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -72,9 +71,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
-
 /**
  * @author Lars Helge Overland
  */
@@ -87,7 +83,6 @@ public abstract class AbstractJdbcTableManager
 
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
-    public static final String PREFIX_INDEX = "in_";
 
     @Autowired
     protected IdentifiableObjectManager idObjectManager;
@@ -154,10 +149,11 @@ public abstract class AbstractJdbcTableManager
                 break taskLoop;
             }
 
-            final String indexName = getIndexName( inx );
+            final String indexName = inx.getIndexName( getAnalyticsTableType() );
             final String indexType = inx.hasType() ? " using " + inx.getType() : "";
+            final String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + inx.getColumn() + ")";
+            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
             log.debug( "Create index: " + indexName + " SQL: " + sql );
 
@@ -273,30 +269,6 @@ public abstract class AbstractJdbcTableManager
     protected String getTableName()
     {
         return getAnalyticsTableType().getTableName();
-    }
-
-    /**
-     * Shortens the given table name.
-     *
-     * @param table the table name.
-     */
-    private String shortenTableName( String table )
-    {
-        table = table.replaceAll( getAnalyticsTableType().getTableName(), "ax" );
-        table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
-
-        return table;
-    }
-
-    /**
-     * Returns index name for column. Purpose of code suffix is to avoid uniqueness
-     * collision between indexes for temporary and real tables.
-     *
-     * @param inx the {@link AnalyticsIndex}.
-     */
-    protected String getIndexName( AnalyticsIndex inx )
-    {
-        return quote( PREFIX_INDEX + removeQuote( inx.getColumn() ) + "_" + shortenTableName( inx.getTable() ) + "_" + CodeGenerator.generateCode( 5 ) );
     }
 
     /**

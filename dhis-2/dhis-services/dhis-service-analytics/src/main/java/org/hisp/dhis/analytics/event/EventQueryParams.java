@@ -69,6 +69,7 @@ public class EventQueryParams
     extends DataQueryParams
 {
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
     /**
      * The query items.

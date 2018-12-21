@@ -64,7 +64,7 @@ public class ProgramRuleEngine
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
-    private static final Set<ProgramRuleActionType> implementableTypes = ProgramRuleActionType.getImplementedActions();
+    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = ProgramRuleActionType.getImplementedActions();
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -201,7 +201,7 @@ public class ProgramRuleEngine
         if ( !orgUnitGroups.isEmpty() )
         {
             supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                .stream().map( OrganisationUnit::getUid ).collect(Collectors.toList() ) ) );
+                .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
         }
 
         if ( currentUserService.getCurrentUser() != null )
@@ -220,6 +220,6 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getImplementableProgramRules( program, implementableTypes );
+        return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
     }
 }
