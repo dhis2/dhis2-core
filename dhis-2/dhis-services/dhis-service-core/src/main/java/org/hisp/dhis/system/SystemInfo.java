@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.kafka.KafkaConfig;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
@@ -118,9 +117,9 @@ public class SystemInfo
     private boolean encryption;
 
     private boolean emailConfigured;
-    
+
     private boolean redisEnabled;
-    
+
     private String redisHostname;
 
     private String systemId;
@@ -144,8 +143,6 @@ public class SystemInfo
     private MetadataAudit metadataAudit;
 
     private RabbitMQ rabbitMQ;
-
-    private KafkaConfig kafka;
 
     private LoggingConfig logging;
 
@@ -559,7 +556,7 @@ public class SystemInfo
     {
         this.emailConfigured = emailConfigured;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isRedisEnabled()
@@ -571,7 +568,7 @@ public class SystemInfo
     {
         this.redisEnabled = redisEnabled;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRedisHostname()
@@ -714,23 +711,6 @@ public class SystemInfo
     public void setRabbitMQ( RabbitMQ rabbitMQ )
     {
         this.rabbitMQ = rabbitMQ;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public KafkaConfig getKafka()
-    {
-        return kafka;
-    }
-
-    public void setKafka( KafkaConfig kafka )
-    {
-        this.kafka = kafka;
-    }
-
-    public boolean isKafka()
-    {
-        return kafka != null && kafka.isValid();
     }
 
     @JsonProperty
