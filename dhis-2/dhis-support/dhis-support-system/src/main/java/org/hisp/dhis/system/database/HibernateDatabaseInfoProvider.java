@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
  */
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
-{    
+{
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
     private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
     private static final String DEL_A = "/";
@@ -55,7 +55,7 @@ public class HibernateDatabaseInfoProvider
     private static final Pattern PATTERN = Pattern.compile( POSTGRES_REGEX );
 
     private DatabaseInfo info;
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -65,13 +65,13 @@ public class HibernateDatabaseInfoProvider
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-        
+
     public void init()
     {
         checkDatabaseConnectivity();
-        
+
         boolean spatialSupport = isSpatialSupport();
-        
+
         // Check if postgis is installed. If not, fail startup.
 
         if ( !spatialSupport && !SystemUtils.isTestRun() )
@@ -79,7 +79,7 @@ public class HibernateDatabaseInfoProvider
             log.error( POSTGIS_MISSING_ERROR );
             throw new IllegalStateException( POSTGIS_MISSING_ERROR );
         }
-        
+
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );
         String user = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String password = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
@@ -92,17 +92,17 @@ public class HibernateDatabaseInfoProvider
         info.setSpatialSupport( spatialSupport );
         info.setDatabaseVersion( getDatabaseVersion() );
     }
-    
+
     // -------------------------------------------------------------------------
     // DatabaseInfoProvider implementation
     // -------------------------------------------------------------------------
 
     @Override
     public DatabaseInfo getDatabaseInfo()
-    {   
+    {
         return info;
     }
-    
+
     @Override
     public boolean isInMemory()
     {
@@ -113,17 +113,17 @@ public class HibernateDatabaseInfoProvider
     public String getNameFromConnectionUrl( String url )
     {
         String name = null;
-        
+
         if ( url != null && url.lastIndexOf( DEL_B ) != -1 )
         {
-            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );            
+            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );
             int endPos = url.lastIndexOf( DEL_C ) != -1 ? url.lastIndexOf( DEL_C ) : url.length();
             name = url.substring( startPos + 1, endPos );
         }
-        
+
         return name;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -153,7 +153,7 @@ public class HibernateDatabaseInfoProvider
             return "";
         }
     }
-    
+
     private void checkDatabaseConnectivity()
     {
         jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
@@ -168,11 +168,11 @@ public class HibernateDatabaseInfoProvider
         catch ( Exception ex )
         {
         }
-        
+
         try
         {
             String version = jdbcTemplate.queryForObject( "select postgis_full_version();", String.class );
-            
+
             return version != null;
         }
         catch ( Exception ex )

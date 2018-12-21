@@ -1,5 +1,12 @@
 package org.hisp.dhis.dataanalysis;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,19 +39,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -53,8 +51,6 @@ public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
     private static final Log log = LogFactory.getLog( DefaultFollowupAnalysisService.class );
-
-    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter( ValueType.NUMERIC_TYPES );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -80,9 +76,9 @@ public class DefaultFollowupAnalysisService
             return new ArrayList<>();
         }
 
-        Set<DataElement> elements = new HashSet<>( dataElements );
-
-        FilterUtils.filter( elements, DE_NUMERIC_FILTER );
+        Set<DataElement> elements = dataElements.stream()
+            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .collect( Collectors.toSet() );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 

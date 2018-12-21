@@ -28,28 +28,18 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.dataelement.DataElement;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class DataElementValueTypesFilter
-    implements Filter<DataElement>
+public class IndicatorGroupWithoutGroupSetFilter
+    implements Filter<IndicatorGroup>
 {
-    private Set<ValueType> valueTypes;
-
-    public DataElementValueTypesFilter( Set<ValueType> valueTypes )
-    {
-        this.valueTypes = valueTypes;
-    }
-
     @Override
-    public boolean retain( DataElement dataElement )
+    public boolean retain( IndicatorGroup object )
     {
-        return dataElement != null && valueTypes.contains( dataElement.getValueType() );
+        return object == null || object.getGroupSet() == null;
     }
 }
