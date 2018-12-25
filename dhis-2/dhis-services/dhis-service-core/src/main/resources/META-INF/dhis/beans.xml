@@ -40,8 +40,6 @@
 
   <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
 
-  <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
-
   <!-- Store definitions -->
 
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

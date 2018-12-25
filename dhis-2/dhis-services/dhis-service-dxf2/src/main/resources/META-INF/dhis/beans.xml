@@ -98,10 +98,6 @@
 
   <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
 
-  <bean class="org.hisp.dhis.dxf2.events.kafka.DefaultTrackerKafkaManager" />
-
-  <bean id="kafkaTrackerJob" class="org.hisp.dhis.dxf2.events.kafka.KafkaTrackerJob" />
-
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
