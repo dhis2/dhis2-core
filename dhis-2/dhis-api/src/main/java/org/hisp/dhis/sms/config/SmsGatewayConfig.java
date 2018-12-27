@@ -35,7 +35,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * Super class for gateway configurations
