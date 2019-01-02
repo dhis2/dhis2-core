@@ -1153,13 +1153,6 @@
 
   <!-- Tracker services -->
 
-  <bean id="org.hisp.dhis.program.ProgramDataEntryService" class="org.hisp.dhis.program.DefaultProgramDataEntryService">
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
     <property name="programExpressionStore" ref="org.hisp.dhis.program.ProgramExpressionStore" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
