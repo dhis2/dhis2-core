@@ -43,7 +43,7 @@ import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDateString;
 
 /**
  * @author Jim Grace

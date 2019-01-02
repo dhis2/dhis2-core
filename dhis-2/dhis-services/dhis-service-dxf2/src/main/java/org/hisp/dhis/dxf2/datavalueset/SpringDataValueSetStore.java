@@ -37,9 +37,9 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,8 +53,8 @@ import java.util.Date;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDateString;
 
 /**
  * @author Lars Helge Overland

@@ -31,7 +31,7 @@ package org.hisp.dhis.render;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.hibernate.util.DateUtils;
 
 import java.io.IOException;
 import java.util.Date;

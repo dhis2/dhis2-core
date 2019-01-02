@@ -37,7 +37,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland

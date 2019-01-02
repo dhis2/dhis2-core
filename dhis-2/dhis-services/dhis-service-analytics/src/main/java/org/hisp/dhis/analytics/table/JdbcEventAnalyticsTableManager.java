@@ -28,38 +28,37 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Lars Helge Overland

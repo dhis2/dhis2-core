@@ -33,7 +33,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.hibernate.util.DateUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

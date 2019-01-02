@@ -28,10 +28,8 @@ package org.hisp.dhis.mobile.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Calendar;
-import java.util.Vector;
-
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -39,7 +37,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.system.util.DateUtils;
+
+import java.util.Calendar;
+import java.util.Vector;
 
 public class PeriodUtil
 {

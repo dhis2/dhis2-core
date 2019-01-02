@@ -42,11 +42,11 @@ import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
 import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

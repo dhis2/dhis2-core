@@ -47,13 +47,13 @@ import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +69,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.dataapproval.DataApprovalState.*;
+import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
 /**
  * @author Jim Grace

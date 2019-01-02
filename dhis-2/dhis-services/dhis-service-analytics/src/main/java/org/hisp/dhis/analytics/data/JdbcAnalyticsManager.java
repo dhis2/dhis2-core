@@ -28,18 +28,9 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -72,23 +63,37 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import javax.annotation.Resource;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
-import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.COUNT;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AggregationType.STDDEV;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data

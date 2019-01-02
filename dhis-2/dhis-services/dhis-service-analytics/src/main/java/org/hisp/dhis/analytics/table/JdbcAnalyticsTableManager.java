@@ -31,38 +31,48 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
-import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized

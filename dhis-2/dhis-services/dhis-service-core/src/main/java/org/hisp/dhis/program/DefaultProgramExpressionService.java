@@ -31,7 +31,7 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -40,7 +40,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hisp.dhis.program.ProgramExpression.*;
+import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
+import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
+import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramExpression.REPORT_DATE;
+import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_ID;
+import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
 
 /**
  * @author Chau Thu Tran

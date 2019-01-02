@@ -28,8 +28,8 @@ package org.hisp.dhis.datastatistics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.SortOrder;
-
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
@@ -40,14 +40,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hisp.dhis.system.util.DateUtils.asSqlDate;
+import static org.hisp.dhis.hibernate.util.DateUtils.asSqlDate;
 
 /**
  * @author Yrjan A. F. Fraschetti

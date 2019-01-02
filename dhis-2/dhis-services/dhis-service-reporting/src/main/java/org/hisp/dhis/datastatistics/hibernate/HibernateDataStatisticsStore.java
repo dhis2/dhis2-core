@@ -29,18 +29,17 @@ package org.hisp.dhis.datastatistics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.Date;
 import java.util.List;

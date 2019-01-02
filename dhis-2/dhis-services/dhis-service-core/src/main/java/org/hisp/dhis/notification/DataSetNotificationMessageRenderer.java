@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;

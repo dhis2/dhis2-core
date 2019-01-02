@@ -28,20 +28,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -49,10 +35,10 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -63,6 +49,20 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran

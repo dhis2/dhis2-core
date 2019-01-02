@@ -35,24 +35,28 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland

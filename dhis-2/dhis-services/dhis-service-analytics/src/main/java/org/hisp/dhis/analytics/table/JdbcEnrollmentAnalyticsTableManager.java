@@ -45,11 +45,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Markus Bekken

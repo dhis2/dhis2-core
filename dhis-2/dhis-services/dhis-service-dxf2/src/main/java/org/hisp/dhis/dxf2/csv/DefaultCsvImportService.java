@@ -41,7 +41,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -69,7 +72,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDate;
 
 /**
  * TODO Unit testing

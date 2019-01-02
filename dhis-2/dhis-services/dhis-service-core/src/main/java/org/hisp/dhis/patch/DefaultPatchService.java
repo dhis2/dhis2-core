@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -47,7 +48,6 @@ import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 

@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,8 +40,9 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -52,7 +52,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
-
 import java.util.stream.Collectors;
 
 /**

@@ -48,11 +48,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.util.DateUtils.getSecondsUntilTomorrow;
+import static org.hisp.dhis.hibernate.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
  * @author Lars Helge Overland

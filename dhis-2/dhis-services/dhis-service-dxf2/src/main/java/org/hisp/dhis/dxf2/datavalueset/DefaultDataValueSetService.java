@@ -69,6 +69,7 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -95,7 +96,6 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -118,10 +118,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.hibernate.util.DateUtils.parseDate;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
-import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.

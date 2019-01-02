@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -41,7 +42,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 

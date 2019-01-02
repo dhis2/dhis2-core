@@ -29,26 +29,25 @@ package org.hisp.dhis.program;
  */
 
 import com.google.common.collect.ImmutableMap;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
-import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
