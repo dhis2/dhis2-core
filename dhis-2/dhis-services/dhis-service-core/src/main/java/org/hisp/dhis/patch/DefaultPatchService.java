@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -195,11 +196,13 @@ public class DefaultPatchService implements PatchService
         {
             Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection sourceCollection = (Collection) ( (Collection) sourceValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
-            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection targetCollection =  ( Collection ) ( (Collection) targetValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
             for ( Object o : targetCollection )
             {
