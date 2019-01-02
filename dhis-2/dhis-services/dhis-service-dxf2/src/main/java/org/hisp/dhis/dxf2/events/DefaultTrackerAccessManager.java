@@ -541,6 +541,46 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
+    public List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        errors.addAll( canRead( user, programStageInstance ) );
+
+        if ( !aclService.canRead( user, dataElement ) )
+        {
+            errors.add( "User has no read access to data element: " + dataElement.getUid() );
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        errors.addAll( canWrite( user, programStageInstance ) );
+
+        if ( !aclService.canRead( user, dataElement ) )
+        {
+            errors.add( "User has no read access to data element: " + dataElement.getUid() );
+        }
+
+        return errors;
+    }
+
+    @Override
     public List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo )
     {
         List<String> errors = new ArrayList<>();

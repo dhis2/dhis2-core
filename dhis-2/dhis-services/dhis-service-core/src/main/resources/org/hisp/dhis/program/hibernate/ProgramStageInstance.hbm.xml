@@ -60,6 +60,8 @@
 
     <property name="geometry" />
 
+    <property name="eventDataValues" type="jsbEventDataValues" />
+
     <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
       <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />

@@ -83,6 +83,18 @@ public class TrackedEntityDataValueAudit
         this.auditType = auditType;
     }
 
+    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance, String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
+    {
+        this.dataElement = dataElement;
+        this.programStageInstance = programStageInstance;
+        this.providedElsewhere = providedElsewhere;
+
+        this.created = new Date();
+        this.value = value;
+        this.modifiedBy = modifiedBy;
+        this.auditType = auditType;
+    }
+
     @Override
     public int hashCode()
     {

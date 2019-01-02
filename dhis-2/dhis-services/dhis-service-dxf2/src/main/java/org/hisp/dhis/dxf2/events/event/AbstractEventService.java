@@ -2053,7 +2053,7 @@ public abstract class AbstractEventService
         }
     }
 
-    private String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )    
+    public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
     {
         String validUsername = userName;
 
