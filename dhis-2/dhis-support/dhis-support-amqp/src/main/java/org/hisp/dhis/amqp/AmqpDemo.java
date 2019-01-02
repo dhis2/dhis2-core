@@ -30,7 +30,6 @@ package org.hisp.dhis.amqp;
 
 import org.apache.qpid.jms.JmsTopic;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSException;
@@ -41,7 +40,6 @@ import javax.jms.TextMessage;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
 public class AmqpDemo
 {
     private final AmqpManager amqpManager;
