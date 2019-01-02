@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.hibernate.objectmapper;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
