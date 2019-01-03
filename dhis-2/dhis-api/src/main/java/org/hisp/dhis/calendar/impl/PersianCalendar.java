@@ -366,6 +366,11 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusMonths( DateTimeUnit dateTimeUnit, int months )
     {
+        if ( months < 0 )
+        {
+            return minusMonths( dateTimeUnit, - months );
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit );
         int newMonths = months;
 
@@ -396,6 +401,11 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days )
     {
+        if ( days < 0 )
+        {
+            return minusDays( dateTimeUnit, - days );
+        }
+
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
@@ -471,7 +481,6 @@ public class PersianCalendar extends AbstractCalendar
 
     private int getDaysFromMap( int year, int month )
     {
-
         if ( CONVERSION_MAP.get( year ) == null )
         {
             throw new InvalidCalendarParametersException(
