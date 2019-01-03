@@ -28,6 +28,12 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.qpid.jms.JmsQueue;
 import org.apache.qpid.jms.JmsTopic;
 import org.springframework.util.Assert;
@@ -87,22 +93,23 @@ public class AmqpClient
         return sessionQueue;
     }
 
-    public void sendQueue( String queue, String message )
+    public <T> void sendQueue( String queue, T value )
     {
-        send( new JmsQueue( queue ), message );
+        send( new JmsQueue( queue ), value );
     }
 
-    public void sendTopic( String topic, String message )
+    public <T> void sendTopic( String topic, T value )
     {
-        send( new JmsTopic( topic ), message );
+        send( new JmsTopic( topic ), value );
     }
 
-    public void send( Destination destination, String message )
+    public <T> void send( Destination destination, Object value )
     {
         try
         {
             Session session = createSession();
             MessageProducer producer = session.createProducer( destination );
+            String message = toJson( value );
             TextMessage textMessage = session.createTextMessage( message );
             producer.send( textMessage );
             session.close();
@@ -128,5 +135,39 @@ public class AmqpClient
         {
             ex.printStackTrace();
         }
+    }
+
+    private final static ObjectMapper objectMapper = new ObjectMapper();
+
+    protected String toJson( Object value )
+    {
+        try
+        {
+            return objectMapper.writeValueAsString( value );
+        }
+        catch ( JsonProcessingException ignored )
+        {
+        }
+
+        return value.toString();
+    }
+
+    static
+    {
+        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+        objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
+        objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
+        objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
+
+        objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+        objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
+        objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
+
+        objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
+        objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
     }
 }

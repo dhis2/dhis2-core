@@ -30,16 +30,20 @@ package org.hisp.dhis.amqp;
 
 import org.apache.qpid.jms.JmsTopic;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service
 public class AmqpDemo
 {
     private final AmqpManager amqpManager;
@@ -60,7 +64,12 @@ public class AmqpDemo
     public void produce()
     {
         AmqpClient client = amqpManager.getClient();
-        client.sendTopic( "example", "Hello World" );
+
+        Map<String, Object> value = new HashMap<>();
+        value.put( "status", "OK" );
+        value.put( "data", "Hello World!" );
+
+        client.sendTopic( "example", value );
         client.close();
     }
 
