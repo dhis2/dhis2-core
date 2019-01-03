@@ -1279,7 +1279,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
             .replaceDimension( dimension )
-            .withMeasureCriteria( null )
+            .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withSkipMeta( true ).build();
