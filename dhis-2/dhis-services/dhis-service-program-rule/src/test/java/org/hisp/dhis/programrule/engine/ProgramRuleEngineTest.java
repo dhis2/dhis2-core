@@ -36,30 +36,57 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
-import org.hisp.dhis.programrule.*;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
-import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -132,13 +159,13 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramStageDataElement programStageDataElementD;
 
-    private TrackedEntityDataValue diagnosis;
+    private EventDataValue diagnosis;
 
-    private TrackedEntityDataValue bcgdoze;
+    private EventDataValue bcgdoze;
 
-    private TrackedEntityDataValue weight;
+    private EventDataValue weight;
 
-    private TrackedEntityDataValue height;
+    private EventDataValue height;
 
     private TrackedEntityAttribute attributeA;
 
@@ -200,16 +227,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramStageDataElementService programStageDataElementService;
 
     @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
-
-    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
-
-    @Autowired
-    private TrackedEntityDataValueService valueService;
 
     @Autowired
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -219,6 +240,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
+    @Autowired
+    private EventDataValueService eventDataValueService;
 
     @Override
     public void setUpTest()
@@ -452,34 +476,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstanceTempB = programStageInstanceService.getProgramStageInstance( "UID-PS2" );
         ProgramStageInstance programStageInstanceTempC = programStageInstanceService.getProgramStageInstance( "UID-PS3" );
 
-        diagnosis = new TrackedEntityDataValue( programStageInstanceTempA, dataElementA, "malaria" );
-        bcgdoze = new TrackedEntityDataValue( programStageInstanceTempA, dataElementB, "bcgdoze" );
-        weight = new TrackedEntityDataValue( programStageInstanceTempC, dataElementC, "80" );
-        height = new TrackedEntityDataValue( programStageInstanceTempC, dataElementD, "165" );
+        diagnosis = new EventDataValue( dataElementA.getUid(), "malaria" );
+        bcgdoze = new EventDataValue( dataElementB.getUid(), "bcgdoze" );
+        weight = new EventDataValue( dataElementC.getUid(), "80" );
+        height = new EventDataValue( dataElementD.getUid(), "165" );
 
-        valueService.saveTrackedEntityDataValue( diagnosis );
-        valueService.saveTrackedEntityDataValue( bcgdoze );
-        valueService.saveTrackedEntityDataValue( weight );
-        valueService.saveTrackedEntityDataValue( height );
-
-        programStageInstanceTempA.setDataValues( Sets.newHashSet( diagnosis, bcgdoze ) );
-        programStageInstanceTempB.setDataValues( Sets.newHashSet( diagnosis ) );
-        programStageInstanceTempC.setDataValues( Sets.newHashSet( weight, height ) );
-
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempA );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempB );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempC );
+        eventDataValueService.saveEventDataValue( programStageInstanceTempA, diagnosis );
+        eventDataValueService.saveEventDataValue( programStageInstanceTempA, bcgdoze );
+        eventDataValueService.saveEventDataValue( programStageInstanceTempB, diagnosis );
+        eventDataValueService.saveEventDataValue( programStageInstanceTempC, weight );
+        eventDataValueService.saveEventDataValue( programStageInstanceTempC, height );
 
         programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA, programStageInstanceB, programStageInstanceC ) );
         programInstanceService.updateProgramInstance( programInstanceA );
-
-        trackedEntityDataValueService.saveTrackedEntityDataValue( diagnosis );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( bcgdoze );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( weight );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( height );
-
-        userService = (UserService) getBean( UserService.ID );
-        createAndInjectAdminUser();
     }
 
     private void setupProgramRuleEngine()

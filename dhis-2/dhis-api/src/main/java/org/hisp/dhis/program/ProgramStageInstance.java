@@ -38,7 +38,6 @@ import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,8 +74,6 @@ public class ProgramStageInstance
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
-
-    private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
 
     private Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -265,16 +262,6 @@ public class ProgramStageInstance
     public void setComments( List<TrackedEntityComment> comments )
     {
         this.comments = comments;
-    }
-
-    public Set<TrackedEntityDataValue> getDataValues()
-    {
-        return dataValues;
-    }
-
-    public void setDataValues( Set<TrackedEntityDataValue> dataValues )
-    {
-        this.dataValues = dataValues;
     }
 
     public Set<EventDataValue> getEventDataValues()

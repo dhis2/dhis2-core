@@ -44,7 +44,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -497,50 +496,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, TrackedEntityDataValue dataValue )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( user == null || user.isSuper() || dataValue == null )
-        {
-            return errors;
-        }
-
-        errors.addAll( canRead( user, dataValue.getProgramStageInstance() ) );
-
-        DataElement dataElement = dataValue.getDataElement();
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access to data element: " + dataElement.getUid() );
-        }
-
-        return errors;
-    }
-
-    @Override
-    public List<String> canWrite( User user, TrackedEntityDataValue dataValue )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( user == null || user.isSuper() || dataValue == null )
-        {
-            return errors;
-        }
-
-        errors.addAll( canWrite( user, dataValue.getProgramStageInstance() ) );
-
-        DataElement dataElement = dataValue.getDataElement();
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access to data element: " + dataElement.getUid() );
-        }
-
-        return errors;
-    }
-
-    @Override
     public List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement )
     {
         List<String> errors = new ArrayList<>();
@@ -634,7 +589,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     
     private boolean isWritableInSearchScopeOrgUnit( ProgramStageInstance programStageInstance )
     {
-        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getDataValues().isEmpty()
+        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getEventDataValues().isEmpty()
             && programStageInstance.getExecutionDate() == null;
     }
 }

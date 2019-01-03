@@ -28,25 +28,25 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValueService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Chau Thu Tran
@@ -79,7 +79,7 @@ public class ProgramExpressionServiceTest
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
-    private TrackedEntityDataValueService dataValueService;
+    private EventDataValueService eventDataValueService;
 
     private ProgramExpression programExpressionA;
 
@@ -130,11 +130,11 @@ public class ProgramExpressionServiceTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstance, dataElementA, "1" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstance, dataElementB, "2" );
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
 
-        dataValueService.saveTrackedEntityDataValue( dataValueA );
-        dataValueService.saveTrackedEntityDataValue( dataValueB );
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
 
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );

@@ -44,6 +44,8 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
@@ -73,8 +75,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -106,7 +106,7 @@ public class EventPredictionServiceTest
     private PredictionService predictionService;
 
     @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
+    private EventDataValueService eventDataValueService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -329,11 +329,11 @@ public class EventPredictionServiceTest
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
 
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstanceA, dataElementX, "4" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstanceB, dataElementX, "5" );
+        EventDataValue dataValueA = new EventDataValue( dataElementX.getUid(), "4" );
+        EventDataValue dataValueB = new EventDataValue( dataElementX.getUid(), "5" );
 
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
+        eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
+        eventDataValueService.saveEventDataValue( stageInstanceB, dataValueB );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );

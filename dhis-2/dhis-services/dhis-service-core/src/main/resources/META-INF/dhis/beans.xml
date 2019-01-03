@@ -638,12 +638,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueStore"
-    class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore"
     class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1274,10 +1268,6 @@
     <property name="attributeValueStore" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService"
-    class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueService">
-  </bean>
-
   <bean id="org.hisp.dhis.eventdatavalue.EventDataValueService"
     class="org.hisp.dhis.eventdatavalue.DefaultEventDataValueService">
   </bean>
@@ -1667,11 +1657,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
-    class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
   <bean id="org.hisp.dhis.eventdatavalue.EventDataValueDeletionHandler"
     class="org.hisp.dhis.eventdatavalue.EventDataValueDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
@@ -1768,8 +1753,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )"
-        method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventdatavalue.EventDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />

@@ -114,7 +114,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -726,15 +725,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteProgramStageDataElement( ProgramStageDataElement programStageDataElement )
-    {
-        return null;
-    }
-
-    public void deleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
-    {
-    }
-
-    public String allowDeleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
     {
         return null;
     }

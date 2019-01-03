@@ -35,6 +35,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -47,10 +49,8 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +69,7 @@ public class TrackedEntityDataValueAuditStoreTest
     private TrackedEntityDataValueAuditStore auditStore;
 
     @Autowired
-    private TrackedEntityDataValueService dataValueService;
+    private EventDataValueService eventDataValueService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -141,12 +141,11 @@ public class TrackedEntityDataValueAuditStoreTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstance, dataElementA, "1" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstance, dataElementB, "2" );
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
 
-        dataValueService.saveTrackedEntityDataValue( dataValueA );
-        dataValueService.saveTrackedEntityDataValue( dataValueB );
-
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
     }
 
     @Test
@@ -160,14 +159,13 @@ public class TrackedEntityDataValueAuditStoreTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
 
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstance, dataElementA, "1" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstance, dataElementB, "2" );
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
+        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
 
-        dataValueService.saveTrackedEntityDataValue( dataValueA );
-        dataValueService.saveTrackedEntityDataValue( dataValueB );
-
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataValueA, dataValueA.getAuditValue(), "userA", AuditType.UPDATE );
+        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance, dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
 
         Assert.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ).size() );

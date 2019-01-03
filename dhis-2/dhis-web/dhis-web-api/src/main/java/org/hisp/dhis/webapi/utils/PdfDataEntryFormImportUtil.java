@@ -34,6 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -44,9 +46,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -61,6 +63,8 @@ public class PdfDataEntryFormImportUtil
     // -------------------------------------------------------------------------
     // DEPENDENCIES
     // -------------------------------------------------------------------------
+
+    private static final Logger log = LoggerFactory.getLogger( PdfDataEntryFormImportUtil.class );
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -81,7 +85,7 @@ public class PdfDataEntryFormImportUtil
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
-    private TrackedEntityDataValueService dataValueService;
+    private EventDataValueService eventDataValueService;
 
     // -------------------------------------------------------------------------
     // METHODS
@@ -197,13 +201,17 @@ public class PdfDataEntryFormImportUtil
     }
 
     private void insertValueProgramStageDataElement( ProgramStageInstance programStageInstance, int dataElementId, String value )
-        throws Exception
     {
 
         DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-        TrackedEntityDataValue dataValue = dataValueService.getTrackedEntityDataValue( programStageInstance,
-            dataElement );
+        if ( dataElement == null ) {
+            log.error( "DataElement with dataElementId: " + dataElementId + " does not exist." );
+        }
+
+        EventDataValue dataValue = programStageInstance.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElement.getUid() ) )
+            .findFirst().orElse( null );
 
         value = StringUtils.trimToNull( value );
 
@@ -214,7 +222,6 @@ public class PdfDataEntryFormImportUtil
         if ( programStageInstance.getExecutionDate() == null )
         {
             programStageInstance.setExecutionDate( new Date() );
-            programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
 
         // providedElsewhere = (providedElsewhere == null) ? false :
@@ -223,18 +230,16 @@ public class PdfDataEntryFormImportUtil
 
         if ( dataValue == null && value != null )
         {
-            // LOG.debug( "Adding TrackedEntityDataValue, value added" );
-
-            dataValue = new TrackedEntityDataValue( programStageInstance, dataElement, value );
+            dataValue = new EventDataValue( dataElement.getUid(), value );
             dataValue.setStoredBy( storedBy );
             // dataValue.setProvidedElsewhere( providedElsewhere );
 
-            dataValueService.saveTrackedEntityDataValue( dataValue );
+            eventDataValueService.saveEventDataValue( programStageInstance, dataValue );
         }
 
         if ( dataValue != null && value == null )
         {
-            dataValueService.deleteTrackedEntityDataValue( dataValue );
+            eventDataValueService.deleteEventDataValue( programStageInstance, dataValue );
         }
         else if ( dataValue != null )
         {
@@ -242,7 +247,7 @@ public class PdfDataEntryFormImportUtil
             dataValue.setLastUpdated( new Date() );
             dataValue.setStoredBy( storedBy );
 
-            dataValueService.updateTrackedEntityDataValue( dataValue );
+            eventDataValueService.updateEventDataValue( programStageInstance, dataValue );
         }
     }
 

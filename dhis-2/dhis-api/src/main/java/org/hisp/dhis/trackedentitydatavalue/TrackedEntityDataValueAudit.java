@@ -71,18 +71,6 @@ public class TrackedEntityDataValueAudit
     {
     }
 
-    public TrackedEntityDataValueAudit( TrackedEntityDataValue trackedEntityDataValue, String value, String modifiedBy, AuditType auditType )
-    {
-        this.dataElement = trackedEntityDataValue.getDataElement();
-        this.programStageInstance = trackedEntityDataValue.getProgramStageInstance();
-        this.providedElsewhere = trackedEntityDataValue.getProvidedElsewhere();
-
-        this.created = new Date();
-        this.value = value;
-        this.modifiedBy = modifiedBy;
-        this.auditType = auditType;
-    }
-
     public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance, String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
     {
         this.dataElement = dataElement;

@@ -31,10 +31,13 @@ package org.hisp.dhis.notification;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.Map;
@@ -48,6 +51,10 @@ import java.util.stream.Collectors;
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramStageInstance>
 {
+    @Autowired
+    private static DataElementService dataElementService;
+
+
     private static final ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS =
         new ImmutableMap.Builder<TemplateVariable, Function<ProgramStageInstance, String>>()
             .put( ProgramStageTemplateVariable.PROGRAM_NAME,         psi -> psi.getProgramStage().getProgram().getDisplayName() )
@@ -107,9 +114,9 @@ public class ProgramStageNotificationMessageRenderer
             return Maps.newHashMap();
         }
 
-        return entity.getDataValues().stream()
-            .filter( dv -> elementKeys.contains( dv.getDataElement().getUid() ) )
-            .collect( Collectors.toMap( dv -> dv.getDataElement().getUid() , ProgramStageNotificationMessageRenderer::filterValue ) );
+        return entity.getEventDataValues().stream()
+            .filter( dv -> elementKeys.contains( dv.getDataElement() ) )
+            .collect( Collectors.toMap( EventDataValue::getDataElement , ProgramStageNotificationMessageRenderer::filterValue ) );
     }
 
     @Override
@@ -146,7 +153,7 @@ public class ProgramStageNotificationMessageRenderer
         return value != null ? value : MISSING_VALUE_REPLACEMENT;
     }
 
-    private static String filterValue( TrackedEntityDataValue dv )
+    private static String filterValue( EventDataValue dv )
     {
         String value = dv.getValue();
 
@@ -155,10 +162,13 @@ public class ProgramStageNotificationMessageRenderer
             return CONFIDENTIAL_VALUE_REPLACEMENT;
         }
 
+        //TODO: Maybe introduce a cache?
+        DataElement dataElement = dataElementService.getDataElement( dv.getDataElement() );
+
         // If the DV has an OptionSet -> substitute value with the name of the Option
-        if ( dv.getDataElement().hasOptionSet() )
+        if ( dataElement != null && dataElement.hasOptionSet() )
         {
-            value = dv.getDataElement().getOptionSet().getOptionByCode( value ).getName();
+            value = dataElement.getOptionSet().getOptionByCode( value ).getName();
         }
 
         return value != null ? value : MISSING_VALUE_REPLACEMENT;
