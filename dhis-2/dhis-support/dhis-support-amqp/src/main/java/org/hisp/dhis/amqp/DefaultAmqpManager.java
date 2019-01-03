@@ -37,6 +37,8 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.hisp.dhis.amqp.config.AmqpConfig;
 import org.hisp.dhis.amqp.config.AmqpEmbeddedConfig;
@@ -58,6 +60,8 @@ import javax.jms.JMSException;
 @Service
 public class DefaultAmqpManager implements AmqpManager
 {
+    private final Log log = LogFactory.getLog( DefaultAmqpManager.class );
+
     private final DhisConfigurationProvider dhisConfig;
     private final LocationManager locationManager;
     private AmqpConfig amqpConfig = null;
@@ -81,6 +85,8 @@ public class DefaultAmqpManager implements AmqpManager
         }
 
         embeddedActiveMQ = createEmbeddedServer( amqpConfig );
+
+        log.info( "Starting embedded Artemis ActiveMQ server." );
         embeddedActiveMQ.start();
     }
 
