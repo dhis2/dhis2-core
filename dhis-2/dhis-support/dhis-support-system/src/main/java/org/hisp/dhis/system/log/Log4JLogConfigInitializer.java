@@ -35,6 +35,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,8 +53,6 @@ public class Log4JLogConfigInitializer
 {
     private static final PatternLayout PATTERN_LAYOUT = new PatternLayout( "* %-5p %d{ISO8601} %m (%F [%t])%n" );
 
-    private static final String MAX_FILE_SIZE = "100MB";
-
     private static final String LOG_DIR = "logs";
     private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
     private static final String DATA_EXCHANGE_LOGGER_FILENAME = "dhis-data-exchange.log";
@@ -66,6 +66,9 @@ public class Log4JLogConfigInitializer
 
     @Autowired
     private LocationManager locationManager;
+
+    @Autowired
+    private DhisConfigurationProvider config;
 
     @Override
     public void initConfig()
@@ -81,6 +84,10 @@ public class Log4JLogConfigInitializer
             log.info( "Aborting default log config, external config set through system prop " + LOG4J_CONF_PROP + ": " + System.getProperty( LOG4J_CONF_PROP ) );
             return;
         }
+
+        log.info( String.format( "Initializing Log4j, max file size: '%s', max file archives: %s",
+            config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ),
+            config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ) ) );
 
         locationManager.buildDirectory( LOG_DIR );
 
@@ -146,8 +153,8 @@ public class Log4JLogConfigInitializer
 
         appender.setThreshold( Level.INFO );
         appender.setFile( file );
-        appender.setMaxFileSize( MAX_FILE_SIZE );
-        appender.setMaxBackupIndex( 0 );
+        appender.setMaxFileSize( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) );
+        appender.setMaxBackupIndex( Integer.parseInt( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ) ) );
         appender.setLayout( PATTERN_LAYOUT );
         appender.activateOptions();
 
