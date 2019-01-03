@@ -35,5 +35,43 @@ package org.hisp.dhis.analytics;
  */
 public enum MeasureFilter
 {
-    EQ, GT, GE, LT, LE
+    EQ, GT, GE, LT, LE;
+
+    /**
+     * Checks the constraint using x and y as the values and uses the current
+     * measurefilter instance for comparison.
+     * 
+     * @param x The first double value to be compared
+     * @param y The second double value to be compared
+     * @return true if the constraint/filter is satisfied when x is compared
+     *         with y.
+     */
+    public boolean checkConstraint( Double x, Double y )
+    {
+        switch ( this )
+        {
+        case EQ:
+
+            return x == y;
+
+        case GT:
+
+            return x > y;
+
+        case GE:
+
+            return x >= y;
+
+        case LT:
+
+            return x < y;
+
+        case LE:
+
+            return x <= y;
+
+        default:
+            return false;
+        }
+    }
 }
