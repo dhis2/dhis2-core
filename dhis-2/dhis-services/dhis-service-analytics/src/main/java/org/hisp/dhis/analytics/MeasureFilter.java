@@ -38,37 +38,36 @@ public enum MeasureFilter
     EQ, GT, GE, LT, LE;
 
     /**
-     * Checks the constraint using x and y as the values and uses the current
-     * measurefilter instance for comparison.
+     * Checks whether the measureFilter is valid for x and y as the values for comparison
      * 
      * @param x The first double value to be compared
      * @param y The second double value to be compared
-     * @return true if the constraint/filter is satisfied when x is compared
+     * @return true if the constraint/filter is valid when x is compared
      *         with y.
      */
-    public boolean checkConstraint( Double x, Double y )
+    public boolean measureIsValid( Double x, Double y )
     {
         switch ( this )
         {
         case EQ:
 
-            return x == y;
+            return Double.compare( x, y ) == 0;
 
         case GT:
 
-            return x > y;
+            return Double.compare( x, y ) > 0;
 
         case GE:
 
-            return x >= y;
+            return Double.compare( x, y ) > 0 || Double.compare( x, y ) == 0;
 
         case LT:
 
-            return x < y;
+            return Double.compare( x, y ) < 0;
 
         case LE:
 
-            return x <= y;
+            return Double.compare( x, y ) < 0 || Double.compare( x, y ) == 0;
 
         default:
             return false;
