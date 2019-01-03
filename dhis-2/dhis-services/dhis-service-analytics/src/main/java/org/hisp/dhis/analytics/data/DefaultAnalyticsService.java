@@ -503,12 +503,12 @@ public class DefaultAnalyticsService
         // Prepare the roundedValue, as per the dataQueryParams, for comparison
         Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
 
-        // If any measureCriteria filter fails (returns false) when checking
-        // constraint, then return false. If no measureCriteria fails, then
-        // return true.
-        return !params.getMeasureCriteria().entrySet().stream().anyMatch( e -> {
-            return !e.getKey().checkConstraint( indicatorRoundedValue, e.getValue() );
-        } );
+        // If any one measureCriteria filter fails (returns false) during
+        // comparison, then return false. Otherwise all measureCriteria is
+        // satisfied and hence return true.
+        return !params.getMeasureCriteria().entrySet().stream().anyMatch( e -> 
+             !e.getKey().measureIsValid( indicatorRoundedValue, e.getValue() )
+         );
     }
 
     /**
