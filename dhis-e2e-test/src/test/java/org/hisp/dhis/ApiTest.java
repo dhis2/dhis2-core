@@ -26,66 +26,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+package org.hisp.dhis;
 
-import com.google.gson.JsonObject;
-import io.restassured.response.Response;
-import org.hisp.dhis.dto.OrgUnit;
-import org.hisp.dhis.helpers.JsonParserUtils;
-import org.hisp.dhis.utils.DataGenerator;
+import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.http.ContentType;
+import io.restassured.parsing.Parser;
+import io.restassured.specification.RequestSpecification;
+import org.hisp.dhis.helpers.ConfigurationHelper;
+import org.hisp.dhis.helpers.TestCleanUp;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitActions
-    extends ApiActions
+@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+public abstract class ApiTest
 {
-    public OrgUnitActions()
+    @BeforeAll
+    public void setupRestAssured()
     {
-        super( "/organisationUnits" );
+        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
+        //RestAssured.baseURI = "https://play.dhis2.org/dev/api";
+        //RestAssured.baseURI = "http://localhost:8070/api";
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        RestAssured.defaultParser = Parser.JSON;
+        RestAssured.requestSpecification = defaultRequestSpecification();
     }
 
-    public Response sendCreateRequest( final OrgUnit orgUnit )
+    @AfterAll
+    public void afterAll()
     {
-        JsonObject object = JsonParserUtils.parsePOJO( orgUnit );
-        if ( orgUnit.getParent() != null )
-        {
-            JsonObject parent = new JsonObject();
-            parent.addProperty( "id", orgUnit.getParent() );
-            object.add( "parent", parent );
-        }
-
-        return super.post( object );
+        new TestCleanUp().deleteCreatedEntities();
     }
 
-    public String createOrgUnit( final OrgUnit orgUnit )
+    private RequestSpecification defaultRequestSpecification()
     {
-        Response response = sendCreateRequest( orgUnit );
+        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+        requestSpecification.setContentType( ContentType.JSON );
 
-        response.then().statusCode( 201 );
-
-        return response.jsonPath().getString( "response.uid" );
-    }
-
-    public Response updateOrgUnit( final String uid, final OrgUnit orgUnit )
-    {
-        return update( uid, orgUnit );
-    }
-
-    private OrgUnit dummyOrgUnit()
-    {
-        String randomString = DataGenerator.randomString();
-
-        OrgUnit orgUnit = new OrgUnit();
-        orgUnit.setName( "AutoTest OrgUnit" + randomString );
-        orgUnit.setShortName( "AutoTest orgUnit short name " + randomString );
-        orgUnit.setOpeningDate( "2017-09-11T00:00:00.000" );
-
-        return orgUnit;
-    }
-
-    public String createOrgUnit()
-    {
-        return createOrgUnit( dummyOrgUnit() );
+        return requestSpecification.build();
     }
 }

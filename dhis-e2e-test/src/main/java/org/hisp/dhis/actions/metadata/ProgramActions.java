@@ -54,37 +54,73 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+package org.hisp.dhis.actions.metadata;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.logging.Logger;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.ApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationHelper
+public class ProgramActions
+    extends ApiActions
 {
-    public static String BASE_API_URL;
-
-    private static Logger logger = Logger.getLogger( ConfigurationHelper.class.getName() );
-
-    private static String BASE_API_URL_KEY = "baseUrl";
-
-    static
+    public ProgramActions()
     {
-        BASE_API_URL = getProperty( BASE_API_URL_KEY, true );
+        super( "/programs" );
     }
 
-    private static String getProperty( String key, boolean isRequired )
+    public ApiResponse createProgram( String programType )
     {
-        String property = System.getProperty( key );
+        JsonObject object = baseBody( programType );
 
-        if ( isRequired && StringUtils.isEmpty( property ) )
+        return post( object );
+    }
+
+    public ApiResponse createTrackerProgram()
+    {
+        return createProgram( "WITH_REGISTRATION" );
+
+    }
+
+    public ApiResponse createEventProgram()
+    {
+        return createProgram( "WITHOUT_REGISTRATION" );
+    }
+
+    public ApiResponse createProgram( String programType, String... orgUnitIds )
+    {
+        JsonObject object = baseBody( programType );
+
+        JsonArray orgUnits = new JsonArray();
+
+        for ( String ouid : orgUnitIds
+        )
         {
-            logger.severe( "Required property " + key + " was not set. Please set " + key + " in maven." );
+            JsonObject orgUnit = new JsonObject();
+            orgUnit.addProperty( "id", ouid );
+
+            orgUnits.add( orgUnit );
         }
 
-        return property;
+        object.add( "organisationUnits", orgUnits );
+
+        return post( object );
     }
+
+    private JsonObject baseBody( String programType )
+    {
+        String random = DataGenerator.randomString();
+
+        JsonObject object = new JsonObject();
+        object.addProperty( "programType", programType );
+        object.addProperty( "name", "AutoTest program " + random );
+        object.addProperty( "shortName", "AutoTest program " + random );
+
+        return object;
+    }
+
 }

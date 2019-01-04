@@ -26,40 +26,67 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+package org.hisp.dhis;
 
-import io.restassured.response.Response;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.actions.metadata.OptionActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ResponseValidationHelper
+public class Users_Remove_Tests
+    extends ApiTest
 {
-    public static void validateObjectRemoval( Response response, String message )
+    private UserActions userActions = new UserActions();
+
+    private OptionActions optionActions = new OptionActions();
+
+    private LoginActions loginActions = new LoginActions();
+
+    private String userId;
+
+    private String userName;
+
+    private String password = "!XPTOqwerty1";
+
+    @BeforeEach
+    public void beforeEach()
     {
-        assertEquals( 200, response.statusCode(), message );
-        validateObjectUpdateResponse( response );
+        userName = DataGenerator.randomString();
+        loginActions.loginAsDefaultUser();
+        userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
-    public static void validateObjectCreation( Response response )
+    @Test
+    public void users_remove_userWhoLoggedIn()
     {
-        assertEquals( 201, response.statusCode() );
-        validateObjectUpdateResponse( response );
+        loginActions.loginAsUser( userName, password );
+
+        loginActions.loginAsDefaultUser();
+
+        ApiResponse response = userActions.delete( userId );
+
+        assertEquals( 200, response.statusCode() );
+        assertEquals( response.extractUid(), userId );
     }
 
-    // TODO integrate with OPEN API 3 when it´s ready
-    private static void validateObjectUpdateResponse( Response response )
+    @Test
+    //jira issue 5573
+    public void users_remove_userWhoWasGrantedAccessToMetadata()
     {
-        response.then()
-            .body( "response", isA( Object.class ) )
-            .body( "status", isA( String.class ) )
-            .body( "httpStatusCode", isA( Integer.class ) )
-            .body( "httpStatus", isA( String.class ) )
-            .body( "response.responseType", isA( String.class ) )
-            .body( "response.klass", isA( String.class ) )
-            .body( "response.uid", isA( String.class ) );
+        String id = optionActions.createOptionSet();
+
+        optionActions.grantUserAccessToOptionSet( id, userId );
+
+        ApiResponse response = userActions.delete( userId );
+        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
     }
 }

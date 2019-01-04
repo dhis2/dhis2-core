@@ -33,6 +33,7 @@ import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -58,7 +59,7 @@ public class ApiActions
      * @param object Body of request
      * @return Response
      */
-    public Response post( Object object )
+    public ApiResponse post( Object object )
     {
         Response response = this.given()
             .body( object, ObjectMapperType.GSON )
@@ -70,7 +71,7 @@ public class ApiActions
             TestRunStorage.addCreatedEntity( endpoint, response.jsonPath().getString( "response.uid" ) );
         }
 
-        return response;
+        return new ApiResponse( response );
     }
 
     /**
@@ -82,8 +83,7 @@ public class ApiActions
      */
     public String create( Object object )
     {
-        Response response = post( object )
-            .thenReturn();
+        Response response = post( object ).raResponse();
 
         response.then().statusCode( 201 );
 
@@ -96,12 +96,13 @@ public class ApiActions
      * @param path ID of resource
      * @return Response
      */
-    public Response get( String path )
+    public ApiResponse get( String path )
     {
-        return
-            this.given()
-                .when()
-                .get( path );
+        Response response = this.given()
+            .when()
+            .get( path );
+
+        return new ApiResponse( response );
     }
 
     /**
@@ -109,11 +110,13 @@ public class ApiActions
      *
      * @return Response
      */
-    public Response get()
+    public ApiResponse get()
     {
-        return this.given()
+        Response response = this.given()
             .when()
             .get();
+
+        return new ApiResponse( response );
     }
 
     /**
@@ -123,12 +126,13 @@ public class ApiActions
      * @param queryParams Query params to append to url
      * @return
      */
-    public Response get( String path, String queryParams )
+    public ApiResponse get( String path, String queryParams )
     {
-        return this.given()
+        Response response = this.given()
             .when()
             .get( path + "?" + queryParams );
 
+        return new ApiResponse( response );
     }
 
     /**
@@ -138,7 +142,7 @@ public class ApiActions
      * @param path Id of resource
      * @return
      */
-    public Response delete( String path )
+    public ApiResponse delete( String path )
     {
         Response response = this.given()
             .when()
@@ -149,7 +153,7 @@ public class ApiActions
             TestRunStorage.removeEntity( endpoint, path );
         }
 
-        return response;
+        return new ApiResponse( response );
     }
 
     /**
@@ -159,13 +163,13 @@ public class ApiActions
      * @param object Body of request
      * @return
      */
-    public Response update( String path, Object object )
+    public ApiResponse update( String path, Object object )
     {
         Response response =
             this.given().body( object, ObjectMapperType.GSON )
                 .when()
                 .put( path );
 
-        return response;
+        return new ApiResponse( response );
     }
 }

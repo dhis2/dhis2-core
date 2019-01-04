@@ -84,23 +84,21 @@
 
 package org.hisp.dhis.metadata.orgUnits;
 
-import io.restassured.response.Response;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.OrgUnitActions;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.OrgUnit;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.actions.metadata.OrgUnitActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitsTest
+public class OrgUnits_AssignParent_Tests
     extends ApiTest
 {
     private LoginActions loginActions;
@@ -120,80 +118,19 @@ public class OrgUnitsTest
     }
 
     @Test
-    public void orgUnits_add_withoutPermissions()
+    public void orgUnits_assignParent_shouldAssignReferencesToBothOrgUnits()
     {
-        String userName = DataGenerator.randomString();
-        String psw = "!XPTOqwerty1";
+        String orgUnitId = orgUnitActions.createOrgUnit();
 
-        userActions.addUser( userName, psw );
-        loginActions.loginAsUser( userName, psw );
+        String childId = orgUnitActions.createOrgUnitWithParent( orgUnitId );
 
-        OrgUnit orgUnit = dummyOrgUnit();
+        assertNotNull( childId );
 
-        Response response = orgUnitActions.sendCreateRequest( orgUnit );
+        ApiResponse response = orgUnitActions.get( childId );
+        assertEquals( orgUnitId, response.extractString( "parent.id" ) );
 
-        assertEquals( 403, response.statusCode(), "Wrong status code when creating org unit without permissions" );
-        assertEquals( response.jsonPath().get( "message" ), "You don't have the proper permissions to create this object." );
+        response = orgUnitActions.get( orgUnitId );
+        assertEquals( childId, response.extractString( "children.id[0]" ) );
     }
 
-    // todo add tests for creation with level.
-    @Test
-    public void orgUnits_add_withoutLevel()
-    {
-        OrgUnit orgUnit = dummyOrgUnit();
-
-        Response response = orgUnitActions.sendCreateRequest( orgUnit );
-        ResponseValidationHelper.validateObjectCreation( response );
-
-        String uid = response.jsonPath().getString( "response.uid" );
-        assertNotNull( uid );
-
-        response = orgUnitActions.get( uid );
-
-        // todo validate OPEN API 3 schema when it´s ready
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.jsonPath().getString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.jsonPath().getString( "name" ), orgUnit.getName() );
-        assertEquals( response.jsonPath().getString( "openingDate" ), orgUnit.getOpeningDate() );
-    }
-
-    @Test
-    public void orgUnits_update()
-    {
-        OrgUnit orgUnit = dummyOrgUnit();
-
-        // create
-        Response response = orgUnitActions.sendCreateRequest( orgUnit );
-        String uid = response.jsonPath().getString( "response.uid" );
-        response = orgUnitActions.get( uid );
-        String lastUpdatedDate = response.jsonPath().getString( "lastUpdated" );
-
-        // update
-
-        orgUnit.setName( orgUnit.getName() + " updated" );
-        orgUnit.setShortName( orgUnit.getShortName() + " updated" );
-        orgUnit.setOpeningDate( "2017-09-10T00:00:00.000" );
-
-        response = orgUnitActions.updateOrgUnit( uid, orgUnit );
-        assertEquals( 200, response.statusCode(), "Org unit wasn't updated" );
-
-        // validate
-        response = orgUnitActions.get( uid );
-
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.jsonPath().getString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.jsonPath().getString( "name" ), orgUnit.getName() );
-        assertEquals( response.jsonPath().getString( "openingDate" ), orgUnit.getOpeningDate() );
-        assertNotEquals( response.jsonPath().getString( "lastUpdated" ), lastUpdatedDate );
-    }
-
-    private OrgUnit dummyOrgUnit()
-    {
-        OrgUnit orgUnit = new OrgUnit();
-        orgUnit.setName( "Org unit for tests" + DataGenerator.randomString() );
-        orgUnit.setShortName( "Short name" );
-        orgUnit.setOpeningDate( "2017-09-11T00:00:00.000" );
-
-        return orgUnit;
-    }
 }

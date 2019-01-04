@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,52 +54,63 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.metadata;
+package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
+import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.ApiActions;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramsTest
-    extends ApiTest
+public class ApiResponse
 {
-    private LoginActions loginActions = new LoginActions();
-    private ApiActions programActions = new ApiActions( "/programs" );
+    private Response raw;
 
-    @BeforeEach
-    public void before()
+    public ApiResponse( Response response )
     {
-        loginActions.loginAsDefaultUser();
+        raw = response;
     }
 
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void programs_add( String programType )
+    public String extractUid()
     {
-        JsonObject program = generateBody( programType );
-        Response response = programActions.post( program );
-
-        ResponseValidationHelper.validateObjectCreation( response );
+        return raw.jsonPath().getString( "response.uid" );
     }
 
-    private JsonObject generateBody( String programType )
+    public String extractString( String path )
     {
-        String randomString = DataGenerator.randomString();
-        JsonObject object = new JsonObject();
-        object.addProperty( "name", "AutoTest program " + randomString );
-        object.addProperty( "programType", programType );
-        object.addProperty( "shortName", "AutoTest program " + randomString );
-
-        return object;
+        return raw.jsonPath().getString( path );
     }
+
+    public Object extract( String path )
+    {
+        return raw.jsonPath().get( path );
+    }
+
+    public <T> List<T> extractList( String path )
+    {
+        return raw.jsonPath().getList( path );
+    }
+
+    public int statusCode()
+    {
+        return raw.statusCode();
+    }
+
+    /**
+     * Returns RestAssured response.
+     * @return
+     */
+    public Response raResponse()
+    {
+        return raw;
+    }
+
+    public JsonObject getBody()
+    {
+        return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+    }
+
 }

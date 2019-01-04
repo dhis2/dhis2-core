@@ -56,12 +56,11 @@
 
 package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.restassured.response.Response;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.ApiActions;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.OptionActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,9 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OptionSetTests
     extends ApiTest
 {
-    private ApiActions optionSetActions = new ApiActions( "/optionSets" );
-
-    private ApiActions optionActions = new ApiActions( "/options" );
+    private OptionActions actions = new OptionActions();
 
     private LoginActions loginActions = new LoginActions();
 
@@ -93,11 +90,11 @@ public class OptionSetTests
         String optionSetId = createOptionSet();
         createOption( optionSetId );
 
-        Response response = optionSetActions.delete( optionSetId );
+        ApiResponse response = actions.optionSetActions.delete( optionSetId );
 
         ResponseValidationHelper.validateObjectRemoval( response, "Option set was not deleted" );
 
-        response = optionSetActions.get( optionSetId );
+        response = actions.optionSetActions.get( optionSetId );
         assertEquals( 404, response.statusCode(), "Deleted option set still accessible!" );
     }
 
@@ -107,10 +104,10 @@ public class OptionSetTests
         String id = createOptionSet();
         String optionId = createOption( id );
 
-        Response response = optionSetActions.get( id );
+        ApiResponse response = actions.optionSetActions.get( id );
 
         assertEquals( 200, response.statusCode() );
-        assertEquals( optionId, response.jsonPath().getString( "options.id[0]" ), "Option reference was not found in option set" );
+        assertEquals( optionId, response.extractString( "options.id[0]" ), "Option reference was not found in option set" );
     }
 
     @Test
@@ -121,11 +118,11 @@ public class OptionSetTests
 
         String optionSetId = createOptionSet( option1, option2 );
 
-        Response response = optionSetActions.get( optionSetId );
+        ApiResponse response = actions.optionSetActions.get( optionSetId );
 
         assertEquals( 200, response.statusCode() );
-        assertEquals( option1, response.jsonPath().getString( "options.id[0]" ) );
-        assertEquals( option2, response.jsonPath().getString( "options.id[1]" ) );
+        assertEquals( option1, response.extractString( "options.id[0]" ) );
+        assertEquals( option2, response.extractString( "options.id[1]" ) );
     }
 
     @Test
@@ -134,16 +131,16 @@ public class OptionSetTests
         String option1 = createOption( null );
         String optionSetId = createOptionSet( option1 );
 
-        Response response = optionSetActions.get( optionSetId );
-        JsonObject object = response.getBody().as( JsonObject.class );
+        ApiResponse response = actions.optionSetActions.get( optionSetId );
+        JsonObject object = response.getBody();
         object.remove( "options" );
 
-        response = optionSetActions.update( optionSetId, object );
+        response = actions.optionSetActions.update( optionSetId, object );
         assertEquals( 200, response.statusCode() );
 
-        response = optionSetActions.get( optionSetId );
+        response = actions.optionSetActions.get( optionSetId );
         assertEquals( 200, response.statusCode() );
-        assertEquals( 0, response.jsonPath().getList( "options" ).size(), "Option was not removed" );
+        assertEquals( 0, response.extractList( "options" ).size(), "Option was not removed" );
     }
 
     @Test
@@ -151,34 +148,15 @@ public class OptionSetTests
     {
         String id = createOptionSet();
 
-        Response response = optionSetActions.delete( id );
+        ApiResponse response = actions.optionSetActions.delete( id );
 
         ResponseValidationHelper.validateObjectRemoval( response, "Option set was not deleted" );
     }
 
     private String createOptionSet( String... optionIds )
     {
-        JsonObject optionSet = new JsonObject();
-
         String random = DataGenerator.randomString();
-        optionSet.addProperty( "name", "Option Set auto " + random );
-        optionSet.addProperty( "valueType", "TEXT" );
-
-        if ( optionIds != null )
-        {
-            JsonArray options = new JsonArray();
-            for ( String optionID : optionIds
-            )
-            {
-                JsonObject option = new JsonObject();
-                option.addProperty( "id", optionID );
-
-                options.add( option );
-            }
-            optionSet.add( "options", options );
-
-        }
-        return optionSetActions.create( optionSet );
+        return actions.createOptionSet( "AutoTest option set " + random, "TEXT", optionIds );
     }
 
     /**
@@ -189,21 +167,6 @@ public class OptionSetTests
      */
     private String createOption( String optionSetId )
     {
-        JsonObject option = new JsonObject();
-
-        option.addProperty( "name", "Option name auto" );
-        option.addProperty( "code", "Option code auto" );
-
-        if ( optionSetId != null )
-        {
-            JsonObject optionSet = new JsonObject();
-            optionSet.addProperty( "id", optionSetId );
-
-            option.add( "optionSet", optionSet );
-        }
-
-        String optionId = optionActions.create( option );
-
-        return optionId;
+        return actions.createOption( "Option name auto", "Option code auto", optionSetId );
     }
 }

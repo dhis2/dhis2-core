@@ -26,46 +26,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
+package org.hisp.dhis.helpers;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.ConfigurationHelper;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
+import org.hisp.dhis.dto.ApiResponse;
+
+import static org.hamcrest.CoreMatchers.isA;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-public abstract class ApiTest
+public class ResponseValidationHelper
 {
-    @BeforeAll
-    public void setupRestAssured()
+    public static void validateObjectRemoval( ApiResponse response, String message )
     {
-        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
-        //RestAssured.baseURI = "https://play.dhis2.org/dev/api";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        assertEquals( 200, response.statusCode(), message );
+        validateObjectUpdateResponse( response );
     }
 
-    @AfterAll
-    public void afterAll()
+    public static void validateObjectCreation( ApiResponse response )
     {
-        new TestCleanUp().deleteCreatedEntities();
+        assertEquals( 201, response.statusCode() );
+        validateObjectUpdateResponse( response );
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    // TODO integrate with OPEN API 3 when it´s ready
+    private static void validateObjectUpdateResponse( ApiResponse response )
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
-        requestSpecification.setContentType( ContentType.JSON );
-
-        return requestSpecification.build();
+        response.raResponse().then()
+            .body( "response", isA( Object.class ) )
+            .body( "status", isA( String.class ) )
+            .body( "httpStatusCode", isA( Integer.class ) )
+            .body( "httpStatus", isA( String.class ) )
+            .body( "response.responseType", isA( String.class ) )
+            .body( "response.klass", isA( String.class ) )
+            .body( "response.uid", isA( String.class ) );
     }
 }

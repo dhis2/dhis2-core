@@ -56,62 +56,37 @@
 
 package org.hisp.dhis.metadata;
 
-import io.restassured.response.Response;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.ApiActions;
 import org.hisp.dhis.actions.LoginActions;
-import org.junit.jupiter.api.BeforeAll;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.hamcrest.CoreMatchers.notNullValue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataSmokeTest
+public class ProgramsTest
     extends ApiTest
 {
-    private LoginActions loginActions;
+    private LoginActions loginActions = new LoginActions();
 
-    @BeforeAll
-    public void beforeAll()
+    private ProgramActions programActions = new ProgramActions();
+
+    @BeforeEach
+    public void before()
     {
-        loginActions = new LoginActions();
-
         loginActions.loginAsDefaultUser();
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = {
-        "organisationUnits",
-        "organisationUnitGroups",
-        "organisationUnitGroupSets",
-        "organisationUnitLevels",
-        "programs",
-        "optionSets",
-        "options",
-        "users",
-        "optionGroups",
-        "categories",
-        "categoryOptions",
-        "categoryCombos",
-        "categoryOptionGroups",
-        "categoryOptionGroupSets",
-        "dataElements",
-        "dataElementGroups",
-        "dataElementGroupSets",
-        "dataSets"
-    } )
-
-    public void metadata_get( String endpoint )
+    @ParameterizedTest( name = "withType[{0}]" )
+    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
+    public void programs_add( String programType )
     {
-        ApiActions apiActions = new ApiActions( endpoint );
+        ApiResponse response = programActions.createProgram( programType );
 
-        Response response = apiActions.get();
-
-        response.then()
-            .statusCode( 200 )
-            .body( endpoint, notNullValue() );
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }
