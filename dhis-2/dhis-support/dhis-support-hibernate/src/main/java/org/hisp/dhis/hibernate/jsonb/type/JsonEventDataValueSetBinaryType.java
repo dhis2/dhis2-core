@@ -27,22 +27,25 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
 /**
  * @author David Katuscak
  */
-public class JsonEventDataValueSetBinaryType extends JsonBinaryType
+public class JsonEventDataValueSetBinaryType
+    extends
+    JsonBinaryType
 {
-
-    public JsonEventDataValueSetBinaryType() {
+    public JsonEventDataValueSetBinaryType()
+    {
         super();
         writer = MAPPER.writerFor( new TypeReference<Map<String, EventDataValue>>() {} );
         reader = MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
@@ -64,7 +67,8 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
 
             Map<String, EventDataValue> tempMap = new HashMap<>();
 
-            for( EventDataValue eventDataValue : eventDataValues ) {
+            for ( EventDataValue eventDataValue : eventDataValues )
+            {
                 tempMap.put( eventDataValue.getDataElement(), eventDataValue );
             }
 
@@ -87,22 +91,30 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
     {
         try
         {
-            Map<String, EventDataValue> data = reader.readValue(content);
+            Map<String, EventDataValue> data = reader.readValue( content );
 
-            Set<EventDataValue> eventDataValues = new HashSet<>();
-
-            for ( Map.Entry<String, EventDataValue> entry : data.entrySet() ) {
-
-                EventDataValue eventDataValue = entry.getValue();
-                eventDataValue.setDataElement( entry.getKey() );
-                eventDataValues.add( eventDataValue );
-            }
-
-            return eventDataValues;
+            return convertEventDataValuesMapIntoSet( data );
         }
         catch ( IOException e )
         {
             throw new RuntimeException( e );
         }
     }
+
+    public static Set<EventDataValue> convertEventDataValuesMapIntoSet( Map<String, EventDataValue> data )
+    {
+
+        Set<EventDataValue> eventDataValues = new HashSet<>();
+
+        for ( Map.Entry<String, EventDataValue> entry : data.entrySet() )
+        {
+
+            EventDataValue eventDataValue = entry.getValue();
+            eventDataValue.setDataElement( entry.getKey() );
+            eventDataValues.add( eventDataValue );
+        }
+
+        return eventDataValues;
+    }
+
 }
