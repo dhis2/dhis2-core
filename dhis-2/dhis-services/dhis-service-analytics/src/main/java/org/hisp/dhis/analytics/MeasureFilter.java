@@ -59,7 +59,7 @@ public enum MeasureFilter
 
         case GE:
 
-            return Double.compare( x, y ) > 0 || Double.compare( x, y ) == 0;
+            return Double.compare( x, y ) >= 0;
 
         case LT:
 
@@ -67,7 +67,7 @@ public enum MeasureFilter
 
         case LE:
 
-            return Double.compare( x, y ) < 0 || Double.compare( x, y ) == 0;
+            return Double.compare( x, y ) <= 0;
 
         default:
             return false;

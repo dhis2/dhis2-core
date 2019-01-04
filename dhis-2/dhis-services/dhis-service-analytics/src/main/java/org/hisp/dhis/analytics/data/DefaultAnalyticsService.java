@@ -494,20 +494,16 @@ public class DefaultAnalyticsService
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
-        // Skip measureCriteria check if there is no measure criteria
         if ( !params.hasMeasureCriteria() )
         {
             return true;
         }
 
-        // Prepare the roundedValue, as per the dataQueryParams, for comparison
         Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
 
-        // If any one measureCriteria filter fails (returns false) during
-        // comparison, then return false. Otherwise all measureCriteria is
-        // satisfied and hence return true.
-        return !params.getMeasureCriteria().entrySet().stream().anyMatch( e -> 
-             !e.getKey().measureIsValid( indicatorRoundedValue, e.getValue() )
+        //if any one measureFilter is invalid return false.
+        return !params.getMeasureCriteria().entrySet().stream().anyMatch( measureValue -> 
+             !measureValue.getKey().measureIsValid( indicatorRoundedValue, measureValue.getValue() )
          );
     }
 
