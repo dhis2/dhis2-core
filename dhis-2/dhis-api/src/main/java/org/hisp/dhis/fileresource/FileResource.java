@@ -28,6 +28,7 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -99,7 +100,7 @@ public class FileResource
         this.contentLength = contentLength;
         this.contentMd5 = contentMd5;
         this.domain = domain;
-        this.storageKey = generateStorageKey();
+        this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty());
     }
 
     public FileResource( String key, String name, String contentType, long contentLength, String contentMd5,
@@ -110,7 +111,7 @@ public class FileResource
         this.contentLength = contentLength;
         this.contentMd5 = contentMd5;
         this.domain = domain;
-        this.storageKey = key;
+        this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key));
     }
 
     // -------------------------------------------------------------------------
@@ -212,14 +213,5 @@ public class FileResource
     public String getFormat()
     {
         return this.contentType.split("[/;]" )[1];
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private String generateStorageKey()
-    {
-        return domain.getContainerName() + "/" + UUID.randomUUID().toString();
     }
 }

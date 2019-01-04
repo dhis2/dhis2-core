@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceKeyUtil;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
@@ -86,6 +88,8 @@ public class StaticContentController
     protected static final String LOGO_BANNER = "logo_banner";
 
     protected static final String LOGO_FRONT = "logo_front";
+
+    private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = FileResourceDomain.DOCUMENT;
 
     private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey> builder()
         .put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT )
@@ -136,7 +140,9 @@ public class StaticContentController
         else // Serve custom
         {
 
-            ByteSource file = this.contentStore.getFileResourceContent( key );
+            ByteSource file = this.contentStore
+                .getFileResourceContent( FileResourceKeyUtil.makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) ) );
+
             if ( file != null )
             {
                 response.setContentType( "image/png" );
@@ -195,7 +201,7 @@ public class StaticContentController
         try
         {
             String fileKey = contentStore.saveFileResourceContent(
-                FileResourceUtils.build( key, file, FileResourceDomain.DOCUMENT ), file.getBytes() );
+                FileResourceUtils.build( key, file, DEFAULT_RESOURCE_DOMAIN ), file.getBytes() );
 
             if ( fileKey == null )
             {
