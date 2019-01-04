@@ -139,6 +139,6 @@ public class OrgUnitActions
 
         orgUnit.setParent( parent );
 
-        return createOrgUnit( orgUnit ):
+        return createOrgUnit( orgUnit );
     }
 }
