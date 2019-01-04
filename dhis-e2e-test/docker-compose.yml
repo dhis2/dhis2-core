@@ -1,0 +1,20 @@
+version: '3'
+services:
+  db:
+    restart: always
+    image: mdillon/postgis:10-alpine
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis2
+      POSTGRES_PASSOWRD: dhis
+
+  e2e-test-web:
+    build:
+      dockerfile: ./Dockerfile
+      context: ..
+    volumes:
+      - ./config/dhis2_home:/DHIS2_home
+    depends_on:
+      - db
+    ports:
+      - 8070:8080
