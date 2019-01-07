@@ -40,6 +40,7 @@ import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.WeekFields;
@@ -231,7 +232,7 @@ public class I18nFormat
         if ( periodType instanceof WeeklyAbstractPeriodType ) // Use ISO dates due to potential week confusion
         {
             DateTime dateTime = new DateTime( period.getStartDate() );
-            LocalDate date = period.getStartDate().toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+            LocalDate date = Instant.ofEpochMilli( period.getStartDate().getTime() ).atZone( ZoneId.systemDefault() ).toLocalDate();
             WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
 
             String year = String.valueOf( date.get( weekFields.weekBasedYear() ) );
