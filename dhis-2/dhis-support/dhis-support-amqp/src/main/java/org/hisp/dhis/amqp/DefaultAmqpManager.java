@@ -28,6 +28,7 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableList;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.Configuration;
@@ -68,6 +69,13 @@ public class DefaultAmqpManager implements AmqpManager
     private JmsConnectionFactory connectionFactory = null;
     private EmbeddedActiveMQ embeddedActiveMQ = null;
 
+    private ImmutableList<String> topics = ImmutableList.<String>builder()
+        .add( "dhis2.stats" )
+        .build();
+
+    private ImmutableList<String> queues = ImmutableList.<String>builder()
+        .build();
+
     public DefaultAmqpManager( DhisConfigurationProvider dhisConfig, LocationManager locationManager )
     {
         this.dhisConfig = dhisConfig;
@@ -79,15 +87,39 @@ public class DefaultAmqpManager implements AmqpManager
     {
         AmqpConfig amqpConfig = getAmqpConfig();
 
-        if ( AmqpMode.NATIVE == amqpConfig.getMode() )
+        if ( AmqpMode.EMBEDDED == amqpConfig.getMode() )
         {
-            return;
+            embeddedActiveMQ = createEmbeddedServer( amqpConfig );
+
+            log.info( "Starting embedded Artemis ActiveMQ server." );
+            embeddedActiveMQ.start();
         }
 
-        embeddedActiveMQ = createEmbeddedServer( amqpConfig );
+        AmqpClient client = getClient();
 
-        log.info( "Starting embedded Artemis ActiveMQ server." );
-        embeddedActiveMQ.start();
+        topics.forEach( t -> {
+            try
+            {
+                client.createTopic( t );
+            }
+            catch ( JMSException e )
+            {
+                log.info( e.getMessage() );
+            }
+        } );
+
+        queues.forEach( t -> {
+            try
+            {
+                client.createQueue( t );
+            }
+            catch ( JMSException e )
+            {
+                log.info( e.getMessage() );
+            }
+        } );
+
+        client.close();
     }
 
     @PreDestroy
