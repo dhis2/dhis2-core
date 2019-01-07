@@ -74,6 +74,8 @@ public class DefaultAmqpManager implements AmqpManager
         .build();
 
     private ImmutableList<String> queues = ImmutableList.<String>builder()
+        .add( "DLO" )
+        .add( "ExpiryQueue" )
         .build();
 
     public DefaultAmqpManager( DhisConfigurationProvider dhisConfig, LocationManager locationManager )

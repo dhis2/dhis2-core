@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.qpid.jms.JmsQueue;
 import org.apache.qpid.jms.JmsTopic;
 import org.springframework.util.Assert;
@@ -139,7 +141,7 @@ public class AmqpClient
 
     private final static ObjectMapper objectMapper = new ObjectMapper();
 
-    protected String toJson( Object value )
+    public static String toJson( Object value )
     {
         try
         {
@@ -169,5 +171,7 @@ public class AmqpClient
         objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
+
+        objectMapper.registerModules( new JavaTimeModule(), new Jdk8Module() );
     }
 }
