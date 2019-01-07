@@ -133,11 +133,6 @@ public abstract class SmsGatewayConfig
             return true;
         }
 
-        if ( o == null )
-        {
-            return false;
-        }
-
         if ( !( o instanceof SmsGatewayConfig ) )
         {
             return false;
