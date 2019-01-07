@@ -41,12 +41,10 @@ public class GenericHttpGatewayConfig
     private String messageParameter;
 
     private String recipientParameter;
+
+    private boolean useGet;
     
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
-
-    public GenericHttpGatewayConfig()
-    {
-    }
 
     @JsonProperty( value = "parameters" )
     public List<GenericGatewayParameter> getParameters()
@@ -81,27 +79,14 @@ public class GenericHttpGatewayConfig
         this.recipientParameter = recipientParameter;
     }
 
-    @JsonProperty( value = "name" )
-    public String getName()
+    @JsonProperty( value = "useGet" )
+    public boolean isUseGet()
     {
-        return super.getName();
+        return useGet;
     }
 
-    @JsonProperty( value = "default" )
-    public boolean getStatus()
+    public void setUseGet( boolean useGet )
     {
-        return super.isDefault();
-    }
-
-    @Override
-    public boolean isInbound()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isOutbound()
-    {
-        return true;
+        this.useGet = useGet;
     }
 }

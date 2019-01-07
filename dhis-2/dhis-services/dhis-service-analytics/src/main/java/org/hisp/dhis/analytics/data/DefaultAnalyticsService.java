@@ -42,7 +42,9 @@ import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryParams.Builder;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.DimensionItem;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -460,7 +462,7 @@ public class DefaultAnalyticsService
 
                     IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
-                    if ( value != null )
+                    if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
                         List<DimensionItem> row = new ArrayList<>( dimensionItems );
 
@@ -480,6 +482,29 @@ public class DefaultAnalyticsService
                 }
             }
         }
+    }
+
+    /**
+     *  Checks whether the measure criteria in dataqueryparams is satisfied for this indicator value.
+     *  
+     * @param params The dataQueryParams
+     * @param value The indicatorValue
+     * @param indicator The indicator
+     * @return True if all the measure criteria are satisfied for this indicator value. False otherwise
+     */
+    private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
+    {
+        if ( !params.hasMeasureCriteria() )
+        {
+            return true;
+        }
+
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+
+        //if any one measureFilter is invalid return false.
+        return !params.getMeasureCriteria().entrySet().stream().anyMatch( measureValue -> 
+             !measureValue.getKey().measureIsValid( indicatorRoundedValue, measureValue.getValue() )
+         );
     }
 
     /**
@@ -1250,6 +1275,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
             .replaceDimension( dimension )
+            .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withSkipMeta( true ).build();
