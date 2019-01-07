@@ -28,11 +28,7 @@ package org.hisp.dhis.eventdatavalue;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -40,9 +36,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public class EventDataValueDeletionHandler extends DeletionHandler
 {
-    @Autowired
-    private EventDataValueService eventDataValueService;
-
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -58,24 +51,8 @@ public class EventDataValueDeletionHandler extends DeletionHandler
     @Override
     public String allowDeleteDataElement( DataElement dataElement )
     {
-        String containmentQuery = new JSONObject().put( "dataElement", dataElement.getUid() ).toString();
-
-        String sql = "select count(*) from programstageinstance where eventdatavalues @> '" + containmentQuery + "'::jsonb";
+        String sql = "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'";
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        for ( ProgramStageInstance psi : programInstance.getProgramStageInstances() ) {
-            deleteProgramStageInstance( psi );
-        }
-    }
-
-    @Override
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        eventDataValueService.deleteEventDataValues( programStageInstance, programStageInstance.getEventDataValues() );
     }
 }

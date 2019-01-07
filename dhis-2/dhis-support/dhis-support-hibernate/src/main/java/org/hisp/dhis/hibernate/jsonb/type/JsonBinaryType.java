@@ -28,13 +28,15 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Date;
+import java.util.Properties;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -44,14 +46,13 @@ import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.postgresql.util.PGobject;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.Properties;
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -202,14 +203,14 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    private void init( Class klass )
+    protected void init( Class klass )
     {
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );
     }
 
-    private static Class classForName( String name ) throws ClassNotFoundException
+    static Class classForName( String name ) throws ClassNotFoundException
     {
         try
         {

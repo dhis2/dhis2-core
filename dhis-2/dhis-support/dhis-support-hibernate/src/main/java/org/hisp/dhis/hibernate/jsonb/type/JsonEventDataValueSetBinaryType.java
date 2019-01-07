@@ -40,9 +40,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 /**
  * @author David Katuscak
  */
-public class JsonEventDataValueSetBinaryType
-    extends
-    JsonBinaryType
+public class JsonEventDataValueSetBinaryType extends JsonBinaryType
 {
     public JsonEventDataValueSetBinaryType()
     {
@@ -52,12 +50,21 @@ public class JsonEventDataValueSetBinaryType
         returnedClass = EventDataValue.class;
     }
 
+    @Override
+    protected void init( Class klass )
+    {
+        returnedClass = klass;
+        reader = MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+        writer = MAPPER.writerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+    }
+
     /**
      * Serializes an object to JSON.
      *
      * @param object the object to convert.
      * @return JSON content.
      */
+    @SuppressWarnings( "unchecked" )
     @Override
     protected String convertObjectToJson( Object object )
     {
@@ -72,7 +79,7 @@ public class JsonEventDataValueSetBinaryType
                 tempMap.put( eventDataValue.getDataElement(), eventDataValue );
             }
 
-            return writer.writeValueAsString( object );
+            return writer.writeValueAsString( tempMap );
         }
         catch ( IOException e )
         {
