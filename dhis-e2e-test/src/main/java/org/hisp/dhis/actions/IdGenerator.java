@@ -70,6 +70,7 @@ public class IdGenerator
     public String generateUniqueId()
     {
         String id = get( "id.json", "limit=1" )
+            .raResponse()
             .then()
             .statusCode( 200 )
             .extract().path( "codes[0]" );

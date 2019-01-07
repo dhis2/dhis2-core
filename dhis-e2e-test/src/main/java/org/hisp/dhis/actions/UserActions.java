@@ -57,8 +57,8 @@
 package org.hisp.dhis.actions;
 
 import com.google.gson.JsonObject;
-import io.restassured.response.Response;
 import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -93,9 +93,9 @@ public class UserActions
         credentials.add( "userInfo", userInfo );
         user.add( "userCredentials", credentials );
 
-        Response response = this.post( user );
+        ApiResponse response = this.post( user );
 
-        response.then().statusCode( 200 );
+        response.raResponse().then().statusCode( 200 );
 
         TestRunStorage.addCreatedEntity( endpoint, id );
 
