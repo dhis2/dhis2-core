@@ -111,7 +111,7 @@ public class MetadataSmokeTest
 
         ApiResponse response = apiActions.get();
 
-        assertEquals( 200, response.getBody() );
+        assertEquals( 200, response.statusCode() );
         assertNotNull( response.extract( endpoint ) );
     }
 }
