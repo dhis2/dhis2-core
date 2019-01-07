@@ -7,7 +7,7 @@
 ##########
 # USAGE:
 # To build, run this command in the directory containing this Dockerfile:
-#   > docker build -t <imagetag> .
+#   > docker build . -t <imagetag>
 # To spin up the built image, mount read-only DHIS2_home from <localdir>, and listen on local <port>:
 #   > docker run -d --rm -p <port>:80 -v <localdir>:/DHIS2_home:ro <imagetag>
 # This will output a <containerid>, you will need this ID to manage the running service.
@@ -47,7 +47,7 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml
 FROM tomcat:8.5.34-jre8-alpine as serve
 
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY --from=build /src/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 # Expose the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance
 ENV DHIS2_HOME=/DHIS2_home
