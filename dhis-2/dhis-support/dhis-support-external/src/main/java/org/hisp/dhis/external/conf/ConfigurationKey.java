@@ -66,9 +66,6 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
-    CACHE_PROVIDER( "cache.provider", "ehcache", false ),
-    CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
-    CACHE_TIME( "cache.time", "600", false ),
     METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
     RABBITMQ_HOST( "rabbitmq.host" ),
@@ -99,7 +96,9 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
     LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
     LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" );
+    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
+    LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" );
 
     private final String key;
 

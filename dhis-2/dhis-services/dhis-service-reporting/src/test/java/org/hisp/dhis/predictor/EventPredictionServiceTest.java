@@ -387,7 +387,7 @@ public class EventPredictionServiceTest
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID ) );
 
-        int month = 201703;
+        int month = Integer.valueOf( testYear + "03" );
 
         for ( double value : values )
         {

@@ -35,10 +35,10 @@ package org.hisp.dhis.system.database;
 public interface DatabaseInfoProvider
 {
     String ID = DatabaseInfoProvider.class.getName();
-    
+
     DatabaseInfo getDatabaseInfo();
-    
+
     boolean isInMemory();
-    
+
     String getNameFromConnectionUrl( String url );
 }

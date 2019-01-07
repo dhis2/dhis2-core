@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import com.vividsolutions.jts.io.ParseException;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -54,7 +53,6 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -99,7 +97,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -107,7 +104,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -187,9 +183,6 @@ public class EventController
 
     @Autowired
     private ContextUtils contextUtils;
-
-    @Autowired
-    private TrackerKafkaManager trackerKafkaManager;
 
     private Schema schema;
 
@@ -515,9 +508,9 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
-        Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
-        
+
+        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
+
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
@@ -597,11 +590,11 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         List<Order> schemaOrders = getOrderParams( order );
-        
-        Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
-        
+
+        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
+
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
@@ -1003,34 +996,13 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // QUEUED IMPORT
-    // -------------------------------------------------------------------------
-
-    @PostMapping( value = "/queue", consumes = "application/json" )
-    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
-    {
-        if ( !trackerKafkaManager.isEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration is not enabled." ) );
-        }
-
-        importOptions.setImportStrategy( strategy );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
-
-        List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        JobConfiguration job = trackerKafkaManager.dispatchEvents( currentUserService.getCurrentUser(), importOptions, events );
-        webMessageService.send( jobConfigurationReport( job ), response, request );
-    }
-
-    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private Map<String,String> getDataElementsFromOrder( String allOrders )
+    private Map<String, String> getDataElementsFromOrder( String allOrders )
     {
-        Map<String,String> dataElements = new HashMap<>();
-        
+        Map<String, String> dataElements = new HashMap<>();
+
         if ( allOrders != null )
         {
             for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
@@ -1050,7 +1022,7 @@ public class EventController
         }
         return dataElements;
     }
-    
+
     /**
      * Starts an asynchronous import task.
      *
@@ -1108,25 +1080,25 @@ public class EventController
 
         return null;
     }
-    
-    private List<String> getGridOrderParams( String order, Map<String,String> dataElementOrders )
+
+    private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
     {
         List<String> dataElementOrderList = new ArrayList<String>();
-        
+
         if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
         {
             List<String> orders = Arrays.asList( order.split( ";" ) );
-            
+
             for ( String orderItem : orders )
             {
                 String dataElementCandidate = orderItem.split( ":" )[0];
-                if( dataElementOrders.keySet().contains( dataElementCandidate ) )
+                if ( dataElementOrders.keySet().contains( dataElementCandidate ) )
                 {
                     dataElementOrderList.add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
                 }
             }
         }
-        
+
         return dataElementOrderList;
     }
 
