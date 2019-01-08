@@ -112,8 +112,6 @@ public class StatsCollector
             stats.getDisks().add( diskStats );
         }
 
-        log.info( AmqpClient.toJson( stats ) );
-
         AmqpClient client = amqpManager.getClient();
         client.sendTopic( "dhis2.stats", stats );
         client.close();
