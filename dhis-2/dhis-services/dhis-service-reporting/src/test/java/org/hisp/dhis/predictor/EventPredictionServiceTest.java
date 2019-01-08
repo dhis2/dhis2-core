@@ -28,7 +28,16 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
@@ -80,15 +89,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Test the ability of predictions to access event data through analytics.
@@ -387,7 +388,7 @@ public class EventPredictionServiceTest
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID ) );
 
-        int month = 201703;
+        int month = Integer.valueOf( testYear + "03" );
 
         for ( double value : values )
         {
