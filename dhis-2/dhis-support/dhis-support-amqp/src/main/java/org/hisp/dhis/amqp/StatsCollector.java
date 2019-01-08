@@ -71,7 +71,7 @@ public class StatsCollector
         client.close();
     }
 
-    @Scheduled( fixedRate = 5_000, initialDelay = 10_000 )
+    @Scheduled( fixedRate = 30_000, initialDelay = 10_000 )
     public void runner()
     {
         CpuStats cpuStats = new CpuStats();
