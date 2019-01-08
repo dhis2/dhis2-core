@@ -35,8 +35,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.Date;
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -53,7 +53,8 @@ import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Lars Helge Overland
@@ -101,6 +102,27 @@ public class FileResourceUtils
         }
 
         return true;
+    }
+
+    /**
+     *
+     * Builds a {@link FileResource} from a {@link MultipartFile}.
+     *
+     * @param key the key to associate to the {@link FileResource}
+     * @param file a {@link MultipartFile}
+     * @param domain a {@link FileResourceDomain}
+     * @return a valid {@link FileResource} populated with data from the provided
+     *         file
+     * @throws IOException if hashing fails
+     *
+     */
+    public static FileResource build( String key, MultipartFile file, FileResourceDomain domain )
+        throws IOException
+    {
+
+        return new FileResource( key, file.getName(), file.getContentType(), file.getSize(),
+            ByteSource.wrap( file.getBytes() ).hash( Hashing.md5() ).toString(), domain );
+
     }
 
     public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource )
