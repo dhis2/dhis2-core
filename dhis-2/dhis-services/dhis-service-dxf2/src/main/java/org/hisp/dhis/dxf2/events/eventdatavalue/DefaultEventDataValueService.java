@@ -27,7 +27,14 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -50,13 +57,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 /**
  * @author David Katuscak
@@ -186,7 +187,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             //Collect all data elements with valid data values present in the payload
             Set<String> presentDataElements = event.getDataValues().stream()
-                .filter( dv -> dv != null && ( !StringUtils.isEmpty( dv.getValue().trim() ) || !dv.getValue().trim().equals( "null" ) ) )
+                .filter( dv -> dv != null && dv.getValue() != null && !dv.getValue().trim().isEmpty() && !dv.getValue().trim().equals( "null" ) )
                 .map( dv -> dv.getDataElement() )
                 .collect( Collectors.toSet());
 

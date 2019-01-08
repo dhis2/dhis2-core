@@ -27,7 +27,10 @@ package org.hisp.dhis.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,9 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 /**
  * @author David Katuscak
@@ -87,8 +88,9 @@ public class DefaultEventDataValueService implements EventDataValueService
         if ( singleValue ) {
             //If it is only a single value update, I don't won't to miss the values that are missing in the payload but already present in the DB
             Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
-            programStageInstance.getEventDataValues().removeAll( changedDataValues );
-            programStageInstance.getEventDataValues().addAll( updatedOrNewDataValues );
+            Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(), changedDataValues );
+
+            programStageInstance.setEventDataValues( Sets.union( unchangedDataValues, updatedOrNewDataValues ) );
         }
         else {
             programStageInstance.setEventDataValues( updatedOrNewDataValues );

@@ -28,6 +28,20 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -49,20 +63,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -614,8 +614,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testDateFunctions()
     {
-        String expected = "(date_part('year',age(cast('2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
-            "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
+        String expected = "(date_part('year',age(cast( '2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
+            "and (date_part('year',age(cast( '2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start}) < 1 " +
             "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
