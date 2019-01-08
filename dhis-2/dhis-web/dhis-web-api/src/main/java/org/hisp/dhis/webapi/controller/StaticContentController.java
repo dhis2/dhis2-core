@@ -213,7 +213,7 @@ public class StaticContentController
             }
 
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
         }
