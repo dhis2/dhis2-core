@@ -69,7 +69,7 @@ public class FileResourceUtils
 
     /**
      * Transfers the given multipart file content to a local temporary file.
-     *  
+     * 
      * @param multipartFile the multipart file.
      * @return a temporary local file.
      * @throws IOException if the file content could not be transferred.
@@ -84,8 +84,8 @@ public class FileResourceUtils
     }
 
     /**
-     * Indicates whether the content type represented by the given string
-     * is a valid, known content type.
+     * Indicates whether the content type represented by the given string is a
+     * valid, known content type.
      * 
      * @param contentType the content type string.
      * @return true if the content is valid, false if not.
@@ -119,10 +119,8 @@ public class FileResourceUtils
     public static FileResource build( String key, MultipartFile file, FileResourceDomain domain )
         throws IOException
     {
-
         return new FileResource( key, file.getName(), file.getContentType(), file.getSize(),
             ByteSource.wrap( file.getBytes() ).hash( Hashing.md5() ).toString(), domain );
-
     }
 
     public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource )
@@ -132,8 +130,7 @@ public class FileResourceUtils
 
         if ( content == null )
         {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "The referenced file could not be found" ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -169,19 +166,21 @@ public class FileResourceUtils
         catch ( IOException e )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. " +
-                    "Depending on the provider the root cause could be network or file system related." ) );
+                "There was an exception when trying to fetch the file from the storage backend. "
+                    + "Depending on the provider the root cause could be network or file system related." ) );
         }
     }
 
     public FileResource saveFile( MultipartFile file, FileResourceDomain domain )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
-        String filename = StringUtils
-            .defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), FileResource.DEFAULT_FILENAME );
+        String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ),
+            FileResource.DEFAULT_FILENAME );
 
         String contentType = file.getContentType();
-        contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : FileResource.DEFAULT_CONTENT_TYPE;
+        contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType
+            : FileResource.DEFAULT_CONTENT_TYPE;
 
         long contentLength = file.getSize();
 
@@ -194,7 +193,8 @@ public class FileResourceUtils
 
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
-        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, FileResourceDomain.DATA_VALUE );
+        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5,
+            FileResourceDomain.DATA_VALUE );
         fileResource.setAssigned( false );
         fileResource.setCreated( new Date() );
         fileResource.setUser( currentUserService.getCurrentUser() );
@@ -217,7 +217,8 @@ public class FileResourceUtils
     // -------------------------------------------------------------------------
 
     private class MultipartFileByteSource
-        extends ByteSource
+        extends
+        ByteSource
     {
         private MultipartFile file;
 
@@ -227,7 +228,8 @@ public class FileResourceUtils
         }
 
         @Override
-        public InputStream openStream() throws IOException
+        public InputStream openStream()
+            throws IOException
         {
             try
             {

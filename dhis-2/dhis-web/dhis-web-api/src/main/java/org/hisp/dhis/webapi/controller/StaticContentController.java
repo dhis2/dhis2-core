@@ -209,7 +209,7 @@ public class StaticContentController
             }
             else
             {
-                log.debug( "File [" + file.getName() + "] uploaded. Storage key: [" + fileKey + "]" );
+                log.debug( String.format( "File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey ) );
             }
 
         }

@@ -31,6 +31,9 @@ package org.hisp.dhis.fileresource;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * @author Luciano Fiandesio
+ */
 public class FileResourceKeyUtil
 {
 
