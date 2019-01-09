@@ -21,7 +21,9 @@
     <module>dhis-support-db-migration</module>
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
+    <module>dhis-support-amqp</module>
   </modules>
+
   <properties>
     <rootDir>../</rootDir>
   </properties>
