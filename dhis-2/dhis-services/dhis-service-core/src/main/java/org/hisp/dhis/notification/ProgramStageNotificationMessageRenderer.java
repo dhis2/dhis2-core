@@ -28,9 +28,13 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -39,11 +43,9 @@ import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -53,7 +55,6 @@ public class ProgramStageNotificationMessageRenderer
 {
     @Autowired
     private static DataElementService dataElementService;
-
 
     private static final ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS =
         new ImmutableMap.Builder<TemplateVariable, Function<ProgramStageInstance, String>>()
@@ -68,6 +69,8 @@ public class ProgramStageNotificationMessageRenderer
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
         ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE, ExpressionType.DATA_ELEMENT );
+
+    private static final CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // Singleton instance
@@ -162,8 +165,7 @@ public class ProgramStageNotificationMessageRenderer
             return CONFIDENTIAL_VALUE_REPLACEMENT;
         }
 
-        //TODO: Maybe introduce a cache?
-        DataElement dataElement = dataElementService.getDataElement( dv.getDataElement() );
+        DataElement dataElement = getDataElement( dv.getDataElement() );
 
         // If the DV has an OptionSet -> substitute value with the name of the Option
         if ( dataElement != null && dataElement.hasOptionSet() )
@@ -172,5 +174,10 @@ public class ProgramStageNotificationMessageRenderer
         }
 
         return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    }
+
+    private static DataElement getDataElement( String dataElementUid )
+    {
+        return dataElementCache.get( dataElementUid, () -> dataElementService.getDataElement( dataElementUid ));
     }
 }

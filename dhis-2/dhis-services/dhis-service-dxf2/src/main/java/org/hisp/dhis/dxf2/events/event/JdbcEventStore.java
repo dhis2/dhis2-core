@@ -534,7 +534,7 @@ public class JdbcEventStore
             final String col = item.getItemId();
             final String dataValueValueSql = "psi.eventdatavalues #>> '{" + col + ", value}'";
 
-            String queryCol = item.isNumeric() ? "CAST( " + dataValueValueSql + " AS NUMERIC ) as " : dataValueValueSql;
+            String queryCol = item.isNumeric() ? "CAST( " + dataValueValueSql + " AS NUMERIC ) " : dataValueValueSql;
             queryCol += " as " + col + ", ";
 
             sql += queryCol;

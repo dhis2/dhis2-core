@@ -28,12 +28,16 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -51,10 +55,8 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
@@ -106,6 +108,8 @@ public class DefaultProgramRuleEntityMapperService
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> prv.getDataElement().getValueType()  )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> prv.getDataElement().getValueType()  )
         .build();
+
+    private final CachingMap<String, ValueType> dataElementToValueTypeCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -372,14 +376,7 @@ public class DefaultProgramRuleEntityMapperService
 
     private String getEventDataValue( EventDataValue dataValue )
     {
-        DataElement dataElement = dataElementService.getDataElement( dataValue.getDataElement() );
-        if ( dataElement == null ) {
-            log.error( "DataElement " + dataValue.getDataElement() + " was not found." );
-            throw new IllegalStateException( "Required DataElement(" + dataValue.getDataElement() + ") was not found." );
-        }
-
-        //TODO: Maybe I should keep cache of DataElements to ValueTypes (Map<DataElementUid, ValueType>)
-        ValueType valueType = dataElement.getValueType();
+        ValueType valueType = getValueTypeForDataElement( dataValue.getDataElement() );
 
         if ( valueType.isBoolean() )
         {
@@ -392,5 +389,18 @@ public class DefaultProgramRuleEntityMapperService
         }
 
         return dataValue.getValue() != null ? dataValue.getValue() : "";
+    }
+
+    private ValueType getValueTypeForDataElement( String dataElementUid ) {
+        return dataElementToValueTypeCache.get( dataElementUid, () -> {
+            DataElement dataElement = dataElementService.getDataElement( dataElementUid );
+
+            if ( dataElement == null ) {
+                log.error( "DataElement " + dataElementUid + " was not found." );
+                throw new IllegalStateException( "Required DataElement(" + dataElementUid + ") was not found." );
+            }
+
+            return dataElement.getValueType();
+        } );
     }
 }

@@ -129,9 +129,8 @@ public abstract class AbstractEventJdbcTableManager
     @Override
     public String validState()
     {
-        //TODO: Is there an option that it won't be null but only empty String or empty Json object? What if there were some values but all
-        // were deleted, what is stored then? Need to be checked.
-        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues is not null limit 1;" ).next();
+        // I have to check for '{}' -> This can happen when there were some data values, but all were removed. Then '{}' is stored instead of null
+        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues is not null and eventdatavalues != '{}' limit 1;" ).next();
 
         if ( !hasData )
         {
