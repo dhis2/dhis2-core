@@ -311,6 +311,41 @@ function SixMonthlyAprilPeriodType( monthNames, fnFilter )
     };
 }
 
+function SixMonthlyNovemberPeriodType( monthNames, fnFilter )
+{
+    this.generatePeriods = function( config )
+    {
+        var periods = [],
+            offset = parseInt(config.offset),
+            isFilter = config.filterFuturePeriods,
+            isReverse = config.reversePeriods,
+            year = new Date().getFullYear() + offset;
+
+        var period = {};
+        period['startDate'] = year + '-11-01';
+        period['endDate'] = year + '-04-30';
+        period['name'] = monthNames[11] + ' - ' + monthNames[4] + ' ' + ( year + 1 );
+        //period['id'] = 'SixMonthlyNov_' + period['startDate'];
+        period['iso'] = ( year + 1 ) + 'NovS1';
+        period['id'] = period['iso'];
+        periods.push(period);
+
+        period = {};
+        period['startDate'] = ( year + 1 ) + '-5-01';
+        period['endDate'] = ( year + 1 ) + '-10-31';
+        period['name'] = monthNames[5] + ' ' + year + ' - ' + monthNames[10] + ' ' + ( year + 1 );
+        //period['id'] = 'SixMonthlyNov_' + period['startDate'];
+        period['iso'] = year + 'NovS2';
+        period['id'] = period['iso'];
+        periods.push(period);
+
+        periods = isFilter ? fnFilter( periods ) : periods;
+        periods = isReverse ? periods.reverse() : periods;
+
+        return periods;
+    };
+}
+
 function YearlyPeriodType( format_yyyymmdd, fnFilter )
 {
     this.generatePeriods = function( config )
@@ -435,6 +470,38 @@ function FinancialAprilPeriodType( format_yyyymmdd, monthNames, fnFilter )
         periods = isFilter ? fnFilter( periods ) : periods;
         periods = isReverse ? periods : periods.reverse();
         // FinancialApril periods are collected backwards. If isReverse is true, then do nothing. Else reverse to correct order and return.
+
+        return periods;
+    };
+}
+
+function FinancialNovemberPeriodType( format_yyyymmdd, monthNames, fnFilter )
+{
+    this.generatePeriods = function( config )
+    {
+        var periods = [],
+			offset = parseInt(config.offset),
+			isFilter = config.filterFuturePeriods,
+			isReverse = config.reversePeriods,
+			year = new Date().getFullYear() + offset,
+			date = new Date( '31 Oct ' + ( year + 1 ) );
+
+        for ( var i = 0; i < 10; i++ )
+        {
+			var period = {};
+			period['endDate'] = format_yyyymmdd( date );
+			date.setYear( date.getFullYear() - 1 );
+			date.setDate( date.getDate() + 1 );
+			period['startDate'] = format_yyyymmdd( date );
+			period['name'] = monthNames[10] + ' ' + date.getFullYear() + ' - ' + monthNames[9] + ' ' + ( date.getFullYear() + 1 );
+			period['id'] = date.getFullYear() + 'Nov';
+			periods.push( period );
+			date.setDate( date.getDate() - 1 );
+		}
+
+        periods = isFilter ? fnFilter( periods ) : periods;
+        periods = isReverse ? periods : periods.reverse();
+        // FinancialNovember periods are collected backwards. If isReverse is true, then do nothing. Else reverse to correct order and return.
 
         return periods;
     };

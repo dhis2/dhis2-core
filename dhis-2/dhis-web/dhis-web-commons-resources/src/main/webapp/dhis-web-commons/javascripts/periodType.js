@@ -10,10 +10,12 @@ function PeriodType()
     periodTypes['Quarterly'] = new QuarterlyPeriodType( dateFormat );
     periodTypes['SixMonthly'] = new SixMonthlyPeriodType( dateFormat );
     periodTypes['SixMonthlyApril'] = new SixMonthlyAprilPeriodType( dateFormat );
+    periodTypes['SixMonthlyNov'] = new SixMonthlyNovemberPeriodType( dateFormat );
     periodTypes['Yearly'] = new YearlyPeriodType( dateFormat );
     periodTypes['FinancialOct'] = new FinancialOctoberPeriodType( dateFormat );
     periodTypes['FinancialJuly'] = new FinancialJulyPeriodType( dateFormat );
     periodTypes['FinancialApril'] = new FinancialAprilPeriodType( dateFormat );
+    periodTypes['FinancialNov'] = new FinancialNovemberPeriodType( dateFormat );
 
     this.get = function( key )
     {
@@ -283,6 +285,33 @@ function SixMonthlyAprilPeriodType( dateFormat )
         period['name'] = monthNames[9] + ' ' + year + ' - ' + monthNames[2] + ' ' + ( year + 1 );
         period['id'] = 'SixMonthlyApril_' + period['startDate'];
         period['iso'] = year + 'AprilS2';
+        periods[1] = period;
+
+        return periods;
+    };
+}
+
+function SixMonthlyNovemberPeriodType( dateFormat )
+{
+    this.generatePeriods = function( offset )
+    {
+        var periods = [];
+        var year = new Date().getFullYear() + offset;
+
+        var period = [];
+        period['startDate'] = year + '-11-01';
+        period['endDate'] = ( year + 1 ) + '-04-30';
+        period['name'] = monthNames[11] + ' - ' + monthNames[4] + ' ' + ( year + 1 );
+        period['id'] = 'SixMonthlyNov_' + period['startDate'];
+        period['iso'] = ( year + 1 ) + 'NovS1';
+        periods[0] = period;
+
+        period = [];
+        period['startDate'] = ( year + 1 ) + '-05-01';
+        period['endDate'] = ( year + 1 ) + '-10-31';
+        period['name'] = monthNames[5] + ' ' + year + ' - ' + monthNames[10] + ' ' + ( year + 1 );
+        period['id'] = 'SixMonthlyNov_' + period['startDate'];
+        period['iso'] = year + 'NovS2';
         periods[1] = period;
 
         return periods;
