@@ -54,75 +54,88 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserActions
-    extends RestApiActions
+public class DataElementsTest
+    extends ApiTest
 {
-    private IdGenerator idGenerator = new IdGenerator();
+    private RestApiActions dataElementActions;
+    private RestApiActions categoryComboActions;
+    private LoginActions loginActions;
 
-    public UserActions()
-    {
-        super( "/users" );
+    Stream<Arguments>  getDataElementCombinations() {
+        return Stream.of( new Arguments[] {
+            Arguments.of("AGGREGATE", "NUMBER", "SUM", false, null),
+            Arguments.of("TRACKER", "TEXT", "CUSTOM", true, "DISAGGREGATION"),
+            Arguments.of( "TRACKER", "AGE", "NONE", true, "ATTRIBUTE" )
+        } );
     }
 
-    public String addUser( final String firstName, final String surname, final String username, final String password )
-    {
-        String id = idGenerator.generateUniqueId();
+    @BeforeAll
+    public void beforeAll() {
+        dataElementActions = new RestApiActions( "/dataElements" );
+        categoryComboActions = new RestApiActions( "/categoryCombos" );
+        loginActions = new LoginActions();
 
-        JsonObject user = new JsonObject();
-
-        user.addProperty( "id", id );
-        user.addProperty( "firstName", firstName );
-        user.addProperty( "surname", surname );
-
-        JsonObject credentials = new JsonObject();
-        credentials.addProperty( "username", username );
-        credentials.addProperty( "password", password );
-
-        JsonObject userInfo = new JsonObject();
-        userInfo.addProperty( "id", id );
-
-        credentials.add( "userInfo", userInfo );
-        user.add( "userCredentials", credentials );
-
-        ApiResponse response = this.post( user );
-
-        response.validate().statusCode( 200 );
-
-        TestRunStorage.addCreatedEntity( endpoint, id );
-
-        return id;
+        loginActions.loginAsDefaultUser();
     }
 
-    public ApiResponse grantUserAccessToOrgUnit( String userId, String orgUnitId )
+    @ParameterizedTest
+    @MethodSource("getDataElementCombinations")
+    public void dataElement_create(String domainType, String valueType, String aggregationType, boolean withCategoryCombo, String categoryComboDimensionType)
     {
-        JsonObject object = this.get( userId ).getBody();
-        JsonArray orgUnits = object.get( "organisationUnits" ).getAsJsonArray();
-        JsonObject orgUnit = new JsonObject();
-        orgUnit.addProperty( "id", orgUnitId );
+        JsonObject body = generateBaseBody();
+        body.addProperty( "domainType", domainType );
+        body.addProperty( "valueType", valueType );
+        body.addProperty( "aggregationType", aggregationType );
 
-        orgUnits.add( orgUnit );
-        return this.update( userId, object );
+        if (withCategoryCombo) {
+            String categoryComboId = createCategoryCombo(categoryComboDimensionType);
+
+            JsonObject categoryCombo = new JsonObject();
+            categoryCombo.addProperty( "id", categoryComboId );
+
+            body.add( "categoryCombo", categoryCombo );
+        }
+
+        ApiResponse response = dataElementActions.post( body );
+
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 
-    public ApiResponse grantCurrentUserAccessToOrgUnit( String orgUnitId )
+    private JsonObject generateBaseBody()
     {
-        String userId = new LoginActions().getLoggedInUserInfo().extractUid();
+        JsonObject object = new JsonObject();
+        object.addProperty( "name", DataGenerator.randomEntityName() );
+        object.addProperty( "shortName", DataGenerator.randomEntityName() );
 
-        return grantUserAccessToOrgUnit( userId, orgUnitId );
+        return object;
     }
 
-    public String addUser( final String userName, final String password )
-    {
-        return addUser( "johnny", "bravo", userName, password );
+    public String createCategoryCombo(String dimensionType) {
+        JsonObject body = new JsonObject();
+        body.addProperty( "name", DataGenerator.randomEntityName());
+        body.addProperty( "dataDimensionType", dimensionType );
+
+        return categoryComboActions.create( body );
     }
 }

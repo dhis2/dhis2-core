@@ -62,8 +62,11 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -88,5 +91,23 @@ public class ProgramsTest
         ApiResponse response = programActions.createProgram( programType );
 
         ResponseValidationHelper.validateObjectCreation( response );
+    }
+
+    @Test
+    public void programs_addProgramStage()
+    {
+        // create program and program stage
+        String uid = programActions.createTrackerProgram().extractUid();
+        ApiResponse programStageResponse = programActions.createProgramStage( "Tracker program stage 1" );
+
+        ResponseValidationHelper.validateObjectCreation( programStageResponse );
+
+        // add program stage to the program
+        ApiResponse programResponse = programActions.addProgramStage( uid, programStageResponse.extractUid() );
+
+        // validate program stage was added
+        ResponseValidationHelper.validateObjectUpdate( programResponse, 200 );
+        programResponse = programActions.get( uid );
+        assertTrue( programResponse.extractList( "programStages.id" ).contains( programStageResponse.extractUid() ) );
     }
 }

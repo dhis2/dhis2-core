@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,40 +28,28 @@
 
 package org.hisp.dhis.actions;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.dto.ApiResponse;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.preemptive;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class LoginActions
+public class MaintenanceActions
+    extends RestApiActions
 {
-    public void loginAsUser( final String username, final String password )
+    public MaintenanceActions()
     {
-        RestAssured.authentication = preemptive().basic( username, password );
-
-        getLoggedInUserInfo().validate().statusCode( 200 );
+        super( "/maintenance" );
     }
 
-    public void loginAsDefaultUser()
+    public void removeSoftDeletedEvents()
     {
-        loginAsUser( "admin", "district" );
+        sendRequest( "?softDeletedEventRemoval=true" );
     }
 
-    public ApiResponse getLoggedInUserInfo()
+    private void sendRequest( String queryParams )
     {
-        ApiResponse apiResponse = new ApiResponse(
-            given()
-                .contentType( ContentType.TEXT )
-                .when()
-                .get( "/me" )
-                .thenReturn()
-        );
-
-        return apiResponse;
+        ApiResponse apiResponse = super.update( queryParams, new JsonObject() );
+        apiResponse.validate().statusCode( 204 );
     }
 }
