@@ -125,7 +125,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void verify_error_whenStoring_invalid_MimeType()
+    public void verifyErrorWhenStoringInvalidMimeType()
         throws Exception
     {
         final String error = buildResponse( "Unsupported Media Type", 415, "WARNING", null );

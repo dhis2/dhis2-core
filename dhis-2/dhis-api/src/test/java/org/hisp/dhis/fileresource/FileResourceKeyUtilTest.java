@@ -44,7 +44,7 @@ public class FileResourceKeyUtilTest
 {
 
     @Test
-    public void verify_buildKey()
+    public void verifyBuildKey()
     {
         String key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.empty() );
         assertThat( key, startsWith( "document/" ) );
