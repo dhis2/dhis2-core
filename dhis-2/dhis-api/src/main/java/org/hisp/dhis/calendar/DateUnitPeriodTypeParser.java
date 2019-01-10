@@ -260,6 +260,28 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
 
             return new DateInterval( start, end );
         }
+        else if ( DateUnitType.SIX_MONTHLY_NOVEMBER == dateUnitType )
+        {
+            int year = Integer.parseInt( matcher.group( 1 ) );
+            int semester = Integer.parseInt( matcher.group( 2 ) );
+
+            // valid six-monthly are from 1 - 2
+            if ( semester < 1 || semester > 2 )
+            {
+                return null;
+            }
+
+            DateTimeUnit start = new DateTimeUnit( semester == 1 ? year - 1 : year, semester == 1 ? 11 : 5, 1, calendar.isIso8601() );
+            DateTimeUnit end = new DateTimeUnit( start );
+            end = calendar.plusMonths( end, 6 );
+            end = calendar.minusDays( end, 1 );
+
+            start.setDayOfWeek( calendar.weekday( start ) );
+            end.setDayOfWeek( calendar.weekday( end ) );
+
+            return new DateInterval( start, end );
+
+        }
         else if ( DateUnitType.YEARLY == dateUnitType )
         {
             int year = Integer.parseInt( matcher.group( 1 ) );
@@ -306,6 +328,20 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
             int year = Integer.parseInt( matcher.group( 1 ) );
 
             DateTimeUnit start = new DateTimeUnit( year, 10, 1, calendar.isIso8601() );
+            DateTimeUnit end = new DateTimeUnit( start );
+            end = calendar.plusYears( end, 1 );
+            end = calendar.minusDays( end, 1 );
+
+            start.setDayOfWeek( calendar.weekday( start ) );
+            end.setDayOfWeek( calendar.weekday( end ) );
+
+            return new DateInterval( start, end );
+        }
+        else if ( DateUnitType.FINANCIAL_NOVEMBER == dateUnitType )
+        {
+            int year = Integer.parseInt( matcher.group( 1 ) );
+
+            DateTimeUnit start = new DateTimeUnit( year, 11, 1, calendar.isIso8601() );
             DateTimeUnit end = new DateTimeUnit( start );
             end = calendar.plusYears( end, 1 );
             end = calendar.minusDays( end, 1 );
