@@ -437,6 +437,8 @@ public class DefaultAnalyticsService
 
             Map<String, Map<DimensionalItemObject, Double>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
+            handleEmptyDimensionItemPermutations( dimensionItemPermutations );
+
             for ( Indicator indicator : indicators )
             {
                 for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
@@ -481,11 +483,11 @@ public class DefaultAnalyticsService
             }
         }
     }
-    
+
     /**
      * Checks whether the measure criteria in dataqueryparams is satisfied for
      * this indicator value.
-     * 
+     *
      * @param params The dataQueryParams
      * @param value The indicatorValue
      * @param indicator The indicator
@@ -1282,6 +1284,21 @@ public class DefaultAnalyticsService
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
 
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
+    }
+
+    /**
+     * Handles the case where there are no dimension item permutations by adding an
+     * empty dimension item list to the permutations list. This state occurs where
+     * there are only data or category option combo dimensions specified.
+     *
+     * @param dimensionItemPermutations list of dimension item permutations.
+     */
+    private void handleEmptyDimensionItemPermutations( List<List<DimensionItem>> dimensionItemPermutations )
+    {
+        if ( dimensionItemPermutations.isEmpty() )
+        {
+            dimensionItemPermutations.add( new ArrayList<>() );
+        }
     }
 
     /**
