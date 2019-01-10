@@ -26,64 +26,67 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+package org.hisp.dhis;
 
-import io.restassured.response.Response;
-import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.actions.metadata.OptionActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-import java.util.logging.Logger;
-
-import static io.restassured.RestAssured.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TestCleanUp
+public class UsersRemovalTests
+    extends ApiTest
 {
-    private Logger logger = Logger.getLogger( TestCleanUp.class.getName() );
+    private UserActions userActions = new UserActions();
 
-    public void deleteCreatedEntities()
+    private OptionActions optionActions = new OptionActions();
+
+    private LoginActions loginActions = new LoginActions();
+
+    private String userId;
+
+    private String userName;
+
+    private String password = "!XPTOqwerty1";
+
+    @BeforeEach
+    public void beforeEach()
     {
-        new LoginActions().loginAsDefaultUser();
-
-        Map<String, String> pairs = TestRunStorage.getCreatedEntities();
-
-        for ( Map.Entry entry : pairs.entrySet() )
-        {
-            boolean isDeleted = deleteEntity( entry );
-
-            if ( isDeleted )
-            {
-                TestRunStorage.removeEntity( entry.getValue().toString(), entry.getKey().toString() );
-            }
-        }
-
-        // Sometimes when object is referenced, it can´t be deleted.
-        // This ensures that tests doesn't leave a footprint.
-        for ( Map.Entry entry : TestRunStorage.getCreatedEntities().entrySet() )
-        {
-            deleteEntity( entry );
-        }
-
-        TestRunStorage.removeAllEntities();
+        userName = DataGenerator.randomString();
+        loginActions.loginAsDefaultUser();
+        userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
-    private boolean deleteEntity( Map.Entry entry )
+    @Test
+    public void users_remove_userWhoLoggedIn()
     {
-        Response response = when()
-            .delete( entry.getValue() + "/" + entry.getKey() )
-            .thenReturn();
+        loginActions.loginAsUser( userName, password );
 
-        if ( response.statusCode() == 200 )
-        {
-            logger.info( "Resource " + entry.getValue() + " with id " + entry.getKey() + " deleted." );
-            return true;
-        }
+        loginActions.loginAsDefaultUser();
 
-        logger.warning( "Resource " + entry.getValue() + " with id " + entry.getKey() + " was not deleted. " );
-        return false;
+        ApiResponse response = userActions.delete( userId );
+
+        assertEquals( 200, response.statusCode() );
+        assertEquals( response.extractUid(), userId );
     }
 
+    @Test
+    //jira issue 5573
+    public void users_remove_userWhoWasGrantedAccessToMetadata()
+    {
+        String id = optionActions.createOptionSet();
+
+        optionActions.grantUserAccessToOptionSet( id, userId );
+
+        ApiResponse response = userActions.delete( userId );
+        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
+    }
 }

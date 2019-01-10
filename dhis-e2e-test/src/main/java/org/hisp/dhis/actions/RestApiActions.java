@@ -29,6 +29,7 @@
 package org.hisp.dhis.actions;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -38,11 +39,11 @@ import org.hisp.dhis.dto.ApiResponse;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ApiActions
+public class RestApiActions
 {
     protected String endpoint;
 
-    public ApiActions( final String endpoint )
+    public RestApiActions( final String endpoint )
     {
         this.endpoint = endpoint;
     }
@@ -61,17 +62,22 @@ public class ApiActions
      */
     public ApiResponse post( Object object )
     {
-        Response response = this.given()
+        return post( "", object );
+    }
+
+    public ApiResponse post( String resource, Object object )
+    {
+        ApiResponse response = new ApiResponse( this.given()
             .body( object, ObjectMapperType.GSON )
             .when()
-            .post();
+            .post( resource ) );
 
-        if ( response.statusCode() == 201 )
+        if ( response.isEntityCreated() )
         {
-            TestRunStorage.addCreatedEntity( endpoint, response.jsonPath().getString( "response.uid" ) );
+            TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
 
-        return new ApiResponse( response );
+        return response;
     }
 
     /**
@@ -83,11 +89,12 @@ public class ApiActions
      */
     public String create( Object object )
     {
-        Response response = post( object ).raResponse();
+        ApiResponse response = post( object );
 
-        response.then().statusCode( 201 );
+        response.validate()
+            .statusCode( 201 );
 
-        return response.jsonPath().getString( "response.uid" );
+        return response.extractUid();
     }
 
     /**
@@ -99,6 +106,7 @@ public class ApiActions
     public ApiResponse get( String path )
     {
         Response response = this.given()
+            .contentType( ContentType.TEXT )
             .when()
             .get( path );
 
