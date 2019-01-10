@@ -56,16 +56,20 @@
 
 package org.hisp.dhis.metadata;
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.ApiActions;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -75,43 +79,56 @@ public class MetadataSmokeTest
 {
     private LoginActions loginActions;
 
+    private SchemasActions schemasActions;
+
     @BeforeAll
     public void beforeAll()
     {
+        schemasActions = new SchemasActions();
         loginActions = new LoginActions();
 
         loginActions.loginAsDefaultUser();
     }
 
     @ParameterizedTest
-    @ValueSource( strings = {
-        "organisationUnits",
-        "organisationUnitGroups",
-        "organisationUnitGroupSets",
-        "organisationUnitLevels",
-        "programs",
-        "optionSets",
-        "options",
-        "users",
-        "optionGroups",
-        "categories",
-        "categoryOptions",
-        "categoryCombos",
-        "categoryOptionGroups",
-        "categoryOptionGroupSets",
-        "dataElements",
-        "dataElementGroups",
-        "dataElementGroupSets",
-        "dataSets"
-    } )
-
-    public void metadata_get( String endpoint )
+    @MethodSource( "getSchemaEndpoints" )
+    // todo add better schema validation when spec is ready
+    public void metadata_get_matchesSchema( String endpoint, String schema )
     {
-        ApiActions apiActions = new ApiActions( endpoint );
+        RestApiActions apiActions = new RestApiActions( endpoint );
 
-        ApiResponse response = apiActions.get();
+        ApiResponse response = apiActions.get( "?fields=*" );
 
-        assertEquals( 200, response.statusCode() );
-        assertNotNull( response.extract( endpoint ) );
+        response.validate()
+            .statusCode( 200 )
+            .body( endpoint, Matchers.notNullValue() );
+
+        Object firstObject = response.extract( endpoint + "[0]" );
+
+        if ( firstObject == null )
+        {
+            return;
+        }
+
+        schemasActions.validateObjectAgainstSchema( schema, firstObject )
+            .validate().statusCode( 200 );
+    }
+
+    Stream<Arguments> getSchemaEndpoints()
+    {
+        ApiResponse apiResponse = schemasActions.get();
+
+        String jsonPathIdentifier = "schemas.findAll{it.relativeApiEndpoint && it.metadata && it.singular != 'externalFileResource'}";
+        List<String> apiEndpoints = apiResponse.extractList( jsonPathIdentifier + ".plural" );
+        List<String> schemaEndpoints = apiResponse.extractList( jsonPathIdentifier + ".singular" );
+
+
+        ArrayList<Arguments> arguments = new ArrayList<>();
+        for ( int i = 0; i < apiEndpoints.size(); i++ )
+        {
+            arguments.add( Arguments.of( apiEndpoints.get( i ), schemaEndpoints.get( i ) ) );
+        }
+
+        return arguments.stream();
     }
 }
