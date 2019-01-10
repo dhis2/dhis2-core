@@ -19,3 +19,6 @@ update programstageinstance psi set eventdatavalues =
                                                          'providedElsewhere', tedv.providedelsewhere, 'storedBy', tedv.storedby))
     from trackedentitydatavalue tedv join dataelement de on tedv.dataelementid = de.dataelementid
     where tedv.programstageinstanceid = psi.programstageinstanceid), ','), '}},{', '},'), ''), NULL)::json);
+
+-- NULL will make a mess, Get rid of it and replace with an empty json object '{}'
+update programstageinstance set eventdatavalues = '{}'::jsonb where eventdatavalues is null;
