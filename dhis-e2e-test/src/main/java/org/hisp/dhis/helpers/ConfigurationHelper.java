@@ -82,7 +82,7 @@ public class ConfigurationHelper
 
         if ( isRequired && StringUtils.isEmpty( property ) )
         {
-            logger.severe( "Required property " + key + " was not set. Please set " + key + " and repeat execution." );
+            logger.severe( String.format( "Required property %s was not set. Please set %s and repeat execution.", key ) );
         }
 
         return property;

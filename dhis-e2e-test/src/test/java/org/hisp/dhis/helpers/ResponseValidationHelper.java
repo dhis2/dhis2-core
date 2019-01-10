@@ -40,20 +40,26 @@ public class ResponseValidationHelper
 {
     public static void validateObjectRemoval( ApiResponse response, String message )
     {
-        assertEquals( 200, response.statusCode(), message );
+        response.validate().statusCode( 200 );
         validateObjectUpdateResponse( response );
     }
 
     public static void validateObjectCreation( ApiResponse response )
     {
-        assertEquals( 201, response.statusCode() );
+        response.validate().statusCode( 201 );
+        validateObjectUpdateResponse( response );
+    }
+
+    public static void validateObjectUpdate( ApiResponse response, int statusCode )
+    {
+        response.validate().statusCode( statusCode );
         validateObjectUpdateResponse( response );
     }
 
     // TODO integrate with OPEN API 3 when it´s ready
     private static void validateObjectUpdateResponse( ApiResponse response )
     {
-        response.raResponse().then()
+        response.validate()
             .body( "response", isA( Object.class ) )
             .body( "status", isA( String.class ) )
             .body( "httpStatusCode", isA( Integer.class ) )

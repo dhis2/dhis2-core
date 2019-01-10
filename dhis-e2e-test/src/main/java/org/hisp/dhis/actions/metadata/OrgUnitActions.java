@@ -57,7 +57,7 @@
 package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.ApiActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.helpers.JsonParserUtils;
@@ -67,7 +67,7 @@ import org.hisp.dhis.utils.DataGenerator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class OrgUnitActions
-    extends ApiActions
+    extends RestApiActions
 {
     public OrgUnitActions()
     {
@@ -82,7 +82,7 @@ public class OrgUnitActions
      */
     public ApiResponse sendCreateRequest( final OrgUnit orgUnit )
     {
-        JsonObject object = JsonParserUtils.parsePOJO( orgUnit );
+        JsonObject object = JsonParserUtils.toJsonObject( orgUnit );
         if ( orgUnit.getParent() != null )
         {
             JsonObject parent = new JsonObject();
@@ -106,7 +106,7 @@ public class OrgUnitActions
     {
         ApiResponse response = sendCreateRequest( orgUnit );
 
-        response.raResponse().then().statusCode( 201 );
+        response.validate().statusCode( 201 );
 
         return response.extractString( "response.uid" );
     }

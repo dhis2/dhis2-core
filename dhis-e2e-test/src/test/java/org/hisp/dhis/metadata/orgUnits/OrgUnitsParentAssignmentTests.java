@@ -89,6 +89,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.OrgUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -98,12 +99,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnits_AssignParent_Tests
+public class OrgUnitsParentAssignmentTests
     extends ApiTest
 {
     private LoginActions loginActions;
-
-    private UserActions userActions;
 
     private OrgUnitActions orgUnitActions;
 
@@ -111,7 +110,6 @@ public class OrgUnits_AssignParent_Tests
     public void setUp()
     {
         loginActions = new LoginActions();
-        userActions = new UserActions();
         orgUnitActions = new OrgUnitActions();
 
         loginActions.loginAsDefaultUser();
@@ -131,6 +129,29 @@ public class OrgUnits_AssignParent_Tests
 
         response = orgUnitActions.get( orgUnitId );
         assertEquals( childId, response.extractString( "children.id[0]" ) );
+    }
+
+    @Test
+    public void orgUnits_assignParent_adjustsChildLevel()
+    {
+        String parentOrgUnitId = createOrgUnitWithLevelAndParent( 1, null );
+        String intOrgUnit = createOrgUnitWithLevelAndParent( 1, parentOrgUnitId );
+        String childOrgUnitId = orgUnitActions.createOrgUnitWithParent( intOrgUnit );
+
+        assertEquals( "2", orgUnitActions.get( intOrgUnit ).extractString( "level" ),
+            "Parent org unit id changed after creating child" );
+        assertEquals( "3", orgUnitActions.get( childOrgUnitId ).extractString( "level" ),
+            "Child level wasn´t adjusted based on parents level" );
+
+    }
+
+    private String createOrgUnitWithLevelAndParent( int level, String parent )
+    {
+        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
+        orgUnit.setLevel( level );
+        orgUnit.setParent( parent );
+
+        return orgUnitActions.createOrgUnit( orgUnit );
     }
 
 }

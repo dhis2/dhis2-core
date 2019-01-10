@@ -28,9 +28,9 @@
 
 package org.hisp.dhis;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,7 +56,21 @@ public class TestRunStorage
             return new HashMap<>();
         }
 
-        return new HashMap<>( createdEntities );
+        return createdEntities;
+    }
+
+    public static List<String> getCreatedEntities( String resource )
+    {
+        if ( createdEntities == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return getCreatedEntities()
+            .entrySet().stream()
+            .filter( entrySet -> resource.equals( entrySet.getValue() ) )
+            .map( entry -> entry.getKey() )
+            .collect( toList() );
     }
 
     public static void removeEntity( final String resource, final String id )

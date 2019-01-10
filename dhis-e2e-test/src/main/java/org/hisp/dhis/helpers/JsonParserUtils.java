@@ -37,12 +37,13 @@ import com.google.gson.JsonParser;
  */
 public class JsonParserUtils
 {
-    public static JsonObject parsePOJO( Object object )
-    {
-        JsonParser parser = new JsonParser();
+    static JsonParser parser = new JsonParser();
 
+    public static JsonObject toJsonObject( Object object )
+    {
         JsonObject jsonObject = parser.parse( new Gson().toJson( object ) ).getAsJsonObject();
 
         return jsonObject;
     }
+
 }

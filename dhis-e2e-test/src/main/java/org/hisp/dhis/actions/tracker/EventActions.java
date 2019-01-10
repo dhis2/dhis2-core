@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,21 +26,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.utils;
+package org.hisp.dhis.actions.tracker;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.actions.MaintenanceActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class DataGenerator
+public class EventActions
+    extends RestApiActions
 {
-    public static String randomString()
+    public EventActions()
     {
-        return RandomStringUtils.randomAlphabetic( 6 );
+        super( "/events" );
     }
 
-    public static String randomEntityName() {
-        return "AutoTest entity " + randomString();
+    /**
+     * Hard deletes event.
+     *
+     * @param eventId
+     * @return
+     */
+    @Override
+    public ApiResponse delete( String eventId )
+    {
+        ApiResponse response = super.delete( eventId );
+        new MaintenanceActions().removeSoftDeletedEvents();
+
+        return response;
     }
+
 }

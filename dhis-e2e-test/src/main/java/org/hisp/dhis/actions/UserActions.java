@@ -64,7 +64,7 @@ import org.hisp.dhis.dto.ApiResponse;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserActions
-    extends ApiActions
+    extends RestApiActions
 {
     private IdGenerator idGenerator = new IdGenerator();
 
@@ -95,7 +95,7 @@ public class UserActions
 
         ApiResponse response = this.post( user );
 
-        response.raResponse().then().statusCode( 200 );
+        response.validate().statusCode( 200 );
 
         TestRunStorage.addCreatedEntity( endpoint, id );
 

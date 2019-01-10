@@ -58,7 +58,7 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.ApiActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
 
@@ -66,7 +66,7 @@ import org.hisp.dhis.utils.DataGenerator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class ProgramActions
-    extends ApiActions
+    extends RestApiActions
 {
     public ProgramActions()
     {
@@ -80,20 +80,21 @@ public class ProgramActions
         return post( object );
     }
 
-    public ApiResponse createTrackerProgram()
+    public ApiResponse createTrackerProgram( String... orgUnitIds )
     {
-        return createProgram( "WITH_REGISTRATION" );
+        return createProgram( "WITH_REGISTRATION", orgUnitIds );
 
     }
 
-    public ApiResponse createEventProgram()
+    public ApiResponse createEventProgram( String... orgUnitsIds )
     {
-        return createProgram( "WITHOUT_REGISTRATION" );
+        return createProgram( "WITHOUT_REGISTRATION", orgUnitsIds );
     }
 
     public ApiResponse createProgram( String programType, String... orgUnitIds )
     {
         JsonObject object = baseBody( programType );
+        //object.addProperty( "publicAccess", "rwrw----" );
 
         JsonArray orgUnits = new JsonArray();
 
@@ -109,6 +110,39 @@ public class ProgramActions
         object.add( "organisationUnits", orgUnits );
 
         return post( object );
+    }
+
+    public ApiResponse addProgramStage( String programId )
+    {
+
+        String programStageId = createProgramStage( "AutoTest program stage " + DataGenerator.randomString() )
+            .extractUid();
+
+        return addProgramStage( programId, programStageId );
+    }
+
+    public ApiResponse addProgramStage( String programId, String programStageId )
+    {
+        JsonObject body = get( programId ).getBody();
+        JsonArray programStages = new JsonArray();
+        JsonObject programStage = new JsonObject();
+
+        programStage.addProperty( "id", programStageId );
+
+        programStages.add( programStage );
+
+        body.add( "programStages", programStages );
+
+        return update( programId, body );
+    }
+
+    public ApiResponse createProgramStage( String name )
+    {
+        JsonObject body = new JsonObject();
+
+        body.addProperty( "name", name );
+
+        return new RestApiActions( "/programStages" ).post( body );
     }
 
     private JsonObject baseBody( String programType )

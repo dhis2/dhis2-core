@@ -59,6 +59,8 @@ package org.hisp.dhis.dto;
 import com.google.gson.JsonObject;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -74,9 +76,39 @@ public class ApiResponse
         raw = response;
     }
 
+    /**
+     * Extracts uid when only one object was created.
+     *
+     * @return
+     */
     public String extractUid()
     {
-        return raw.jsonPath().getString( "response.uid" );
+        String uid;
+
+        if ( extract( "response" ) == null )
+        {
+            return extractString( "id" );
+        }
+
+        uid = extractString( "response.uid" );
+
+        if ( !StringUtils.isEmpty( uid ) )
+        {
+            return uid;
+        }
+
+        return extractString( "response.importSummaries.reference[0]" );
+    }
+
+    /**
+     * Extracts uids from import summaries.
+     * Use when more than one object was created.
+     *
+     * @return
+     */
+    public List<String> extractUids()
+    {
+        return extractList( "response.importSummaries.reference" );
     }
 
     public String extractString( String path )
@@ -99,18 +131,24 @@ public class ApiResponse
         return raw.statusCode();
     }
 
-    /**
-     * Returns RestAssured response.
-     * @return
-     */
-    public Response raResponse()
+    public ValidatableResponse validate()
     {
-        return raw;
+        return raw.then();
     }
 
     public JsonObject getBody()
     {
         return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+    }
+
+    public boolean isEntityCreated()
+    {
+        return (statusCode() == 200 || statusCode() == 201);
+    }
+
+    public boolean containsImportSummaries()
+    {
+        return extractString( "response.responseType" ).equals( "ImportSummaries" ) ? true : false;
     }
 
 }

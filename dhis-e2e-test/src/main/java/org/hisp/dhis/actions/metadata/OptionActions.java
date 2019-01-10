@@ -30,7 +30,7 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.ApiActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.utils.DataGenerator;
 
 /**
@@ -38,14 +38,14 @@ import org.hisp.dhis.utils.DataGenerator;
  */
 public class OptionActions
 {
-    public ApiActions optionSetActions;
+    public RestApiActions optionSetActions;
 
-    public ApiActions optionActions;
+    public RestApiActions optionActions;
 
     public OptionActions()
     {
-        optionActions = new ApiActions( "/options" );
-        optionSetActions = new ApiActions( "/optionSets" );
+        optionActions = new RestApiActions( "/options" );
+        optionSetActions = new RestApiActions( "/optionSets" );
     }
 
     /**
