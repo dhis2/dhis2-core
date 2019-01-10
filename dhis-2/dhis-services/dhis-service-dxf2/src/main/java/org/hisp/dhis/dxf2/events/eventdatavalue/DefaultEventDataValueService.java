@@ -110,8 +110,8 @@ public class DefaultEventDataValueService implements EventDataValueService
             else if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary )
                 && !importOptions.isDryRun())
             {
-                prepareDataValueForStorage( dataElementValueMap, programStageInstance, dataValue, dataElement, newDataValues,
-                    updatedDataValues, removedDataValuesDueToEmptyValue, storedBy );
+                prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
+                    removedDataValuesDueToEmptyValue, storedBy );
             }
         }
 
@@ -123,8 +123,8 @@ public class DefaultEventDataValueService implements EventDataValueService
         }
     }
 
-    private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, ProgramStageInstance programStageInstance,
-        DataValue dataValue, DataElement dataElement, Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
+    private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
+        DataElement dataElement, Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
         Set<EventDataValue> removedDataValuesDueToEmptyValue, String storedBy ) {
 
         EventDataValue eventDataValue;

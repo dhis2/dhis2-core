@@ -1824,6 +1824,10 @@ public abstract class AbstractEventService
             programStageInstanceCache.put( uid, programStageInstance );
         }
 
+        if ( programStageInstance.getEventDataValues() == null ) {
+            programStageInstance.setEventDataValues( Collections.emptySet() );
+        }
+
         return programStageInstance;
     }
 

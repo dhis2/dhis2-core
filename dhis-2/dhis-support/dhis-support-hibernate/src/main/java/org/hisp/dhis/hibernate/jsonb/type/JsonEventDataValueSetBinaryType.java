@@ -28,6 +28,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
  */
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
     {
         try
         {
-            Set<EventDataValue> eventDataValues = (Set<EventDataValue>) object;
+            Set<EventDataValue> eventDataValues = object == null ? Collections.emptySet() : (Set<EventDataValue>) object;
 
             Map<String, EventDataValue> tempMap = new HashMap<>();
 
