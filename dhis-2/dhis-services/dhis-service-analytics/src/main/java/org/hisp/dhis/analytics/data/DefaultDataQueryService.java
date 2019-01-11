@@ -166,6 +166,7 @@ public class DefaultDataQueryService
             .withEndDate( request.getEndDate() )
             .withOrder( request.getOrder() )
             .withTimeField( request.getTimeField() )
+            .withOrgUnitField( request.getOrgUnitField() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )

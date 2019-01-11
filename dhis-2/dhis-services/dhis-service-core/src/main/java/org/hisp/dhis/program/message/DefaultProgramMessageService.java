@@ -228,7 +228,12 @@ public class DefaultProgramMessageService
             programInstance = params.getProgramStageInstance().getProgramInstance();
         }
 
-        programs = programService.getUserPrograms( user );
+        if ( programInstance == null )
+        {
+            throw new IllegalQueryException( "ProgramInstance or ProgramStageInstance has to be provided" );
+        }
+
+        programs = new HashSet<>( programService.getUserPrograms( user ) );
 
         if ( user != null && !programs.contains( programInstance.getProgram() ) )
         {

@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -64,4 +65,6 @@ public interface ProgramRuleStore
      * @return ProgramRule list
      */
     List<ProgramRule> get( Program program, String key );
+
+    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
 }

@@ -54,6 +54,11 @@ public class Coordinate
         this.latitude = latitude;
     }
 
+    public boolean hasLatitudeLongitude()
+    {
+        return latitude != null && longitude != null;
+    }
+
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
     public Double getLatitude()

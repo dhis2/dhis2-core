@@ -70,6 +70,7 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return name;
@@ -80,6 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
+    @JsonProperty( value = "default" )
     public boolean isDefault()
     {
         return isDefault;
@@ -101,10 +103,6 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    public abstract boolean isInbound();
-
-    public abstract boolean isOutbound();
-
     @JsonIgnore
     public String getPassword()
     {
@@ -125,5 +123,36 @@ public abstract class SmsGatewayConfig
     public void setUsername(String username)
     {
         this.username = username;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( !( o instanceof SmsGatewayConfig ) )
+        {
+            return false;
+        }
+
+        final SmsGatewayConfig other = (SmsGatewayConfig) o;
+
+        return uid.equals( other.getUid() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SmsGatewayConfig{" +
+                "uid='" + uid + '\'' +
+                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", isDefault=" + isDefault +
+                ", urlTemplate='" + urlTemplate + '\'' +
+                '}';
     }
 }

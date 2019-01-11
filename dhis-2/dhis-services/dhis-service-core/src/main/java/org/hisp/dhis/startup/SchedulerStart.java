@@ -34,7 +34,6 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -62,27 +61,15 @@ public class SchedulerStart extends AbstractStartupRoutine
     private static final Log log = LogFactory.getLog( SchedulerStart.class );
 
     private final String CRON_HOURLY = "0 0 * ? * *";
-
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
-
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
-
     private final String LEADER_JOB_CRON_FORMAT = "0 0/%s * * * *";
-
     private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
-
     private final String DEFAULT_DATA_STATISTICS = "Data statistics";
-
     private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
-
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
-
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
-
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
-
-    private final String DEFAULT_KAFKA_TRACKER = "Kafka Tracker Consume";
-
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
     @Autowired
@@ -153,14 +140,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                         + oldExecutionTime );
                 }
 
-                if ( JobType.KAFKA_TRACKER == jobConfig.getJobType() && !systemService.getSystemInfo().isKafka() )
-                {
-                    log.info( "Kafka is not enabled, disabling scheduled Kafka job." );
-                }
-                else
-                {
-                    schedulingManager.scheduleJob( jobConfig );
-                }
+                schedulingManager.scheduleJob( jobConfig );
             }
         }) );
 
@@ -228,13 +208,6 @@ public class SchedulerStart extends AbstractStartupRoutine
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
             addAndScheduleJob( removeExpiredReservedValues );
-        }
-
-        if ( verifyNoJobExist( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
-        {
-            JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
-                KAFKA_TRACKER, "* * * * * ?", null, true, true );
-            addAndScheduleJob( kafkaTracker );
         }
 
         if ( verifyNoJobExist( DEFAULT_LEADER_ELECTION, jobConfigurations ) && "true".equalsIgnoreCase( redisEnabled ) )

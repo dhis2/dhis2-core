@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -179,13 +180,13 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     private List<TrackedEntityInstance> parseXmlTrackedEntityInstances ( String input ) throws IOException {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-        JsonNode root = XML_MAPPER.readTree( input );
-
-        if ( root.get( "trackedEntityInstances" ) != null ) {
+        try
+        {
             TrackedEntityInstances fromXml = fromXml( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromXml.getTrackedEntityInstances() );
         }
-        else {
+        catch ( JsonMappingException ex )
+        {
             TrackedEntityInstance fromXml = fromXml( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromXml );
         }
@@ -201,38 +202,26 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
         List<TrackedEntityInstance> delete = new ArrayList<>();
-        List<Relationship> createRelationships = new ArrayList<>();
-        List<Relationship> updateRelationships = new ArrayList<>();
 
+        //TODO: Check whether relationships are modified during create/update/delete TEI logic. Decide whether logic below can be removed
+        List<Relationship> relationships = new ArrayList<>();
+        trackedEntityInstances.stream()
+            .filter( tei -> !tei.getRelationships().isEmpty() )
+            .forEach( tei ->
+            {
+                RelationshipItem item = new RelationshipItem();
+                item.setTrackedEntityInstance( tei );
 
-        if ( !importOptions.getImportStrategy().isDelete() )
-        {
-            trackedEntityInstances.stream()
-
-                // Skip teis with no relationships
-                .filter( tei -> !tei.getRelationships().isEmpty() )
-                .forEach( tei ->
+                tei.getRelationships().forEach( rel ->
                 {
-                    RelationshipItem relationshipItem = new RelationshipItem();
-                    relationshipItem.setTrackedEntityInstance( tei );
-
-                    // Update from since it might be empty, which means this tei is "from".
-                    tei.getRelationships().forEach( rel ->
+                    // Update from if it is empty. Current tei is then "from"
+                    if( rel.getFrom() == null )
                     {
-                        rel.setFrom( relationshipItem );
-                        if ( rel.getRelationship() == null || !_relationshipService.relationshipExists( rel.getRelationship() ) )
-                        {
-                            createRelationships.add(rel);
-                        }
-                        else
-                        {
-                            updateRelationships.add( rel );
-                        }
-                    } );
-
-                    tei.setRelationships( new ArrayList<>(  ) );
+                        rel.setFrom( item );
+                    }
+                    relationships.add( rel );
                 } );
-        }
+            } );
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -272,9 +261,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
         importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
 
-        // Setting to null so it will be updated by relationshipService. Otherwise it will cause problems with session.
-        importSummaries.addImportSummaries( relationshipService.addRelationships( createRelationships, importOptions ) );
-        importSummaries.addImportSummaries( relationshipService.updateRelationships( updateRelationships, importOptions ) );
+        //TODO: Created importSummaries don't contain correct href (TEI endpoint instead of relationships is used)
+        importSummaries.addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ));
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -313,7 +301,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
     }
 
     @Override
@@ -322,6 +310,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
     }
 }

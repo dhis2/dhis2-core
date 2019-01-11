@@ -37,23 +37,25 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Lars Helge Overland
  */
 public class DatabaseInfo
-{    
+{
     private String name;
-    
+
     private String user;
-    
+
     private String password;
-    
+
     private String url;
-    
+
+    private String databaseVersion;
+
     private boolean spatialSupport;
-    
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
     public DatabaseInfo()
-    {   
+    {
     }
 
     // -------------------------------------------------------------------------
@@ -67,7 +69,7 @@ public class DatabaseInfo
         this.password = null;
         this.url = null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -94,6 +96,16 @@ public class DatabaseInfo
     public void setUser( String user )
     {
         this.user = user;
+    }
+
+    public String getDatabaseVersion()
+    {
+        return databaseVersion;
+    }
+
+    public void setDatabaseVersion( String databaseVersion )
+    {
+        this.databaseVersion = databaseVersion;
     }
 
     public String getPassword()
@@ -132,6 +144,7 @@ public class DatabaseInfo
     // toString
     // -------------------------------------------------------------------------
 
+    @Override
     public String toString()
     {
         return "[Name: " + name + ", User: " + user + ", Password: " + password +

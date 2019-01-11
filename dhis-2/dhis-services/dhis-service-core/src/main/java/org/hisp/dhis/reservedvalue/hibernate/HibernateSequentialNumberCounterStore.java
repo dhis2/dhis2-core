@@ -81,12 +81,9 @@ public class HibernateSequentialNumberCounterStore
     @Override
     public void deleteCounter( String uid )
     {
-        Session session = sessionFactory.getCurrentSession();
-
         sessionFactory.getCurrentSession()
             .createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
             .setParameter( "uid", uid )
             .executeUpdate();
-
     }
 }

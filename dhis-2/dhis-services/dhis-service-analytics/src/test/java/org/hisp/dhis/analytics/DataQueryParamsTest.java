@@ -33,9 +33,12 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -65,6 +68,13 @@ public class DataQueryParamsTest
     private Indicator inA;
     private Indicator inB;
 
+    private CategoryOption coA;
+    private CategoryOption coB;
+    private Category caA;
+    private CategoryCombo ccA;
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
@@ -82,6 +92,10 @@ public class DataQueryParamsTest
     private Program prA;
     private Program prB;
 
+    private DataElementGroup degA;
+    private DataElementGroup degB;
+    private DataElementGroupSet degsA;
+
     private TrackedEntityAttribute atA;
 
     private Period peA;
@@ -89,10 +103,6 @@ public class DataQueryParamsTest
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
-
-    private CategoryOption coA;
-    private CategoryOption coB;
-    private Category caA;
 
     @Before
     public void setUpTest()
@@ -102,9 +112,19 @@ public class DataQueryParamsTest
         inA = createIndicator( 'A', it );
         inB = createIndicator( 'A', it );
 
-        deA = createDataElement( 'A', new CategoryCombo() );
-        deB = createDataElement( 'B', new CategoryCombo() );
-        deC = createDataElement( 'C', new CategoryCombo() );
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+        caA = createCategory( 'A', coA, coB );
+        ccA = createCategoryCombo( 'A', caA );
+        cocA = createCategoryOptionCombo( ccA, coA );
+        cocB = createCategoryOptionCombo( ccA, coB );
+
+        ccA.getOptionCombos().add( cocA );
+        ccA.getOptionCombos().add( cocB );
+
+        deA = createDataElement( 'A', ccA );
+        deB = createDataElement( 'B', ccA );
+        deC = createDataElement( 'C', ccA );
 
         dsA = createDataSet( 'A' );
         dsB = createDataSet( 'B' );
@@ -119,6 +139,12 @@ public class DataQueryParamsTest
         prA = createProgram( 'A' );
         prB = createProgram( 'B' );
 
+        degA = createDataElementGroup( 'A' );
+        degB = createDataElementGroup( 'B' );
+        degsA = createDataElementGroupSet( 'A' );
+        degsA.addDataElementGroup( degA );
+        degsA.addDataElementGroup( degB );
+
         atA = createTrackedEntityAttribute( 'A' );
 
         peA = createPeriod( "201601" );
@@ -126,10 +152,6 @@ public class DataQueryParamsTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-        caA = createCategory( 'A', coA, coB );
     }
 
     @Test
@@ -300,6 +322,22 @@ public class DataQueryParamsTest
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deC ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrA ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrB ) );
+    }
+
+    @Test
+    public void testGetDimensionItemArrayExplodeCoc()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, Lists.newArrayList( deA, deB, deC ) )
+            .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, Lists.newArrayList( peA, peB ) ).build();
+
+        DimensionalItemObject[] items = params.getDimensionItemArrayExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
+
+        List<DimensionalItemObject> itemsList = Lists.newArrayList( items );
+
+        assertEquals( 2, items.length );
+        assertTrue( itemsList.contains( cocA ) );
+        assertTrue( itemsList.contains( cocB ) );
     }
 
     @Test
@@ -521,6 +559,20 @@ public class DataQueryParamsTest
         Set<DimensionalItemObject> expected = Sets.newHashSet( coA, coB );
 
         assertEquals( expected, params.getCategoryOptions() );
+    }
+
+    @Test
+    public void testGetDataElementGroups()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElementGroupSet( degsA )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+
+        List<DimensionalItemObject> expected = Lists.newArrayList( degA, degB );
+
+        assertEquals( expected, params.getAllDataElementGroups() );
     }
 
     @Test

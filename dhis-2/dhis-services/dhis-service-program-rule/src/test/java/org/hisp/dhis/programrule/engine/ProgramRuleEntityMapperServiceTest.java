@@ -191,7 +191,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         {
             ProgramNotificationTemplate notificationTemplate = new ProgramNotificationTemplate();
             notificationTemplate.setUid( "uid0" );
-            programRuleActionA.setProgramNotificationTemplate( notificationTemplate );
+            programRuleActionA.setTemplateUid( notificationTemplate.getUid() );
         }
 
         return programRuleActionA;

@@ -114,6 +114,8 @@
     
     <property name="compulsoryFieldsCompleteOnly" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <list name="legendSets" table="datasetlegendsets">
       <cache usage="read-write" />
       <key column="datasetid" />
@@ -127,13 +129,6 @@
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="datasettranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="datasetid" foreign-key="fk_objecttranslation_datasetid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

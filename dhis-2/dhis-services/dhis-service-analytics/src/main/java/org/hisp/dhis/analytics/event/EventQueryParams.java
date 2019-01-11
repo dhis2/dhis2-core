@@ -69,6 +69,7 @@ public class EventQueryParams
     extends DataQueryParams
 {
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
     /**
      * The query items.
@@ -222,6 +223,7 @@ public class EventQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
@@ -440,6 +442,33 @@ public class EventQueryParams
 
         if ( program.getDataElements().stream()
             .anyMatch( de -> de.getValueType().isDate() && timeField.equals( de.getUid() ) ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Indicates whether the given organisation unit field is valid, i.e.
+     * whether it matches the identifier of an attribute or data element of
+     * organisation unit value type part of the query program.
+     */
+    public boolean orgUnitFieldIsValid()
+    {
+        if ( orgUnitField == null )
+        {
+            return true;
+        }
+
+        if ( program.getTrackedEntityAttributes().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+
+        if ( program.getDataElements().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
         {
             return true;
         }
@@ -1079,6 +1108,12 @@ public class EventQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 

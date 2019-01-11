@@ -78,6 +78,7 @@ public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
     private static final String HTTP_POST = "POST";
+    private static final String HTTP_GET = "GET";
     private static final String CONTENT_TYPE = "application/x-www-form-urlencoded; charset=UTF-8";
 
     private static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
@@ -126,7 +127,7 @@ public class SimplisticHttpGetGateWay
 
             HttpURLConnection httpConnection = (HttpURLConnection) requestURL.openConnection();
             httpConnection.setRequestProperty( "Content-Type", CONTENT_TYPE );
-            httpConnection.setRequestMethod( HTTP_POST );
+            httpConnection.setRequestMethod( genericHttpConfiguration.isUseGet() ? HTTP_GET : HTTP_POST );
             httpConnection.setDoOutput( true );
 
             httpConnection = getRequestHeaderParameters( httpConnection, genericHttpConfiguration.getParameters() );

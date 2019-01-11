@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.Category;
@@ -47,6 +46,7 @@ import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
@@ -433,6 +433,13 @@ public class DefaultCategoryService
     }
 
     @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
+    public void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo )
+    {
+        categoryOptionComboStore.delete( categoryOptionCombo );
+    }
+
+    @Override
     public CategoryOptionCombo getCategoryOptionCombo( int id )
     {
         return categoryOptionComboStore.get( id );
@@ -614,7 +621,7 @@ public class DefaultCategoryService
 
             for ( CategoryOption categoryOption : coc.getCategoryOptions() )
             {
-                if ( !aclService.canRead( user, categoryOption ) )
+                if ( !aclService.canDataWrite( user, categoryOption ) )
                 {
                     return null;
                 }

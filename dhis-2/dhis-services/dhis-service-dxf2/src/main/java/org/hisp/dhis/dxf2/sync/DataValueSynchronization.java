@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
@@ -68,14 +69,19 @@ public class DataValueSynchronization
 
     private final RestTemplate restTemplate;
 
+    private SynchronizationManager synchronizationManager;
+
 
     @Autowired
-    public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService, SystemSettingManager systemSettingManager, RestTemplate restTemplate )
+    public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService,
+                                    SystemSettingManager systemSettingManager, RestTemplate restTemplate,
+                                    SynchronizationManager synchronizationManager )
     {
         this.dataValueService = dataValueService;
         this.dataValueSetService = dataValueSetService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
+        this.synchronizationManager = synchronizationManager;
     }
 
     /**
@@ -145,6 +151,37 @@ public class DataValueSynchronization
 
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
+
+    public SynchronizationResult syncCompleteness()
+    {
+        if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
+        {
+            return SynchronizationResult.newFailureResultWithMessage( "Completeness Synchronisation failed. Remote " +
+                    "server is unavailable." );
+        }
+        final Clock clock = new Clock( log ).startClock().logTime( "Starting Completeness Synchronisation job." );
+
+        // ---------------------------------------------------------------------
+        // Set time for last success to start of process to make data saved
+        // subsequently part of next synch process without being ignored
+        // ---------------------------------------------------------------------
+        ImportSummary importSummary;
+        try
+        {
+            importSummary = synchronizationManager.executeDataSetCompletenessPush();
+            if ( checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
+            {
+                clock.logTime( "SUCCESS! Completeness Synchronisation job is done. It took" );
+                setLastDataValueSynchronizationSuccess( new Date( clock.getStartTime() ) );
+                return SynchronizationResult.newSuccessResultWithMessage( "Completeness Synchronisation done. It took " + clock.getTime() + " ms." );
+            }
+
+        } catch ( Exception ex ) {
+            log.error( "Exception happened while trying to completeness push " + ex.getMessage(), ex );
+        }
+        return SynchronizationResult.newFailureResultWithMessage( "Completeness Synchronisation failed.");
+    }
+
 
     private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastSuccessTime, int syncPageSize, int page, SyncEndpoint endpoint )
     {

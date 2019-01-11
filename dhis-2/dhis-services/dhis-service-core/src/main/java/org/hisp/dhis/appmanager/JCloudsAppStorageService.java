@@ -29,7 +29,6 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
@@ -260,7 +259,7 @@ public class JCloudsAppStorageService
     {
         App app = new App();
         log.info( "Installing new app: " + filename );
-        
+
         try( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
@@ -272,7 +271,7 @@ public class JCloudsAppStorageService
             if ( entry == null )
             {
                 log.error( "Failed to install app: Missing manifest.webapp in zip" );
-                
+
                 zip.close();
                 app.setAppState( AppStatus.MISSING_MANIFEST );
                 return app;

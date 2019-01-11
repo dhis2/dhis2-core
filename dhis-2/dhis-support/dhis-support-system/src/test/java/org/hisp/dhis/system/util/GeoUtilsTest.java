@@ -34,19 +34,10 @@ import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
 import static org.junit.Assert.assertEquals;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import org.geotools.geojson.GeoJSON;
-import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Lars Helge Overland
@@ -54,19 +45,19 @@ import java.util.regex.Pattern;
 public class GeoUtilsTest
 {
     private static final double DELTA = 0.01;
-    
+
     @Test
     public void testGetBoxShape()
     {
         // Equator
-        
+
         double[] box = getBoxShape( 0, 0, 110574.27 );
-        
+
         assertEquals( 1d, box[0], DELTA );
         assertEquals( 1d, box[1], DELTA );
         assertEquals( -1d, box[2], DELTA );
         assertEquals( -1d, box[3], DELTA );
-        
+
         // Punta Arenas
 
         box = getBoxShape( -71, -53, 67137.20 );
@@ -74,26 +65,26 @@ public class GeoUtilsTest
         assertEquals( -52.4, box[0], DELTA );
         assertEquals( -70d, box[1], DELTA );
         assertEquals( -53.6, box[2], DELTA );
-        assertEquals( -72d, box[3], DELTA );        
+        assertEquals( -72d, box[3], DELTA );
     }
-    
+
     @Test
     public void testReplaceUnsafeSvgText()
     {
-        String text = 
+        String text =
             "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage <1y\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG & DPT Coverage\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
             "</svg>";
 
-        String expected = 
+        String expected =
             "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage 1y\" hidden=\"false\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG  DPT Coverage\" hidden=\"false\">" +
             "</svg>";
-        
+
         String actual = replaceUnsafeSvgText( text );
-        
+
         assertEquals( expected, actual );
     }
 

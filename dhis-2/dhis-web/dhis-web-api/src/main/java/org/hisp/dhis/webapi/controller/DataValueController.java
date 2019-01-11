@@ -206,6 +206,20 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
         }
 
+        List<String> categoryOptionComboErrors = accessManager.canWriteCached( currentUser, categoryOptionCombo );
+
+        if ( !categoryOptionComboErrors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User does not have write access to category option combo: " + co + ", errors: " + categoryOptionComboErrors ) );
+        }
+
+        List<String> attributeOptionComboErrors = accessManager.canWriteCached( currentUser, attributeOptionCombo );
+
+        if ( !attributeOptionComboErrors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User does not have write access to attribute option combo: " + co + ", errors: " + attributeOptionComboErrors ) );
+        }
+
         // ---------------------------------------------------------------------
         // Optional constraints
         // ---------------------------------------------------------------------
@@ -269,32 +283,10 @@ public class DataValueController
             dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, dataValue );
-
-            if ( !errors.isEmpty() )
-            {
-                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
-            }
-
             dataValueService.addDataValue( dataValue );
         }
         else
         {
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, dataValue );
-
-            if ( !errors.isEmpty() )
-            {
-                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
-            }
-
             if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 if ( comment == null )

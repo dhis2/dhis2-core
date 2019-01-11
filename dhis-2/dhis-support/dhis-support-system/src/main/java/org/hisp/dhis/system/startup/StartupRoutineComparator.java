@@ -32,7 +32,7 @@ import java.util.Comparator;
 
 /**
  * Compares StartupRoutines based on their runlevel values.
- * 
+ *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  * @version $Id: StartupRoutineComparator.java 3217 2007-04-02 08:54:21Z torgeilo $
  */

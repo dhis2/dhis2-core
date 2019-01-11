@@ -308,9 +308,9 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "lastupdated" ), "timestamp", "psi.lastupdated" ) );
         columns.add( new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry", "psi.geometry", false, "gist" ) );
+        columns.add( new AnalyticsTableColumn( quote( "psigeometry" ), "geometry", "psi.geometry", false, "gist" ) );
 
-        // lat and lng deprecated in 2.30, should be removed after 2.33
+        // TODO lat and lng deprecated in 2.30, should be removed after 2.33
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ) );
 
@@ -318,10 +318,10 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
+            columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry" ) );
         }
 
         return filterDimensionColumns( columns );

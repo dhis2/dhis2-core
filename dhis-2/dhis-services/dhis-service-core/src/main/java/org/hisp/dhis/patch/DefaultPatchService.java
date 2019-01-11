@@ -34,7 +34,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -61,15 +60,13 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class  DefaultPatchService implements PatchService
+public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );
 
     private final SchemaService schemaService;
 
     private final QueryService queryService;
-
-    private final AmqpService amqpService;
 
     private final MetadataAuditService metadataAuditService;
 
@@ -79,12 +76,11 @@ public class  DefaultPatchService implements PatchService
 
     private final SystemService systemService;
 
-    public DefaultPatchService( SchemaService schemaService, QueryService queryService, AmqpService amqpService,
-        MetadataAuditService metadataAuditService, CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
+    public DefaultPatchService( SchemaService schemaService, QueryService queryService, MetadataAuditService metadataAuditService,
+        CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
-        this.amqpService = amqpService;
         this.metadataAuditService = metadataAuditService;
         this.currentUserService = currentUserService;
         this.renderService = renderService;
@@ -584,12 +580,6 @@ public class  DefaultPatchService implements PatchService
         }
 
         audit.setType( AuditType.UPDATE );
-
-        if ( amqpService.isEnabled() )
-        {
-            audit.setValue( renderService.toJsonAsString( patch ) );
-            amqpService.publish( audit );
-        }
 
         if ( systemInfo.getMetadataAudit().isAudit() )
         {

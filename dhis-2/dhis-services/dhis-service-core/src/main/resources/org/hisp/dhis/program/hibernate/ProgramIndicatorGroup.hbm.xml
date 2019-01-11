@@ -17,19 +17,13 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
     <property name="description" column="description" type="text" />
+    <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="programindicatorgroupmembers">
       <cache usage="read-write" />
       <key column="programindicatorgroupid" foreign-key="fk_programindicatorgroupmembers_programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.program.ProgramIndicator" column="programindicatorid"
         foreign-key="fk_programindicatorgroup_programindicatorid" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="programindicatorgrouptranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programindicatorgroupid" foreign-key="fk_objecttranslation_programindicatorgroupid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
