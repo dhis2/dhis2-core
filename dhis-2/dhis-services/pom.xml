@@ -29,7 +29,7 @@
     <!-- Level 5 -->
     <module>dhis-service-core</module>
     <!-- Level 6 -->
-    <module>dhis-service-expression</module>
+    <module>dhis-service-expression-parser</module>
     <!-- Level 7 -->
     <module>dhis-service-validation</module>
     <module>dhis-service-dxf2</module>
