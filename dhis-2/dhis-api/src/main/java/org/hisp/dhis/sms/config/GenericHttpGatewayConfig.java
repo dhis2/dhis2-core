@@ -82,19 +82,7 @@ public class GenericHttpGatewayConfig
     {
         this.recipientParameter = recipientParameter;
     }
-
-    @JsonProperty( value = "name" )
-    public String getName()
-    {
-        return super.getName();
-    }
-
-    @JsonProperty( value = "default" )
-    public boolean getStatus()
-    {
-        return super.isDefault();
-    }
-
+    
     @Override
     public boolean isInbound()
     {
