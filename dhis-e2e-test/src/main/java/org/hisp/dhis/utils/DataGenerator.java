@@ -28,7 +28,10 @@
 
 package org.hisp.dhis.utils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.dto.schemas.SchemaProperty;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -40,7 +43,52 @@ public class DataGenerator
         return RandomStringUtils.randomAlphabetic( 6 );
     }
 
-    public static String randomEntityName() {
+    public static String randomEntityName()
+    {
         return "AutoTest entity " + randomString();
+    }
+
+    public static String randomString( int length )
+    {
+        return RandomStringUtils.randomAlphabetic( length );
+    }
+
+    public static JsonElement generateRandomValueMatchingSchema( SchemaProperty property )
+    {
+        JsonElement jsonPrimitive;
+        switch ( property.getPropertyType() )
+        {
+        case STRING:
+            if ( property.getMin() < 1 )
+            {
+                jsonPrimitive = new JsonPrimitive( DataGenerator.randomString() );
+                break;
+            }
+            jsonPrimitive = new JsonPrimitive( DataGenerator.randomString( (int) property.getMin() ) );
+            break;
+
+        case DATE:
+            jsonPrimitive = new JsonPrimitive( "2017-09-11T00:00:00.000" );
+            break;
+
+        case BOOLEAN:
+            jsonPrimitive = new JsonPrimitive( true );
+            break;
+
+        case CONSTANT:
+            jsonPrimitive = new JsonPrimitive( property.getConstants().get( 0 ) );
+            break;
+
+        case NUMBER:
+            jsonPrimitive = new JsonPrimitive( 1 );
+            break;
+
+        default:
+            jsonPrimitive = new JsonPrimitive( "Conversion not defined." );
+            break;
+
+        }
+
+        return jsonPrimitive;
     }
 }

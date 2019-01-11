@@ -54,105 +54,84 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dto;
+package org.hisp.dhis.dto.schemas;
 
-import com.google.gson.JsonObject;
-import io.restassured.mapper.ObjectMapperType;
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ApiResponse
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class SchemaProperty
 {
-    private Response raw;
+    private String fieldName;
+    private boolean required;
+    private List<String> constants;
+    private String relativeApiEndpoint;
+    private double min;
 
-    public ApiResponse( Response response )
+    private PropertyType propertyType;
+
+    public String getFieldName()
     {
-        raw = response;
+        return fieldName;
     }
 
-    /**
-     * Extracts uid when only one object was created.
-     *
-     * @return
-     */
-    public String extractUid()
+    public void setFieldName( String fieldName )
     {
-        String uid;
-
-        if ( extract( "response" ) == null )
-        {
-            return extractString( "id" );
-        }
-
-        uid = extractString( "response.uid" );
-
-        if ( !StringUtils.isEmpty( uid ) )
-        {
-            return uid;
-        }
-
-        return extractString( "response.importSummaries.reference[0]" );
+        this.fieldName = fieldName;
     }
 
-    /**
-     * Extracts uids from import summaries.
-     * Use when more than one object was created.
-     *
-     * @return
-     */
-    public List<String> extractUids()
+    public boolean isRequired()
     {
-        return extractList( "response.importSummaries.reference" );
+        return required;
     }
 
-    public String extractString( String path )
+    public void setRequired( boolean required )
     {
-        return raw.jsonPath().getString( path );
+        this.required = required;
     }
 
-    public Object extract( String path )
+    public List<String> getConstants()
     {
-        return raw.jsonPath().get( path );
+        return constants;
     }
 
-    public <T> List<T> extractList( String path )
+    public void setConstants( List<String> constants )
     {
-        return raw.jsonPath().getList( path );
-
-    public <T> List<T> extractList(String path, Class<T> type)
-    {
-        return raw.jsonPath( ).getList( path, type );
+        this.constants = constants;
     }
 
-    public int statusCode()
+    public String getRelativeApiEndpoint()
     {
-        return raw.statusCode();
+        return relativeApiEndpoint;
     }
 
-    public ValidatableResponse validate()
+    public void setRelativeApiEndpoint( String relativeApiEndpoint )
     {
-        return raw.then();
+        this.relativeApiEndpoint = relativeApiEndpoint;
     }
 
-    public JsonObject getBody()
+    public double getMin()
     {
-        return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+        return min;
     }
 
-    public boolean isEntityCreated()
+    public void setMin( double min )
     {
-        return (statusCode() == 200 || statusCode() == 201);
+        this.min = min;
     }
 
-    public boolean containsImportSummaries()
+    public PropertyType getPropertyType()
     {
-        return extractString( "response.responseType" ).equals( "ImportSummaries" ) ? true : false;
+        return propertyType;
     }
 
+    public void setPropertyType( PropertyType propertyType )
+    {
+        this.propertyType = propertyType;
+    }
 }

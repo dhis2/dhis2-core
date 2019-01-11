@@ -114,6 +114,33 @@ public class MetadataSmokeTest
             .validate().statusCode( 200 );
     }
 
+    @ParameterizedTest
+    @MethodSource( "getSchemaEndpoints" )
+    public void metadata_post_objectsWithoutReferences( String endpoint, String schema )
+    {
+        List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
+
+        if (schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType().equals( PropertyType.REFERENCE ) || schemaProperty.getPropertyType().equals( PropertyType.COMPLEX ))) {
+            return;
+        }
+
+        JsonObject object = new JsonObject();
+
+        for ( SchemaProperty prop : schemaProperties
+        )
+        {
+            JsonElement element = DataGenerator.generateRandomValueMatchingSchema( prop );
+            object.add( prop.getFieldName(), element );
+        }
+
+        ApiResponse response = new RestApiActions( endpoint ).post( object );
+        System.out.print( response.extractUid() );
+        ResponseValidationHelper.validateObjectCreation( response );
+
+        response = new RestApiActions( endpoint ).delete( response.extractUid());
+
+        ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted"  );
+    }
     Stream<Arguments> getSchemaEndpoints()
     {
         ApiResponse apiResponse = schemasActions.get();

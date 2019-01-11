@@ -26,31 +26,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+package org.hisp.dhis.dto.schemas;
 
-import org.hisp.dhis.dto.ApiResponse;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SchemasActions
-    extends RestApiActions
+public enum PropertyType
 {
-    public SchemasActions()
+    NUMBER( "INTEGER", "NUMBER" ),
+    STRING( "TEXT" ),
+    BOOLEAN("BOOLEAN"),
+    CONSTANT("CONSTANT"),
+    REFERENCE("REFERENCE"),
+    COMPLEX("COMPLEX"),
+    COLLECTION("COLLECTION"),
+    IDENTIFIER("IDENTIFIER"),
+    DATE("DATE"),
+    UNKNOWN("");
+
+
+    private final List<String> values;
+
+    private PropertyType( String... values )
     {
-        super( "/schemas" );
+        this.values = Arrays.asList(values);
     }
 
-    public List<SchemaProperty> getRequiredProperties(String resource) {
-        List<SchemaProperty> list = get( resource ).extractList( "properties", SchemaProperty.class );
-
-        return list.stream()
-            .filter( (schemaProperty -> schemaProperty.isRequired()) )
-            .collect( Collectors.toList() );
-    }
-
-    public ApiResponse validateObjectAgainstSchema( String resource, Object obj )
-    {
-        return post( resource, obj );
+    @JsonCreator
+    public static PropertyType getPropertyTypeFromValue(String value) {
+        for (PropertyType type : PropertyType.values()) {
+            if(type.values.contains(value))
+                return type;
+        }
+        return UNKNOWN;
     }
 }
