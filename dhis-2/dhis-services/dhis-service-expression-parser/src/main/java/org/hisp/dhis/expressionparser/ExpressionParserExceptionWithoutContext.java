@@ -43,7 +43,7 @@ package org.hisp.dhis.expressionparser;
 public class ExpressionParserExceptionWithoutContext
     extends ExpressionParserException
 {
-    public ExpressionParserExceptionWithoutContext(String message )
+    public ExpressionParserExceptionWithoutContext( String message )
     {
         super( message );
     }

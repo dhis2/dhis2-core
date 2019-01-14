@@ -32,11 +32,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -71,7 +69,7 @@ public class ExpressionItemsVisitor
 
     private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
-    public Set<DimensionalItemObject> getExpressionItems( ParseTree parseTree,
+    public Set<DimensionalItemObject> getDimensionalItemObjects( ParseTree parseTree,
         DimensionService _dimensionService )
     {
         //TODO: Why doesn't the @Autowired value work?
@@ -84,14 +82,10 @@ public class ExpressionItemsVisitor
         return dimensionalItemObjects;
     }
 
-    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( ParseTree parseTree,
-        OrganisationUnitService _organisationUnitService,
-        IdentifiableObjectManager _manager, DimensionService _dimensionService,
+    public Set<OrganisationUnitGroup> getOrgUnitGroups( ParseTree parseTree,
         OrganisationUnitGroupService _organisationUnitGroupService)
     {
-        //TODO: Why don't the @Autowired values work?
-        manager = _manager;
-        dimensionService = _dimensionService;
+        //TODO: Why doesn't the @Autowired value work?
         organisationUnitGroupService = _organisationUnitGroupService;
 
         orgUnitGroupsNeeded = new HashSet<>();
@@ -101,19 +95,17 @@ public class ExpressionItemsVisitor
         return orgUnitGroupsNeeded;
     }
 
-    public String getExpressionDescription( ParseTree parseTree, String expr,
-        Map<String, Double> constantMap, OrganisationUnitService _organisationUnitService,
-        IdentifiableObjectManager _manager, DimensionService _dimensionService,
-        ConstantService _constantService, OrganisationUnitGroupService _organisationUnitGroupService )
+    public String getDescription( ParseTree parseTree, String expr,
+        Map<String, Double> constantMap, DimensionService _dimensionService,
+        ConstantService _constantService,
+        OrganisationUnitGroupService _organisationUnitGroupService )
     {
         //TODO: Why don't the @Autowired values work?
-        manager = _manager;
         dimensionService = _dimensionService;
         constantService = _constantService;
         organisationUnitGroupService = _organisationUnitGroupService;
 
         this.constantMap = constantMap;
-        dimensionalItemObjects = new HashSet<DimensionalItemObject>();
 
         itemDescriptions = new HashMap<>();
 
@@ -273,6 +265,11 @@ public class ExpressionItemsVisitor
 
     private Object getExpressionItem( DimensionItemType type, String itemId, String exprText )
     {
+        if ( dimensionalItemObjects == null && itemDescriptions == null )
+        {
+            return DUMMY_VALUE;
+        }
+
         DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
 
         if ( item == null )

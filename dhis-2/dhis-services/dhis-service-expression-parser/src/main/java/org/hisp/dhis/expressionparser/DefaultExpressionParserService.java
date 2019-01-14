@@ -39,13 +39,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.expressionparser.generated.ExpressionLexer;
 import org.hisp.dhis.expressionparser.generated.ExpressionParser;
 import org.hisp.dhis.period.Period;
@@ -72,13 +70,7 @@ public class DefaultExpressionParserService
     private ConstantService constantService;
 
     @Autowired
-    protected OrganisationUnitService organisationUnitService;
-
-    @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
-
-    @Autowired
-    protected IdentifiableObjectManager manager;
 
     @Autowired
     private DimensionService dimensionService;
@@ -107,7 +99,7 @@ public class DefaultExpressionParserService
         {
             try
             {
-                return expressionItemsVisitor.getExpressionItems( parseTree,
+                return expressionItemsVisitor.getDimensionalItemObjects( parseTree,
                     dimensionService );
             }
             catch ( ExpressionParserException ex )
@@ -135,9 +127,8 @@ public class DefaultExpressionParserService
         {
             try
             {
-                return expressionItemsVisitor.getExpressionOrgUnitGroups(
-                    parseTree, organisationUnitService, manager, dimensionService,
-                    organisationUnitGroupService );
+                return expressionItemsVisitor.getOrgUnitGroups(
+                    parseTree, organisationUnitGroupService );
             }
             catch ( ExpressionParserException ex )
             {
@@ -192,8 +183,8 @@ public class DefaultExpressionParserService
             return null;
         }
 
-        return expressionItemsVisitor.getExpressionDescription( parseTree, expr,
-            constantService.getConstantMap(), organisationUnitService, manager, dimensionService,
+        return expressionItemsVisitor.getDescription( parseTree, expr,
+            constantService.getConstantMap(), dimensionService,
             constantService, organisationUnitGroupService );
     }
 

@@ -36,7 +36,7 @@ package org.hisp.dhis.expressionparser;
 public class ExpressionParserException
     extends RuntimeException
 {
-    public ExpressionParserException(String message )
+    public ExpressionParserException( String message )
     {
         super( message );
     }
