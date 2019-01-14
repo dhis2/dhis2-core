@@ -28,8 +28,22 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,21 +79,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.google.api.client.util.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @Author Zubair Asghar.
@@ -601,10 +602,12 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programStageInstance.setProgramStage( programStage );
-        eventDataValue = new EventDataValue( dataElement.getUid(), DE_PHONE_NUMBER );
+
+        String storedBy = "test-user";
+        eventDataValue = new EventDataValue( dataElement.getUid(), DE_PHONE_NUMBER, storedBy );
         eventDataValue.setAutoFields();
 
-        eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL );
+        eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL, storedBy );
         eventDataValueEmail.setAutoFields();
 
         eventDataValueService.saveEventDataValue( programStageInstance, eventDataValue );

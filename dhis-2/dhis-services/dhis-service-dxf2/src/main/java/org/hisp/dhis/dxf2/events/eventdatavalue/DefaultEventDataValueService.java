@@ -65,14 +65,20 @@ import com.google.common.collect.Sets;
 @Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final org.hisp.dhis.eventdatavalue.EventDataValueService eventDataValueService;
+
+    private final TrackerAccessManager trackerAccessManager;
 
     @Autowired
-    protected org.hisp.dhis.eventdatavalue.EventDataValueService eventDataValueService;
-
-    @Autowired
-    protected TrackerAccessManager trackerAccessManager;
+    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher,
+        org.hisp.dhis.eventdatavalue.EventDataValueService eventDataValueService, TrackerAccessManager trackerAccessManager )
+    {
+        this.eventPublisher = eventPublisher;
+        this.eventDataValueService = eventDataValueService;
+        this.trackerAccessManager = trackerAccessManager;
+    }
 
     @Override
     public void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean isUpdate,

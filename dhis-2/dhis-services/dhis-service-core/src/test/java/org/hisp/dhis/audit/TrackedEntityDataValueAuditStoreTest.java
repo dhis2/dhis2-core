@@ -30,7 +30,10 @@ package org.hisp.dhis.audit;
  *
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -55,9 +58,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.Lists;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -141,8 +142,9 @@ public class TrackedEntityDataValueAuditStoreTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
+        String storedBy = "test-user";
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
@@ -159,8 +161,9 @@ public class TrackedEntityDataValueAuditStoreTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
+        String storedBy = "test-user";
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstance, dataValueB );

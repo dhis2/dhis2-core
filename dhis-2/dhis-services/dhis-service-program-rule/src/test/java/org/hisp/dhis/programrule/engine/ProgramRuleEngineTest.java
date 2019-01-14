@@ -28,7 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -77,16 +87,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -476,10 +477,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstanceTempB = programStageInstanceService.getProgramStageInstance( "UID-PS2" );
         ProgramStageInstance programStageInstanceTempC = programStageInstanceService.getProgramStageInstance( "UID-PS3" );
 
-        diagnosis = new EventDataValue( dataElementA.getUid(), "malaria" );
-        bcgdoze = new EventDataValue( dataElementB.getUid(), "bcgdoze" );
-        weight = new EventDataValue( dataElementC.getUid(), "80" );
-        height = new EventDataValue( dataElementD.getUid(), "165" );
+        String storedBy = "test-user";
+        diagnosis = new EventDataValue( dataElementA.getUid(), "malaria", storedBy );
+        bcgdoze = new EventDataValue( dataElementB.getUid(), "bcgdoze", storedBy );
+        weight = new EventDataValue( dataElementC.getUid(), "80", storedBy );
+        height = new EventDataValue( dataElementD.getUid(), "165", storedBy );
 
         eventDataValueService.saveEventDataValue( programStageInstanceTempA, diagnosis );
         eventDataValueService.saveEventDataValue( programStageInstanceTempA, bcgdoze );

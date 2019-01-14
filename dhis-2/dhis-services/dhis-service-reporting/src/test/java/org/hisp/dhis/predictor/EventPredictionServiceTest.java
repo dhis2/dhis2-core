@@ -330,8 +330,9 @@ public class EventPredictionServiceTest
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
 
-        EventDataValue dataValueA = new EventDataValue( dataElementX.getUid(), "4" );
-        EventDataValue dataValueB = new EventDataValue( dataElementX.getUid(), "5" );
+        String storedBy = "test-user";
+        EventDataValue dataValueA = new EventDataValue( dataElementX.getUid(), "4", storedBy );
+        EventDataValue dataValueB = new EventDataValue( dataElementX.getUid(), "5", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstanceB, dataValueB );

@@ -139,11 +139,12 @@ public class EventDataValueServiceTest extends DhisSpringTest
         stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance, stageB, yesterday,
             yesterday, organisationUnit );
 
-        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1" );
-        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2" );
-        eventDataValueC = new EventDataValue( dataElementA.getUid(), "3" );
-        eventDataValueD = new EventDataValue( dataElementB.getUid(), "4" );
-        eventDataValueE = new EventDataValue( dataElementC.getUid(), "5" );
+        String storedBy = "test-user";
+        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
+        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
+        eventDataValueC = new EventDataValue( dataElementA.getUid(), "3", storedBy );
+        eventDataValueD = new EventDataValue( dataElementB.getUid(), "4", storedBy );
+        eventDataValueE = new EventDataValue( dataElementC.getUid(), "5", storedBy );
     }
 
     @Test

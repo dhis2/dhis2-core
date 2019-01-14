@@ -28,7 +28,22 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.not_equal_to;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
@@ -75,21 +90,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.not_equal_to;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -286,8 +287,9 @@ public class EventValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleDSliding );
         validationRuleService.saveValidationRule( validationRuleISliding );
 
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "4" );
-        EventDataValue dataValueB = new EventDataValue( dataElementA.getUid(), "5" );
+        String storedBy = "test-user";
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "4", storedBy );
+        EventDataValue dataValueB = new EventDataValue( dataElementA.getUid(), "5", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstanceB, dataValueB );

@@ -28,7 +28,21 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,24 +63,13 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Created by zubair@dhis2.org on 11.08.17.
@@ -107,6 +110,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private IncomingSmsService incomingSmsService;
@@ -264,6 +270,8 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         ProgramInstance programInstance = programInstances.get( 0 );
 
+        String currentUserName = currentUserService.getCurrentUsername();
+
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ous.iterator().next() );
         programStageInstance.setProgramStage( smsCommand.getProgramStage() );
@@ -273,13 +281,14 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance
             .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
+        programStageInstance.setStoredBy( currentUserName );
 
         programStageInstanceService.addProgramStageInstance( programStageInstance );
 
         Set<EventDataValue> eventDataValues = new HashSet<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
-            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ) );
+            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ), currentUserName );
             eventDataValue.setAutoFields();
 
             eventDataValues.add( eventDataValue );

@@ -251,10 +251,12 @@ public class ProgramIndicatorServiceTest
         programInstance.setProgramStageInstances( programStageInstances );
         programInstance.setProgram( programA );
 
-        EventDataValue dataValueA = new EventDataValue( deA.getUid(), "3" );
-        EventDataValue dataValueB = new EventDataValue( deB.getUid(), "1" );
-        EventDataValue dataValueC = new EventDataValue( deA.getUid(), "5" );
-        EventDataValue dataValueD = new EventDataValue( deB.getUid(), "7" );
+        String storedBy = "test-user";
+
+        EventDataValue dataValueA = new EventDataValue( deA.getUid(), "3", storedBy );
+        EventDataValue dataValueB = new EventDataValue( deB.getUid(), "1", storedBy );
+        EventDataValue dataValueC = new EventDataValue( deA.getUid(), "5", storedBy );
+        EventDataValue dataValueD = new EventDataValue( deB.getUid(), "7", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstanceA, dataValueB );

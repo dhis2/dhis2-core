@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -42,7 +43,6 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -59,20 +59,25 @@ public class DefaultEventDataValueService implements EventDataValueService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityDataValueAuditService dataValueAuditService;
+    private final TrackedEntityDataValueAuditService dataValueAuditService;
+
+    private final FileResourceService fileResourceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    private final DataElementService dataElementService;
+
+    private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
 
     @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private DataElementService dataElementService;
+    public DefaultEventDataValueService( TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
+        ProgramStageInstanceService programStageInstanceService, DataElementService dataElementService )
+    {
+        this.dataValueAuditService = dataValueAuditService;
+        this.fileResourceService = fileResourceService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.dataElementService = dataElementService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -83,29 +88,33 @@ public class DefaultEventDataValueService implements EventDataValueService
 
     @Override
     public void persistDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance,
-        boolean singleValue ) {
+        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache,
+        ProgramStageInstance programStageInstance, boolean singleValue )
+    {
 
         //TODO: See the Todo on the top of the class (Can be done with use of concatenate (||) parameter)
 
         Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
 
-        if ( singleValue ) {
+        if ( singleValue )
+        {
             //If it is only a single value update, I don't won't to miss the values that are missing in the payload but already present in the DB
             Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
-            Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(), changedDataValues );
+            Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(),
+                changedDataValues );
 
             programStageInstance.setEventDataValues( Sets.union( unchangedDataValues, updatedOrNewDataValues ) );
         }
-        else {
+        else
+        {
             programStageInstance.setEventDataValues( updatedOrNewDataValues );
         }
 
-        auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache, programStageInstance );
+        auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache,
+            programStageInstance );
         handleFileDataValueChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
-
 
     @Override
     public void saveEventDataValue( ProgramStageInstance programStageInstance, EventDataValue eventDataValue )
@@ -139,7 +148,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
         Set<EventDataValue> filteredEventDataValues = filterOutEmptyDataValues( eventDataValues );
 
-        if( !filteredEventDataValues.isEmpty() )
+        if ( !filteredEventDataValues.isEmpty() )
         {
             validateEventDataValues( filteredEventDataValues );
 
@@ -164,7 +173,8 @@ public class DefaultEventDataValueService implements EventDataValueService
         {
             deleteEventDataValue( programStageInstance, eventDataValue );
         }
-        else {
+        else
+        {
             eventDataValue.setAutoFields();
 
             String result = validateEventDataValue( eventDataValue );
@@ -184,14 +194,16 @@ public class DefaultEventDataValueService implements EventDataValueService
         }
     }
 
-    @Override public void updateEventDataValues( ProgramStageInstance programStageInstance, Set<EventDataValue> eventDataValues )
+    @Override
+    public void updateEventDataValues( ProgramStageInstance programStageInstance, Set<EventDataValue> eventDataValues )
     {
-        Set<EventDataValue> eventDataValuesWithEmptyValues = eventDataValues.stream().filter( dv -> StringUtils.isEmpty( dv.getValue() ) ).collect( Collectors.toSet());
+        Set<EventDataValue> eventDataValuesWithEmptyValues = eventDataValues.stream()
+            .filter( dv -> StringUtils.isEmpty( dv.getValue() ) ).collect( Collectors.toSet() );
         deleteEventDataValues( programStageInstance, eventDataValuesWithEmptyValues );
 
         Set<EventDataValue> filteredEventDataValues = filterOutEmptyDataValues( eventDataValues );
 
-        if( !filteredEventDataValues.isEmpty() )
+        if ( !filteredEventDataValues.isEmpty() )
         {
             validateEventDataValues( filteredEventDataValues );
 
@@ -209,18 +221,21 @@ public class DefaultEventDataValueService implements EventDataValueService
         }
     }
 
-    @Override public void deleteEventDataValue( ProgramStageInstance programStageInstance, EventDataValue eventDataValue )
+    @Override
+    public void deleteEventDataValue( ProgramStageInstance programStageInstance, EventDataValue eventDataValue )
     {
         //TODO: See the Todo on the top of the class (Can be done with use of delete (-) parameter)
 
         if ( StringUtils.isEmpty( eventDataValue.getDataElement() ) )
         {
-            throw new  IllegalQueryException( "Data element is null or empty" );
+            throw new IllegalQueryException( "Data element is null or empty" );
         }
 
         DataElement dataElement = dataElementService.getDataElement( eventDataValue.getDataElement() );
-        if ( dataElement == null ) {
-            throw new  IllegalQueryException( "Given data element (" +  eventDataValue.getDataElement() + ") does not exist" );
+        if ( dataElement == null )
+        {
+            throw new IllegalQueryException(
+                "Given data element (" + eventDataValue.getDataElement() + ") does not exist" );
         }
 
         createAndAddAudit( eventDataValue, dataElement, programStageInstance, AuditType.DELETE );
@@ -229,24 +244,29 @@ public class DefaultEventDataValueService implements EventDataValueService
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
 
-    @Override public void deleteEventDataValues( ProgramStageInstance programStageInstance, Set<EventDataValue> eventDataValues )
+    @Override
+    public void deleteEventDataValues( ProgramStageInstance programStageInstance, Set<EventDataValue> eventDataValues )
     {
         //TODO: See the Todo on the top of the class (Can be done with use of delete (-) parameter)
 
-        for ( EventDataValue eventDataValue : eventDataValues ) {
+        for ( EventDataValue eventDataValue : eventDataValues )
+        {
             if ( StringUtils.isEmpty( eventDataValue.getDataElement() ) )
             {
-                throw new  IllegalQueryException( "Data element is null or empty" );
+                throw new IllegalQueryException( "Data element is null or empty" );
             }
 
             DataElement dataElement = dataElementService.getDataElement( eventDataValue.getDataElement() );
-            if ( dataElement == null ) {
-                throw new  IllegalQueryException( "Given data element (" +  eventDataValue.getDataElement() + ") does not exist" );
+            if ( dataElement == null )
+            {
+                throw new IllegalQueryException(
+                    "Given data element (" + eventDataValue.getDataElement() + ") does not exist" );
             }
         }
 
-        for ( EventDataValue eventDataValue : eventDataValues ) {
-            DataElement dataElement = dataElementService.getDataElement( eventDataValue.getDataElement() );
+        for ( EventDataValue eventDataValue : eventDataValues )
+        {
+            DataElement dataElement = getDataElement( eventDataValue.getDataElement() );
             createAndAddAudit( eventDataValue, dataElement, programStageInstance, AuditType.DELETE );
             handleFileDataValueDelete( eventDataValue, dataElement );
         }
@@ -259,15 +279,18 @@ public class DefaultEventDataValueService implements EventDataValueService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Set<EventDataValue> filterOutEmptyDataValues( Set<EventDataValue> eventDataValues ) {
-        return eventDataValues.stream().filter( dv -> !StringUtils.isEmpty( dv.getValue() ) ).collect( Collectors.toSet());
+    private Set<EventDataValue> filterOutEmptyDataValues( Set<EventDataValue> eventDataValues )
+    {
+        return eventDataValues.stream().filter( dv -> !StringUtils.isEmpty( dv.getValue() ) )
+            .collect( Collectors.toSet() );
     }
 
-    private String validateEventDataValue( EventDataValue eventDataValue ) {
+    private String validateEventDataValue( EventDataValue eventDataValue )
+    {
 
         if ( StringUtils.isEmpty( eventDataValue.getStoredBy() ) )
         {
-            eventDataValue.setStoredBy( currentUserService.getCurrentUsername() );
+            return "Stored by is null or empty";
         }
 
         if ( StringUtils.isEmpty( eventDataValue.getDataElement() ) )
@@ -276,8 +299,9 @@ public class DefaultEventDataValueService implements EventDataValueService
         }
 
         DataElement dataElement = dataElementService.getDataElement( eventDataValue.getDataElement() );
-        if ( dataElement == null ) {
-            return "Given data element (" +  eventDataValue.getDataElement() + ") does not exist" ;
+        if ( dataElement == null )
+        {
+            return "Given data element (" + eventDataValue.getDataElement() + ") does not exist";
         }
 
         String result = ValidationUtils.dataValueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
@@ -285,38 +309,48 @@ public class DefaultEventDataValueService implements EventDataValueService
         return result == null ? null : "Value is not valid:  " + result;
     }
 
-    private void validateEventDataValues( Set<EventDataValue> eventDataValues ) {
-
+    private void validateEventDataValues( Set<EventDataValue> eventDataValues )
+    {
         String result;
-        for ( EventDataValue eventDataValue : eventDataValues ) {
+        for ( EventDataValue eventDataValue : eventDataValues )
+        {
             result = validateEventDataValue( eventDataValue );
-            if ( result != null) {
+            if ( result != null )
+            {
                 throw new IllegalQueryException( result );
             }
         }
     }
 
     private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance ) {
+        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache,
+        ProgramStageInstance programStageInstance )
+    {
 
-        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ), programStageInstance, AuditType.CREATE ) );
-        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ), programStageInstance, AuditType.UPDATE ) );
-        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ), programStageInstance, AuditType.DELETE ) );
+        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.CREATE ) );
+        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.UPDATE ) );
+        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.DELETE ) );
     }
 
-    private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement, ProgramStageInstance programStageInstance,
-        AuditType auditType )
+    private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
+        ProgramStageInstance programStageInstance, AuditType auditType )
     {
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
             dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
         dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
     }
 
-    private void handleFileDataValueChanges ( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache ) {
+    private void handleFileDataValueChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
+        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache )
+    {
 
-        removedDataValues.forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.get( dv.getDataElement() ) ) );
-        updatedDataValues.forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+        removedDataValues
+            .forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+        updatedDataValues
+            .forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.get( dv.getDataElement() ) ) );
         newDataValues.forEach( dv -> handleFileDataValueSave( dv, dataElementsCache.get( dv.getDataElement() ) ) );
     }
 
@@ -385,5 +419,10 @@ public class DefaultEventDataValueService implements EventDataValueService
     {
         fileResource.setAssigned( true );
         fileResourceService.updateFileResource( fileResource );
+    }
+
+    private DataElement getDataElement( String dataElementUid )
+    {
+        return dataElementCache.get( dataElementUid, () -> dataElementService.getDataElement( dataElementUid ) );
     }
 }

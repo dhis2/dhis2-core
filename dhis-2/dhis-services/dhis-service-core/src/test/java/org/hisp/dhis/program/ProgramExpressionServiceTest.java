@@ -28,6 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -39,14 +47,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Chau Thu Tran
@@ -130,8 +130,9 @@ public class ProgramExpressionServiceTest
         ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1" );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2" );
+        String storedBy = "test-user";
+        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
+        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
         eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
         eventDataValueService.saveEventDataValue( stageInstance, dataValueB );

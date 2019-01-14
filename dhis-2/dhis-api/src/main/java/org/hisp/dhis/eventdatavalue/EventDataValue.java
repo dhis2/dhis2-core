@@ -27,13 +27,14 @@ package org.hisp.dhis.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author David Katuscak
@@ -80,6 +81,13 @@ public class EventDataValue implements Serializable
     public EventDataValue( String dataElement, String value )
     {
         this.dataElement = dataElement;
+        setValue( value );
+    }
+
+    public EventDataValue( String dataElement, String value, String storedBy )
+    {
+        this.dataElement = dataElement;
+        this.storedBy = storedBy;
         setValue( value );
     }
 
@@ -198,7 +206,8 @@ public class EventDataValue implements Serializable
         return auditValue;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "EventDataValue{" +
             "dataElement=" + dataElement +

@@ -28,8 +28,13 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.lowagie.text.pdf.AcroFields;
-import com.lowagie.text.pdf.PdfReader;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -51,12 +56,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.PdfReader;
 
 public class PdfDataEntryFormImportUtil
 {
@@ -146,6 +147,8 @@ public class PdfDataEntryFormImportUtil
             }
         }
 
+        String storedBy = currentUserService.getCurrentUsername();
+
         // For each row, add new programStageInstance and add data elements to it.
         for ( Map.Entry<Integer, ProgramStageInstanceStorage> entry : programStageInstanceDataManager
             .getProgramStageInstanceData().entrySet() )
@@ -168,7 +171,7 @@ public class PdfDataEntryFormImportUtil
                 String value = dataElementsEntry.getValue();
 
                 // Step 3. Insert Data
-                insertValueProgramStageDataElement( programStageInstance, dataElementId, value );
+                insertValueProgramStageDataElement( programStageInstance, storedBy, dataElementId, value );
             }
         }
 
@@ -200,13 +203,14 @@ public class PdfDataEntryFormImportUtil
         return programStageInstanceService.addProgramStageInstance( programStageInstance );
     }
 
-    private void insertValueProgramStageDataElement( ProgramStageInstance programStageInstance, int dataElementId, String value )
+    private void insertValueProgramStageDataElement( ProgramStageInstance programStageInstance, String storedBy, int dataElementId, String value )
     {
 
         DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
         if ( dataElement == null ) {
             log.error( "DataElement with dataElementId: " + dataElementId + " does not exist." );
+            throw new IllegalStateException( "DataElement with dataElementId: " + dataElementId + " does not exist." );
         }
 
         EventDataValue dataValue = programStageInstance.getEventDataValues().stream()
@@ -226,12 +230,10 @@ public class PdfDataEntryFormImportUtil
 
         // providedElsewhere = (providedElsewhere == null) ? false :
         // providedElsewhere;
-        String storedBy = currentUserService.getCurrentUsername();
 
         if ( dataValue == null && value != null )
         {
-            dataValue = new EventDataValue( dataElement.getUid(), value );
-            dataValue.setStoredBy( storedBy );
+            dataValue = new EventDataValue( dataElement.getUid(), value, storedBy );
             // dataValue.setProvidedElsewhere( providedElsewhere );
 
             eventDataValueService.saveEventDataValue( programStageInstance, dataValue );
