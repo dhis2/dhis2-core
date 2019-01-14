@@ -1162,7 +1162,7 @@ public class JdbcEventStore
         catch ( IOException e )
         {
             log.error( "Parsing EventDataValues json string failed. String value: " + jsonString );
-            throw new RuntimeException( e );
+            throw new IllegalArgumentException( e );
         }
     }
 }

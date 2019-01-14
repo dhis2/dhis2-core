@@ -105,7 +105,7 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
         }
         catch ( IOException e )
         {
-            throw new RuntimeException( e );
+            throw new IllegalArgumentException( e );
         }
     }
 

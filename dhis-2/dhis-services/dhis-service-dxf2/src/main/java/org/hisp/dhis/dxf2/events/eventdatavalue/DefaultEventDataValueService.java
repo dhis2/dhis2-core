@@ -87,15 +87,12 @@ public class DefaultEventDataValueService implements EventDataValueService
         Map<String, EventDataValue> dataElementValueMap = getDataElementToEventDataValueMap( programStageInstance.getEventDataValues() );
 
         boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
-        if ( validateMandatoryAttributes )
+        if ( validateMandatoryAttributes && !validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, singleValue ) )
         {
-            if ( !validatePresenceOfMandatoryDataElements( event, programStageInstance, importSummary, singleValue ) )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.incrementIgnored();
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
 
-                return;
-            }
+            return;
         }
 
         Set<EventDataValue> newDataValues = new HashSet<>();
