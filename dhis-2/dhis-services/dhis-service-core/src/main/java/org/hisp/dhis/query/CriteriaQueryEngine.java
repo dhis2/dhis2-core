@@ -112,6 +112,11 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             criteria.addOrder( getHibernateOrder( order ) );
         }
 
+        if ( query.getCriterions().isEmpty() )
+        {
+            return criteria.list();
+        }
+
         return criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) ).list();
     }
 
@@ -144,6 +149,12 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         if ( criteria == null )
         {
             return 0;
+        }
+
+        if ( query.getCriterions().isEmpty() )
+        {
+            return ((Number) criteria.setProjection( Projections.countDistinct( "id" ) )
+                .uniqueResult()).intValue();
         }
 
         return ((Number) criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) )
