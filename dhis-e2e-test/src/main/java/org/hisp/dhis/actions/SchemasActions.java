@@ -45,7 +45,8 @@ public class SchemasActions
         super( "/schemas" );
     }
 
-    public List<SchemaProperty> getRequiredProperties(String resource) {
+    public List<SchemaProperty> getRequiredProperties( String resource )
+    {
         List<SchemaProperty> list = get( resource ).extractList( "properties", SchemaProperty.class );
 
         return list.stream()

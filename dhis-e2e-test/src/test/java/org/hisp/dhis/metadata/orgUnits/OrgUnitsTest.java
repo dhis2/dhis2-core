@@ -122,7 +122,7 @@ public class OrgUnitsTest
     @Test
     public void orgUnits_add_withoutPermissions()
     {
-        String userName = DataGenerator.randomString(  );
+        String userName = DataGenerator.randomString();
         String psw = "!XPTOqwerty1";
 
         userActions.addUser( userName, psw );

@@ -56,7 +56,6 @@
 
 package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -74,7 +73,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,7 +81,7 @@ import java.util.stream.Stream;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataSmokeTest
+public class MetadataTest
     extends ApiTest
 {
     private LoginActions loginActions;
@@ -135,7 +133,6 @@ public class MetadataSmokeTest
         Assumptions.assumeFalse(
             schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType() == PropertyType.COMPLEX ),
             "N/A test case - body would require COMPLEX objects." );
-
 
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
         ApiResponse response = new RestApiActions( endpoint ).post( object );

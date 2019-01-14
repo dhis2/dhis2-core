@@ -118,7 +118,7 @@ public class OrgUnitActions
 
     public OrgUnit generateDummyOrgUnit()
     {
-        String randomString = DataGenerator.randomString( );
+        String randomString = DataGenerator.randomString();
 
         OrgUnit orgUnit = new OrgUnit();
         orgUnit.setName( "AutoTest OrgUnit" + randomString );

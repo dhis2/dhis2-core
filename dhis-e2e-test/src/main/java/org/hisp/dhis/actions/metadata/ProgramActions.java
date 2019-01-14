@@ -115,7 +115,7 @@ public class ProgramActions
     public ApiResponse addProgramStage( String programId )
     {
 
-        String programStageId = createProgramStage( "AutoTest program stage " + DataGenerator.randomString( ) )
+        String programStageId = createProgramStage( "AutoTest program stage " + DataGenerator.randomString() )
             .extractUid();
 
         return addProgramStage( programId, programStageId );
@@ -147,7 +147,7 @@ public class ProgramActions
 
     private JsonObject baseBody( String programType )
     {
-        String random = DataGenerator.randomString( );
+        String random = DataGenerator.randomString();
 
         JsonObject object = new JsonObject();
         object.addProperty( "programType", programType );

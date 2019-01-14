@@ -72,42 +72,42 @@ public class DataGenerator
         JsonElement jsonElement;
         switch ( property.getPropertyType() )
         {
-            case STRING:
-                jsonElement = new JsonPrimitive(
-                    generateStringByFieldName( property.getName(), (int) property.getMin(), (int) property.getMax() ) );
-                break;
+        case STRING:
+            jsonElement = new JsonPrimitive(
+                generateStringByFieldName( property.getName(), (int) property.getMin(), (int) property.getMax() ) );
+            break;
 
-            case DATE:
-                Date date = faker.date().past( 1000, TimeUnit.DAYS );
-                jsonElement = new JsonPrimitive( new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).format( date ) );
-                break;
+        case DATE:
+            Date date = faker.date().past( 1000, TimeUnit.DAYS );
+            jsonElement = new JsonPrimitive( new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).format( date ) );
+            break;
 
-            case BOOLEAN:
-                if ( property.getName().equalsIgnoreCase( "external" ) )
-                {
-                    jsonElement = new JsonPrimitive( true );
-                    break;
-                }
-
-                jsonElement = new JsonPrimitive( String.valueOf( faker.bool().bool() ) );
+        case BOOLEAN:
+            if ( property.getName().equalsIgnoreCase( "external" ) )
+            {
+                jsonElement = new JsonPrimitive( true );
                 break;
+            }
 
-            case CONSTANT:
-                int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
-                jsonElement = new JsonPrimitive( property.getConstants().get( randomConstant ) );
-                break;
+            jsonElement = new JsonPrimitive( String.valueOf( faker.bool().bool() ) );
+            break;
 
-            case NUMBER:
-                jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
-                break;
+        case CONSTANT:
+            int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
+            jsonElement = new JsonPrimitive( property.getConstants().get( randomConstant ) );
+            break;
 
-            case IDENTIFIER:
-                jsonElement = new JsonPrimitive( new IdGenerator().generateUniqueId() );
-                break;
+        case NUMBER:
+            jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
+            break;
 
-            default:
-                jsonElement = new JsonPrimitive( "Conversion not defined." );
-                break;
+        case IDENTIFIER:
+            jsonElement = new JsonPrimitive( new IdGenerator().generateUniqueId() );
+            break;
+
+        default:
+            jsonElement = new JsonPrimitive( "Conversion not defined." );
+            break;
 
         }
 
@@ -144,19 +144,25 @@ public class DataGenerator
         return objectBody;
     }
 
+    public static JsonObject generateObjectForEndpoint( String schemaEndpoint) {
+        List<SchemaProperty> schemaProperties = new SchemasActions().getRequiredProperties( schemaEndpoint );
+
+        return generateObjectMatchingSchema( schemaProperties );
+    }
+
     private static String generateStringByFieldName( String name, int minLength, int maxLength )
     {
         switch ( name )
         {
-            case "url":
-                return "http://" + faker.internet().url();
+        case "url":
+            return "http://" + faker.internet().url();
 
-            case "cronExpression":
-                return "* * * * * *";
+        case "cronExpression":
+            return "* * * * * *";
 
-            case "periodType":
-                List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
-                return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ) );
+        case "periodType":
+            List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
+            return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ) );
         }
 
         if ( minLength < 1 )

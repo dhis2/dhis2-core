@@ -31,7 +31,6 @@ package org.hisp.dhis.helpers;
 import org.hisp.dhis.dto.ApiResponse;
 
 import static org.hamcrest.CoreMatchers.isA;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

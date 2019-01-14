@@ -107,7 +107,7 @@ public class OptionActions
 
     public String createOptionSet( String... optionIDs )
     {
-        String random = DataGenerator.randomString(  );
+        String random = DataGenerator.randomString();
 
         return createOptionSet( "Option Set auto " + random, "TEXT", optionIDs );
     }

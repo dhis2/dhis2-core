@@ -53,7 +53,7 @@ public class RestApiActions
     {
         return RestAssured.given().basePath( endpoint )
             .config( RestAssured.config()
-                .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ));
+                .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ) );
     }
 
     /**

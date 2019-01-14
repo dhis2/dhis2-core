@@ -65,6 +65,7 @@ public abstract class ApiTest
     private RequestSpecification defaultRequestSpecification()
     {
         RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+
         requestSpecification.setContentType( ContentType.JSON );
 
         return requestSpecification.build();

@@ -143,19 +143,10 @@ public class OptionSetTests
         assertEquals( 0, response.extractList( "options" ).size(), "Option was not removed" );
     }
 
-    @Test
-    public void optionSet_remove()
-    {
-        String id = createOptionSet();
-
-        ApiResponse response = actions.optionSetActions.delete( id );
-
-        ResponseValidationHelper.validateObjectRemoval( response, "Option set was not deleted" );
-    }
 
     private String createOptionSet( String... optionIds )
     {
-        String random = DataGenerator.randomString( );
+        String random = DataGenerator.randomString();
         return actions.createOptionSet( "AutoTest option set " + random, "TEXT", optionIds );
     }
 

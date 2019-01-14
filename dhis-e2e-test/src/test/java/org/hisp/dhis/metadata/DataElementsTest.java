@@ -64,11 +64,9 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
@@ -79,19 +77,23 @@ public class DataElementsTest
     extends ApiTest
 {
     private RestApiActions dataElementActions;
+
     private RestApiActions categoryComboActions;
+
     private LoginActions loginActions;
 
-    Stream<Arguments>  getDataElementCombinations() {
+    Stream<Arguments> getDataElementCombinations()
+    {
         return Stream.of( new Arguments[] {
-            Arguments.of("AGGREGATE", "NUMBER", "SUM", false, null),
-            Arguments.of("TRACKER", "TEXT", "CUSTOM", true, "DISAGGREGATION"),
+            Arguments.of( "AGGREGATE", "NUMBER", "SUM", false, null ),
+            Arguments.of( "TRACKER", "TEXT", "CUSTOM", true, "DISAGGREGATION" ),
             Arguments.of( "TRACKER", "AGE", "NONE", true, "ATTRIBUTE" )
         } );
     }
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         dataElementActions = new RestApiActions( "/dataElements" );
         categoryComboActions = new RestApiActions( "/categoryCombos" );
         loginActions = new LoginActions();
@@ -100,16 +102,18 @@ public class DataElementsTest
     }
 
     @ParameterizedTest
-    @MethodSource("getDataElementCombinations")
-    public void dataElement_create(String domainType, String valueType, String aggregationType, boolean withCategoryCombo, String categoryComboDimensionType)
+    @MethodSource( "getDataElementCombinations" )
+    public void dataElement_create( String domainType, String valueType, String aggregationType, boolean withCategoryCombo,
+        String categoryComboDimensionType )
     {
         JsonObject body = generateBaseBody();
         body.addProperty( "domainType", domainType );
         body.addProperty( "valueType", valueType );
         body.addProperty( "aggregationType", aggregationType );
 
-        if (withCategoryCombo) {
-            String categoryComboId = createCategoryCombo(categoryComboDimensionType);
+        if ( withCategoryCombo )
+        {
+            String categoryComboId = createCategoryCombo( categoryComboDimensionType );
 
             JsonObject categoryCombo = new JsonObject();
             categoryCombo.addProperty( "id", categoryComboId );
@@ -131,9 +135,10 @@ public class DataElementsTest
         return object;
     }
 
-    public String createCategoryCombo(String dimensionType) {
+    public String createCategoryCombo( String dimensionType )
+    {
         JsonObject body = new JsonObject();
-        body.addProperty( "name", DataGenerator.randomEntityName());
+        body.addProperty( "name", DataGenerator.randomEntityName() );
         body.addProperty( "dataDimensionType", dimensionType );
 
         return categoryComboActions.create( body );

@@ -100,14 +100,15 @@ public class TestCleanUp
 
     /**
      * Deletes entities created during test run.
+     *
      * @param resources I.E /organisationUnits to delete created OU's.
      */
     public void deleteCreatedEntities( String... resources )
     {
         new LoginActions().loginAsDefaultUser();
 
-        for (String resource : resources
-               )
+        for ( String resource : resources
+        )
         {
             List<String> entityIds = TestRunStorage.getCreatedEntities( resource );
 

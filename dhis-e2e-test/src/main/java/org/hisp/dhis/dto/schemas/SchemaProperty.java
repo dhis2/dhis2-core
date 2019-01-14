@@ -63,15 +63,21 @@ import java.util.List;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties( ignoreUnknown = true )
 public class SchemaProperty
 {
     private String name;
+
     private boolean required;
+
     private List<String> constants;
+
     private String relativeApiEndpoint;
+
     private double min;
+
     private double max;
+
     private long length;
 
     private PropertyType propertyType;
@@ -136,12 +142,14 @@ public class SchemaProperty
         this.propertyType = propertyType;
     }
 
-    public void setMax(double max) {
-        this.max = max;
-    }
     public double getMax()
     {
         return max;
+    }
+
+    public void setMax( double max )
+    {
+        this.max = max;
     }
 
     public long getLength()

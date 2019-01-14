@@ -86,7 +86,6 @@ package org.hisp.dhis.metadata.orgUnits;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
