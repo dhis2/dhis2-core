@@ -118,8 +118,10 @@ public interface AnalyticsTableManager
 
     /**
      * Invokes analytics table SQL hooks for the table type.
+     *
+     * @return the number of analytics table hooks being executed.
      */
-    void invokeAnalyticsTableSqlHooks();
+    int invokeAnalyticsTableSqlHooks();
 
     /**
      * Drops the given {@link AnalyticsTable}.
