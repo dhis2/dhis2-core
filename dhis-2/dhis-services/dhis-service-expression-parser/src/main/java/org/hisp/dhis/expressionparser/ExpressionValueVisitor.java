@@ -31,7 +31,6 @@ package org.hisp.dhis.expressionparser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,17 +51,28 @@ public class ExpressionValueVisitor
 {
     private Map<String, Double> keyValueMap;
 
+    /**
+     * Dummy value to use for days if not known, to get expression value.
+     */
+    private final static Double DUMMY_DAYS = 0.0;
+
     public Double getExpressionValue( ParseTree parseTree,
         Map<DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap,
-        int days, IdentifiableObjectManager _manager)
+        Integer days )
     {
-        //TODO: Why doesn't the @Autowired value work?
-        manager = _manager;
 
         this.constantMap = constantMap;
         this.orgUnitCountMap = orgUnitCountMap;
-        this.days = new Double( days );
+
+        if ( days != null )
+        {
+            this.days = new Double( days );
+        }
+        else
+        {
+            this.days = DUMMY_DAYS;
+        }
 
         makeKeyValueMap( valueMap );
 

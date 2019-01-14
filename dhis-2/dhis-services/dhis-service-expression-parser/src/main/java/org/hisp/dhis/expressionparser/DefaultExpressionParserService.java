@@ -30,6 +30,7 @@ package org.hisp.dhis.expressionparser;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -40,13 +41,18 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.expressionparser.generated.ExpressionLexer;
 import org.hisp.dhis.expressionparser.generated.ExpressionParser;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -81,9 +87,18 @@ public class DefaultExpressionParserService
         .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
         .maximumSize( 50000 ).build();
 
+    // -------------------------------------------------------------------------
+    // Expression methods
+    // -------------------------------------------------------------------------
+
     @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjects(String expression )
+    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
     {
+        if ( expression == null )
+        {
+            return new HashSet<>();
+        }
+
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expression, true );
@@ -93,7 +108,7 @@ public class DefaultExpressionParserService
             try
             {
                 return expressionItemsVisitor.getExpressionItems( parseTree,
-                    manager, dimensionService );
+                    dimensionService );
             }
             catch ( ExpressionParserException ex )
             {
@@ -107,7 +122,10 @@ public class DefaultExpressionParserService
     @Override
     public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = new HashSet<>();
+        if ( expression == null )
+        {
+            return new HashSet<>();
+        }
 
         ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
 
@@ -117,7 +135,7 @@ public class DefaultExpressionParserService
         {
             try
             {
-                orgUnitGroups = expressionItemsVisitor.getExpressionOrgUnitGroups(
+                return expressionItemsVisitor.getExpressionOrgUnitGroups(
                     parseTree, organisationUnitService, manager, dimensionService,
                     organisationUnitGroupService );
             }
@@ -127,7 +145,7 @@ public class DefaultExpressionParserService
             }
         }
 
-        return orgUnitGroups;
+        return new HashSet<>();
     }
 
     @Override
@@ -135,6 +153,11 @@ public class DefaultExpressionParserService
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days )
     {
+        if ( expression == null )
+        {
+            return null;
+        }
+
         ExpressionValueVisitor expressionValueVisitor = new ExpressionValueVisitor();
 
         ParseTree parseTree = getParseTree( expression, true );
@@ -147,7 +170,7 @@ public class DefaultExpressionParserService
         try
         {
             return expressionValueVisitor.getExpressionValue( parseTree, valueMap,
-                    constantMap, orgUnitCountMap, days, manager );
+                    constantMap, orgUnitCountMap, days );
         }
         catch ( ExpressionParserException ex )
         {
@@ -172,6 +195,75 @@ public class DefaultExpressionParserService
         return expressionItemsVisitor.getExpressionDescription( parseTree, expr,
             constantService.getConstantMap(), organisationUnitService, manager, dimensionService,
             constantService, organisationUnitGroupService );
+    }
+
+    // -------------------------------------------------------------------------
+    // Indicator expression methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators )
+    {
+        Set<DimensionalItemObject> items = Sets.newHashSet();
+
+        for ( Indicator indicator : indicators )
+        {
+            items.addAll( getExpressionDimensionalItemObjects( indicator.getNumerator() ) );
+            items.addAll( getExpressionDimensionalItemObjects( indicator.getDenominator() ) );
+        }
+
+        return items;
+    }
+
+    @Override
+    public Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators )
+    {
+        Set<OrganisationUnitGroup> groups = new HashSet<>();
+
+        if ( indicators != null )
+        {
+            for ( Indicator indicator : indicators )
+            {
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator() ) );
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator() ) );
+            }
+        }
+
+        return groups;
+    }
+
+    public IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap )
+    {
+        if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
+        {
+            return null;
+        }
+
+        Integer days = period != null ? period.getDaysInPeriod() : null;
+
+        Double denominatorValue = getExpressionValue( indicator.getDenominator(),
+            valueMap, constantMap, orgUnitCountMap, days );
+
+        if ( denominatorValue != null && denominatorValue != 0d )
+        {
+            Double numeratorValue = getExpressionValue( indicator.getNumerator(),
+                valueMap, constantMap, orgUnitCountMap, days );
+
+            double annualizationFactor = period != null ?
+                DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
+
+            int factor = indicator.getIndicatorType().getFactor();
+
+            return new IndicatorValue()
+                .setNumeratorValue( numeratorValue )
+                .setDenominatorValue( denominatorValue )
+                .setFactor( factor )
+                .setAnnualizationFactor( annualizationFactor );
+        }
+
+        return null;
     }
 
     // -------------------------------------------------------------------------

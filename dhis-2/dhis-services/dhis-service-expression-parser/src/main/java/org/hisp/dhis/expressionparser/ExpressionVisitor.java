@@ -28,8 +28,6 @@ package org.hisp.dhis.expressionparser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.constant.Constant;
@@ -37,8 +35,6 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expressionparser.generated.ExpressionBaseVisitor;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -99,8 +95,6 @@ public abstract class ExpressionVisitor
     @Autowired
     protected ConstantService constantService;
 
-    protected AggregationType currentAggregationType = null;
-
     protected Map<String, Double> constantMap = null;
 
     protected Map<String, Integer> orgUnitCountMap = null;
@@ -113,13 +107,6 @@ public abstract class ExpressionVisitor
      * Dummy value to use when the value is not yet known.
      */
     protected final static Double DUMMY_VALUE = 1.0;
-
-    /**
-     * Tells whether we are already inside a multi-value orgUnit function,
-     * in which case we should filter selected orgUnits instaed of iterating
-     * through all of them.
-     */
-    private boolean filterOrgUnits = false;
 
     // -------------------------------------------------------------------------
     // Visitor methods that are implemented here
@@ -178,7 +165,7 @@ public abstract class ExpressionVisitor
     {
         String constantId = ctx.constantId().getText();
 
-        Double value = constantMap.get( constantId );
+        Double value = constantMap == null ? DUMMY_VALUE : constantMap.get( constantId );
 
         if ( value == null )
         {
@@ -361,9 +348,6 @@ public abstract class ExpressionVisitor
         case IF:
             return functionIf( ctx );
 
-        case EXCEPT:
-            return functionExcept( ctx );
-
         case IS_NULL:
             return visit( ctx.a1().expr() ) == null;
 
@@ -422,46 +406,13 @@ public abstract class ExpressionVisitor
         {
             Double val = castDouble( visit( c ) );
 
-            if ( returnVal == null || ( returnVal - val ) * minmax > 0 )
+            if ( returnVal == null || val != null && ( val - returnVal ) * minmax > 0 )
             {
                 returnVal = val;
             }
         }
         return returnVal;
     }
-
-    /**
-     * Unlike the other aggregation functions, aggregates the values of the
-     * function arguments.
-     *
-     * @param func the function to apply (if multiple values).
-     * @param ctx the parsing context.
-     * @return the function value, or null if no inputs.
-     */
-    private Double aggregateArgs( Function<double[], Double> func, ExprContext ctx )
-    {
-        List<Double> args = new ArrayList<>();
-
-        for ( ExprContext c : ctx.a1_n().expr() )
-        {
-            Double arg = castDouble( visit( c ) );
-
-            if ( arg != null )
-            {
-                args.add( arg );
-            }
-        }
-
-        if ( args.size() == 0 )
-        {
-            return null;
-        }
-
-        double[] doubles = ArrayUtils.toPrimitive( args.toArray( new Double[ 0 ] ) );
-
-        return func.apply( doubles );
-    }
-
 
     // -------------------------------------------------------------------------
     // Other supportive functions

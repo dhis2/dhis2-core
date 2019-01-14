@@ -73,7 +73,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -166,7 +166,7 @@ public class DefaultAnalyticsService
     private QueryValidator queryValidator;
 
     @Autowired
-    private ExpressionService expressionService;
+    private ExpressionParserService expressionParserService;
 
     @Autowired
     private ConstantService constantService;
@@ -460,7 +460,7 @@ public class DefaultAnalyticsService
 
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
-                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
+                    IndicatorValue value = expressionParserService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
@@ -1003,7 +1003,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getOrganisationUnitGroupsInIndicators( indicators );
+        Set<OrganisationUnitGroup> orgUnitGroups = expressionParserService.getIndicatorOrgUnitGroups( indicators );
 
         if ( orgUnitGroups.isEmpty() )
         {
@@ -1267,7 +1267,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
+        List<DimensionalItemObject> items = Lists.newArrayList( expressionParserService.getIndicatorDimensionalItemObjects( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 

@@ -30,10 +30,13 @@ package org.hisp.dhis.expressionparser;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +48,10 @@ import java.util.Set;
  */
 public interface ExpressionParserService
 {
+    // -------------------------------------------------------------------------
+    // Expression methods
+    // -------------------------------------------------------------------------
+
     /**
      * Creates an expression string containing the names of the
      * DimensionalItemObjects from an expression string.
@@ -63,7 +70,7 @@ public interface ExpressionParserService
      * @param expression the expression to parse
      * @return a set of dimensional item objects.
      */
-    Set<DimensionalItemObject> getDimensionalItemObjects(String expression );
+    Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression );
 
     /**
      * Returns all OrganisationUnitGroups in the given expression.
@@ -89,4 +96,42 @@ public interface ExpressionParserService
     Double getExpressionValue( String expression,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days );
+
+    // -------------------------------------------------------------------------
+    // Indicator expression methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns all dimensional item objects which are present in numerator and
+     * denominator of the given indicators.
+     *
+     * @param indicators the collection of indicators.
+     * @return a set of dimensional item objects.
+     */
+    Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators );
+
+    /**
+     * Returns all OrganisationUnitGroups in the numerator and denominator
+     * expressions in the given Indicators. Returns an empty set if the given
+     * indicators are null or empty.
+     *
+     * @param indicators the set of indicators.
+     * @return a Set of OrganisationUnitGroups.
+     */
+    Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators );
+
+    /**
+     * Generates the calculated value for the given parameters based on the
+     * values in the given maps.
+     *
+     * @param indicator the indicator for which to calculate the value.
+     * @param period the period for which to calculate the value.
+     * @param valueMap the map of data values.
+     * @param constantMap the map of constants.
+     * @param orgUnitCountMap the map of organisation unit counts.
+     * @return the calculated value as a double.
+     */
+    IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap );
 }

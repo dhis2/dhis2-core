@@ -72,10 +72,9 @@ public class ExpressionItemsVisitor
     private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
     public Set<DimensionalItemObject> getExpressionItems( ParseTree parseTree,
-        IdentifiableObjectManager _manager, DimensionService _dimensionService )
+        DimensionService _dimensionService )
     {
-        //TODO: Why don't the @Autowired values work?
-        manager = _manager;
+        //TODO: Why doesn't the @Autowired value work?
         dimensionService = _dimensionService;
 
         dimensionalItemObjects = new HashSet<>();
@@ -205,7 +204,6 @@ public class ExpressionItemsVisitor
 
         return DUMMY_VALUE;
     }
-
 
     // -------------------------------------------------------------------------
     // Logical methods implemented here

@@ -15,41 +15,11 @@ expr
 
     // Logical functions
 
-    |   expr '.' fun='except' a1
     |   fun='if' a3
     |   fun='isNull' a1
     |   fun='coalesce' a1_n
     |   fun='maximum' a1_n
     |   fun='minimum' a1_n
-
-    // Aggregation functions
-
-    |   expr '.' fun='sum' a0
-    |   expr '.' fun='max' a0
-    |   expr '.' fun='min' a0
-    |   expr '.' fun='average' a0
-    |   expr '.' fun='stddev' a0
-    |   expr '.' fun='variance' a0
-    |   expr '.' fun='median' a0
-    |   expr '.' fun='first' a0_1
-    |   expr '.' fun='last' a0_1
-    |   expr '.' fun='percentile' a1
-    |   expr '.' fun='rankHigh' a1
-    |   expr '.' fun='rankLow' a1
-    |   expr '.' fun='rankPercentile' a1
-    |   expr '.' fun='averageSumOrgUnit' a0
-    |   expr '.' fun='lastAverageOrgUnit' a0
-    |   expr '.' fun='noAggregation' a0
-
-    // Aggregation scope functions
-
-    |   expr '.' fun='period' a1_n
-    |   expr '.' fun='ouAncestor' a1
-    |   expr '.' fun='ouDescendant' a1
-    |   expr '.' fun='ouLevel' a1_n
-    |   expr '.' fun='ouPeer' a1
-    |   expr '.' fun='ouGroup' a1_n
-    |   expr '.' fun='ouDataSet' a1_n
 
     // Operators (in precidence order)
 
@@ -262,41 +232,10 @@ OR  :   '||';
 // Logical functions
 
 IF: 'if';
-EXCEPT: 'except';
 IS_NULL: 'isNull';
 COALESCE: 'coalesce';
 MAXIMUM: 'maximum';
 MINIMUM: 'minimum';
-
-// Aggregation functions
-
-SUM: 'sum';
-AVERAGE: 'average';
-FIRST: 'first';
-LAST: 'last';
-COUNT: 'count';
-STDDEV: 'stddev';
-VARIANCE: 'variance';
-MIN: 'min';
-MAX: 'max';
-MEDIAN: 'median';
-PERCENTILE: 'percentile';
-RANK_HIGH: 'rankHigh';
-RANK_LOW: 'rankLow';
-RANK_PERCENTILE: 'rankPercentile';
-AVERAGE_SUM_ORG_UNIT: 'averageSumOrgUnit';
-LAST_AVERAGE_ORG_UNIT: 'lastAverageOrgUnit';
-NO_AGGREGATION: 'noAggregation';
-
-// Aggregation scope functions
-
-PERIOD: 'period';
-OU_ANCESTOR : 'ouAncestor';
-OU_DESCENDANT : 'ouDescendant';
-OU_LEVEL: 'ouLevel';
-OU_PEER: 'ouPeer';
-OU_GROUP: 'ouGroup';
-OU_DATA_SET: 'ouDataSet';
 
 // Program indicator variables
 
