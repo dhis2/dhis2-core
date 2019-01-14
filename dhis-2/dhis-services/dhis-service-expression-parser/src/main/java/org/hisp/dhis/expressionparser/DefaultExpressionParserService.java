@@ -91,7 +91,7 @@ public class DefaultExpressionParserService
             return new HashSet<>();
         }
 
-        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+        ExpressionItemsVisitor expressionItemsVisitor = newExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expression, true );
 
@@ -99,12 +99,11 @@ public class DefaultExpressionParserService
         {
             try
             {
-                return expressionItemsVisitor.getDimensionalItemObjects( parseTree,
-                    dimensionService );
+                return expressionItemsVisitor.getDimensionalItemObjects( parseTree );
             }
             catch ( ExpressionParserException ex )
             {
-                log.warn( ex.getMessage() + " getting value of expression '" + expression + "'" );
+                log.warn( ex.getMessage() + " getting DimensionalItemObjects of expression '" + expression + "'" );
             }
         }
 
@@ -119,7 +118,7 @@ public class DefaultExpressionParserService
             return new HashSet<>();
         }
 
-        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+        ExpressionItemsVisitor expressionItemsVisitor = newExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expression, true );
 
@@ -127,8 +126,7 @@ public class DefaultExpressionParserService
         {
             try
             {
-                return expressionItemsVisitor.getOrgUnitGroups(
-                    parseTree, organisationUnitGroupService );
+                return expressionItemsVisitor.getOrgUnitGroups( parseTree );
             }
             catch ( ExpressionParserException ex )
             {
@@ -174,7 +172,7 @@ public class DefaultExpressionParserService
     @Override
     public String getExpressionDescription( String expr )
     {
-        ExpressionItemsVisitor expressionItemsVisitor = new ExpressionItemsVisitor();
+        ExpressionItemsVisitor expressionItemsVisitor = newExpressionItemsVisitor();
 
         ParseTree parseTree = getParseTree( expr, false );
 
@@ -184,8 +182,7 @@ public class DefaultExpressionParserService
         }
 
         return expressionItemsVisitor.getDescription( parseTree, expr,
-            constantService.getConstantMap(), dimensionService,
-            constantService, organisationUnitGroupService );
+            constantService.getConstantMap() );
     }
 
     // -------------------------------------------------------------------------
@@ -260,6 +257,15 @@ public class DefaultExpressionParserService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a new ExpressionItemsVisitor object.
+     */
+    private ExpressionItemsVisitor newExpressionItemsVisitor()
+    {
+        return new ExpressionItemsVisitor( dimensionService,
+            organisationUnitGroupService, constantService );
+    }
 
     /**
      * Gets the ANTLR parse tree for the given expression string, from the cache

@@ -28,6 +28,7 @@ package org.hisp.dhis.expressionparser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.*;
@@ -432,68 +433,40 @@ public class ExpressionParserServiceTest
 
         constantMap = constantService.getConstantMap();
 
-        valueMap = entries (
-            entry( dataElementA, 3.0 ),
-            entry( dataElementB, 13.0 ),
+        valueMap = new ImmutableMap.Builder<DimensionalItemObject, Double>()
 
-            entry( dataElementOperandA, 5.0 ),
-            entry( dataElementOperandB, 15.0 ),
-            entry( dataElementOperandC, 7.0 ),
-            entry( dataElementOperandD, 17.0 ),
-            entry( dataElementOperandE, 9.0 ),
-            entry( dataElementOperandF, 19.0 ),
+            .put( dataElementA, 3.0 )
+            .put( dataElementB, 13.0 )
 
-            entry( programDataElementA, 101.0 ),
-            entry( programDataElementB, 102.0 ),
+            .put( dataElementOperandA, 5.0 )
+            .put( dataElementOperandB, 15.0 )
+            .put( dataElementOperandC, 7.0 )
+            .put( dataElementOperandD, 17.0 )
+            .put( dataElementOperandE, 9.0 )
+            .put( dataElementOperandF, 19.0 )
 
-            entry( programAttributeA, 201.0 ),
-            entry( programAttributeB, 202.0 ),
+            .put( programDataElementA, 101.0 )
+            .put( programDataElementB, 102.0 )
 
-            entry( programIndicatorA, 301.0 ),
-            entry( programIndicatorB, 302.0 ),
+            .put( programAttributeA, 201.0 )
+            .put( programAttributeB, 202.0 )
 
-            entry( reportingRateA, 401.0 ),
-            entry( reportingRateB, 402.0 ),
-            entry( reportingRateC, 403.0 ),
-            entry( reportingRateD, 404.0 ),
-            entry( reportingRateE, 405.0 ),
-            entry( reportingRateF, 406.0 )
-        );
+            .put( programIndicatorA, 301.0 )
+            .put( programIndicatorB, 302.0 )
+
+            .put( reportingRateA, 401.0 )
+            .put( reportingRateB, 402.0 )
+            .put( reportingRateC, 403.0 )
+            .put( reportingRateD, 404.0 )
+            .put( reportingRateE, 405.0 )
+            .put( reportingRateF, 406.0 )
+
+            .build();
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Adds a list of entry lists to the value map.
-     *
-     * @param entries the lists of entries to add.
-     * @return the value map.
-     */
-    private <K, V> Map<K, V> entries( Map.Entry<K, V>... entries )
-    {
-        Map<K, V> map = new HashMap<K, V>();
-
-        for ( Map.Entry<K, V> entry : entries )
-        {
-            map.put( entry.getKey(), entry.getValue() );
-        }
-
-        return map;
-    }
-
-    /**
-     * Creates a new Map entry.
-     *
-     * @param k the key.
-     * @param v the value.
-     * @return the Map.Entry.
-     */
-    private Map.Entry<DimensionalItemObject, Double> entry( DimensionalItemObject k, Double v )
-    {
-        return new SimpleEntry<>( k, v );
-    }
 
     /**
      * Evaluates a test expression, both against getItemsInExpression and
@@ -1061,6 +1034,7 @@ public class ExpressionParserServiceTest
         assertNull( error( "1 && true" ) );
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
+        assertNull( error( "true / ( #{dataElemenA} - #{dataElemenB} )" ) );
     }
 
     // -------------------------------------------------------------------------

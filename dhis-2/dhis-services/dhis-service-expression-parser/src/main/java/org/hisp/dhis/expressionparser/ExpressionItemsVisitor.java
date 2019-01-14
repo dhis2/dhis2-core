@@ -69,12 +69,17 @@ public class ExpressionItemsVisitor
 
     private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
-    public Set<DimensionalItemObject> getDimensionalItemObjects( ParseTree parseTree,
-        DimensionService _dimensionService )
+    public ExpressionItemsVisitor( DimensionService _dimensionService,
+        OrganisationUnitGroupService _organisationUnitGroupService,
+        ConstantService _constantService )
     {
-        //TODO: Why doesn't the @Autowired value work?
         dimensionService = _dimensionService;
+        organisationUnitGroupService = _organisationUnitGroupService;
+        constantService = _constantService;
+    }
 
+    public Set<DimensionalItemObject> getDimensionalItemObjects( ParseTree parseTree )
+    {
         dimensionalItemObjects = new HashSet<>();
 
         castDouble( visit( parseTree ) );
@@ -82,12 +87,8 @@ public class ExpressionItemsVisitor
         return dimensionalItemObjects;
     }
 
-    public Set<OrganisationUnitGroup> getOrgUnitGroups( ParseTree parseTree,
-        OrganisationUnitGroupService _organisationUnitGroupService)
+    public Set<OrganisationUnitGroup> getOrgUnitGroups( ParseTree parseTree )
     {
-        //TODO: Why doesn't the @Autowired value work?
-        organisationUnitGroupService = _organisationUnitGroupService;
-
         orgUnitGroupsNeeded = new HashSet<>();
 
         castDouble( visit( parseTree ) );
@@ -96,15 +97,8 @@ public class ExpressionItemsVisitor
     }
 
     public String getDescription( ParseTree parseTree, String expr,
-        Map<String, Double> constantMap, DimensionService _dimensionService,
-        ConstantService _constantService,
-        OrganisationUnitGroupService _organisationUnitGroupService )
+        Map<String, Double> constantMap )
     {
-        //TODO: Why don't the @Autowired values work?
-        dimensionService = _dimensionService;
-        constantService = _constantService;
-        organisationUnitGroupService = _organisationUnitGroupService;
-
         this.constantMap = constantMap;
 
         itemDescriptions = new HashMap<>();

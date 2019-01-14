@@ -98,7 +98,7 @@ public abstract class ExpressionVisitor
 
     protected Map<String, Integer> orgUnitCountMap = null;
 
-    protected Double days = DUMMY_VALUE;
+    protected Double days = DEFAULT_DAYS;
 
     protected Map<String, String> itemDescriptions = null;
 
@@ -106,6 +106,12 @@ public abstract class ExpressionVisitor
      * Dummy value to use when the value is not yet known.
      */
     protected final static Double DUMMY_VALUE = 1.0;
+
+    /**
+     * Default value to use for days if not known.
+     */
+    private final static Double DEFAULT_DAYS = 0.0;
+
 
     // -------------------------------------------------------------------------
     // Visitor methods that are implemented here
@@ -298,16 +304,16 @@ public abstract class ExpressionVisitor
             return double2( castDouble(arg1), castDouble(arg2), (Double a, Double b) -> a + b );
 
         case POWER:
-            return double2( ctx, ( Double a, Double b) -> pow(a, b) );
+            return double2( ctx, (Double a, Double b) -> pow(a, b) );
 
         case MUL:
-            return double2( ctx, ( Double a, Double b) -> a * b );
+            return double2( ctx, (Double a, Double b) -> a * b );
 
         case DIV:
-            return double2( ctx, ( Double a, Double b) -> a / b );
+            return double2( ctx, (Double a, Double b) -> a / b );
 
         case MOD:
-            return double2( ctx, ( Double a, Double b) -> a % b );
+            return double2( ctx, (Double a, Double b) -> a % b );
 
         // -----------------------------------------------------------------
         // Logical Operators (return Boolean)
@@ -371,7 +377,7 @@ public abstract class ExpressionVisitor
      * @param minmax -1.0 for minimum, 1.0 for maximum.
      * @return the minimum or maximum value.
      */
-    private Object functionMinMax(ExprContext ctx, double minmax)
+    private Object functionMinMax( ExprContext ctx, double minmax )
     {
         Double returnVal = null;
 
@@ -458,31 +464,6 @@ public abstract class ExpressionVisitor
     }
 
     /**
-     * Casts object as Integer, or throws an exception if we can't.
-     *
-     * @param object
-     * @return
-     */
-    protected Integer castInteger( Object object )
-    {
-        Double d = castDouble( object );
-
-        Integer i = null;
-
-        if ( d != null )
-        {
-            i = (int) (double) d;
-
-            if ( (double) d != i )
-            {
-                throw new ExpressionParserExceptionWithoutContext( "Integer expected" );
-            }
-        }
-
-        return i;
-    }
-
-    /**
      * Casts object as Double, or throws exception.
      * <p/>
      * If the object is null, return null.
@@ -525,7 +506,7 @@ public abstract class ExpressionVisitor
      * @param object the value to cast
      * @return object (if it can be cast to that class.)
      */
-    protected Object cast( Class clazz, Object object )
+    protected Object cast( Class<?> clazz, Object object )
     {
         if ( object instanceof Double && clazz != Double.class )
         {

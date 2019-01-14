@@ -4,8 +4,4 @@
 
   <bean id="org.hisp.dhis.expressionparser.ExpressionParserService" class="org.hisp.dhis.expressionparser.DefaultExpressionParserService" />
 
-  <bean id="org.hisp.dhis.expressionparser.ExpressionItemsVisitor" class="org.hisp.dhis.expressionparser.ExpressionItemsVisitor" />
-
-  <bean id="org.hisp.dhis.expressionparser.EvaluationVisitor" class="org.hisp.dhis.expressionparser.ExpressionValueVisitor" />
-
 </beans>

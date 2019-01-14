@@ -51,11 +51,6 @@ public class ExpressionValueVisitor
 {
     private Map<String, Double> keyValueMap;
 
-    /**
-     * Dummy value to use for days if not known, to get expression value.
-     */
-    private final static Double DUMMY_DAYS = 0.0;
-
     public Double getExpressionValue( ParseTree parseTree,
         Map<DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap,
@@ -68,10 +63,6 @@ public class ExpressionValueVisitor
         if ( days != null )
         {
             this.days = new Double( days );
-        }
-        else
-        {
-            this.days = DUMMY_DAYS;
         }
 
         makeKeyValueMap( valueMap );
