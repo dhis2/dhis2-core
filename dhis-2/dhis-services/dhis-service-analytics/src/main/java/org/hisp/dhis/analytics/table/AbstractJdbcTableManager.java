@@ -368,6 +368,9 @@ public abstract class AbstractJdbcTableManager
         }
     }
 
+    /**
+     * Returns a table options SQL statement.
+     */
     private String getTableOptions()
     {
         return "with(autovacuum_enabled = false)";
