@@ -152,7 +152,7 @@ public class ExpressionValueVisitor
             return null;
         }
 
-        if ( b1 == false )
+        if ( !b1 )
         {
             return false;
         }
@@ -177,7 +177,7 @@ public class ExpressionValueVisitor
             return null;
         }
 
-        if ( b1 == true )
+        if ( b1 )
         {
             return true;
         }

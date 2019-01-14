@@ -366,39 +366,13 @@ public abstract class ExpressionVisitor
     }
 
     /**
-     * Looks up an identifiable object first by UID, then code, then name.
-     *
-     * @param clazz      the class of the identifiable object
-     * @param identifier the identifier to look up
-     * @return the object
-     */
-    private <T extends IdentifiableObject> T getIdentifiableObject( Class<T> clazz, String identifier )
-    {
-        T identifiableObject = manager.get( clazz, identifier );
-
-        if ( identifiableObject != null )
-        {
-            return identifiableObject;
-        }
-
-        identifiableObject = manager.getByCode( clazz, identifier );
-
-        if ( identifiableObject != null )
-        {
-            return identifiableObject;
-        }
-
-        return manager.getByName( clazz, identifier );
-    }
-
-    /**
      * Returns the minimum or maximum value.
      *
      * @param ctx    the parsing context.
      * @param minmax -1.0 for minimum, 1.0 for maximum.
      * @return the minimum or maximum value.
      */
-    Object functionMinMax(ExprContext ctx, double minmax)
+    private Object functionMinMax(ExprContext ctx, double minmax)
     {
         Double returnVal = null;
 
