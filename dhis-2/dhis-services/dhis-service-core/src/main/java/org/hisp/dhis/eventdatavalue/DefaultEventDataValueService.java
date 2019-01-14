@@ -256,7 +256,7 @@ public class DefaultEventDataValueService implements EventDataValueService
                 throw new IllegalQueryException( "Data element is null or empty" );
             }
 
-            DataElement dataElement = dataElementService.getDataElement( eventDataValue.getDataElement() );
+            DataElement dataElement = getDataElement( eventDataValue.getDataElement() );
             if ( dataElement == null )
             {
                 throw new IllegalQueryException(
