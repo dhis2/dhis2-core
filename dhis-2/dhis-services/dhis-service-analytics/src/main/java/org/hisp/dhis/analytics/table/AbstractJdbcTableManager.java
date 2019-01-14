@@ -234,11 +234,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void invokeAnalyticsTableSqlHooks()
+    public int invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();
         List<AnalyticsTableHook> hooks = tableHookService.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
         tableHookService.executeAnalyticsTableSqlHooks( hooks );
+        return hooks.size();
     }
 
     // -------------------------------------------------------------------------
@@ -351,7 +352,8 @@ public abstract class AbstractJdbcTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
+        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
+
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
@@ -381,7 +383,7 @@ public abstract class AbstractJdbcTableManager
                 sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
             }
 
-            sqlCreate += "inherits (" + table.getTempTableName() + ")";
+            sqlCreate += "inherits (" + table.getTempTableName() + ") " + getTableOptions();
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
@@ -389,6 +391,14 @@ public abstract class AbstractJdbcTableManager
 
             jdbcTemplate.execute( sqlCreate );
         }
+    }
+
+    /**
+     * Returns a table options SQL statement.
+     */
+    private String getTableOptions()
+    {
+        return "with(autovacuum_enabled = false)";
     }
 
     /**
