@@ -64,7 +64,7 @@ public class JdbcCompletenessTargetTableManager
     {
         return AnalyticsTableType.COMPLETENESS_TARGET;
     }
-    
+
     @Override
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
@@ -77,19 +77,19 @@ public class JdbcCompletenessTargetTableManager
     {
         return Sets.newHashSet( getTableName() );
     }
-    
+
     @Override
     public String validState()
     {
         return null;
-    }    
+    }
 
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList();
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -99,7 +99,7 @@ public class JdbcCompletenessTargetTableManager
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-        
+
         validateDimensionColumns( columns );
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
@@ -113,8 +113,8 @@ public class JdbcCompletenessTargetTableManager
         {
             sql += col.getAlias() + ",";
         }
-        
-        sql += 
+
+        sql +=
             "1 as value " +
             "from _datasetorganisationunitcategory doc " +
             "inner join dataset ds on doc.datasetid=ds.datasetid " +
@@ -126,14 +126,14 @@ public class JdbcCompletenessTargetTableManager
 
         populateAndLog( sql, tableName );
     }
-    
+
     private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = 
+        List<OrganisationUnitGroupSet> orgUnitGroupSets =
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-        
+
         List<OrganisationUnitLevel> levels =
             organisationUnitService.getFilledOrganisationUnitLevels();
 
@@ -142,12 +142,12 @@ public class JdbcCompletenessTargetTableManager
 
         List<DataElementCategory> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
-        
+
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
-        
+
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
@@ -170,17 +170,17 @@ public class JdbcCompletenessTargetTableManager
         columns.add( new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
-                
+
         return filterDimensionColumns( columns );
     }
-    
+
     private List<AnalyticsTableColumn> getValueColumns()
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
     }
-    
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )

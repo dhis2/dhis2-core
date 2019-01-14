@@ -69,7 +69,7 @@ public class DefaultAnalyticsTableGenerator
 
     @Autowired
     private MessageService messageService;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 

@@ -37,134 +37,134 @@ import java.util.concurrent.Future;
 
 /**
  * Manager for the analytics database tables.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableManager
 {
     public static final String TABLE_TEMP_SUFFIX = "_temp";
-    
+
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-     * 
+     *
      * @return type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
-    
+
     /**
      * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
-     * 
+     *
      * @param earliest the start date for the first year to generate table partitions.
      * @return the analytics table with partitions.
      */
     List<AnalyticsTable> getAnalyticsTables( Date earliest );
-    
+
     /**
      * Returns a list of existing analytics database table names.
-     * 
+     *
      * @return a list of existing analytics database table names.
      */
     Set<String> getExistingDatabaseTables();
-    
+
     /**
      * Checks if the database content is in valid state for analytics table generation.
-     * 
+     *
      * @return null if valid, a descriptive string if invalid.
      */
     String validState();
-    
+
     /**
      * Performs work before tables are being created.
      */
     void preCreateTables();
-    
+
     /**
      * Attempts to drop and then create analytics table.
-     * 
+     *
      * @param table the analytics table.
      */
     void createTable( AnalyticsTable table );
-    
+
     /**
      * Creates single indexes on the given columns of the analytics table with
      * the given name.
-     * 
+     *
      * @param indexes the analytics indexes.
      * @return a future representing the asynchronous task.
      */
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
-    
+
     /**
-     * Attempts to drop the analytics table with partitions and rename the temporary 
+     * Attempts to drop the analytics table with partitions and rename the temporary
      * table with partitions as replacement.
      * <p>
-     * If this is a partial update and the master table currently exists, the master 
-     * table is not swapped and instead the inheritance of the partitions are set to 
+     * If this is a partial update and the master table currently exists, the master
+     * table is not swapped and instead the inheritance of the partitions are set to
      * the existing master table.
-     * 
+     *
      * @param table the analytics table.
      * @param params the {@link AnalyticsTableUpdateParams}.
      */
     void swapTable( AnalyticsTable table, AnalyticsTableUpdateParams params );
-    
+
     /**
      * Copies and denormalizes rows from data value table into analytics table.
      * The data range is based on the start date of the data value row.
-     * 
+     *
      * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
-    
+
     /**
      * Invokes analytics table SQL hooks for the table type.
      */
     void invokeAnalyticsTableSqlHooks();
-    
+
     /**
      * Drops the given {@link AnalyticsTable}.
-     * 
+     *
      * @param table the analytics table.
      */
     void dropTempTable( AnalyticsTable table );
-    
+
     /**
      * Drops the given table.
-     * 
+     *
      * @param tableName the table name.
      */
     void dropTable( String tableName );
-    
+
     /**
      * Drops the given table and all potential partitions.
-     * 
+     *
      * @param tableName the table name.
      */
     void dropTableCascade( String tableName );
-    
+
     /**
      * Performs an analyze operation on the given table name.
-     * 
+     *
      * @param tableName the table name.
      */
     void analyzeTable( String tableName );
-    
+
     /**
      * Applies aggregation level logic to the analytics table by setting the
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
-     * 
+     *
      * @param partitions the analytics table partitions.
      * @param dataElements the data element identifiers to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
     Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel );
-    
+
     /**
      * Performs vacuum or optimization of the given table. The type of operation
      * performed is dependent on the underlying DBMS.
-     * 
+     *
      * @param partitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */

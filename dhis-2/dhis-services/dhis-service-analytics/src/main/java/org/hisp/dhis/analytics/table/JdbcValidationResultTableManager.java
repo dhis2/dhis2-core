@@ -63,7 +63,7 @@ public class JdbcValidationResultTableManager
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
         AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
-        
+
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
 
@@ -92,7 +92,7 @@ public class JdbcValidationResultTableManager
         return Lists.newArrayList(
             "year = " + partition.getYear() + "" );
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -197,7 +197,7 @@ public class JdbcValidationResultTableManager
 
         return filterDimensionColumns( columns );
     }
-    
+
     private List<AnalyticsTableColumn> getValueColumns()
     {
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
