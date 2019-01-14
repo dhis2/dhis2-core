@@ -56,18 +56,26 @@
 
 package org.hisp.dhis.metadata;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.schemas.PropertyType;
+import org.hisp.dhis.dto.schemas.SchemaProperty;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -118,11 +126,15 @@ public class MetadataSmokeTest
     @MethodSource( "getSchemaEndpoints" )
     public void metadata_post_objectsWithoutReferences( String endpoint, String schema )
     {
+        List blacklistedEndpoints = Arrays.asList( "jobConfigurations", "relationshipTypes" );
+
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
-        if (schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType().equals( PropertyType.REFERENCE ) || schemaProperty.getPropertyType().equals( PropertyType.COMPLEX ))) {
-            return;
-        }
+        Assumptions.assumeFalse( blacklistedEndpoints.contains( endpoint ), "N/A test case - blacklisted endpoint." );
+        Assumptions.assumeFalse( schemaProperties.stream().anyMatch(
+            schemaProperty -> schemaProperty.getPropertyType().equals( PropertyType.REFERENCE ) ||
+                schemaProperty.getPropertyType().equals( PropertyType.COMPLEX ) ),
+            "N/A test case - body would require references." );
 
         JsonObject object = new JsonObject();
 
@@ -134,12 +146,14 @@ public class MetadataSmokeTest
         }
 
         ApiResponse response = new RestApiActions( endpoint ).post( object );
-        System.out.print( response.extractUid() );
+
+        // validate response;
         ResponseValidationHelper.validateObjectCreation( response );
 
-        response = new RestApiActions( endpoint ).delete( response.extractUid());
+        // delete created entity;
+        response = new RestApiActions( endpoint ).delete( response.extractUid() );
 
-        ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted"  );
+        ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );
     }
     Stream<Arguments> getSchemaEndpoints()
     {
