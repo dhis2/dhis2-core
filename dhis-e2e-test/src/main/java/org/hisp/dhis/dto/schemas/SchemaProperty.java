@@ -72,6 +72,8 @@ public class SchemaProperty
     private List<String> constants;
     private String relativeApiEndpoint;
     private double min;
+    private double max;
+    private long length;
 
     private PropertyType propertyType;
 
@@ -133,5 +135,23 @@ public class SchemaProperty
     public void setPropertyType( PropertyType propertyType )
     {
         this.propertyType = propertyType;
+    }
+
+    public void setMax(double max) {
+        this.max = max;
+    }
+    public double getMax()
+    {
+        return max;
+    }
+
+    public long getLength()
+    {
+        return length;
+    }
+
+    public void setLength( long length )
+    {
+        this.length = length;
     }
 }

@@ -29,6 +29,7 @@
 package org.hisp.dhis.actions;
 
 import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
@@ -50,7 +51,9 @@ public class RestApiActions
 
     protected RequestSpecification given()
     {
-        return RestAssured.given().basePath( endpoint );
+        return RestAssured.given().basePath( endpoint )
+            .config( RestAssured.config()
+                .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ));
     }
 
     /**

@@ -28,16 +28,25 @@
 
 package org.hisp.dhis.utils;
 
+import com.github.javafaker.Faker;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class DataGenerator
 {
+    private static Faker faker = new Faker();
+
     public static String randomString()
     {
         return RandomStringUtils.randomAlphabetic( 6 );
@@ -59,28 +68,26 @@ public class DataGenerator
         switch ( property.getPropertyType() )
         {
         case STRING:
-            if ( property.getMin() < 1 )
-            {
-                jsonPrimitive = new JsonPrimitive( DataGenerator.randomString() );
-                break;
-            }
-            jsonPrimitive = new JsonPrimitive( DataGenerator.randomString( (int) property.getMin() ) );
+            jsonPrimitive = new JsonPrimitive(
+                generateStringByFieldName( property.getFieldName(), (int) property.getMin(), (int) property.getMax() ) );
             break;
 
         case DATE:
-            jsonPrimitive = new JsonPrimitive( "2017-09-11T00:00:00.000" );
+            Date date = faker.date().past( 1000, TimeUnit.DAYS );
+            jsonPrimitive = new JsonPrimitive( new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).format( date ) );
             break;
 
         case BOOLEAN:
-            jsonPrimitive = new JsonPrimitive( true );
+            jsonPrimitive = new JsonPrimitive( String.valueOf( faker.bool().bool() ) );
             break;
 
         case CONSTANT:
-            jsonPrimitive = new JsonPrimitive( property.getConstants().get( 0 ) );
+            int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
+            jsonPrimitive = new JsonPrimitive( property.getConstants().get( randomConstant ) );
             break;
 
         case NUMBER:
-            jsonPrimitive = new JsonPrimitive( 1 );
+            jsonPrimitive = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
             break;
 
         default:
@@ -90,5 +97,31 @@ public class DataGenerator
         }
 
         return jsonPrimitive;
+    }
+
+    private static String generateStringByFieldName( String fieldName, int minLength, int maxLength )
+    {
+        switch ( fieldName )
+        {
+        case "url":
+            return faker.internet().url();
+
+        case "cronExpression":
+            return "* * * * * *";
+        case "periodType":
+            List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
+            return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ));
+        }
+
+        if ( minLength < 1 )
+        {
+            return faker.lorem().characters( 6 );
+        }
+
+        if (maxLength == minLength) {
+            return faker.lorem().characters( maxLength );
+        }
+
+        return faker.lorem().characters( minLength, maxLength );
     }
 }

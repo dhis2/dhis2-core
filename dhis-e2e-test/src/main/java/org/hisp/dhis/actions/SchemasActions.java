@@ -29,6 +29,10 @@
 package org.hisp.dhis.actions;
 
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.schemas.SchemaProperty;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

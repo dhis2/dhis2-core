@@ -155,7 +155,7 @@ public class OptionSetTests
 
     private String createOptionSet( String... optionIds )
     {
-        String random = DataGenerator.randomString();
+        String random = DataGenerator.randomString( );
         return actions.createOptionSet( "AutoTest option set " + random, "TEXT", optionIds );
     }
 
