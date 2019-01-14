@@ -125,7 +125,7 @@ public class ApiResponse
     {
         return raw.jsonPath().getList( path );
     }
-    
+
     public <T> List<T> extractList(String path, Class<T> type)
     {
         return raw.jsonPath( ).getList( path, type );

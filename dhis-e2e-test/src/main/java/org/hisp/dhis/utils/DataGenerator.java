@@ -30,9 +30,13 @@ package org.hisp.dhis.utils;
 
 import com.github.javafaker.Faker;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.SchemasActions;
+import org.hisp.dhis.dto.schemas.PropertyType;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
 
 import java.text.SimpleDateFormat;
@@ -57,60 +61,102 @@ public class DataGenerator
         return "AutoTest entity " + randomString();
     }
 
-    public static String randomString( int length )
-    {
-        return RandomStringUtils.randomAlphabetic( length );
-    }
-
+    /**
+     * Generates random data for simple type schema properties;
+     *
+     * @param property
+     * @return
+     */
     public static JsonElement generateRandomValueMatchingSchema( SchemaProperty property )
     {
-        JsonElement jsonPrimitive;
+        JsonElement jsonElement;
         switch ( property.getPropertyType() )
         {
-        case STRING:
-            jsonPrimitive = new JsonPrimitive(
-                generateStringByFieldName( property.getFieldName(), (int) property.getMin(), (int) property.getMax() ) );
-            break;
+            case STRING:
+                jsonElement = new JsonPrimitive(
+                    generateStringByFieldName( property.getName(), (int) property.getMin(), (int) property.getMax() ) );
+                break;
 
-        case DATE:
-            Date date = faker.date().past( 1000, TimeUnit.DAYS );
-            jsonPrimitive = new JsonPrimitive( new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).format( date ) );
-            break;
+            case DATE:
+                Date date = faker.date().past( 1000, TimeUnit.DAYS );
+                jsonElement = new JsonPrimitive( new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).format( date ) );
+                break;
 
-        case BOOLEAN:
-            jsonPrimitive = new JsonPrimitive( String.valueOf( faker.bool().bool() ) );
-            break;
+            case BOOLEAN:
+                if ( property.getName().equalsIgnoreCase( "external" ) )
+                {
+                    jsonElement = new JsonPrimitive( true );
+                    break;
+                }
 
-        case CONSTANT:
-            int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
-            jsonPrimitive = new JsonPrimitive( property.getConstants().get( randomConstant ) );
-            break;
+                jsonElement = new JsonPrimitive( String.valueOf( faker.bool().bool() ) );
+                break;
 
-        case NUMBER:
-            jsonPrimitive = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
-            break;
+            case CONSTANT:
+                int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
+                jsonElement = new JsonPrimitive( property.getConstants().get( randomConstant ) );
+                break;
 
-        default:
-            jsonPrimitive = new JsonPrimitive( "Conversion not defined." );
-            break;
+            case NUMBER:
+                jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
+                break;
+
+            case IDENTIFIER:
+                jsonElement = new JsonPrimitive( new IdGenerator().generateUniqueId() );
+                break;
+
+            default:
+                jsonElement = new JsonPrimitive( "Conversion not defined." );
+                break;
 
         }
 
-        return jsonPrimitive;
+        return jsonElement;
     }
 
-    private static String generateStringByFieldName( String fieldName, int minLength, int maxLength )
+    public static JsonObject generateObjectMatchingSchema( List<SchemaProperty> schemaProperties )
     {
-        switch ( fieldName )
-        {
-        case "url":
-            return faker.internet().url();
+        JsonObject objectBody = new JsonObject();
 
-        case "cronExpression":
-            return "* * * * * *";
-        case "periodType":
-            List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
-            return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ));
+        for ( SchemaProperty prop : schemaProperties
+        )
+        {
+            JsonElement element;
+            if ( prop.getPropertyType() == PropertyType.REFERENCE )
+            {
+                List<SchemaProperty> referenceProperties = new SchemasActions().getRequiredProperties( prop.getName() );
+
+                JsonObject referenceObject = generateObjectMatchingSchema( referenceProperties );
+                String uid = new RestApiActions( prop.getRelativeApiEndpoint() ).post( referenceObject ).extractUid();
+                referenceObject.addProperty( "id", uid );
+
+                element = referenceObject;
+            }
+
+            else
+            {
+                element = generateRandomValueMatchingSchema( prop );
+            }
+
+            objectBody.add( prop.getName(), element );
+        }
+
+        return objectBody;
+    }
+
+    private static String generateStringByFieldName( String name, int minLength, int maxLength )
+    {
+        switch ( name )
+        {
+            case "url":
+                return "http://" + faker.internet().url();
+
+            case "cronExpression":
+                return "* * * * * *";
+
+            case "periodType":
+                List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
+                return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ) );
         }
 
         if ( minLength < 1 )
@@ -118,7 +164,8 @@ public class DataGenerator
             return faker.lorem().characters( 6 );
         }
 
-        if (maxLength == minLength) {
+        if ( maxLength == minLength )
+        {
             return faker.lorem().characters( maxLength );
         }
 

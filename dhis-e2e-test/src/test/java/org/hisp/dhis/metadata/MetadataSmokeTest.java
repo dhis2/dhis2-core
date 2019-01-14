@@ -74,6 +74,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -124,27 +125,19 @@ public class MetadataSmokeTest
 
     @ParameterizedTest
     @MethodSource( "getSchemaEndpoints" )
-    public void metadata_post_objectsWithoutReferences( String endpoint, String schema )
+    public void metadata_post( String endpoint, String schema )
     {
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations", "relationshipTypes" );
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
         Assumptions.assumeFalse( blacklistedEndpoints.contains( endpoint ), "N/A test case - blacklisted endpoint." );
-        Assumptions.assumeFalse( schemaProperties.stream().anyMatch(
-            schemaProperty -> schemaProperty.getPropertyType().equals( PropertyType.REFERENCE ) ||
-                schemaProperty.getPropertyType().equals( PropertyType.COMPLEX ) ),
-            "N/A test case - body would require references." );
+        Assumptions.assumeFalse(
+            schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType() == PropertyType.COMPLEX ),
+            "N/A test case - body would require COMPLEX objects." );
 
-        JsonObject object = new JsonObject();
 
-        for ( SchemaProperty prop : schemaProperties
-        )
-        {
-            JsonElement element = DataGenerator.generateRandomValueMatchingSchema( prop );
-            object.add( prop.getFieldName(), element );
-        }
-
+        JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
         ApiResponse response = new RestApiActions( endpoint ).post( object );
 
         // validate response;
@@ -155,6 +148,7 @@ public class MetadataSmokeTest
 
         ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );
     }
+
     Stream<Arguments> getSchemaEndpoints()
     {
         ApiResponse apiResponse = schemasActions.get();
@@ -162,7 +156,6 @@ public class MetadataSmokeTest
         String jsonPathIdentifier = "schemas.findAll{it.relativeApiEndpoint && it.metadata && it.singular != 'externalFileResource'}";
         List<String> apiEndpoints = apiResponse.extractList( jsonPathIdentifier + ".plural" );
         List<String> schemaEndpoints = apiResponse.extractList( jsonPathIdentifier + ".singular" );
-
 
         ArrayList<Arguments> arguments = new ArrayList<>();
         for ( int i = 0; i < apiEndpoints.size(); i++ )

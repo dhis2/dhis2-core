@@ -57,7 +57,6 @@
 package org.hisp.dhis.dto.schemas;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -67,7 +66,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SchemaProperty
 {
-    private String fieldName;
+    private String name;
     private boolean required;
     private List<String> constants;
     private String relativeApiEndpoint;
@@ -77,14 +76,14 @@ public class SchemaProperty
 
     private PropertyType propertyType;
 
-    public String getFieldName()
+    public String getName()
     {
-        return fieldName;
+        return name;
     }
 
-    public void setFieldName( String fieldName )
+    public void setName( String name )
     {
-        this.fieldName = fieldName;
+        this.name = name;
     }
 
     public boolean isRequired()
