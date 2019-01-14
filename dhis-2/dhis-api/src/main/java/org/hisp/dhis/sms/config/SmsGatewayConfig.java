@@ -70,6 +70,7 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return name;
@@ -80,6 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
+    @JsonProperty( value = "default" )
     public boolean isDefault()
     {
         return isDefault;
