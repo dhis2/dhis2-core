@@ -22,3 +22,9 @@ update programstageinstance psi set eventdatavalues =
 
 -- NULL will make a mess, Get rid of it and replace with an empty json object '{}'
 update programstageinstance set eventdatavalues = '{}'::jsonb where eventdatavalues is null;
+
+-- Add default value, so NULL is not entered accidentally
+alter table programstageinstance alter column eventdatavalues set default '{}'::jsonb;
+
+-- Add NOT NULL constraint to not allow entering NULL at all
+alter table programstageinstance alter column eventdatavalues set not null;

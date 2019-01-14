@@ -130,7 +130,7 @@ public abstract class AbstractEventJdbcTableManager
     public String validState()
     {
         // I have to check for '{}' -> This can happen when there were some data values, but all were removed. Then '{}' is stored instead of null
-        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues is not null and eventdatavalues != '{}' limit 1;" ).next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" ).next();
 
         if ( !hasData )
         {
