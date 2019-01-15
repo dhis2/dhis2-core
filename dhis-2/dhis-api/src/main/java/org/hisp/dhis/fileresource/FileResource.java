@@ -28,13 +28,14 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Optional;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.springframework.util.MimeTypeUtils;
 
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -98,7 +99,18 @@ public class FileResource
         this.contentLength = contentLength;
         this.contentMd5 = contentMd5;
         this.domain = domain;
-        this.storageKey = generateStorageKey();
+        this.storageKey = FileResourceKeyUtil.makeKey( domain, Optional.empty() );
+    }
+
+    public FileResource( String key, String name, String contentType, long contentLength, String contentMd5,
+        FileResourceDomain domain )
+    {
+        this.name = name;
+        this.contentType = contentType;
+        this.contentLength = contentLength;
+        this.contentMd5 = contentMd5;
+        this.domain = domain;
+        this.storageKey = FileResourceKeyUtil.makeKey( domain, Optional.of( key ) );
     }
 
     // -------------------------------------------------------------------------
@@ -200,14 +212,5 @@ public class FileResource
     public String getFormat()
     {
         return this.contentType.split("[/;]" )[1];
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private String generateStorageKey()
-    {
-        return domain.getContainerName() + "/" + UUID.randomUUID().toString();
     }
 }
