@@ -39,6 +39,7 @@
     <module>dhis-service-analytics</module>
     <!-- Level 8 -->
     <module>dhis-service-reporting</module>
+    <module>dhis-service-tracker</module>
   </modules>
 
   <dependencies>
