@@ -206,10 +206,12 @@ public class DefaultAnalyticsService
     public void init()
     {
         Long expiration = Long.parseLong( dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
-        boolean disabled = expiration <= 0 || SystemUtils.isTestRun();
+        boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( "analyticsQueryResponse" )
-            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( disabled ? 0 : 20000 ).build();
+            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? 20000 : 0 ).build();
+
+        log.info( String.format( "Analytics server-side cache is: %b with expiration: %d s", enabled, expiration ) );
     }
 
     @Override
