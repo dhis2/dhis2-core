@@ -389,47 +389,6 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a unique key representing this query. The key is suitable for caching.
-     */
-    public String getKey()
-    {
-        QueryKey key = new QueryKey();
-
-        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-
-        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
-        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
-
-        return key
-            .add( aggregationType )
-            .add( skipMeta )
-            .add( skipData )
-            .add( skipHeaders )
-            .add( skipRounding )
-            .add( completedOnly )
-            .add( hierarchyMeta )
-            .add( ignoreLimit )
-            .add( hideEmptyRows )
-            .add( hideEmptyColumns )
-            .add( showHierarchy )
-            .add( includeNumDen )
-            .add( includePeriodStartEndDates )
-            .add( includeMetadataDetails )
-            .add( displayProperty )
-            .add( outputIdScheme )
-            .add( outputFormat )
-            .add( duplicatesOnly )
-            .add( approvalLevel )
-            .add( startDate )
-            .add( endDate )
-            .add( order )
-            .add( timeField )
-            .add( orgUnitField )
-            .addIgnoreNull( apiVersion ).build();
-    }
-
-    /**
      * Creates a new Builder for DataQueryParams.
      *
      * @return a Builder for DataQueryParams.
@@ -511,6 +470,47 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
 
         return params;
+    }
+
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+
+        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+
+        return key
+            .add( aggregationType )
+            .add( skipMeta )
+            .add( skipData )
+            .add( skipHeaders )
+            .add( skipRounding )
+            .add( completedOnly )
+            .add( hierarchyMeta )
+            .add( ignoreLimit )
+            .add( hideEmptyRows )
+            .add( hideEmptyColumns )
+            .add( showHierarchy )
+            .add( includeNumDen )
+            .add( includePeriodStartEndDates )
+            .add( includeMetadataDetails )
+            .add( displayProperty )
+            .add( outputIdScheme )
+            .add( outputFormat )
+            .add( duplicatesOnly )
+            .add( approvalLevel )
+            .add( startDate )
+            .add( endDate )
+            .add( order )
+            .add( timeField )
+            .add( orgUnitField )
+            .addIgnoreNull( apiVersion ).build();
     }
 
     // -------------------------------------------------------------------------
