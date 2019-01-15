@@ -53,6 +53,8 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -90,6 +92,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -98,8 +101,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
@@ -183,9 +189,21 @@ public class DefaultAnalyticsService
     @Autowired
     private DataQueryService dataQueryService;
 
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    private Cache<Grid> queryCache;
+
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
+
+    @PostConstruct
+    public void init()
+    {
+        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( "analyticsQueryResponse" )
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+    }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
@@ -201,7 +219,9 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        return getAggregatedDataValueGridInternal( params );
+        final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
+
+        return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
     }
 
     @Override
