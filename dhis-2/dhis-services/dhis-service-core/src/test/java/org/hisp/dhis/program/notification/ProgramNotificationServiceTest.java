@@ -153,9 +153,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private DataElement dataElement;
     private DataElement dataElementEmail;
 
-    private EventDataValue eventDataValue;
-    private EventDataValue eventDataValueEmail;
-
     private TrackedEntityAttribute trackedEntityAttribute;
     private TrackedEntityAttribute trackedEntityAttributeEmail;
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
@@ -604,10 +601,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programStageInstance.setProgramStage( programStage );
 
         String storedBy = "test-user";
-        eventDataValue = new EventDataValue( dataElement.getUid(), DE_PHONE_NUMBER, storedBy );
+        EventDataValue eventDataValue = new EventDataValue( dataElement.getUid(), DE_PHONE_NUMBER, storedBy );
         eventDataValue.setAutoFields();
 
-        eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL, storedBy );
+        EventDataValue eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL, storedBy );
         eventDataValueEmail.setAutoFields();
 
         eventDataValueService.saveEventDataValue( programStageInstance, eventDataValue );
