@@ -23,6 +23,15 @@ After every test class, created data will be cleaned up starting from latest cre
 If more controlled cleanup order is required - it can be explicitly specified. Just call one of the methods in TestCleanUp class. 
 *Example: testCleanUp.deleteCreatedEntities("/users", "/dataElements")*
  
+ #### Debugging
+ Logs can be retrieved from both dhis2-web and dhis2-db containers.
+ 
+ > docker logs < containerId >
+ 
+ To get container id: 
+ 
+ >$ docker ps*
+ 
   ## Creating tests
   #### Actions
  
