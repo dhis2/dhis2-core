@@ -51,7 +51,8 @@ public class RestApiActions
 
     protected RequestSpecification given()
     {
-        return RestAssured.given().basePath( endpoint )
+        return RestAssured.given()
+            .basePath( endpoint )
             .config( RestAssured.config()
                 .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ) );
     }

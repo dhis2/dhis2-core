@@ -49,8 +49,6 @@ public abstract class ApiTest
     public void setupRestAssured()
     {
         RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
-        //RestAssured.baseURI = "https://play.dhis2.org/dev/api";
-        //RestAssured.baseURI = "http://localhost:8070/api";
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();

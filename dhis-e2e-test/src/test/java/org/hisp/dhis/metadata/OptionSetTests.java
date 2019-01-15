@@ -143,7 +143,6 @@ public class OptionSetTests
         assertEquals( 0, response.extractList( "options" ).size(), "Option was not removed" );
     }
 
-
     private String createOptionSet( String... optionIds )
     {
         String random = DataGenerator.randomString();

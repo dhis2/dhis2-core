@@ -134,13 +134,14 @@ public class MetadataTest
             schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType() == PropertyType.COMPLEX ),
             "N/A test case - body would require COMPLEX objects." );
 
+        // post
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
         ApiResponse response = new RestApiActions( endpoint ).post( object );
 
         // validate response;
         ResponseValidationHelper.validateObjectCreation( response );
 
-        // delete created entity;
+        // validate removal;
         response = new RestApiActions( endpoint ).delete( response.extractUid() );
 
         ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );

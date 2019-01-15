@@ -144,7 +144,8 @@ public class DataGenerator
         return objectBody;
     }
 
-    public static JsonObject generateObjectForEndpoint( String schemaEndpoint) {
+    public static JsonObject generateObjectForEndpoint( String schemaEndpoint )
+    {
         List<SchemaProperty> schemaProperties = new SchemasActions().getRequiredProperties( schemaEndpoint );
 
         return generateObjectMatchingSchema( schemaProperties );
