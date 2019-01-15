@@ -50,6 +50,7 @@ import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +62,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Transactional
 public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );
