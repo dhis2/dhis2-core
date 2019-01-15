@@ -76,6 +76,8 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -189,19 +191,25 @@ public class DefaultAnalyticsService
     private DataQueryService dataQueryService;
 
     @Autowired
-    private CacheProvider cacheProvider;
+    private DhisConfigurationProvider dhisConfig;
 
-    private Cache<Grid> queryCache;
+    @Autowired
+    private CacheProvider cacheProvider;
 
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
+    private Cache<Grid> queryCache;
+
     @PostConstruct
     public void init()
     {
+        Long expiration = Long.parseLong( dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
+        boolean disabled = expiration <= 0 || SystemUtils.isTestRun();
+
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( "analyticsQueryResponse" )
-            .expireAfterWrite( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( disabled ? 0 : 20000 ).build();
     }
 
     @Override
