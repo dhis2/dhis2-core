@@ -205,7 +205,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     // pick only those program attributes that user is the owner
                     for ( Program program : programs )
                     {
-                        if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) )
+                        if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
                         {
                             attributes.addAll( program.getTrackedEntityAttributes() );
                         }
