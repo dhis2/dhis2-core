@@ -57,18 +57,25 @@ public class EventsTests
 
     String createdEvent;
 
-    private OrgUnitActions orgUnitActions = new OrgUnitActions();
+    private UserActions userActions;
 
-    private EventActions eventActions = new EventActions();
+    private OrgUnitActions orgUnitActions;
 
-    private ProgramActions programActions = new ProgramActions();
+    private EventActions eventActions;
+
+    private ProgramActions programActions;
 
     @BeforeEach
     public void beforeEach()
     {
+        orgUnitActions = new OrgUnitActions();
+        eventActions = new EventActions();
+        programActions = new ProgramActions();
+        userActions = new UserActions();
+
         new LoginActions().loginAsDefaultUser();
         orgUnitId = orgUnitActions.createOrgUnit();
-        new UserActions().grantCurrentUserAccessToOrgUnit( orgUnitId );
+        userActions.grantCurrentUserAccessToOrgUnit( orgUnitId );
         // create program
 
         programId = programActions.createEventProgram( orgUnitId ).extractUid();

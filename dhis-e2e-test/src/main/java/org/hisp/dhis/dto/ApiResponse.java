@@ -148,7 +148,7 @@ public class ApiResponse
 
     public boolean isEntityCreated()
     {
-        return (statusCode() == 200 || statusCode() == 201);
+        return this.extractUid() != null;
     }
 
     public boolean containsImportSummaries()

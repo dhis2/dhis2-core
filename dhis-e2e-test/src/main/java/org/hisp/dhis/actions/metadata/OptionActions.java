@@ -112,9 +112,16 @@ public class OptionActions
         return createOptionSet( "Option Set auto " + random, "TEXT", optionIDs );
     }
 
+    /**
+     * Grants user read and write access to option set.
+     * Validates that request was successful.
+     * @param optionSetId
+     * @param userId
+     */
     public void grantUserAccessToOptionSet( String optionSetId, String userId )
     {
-        JsonObject jsonBody = new JsonObject();
+        JsonObject jsonBody = optionSetActions.get( optionSetId ).getBody();
+
         JsonArray userAccesses = new JsonArray();
         JsonObject userAccess = new JsonObject();
         userAccesses.add( userAccess );
@@ -124,6 +131,8 @@ public class OptionActions
 
         jsonBody.add( "userAccesses", userAccesses );
 
-        optionSetActions.update( optionSetId, jsonBody );
+        optionSetActions.update( optionSetId, jsonBody )
+            .validate()
+            .statusCode( 200 );
     }
 }

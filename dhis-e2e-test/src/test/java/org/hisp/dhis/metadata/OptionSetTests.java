@@ -95,7 +95,7 @@ public class OptionSetTests
         ResponseValidationHelper.validateObjectRemoval( response, "Option set was not deleted" );
 
         response = actions.optionSetActions.get( optionSetId );
-        assertEquals( 404, response.statusCode(), "Deleted option set still accessible!" );
+        response.validate().statusCode( 404 );
     }
 
     @Test
@@ -106,7 +106,7 @@ public class OptionSetTests
 
         ApiResponse response = actions.optionSetActions.get( id );
 
-        assertEquals( 200, response.statusCode() );
+        response.validate().statusCode( 200 );
         assertEquals( optionId, response.extractString( "options.id[0]" ), "Option reference was not found in option set" );
     }
 
@@ -120,7 +120,7 @@ public class OptionSetTests
 
         ApiResponse response = actions.optionSetActions.get( optionSetId );
 
-        assertEquals( 200, response.statusCode() );
+        response.validate().statusCode( 200 );
         assertEquals( option1, response.extractString( "options.id[0]" ) );
         assertEquals( option2, response.extractString( "options.id[1]" ) );
     }
@@ -139,7 +139,8 @@ public class OptionSetTests
         assertEquals( 200, response.statusCode() );
 
         response = actions.optionSetActions.get( optionSetId );
-        assertEquals( 200, response.statusCode() );
+
+        response.validate().statusCode( 200 );
         assertEquals( 0, response.extractList( "options" ).size(), "Option was not removed" );
     }
 

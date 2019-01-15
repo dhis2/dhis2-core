@@ -103,22 +103,24 @@ public class UserActions
         return id;
     }
 
-    public ApiResponse grantUserAccessToOrgUnit( String userId, String orgUnitId )
+    public void grantUserAccessToOrgUnit( String userId, String orgUnitId )
     {
         JsonObject object = this.get( userId ).getBody();
         JsonArray orgUnits = object.get( "organisationUnits" ).getAsJsonArray();
         JsonObject orgUnit = new JsonObject();
         orgUnit.addProperty( "id", orgUnitId );
-
         orgUnits.add( orgUnit );
-        return this.update( userId, object );
+
+        ApiResponse response = this.update( userId, object );
+        response.validate().statusCode( 200 );
+
     }
 
-    public ApiResponse grantCurrentUserAccessToOrgUnit( String orgUnitId )
+    public void grantCurrentUserAccessToOrgUnit( String orgUnitId )
     {
         String userId = new LoginActions().getLoggedInUserInfo().extractUid();
 
-        return grantUserAccessToOrgUnit( userId, orgUnitId );
+        grantUserAccessToOrgUnit( userId, orgUnitId );
     }
 
     public String addUser( final String userName, final String password )
