@@ -53,13 +53,13 @@ import javax.annotation.PostConstruct;
 /**
  * @author Ameen Mohamed
  */
-public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAccessManager
+public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 {
     private static final String COLON = ":";
 
     private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
-    private static final Log log = LogFactory.getLog( DefaultTrackerOwnershipAccessManager.class );
+    private static final Log log = LogFactory.getLog( DefaultTrackerOwnershipManager.class );
 
     // -------------------------------------------------------------------------
     // Dependencies

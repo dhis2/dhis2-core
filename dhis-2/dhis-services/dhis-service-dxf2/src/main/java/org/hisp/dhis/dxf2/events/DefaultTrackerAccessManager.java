@@ -42,7 +42,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 
@@ -56,9 +56,9 @@ import java.util.Set;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
-    private final TrackerOwnershipAccessManager ownershipAccessManager;
+    private final TrackerOwnershipManager ownershipAccessManager;
 
-    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipAccessManager ownershipAccessManager )
+    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager )
     {
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
@@ -151,7 +151,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
-            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
 
         return errors;
@@ -182,7 +182,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
-            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
         
         return errors;
@@ -215,7 +215,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
             if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
         else
@@ -260,7 +260,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
             if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
         else
@@ -317,7 +317,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
             if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
         else
@@ -391,7 +391,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
             if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
 

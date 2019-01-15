@@ -51,7 +51,7 @@ import static org.junit.Assert.*;
 public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
 {
     @Autowired
-    private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     private UserService _userService;

@@ -35,10 +35,8 @@ import org.hisp.dhis.user.User;
 /**
  * @author Ameen Mohamed
  */
-public interface TrackerOwnershipAccessManager
+public interface TrackerOwnershipManager
 {
-    String ID = TrackerOwnershipAccessManager.class.getName();
-
     public static final String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
     
     public static final String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
