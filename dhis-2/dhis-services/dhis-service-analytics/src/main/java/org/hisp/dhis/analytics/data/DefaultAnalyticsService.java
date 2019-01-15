@@ -201,7 +201,7 @@ public class DefaultAnalyticsService
     public void init()
     {
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( "analyticsQueryResponse" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+            .expireAfterWrite( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
     }
 
     @Override
