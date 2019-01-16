@@ -67,24 +67,42 @@ public class ConfigurationHelper
 {
     public static String BASE_API_URL;
 
+    public static String SUPER_USER_USERNAME;
+
+    public static String SUPER_USER_PASS;
+
     private static Logger logger = Logger.getLogger( ConfigurationHelper.class.getName() );
 
     private static String BASE_API_URL_KEY = "baseUrl";
 
+    private static String SUPER_USER_USERNAME_KEY = "superUserUsername";
+
+    private static String SUPER_USER_PASS_KEY = "superUserPsw";
+
     static
     {
-        BASE_API_URL = getProperty( BASE_API_URL_KEY, true );
+        BASE_API_URL = getProperty( BASE_API_URL_KEY, true, null );
+        SUPER_USER_USERNAME = getProperty( SUPER_USER_USERNAME_KEY, false, "admin" );
+        SUPER_USER_PASS = getProperty( SUPER_USER_PASS_KEY, false, "district" );
     }
 
-    private static String getProperty( String key, boolean isRequired )
+    private static String getProperty( String key, boolean isRequired, String defaultValue )
     {
         String property = System.getProperty( key );
 
-        if ( isRequired && StringUtils.isEmpty( property ) )
-        {
-            logger.severe( String.format( "Required property %s was not set. Please set %s and repeat execution.", key ) );
+        if (StringUtils.isEmpty( property )) {
+            if (isRequired) {
+                logger.severe( String.format( "Required property %s was not set. Please set %s and repeat execution.", key, key ) );
+                return null;
+            }
+
+            if (! StringUtils.isEmpty( defaultValue)) {
+                logger.info( String.format( "Property %s was not set, using default value %s", key, defaultValue ) );
+                return defaultValue;
+            }
         }
 
+        logger.info( String.format( "Property %s was set to %s", key, property ) );
         return property;
     }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.actions;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ConfigurationHelper;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.preemptive;
@@ -49,7 +50,7 @@ public class LoginActions
 
     public void loginAsDefaultUser()
     {
-        loginAsUser( "admin", "district" );
+        loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
     }
 
     public ApiResponse getLoggedInUserInfo()
