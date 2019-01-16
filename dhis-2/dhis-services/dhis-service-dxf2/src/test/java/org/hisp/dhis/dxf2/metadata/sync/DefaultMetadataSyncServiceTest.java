@@ -33,7 +33,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.common.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;

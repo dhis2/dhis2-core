@@ -41,7 +41,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

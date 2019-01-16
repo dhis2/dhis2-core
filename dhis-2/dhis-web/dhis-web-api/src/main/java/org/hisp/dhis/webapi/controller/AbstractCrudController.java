@@ -65,7 +65,7 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;

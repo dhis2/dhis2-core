@@ -41,7 +41,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.common.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;

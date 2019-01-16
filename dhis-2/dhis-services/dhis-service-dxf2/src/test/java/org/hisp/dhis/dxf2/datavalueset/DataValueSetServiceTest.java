@@ -50,7 +50,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.mock.MockCurrentUserService;

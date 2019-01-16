@@ -62,7 +62,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;

@@ -50,7 +50,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;

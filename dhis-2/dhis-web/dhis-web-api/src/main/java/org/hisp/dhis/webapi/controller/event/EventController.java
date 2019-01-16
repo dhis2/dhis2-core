@@ -71,7 +71,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;

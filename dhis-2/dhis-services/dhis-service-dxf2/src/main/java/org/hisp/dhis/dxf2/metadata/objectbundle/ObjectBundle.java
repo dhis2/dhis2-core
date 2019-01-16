@@ -30,10 +30,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
-import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.common.AtomicMode;
+import org.hisp.dhis.common.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;

@@ -38,7 +38,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;

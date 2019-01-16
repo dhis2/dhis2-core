@@ -71,7 +71,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.common.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.node.types.CollectionNode;

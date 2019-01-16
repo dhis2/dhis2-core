@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,16 @@ package org.hisp.dhis.dxf2.metadata;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AtomicMode
+public enum TrackerBundleMode
 {
     /**
-     * Import object if it passes all validation tests (including references)
-     * (not supported at the moment)
+     * If bundle is valid, commit the bundle to the database.
+     * Commits at intervals.
      */
-    OBJECT,
+    COMMIT,
 
     /**
-     * Import objects only if they all pass the validation phase (including references)
+     * Validate bundle only (dry run)
      */
-    ALL,
-
-    /**
-     * Legacy mode. Allow non-valid references when importing.
-     */
-    NONE
+    VALIDATE;
 }
