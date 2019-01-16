@@ -49,13 +49,13 @@ import org.junit.jupiter.api.Test;
 public class EventsTests
     extends ApiTest
 {
-    String programId;
+    private String programId;
 
-    String orgUnitId;
+    private String orgUnitId;
 
-    String dataElementId;
+    private String dataElementId;
 
-    String createdEvent;
+    private String createdEvent;
 
     private UserActions userActions;
 

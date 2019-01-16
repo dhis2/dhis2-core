@@ -37,7 +37,7 @@ import com.google.gson.JsonParser;
  */
 public class JsonParserUtils
 {
-    static JsonParser parser = new JsonParser();
+    private static JsonParser parser = new JsonParser();
 
     public static JsonObject toJsonObject( Object object )
     {

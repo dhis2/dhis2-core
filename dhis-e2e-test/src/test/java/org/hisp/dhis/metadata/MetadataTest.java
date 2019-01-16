@@ -147,7 +147,7 @@ public class MetadataTest
         ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );
     }
 
-    Stream<Arguments> getSchemaEndpoints()
+    private Stream<Arguments> getSchemaEndpoints()
     {
         ApiResponse apiResponse = schemasActions.get();
 

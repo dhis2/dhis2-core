@@ -82,7 +82,7 @@ public class DataElementsTest
 
     private LoginActions loginActions;
 
-    Stream<Arguments> getDataElementCombinations()
+    private Stream<Arguments> getDataElementCombinations()
     {
         return Stream.of( new Arguments[] {
             Arguments.of( "AGGREGATE", "NUMBER", "SUM", false, null ),

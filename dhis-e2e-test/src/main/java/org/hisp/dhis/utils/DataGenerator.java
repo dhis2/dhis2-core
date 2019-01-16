@@ -164,18 +164,19 @@ public class DataGenerator
         case "periodType":
             List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
             return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ) );
-        }
 
-        if ( minLength < 1 )
-        {
-            return faker.lorem().characters( 6 );
-        }
+        default:
+            if ( minLength < 1 )
+            {
+                return faker.lorem().characters( 6 );
+            }
 
-        if ( maxLength == minLength )
-        {
-            return faker.lorem().characters( maxLength );
-        }
+            if ( maxLength == minLength )
+            {
+                return faker.lorem().characters( maxLength );
+            }
 
-        return faker.lorem().characters( minLength, maxLength );
+            return faker.lorem().characters( minLength, maxLength );
+        }
     }
 }
