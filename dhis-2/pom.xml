@@ -893,6 +893,11 @@
         <artifactId>javacsv</artifactId>
         <version>2.0</version>
       </dependency>
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.4</version>
+      </dependency>
 
       <!--DBMS -->
       <dependency>
@@ -1365,12 +1370,6 @@
         <groupId>org.powermock</groupId>
         <artifactId>powermock-module-junit4</artifactId>
         <version>${powermock.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.skyscreamer</groupId>
-        <artifactId>jsonassert</artifactId>
-        <version>1.5.0</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

@@ -90,6 +90,12 @@ public class BaseDimensionalObject
     private String filter;
 
     /**
+     * A {@link DimensionalAggregation} defines a pre-defined group of items. For instance,
+     * all the OU withing a district
+     */
+    private DimensionalAggregation dimensionalAggregation;
+
+    /**
      * Indicates whether this dimension is fixed, meaning that the name of the
      * dimension will be returned as is for all dimension items in the response.
      */
@@ -137,6 +143,14 @@ public class BaseDimensionalObject
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
         this.displayName = displayName;
+    }
+
+    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalAggregation dimensionalAggregation, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.dimensionName = dimensionName;
+        this.displayName = displayName;
+        this.dimensionalAggregation = dimensionalAggregation;
     }
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
@@ -363,6 +377,17 @@ public class BaseDimensionalObject
     public void setDataDimension( boolean dataDimension )
     {
         this.dataDimension = dataDimension;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 ) // TODO do we need to serialize this field
+    public DimensionalAggregation getDimensionalAggregation() {
+        return this.dimensionalAggregation;
+    }
+
+    public void setDimensionalAggregation(DimensionalAggregation dimensionalAggregation) {
+        this.dimensionalAggregation = dimensionalAggregation;
     }
 
     @Override
