@@ -28,39 +28,43 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.feedback.Status;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceKeyUtil;
+import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteSource;
 
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
@@ -73,21 +77,36 @@ import java.util.Map;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class StaticContentController
 {
-    @Autowired
-    private LocationManager locationManager;
+    private static final Log log = LogFactory.getLog( StaticContentController.class );
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
     private StyleManager styleManager;
 
-    private static final String LOGO_BANNER = "logo_banner";
-    private static final String LOGO_FRONT = "logo_front";
+    private FileResourceContentStore contentStore;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey>builder().
-        put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).
-        put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT ).build();
+    protected static final String LOGO_BANNER = "logo_banner";
+
+    protected static final String LOGO_FRONT = "logo_front";
+
+    private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = FileResourceDomain.DOCUMENT;
+
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey> builder()
+        .put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT )
+        .build();
+
+    @Autowired
+    public StaticContentController( SystemSettingManager systemSettingManager, StyleManager styleManager,
+        JCloudsFileResourceContentStore contentStore )
+    {
+
+        checkNotNull( systemSettingManager );
+        checkNotNull( styleManager );
+        checkNotNull( contentStore );
+        this.systemSettingManager = systemSettingManager;
+        this.styleManager = styleManager;
+        this.contentStore = contentStore;
+    }
 
     /**
      * Serves the PNG associated with the key. If custom logo is not used the
@@ -96,8 +115,8 @@ public class StaticContentController
      * @param key key associated with the file.
      */
     @RequestMapping( value = "/{key}", method = RequestMethod.GET )
-    public void getStaticContent(
-        @PathVariable( "key" ) String key, HttpServletRequest request, HttpServletResponse response )
+    public void getStaticContent( @PathVariable( "key" ) String key, HttpServletRequest request,
+        HttpServletResponse response )
         throws WebMessageException
     {
         if ( !KEY_WHITELIST_MAP.containsKey( key ) )
@@ -120,21 +139,27 @@ public class StaticContentController
         }
         else // Serve custom
         {
-            try ( InputStream in = locationManager.getInputStream( key + ".png", "static" ) )
+
+            ByteSource file = this.contentStore
+                .getFileResourceContent( FileResourceKeyUtil.makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) ) );
+
+            if ( file != null )
             {
                 response.setContentType( "image/png" );
-                IOUtils.copy( in, response.getOutputStream() );
-            }
-            catch ( LocationManagerException e )
-            {
-                throw new WebMessageException(
-                    WebMessageUtils.notFound( "The requested file could not be found." ) );
-            }
-            catch ( IOException e )
-            {
-                throw new WebMessageException(
-                    WebMessageUtils.error( "Error occurred trying to serve file.",
+                try
+                {
+                    file.copyTo( response.getOutputStream() );
+                }
+                catch ( IOException e )
+                {
+                    throw new WebMessageException( WebMessageUtils.error( "Error occurred trying to serve file.",
                         "An IOException was thrown, indicating a file I/O or networking error." ) );
+                }
+            }
+            else
+            {
+                throw new WebMessageException( WebMessageUtils.notFound( "The requested file could not be found." ) );
+
             }
         }
     }
@@ -142,15 +167,15 @@ public class StaticContentController
     /**
      * Uploads PNG images based on a key. Only accepts PNG and white listed keys.
      *
-     * @param key  the key.
+     * @param key the key.
      * @param file the image file.
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{key}", method = RequestMethod.POST )
-    public void updateStaticContent(
-        @PathVariable( "key" ) String key, @RequestParam( value = "file" ) MultipartFile file )
-        throws WebMessageException, IOException
+    public void updateStaticContent( @PathVariable( "key" ) String key,
+        @RequestParam( value = "file" ) MultipartFile file )
+        throws WebMessageException
     {
         if ( file == null || file.isEmpty() )
         {
@@ -170,35 +195,36 @@ public class StaticContentController
 
         if ( !KEY_WHITELIST_MAP.containsKey( key ) )
         {
-            throw new WebMessageException(
-                WebMessageUtils.badRequest( "This key is not supported." ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( "This key is not supported." ) );
         }
-
-        File out = null;
 
         try
         {
-            out = locationManager.getFileForWriting( key + ".png", "static" );
+            String fileKey = contentStore.saveFileResourceContent(
+                FileResourceUtils.build( key, file, DEFAULT_RESOURCE_DOMAIN ), file.getBytes() );
+
+            if ( fileKey == null )
+            {
+                throw new WebMessageException( WebMessageUtils.badRequest( "The resource was not saved" ) );
+            }
+            else
+            {
+                log.debug( String.format( "File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey ) );
+            }
+
         }
-        catch ( LocationManagerException e )
+        catch ( Exception e )
         {
             throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
         }
 
-        try
-        {
-            file.transferTo( out );
-        }
-        catch ( IOException e )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Could not save file." ) );
-        }
     }
 
     /**
      * Returns the relative url of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not exist.
+     * @param key the key associated with the logo or null if the key does not
+     *        exist.
      * @return the relative url of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )
@@ -207,7 +233,8 @@ public class StaticContentController
 
         if ( key.equals( LOGO_BANNER ) )
         {
-            relativeUrlToImage += "/dhis-web-commons/css/" + styleManager.getCurrentStyleDirectory() + "/logo_banner.png";
+            relativeUrlToImage += "/dhis-web-commons/css/" + styleManager.getCurrentStyleDirectory()
+                + "/logo_banner.png";
         }
 
         if ( key.equals( LOGO_FRONT ) )
