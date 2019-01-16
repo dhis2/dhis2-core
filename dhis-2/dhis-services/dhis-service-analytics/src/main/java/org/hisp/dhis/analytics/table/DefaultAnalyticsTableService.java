@@ -99,9 +99,11 @@ public class DefaultAnalyticsTableService
     {
         JobConfiguration jobId = params.getJobId();
 
-        int processNo = getProcessNo();
-        int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
-        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
+        final int processNo = getProcessNo();
+        final int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
+        final Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
+
+        int tableUpdates = 0;
 
         log.info( String.format( "Analytics table update parameters: %s", params ) );
 
@@ -151,14 +153,22 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Populated analytics tables" );
         notifier.notify( jobId, "Invoking analytics table hooks" );
 
-        tableManager.invokeAnalyticsTableSqlHooks();
+        tableUpdates += tableManager.invokeAnalyticsTableSqlHooks();
 
         clock.logTime( "Invoked analytics table hooks" );
         notifier.notify( jobId, "Applying aggregation levels" );
 
-        applyAggregationLevels( tables );
+        tableUpdates += applyAggregationLevels( tables );
 
         clock.logTime( "Applied aggregation levels" );
+
+        if ( tableUpdates > 0 )
+        {
+            notifier.notify( jobId, "Vacuuming tables" );
+            vacuumTables( tables );
+            clock.logTime( "Tables vacuumed" );
+        }
+
         notifier.notify( jobId, "Creating indexes" );
 
         createIndexes( tables );
@@ -250,14 +260,15 @@ public class DefaultAnalyticsTableService
      * Applies aggregation levels to the given analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
+     * @return the number of aggregation levels applied for data elements.
      */
-    private void applyAggregationLevels( List<AnalyticsTable> tables )
+    private int applyAggregationLevels( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
 
-        boolean hasAggLevels = false;
+        int aggLevels = 0;
 
         levelLoop : for ( int i = 0; i < maxLevels; i++ )
         {
@@ -271,8 +282,6 @@ public class DefaultAnalyticsTableService
                 continue levelLoop;
             }
 
-            hasAggLevels = true;
-
             ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
 
             List<Future<?>> futures = new ArrayList<>();
@@ -282,15 +291,12 @@ public class DefaultAnalyticsTableService
                 futures.add( tableManager.applyAggregationLevels( partitionQ, dataElements, level ) );
             }
 
+            aggLevels += dataElements.size();
+
             ConcurrentUtils.waitForCompletion( futures );
         }
 
-        if ( hasAggLevels )
-        {
-            vacuumTables( tables );
-
-            log.info( "Vacuumed tables" );
-        }
+        return aggLevels;
     }
 
     /**
