@@ -162,4 +162,6 @@ public interface DimensionalObject
      * dimension will be returned as is for all dimension items in the response.
      */
     boolean isFixed();
+
+    DimensionalAggregation getDimensionalAggregation();
 }

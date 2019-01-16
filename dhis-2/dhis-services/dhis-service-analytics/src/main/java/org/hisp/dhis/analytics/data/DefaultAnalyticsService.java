@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
@@ -101,6 +102,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
@@ -150,42 +152,64 @@ public class DefaultAnalyticsService
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
 
-    @Autowired
     private AnalyticsManager analyticsManager;
 
-    @Autowired
     private RawAnalyticsManager rawAnalyticsManager;
 
-    @Autowired
     private AnalyticsSecurityManager securityManager;
 
-    @Autowired
     private QueryPlanner queryPlanner;
 
-    @Autowired
     private QueryValidator queryValidator;
 
-    @Autowired
     private ExpressionService expressionService;
 
-    @Autowired
     private ConstantService constantService;
 
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
     private EventAnalyticsService eventAnalyticsService;
 
-    @Autowired
     private DataQueryService dataQueryService;
 
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
+
+    @Autowired
+    public DefaultAnalyticsService(AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager, AnalyticsSecurityManager securityManager,
+                                   QueryPlanner queryPlanner, QueryValidator queryValidator, ExpressionService expressionService, ConstantService constantService,
+                                   OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+                                   EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService) {
+
+        checkNotNull(analyticsManager);
+        checkNotNull(rawAnalyticsManager);
+        checkNotNull(securityManager);
+        checkNotNull(queryPlanner);
+        checkNotNull(queryValidator);
+        checkNotNull(expressionService);
+        checkNotNull(constantService);
+        checkNotNull(organisationUnitService);
+        checkNotNull(systemSettingManager);
+        checkNotNull(eventAnalyticsService);
+        checkNotNull(dataQueryService);
+
+        this.analyticsManager = analyticsManager;
+        this.rawAnalyticsManager = rawAnalyticsManager;
+        this.securityManager = securityManager;
+        this.queryPlanner = queryPlanner;
+        this.queryValidator = queryValidator;
+        this.expressionService = expressionService;
+        this.constantService = constantService;
+        this.organisationUnitService = organisationUnitService;
+        this.systemSettingManager = systemSettingManager;
+        this.eventAnalyticsService = eventAnalyticsService;
+        this.dataQueryService = dataQueryService;
+
+
+    }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
