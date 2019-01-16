@@ -10,6 +10,9 @@
   - baseUrl - points to API under test url. 
   
     Example: [https://play.dhis2.org/dev/api]
+    
+  - superUserUsername - super user username to use when running tests. Default: admin
+  - superUserPass - super user password to use when running tests. Default: district
 
 ### Local dev environment
 In order to test local version of dhis2 - use docker compose to start dhis2-db and dhis2-web containers. To do that: 
