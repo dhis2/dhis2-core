@@ -314,11 +314,11 @@ public class DefaultProgramMessageService
 
             if ( message.hasProgramInstance() )
             {
-                object = message.getProgramInstance();
+                object = message.getProgramInstance().getProgram();
             }
             else if( message.hasProgramStageInstance() )
             {
-                object = message.getProgramStageInstance();
+                object = message.getProgramStageInstance().getProgramStage();
             }
 
             if ( object != null )
@@ -327,7 +327,7 @@ public class DefaultProgramMessageService
 
                 if ( !isAuthorized )
                 {
-                    log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getName() ) );
+                    log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getUid() ) );
 
                     return false;
                 }
