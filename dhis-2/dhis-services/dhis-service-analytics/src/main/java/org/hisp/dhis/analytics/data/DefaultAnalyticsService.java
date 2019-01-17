@@ -78,7 +78,6 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -158,6 +157,8 @@ public class DefaultAnalyticsService
 
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
+    private static final int MAX_CACHE_ENTRIES = 20000;
+    private static final String CACHE_REGION = "analyticsQueryResponse";
 
     @Autowired
     private AnalyticsManager analyticsManager;
@@ -207,13 +208,13 @@ public class DefaultAnalyticsService
     @PostConstruct
     public void init()
     {
-        Long expiration = Long.parseLong( dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
+        Long expiration = dhisConfig.getAnalyticsCacheExpiration();
         boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
 
-        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( "analyticsQueryResponse" )
-            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? 20000 : 0 ).build();
+        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
+            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
 
-        log.info( String.format( "Analytics server-side cache is: %b with expiration: %d s", enabled, expiration ) );
+        log.info( String.format( "Analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
     }
 
     @Override
@@ -230,9 +231,13 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
+        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        {
+            final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
+        }
 
-        return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
+        return getAggregatedDataValueGridInternal( params );
     }
 
     @Override

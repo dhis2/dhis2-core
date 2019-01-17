@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -68,6 +69,23 @@ public class QueryKey
         if ( keyComponent != null )
         {
             this.keyComponents.add( String.valueOf( keyComponent ) );
+        }
+
+        return this;
+    }
+
+    /**
+     * Adds a component to this key if the given object is not null, provided
+     * by the given object.
+     *
+     * @param object the object to check for null.
+     * @param keySupplier the supplier of the key component.
+     */
+    public QueryKey addIgnoreNull( Object object, Supplier<String> keySupplier )
+    {
+        if ( object != null )
+        {
+            this.addIgnoreNull( keySupplier.get() );
         }
 
         return this;
