@@ -42,7 +42,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.common.ImportStrategy;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;

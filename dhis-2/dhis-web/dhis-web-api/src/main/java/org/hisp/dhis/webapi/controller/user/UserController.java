@@ -45,7 +45,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.common.ImportStrategy;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;

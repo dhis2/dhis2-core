@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.importexport;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo

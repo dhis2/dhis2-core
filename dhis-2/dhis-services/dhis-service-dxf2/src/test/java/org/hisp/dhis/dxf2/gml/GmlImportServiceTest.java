@@ -32,7 +32,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.common.ImportStrategy;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;

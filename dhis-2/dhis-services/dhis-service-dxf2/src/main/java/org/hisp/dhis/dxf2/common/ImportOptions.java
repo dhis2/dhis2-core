@@ -35,7 +35,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.common.ImportStrategy;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.user.User;
 
