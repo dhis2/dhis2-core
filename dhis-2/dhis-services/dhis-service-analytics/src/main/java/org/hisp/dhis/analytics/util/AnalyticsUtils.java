@@ -604,7 +604,8 @@ public class AnalyticsUtils
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
-            if (dimension.getDimensionalAggregation() != null) {
+            if (dimension.getDimensionalAggregation() != null)
+            {
                 dimension.getDimensionalAggregation().getGroupBy().forEach(b -> map.put(b.getUid(),
                         new MetadataItem(b.getName(), b.getUid(), b.getCode())));
             }

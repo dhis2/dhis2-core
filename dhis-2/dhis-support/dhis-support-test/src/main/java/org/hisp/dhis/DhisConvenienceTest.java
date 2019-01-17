@@ -371,7 +371,7 @@ public abstract class DhisConvenienceTest
             targetService = getRealObject( targetService );
 
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
-                + fieldName.substring( 1);
+                + fieldName.substring( 1, fieldName.length() );
 
             Class<?>[] argumentClass = new Class<?>[]{ clazz };
 

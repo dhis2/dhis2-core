@@ -381,8 +381,9 @@ public class BaseDimensionalObject
 
     @Override
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 ) // TODO do we need to serialize this field
-    public DimensionalAggregation getDimensionalAggregation() {
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DimensionalAggregation getDimensionalAggregation()
+    {
         return this.dimensionalAggregation;
     }
 
