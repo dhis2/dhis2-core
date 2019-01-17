@@ -55,10 +55,6 @@ public class FinancialNovemberPeriodTypeTest
     {
         periodType = new FinancialNovemberPeriodType();
     }
-    
-    /*int year,
-    int monthOfYear,
-    int dayOfMonth,*/
 
     @Test
     public void testCreatePeriod()

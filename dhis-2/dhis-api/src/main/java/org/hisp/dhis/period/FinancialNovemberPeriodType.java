@@ -51,7 +51,7 @@ public class FinancialNovemberPeriodType
     @Override
     protected int getBaseMonth()
     {
-        return Calendar.OCTOBER;
+        return Calendar.NOVEMBER;
     }
 
     @Override
