@@ -35,6 +35,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
+import org.hisp.dhis.system.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +103,11 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
         {
             errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013 , organisationUnit.getClosedDate(), organisationUnit
                 .getOpeningDate()) );
+        }
+
+        if ( organisationUnit.getCoordinates() != null && !MathUtils.isCoordinate( organisationUnit.getCoordinates() ) )
+        {
+            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4028 , organisationUnit.getCoordinates() ) );
         }
 
         return errors;
