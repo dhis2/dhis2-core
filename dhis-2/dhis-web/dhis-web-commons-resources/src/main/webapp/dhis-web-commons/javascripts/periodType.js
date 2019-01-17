@@ -425,3 +425,30 @@ function FinancialAprilPeriodType( dateFormat )
         return periods;
     };
 }
+
+function FinancialNovemberPeriodType( dateFormat )
+{
+    this.generatePeriods = function( offset )
+    {
+        var periods = [];
+        var year = new Date().getFullYear() + offset;
+        var startDate = $.date( year + '-11-01', dateFormat ).adjust( 'Y', -5 );
+        var endDate = startDate.clone().adjust( 'Y', +1 ).adjust( 'D', -1 );
+
+        for ( var i = 0; i < 11; i++ )
+        {
+            var period = [];
+            period['startDate'] = startDate.format( dateFormat );
+            period['endDate'] = endDate.format( dateFormat );
+            period['name'] =  monthNames[10] + ' ' +  startDate.date().getFullYear() + '-' + monthNames[9] + ' ' + (startDate.date().getFullYear() +1 );
+            period['id'] = 'FinancialNov_' + period['startDate'];
+            period['iso'] = startDate.date().getFullYear() + 'Nov';
+            periods[i] = period;
+
+            startDate.adjust( 'Y', +1 );
+            endDate = startDate.clone().adjust( 'Y', +1 ).adjust( 'D', -1 );
+        }
+
+        return periods;
+    };
+}

@@ -37,10 +37,12 @@ function PeriodType()
     periodTypes['Quarterly'] = new QuarterlyPeriodType( format_yyyymmdd, monthNames, filterFuturePeriods );
     periodTypes['SixMonthly'] = new SixMonthlyPeriodType( monthNames, filterFuturePeriods );
     periodTypes['SixMonthlyApril'] = new SixMonthlyAprilPeriodType( monthNames, filterFuturePeriods );
+    periodTypes['SixMonthlyNov'] = new SixMonthlyNovemberPeriodType( monthNames, filterFuturePeriods );
     periodTypes['Yearly'] = new YearlyPeriodType( format_yyyymmdd, filterFuturePeriods );
     periodTypes['FinancialOct'] = new FinancialOctoberPeriodType( format_yyyymmdd, monthNames, filterFuturePeriods );
     periodTypes['FinancialJuly'] = new FinancialJulyPeriodType( format_yyyymmdd, monthNames, filterFuturePeriods );
     periodTypes['FinancialApril'] = new FinancialAprilPeriodType( format_yyyymmdd, monthNames, filterFuturePeriods );
+    periodTypes['FinancialNov'] = new FinancialNovemberPeriodType( format_yyyymmdd, monthNames, filterFuturePeriods );
 
     this.get = function( key )
     {
