@@ -28,9 +28,16 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -38,10 +45,10 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -59,15 +66,9 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -604,10 +605,10 @@ public class AnalyticsUtils
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
-            if (dimension.getDimensionalAggregation() != null)
+            if ( dimension.getDimensionalAggregation() != null )
             {
-                dimension.getDimensionalAggregation().getGroupBy().forEach(b -> map.put(b.getUid(),
-                        new MetadataItem(b.getName(), b.getUid(), b.getCode())));
+                dimension.getDimensionalAggregation().getGroupBy()
+                    .forEach( b -> map.put( b.getUid(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
             }
         }
 
