@@ -324,9 +324,8 @@ public class EventQueryParams
     @Override
     public String getKey()
     {
-        QueryKey key = new QueryKey();
-
-        key.add( super.getKey() );
+        QueryKey key = new QueryKey()
+            .add( super.getKey() );
 
         items.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
@@ -344,16 +343,16 @@ public class EventQueryParams
             .addIgnoreNull( limit )
             .addIgnoreNull( outputType )
             .addIgnoreNull( eventStatus )
-            .add( collapseDataDimensions )
-            .add( coordinatesOnly )
-            .add( geometryOnly )
-            .add( aggregateData )
+            .addIgnoreNull( collapseDataDimensions )
+            .addIgnoreNull( coordinatesOnly )
+            .addIgnoreNull( geometryOnly )
+            .addIgnoreNull( aggregateData )
             .addIgnoreNull( clusterSize )
             .addIgnoreNull( coordinateField )
             .addIgnoreNull( bbox )
-            .add( includeClusterPoints )
+            .addIgnoreNull( includeClusterPoints )
             .addIgnoreNull( programStatus )
-            .add( includeMetadataDetails )
+            .addIgnoreNull( includeMetadataDetails )
             .addIgnoreNull( dataIdScheme )
             .build();
     }
