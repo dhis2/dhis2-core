@@ -31,12 +31,12 @@ package org.hisp.dhis.tracker;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -261,16 +261,15 @@ public class TrackerImportParams
         return this;
     }
 
-    public TrackerBundle toTrackerBundle()
+    public TrackerBundleParams toTrackerBundleParams()
     {
-        return new TrackerBundle()
+        return new TrackerBundleParams()
             .setUser( user )
             .setImportMode( importMode )
             .setImportStrategy( importStrategy )
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
             .setSkipValidation( skipValidation )
-            .setFilename( filename )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )
             .setEvents( events );

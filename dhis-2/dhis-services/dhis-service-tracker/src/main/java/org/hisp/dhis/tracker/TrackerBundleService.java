@@ -28,30 +28,25 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerImportService
+public interface TrackerBundleService
 {
     /**
-     * Import object using provided params. Takes the objects through all phases of the importer
-     * from preheating to validation, and then finished with a commit (unless its validate only)
+     * Creates and prepares tracker bundle.
      *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
+     * @param params Params object for this bundle.
+     * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
      */
-    void importTracker( TrackerImportParams params );
+    List<TrackerBundle> create( TrackerBundleParams params );
 
     /**
-     * Parses, and creates a TrackerImportParams instance based on given map of parameters.
+     * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
      *
-     * @param parameters Key-Value map of wanted parameters
-     * @return MetadataImportParams instance created based on input parameters
+     * @param bundle TrackerBundle to commit.
      */
-    TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters );
+    void commit( TrackerBundle bundle );
 }

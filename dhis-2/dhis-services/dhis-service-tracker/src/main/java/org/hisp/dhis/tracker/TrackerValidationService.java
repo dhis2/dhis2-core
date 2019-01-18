@@ -33,4 +33,10 @@ package org.hisp.dhis.tracker;
  */
 public interface TrackerValidationService
 {
+    /**
+     * Validate tracker bundle
+     *
+     * @param bundle Bundle to validate
+     */
+    void validate( TrackerBundle bundle );
 }
