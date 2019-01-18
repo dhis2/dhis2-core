@@ -383,9 +383,13 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            strategies.stream()
-                .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                .map( st -> st.setAttributes( message ) );
+            for( DeliveryChannelStrategy strategy : strategies )
+            {
+                if ( strategy.getDeliveryChannel().equals( channel ) )
+                {
+                    strategy.setAttributes( message );
+                }
+            }
         }
 
         return message;
