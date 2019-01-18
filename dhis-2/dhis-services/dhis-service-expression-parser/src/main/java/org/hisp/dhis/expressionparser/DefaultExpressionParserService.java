@@ -234,11 +234,11 @@ public class DefaultExpressionParserService
         Double denominatorValue = getExpressionValue( indicator.getDenominator(),
             valueMap, constantMap, orgUnitCountMap, days );
 
-        if ( denominatorValue != null && denominatorValue != 0d )
-        {
-            Double numeratorValue = getExpressionValue( indicator.getNumerator(),
-                valueMap, constantMap, orgUnitCountMap, days );
+        Double numeratorValue = getExpressionValue( indicator.getNumerator(),
+            valueMap, constantMap, orgUnitCountMap, days );
 
+        if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
+        {
             double annualizationFactor = period != null ?
                 DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
 

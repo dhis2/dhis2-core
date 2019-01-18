@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.expressionparser.generated.ExpressionParser.*;
@@ -77,43 +78,43 @@ public class ExpressionValueVisitor
     @Override
     public Object visitDataElement( DataElementContext ctx )
     {
-        return getItemValue( DATA_ELEMENT, ctx.dataElementId().getText() );
+        return getItemValue( ctx.dataElementId().getText() );
     }
 
     @Override
     public Object visitDataElementOperandWithoutAoc( DataElementOperandWithoutAocContext ctx )
     {
-        return getItemValue( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithoutAoc().getText() );
+        return getItemValue( ctx.dataElementOperandIdWithoutAoc().getText() );
     }
 
     @Override
     public Object visitDataElementOperandWithAoc( DataElementOperandWithAocContext ctx )
     {
-        return getItemValue( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithAoc().getText() );
+        return getItemValue( ctx.dataElementOperandIdWithAoc().getText() );
     }
 
     @Override
     public Object visitProgramDataElement( ProgramDataElementContext ctx )
     {
-        return getItemValue( PROGRAM_DATA_ELEMENT, ctx.programDataElementId().getText() );
+        return getItemValue( ctx.programDataElementId().getText() );
     }
 
     @Override
     public Object visitProgramAttribute ( ProgramAttributeContext ctx )
     {
-        return getItemValue( PROGRAM_ATTRIBUTE, ctx.programAttributeId().getText() );
+        return getItemValue( ctx.programAttributeId().getText() );
     }
 
     @Override
     public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
     {
-        return getItemValue( PROGRAM_INDICATOR, ctx.programIndicatorId().getText() );
+        return getItemValue( ctx.programIndicatorId().getText() );
     }
 
     @Override
     public Object visitReportingRate ( ReportingRateContext ctx )
     {
-        return getItemValue( REPORTING_RATE, ctx.reportingRateId().getText() );
+        return getItemValue( ctx.reportingRateId().getText() );
     }
 
     @Override
@@ -235,48 +236,26 @@ public class ExpressionValueVisitor
     /**
      * From the initial valueMap containing expression items with full
      * DimensionalItemObjects, makes a hash map that can be used for fast
-     * lookup from the DimensionalItemObject type and identifier found in the
-     * expression. This allows the DimensionalItemObject to be identified from
-     * the expression without the overhead of calling the
-     * IdentifiableObjectManager.
+     * lookup from the identifier found in the expression. This allows the
+     * DimensionalItemObject to be identified from the expression without
+     * the overhead of calling the IdentifiableObjectManager.
      *
      * @param valueMap the given valueMap.
      */
     private void makeKeyValueMap( Map<DimensionalItemObject, Double> valueMap )
     {
-        keyValueMap = new HashMap<>();
-
-        for ( Map.Entry<DimensionalItemObject, Double> entry : valueMap.entrySet() )
-        {
-            DimensionalItemObject item = entry.getKey();
-
-            String key = getKey( item.getDimensionItemType(), item.getDimensionItem() );
-
-            keyValueMap.put( key, entry.getValue() );
-        }
+        keyValueMap = valueMap.entrySet().stream().collect(
+            Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
     }
 
     /**
      * Gets an expression item's value from the keyValueMap.
      *
-     * @param itemType the DimensionalItemObject type.
      * @param itemId the DimensionalItemObject id.
      * @return the item's value.
      */
-    private Object getItemValue( DimensionItemType itemType, String itemId )
+    private Object getItemValue( String itemId )
     {
-        return keyValueMap.get( getKey( itemType, itemId ) );
-    }
-
-    /**
-     * Generates a key to use in the keyValueMap.
-     *
-     * @param dimensionItemType
-     * @param itemId
-     * @return
-     */
-    private String getKey( DimensionItemType dimensionItemType, String itemId )
-    {
-        return dimensionItemType.name()  + "-" + itemId;
+        return keyValueMap.get( itemId );
     }
 }
