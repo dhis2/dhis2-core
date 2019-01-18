@@ -67,7 +67,7 @@ public class SixMonthlyNovemberPeriodType
     }
     
     @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
+    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
 
