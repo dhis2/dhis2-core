@@ -125,8 +125,8 @@ public class UserController
         List<Order> orders ) throws QueryParserException
     {
         UserQueryParams params = new UserQueryParams();
-        params.setQuery( options.get( "query" ) );
-        params.setPhoneNumber( options.get( "phoneNumber" ) );
+        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
+        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
         params.setCanManage( options.isTrue( "canManage" ) );
         params.setAuthSubset( options.isTrue( "authSubset" ) );
         params.setLastLogin( options.getDate( "lastLogin" ) );
