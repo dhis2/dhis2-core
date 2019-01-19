@@ -29,13 +29,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hibernate.Session;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
-import org.hisp.dhis.system.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +105,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
                 .getOpeningDate()) );
         }
 
-        if ( organisationUnit.getCoordinates() != null && !MathUtils.isCoordinate( organisationUnit.getCoordinates() ) )
+        if ( organisationUnit.getCoordinates() != null && !CoordinateUtils.validateCoordinates( organisationUnit.getFeatureType(), organisationUnit.getCoordinates() ) )
         {
             errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4028 , organisationUnit.getCoordinates() ) );
         }

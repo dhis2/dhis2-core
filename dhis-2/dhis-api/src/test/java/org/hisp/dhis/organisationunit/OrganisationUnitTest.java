@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -45,20 +46,20 @@ public class OrganisationUnitTest
 {
     private List<CoordinatesTuple> multiPolygonCoordinatesList = new ArrayList<>();
     private List<CoordinatesTuple> pointCoordinatesList = new ArrayList<>();
-    
+
     private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66]]],[[[77.77,88.88],[99.99,11.11],[22.22,33.33]]],[[[44.44,55.55],[66.66,77.77],[88.88,99.99]]]]";
     private String pointCoordinates = "[11.11,22.22]";
-    
+
     private CoordinatesTuple tupleA;
     private CoordinatesTuple tupleB;
     private CoordinatesTuple tupleC;
     private CoordinatesTuple tupleD;
-    
+
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
-    private OrganisationUnit unitD;    
-    
+    private OrganisationUnit unitD;
+
     @Before
     public void before()
     {
@@ -66,7 +67,7 @@ public class OrganisationUnitTest
         tupleA.addCoordinates( "11.11,22.22" );
         tupleA.addCoordinates( "33.33,44.44" );
         tupleA.addCoordinates( "55.55,66.66" );
-        
+
         tupleB = new CoordinatesTuple();
         tupleB.addCoordinates( "77.77,88.88" );
         tupleB.addCoordinates( "99.99,11.11" );
@@ -76,20 +77,20 @@ public class OrganisationUnitTest
         tupleC.addCoordinates( "44.44,55.55" );
         tupleC.addCoordinates( "66.66,77.77" );
         tupleC.addCoordinates( "88.88,99.99" );
-        
+
         tupleD = new CoordinatesTuple();
         tupleD.addCoordinates( "11.11,22.22" );
-        
+
         multiPolygonCoordinatesList.add( tupleA );
         multiPolygonCoordinatesList.add( tupleB );
         multiPolygonCoordinatesList.add( tupleC );
         pointCoordinatesList.add( tupleD );
-        
+
         unitA = new OrganisationUnit( "OrgUnitA" );
         unitB = new OrganisationUnit( "OrgUnitB" );
         unitC = new OrganisationUnit( "OrgUnitC" );
         unitD = new OrganisationUnit( "OrgUnitD" );
-        
+
         unitA.setUid( "uidA" );
         unitB.setUid( "uidB" );
         unitC.setUid( "uidC" );
@@ -102,9 +103,9 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitA, unitB, unitC ) );
-        
+
         assertEquals( expected, unitD.getAncestors() );
     }
 
@@ -114,13 +115,13 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<String> expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
-        
+
         assertEquals( expected, unitD.getAncestorNames( null, false ) );
-        
+
         expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName(), unitD.getDisplayName() ) );
-        
+
         assertEquals( expected, unitD.getAncestorNames( null, true ) );
     }
 
@@ -130,23 +131,23 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
+
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitB, unitC ) );
-        
+
         assertEquals( expected, unitD.getAncestors( roots ) );
     }
-    
+
     @Test
     public void testGetPath()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         String expected = "/uidA/uidB/uidC/uidD";
-        
+
         assertEquals( expected, unitD.getPath() );
     }
 
@@ -156,24 +157,24 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
+
         String expected = "/OrgUnitB/OrgUnitC";
-        
+
         assertEquals( expected, unitD.getParentNameGraph( roots, false ) );
-        
+
         expected = "/OrgUnitA/OrgUnitB/OrgUnitC";
 
-        assertEquals( expected, unitD.getParentNameGraph( null, false ) );        
+        assertEquals( expected, unitD.getParentNameGraph( null, false ) );
     }
-    
+
     @Test
     public void testSetMultiPolygonCoordinatesFromCollection()
     {
         OrganisationUnit unit = new OrganisationUnit();
         unit.setCoordinates( CoordinateUtils.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList ) );
-        
+
         assertEquals( multiPolygonCoordinates, unit.getCoordinates() );
     }
 
@@ -182,21 +183,40 @@ public class OrganisationUnitTest
     {
         OrganisationUnit unit = new OrganisationUnit();
         unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
-        
+
         assertEquals( pointCoordinates, unit.getCoordinates() );
     }
-    
+
     @Test
     public void testGetCoordinatesAsCollection()
-    {   
+    {
         OrganisationUnit unit = new OrganisationUnit();
         unit.setCoordinates( multiPolygonCoordinates );
         unit.setFeatureType( FeatureType.MULTI_POLYGON );
-        
+
         assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).size() );
-        
+
         assertEquals( tupleA, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 0 ) );
         assertEquals( tupleB, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 1 ) );
         assertEquals( tupleC, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 2 ) );
     }
+
+    @Test
+    public void testValidateCoordindates()
+    {
+        OrganisationUnit unit = new OrganisationUnit();
+        unit.setCoordinates( multiPolygonCoordinates );
+        unit.setFeatureType( FeatureType.MULTI_POLYGON );
+
+        assertTrue( CoordinateUtils.validateCoordinates( unit.getFeatureType(), unit.getCoordinates() ) );
+
+        unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
+
+        assertTrue( CoordinateUtils.validateCoordinates( unit.getFeatureType(), unit.getCoordinates() ) );
+
+
+
+
+    }
+
 }

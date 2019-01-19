@@ -65,6 +65,11 @@ public class CoordinateUtils
         return featureType != null && featureType == FeatureType.POINT;
     }
 
+    public static boolean validateCoordinates( FeatureType featureType, String coordinates )
+    {
+        return isPoint( featureType ) ? JSON_POINT_PATTERN.matcher( coordinates ).find() : JSON_COORDINATE_PATTERN.matcher( coordinates ).find();
+    }
+
     public static List<CoordinatesTuple> getCoordinatesAsList( String coordinates, FeatureType featureType )
     {
         List<CoordinatesTuple> list = new ArrayList<>();
