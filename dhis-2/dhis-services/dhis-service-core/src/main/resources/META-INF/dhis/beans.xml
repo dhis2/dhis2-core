@@ -1505,6 +1505,10 @@
     <property name="skipInTests" value="true" />
   </bean>
 
+  <!-- ProgramExpressionEvaluationService -->
+
+  <bean id="programIndicatorExpressionEvaluationService" class="org.hisp.dhis.program.ProgramIndicatorExpressionEvaluationService"/>
+
   <!-- DeletionHandlers -->
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler" class="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler">

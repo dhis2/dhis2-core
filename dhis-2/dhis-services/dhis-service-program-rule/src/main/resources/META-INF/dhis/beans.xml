@@ -65,7 +65,11 @@
     
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener"
     class="org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" />
-    
+
+  <!-- ProgramExpressionEvaluationService -->
+
+  <bean id="programRuleExpressionEvaluationService" class="org.hisp.dhis.programrule.ProgramRuleExpressionEvaluationService"/>
+
   <!-- Deletion handlers -->
   
   <bean id="org.hisp.dhis.programrule.ProgramRuleDeletionHandler"

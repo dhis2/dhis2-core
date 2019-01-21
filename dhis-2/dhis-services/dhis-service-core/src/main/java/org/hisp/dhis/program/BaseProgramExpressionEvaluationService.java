@@ -37,6 +37,24 @@ import java.util.Map;
  */
 public abstract class BaseProgramExpressionEvaluationService implements ProgramExpressionEvaluationService
 {
+    protected static final String VAR_EVENT_DATE = "event_date";
+    protected static final String VAR_EXECUTION_DATE = "execution_date";
+    protected static final String VAR_DUE_DATE = "due_date";
+    protected static final String VAR_ENROLLMENT_DATE = "enrollment_date";
+    protected static final String VAR_INCIDENT_DATE = "incident_date";
+    protected static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
+    protected static final String VAR_CURRENT_DATE = "current_date";
+    protected static final String VAR_VALUE_COUNT = "value_count";
+    protected static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
+    protected static final String VAR_EVENT_COUNT = "event_count";
+    protected static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
+    protected static final String VAR_TEI_COUNT = "tei_count";
+    protected static final String VAR_COMPLETED_DATE = "completed_date";
+    protected static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
+    protected static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
+    protected static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
+    protected static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
+
     @Override
     public boolean expressionIsValid( String expression )
     {

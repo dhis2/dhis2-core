@@ -28,7 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 
 import java.util.Map;
 
@@ -37,21 +44,58 @@ import java.util.Map;
  */
 public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
+    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
+        .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
+        .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
+        .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
+        .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
+        .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
+        .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
+
+    private static final Map<String, ProgramD2Function> PI_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+        .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
+        .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
+        .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )
+        .put( DaysBetweenProgramD2Function.KEY, new DaysBetweenProgramD2Function() )
+        .put( WeeksBetweenProgramD2Function.KEY, new WeeksBetweenProgramD2Function() )
+        .put( MonthsBetweenProgramD2Function.KEY, new MonthsBetweenProgramD2Function() )
+        .put( YearsBetweenProgramD2Function.KEY, new YearsBetweenProgramD2Function() )
+        .put( MinutesBetweenProgramD2Function.KEY, new MinutesBetweenProgramD2Function() ).build();
+
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
+        .put( VAR_COMPLETED_DATE, "'2017-07-08'" )
+        .put( VAR_CURRENT_DATE, "'2017-07-08'" )
+        .put( VAR_DUE_DATE, "'2017-07-08'" )
+        .put( VAR_ENROLLMENT_COUNT, "1" )
+        .put( VAR_ENROLLMENT_DATE, "'2017-07-08'" )
+        .put( VAR_ENROLLMENT_STATUS, "'COMPLETED'" )
+        .put( VAR_EVENT_COUNT, "1" )
+        .put( VAR_EVENT_DATE, "'2017-07-08'" )
+        .put( VAR_EXECUTION_DATE, "'2017-07-08'" )
+        .put( VAR_INCIDENT_DATE, "'2017-07-08'" )
+        .put( VAR_ANALYTICS_PERIOD_START, "'2017-07-01'" )
+        .put( VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" )
+        .put( VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
+        .put( VAR_TEI_COUNT, "1" )
+        .put( VAR_VALUE_COUNT, "1" )
+        .put( VAR_ZERO_POS_VALUE_COUNT, "1" )
+        .put( VAR_ANALYTICS_PERIOD_END, "'2017-07-07'" ).build();
+
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        return null;
+        return PI_FUNC_MAP;
     }
 
     @Override
     protected Map<String, SqlFunction> getSQLFunctions()
     {
-        return null;
+        return SQL_FUNC_MAP;
     }
 
     @Override
     protected Map<String, String> getSourceVariableMap()
     {
-        return null;
+        return VARIABLE_SAMPLE_VALUE_MAP;
     }
 }
