@@ -94,12 +94,12 @@ public class DefaultQueryParser implements QueryParser
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
-    {        
+    {
         disjunction.add( getRestriction( schema, "id", operator, arg ) );
         disjunction.add( getRestriction( schema, "code", operator, arg ) );
         disjunction.add( getRestriction( schema, "name", operator, arg ) );
-        
-        if( schema.haveProperty( "shortName" ) )
+
+        if ( schema.haveProperty( "shortName" ) )
         {
             disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
         }
@@ -204,7 +204,7 @@ public class DefaultQueryParser implements QueryParser
             }
             case "!token":
             {
-                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START );
+                return Restrictions.notToken( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
             case "endsWith":
             case "ilike$":
@@ -217,7 +217,16 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = null;
+
+                if ( property.isCollection() )
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                }
+                else
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+                }
 
                 if ( values == null || values.isEmpty() )
                 {
@@ -228,7 +237,16 @@ public class DefaultQueryParser implements QueryParser
             }
             case "!in":
             {
-                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = null;
+
+                if ( property.isCollection() )
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                }
+                else
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+                }
 
                 if ( values == null || values.isEmpty() )
                 {
