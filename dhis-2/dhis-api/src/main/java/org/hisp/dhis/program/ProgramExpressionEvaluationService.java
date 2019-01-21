@@ -37,7 +37,7 @@ public interface ProgramExpressionEvaluationService
      * Indicates whether the given program indicator or program rule expression is valid.
      *
      * @param expression an expression string.
-     * @return true is expression is valid, false otherwise.
+     * @return true if expression is valid, false otherwise.
      */
     boolean expressionIsValid( String expression );
 
