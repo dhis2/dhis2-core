@@ -39,7 +39,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 /**
  * Local cache implementation of {@link Cache}. This implementation is backed by
  * Caffeine library which uses an in memory Map implementation.
- * 
+ *
  * @author Ameen Mohamed
  */
 public class LocalCache<V> implements Cache<V>
@@ -50,14 +50,14 @@ public class LocalCache<V> implements Cache<V>
 
     /**
      * Constructor to instantiate LocalCache object.
-     * 
-     * 
+     *
+     *
      * @param cacheBuilder CacheBuilder instance
      */
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
-        
+
         if ( cacheBuilder.isExpiryEnabled() )
         {
             if ( cacheBuilder.isRefreshExpiryOnAccess() )
@@ -73,7 +73,7 @@ public class LocalCache<V> implements Cache<V>
         {
             builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
-        
+
         this.caffeineCache = builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
@@ -104,7 +104,7 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public Collection<V> getAll()
     {
-        return new ArrayList<V>(caffeineCache.asMap().values());
+        return new ArrayList<V>( caffeineCache.asMap().values() );
     }
 
     @Override

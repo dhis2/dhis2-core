@@ -208,8 +208,10 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass,
-                new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults(), params.getSkipSharing() ) );
+            FieldFilterParams fieldFilterParams = new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
+            fieldFilterParams.setUser( params.getUser() );
+
+            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass, fieldFilterParams );
 
             if ( !collectionNode.getChildren().isEmpty() )
             {
