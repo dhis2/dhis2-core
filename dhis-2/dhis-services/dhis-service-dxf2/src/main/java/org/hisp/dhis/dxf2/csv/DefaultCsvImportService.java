@@ -96,11 +96,15 @@ public class DefaultCsvImportService
     // -------------------------------------------------------------------------
 
     @Override
-    public Metadata fromCsv( InputStream input, CsvImportClass importClass )
+    public Metadata fromCsv( InputStream input, CsvImportClass importClass, boolean firstRowIsHeader )
         throws IOException
     {
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
-        reader.readRecord(); // Ignore first row
+
+        if ( firstRowIsHeader )
+        {
+            reader.readRecord(); // Ignore first row
+        }
 
         Metadata metadata = new Metadata();
 

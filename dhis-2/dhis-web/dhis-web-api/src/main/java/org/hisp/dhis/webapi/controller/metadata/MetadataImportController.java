@@ -137,7 +137,7 @@ public class MetadataImportController
 
         params.setCsvImportClass( CsvImportClass.valueOf( classKey ) );
 
-        Metadata metadata = csvImportService.fromCsv( request.getInputStream(), params.getCsvImportClass() );
+        Metadata metadata = csvImportService.fromCsv( request.getInputStream(), params.getCsvImportClass(), params.isFirstRowIsHeader() );
 
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 

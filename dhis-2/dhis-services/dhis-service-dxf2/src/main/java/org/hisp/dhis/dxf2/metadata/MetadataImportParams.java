@@ -141,6 +141,11 @@ public class MetadataImportParams
     private CsvImportClass csvImportClass;
 
     /**
+     * Specify whether the first row is header in CSV import
+     */
+    private boolean firstRowIsHeader;
+
+    /**
      * Job id to use for threaded imports.
      */
     private JobConfiguration id;
@@ -375,6 +380,18 @@ public class MetadataImportParams
     {
         this.id = id;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFirstRowIsHeader()
+    {
+        return firstRowIsHeader;
+    }
+
+    public void setFirstRowIsHeader( boolean firstRowIsHeader )
+    {
+        this.firstRowIsHeader = firstRowIsHeader;
     }
 
     public boolean hasJobId()

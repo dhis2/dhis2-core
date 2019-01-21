@@ -582,7 +582,12 @@ public class DefaultDataValueSetService
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
             CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
-            csvReader.readRecord(); // Ignore the first row
+
+            if ( importOptions.isFirstRowIsHeader() )
+            {
+                csvReader.readRecord(); // Ignore the first row
+            }
+
             DataValueSet dataValueSet = new StreamingCsvDataValueSet( csvReader );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }

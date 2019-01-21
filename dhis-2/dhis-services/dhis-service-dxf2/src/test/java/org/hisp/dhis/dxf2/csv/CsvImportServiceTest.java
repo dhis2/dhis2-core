@@ -101,7 +101,7 @@ public class CsvImportServiceTest
     public void testCategoryOptionImport()
         throws IOException
     {
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, CsvImportClass.CATEGORY_OPTION );
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, CsvImportClass.CATEGORY_OPTION, true );
 
         assertEquals( 3, metadata.getCategoryOptions().size() );
 
@@ -118,7 +118,7 @@ public class CsvImportServiceTest
         throws IOException
     {
         Metadata metadata = csvImportService
-            .fromCsv( orgUnitGroupMembership, CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP );
+            .fromCsv( orgUnitGroupMembership, CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP, true );
 
         assertEquals( 2, metadata.getOrganisationUnitGroups().size() );
     }

@@ -80,7 +80,7 @@ public class CsvMetadataImportTest
     {
         input = new ClassPathResource( "metadata/dataElements.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.DATA_ELEMENT );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.DATA_ELEMENT, true );
 
         assertEquals( 2, metadata.getDataElements().size() );
 
@@ -102,7 +102,7 @@ public class CsvMetadataImportTest
     {
         input = new ClassPathResource( "metadata/optionSets.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         assertEquals( 4, metadata.getOptionSets().size() );
         assertEquals( 3, metadata.getOptionSets().get( 0 ).getOptions().size() );
@@ -132,7 +132,7 @@ public class CsvMetadataImportTest
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -144,7 +144,7 @@ public class CsvMetadataImportTest
         // Send payload with 2 new Options
         input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
 
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -166,7 +166,7 @@ public class CsvMetadataImportTest
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -178,7 +178,7 @@ public class CsvMetadataImportTest
         // Send payload with 5 Options, 2 new and 3 old from above
         input = new ClassPathResource( "metadata/optionSet_update_duplicate.csv" ).getInputStream();
 
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -202,7 +202,7 @@ public class CsvMetadataImportTest
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -214,7 +214,7 @@ public class CsvMetadataImportTest
         // Send payload with 2 new Options
         input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
 
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
+        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET, true );
 
         params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -228,6 +228,4 @@ public class CsvMetadataImportTest
         // 3 old Options are replaced by 2 new added Options
         assertEquals( 2, optionSet.getOptions().size() );
     }
-
-
 }

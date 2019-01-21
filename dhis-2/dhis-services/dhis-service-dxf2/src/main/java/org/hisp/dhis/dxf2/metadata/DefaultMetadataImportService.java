@@ -218,6 +218,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
         params.setImportReportMode( getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
+        params.setFirstRowIsHeader( getBooleanWithDefault( parameters, "firstRowIsHeader", true ) );
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
