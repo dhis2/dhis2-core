@@ -65,9 +65,10 @@ public class HibernateProgramStageDataElementStore
     public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
     {
         final String sql = "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde " +
-            "join programstage ps on psde.programsageid = ps.programstageid " +
+            "join programstage ps on psde.programstageid = ps.programstageid " +
             "join dataelement de on psde.dataelementid = de.dataelementid " +
-            "where psde.skipsynchronization = true";
+            "where psde.programstageid in (select distinct ( programstageid ) from programstageinstance psi where psi.lastupdated > psi.lastsynchronized) " +
+            "and psde.skipsynchronization = true";
 
         final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
         jdbcTemplate.query( sql, new RowCallbackHandler()
