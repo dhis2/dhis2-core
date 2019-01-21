@@ -1,12 +1,5 @@
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,6 +27,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.io.Serializable;
+
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;

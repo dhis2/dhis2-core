@@ -95,7 +95,7 @@ public class OrganisationUnitController
         boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
             options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ), options.isTrue( "levelSorted" ) );
         boolean anyQueryPropertySet = ObjectUtils.firstNonNull( options.get( "query" ), options.getInt( "level" ),
-            options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" );
+            options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" ) || options.isTrue( "withinUserSearchHierarchy" );
         String memberObject = options.get( "memberObject" );
         String memberCollection = options.get( "memberCollection" );
 
@@ -138,7 +138,9 @@ public class OrganisationUnitController
             params.setQuery( options.get( "query" ) );
             params.setLevel( options.getInt( "level" ) );
             params.setMaxLevels( options.getInt( "maxLevel" ) );
-            params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits() : Sets.newHashSet() );
+            
+            params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits()
+                : options.isTrue( "withinUserSearchHierarchy" ) ? currentUser.getTeiSearchOrganisationUnitsWithFallback() : Sets.newHashSet() );
 
             objects = organisationUnitService.getOrganisationUnitsByQuery( params );
         }
