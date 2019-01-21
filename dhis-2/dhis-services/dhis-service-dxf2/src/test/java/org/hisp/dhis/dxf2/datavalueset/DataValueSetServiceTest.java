@@ -545,7 +545,7 @@ public class DataValueSetServiceTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetB.csv" ).getInputStream();
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, new ImportOptions(), null );
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
 
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -577,7 +577,7 @@ public class DataValueSetServiceTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, new ImportOptions(), null );
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
         assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False rows
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );

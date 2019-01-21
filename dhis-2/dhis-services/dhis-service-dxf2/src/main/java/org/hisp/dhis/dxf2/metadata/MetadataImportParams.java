@@ -143,7 +143,7 @@ public class MetadataImportParams
     /**
      * Specify whether the first row is header in CSV import
      */
-    private boolean firstRowIsHeader;
+    private boolean firstRowIsHeader = true;
 
     /**
      * Job id to use for threaded imports.

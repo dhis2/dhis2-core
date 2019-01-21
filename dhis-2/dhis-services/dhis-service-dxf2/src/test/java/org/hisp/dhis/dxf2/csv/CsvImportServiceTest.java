@@ -114,6 +114,24 @@ public class CsvImportServiceTest
     }
 
     @Test
+    public void testCategoryOptionImportNoHeader()
+        throws IOException
+    {
+        inputBasicObjects = new ClassPathResource( "csv/basic_objects_no_header.csv" ).getInputStream();
+
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, CsvImportClass.CATEGORY_OPTION, false );
+
+        assertEquals( 3, metadata.getCategoryOptions().size() );
+
+        for ( CategoryOption categoryOption : metadata.getCategoryOptions() )
+        {
+            assertNotNull( categoryOption.getUid() );
+            assertNotNull( categoryOption.getName() );
+            assertNotNull( categoryOption.getShortName() );
+        }
+    }
+
+    @Test
     public void testOrganisationUnitGroupMembershipImport()
         throws IOException
     {

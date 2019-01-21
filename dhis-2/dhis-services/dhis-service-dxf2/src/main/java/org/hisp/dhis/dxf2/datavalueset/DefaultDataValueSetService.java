@@ -583,7 +583,7 @@ public class DefaultDataValueSetService
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
             CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
 
-            if ( importOptions.isFirstRowIsHeader() )
+            if ( importOptions == null || importOptions.isFirstRowIsHeader() )
             {
                 csvReader.readRecord(); // Ignore the first row
             }
