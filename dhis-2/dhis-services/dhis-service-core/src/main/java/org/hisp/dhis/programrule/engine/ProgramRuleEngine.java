@@ -28,11 +28,12 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -46,6 +47,8 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +59,13 @@ public class ProgramRuleEngine
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
 
     private static final String USER = "USER";
+
+    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
+            "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+
+    private static final Pattern PATTERN = Pattern.compile( REGEX );
+
+    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = Sets.newHashSet( ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE, ProgramRuleActionType.ASSIGN );
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -164,14 +174,37 @@ public class ProgramRuleEngine
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
+        List<String> orgUnitGroups = new ArrayList<>();
+
+        List<Rule> rules = new ArrayList<>();
+
+        for ( ProgramRule programRule : programRules )
+        {
+            Rule rule = programRuleEntityMapperService.toMappedProgramRule( programRule );
+
+            if( rule != null )
+            {
+                rules.add( rule );
+
+                Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
+
+                while ( matcher.find() )
+                {
+                    orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
+                }
+            }
+        }
+
+        if ( !orgUnitGroups.isEmpty() )
+        {
+            supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
+                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        }
+
         if( currentUserService.getCurrentUser() != null )
         {
             supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
-
-        List<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-
-        groups.stream().forEach( group -> supplementaryData.put( group.getUid(), group.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
 
         return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
@@ -184,23 +217,6 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        List<ProgramRule> rules =  programRuleService.getProgramRule( program );
-
-        return rules.stream().filter( this::isImplementable ).collect( Collectors.toList() );
-    }
-
-    private boolean isImplementable( ProgramRule rule )
-    {
-        Set<ProgramRuleAction> actions = rule.getProgramRuleActions();
-
-        for( ProgramRuleAction action : actions )
-        {
-            if ( action.getProgramRuleActionType().isImplementable() )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
     }
 }

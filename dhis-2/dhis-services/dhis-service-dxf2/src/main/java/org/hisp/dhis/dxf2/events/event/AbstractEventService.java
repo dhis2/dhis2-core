@@ -1813,7 +1813,10 @@ public abstract class AbstractEventService
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
 
-            enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            {
+                enginePublisher.publishProgramRuleEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            }
         }
     }
 
