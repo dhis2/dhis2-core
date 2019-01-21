@@ -33,7 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 
 /**
@@ -41,7 +40,7 @@ import org.hisp.dhis.fileresource.FileResource;
  */
 @JacksonXmlRootElement( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
 public class Document
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
 {
     /**
      * Can be either a valid URL, or the path (filename) of a file.

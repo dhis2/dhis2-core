@@ -318,6 +318,45 @@ public class EventQueryParams
             .removeDimension( DATA_X_DIM_ID ).build();
     }
 
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    @Override
+    public String getKey()
+    {
+        QueryKey key = new QueryKey()
+            .add( super.getKey() );
+
+        items.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        itemFilters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        itemProgramIndicators.forEach( e -> key.add( e.getUid() ) );
+        asc.forEach( e -> e.getUid() );
+        desc.forEach( e -> e.getUid() );
+
+        return key
+            .addIgnoreNull( value, () -> value.getUid() )
+            .addIgnoreNull( programIndicator, () -> programIndicator.getUid() )
+            .addIgnoreNull( organisationUnitMode )
+            .addIgnoreNull( page )
+            .addIgnoreNull( pageSize )
+            .addIgnoreNull( sortOrder )
+            .addIgnoreNull( limit )
+            .addIgnoreNull( outputType )
+            .addIgnoreNull( eventStatus )
+            .addIgnoreNull( collapseDataDimensions )
+            .addIgnoreNull( coordinatesOnly )
+            .addIgnoreNull( geometryOnly )
+            .addIgnoreNull( aggregateData )
+            .addIgnoreNull( clusterSize )
+            .addIgnoreNull( coordinateField )
+            .addIgnoreNull( bbox )
+            .addIgnoreNull( includeClusterPoints )
+            .addIgnoreNull( programStatus )
+            .addIgnoreNull( includeMetadataDetails )
+            .addIgnoreNull( dataIdScheme )
+            .build();
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
+
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
@@ -39,7 +41,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * @author Lars Helge Overland
  */
-public class GridHeader
+public class GridHeader implements Serializable
 {
     private static final ImmutableSet<String> NUMERIC_TYPES = 
         ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
