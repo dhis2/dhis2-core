@@ -72,11 +72,12 @@ public class HibernateProgramRuleStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
         return getQuery( "FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.program = :programId AND pra.programRuleActionType IN (:implementableTypes)" )
-                .setParameter( "programId", program )
-                .setParameter( "implementableTypes", types )
-                .getResultList();
+            .setParameter( "programId", program )
+            .setParameter( "implementableTypes", types )
+            .getResultList();
     }
 }

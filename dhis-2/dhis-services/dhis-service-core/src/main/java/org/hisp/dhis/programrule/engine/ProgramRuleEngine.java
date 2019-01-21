@@ -194,7 +194,7 @@ public class ProgramRuleEngine
         if ( !orgUnitGroups.isEmpty() )
         {
             supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+                .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
         }
 
         if( currentUserService.getCurrentUser() != null )
