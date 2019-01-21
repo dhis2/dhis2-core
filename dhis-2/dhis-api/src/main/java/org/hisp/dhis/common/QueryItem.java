@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
@@ -60,7 +61,7 @@ public class QueryItem
     private AggregationType aggregationType;
 
     private OptionSet optionSet;
-    
+
     private Program program;
 
     // -------------------------------------------------------------------------
@@ -114,12 +115,26 @@ public class QueryItem
 
         return itemName;
     }
-    
+
     public boolean addFilter( QueryFilter filter )
     {
         return filters.add( filter );
     }
-    
+
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        key.add( getItemId() ).addIgnoreNull( getFiltersAsString() );
+
+        if ( legendSet != null )
+        {
+            key.add( legendSet.getUid() );
+        }
+
+        return key.build();
+    }
+
     /**
      * Returns a string representation of the query filters. Returns null if item
      * has no query items.
@@ -130,7 +145,7 @@ public class QueryItem
         {
             return null;
         }
-        
+
         List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString ).collect( Collectors.toList() );
         return StringUtils.join( filterStrings, ", " );
     }
@@ -149,7 +164,7 @@ public class QueryItem
     {
         return valueType.isText();
     }
-    
+
     public boolean hasLegendSet()
     {
         return legendSet != null;
@@ -174,7 +189,7 @@ public class QueryItem
     {
         return filters != null && !filters.isEmpty();
     }
-    
+
     public boolean hasProgram()
     {
         return program != null;
@@ -184,7 +199,7 @@ public class QueryItem
     {
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
     }
-    
+
     /**
      * Returns filter items for all filters associated with this
      * query item. If no filter items are specified, return all
@@ -197,8 +212,8 @@ public class QueryItem
         {
             return null;
         }
-        
-        return hasFilter() ? getQueryFilterItems() : 
+
+        return hasFilter() ? getQueryFilterItems() :
             IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
     }
 
@@ -223,18 +238,18 @@ public class QueryItem
      * Returns option filter items. Options are specified by code
      * but returned as identifiers, so the codes are mapped to
      * options and then to identifiers.
-     * 
+     *
      * //TODO clean up and standardize on identifier.
      */
     private List<String> getOptionSetQueryFilterItems()
-    {        
+    {
         return getQueryFilterItems().stream()
             .map( code -> optionSet.getOptionByCode( code ) )
             .filter( option -> option != null )
             .map( option -> option.getUid() )
             .collect( Collectors.toList() );
     }
-    
+
     /**
      * Returns filter items for all filters associated with this
      * query item.
@@ -245,22 +260,22 @@ public class QueryItem
         filters.forEach( f -> filterItems.addAll( QueryFilter.getFilterItems( f.getFilter() ) ) );
         return filterItems;
     }
-    
+
     /**
      * Returns SQL filter for the given query filter and SQL encoded
      * filter. If the item value type is text-based, the filter is
      * converted to lower-case.
-     * 
+     *
      * @param filter the query filter.
      * @param encodedFilter the SQL encoded filter.
      */
     public String getSqlFilter( QueryFilter filter, String encodedFilter )
     {
         String sqlFilter = filter.getSqlFilter( encodedFilter );
-        
+
         return isText() ? sqlFilter.toLowerCase() : sqlFilter;
     }
-    
+
     // -------------------------------------------------------------------------
     // Static utilities
     // -------------------------------------------------------------------------
@@ -276,7 +291,7 @@ public class QueryItem
 
         return queryItems;
     }
-    
+
     public static List<QueryItem> getDataElementQueryItems( Collection<DataElement> dataElements )
     {
         List<QueryItem> queryItems = new ArrayList<>();

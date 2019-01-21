@@ -52,8 +52,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -545,6 +543,7 @@ public class DataElement
      *
      * @return true if this data element has an option set.
      */
+    @Override
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -577,6 +576,7 @@ public class DataElement
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
@@ -692,6 +692,7 @@ public class DataElement
         this.zeroIsSignificant = zeroIsSignificant;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OptionSet getOptionSet()

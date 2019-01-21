@@ -28,6 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
@@ -35,8 +37,9 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 public class GridHeader
+    implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES = 
+    private static final ImmutableSet<String> NUMERIC_TYPES =
         ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     /**
@@ -50,7 +53,7 @@ public class GridHeader
     private String column;
 
     private ValueType valueType;
-    
+
     private String type;
 
     private boolean hidden;

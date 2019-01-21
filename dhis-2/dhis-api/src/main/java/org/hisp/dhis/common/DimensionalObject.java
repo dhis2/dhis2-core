@@ -64,49 +64,49 @@ public interface DimensionalObject
     String DIMENSION_NAME_SEP = ":";
     String OPTION_SEP = ";";
     String ITEM_SEP = "-";
-        
-    List<String> STATIC_DIMS = ImmutableList.<String>builder().add( 
+
+    List<String> STATIC_DIMS = ImmutableList.<String>builder().add(
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
-    
-    Map<String, String> PRETTY_NAMES = DimensionalObjectUtils.asMap( 
+
+    Map<String, String> PRETTY_NAMES = DimensionalObjectUtils.asMap(
         DATA_X_DIM_ID, "Data",
         CATEGORYOPTIONCOMBO_DIM_ID, "Data details",
         PERIOD_DIM_ID, "Period",
         ORGUNIT_DIM_ID, "Organisation unit" );
-    
+
     Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
         add( DataElementCategory.class ).
         add( DataElementGroupSet.class ).
         add( OrganisationUnitGroupSet.class ).
         add( CategoryOptionGroupSet.class ).build();
-    
+
     Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap.<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>builder().
         put( DataElementCategory.class, DataElementCategoryOption.class ).
         put( DataElementGroupSet.class, DataElementGroup.class ).
         put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class ).
         put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();
-    
+
     Set<ValueType> ARITHMETIC_VALUE_TYPES = ImmutableSet.<ValueType>builder().add(
-        ValueType.BOOLEAN, ValueType.TRUE_ONLY, ValueType.NUMBER, ValueType.INTEGER, 
-        ValueType.INTEGER_POSITIVE, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_ZERO_OR_POSITIVE, 
+        ValueType.BOOLEAN, ValueType.TRUE_ONLY, ValueType.NUMBER, ValueType.INTEGER,
+        ValueType.INTEGER_POSITIVE, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_ZERO_OR_POSITIVE,
         ValueType.UNIT_INTERVAL, ValueType.PERCENTAGE ).build();
-    
+
     /**
      * Gets the dimension identifier.
      */
     String getDimension();
-    
+
     /**
      * Gets the dimension type.
      */
     DimensionType getDimensionType();
-    
+
     /**
      * Gets the dimension name, which corresponds to a column in the analytics
      * tables, with fall back to dimension.
      */
     String getDimensionName();
-     
+
     /**
      * Dimension items.
      */
@@ -116,12 +116,12 @@ public interface DimensionalObject
      * Indicates whether all available items in this dimension are included.
      */
     boolean isAllItems();
-    
+
     /**
      * Indicates whether this dimension has any dimension items.
      */
     boolean hasItems();
-    
+
     /**
      * Gets the legend set.
      */
@@ -131,12 +131,12 @@ public interface DimensionalObject
      * Indicates whether this dimension has a legend set.
      */
     boolean hasLegendSet();
-    
+
     /**
      * Gets the aggregation type.
      */
     AggregationType getAggregationType();
-    
+
     /**
      * Gets the filter. Contains operator and filter. Applicable for events.
      */
@@ -146,16 +146,21 @@ public interface DimensionalObject
      * Indicates the analytics type of this dimensional object.
      */
     AnalyticsType getAnalyticsType();
-    
+
     /**
-     * Indicates whether this object should be handled as a data dimension. 
+     * Indicates whether this object should be handled as a data dimension.
      * Persistent property.
      */
     boolean isDataDimension();
-    
+
     /**
      * Indicates whether this dimension is fixed, meaning that the name of the
      * dimension will be returned as is for all dimension items in the response.
      */
     boolean isFixed();
+
+    /**
+     * Returns a unique key representing this dimension.
+     */
+    String getKey();
 }

@@ -33,27 +33,34 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +76,16 @@ public class EventQueryParamsTest
     private OptionSet osB;
     private DataElement deA;
     private DataElement deB;
-    
+
+    private DataElement deC;
+    private OrganisationUnit ouA;
+    private OrganisationUnit ouB;
+    private Program prA;
+    private ProgramStage psA;
+    private Period peA;
+    private Period peB;
+    private Period peC;
+
     @Before
     public void before()
     {
@@ -79,50 +95,89 @@ public class EventQueryParamsTest
         opD = createOption( 'D' );
         osA = createOptionSet( 'A', opA, opB );
         osB = createOptionSet( 'B', opC, opD );
-        
+
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
+        deC.setValueType( ValueType.DATE );
+
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
+        psA = createProgramStage( 'A', prA );
+        psA.addDataElement( deA, 0 );
+        psA.addDataElement( deB, 1 );
+        psA.addDataElement( deC, 2 );
+        prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
+
+        peA = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() );
+        peB = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        peC = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() );
     }
-    
+
+    @Test
+    public void testGetKey()
+    {
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
+        QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
+
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
+            .addItem( qiA )
+            .addItem( qiB )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
+            .addItem( qiA )
+            .addItem( qiB )
+            .withGeometryOnly( true )
+            .build();
+
+        assertNotNull( paramsA.getKey() );
+        assertEquals( 40, paramsA.getKey().length() );
+
+        assertNotNull( paramsB.getKey() );
+        assertEquals( 40, paramsB.getKey().length() );
+
+        assertFalse( paramsA.getKey().equals( paramsB.getKey() ) );
+    }
     @Test
     public void testReplacePeriodsWithStartEndDates()
     {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() ) );
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() ) );
-
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
-        
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .build();
+
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
-        
+
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods().build();
-        
+
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
-        assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );        
+        assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
     }
-    
+
     @Test
     public void testGetItemLegends()
     {
         Legend leA = createLegend( 'A', 0d, 1d );
-        Legend leB = createLegend( 'B', 1d, 2d );        
+        Legend leB = createLegend( 'B', 1d, 2d );
         LegendSet lsA = createLegendSet( 'A', leA, leB );
-        
+
         QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
-        
+
         EventQueryParams params = new EventQueryParams.Builder()
             .addItem( qiA )
             .build();
-        
+
         Set<Legend> expected = Sets.newHashSet( leA, leB );
-        
+
         assertEquals( expected, params.getItemLegends() );
     }
-    
+
     @Test
     public void testGetItemOptions()
     {
@@ -133,15 +188,15 @@ public class EventQueryParamsTest
             .addItem( qiA )
             .addItem( qiB )
             .build();
-        
+
         Set<Option> expected = Sets.newHashSet( opA, opB, opC, opD );
-        
+
         assertEquals( expected, params.getItemOptions() );
     }
-    
+
     @Test
     public void testGetDuplicateQueryItems()
-    {        
+    {
         QueryItem iA = new QueryItem( createDataElement( 'A', new DataElementCategoryCombo() ) );
         QueryItem iB = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
         QueryItem iC = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
@@ -152,10 +207,10 @@ public class EventQueryParamsTest
             .addItem( iB )
             .addItem( iC )
             .addItem( iD ).build();
-        
+
         List<QueryItem> duplicates = params.getDuplicateQueryItems();
-        
+
         assertEquals( 1, duplicates.size() );
-        assertTrue( duplicates.contains( iC ) );        
+        assertTrue( duplicates.contains( iC ) );
     }
 }
