@@ -78,15 +78,15 @@ public class DefaultProgramIndicatorService
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
     
-    private static final Map<String, ProgramIndicatorFunction> PI_FUNC_MAP = ImmutableMap.<String, ProgramIndicatorFunction> builder()
-        .put( CountIfValueProgramIndicatorFunction.KEY, new CountIfValueProgramIndicatorFunction() )
-        .put( CountProgramIndicatorFunction.KEY, new CountProgramIndicatorFunction() )
-        .put( CountIfConditionProgramIndicatorFunction.KEY, new CountIfConditionProgramIndicatorFunction() )
-        .put( DaysBetweenProgramIndicatorFunction.KEY, new DaysBetweenProgramIndicatorFunction() )
-        .put( WeeksBetweenProgramIndicatorFunction.KEY, new WeeksBetweenProgramIndicatorFunction() )
-        .put( MonthsBetweenProgramIndicatorFunction.KEY, new MonthsBetweenProgramIndicatorFunction() )
-        .put( YearsBetweenProgramIndicatorFunction.KEY, new YearsBetweenProgramIndicatorFunction() )
-        .put( MinutesBetweenProgramIndicatorFunction.KEY, new MinutesBetweenProgramIndicatorFunction() ).build();
+    private static final Map<String, ProgramD2Function> PI_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+        .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
+        .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
+        .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )
+        .put( DaysBetweenProgramD2Function.KEY, new DaysBetweenProgramD2Function() )
+        .put( WeeksBetweenProgramD2Function.KEY, new WeeksBetweenProgramD2Function() )
+        .put( MonthsBetweenProgramD2Function.KEY, new MonthsBetweenProgramD2Function() )
+        .put( YearsBetweenProgramD2Function.KEY, new YearsBetweenProgramD2Function() )
+        .put( MinutesBetweenProgramD2Function.KEY, new MinutesBetweenProgramD2Function() ).build();
 
     private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
@@ -328,7 +328,7 @@ public class DefaultProgramIndicatorService
                 
                 String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
 
-                ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
+                ProgramD2Function piFunction = PI_FUNC_MAP.get( func );
                 
                 if ( piFunction != null )
                 {
