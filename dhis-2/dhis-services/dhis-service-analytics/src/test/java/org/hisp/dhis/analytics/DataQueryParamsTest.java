@@ -540,4 +540,27 @@ public class DataQueryParamsTest
 
         assertEquals( expected, params.getProgramsInAttributesAndDataElements() );
     }
+
+    @Test
+    public void testGetKey()
+    {
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) ) ).build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peB ) ) )
+            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+
+        assertNotNull( paramsA.getKey() );
+        assertEquals( 40, paramsA.getKey().length() );
+
+        assertNotNull( paramsB.getKey() );
+        assertEquals( 40, paramsB.getKey().length() );
+
+        assertFalse( paramsA.getKey().equals( paramsB.getKey() ) ); // No collision
+    }
 }

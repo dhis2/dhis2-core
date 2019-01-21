@@ -91,6 +91,7 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
+    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
     LOGGING_LEVEL( "logging.level", "INFO" ),
     LOGGING_FORMAT( "logging.format", "TEXT" ),
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),

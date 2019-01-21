@@ -46,6 +46,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -62,7 +63,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public class ListGrid
-    implements Grid
+    implements Grid, Serializable
 {
     private static final String REGRESSION_SUFFIX = "_regression";
     private static final String CUMULATIVE_SUFFIX = "_cumulative";
