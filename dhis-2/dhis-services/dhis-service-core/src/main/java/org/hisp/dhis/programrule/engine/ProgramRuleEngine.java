@@ -176,16 +176,12 @@ public class ProgramRuleEngine
 
         List<String> orgUnitGroups = new ArrayList<>();
 
-        List<Rule> rules = new ArrayList<>();
-
         for ( ProgramRule programRule : programRules )
         {
             Rule rule = programRuleEntityMapperService.toMappedProgramRule( programRule );
 
             if( rule != null )
             {
-                rules.add( rule );
-
                 Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
 
                 while ( matcher.find() )
