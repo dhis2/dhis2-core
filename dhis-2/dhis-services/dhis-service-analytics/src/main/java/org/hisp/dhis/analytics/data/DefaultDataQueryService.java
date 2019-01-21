@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -258,7 +259,7 @@ public class DefaultDataQueryService
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
-
+            DimensionalAggregation dimensionalAggregation = null;
             for ( String uid : items )
             {
                 if ( uid.startsWith( KEY_DE_GROUP ) )
@@ -282,6 +283,7 @@ public class DefaultDataQueryService
                     {
                         dataDimensionItems.addAll( group.getMembers() );
                     }
+                    dimensionalAggregation = new DimensionalAggregation(Lists.newArrayList(group));
                 }
                 else
                 {
@@ -299,7 +301,7 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension dx is present in query without any valid dimension options" );
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dataDimensionItems );
+            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalAggregation, dataDimensionItems );
         }
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )

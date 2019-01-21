@@ -605,6 +605,7 @@ public class AnalyticsUtils
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
+            // Add additional items from the aggregation data
             if ( dimension.getDimensionalAggregation() != null )
             {
                 dimension.getDimensionalAggregation().getGroupBy()

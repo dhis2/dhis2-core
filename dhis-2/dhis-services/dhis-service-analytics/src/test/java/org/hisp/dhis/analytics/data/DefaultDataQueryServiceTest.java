@@ -30,10 +30,12 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -41,6 +43,8 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -104,11 +108,11 @@ public class DefaultDataQueryServiceTest
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
 
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "fbfJHSPpUQD" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "fbfJHSPpUQD" ) )
                 .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "cYeuwXTCPkU" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) )
                 .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "Jtf34kNZhzP" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) )
                 .thenReturn( new DataElement() );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -132,11 +136,11 @@ public class DefaultDataQueryServiceTest
     public void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
     {
 
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "fbfJHSPpUQD" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "fbfJHSPpUQD" ) )
             .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "cYeuwXTCPkU" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) )
             .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "Jtf34kNZhzP" ) )
+        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) )
             .thenReturn( new DataElement() );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -165,7 +169,40 @@ public class DefaultDataQueryServiceTest
                         allOf( hasProperty( "name", is( "Chiefdom" ) ),
                                hasProperty( "uid", is( "level3UID" ) ),
                                hasProperty( "code", is( nullValue() ) ) )));
-        }
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithIndicatorGroup()
+    {
+
+        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
+        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) ).thenReturn( new DataElement() );
+
+        IndicatorGroup indicatorGroup = new IndicatorGroup( "dummy" );
+        indicatorGroup.setUid("oehv9EO3vP7");
+        indicatorGroup.setCode("CODE_10");
+        indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
+        when( idObjectManager.getObject( IndicatorGroup.class, UID, "oehv9EO3vP7" ) ).thenReturn( indicatorGroup );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) ).thenReturn( new OrganisationUnit("aaa") );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) ).thenReturn( new OrganisationUnit("bbb") );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
+            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
+
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .filter( Sets.newHashSet( "ou:goRUwCHPg1M;fdc6uOvgoji" ) )
+            .dimension(
+                Sets.newHashSet( "dx:IN_GROUP-oehv9EO3vP7;cYeuwXTCPkU;Jtf34kNZhzP", "pe:LAST_12_MONTHS;LAST_YEAR" ) )
+            .build();
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject dimension = params.getDimension("dx");
+        assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
+
+        BaseIdentifiableObject aggregation = dimension.getDimensionalAggregation().getGroupBy().get(0);
+        assertThat(aggregation.getUid(), is(indicatorGroup.getUid()));
+        assertThat(aggregation.getCode(), is(indicatorGroup.getCode()));
+        assertThat(aggregation.getName(), is(indicatorGroup.getName()));
+    }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
     {
