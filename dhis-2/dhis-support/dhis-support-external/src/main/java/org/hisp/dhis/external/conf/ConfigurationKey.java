@@ -76,6 +76,7 @@ public enum ConfigurationKey
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
+    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
     AMQP_MODE( "amqp.mode", "EMBEDDED" ),
     AMQP_HOST( "amqp.host", "127.0.0.1" ),
     AMQP_PORT( "amqp.port", "15672" ),
