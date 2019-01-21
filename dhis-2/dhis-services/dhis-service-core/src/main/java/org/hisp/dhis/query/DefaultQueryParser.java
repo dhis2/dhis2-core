@@ -213,7 +213,16 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = null;
+
+                if ( property.isCollection() )
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                }
+                else
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+                }
 
                 if ( values == null || values.isEmpty() )
                 {
@@ -224,7 +233,16 @@ public class DefaultQueryParser implements QueryParser
             }
             case "!in":
             {
-                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = null;
+
+                if ( property.isCollection() )
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                }
+                else
+                {
+                    values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
+                }
 
                 if ( values == null || values.isEmpty() )
                 {
