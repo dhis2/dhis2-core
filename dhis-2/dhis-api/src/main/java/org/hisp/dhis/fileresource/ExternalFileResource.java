@@ -28,7 +28,6 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Date;
 
@@ -36,7 +35,7 @@ import java.util.Date;
  * @author Stian Sandvold
  */
 public class ExternalFileResource
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
 {
     /**
      * FileResource containing the file we are exposing
