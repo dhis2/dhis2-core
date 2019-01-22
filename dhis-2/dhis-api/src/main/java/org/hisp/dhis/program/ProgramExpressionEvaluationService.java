@@ -49,5 +49,13 @@ public interface ProgramExpressionEvaluationService
      */
     String getExpressionDescription( String expression );
 
+    /**
+     * Indicates whether the given program indicator expression is valid.
+     *
+     * @param filter a filter string.
+     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     */
     String isFilterExpressionValid( String filter );
 }
