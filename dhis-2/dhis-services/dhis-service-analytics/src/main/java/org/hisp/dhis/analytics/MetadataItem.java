@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import org.hisp.dhis.common.DimensionItemType;
@@ -48,6 +49,7 @@ import org.hisp.dhis.program.ProgramStage;
 * @author Lars Helge Overland
 */
 public class MetadataItem
+    implements Serializable
 {
     private String name;
 

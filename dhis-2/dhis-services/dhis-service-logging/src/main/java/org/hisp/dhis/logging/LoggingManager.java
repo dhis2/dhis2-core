@@ -68,7 +68,6 @@ public class LoggingManager implements ApplicationEventPublisherAware, Initializ
 
         objectMapper.registerModule( new Jdk8Module() );
         objectMapper.registerModule( new JavaTimeModule() );
-
     }
 
     private final SystemSettingManager systemSettingManager;
