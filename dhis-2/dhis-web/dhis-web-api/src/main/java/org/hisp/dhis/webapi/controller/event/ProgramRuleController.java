@@ -28,11 +28,23 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -43,4 +55,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ProgramRuleController
     extends AbstractCrudController<ProgramRule>
 {
+    @Autowired
+    private I18nManager i18nService;
+
+    @Autowired
+    private ProgramRuleService programRuleService;
+
+    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
+    {
+        I18n i18nInstance = i18nService.getI18n();
+
+        String validationResult = programRuleService.expressionIsValid( expression );
+
+        DescriptiveWebMessage message = new DescriptiveWebMessage();
+
+        message.setStatus( ExpressionUtils.VALID.equals( validationResult ) ? Status.OK : Status.ERROR );
+        message.setMessage( i18nInstance.getString( validationResult ) );
+
+        if ( message.isOk() )
+        {
+            message.setDescription( programRuleService.getExpressionDescription( expression ) );
+        }
+
+        webMessageService.sendJson( message, response );
+    }
 }

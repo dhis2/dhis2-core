@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
@@ -42,8 +43,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,14 +62,13 @@ public class ProgramIndicatorController
 
     @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
     {
         I18n i18n = i18nManager.getI18n();
 
         String result = programIndicatorService.expressionIsValid( expression );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
+        message.setStatus( ExpressionUtils.VALID.equals( result ) ? Status.OK : Status.ERROR );
         message.setMessage( i18n.getString( result ) );
 
         if ( message.isOk() )
@@ -83,14 +81,13 @@ public class ProgramIndicatorController
 
     @RequestMapping( value = "/filter/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void validateFilter( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
     {
         I18n i18n = i18nManager.getI18n();
 
         String result = programIndicatorService.filterIsValid( expression );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
+        message.setStatus( ExpressionUtils.VALID.equals( result ) ? Status.OK : Status.ERROR );
         message.setMessage( i18n.getString( result ) );
 
         if ( message.isOk() )
