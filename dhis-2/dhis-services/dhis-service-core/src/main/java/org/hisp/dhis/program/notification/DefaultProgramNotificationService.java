@@ -28,15 +28,24 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -57,15 +66,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Halvdan Hoem Grelland

@@ -28,16 +28,22 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -46,12 +52,7 @@ import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran

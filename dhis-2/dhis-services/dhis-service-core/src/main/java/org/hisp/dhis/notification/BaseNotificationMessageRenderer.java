@@ -28,17 +28,6 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.hibernate.util.DateUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -51,6 +40,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.RegexUtils;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 /**
  * Template formats supported:

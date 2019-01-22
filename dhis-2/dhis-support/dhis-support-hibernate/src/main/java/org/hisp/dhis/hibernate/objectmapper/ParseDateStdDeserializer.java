@@ -28,13 +28,14 @@ package org.hisp.dhis.hibernate.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.Date;
+
+import org.hisp.dhis.api.util.DateUtils;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.hibernate.util.DateUtils;
-
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

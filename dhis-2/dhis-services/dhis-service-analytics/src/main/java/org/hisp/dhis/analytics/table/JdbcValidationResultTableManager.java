@@ -28,21 +28,8 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.hibernate.util.DateUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.PeriodType;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,8 +39,22 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.PeriodType;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Henning Håkonsen

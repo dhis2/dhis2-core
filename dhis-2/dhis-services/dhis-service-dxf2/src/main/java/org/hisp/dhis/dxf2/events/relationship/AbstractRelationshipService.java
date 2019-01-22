@@ -28,8 +28,21 @@ package org.hisp.dhis.dxf2.events.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -48,7 +61,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.query.Query;
@@ -66,18 +78,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import com.google.common.collect.Lists;
 
 @Transactional
 public abstract class AbstractRelationshipService

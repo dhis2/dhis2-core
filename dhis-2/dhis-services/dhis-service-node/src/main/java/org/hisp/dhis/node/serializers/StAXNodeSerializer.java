@@ -28,8 +28,15 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.hibernate.util.DateUtils;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -41,12 +48,7 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

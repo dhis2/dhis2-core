@@ -28,20 +28,31 @@ package org.hisp.dhis.report.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,19 +72,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 
 /**
  * @author Lars Helge Overland

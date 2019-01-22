@@ -28,33 +28,6 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.RawAnalyticsManager;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.hibernate.util.DateUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.util.Assert;
-
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
@@ -63,6 +36,35 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
+
+import com.google.api.client.util.Lists;
 
 /**
  * Class responsible for retrieving raw data from the

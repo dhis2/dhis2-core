@@ -28,16 +28,32 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+import static org.hisp.dhis.validation.Importance.HIGH;
+import static org.hisp.dhis.validation.Importance.LOW;
+import static org.hisp.dhis.validation.Importance.MEDIUM;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.hibernate.util.DateUtils;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -51,23 +67,9 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.LN;
-import static org.hisp.dhis.validation.Importance.HIGH;
-import static org.hisp.dhis.validation.Importance.LOW;
-import static org.hisp.dhis.validation.Importance.MEDIUM;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Sets;
 
 /**
  * @author Halvdan Hoem Grelland

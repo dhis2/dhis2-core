@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
  */
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
@@ -43,13 +43,13 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;

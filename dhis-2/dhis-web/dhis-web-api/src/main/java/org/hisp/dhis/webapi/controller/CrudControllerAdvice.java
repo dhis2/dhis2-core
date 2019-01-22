@@ -28,8 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
+import java.beans.PropertyEditorSupport;
+import java.util.Date;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hibernate.exception.ConstraintViolationException;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
@@ -45,7 +52,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
@@ -70,11 +76,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.beans.PropertyEditorSupport;
-import java.util.Date;
+import com.fasterxml.jackson.core.JsonParseException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

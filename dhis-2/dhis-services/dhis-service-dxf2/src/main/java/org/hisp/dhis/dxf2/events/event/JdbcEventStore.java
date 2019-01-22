@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.api.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -51,8 +53,6 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.hibernate.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,6 +69,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -83,7 +84,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;

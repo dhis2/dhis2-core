@@ -28,10 +28,18 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -41,7 +49,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.logging.LogFormat;
 import org.hisp.dhis.logging.LogLevel;
 import org.hisp.dhis.logging.LoggingConfig;
@@ -55,13 +62,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Lars Helge Overland

@@ -28,7 +28,10 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.hibernate.util.DateUtils;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
@@ -42,9 +45,6 @@ import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-
-import java.util.Calendar;
-import java.util.Date;
 
 /**
  * ADXPeriod

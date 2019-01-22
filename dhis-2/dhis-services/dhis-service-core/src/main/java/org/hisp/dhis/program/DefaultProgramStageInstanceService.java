@@ -28,8 +28,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -38,10 +42,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew

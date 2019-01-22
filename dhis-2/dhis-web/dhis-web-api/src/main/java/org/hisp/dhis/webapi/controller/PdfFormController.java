@@ -28,8 +28,14 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -40,7 +46,6 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormService;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -58,11 +63,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfWriter;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>

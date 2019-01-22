@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
  */
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.hibernate.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;

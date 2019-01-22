@@ -28,8 +28,16 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
-import com.google.api.client.util.Lists;
+import static org.hisp.dhis.api.util.DateUtils.getMediumDate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -64,15 +72,8 @@ import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.hibernate.util.DateUtils.getMediumDate;
+import com.csvreader.CsvReader;
+import com.google.api.client.util.Lists;
 
 /**
  * TODO Unit testing

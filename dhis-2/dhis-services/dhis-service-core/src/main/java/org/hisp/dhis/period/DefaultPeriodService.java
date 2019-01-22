@@ -28,9 +28,7 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.hibernate.util.DateUtils;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +40,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal

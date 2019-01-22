@@ -28,15 +28,24 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -47,15 +56,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Service implementation for the MetadataVersionService.

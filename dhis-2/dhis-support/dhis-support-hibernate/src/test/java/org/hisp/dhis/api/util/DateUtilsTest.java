@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.util;
+package org.hisp.dhis.api.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,25 @@ package org.hisp.dhis.hibernate.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.calendar.impl.NepaliCalendar;
-import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.hisp.dhis.api.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.api.util.DateUtils.dateTimeIsValid;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-import static org.hisp.dhis.hibernate.util.DateUtils.dateIsValid;
-import static org.hisp.dhis.hibernate.util.DateUtils.dateTimeIsValid;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.calendar.impl.NepaliCalendar;
+import org.joda.time.DateTime;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland

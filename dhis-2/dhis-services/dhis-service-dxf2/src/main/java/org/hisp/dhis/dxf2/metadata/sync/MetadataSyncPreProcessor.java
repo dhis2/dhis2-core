@@ -28,8 +28,14 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
@@ -42,17 +48,11 @@ import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
 import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
-import org.hisp.dhis.hibernate.util.DateUtils;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Performs the tasks before metadata sync happens

@@ -28,19 +28,20 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
-import org.hisp.dhis.hibernate.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Created by zubair on 04.07.17.
