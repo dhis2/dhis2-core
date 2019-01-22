@@ -118,7 +118,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             }
         }
 
-        eventDataValueService.persistDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
+        eventDataValueService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
 
         if ( isUpdate && !importOptions.isSkipNotifications() )
         {

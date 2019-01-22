@@ -40,8 +40,10 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -607,8 +609,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         EventDataValue eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL, storedBy );
         eventDataValueEmail.setAutoFields();
 
-        eventDataValueService.saveEventDataValue( programStageInstance, eventDataValue );
-        eventDataValueService.saveEventDataValue( programStageInstance, eventDataValueEmail );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElement, eventDataValue );
+        dataElementEventDataValueMap.put( dataElementEmail, eventDataValueEmail );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstance, dataElementEventDataValueMap);
 
         // lists returned by stubs
         programStageInstances.add( programStageInstance );

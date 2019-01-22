@@ -30,12 +30,14 @@ package org.hisp.dhis.webapi.utils;
 
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
@@ -87,6 +89,8 @@ public class PdfDataEntryFormImportUtil
 
     @Autowired
     private EventDataValueService eventDataValueService;
+
+    private CachingMap<Integer, DataElement> dataElementCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // METHODS
@@ -173,6 +177,8 @@ public class PdfDataEntryFormImportUtil
                 // Step 3. Insert Data
                 insertValueProgramStageDataElement( programStageInstance, storedBy, dataElementId, value );
             }
+
+            programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
 
         reader.close();
@@ -205,15 +211,14 @@ public class PdfDataEntryFormImportUtil
 
     private void insertValueProgramStageDataElement( ProgramStageInstance programStageInstance, String storedBy, int dataElementId, String value )
     {
-
-        DataElement dataElement = dataElementService.getDataElement( dataElementId );
+        DataElement dataElement = getDataElement( dataElementId );
 
         if ( dataElement == null ) {
             log.error( "DataElement with dataElementId: " + dataElementId + " does not exist." );
             throw new IllegalStateException( "DataElement with dataElementId: " + dataElementId + " does not exist." );
         }
 
-        EventDataValue dataValue = programStageInstance.getEventDataValues().stream()
+        EventDataValue eventDataValue = programStageInstance.getEventDataValues().stream()
             .filter( dv -> dv.getDataElement().equals( dataElement.getUid() ) )
             .findFirst().orElse( null );
 
@@ -231,26 +236,34 @@ public class PdfDataEntryFormImportUtil
         // providedElsewhere = (providedElsewhere == null) ? false :
         // providedElsewhere;
 
-        if ( dataValue == null && value != null )
+        if ( eventDataValue == null && value != null )
         {
-            dataValue = new EventDataValue( dataElement.getUid(), value, storedBy );
+            //#CREATE
+            eventDataValue = new EventDataValue( dataElement.getUid(), value, storedBy );
+            eventDataValue.setAutoFields();
             // dataValue.setProvidedElsewhere( providedElsewhere );
 
-            eventDataValueService.saveEventDataValue( programStageInstance, dataValue );
+            eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstance, Collections.singletonMap( dataElement, eventDataValue ) );
         }
-
-        if ( dataValue != null && value == null )
+        else if ( eventDataValue != null && value == null )
         {
-            eventDataValueService.deleteEventDataValue( programStageInstance, dataValue );
+            //#DELETE
+            eventDataValueService.auditAndHandleFilesForEventDataValuesDelete( programStageInstance, Collections.singletonMap( dataElement, eventDataValue ));
         }
-        else if ( dataValue != null )
+        else if ( eventDataValue != null )
         {
-            dataValue.setValue( value );
-            dataValue.setLastUpdated( new Date() );
-            dataValue.setStoredBy( storedBy );
+            //#UPDATE
+            eventDataValue.setValue( value );
+            eventDataValue.setLastUpdated( new Date() );
+            eventDataValue.setStoredBy( storedBy );
 
-            eventDataValueService.updateEventDataValue( programStageInstance, dataValue );
+            eventDataValueService.validateAuditAndHandleFilesForEventDataValuesUpdate( programStageInstance, Collections.singletonMap( dataElement, eventDataValue ) );
         }
+    }
+
+    private DataElement getDataElement( int dataElementId )
+    {
+        return dataElementCache.get( dataElementId, () -> dataElementService.getDataElement( dataElementId ) );
     }
 
     private class ProgramStageInstanceDataManager

@@ -39,7 +39,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -258,10 +260,17 @@ public class ProgramIndicatorServiceTest
         EventDataValue dataValueC = new EventDataValue( deA.getUid(), "5", storedBy );
         EventDataValue dataValueD = new EventDataValue( deB.getUid(), "7", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstanceA, dataValueB );
-        eventDataValueService.saveEventDataValue( stageInstanceB, dataValueC );
-        eventDataValueService.saveEventDataValue( stageInstanceB, dataValueD );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( deA, dataValueA );
+        dataElementEventDataValueMap.put( deB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+
+        dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( deA, dataValueC );
+        dataElementEventDataValueMap.put( deB, dataValueD );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         // ---------------------------------------------------------------------
         // Constant

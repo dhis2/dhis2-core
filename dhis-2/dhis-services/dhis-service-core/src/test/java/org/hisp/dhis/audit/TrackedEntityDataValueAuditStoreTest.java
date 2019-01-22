@@ -31,7 +31,9 @@ package org.hisp.dhis.audit;
  */
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -146,8 +148,12 @@ public class TrackedEntityDataValueAuditStoreTest
         EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
         EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, dataValueA );
+        dataElementEventDataValueMap.put( dataElementB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap );
+
+        programStageInstanceService.updateProgramStageInstance( stageInstance );
     }
 
     @Test
@@ -165,8 +171,12 @@ public class TrackedEntityDataValueAuditStoreTest
         EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
         EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, dataValueA );
+        dataElementEventDataValueMap.put( dataElementB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap );
+
+        programStageInstanceService.updateProgramStageInstance( stageInstance );
 
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance, dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );

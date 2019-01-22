@@ -33,6 +33,7 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -334,8 +335,10 @@ public class EventPredictionServiceTest
         EventDataValue dataValueA = new EventDataValue( dataElementX.getUid(), "4", storedBy );
         EventDataValue dataValueB = new EventDataValue( dataElementX.getUid(), "5", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstanceB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementX, dataValueA ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, Collections.singletonMap( dataElementX, dataValueB ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );

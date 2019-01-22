@@ -33,7 +33,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -134,8 +136,11 @@ public class ProgramExpressionServiceTest
         EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
         EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstance, dataValueB );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, dataValueA );
+        dataElementEventDataValueMap.put( dataElementB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstance );
 
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );

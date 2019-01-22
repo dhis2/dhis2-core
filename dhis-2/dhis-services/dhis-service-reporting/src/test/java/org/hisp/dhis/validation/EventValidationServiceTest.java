@@ -291,8 +291,10 @@ public class EventValidationServiceTest
         EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "4", storedBy );
         EventDataValue dataValueB = new EventDataValue( dataElementA.getUid(), "5", storedBy );
 
-        eventDataValueService.saveEventDataValue( stageInstanceA, dataValueA );
-        eventDataValueService.saveEventDataValue( stageInstanceB, dataValueB );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementA, dataValueA ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, Collections.singletonMap( dataElementA, dataValueB ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         Map<Date, Grid> dateGridMap = new HashMap<>();
         dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );

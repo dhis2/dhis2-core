@@ -30,13 +30,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -92,15 +93,19 @@ public class EventDataValueServiceTest extends DhisSpringTest
     private EventDataValue eventDataValueD;
     private EventDataValue eventDataValueE;
 
+    private DataElement dataElementA;
+    private DataElement dataElementB;
+    private DataElement dataElementC;
+
     @Override
     public void setUpTest()
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
+        dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        dataElementC = createDataElement( 'C' );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -150,8 +155,14 @@ public class EventDataValueServiceTest extends DhisSpringTest
     @Test
     public void testSaveEventDataValue()
     {
-        eventDataValueService.saveEventDataValue( stageInstanceA, eventDataValueA );
-        eventDataValueService.saveEventDataValues( stageInstanceB, Stream.of(eventDataValueC, eventDataValueD).collect( Collectors.toSet()) );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementA, eventDataValueA ));
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, eventDataValueC );
+        dataElementEventDataValueMap.put( dataElementB, eventDataValueD );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         ProgramStageInstance psiA = programStageInstanceService.getProgramStageInstance( stageInstanceA.getUid() );
         ProgramStageInstance psiB = programStageInstanceService.getProgramStageInstance( stageInstanceB.getUid() );
@@ -167,13 +178,20 @@ public class EventDataValueServiceTest extends DhisSpringTest
     @Test
     public void testDeleteEventDataValue()
     {
-        eventDataValueService.saveEventDataValue( stageInstanceA, eventDataValueA );
-        eventDataValueService.saveEventDataValues( stageInstanceB, Stream.of(eventDataValueC, eventDataValueD, eventDataValueE).collect( Collectors.toSet()) );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementA, eventDataValueA ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, eventDataValueC );
+        dataElementEventDataValueMap.put( dataElementB, eventDataValueD );
+        dataElementEventDataValueMap.put( dataElementC, eventDataValueE );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         ProgramStageInstance psiA = programStageInstanceService.getProgramStageInstance( stageInstanceA.getUid() );
         assertEquals( 1, psiA.getEventDataValues().size() );
 
-        eventDataValueService.deleteEventDataValue( stageInstanceA, eventDataValueA );
+        eventDataValueService.auditAndHandleFilesForEventDataValuesDelete( stageInstanceA, Collections.singletonMap( dataElementA, eventDataValueA ));
         psiA = programStageInstanceService.getProgramStageInstance( stageInstanceA.getUid() );
         assertEquals( 0, psiA.getEventDataValues().size() );
 
@@ -181,11 +199,16 @@ public class EventDataValueServiceTest extends DhisSpringTest
         ProgramStageInstance psiB = programStageInstanceService.getProgramStageInstance( stageInstanceB.getUid() );
         assertEquals( 3, psiB.getEventDataValues().size() );
 
-        eventDataValueService.deleteEventDataValue( stageInstanceB, eventDataValueC );
+        eventDataValueService.auditAndHandleFilesForEventDataValuesDelete( stageInstanceB, Collections.singletonMap( dataElementA, eventDataValueC ));
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
         psiB = programStageInstanceService.getProgramStageInstance( stageInstanceB.getUid() );
         assertEquals( 2, psiB.getEventDataValues().size() );
 
-        eventDataValueService.deleteEventDataValues( stageInstanceB, Stream.of( eventDataValueD, eventDataValueE ).collect( Collectors.toSet()) );
+        dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementB, eventDataValueD );
+        dataElementEventDataValueMap.put( dataElementC, eventDataValueE );
+        eventDataValueService.auditAndHandleFilesForEventDataValuesDelete( stageInstanceB, dataElementEventDataValueMap );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
         psiB = programStageInstanceService.getProgramStageInstance( stageInstanceB.getUid() );
         assertEquals( 0, psiB.getEventDataValues().size() );
     }
@@ -193,14 +216,22 @@ public class EventDataValueServiceTest extends DhisSpringTest
     @Test
     public void testUpdateTrackedEntityDataValue()
     {
-        eventDataValueService.saveEventDataValue( stageInstanceA, eventDataValueA );
-        eventDataValueService.saveEventDataValues( stageInstanceB, Stream.of(eventDataValueC, eventDataValueD, eventDataValueE).collect( Collectors.toSet()) );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementA, eventDataValueA ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
+
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, eventDataValueC );
+        dataElementEventDataValueMap.put( dataElementB, eventDataValueD );
+        dataElementEventDataValueMap.put( dataElementC, eventDataValueE );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         ProgramStageInstance psiA = programStageInstanceService.getProgramStageInstance( stageInstanceA.getUid() );
         assertEquals( eventDataValueA.getValue(), psiA.getEventDataValues().iterator().next().getValue() );
 
         eventDataValueA.setValue( "2" );
-        eventDataValueService.updateEventDataValue( stageInstanceA, eventDataValueA);
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesUpdate( stageInstanceA, Collections.singletonMap( dataElementA, eventDataValueA ) );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
         psiA = programStageInstanceService.getProgramStageInstance( stageInstanceA.getUid() );
         assertEquals( eventDataValueA.getValue(), psiA.getEventDataValues().iterator().next().getValue() );
 
@@ -214,7 +245,11 @@ public class EventDataValueServiceTest extends DhisSpringTest
 
         eventDataValueC.setValue( "42" );
         eventDataValueD.setValue( "15" );
-        eventDataValueService.updateEventDataValues( stageInstanceB, Stream.of( eventDataValueC, eventDataValueD ).collect( Collectors.toSet()) );
+        dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, eventDataValueC );
+        dataElementEventDataValueMap.put( dataElementB, eventDataValueD );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesUpdate( stageInstanceB, dataElementEventDataValueMap );
+        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         psiB = programStageInstanceService.getProgramStageInstance( stageInstanceB.getUid() );
         eventDataValues = new ArrayList<>( psiB.getEventDataValues() );

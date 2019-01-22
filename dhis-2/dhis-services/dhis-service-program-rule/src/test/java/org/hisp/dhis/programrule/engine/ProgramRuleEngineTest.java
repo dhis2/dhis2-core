@@ -34,9 +34,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -416,11 +419,20 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         EventDataValue weight = new EventDataValue( dataElementC.getUid(), "80", storedBy );
         EventDataValue height = new EventDataValue( dataElementD.getUid(), "165", storedBy );
 
-        eventDataValueService.saveEventDataValue( programStageInstanceTempA, diagnosis );
-        eventDataValueService.saveEventDataValue( programStageInstanceTempA, bcgdoze );
-        eventDataValueService.saveEventDataValue( programStageInstanceTempB, diagnosis );
-        eventDataValueService.saveEventDataValue( programStageInstanceTempC, weight );
-        eventDataValueService.saveEventDataValue( programStageInstanceTempC, height );
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementA, diagnosis );
+        dataElementEventDataValueMap.put( dataElementB, bcgdoze );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempA, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempA );
+
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempB, Collections.singletonMap( dataElementA, diagnosis ) );
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempB );
+
+        dataElementEventDataValueMap = new HashMap<>();
+        dataElementEventDataValueMap.put( dataElementC, weight );
+        dataElementEventDataValueMap.put( dataElementD, height );
+        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempC, dataElementEventDataValueMap);
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempC );
 
         programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA, programStageInstanceB, programStageInstanceC ) );
         programInstanceService.updateProgramInstance( programInstanceA );

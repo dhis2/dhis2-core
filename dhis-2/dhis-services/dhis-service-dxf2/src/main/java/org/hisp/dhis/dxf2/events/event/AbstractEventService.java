@@ -1315,11 +1315,10 @@ public abstract class AbstractEventService
         }
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
-        updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
-
         preheatDataElementsCache( event, importOptions );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
 
         if ( importSummary.getConflicts().size() > 0 ) {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1634,7 +1633,7 @@ public abstract class AbstractEventService
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
-                    completedBy, storedBy, event.getEvent(), aoc, importOptions );
+                    completedBy, storedBy, event.getEvent(), aoc, importOptions, importSummary );
 
                 programInstance.getProgramStageInstances().add( programStageInstance );
             }
@@ -1642,7 +1641,7 @@ public abstract class AbstractEventService
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
                     executionDate, event.getStatus().getValue(), completedBy,
-                    programStageInstance, aoc, importOptions );
+                    programStageInstance, aoc, importOptions, importSummary );
             }
 
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
@@ -1659,8 +1658,6 @@ public abstract class AbstractEventService
             return importSummary.setReference( event.getEvent() ).incrementIgnored();
         }
 
-        preheatDataElementsCache( event, importOptions );
-        eventDataValueService.processDataValues( programStageInstance, event, false, false, importOptions, importSummary, dataElementCache );
         programInstanceCache.put( programInstance.getUid(), programInstance );
         sendProgramNotification( programStageInstance, importOptions );
 
@@ -1692,7 +1689,7 @@ public abstract class AbstractEventService
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
         int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
-        CategoryOptionCombo aoc, ImportOptions importOptions )
+        CategoryOptionCombo aoc, ImportOptions importOptions, ImportSummary importSummary )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
 
@@ -1711,7 +1708,7 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, completedBy, programStageInstance, aoc, importOptions );
+            status, completedBy, programStageInstance, aoc, importOptions, importSummary );
 
         return programStageInstance;
     }
@@ -1719,7 +1716,7 @@ public abstract class AbstractEventService
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
         String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
-        ImportOptions importOptions )
+        ImportOptions importOptions, ImportSummary importSummary )
     {
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setProgramStage( programStage );
@@ -1746,13 +1743,19 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( completedDate );
         }
 
+        preheatDataElementsCache( event, importOptions );
+
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
+
+            eventDataValueService.processDataValues( programStageInstance, event, false, false, importOptions, importSummary, dataElementCache );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
         else
         {
+            eventDataValueService.processDataValues( programStageInstance, event, false, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
     }

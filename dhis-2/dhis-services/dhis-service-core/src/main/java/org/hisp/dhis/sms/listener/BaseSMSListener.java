@@ -47,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.message.MessageSender;
@@ -283,18 +284,20 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance.setCompletedBy( "DHIS 2" );
         programStageInstance.setStoredBy( currentUserName );
 
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-
-        Set<EventDataValue> eventDataValues = new HashSet<>();
+        Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
             EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ), currentUserName );
             eventDataValue.setAutoFields();
 
-            eventDataValues.add( eventDataValue );
+            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
+            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
+            {
+                dataElementsAndEventDataValues.put( smsCode.getDataElement(), eventDataValue );
+            }
         }
 
-        eventDataValueService.saveEventDataValues( programStageInstance, eventDataValues );
+        eventDataValueService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 
