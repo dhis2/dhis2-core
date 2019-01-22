@@ -58,7 +58,6 @@ public class ProgramIndicator
     public static final String DB_SEPARATOR_ID = "_";
 
     public static final String SEPARATOR_ID = "\\.";
-    public static final String SEP_OBJECT = ":";
     public static final String KEY_DATAELEMENT = "#";
     public static final String KEY_ATTRIBUTE = "A";
     public static final String KEY_PROGRAM_VARIABLE = "V";
@@ -91,26 +90,17 @@ public class ProgramIndicator
     public static final String DATAELEMENT_REGEX = KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}";
     public static final String VARIABLE_REGEX = KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}";
     public static final String PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX = KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}";
-    public static final String VALUECOUNT_REGEX = "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}";
     public static final String EQUALSEMPTY = " *== *'' *";
     public static final String EQUALSZERO = " *== *0 *";
     public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
 
-    public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
     public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( DATAELEMENT_REGEX );
     public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX );
     public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( ATTRIBUTE_REGEX );
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
-    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
 
-    public static final String VALID = "valid";
-    public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
-    public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
-    public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
-    public static final String UNKNOWN_VARIABLE = "unknown_variable";
-    
     private static final Map<String, String> VARIABLE_COLUMNNAME_MAP = ImmutableMap.<String, String>builder().
         put( ProgramIndicator.VAR_EVENT_DATE, "executiondate" ).
         put( ProgramIndicator.VAR_EXECUTION_DATE, "executiondate" ).

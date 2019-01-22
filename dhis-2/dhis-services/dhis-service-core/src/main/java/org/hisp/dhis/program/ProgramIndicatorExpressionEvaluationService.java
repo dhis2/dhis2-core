@@ -44,7 +44,7 @@ import java.util.Map;
  */
 public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
-    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
+    public static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
         .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
@@ -52,7 +52,7 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
 
-    private static final Map<String, ProgramD2Function> PI_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+    public static final Map<String, ProgramD2Function> PI_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
         .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
         .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )

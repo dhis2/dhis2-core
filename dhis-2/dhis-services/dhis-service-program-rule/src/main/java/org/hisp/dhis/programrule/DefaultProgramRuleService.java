@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import org.hisp.dhis.program.Program;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -51,6 +52,9 @@ public class DefaultProgramRuleService
     {
         this.programRuleStore = programRuleStore;
     }
+
+    @Autowired
+    private ProgramRuleExpressionEvaluationService expressionEvaluationService;
 
     // -------------------------------------------------------------------------
     // ProgramRule implementation
@@ -115,5 +119,17 @@ public class DefaultProgramRuleService
     public List<ProgramRule> getProgramRules( Program program, String key )
     {
         return programRuleStore.get( program, key );
+    }
+
+    @Override
+    public String expressionIsValid( String expression )
+    {
+        return expressionEvaluationService.isValidExpression( expression );
+    }
+
+    @Override
+    public String getExpressionDescription( String expression )
+    {
+        return expressionEvaluationService.getExpressionDescription( expression );
     }
 }

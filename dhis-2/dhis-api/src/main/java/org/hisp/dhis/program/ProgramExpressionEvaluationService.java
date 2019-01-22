@@ -39,7 +39,7 @@ public interface ProgramExpressionEvaluationService
      * @param expression an expression string.
      * @return true if expression is valid, false otherwise.
      */
-    boolean expressionIsValid( String expression );
+    String isValidExpression( String expression );
 
     /**
      * Get description of an expression.

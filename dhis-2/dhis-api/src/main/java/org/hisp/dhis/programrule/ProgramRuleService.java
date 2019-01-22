@@ -112,4 +112,8 @@ public interface ProgramRuleService
      * @return ProgramRule list
      */
     List<ProgramRule> getProgramRules( Program program, String key );
+
+    String expressionIsValid( String expression );
+
+    String getExpressionDescription( String expression );
 }
