@@ -33,6 +33,7 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
 import org.hisp.dhis.program.ProgramD2Function;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -56,7 +57,12 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
         .put( VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
         .put( VAR_TEI_COUNT, "1" )
         .put( VAR_VALUE_COUNT, "1" )
-        .put( VAR_ZERO_POS_VALUE_COUNT, "1" )
+        .put( VAR_ENROLLMENT_ID, "WZbXY0S00sw" )
+        .put( VAR_ENVIRONMENT, "SERVER" )
+        .put( VAR_EVENT_ID, "WZbXY0S00qq" )
+        .put( VAR_PROGRAM_NAME, "Child Program" )
+        .put( VAR_ORGUNIT_CODE, "code1" )
+        .put( VAR_ORGUNIT, "Sierra Leone" )
         .put( VAR_ANALYTICS_PERIOD_END, "'2017-07-07'" ).build();
 
     @Override
@@ -68,7 +74,7 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     @Override
     protected Map<String, SqlFunction> getSQLFunctions()
     {
-        return null;
+        return new HashMap<>();
     }
 
     @Override

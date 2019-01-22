@@ -74,6 +74,14 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     protected static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
     protected static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
 
+    // Additional variables for program rule
+    protected static final String VAR_ENROLLMENT_ID = "enrollment_id";
+    protected static final String VAR_ENVIRONMENT = "environment";
+    protected static final String VAR_EVENT_ID = "event_id";
+    protected static final String VAR_PROGRAM_NAME = "program_name";
+    protected static final String VAR_ORGUNIT_CODE = "orgunit_code";
+    protected static final String VAR_ORGUNIT = "org_unit";
+
     private static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     private static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
     private static final String SQL_FUNC_ARG_REGEXP = " *(([\"\\w/\\*\\+\\-\\_\\:%\\.\\<\\>\\= \\#\\{\\}]+)|('[^']*'))";
@@ -146,7 +154,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
                     String programStageName = programStage.getDisplayName();
                     String dataElementName = dataElement.getDisplayName();
 
-                    matcher.appendReplacement( description, programStageName + ProgramIndicator.SEPARATOR_ID
+                    matcher.appendReplacement( description, programStageName + SEPARATOR_ID
                         + dataElementName );
                 }
             }

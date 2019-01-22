@@ -124,7 +124,7 @@ public class DefaultProgramRuleService
     @Override
     public String expressionIsValid( String expression )
     {
-        return expressionEvaluationService.isValidExpression( expression );
+        return expressionEvaluationService.isFilterExpressionValid( expression );
     }
 
     @Override
