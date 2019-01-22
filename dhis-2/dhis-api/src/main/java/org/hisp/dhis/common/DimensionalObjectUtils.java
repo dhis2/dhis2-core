@@ -241,7 +241,7 @@ public class DimensionalObjectUtils
 
         if ( split.length > 1 && split[1] != null )
         {
-            return String.valueOf( split[1] );
+            return split[1];
         }
 
         return null;
@@ -253,19 +253,7 @@ public class DimensionalObjectUtils
      */
     public static String getUidFromGroupParam( String param )
     {
-        if ( param == null )
-        {
-            return null;
-        }
-
-        String[] split = param.split( ITEM_SEP );
-
-        if ( split.length > 1 && split[1] != null )
-        {
-            return String.valueOf( split[1] );
-        }
-
-        return null;
+        return getValueFromKeywordParam(param);
     }
 
     /**
@@ -292,7 +280,7 @@ public class DimensionalObjectUtils
 
         List<Object> values = new ArrayList<>( grid.getUniqueValues( dim.getDimension() ) );
 
-        Collections.sort( values, ObjectStringValueComparator.INSTANCE );
+        values.sort(ObjectStringValueComparator.INSTANCE);
 
         // Use order of items in filter if specified
 
@@ -419,9 +407,7 @@ public class DimensionalObjectUtils
      */
     public static List<DimensionalItemObject> asList( Collection<? extends DimensionalItemObject> collection )
     {
-        List<DimensionalItemObject> list = new ArrayList<>();
-        list.addAll( collection );
-        return list;
+        return new ArrayList<>(collection);
     }
 
     /**
@@ -491,7 +477,7 @@ public class DimensionalObjectUtils
      */
     public static List<String> getDimensionalItemIds( Collection<DimensionalItemObject> objects )
     {
-        return objects.stream().map( o -> o.getDimensionItem() ).collect( Collectors.toList() );
+        return objects.stream().map(DimensionalItemObject::getDimensionItem).collect( Collectors.toList() );
     }
 
     /**

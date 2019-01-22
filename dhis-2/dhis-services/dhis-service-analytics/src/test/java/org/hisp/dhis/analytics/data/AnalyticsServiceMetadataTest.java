@@ -32,7 +32,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
@@ -44,8 +43,6 @@ import static org.mockito.Mockito.when;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.category.CategoryCombo;
@@ -69,6 +66,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -131,11 +131,19 @@ public class AnalyticsServiceMetadataTest
             // DATA ELEMENTS
             .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters(Collections.singletonList(new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, null,
-                            DISPLAY_NAME_ORGUNIT, new DimensionalAggregation(
-                    Lists.newArrayList(buildOrgUnitLevel(2, "wjP19dkFeIk", "District", null), buildOrgUnitLevel(1, "tTUf91fCytl", "Chiefdom", "OU_12345"))),
-                    ImmutableList.of(new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"), new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
-                .build();
+            .withFilters( Collections.singletonList(
+                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    new DimensionalAggregation(
+                        Lists.newArrayList(
+                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
+                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
+                    ),
+                    ImmutableList.of(
+                        new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                )    ) )
+            )
+            .build();
 
         when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
@@ -148,13 +156,15 @@ public class AnalyticsServiceMetadataTest
 
         Grid grid = target.getAggregatedDataValues( params );
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
-        assertThat(items.get("wjP19dkFeIk"), allOf(hasProperty("name", is("District")),
-                hasProperty("uid", is("wjP19dkFeIk")),
-                hasProperty("code", is(nullValue()))));
-        assertThat(items.get("tTUf91fCytl"), allOf(hasProperty("name", is("Chiefdom")),
-                hasProperty("uid", is("tTUf91fCytl")),
-                hasProperty("code", is("OU_12345"))));
+        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
+        assertThat( items.get( "wjP19dkFeIk" ), allOf(
+                                                hasProperty( "name", is( "District" ) ),
+                                                hasProperty( "uid", is( "wjP19dkFeIk" ) ),
+                                                hasProperty( "code", is( nullValue() ) ) ) );
+        assertThat( items.get( "tTUf91fCytl" ), allOf(
+                                                hasProperty( "name", is( "Chiefdom" ) ),
+                                                hasProperty( "uid", is( "tTUf91fCytl" ) ),
+                                                hasProperty( "code", is( "OU_12345" ) ) ) );
 
     }
 
@@ -164,52 +174,88 @@ public class AnalyticsServiceMetadataTest
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
 
-        IndicatorGroup indicatorGroup = new IndicatorGroup("ANC");
-        indicatorGroup.setCode("COD_1000");
-        indicatorGroup.setUid("wjP19dkFeIk");
+        IndicatorGroup indicatorGroup = new IndicatorGroup( "ANC" );
+        indicatorGroup.setCode( "COD_1000" );
+        indicatorGroup.setUid( "wjP19dkFeIk" );
         DataQueryParams params = DataQueryParams.newBuilder()
-                // DATA ELEMENTS
-                .withDimensions(Lists.newArrayList(
-                        new BaseDimensionalObject("pe", DimensionType.PERIOD, periods),
-                        new BaseDimensionalObject("dx", DimensionType.DATA_ELEMENT_GROUP_SET,
-                                                  DISPLAY_NAME_DATA_X, "display name",
-                                                    new DimensionalAggregation(
-                                                        Collections.singletonList(indicatorGroup)),
-                                                        Lists.newArrayList(new Indicator(), new Indicator(),
-                                                                createDataElement( 'A', new CategoryCombo() ),
-                                                                createDataElement( 'B', new CategoryCombo() )))))
-                .withFilters(Collections.singletonList(new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, null,
-                        DISPLAY_NAME_ORGUNIT,
-                        ImmutableList.of(new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
-                                         new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
-                .withIgnoreLimit( true )
-                .withSkipData(true)
-                .build();
+            // DATA ELEMENTS
+            .withDimensions( Lists.newArrayList(
+                    new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                    new BaseDimensionalObject( "dx", DimensionType.DATA_ELEMENT_GROUP_SET, DISPLAY_NAME_DATA_X,
+                    "display name",
+                            new DimensionalAggregation( Collections.singletonList( indicatorGroup ) ),
+                    Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                    ) ) ) )
+            .withIgnoreLimit( true )
+            .withSkipData( true )
+            .build();
 
         when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-                eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
 
         Grid grid = target.getAggregatedDataValues( params );
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
+        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
 
-        assertThat(items.get(indicatorGroup.getUid()), allOf(hasProperty("name", is(indicatorGroup.getName())),
-                hasProperty("uid", is(indicatorGroup.getUid())),
-                hasProperty("code", is(indicatorGroup.getCode()))));
-
+        assertThat( items.get( indicatorGroup.getUid() ),
+            allOf(
+                    hasProperty( "name", is( indicatorGroup.getName() ) ),
+                    hasProperty( "uid", is( indicatorGroup.getUid() ) ),
+                    hasProperty( "code", is( indicatorGroup.getCode() ) )
+            ) );
 
     }
 
-    private OrganisationUnitLevel buildOrgUnitLevel(int level, String uid, String name, String code) {
+    @Test
+    public void metadataContainsOuGroupData()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            // PERIOD
+            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+            // DATA ELEMENTS
+            .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            // FILTERS (OU)
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    new DimensionalAggregation(
+                        Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
+                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+            .build();
 
-        OrganisationUnitLevel oul = new OrganisationUnitLevel(level, name);
-        oul.setUid(uid);
-        oul.setCode(code);
+        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+        Map<String, Object> aggregatedValues = new HashMap<>();
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+
+        Grid grid = target.getAggregatedDataValues( params );
+
+        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
+        assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
+            hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
+
+    }
+
+    private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
+    {
+
+        OrganisationUnitLevel oul = new OrganisationUnitLevel( level, name );
+        oul.setUid( uid );
+        oul.setCode( code );
         return oul;
     }
 }

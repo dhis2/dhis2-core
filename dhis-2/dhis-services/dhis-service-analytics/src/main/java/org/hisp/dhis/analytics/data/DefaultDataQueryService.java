@@ -36,14 +36,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentif
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -66,6 +62,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -440,6 +438,9 @@ public class DefaultDataQueryService
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
+                dimensionalAggregation = new DimensionalAggregation(
+                    groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
+                        .collect( Collectors.toList() ) );
             }
 
             // -----------------------------------------------------------------

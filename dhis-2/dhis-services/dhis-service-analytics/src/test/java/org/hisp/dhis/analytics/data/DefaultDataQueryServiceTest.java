@@ -35,7 +35,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -46,6 +49,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
@@ -96,33 +100,45 @@ public class DefaultDataQueryServiceTest
 
     private DefaultDataQueryService target;
 
+    private final static DataElement DATA_ELEMENT_1 = buildDataElement("fbfJHSPpUQD", "D1");
+    private final static DataElement DATA_ELEMENT_2 = buildDataElement("cYeuwXTCPkU", "D2");
+    private final static DataElement DATA_ELEMENT_3 = buildDataElement("Jtf34kNZhzP", "D3");
+    private final static String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
+    private RequestBuilder rb;
+
     @Before
     public void setUp()
     {
         target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,
             securityManager, systemSettingManager, aclService, currentUserService, i18nManager );
 
+        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_1.getUid() ) )
+                .thenReturn( DATA_ELEMENT_1 );
+        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
+                .thenReturn( DATA_ELEMENT_2 );
+        when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_3.getUid() ) )
+                .thenReturn( DATA_ELEMENT_3 );
+        rb = new RequestBuilder();
     }
 
     @Test
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
-
-        when( dimensionService.getDataDimensionalItemObject( UID, "fbfJHSPpUQD" ) )
-                .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) )
-                .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) )
-                .thenReturn( new DataElement() );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
         when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( Sets.newHashSet( "ou:LEVEL-2;ImspTQPwCqd" ) )
-            .dimension( Sets.newHashSet( "dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP", "pe:LAST_12_MONTHS;LAST_YEAR" ) )
-            .build();
+        rb.addOuFilter("LEVEL-2;ImspTQPwCqd");
+        rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+        rb.addPeDimension(PERIOD_DIMENSION);
+
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+                .filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() )
+                .build();
+
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject filter = params.getFilters().get( 0 );
@@ -136,12 +152,6 @@ public class DefaultDataQueryServiceTest
     public void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
     {
 
-        when( dimensionService.getDataDimensionalItemObject( UID, "fbfJHSPpUQD" ) )
-            .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) )
-            .thenReturn( new DataElement() );
-        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) )
-            .thenReturn( new DataElement() );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 3 ) )
@@ -152,9 +162,13 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
+        rb.addOuFilter("LEVEL-2;LEVEL-3;ImspTQPwCqd");
+        rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
+        rb.addPeDimension(PERIOD_DIMENSION);
+
         DataQueryRequest request = DataQueryRequest.newBuilder()
-            .filter( Sets.newHashSet( "ou:LEVEL-2;LEVEL-3;ImspTQPwCqd" ) )
-            .dimension( Sets.newHashSet( "dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP", "pe:LAST_12_MONTHS;LAST_YEAR" ) )
+            .filter( rb.getFilterParams() )
+            .dimension( rb.getDimensionParams() )
             .build();
         DataQueryParams params = target.getFromRequest( request );
 
@@ -189,10 +203,13 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
+        rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+        rb.addDimension("IN_GROUP-oehv9EO3vP7;cYeuwXTCPkU;Jtf34kNZhz");
+        rb.addPeDimension(PERIOD_DIMENSION);
+
         DataQueryRequest request = DataQueryRequest.newBuilder()
-            .filter( Sets.newHashSet( "ou:goRUwCHPg1M;fdc6uOvgoji" ) )
-            .dimension(
-                Sets.newHashSet( "dx:IN_GROUP-oehv9EO3vP7;cYeuwXTCPkU;Jtf34kNZhzP", "pe:LAST_12_MONTHS;LAST_YEAR" ) )
+            .filter( rb.getFilterParams() )
+            .dimension( rb.getDimensionParams() )
             .build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension("dx");
@@ -204,6 +221,62 @@ public class DefaultDataQueryServiceTest
         assertThat(aggregation.getName(), is(indicatorGroup.getName()));
     }
 
+    @Test
+    public void convertAnalyticsRequestWithOrgUnitGroup() {
+        final String ouGroupUID = "gzcv65VyaGq";
+
+        initOrgUnitGroup(ouGroupUID);
+
+        rb.addPeDimension(PERIOD_DIMENSION);
+        rb.addDimension(concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ));
+        rb.addOuDimension("OU_GROUP-" + ouGroupUID + ";ImspTQPwCqd");
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+                .dimension( rb.getDimensionParams() )
+                .build();
+        DataQueryParams params = target.getFromRequest( request );
+
+        assertOrgUnitGroup(params, ouGroupUID, params.getDimension("ou"));
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithOrgUnitGroupAsFilter() {
+        final String ouGroupUID = "gzcv65VyaGq";
+
+        initOrgUnitGroup(ouGroupUID);
+
+        rb.addPeDimension(PERIOD_DIMENSION);
+        rb.addDimension(concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ));
+        rb.addOuFilter("OU_GROUP-" + ouGroupUID + ";ImspTQPwCqd");
+
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+                .dimension( rb.getDimensionParams() )
+                .filter( rb.getFilterParams() )
+                .build();
+        DataQueryParams params = target.getFromRequest( request );
+
+        assertOrgUnitGroup(params, ouGroupUID, params.getFilter("ou"));
+
+    }
+
+    private void initOrgUnitGroup(String ouGroupUID) {
+        when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
+                .thenReturn( buildOrganizationalUnitGroup(ouGroupUID, "Chiefdom", "CODE_001") );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) )
+                .thenReturn( new OrganisationUnit() );
+        when( organisationUnitService.getOrganisationUnits( any( Collection.class ), any( Collection.class ) ) )
+                .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
+
+    }
+    private void assertOrgUnitGroup(DataQueryParams params, String ouGroupUID, DimensionalObject dimension) {
+        assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
+
+        assertThat( dimension.getDimensionalAggregation().getGroupBy().get(0),
+                allOf( hasProperty( "name", is( "Chiefdom" ) ),
+                        hasProperty( "uid", is( ouGroupUID ) ),
+                        hasProperty( "code", is( "CODE_001" ) ) ) );
+    }
+
+
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
     {
 
@@ -211,6 +284,80 @@ public class DefaultDataQueryServiceTest
         oul.setUid( uid );
         oul.setCode( code );
         return oul;
+    }
+
+    private static DataElement buildDataElement( String uid, String name )
+    {
+
+        DataElement d = new DataElement( name );
+        d.setUid( uid );
+        return d;
+    }
+
+    private OrganisationUnitGroup buildOrganizationalUnitGroup( String uid, String name, String code )
+    {
+        OrganisationUnitGroup oug = new OrganisationUnitGroup( name );
+        oug.setUid( uid );
+        oug.setCode( code );
+        return oug;
+    }
+
+    private String concatenateUuid( DataElement required, DataElement... additional )
+    {
+        Stream.Builder<DataElement> builder = Stream.<DataElement> builder().add( required );
+        for ( DataElement s : additional )
+        {
+            builder.add( s );
+        }
+
+        return builder.build().map( BaseIdentifiableObject::getUid ).collect( Collectors.joining( ";" ) );
+    }
+
+    class RequestBuilder
+    {
+        private Set<String> dimensionParams = new HashSet<>();
+
+        private Set<String> filterParams = new HashSet<>();
+
+        void addDimension( String key, String value )
+        {
+            dimensionParams.add( key + ":" + value );
+        }
+
+        void addOuDimension( String value )
+        {
+            addDimension( "ou", value );
+        }
+
+        void addDimension( String value )
+        {
+            addDimension( "dx", value );
+        }
+
+        void addPeDimension( String value )
+        {
+            addDimension( "pe", value );
+        }
+
+        void addFilter( String key, String value )
+        {
+            filterParams.add( key + ":" + value );
+        }
+
+        void addOuFilter( String value )
+        {
+            addFilter( "ou", value );
+        }
+
+        Set<String> getDimensionParams()
+        {
+            return dimensionParams;
+        }
+
+        Set<String> getFilterParams()
+        {
+            return filterParams;
+        }
     }
 
 }
