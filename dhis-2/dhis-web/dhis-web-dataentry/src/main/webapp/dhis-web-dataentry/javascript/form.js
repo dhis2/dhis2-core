@@ -2579,9 +2579,6 @@ function updateForms()
         .then(downloadRemoteForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
-        	dhis2.availability.startAvailabilityCheck();
-            console.log( 'Started availability check' );
-
             setDisplayNamePreferences();
 
             selection.responseReceived();
