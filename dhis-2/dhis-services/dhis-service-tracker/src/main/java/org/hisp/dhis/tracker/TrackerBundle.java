@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -185,6 +186,12 @@ public class TrackerBundle
         return this;
     }
 
+    public TrackerBundle addTrackedEntity( TrackedEntityInstance... trackedEntity )
+    {
+        trackedEntities.addAll( Arrays.asList( trackedEntity ) );
+        return this;
+    }
+
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
@@ -196,6 +203,12 @@ public class TrackerBundle
         return this;
     }
 
+    public TrackerBundle addEnrollment( Enrollment... enrollment )
+    {
+        enrollments.addAll( Arrays.asList( enrollment ) );
+        return this;
+    }
+
     public List<Event> getEvents()
     {
         return events;
@@ -204,6 +217,12 @@ public class TrackerBundle
     public TrackerBundle setEvents( List<Event> events )
     {
         this.events = events;
+        return this;
+    }
+
+    public TrackerBundle addEvent( Event... event )
+    {
+        events.addAll( Arrays.asList( event ) );
         return this;
     }
 }
