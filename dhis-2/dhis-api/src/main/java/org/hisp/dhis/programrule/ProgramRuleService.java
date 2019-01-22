@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.program.Program;
 
@@ -92,6 +93,8 @@ public interface ProgramRuleService
      * there are no ProgramRules.
      */
     List<ProgramRule> getAllProgramRule();
+
+    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
 
     /**
      * Get validation by {@link Program}
