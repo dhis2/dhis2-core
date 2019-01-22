@@ -97,8 +97,12 @@ public class DefaultProgramIndicatorService
         this.programIndicatorGroupStore = programIndicatorGroupStore;
     }
 
-    @Autowired
     private ProgramIndicatorExpressionEvaluationService expressionEvaluationService;
+
+    public void setExpressionEvaluationService( ProgramIndicatorExpressionEvaluationService expressionEvaluationService )
+    {
+        this.expressionEvaluationService = expressionEvaluationService;
+    }
 
     // -------------------------------------------------------------------------
     // ProgramIndicatorService implementation

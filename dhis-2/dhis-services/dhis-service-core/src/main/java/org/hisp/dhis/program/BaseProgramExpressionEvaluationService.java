@@ -50,11 +50,11 @@ import java.util.regex.Pattern;
  */
 public abstract class BaseProgramExpressionEvaluationService implements ProgramExpressionEvaluationService
 {
-    protected static final String SEPARATOR_ID = "\\.";
-    protected static final String KEY_DATAELEMENT = "#";
-    protected static final String KEY_ATTRIBUTE = "A";
-    protected static final String KEY_PROGRAM_VARIABLE = "V";
-    protected static final String KEY_CONSTANT = "C";
+    private static final String SEPARATOR_ID = "\\.";
+    private static final String KEY_DATAELEMENT = "#";
+    private static final String KEY_ATTRIBUTE = "A";
+    private static final String KEY_PROGRAM_VARIABLE = "V";
+    private static final String KEY_CONSTANT = "C";
 
     protected static final String VAR_EVENT_DATE = "event_date";
     protected static final String VAR_EXECUTION_DATE = "execution_date";
@@ -74,13 +74,13 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     protected static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
     protected static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
 
-    public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
-    public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
-    public static final String SQL_FUNC_ARG_REGEXP = " *(([\"\\w/\\*\\+\\-\\_\\:%\\.\\<\\>\\= \\#\\{\\}]+)|('[^']*'))";
-    public static final String SQL_FUNC_REGEXP = "d2:(?<func>.+?)\\((?<args>" + SQL_FUNC_ARG_REGEXP + "*( *," + SQL_FUNC_ARG_REGEXP + ")* *)\\)";
+    private static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
+    private static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
+    private static final String SQL_FUNC_ARG_REGEXP = " *(([\"\\w/\\*\\+\\-\\_\\:%\\.\\<\\>\\= \\#\\{\\}]+)|('[^']*'))";
+    private static final String SQL_FUNC_REGEXP = "d2:(?<func>.+?)\\((?<args>" + SQL_FUNC_ARG_REGEXP + "*( *," + SQL_FUNC_ARG_REGEXP + ")* *)\\)";
 
-    public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
-    public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
+    private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
 
     @Autowired
     private DataElementService dataElementService;
