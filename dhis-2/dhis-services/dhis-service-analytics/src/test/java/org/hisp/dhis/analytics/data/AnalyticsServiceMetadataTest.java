@@ -45,10 +45,13 @@ import java.util.concurrent.CompletableFuture;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -108,6 +111,12 @@ public class AnalyticsServiceMetadataTest
     @Mock
     private DataQueryService dataQueryService;
 
+    @Mock
+    private DhisConfigurationProvider dhisConfig;
+
+    @Mock
+    private CacheProvider cacheProvider;
+
     private AnalyticsService target;
 
     @Rule
@@ -118,8 +127,22 @@ public class AnalyticsServiceMetadataTest
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, expressionService, constantService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService );
+            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
+
         doNothing().when( queryValidator ).validateMaintenanceMode();
+        when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);
+    }
+
+    private void initMock(DataQueryParams params) {
+        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
+                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+        Map<String, Object> aggregatedValues = new HashMap<>();
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+                eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+
     }
 
     @Test
@@ -145,14 +168,7 @@ public class AnalyticsServiceMetadataTest
             )
             .build();
 
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
-        Map<String, Object> aggregatedValues = new HashMap<>();
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+        initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
 
@@ -181,7 +197,7 @@ public class AnalyticsServiceMetadataTest
             // DATA ELEMENTS
             .withDimensions( Lists.newArrayList(
                     new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                    new BaseDimensionalObject( "dx", DimensionType.DATA_ELEMENT_GROUP_SET, DISPLAY_NAME_DATA_X,
+                    new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
                     "display name",
                             new DimensionalAggregation( Collections.singletonList( indicatorGroup ) ),
                     Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
@@ -195,14 +211,7 @@ public class AnalyticsServiceMetadataTest
             .withSkipData( true )
             .build();
 
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
-        Map<String, Object> aggregatedValues = new HashMap<>();
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+        initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
@@ -233,20 +242,53 @@ public class AnalyticsServiceMetadataTest
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .build();
 
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
-        Map<String, Object> aggregatedValues = new HashMap<>();
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+        initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
             hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
+
+    }
+
+    @Test
+    public void metadataContainsDataElementGroupMetadata()
+    {
+        List<DimensionalItemObject> periods = new ArrayList<>();
+        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
+
+        DataElementGroup dataElementGroup = new DataElementGroup( "ANC" );
+        dataElementGroup.setCode( "COD_1000" );
+        dataElementGroup.setUid( "wjP19dkFeIk" );
+        DataQueryParams params = DataQueryParams.newBuilder()
+                // DATA ELEMENTS
+                .withDimensions( Lists.newArrayList(
+                        new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
+                                "display name",
+                                new DimensionalAggregation( Collections.singletonList( dataElementGroup ) ),
+                                Lists.newArrayList(
+                                        createDataElement( 'A', new CategoryCombo() ),
+                                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+                .withFilters( Collections.singletonList(
+                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                                ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+                .withIgnoreLimit( true )
+                .withSkipData( true )
+                .build();
+
+        initMock(params);
+
+        Grid grid = target.getAggregatedDataValues( params );
+        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
+
+        assertThat( items.get( dataElementGroup.getUid() ),
+                allOf(
+                        hasProperty( "name", is( dataElementGroup.getName() ) ),
+                        hasProperty( "uid", is( dataElementGroup.getUid() ) ),
+                        hasProperty( "code", is( dataElementGroup.getCode() ) )
+                ) );
 
     }
 

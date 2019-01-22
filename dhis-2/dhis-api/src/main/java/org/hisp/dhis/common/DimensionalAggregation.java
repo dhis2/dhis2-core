@@ -28,6 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,11 +36,21 @@ import java.util.List;
  */
 public class DimensionalAggregation
 {
-    private final List<BaseIdentifiableObject> groupBy;
+    private List<BaseIdentifiableObject> groupBy;
 
     public DimensionalAggregation( List<BaseIdentifiableObject> groupBy )
     {
         this.groupBy = groupBy;
+    }
+
+    public DimensionalAggregation()
+    {
+        this.groupBy = new ArrayList<>();
+    }
+
+    public void addGroupBy( BaseIdentifiableObject groupByItem )
+    {
+        this.groupBy.add( groupByItem );
     }
 
     public List<BaseIdentifiableObject> getGroupBy()

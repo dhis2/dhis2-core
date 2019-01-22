@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -70,7 +71,6 @@ import com.google.common.collect.Sets;
  */
 public class DefaultDataQueryServiceTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -144,8 +144,12 @@ public class DefaultDataQueryServiceTest
         DimensionalObject filter = params.getFilters().get( 0 );
         assertThat( filter.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
         assertThat( filter.getDimensionalAggregation().getGroupBy().get( 0 ),
-            allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                hasProperty( "code", is( nullValue() ) ) ) );
+            allOf(
+                    hasProperty( "name", is( "District" ) ),
+                    hasProperty( "uid", is( "level2UID" ) ),
+                    hasProperty( "code", is( nullValue() ) )
+            )
+        );
     }
 
     @Test
@@ -188,37 +192,39 @@ public class DefaultDataQueryServiceTest
     @Test
     public void convertAnalyticsRequestWithIndicatorGroup()
     {
+        final String INDICATOR_GROUP_UID = "oehv9EO3vP7";
 
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
         when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) ).thenReturn( new DataElement() );
 
         IndicatorGroup indicatorGroup = new IndicatorGroup( "dummy" );
-        indicatorGroup.setUid("oehv9EO3vP7");
-        indicatorGroup.setCode("CODE_10");
-        indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
-        when( idObjectManager.getObject( IndicatorGroup.class, UID, "oehv9EO3vP7" ) ).thenReturn( indicatorGroup );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) ).thenReturn( new OrganisationUnit("aaa") );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) ).thenReturn( new OrganisationUnit("bbb") );
+        indicatorGroup.setUid( INDICATOR_GROUP_UID );
+        indicatorGroup.setCode( "CODE_10" );
+        indicatorGroup.setMembers( Sets.newHashSet( new Indicator(), new Indicator() ) );
+        when( idObjectManager.getObject( IndicatorGroup.class, UID, INDICATOR_GROUP_UID ) )
+            .thenReturn( indicatorGroup );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
+            .thenReturn( new OrganisationUnit( "aaa" ) );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
+            .thenReturn( new OrganisationUnit( "bbb" ) );
 
         when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
-        rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
-        rb.addDimension("IN_GROUP-oehv9EO3vP7;cYeuwXTCPkU;Jtf34kNZhz");
-        rb.addPeDimension(PERIOD_DIMENSION);
+        rb.addOuFilter( "goRUwCHPg1M;fdc6uOvgoji" );
+        rb.addDimension( "IN_GROUP-" + INDICATOR_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz" );
+        rb.addPeDimension( PERIOD_DIMENSION );
 
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .filter( rb.getFilterParams() )
-            .dimension( rb.getDimensionParams() )
-            .build();
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+            .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
-        DimensionalObject dimension = params.getDimension("dx");
+        DimensionalObject dimension = params.getDimension( "dx" );
         assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
 
-        BaseIdentifiableObject aggregation = dimension.getDimensionalAggregation().getGroupBy().get(0);
-        assertThat(aggregation.getUid(), is(indicatorGroup.getUid()));
-        assertThat(aggregation.getCode(), is(indicatorGroup.getCode()));
-        assertThat(aggregation.getName(), is(indicatorGroup.getName()));
+        BaseIdentifiableObject aggregation = dimension.getDimensionalAggregation().getGroupBy().get( 0 );
+        assertThat( aggregation.getUid(), is( indicatorGroup.getUid() ) );
+        assertThat( aggregation.getCode(), is( indicatorGroup.getCode() ) );
+        assertThat( aggregation.getName(), is( indicatorGroup.getName() ) );
     }
 
     @Test
@@ -258,6 +264,102 @@ public class DefaultDataQueryServiceTest
 
     }
 
+    @Test
+    public void convertAnalyticsRequestWithDataElementGroup()
+    {
+        final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
+        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) ).thenReturn( new DataElement() );
+
+        DataElementGroup dataElementGroup = new DataElementGroup( "dummy" );
+        dataElementGroup.setUid(DATA_ELEMENT_GROUP_UID);
+        dataElementGroup.setCode("CODE_10");
+        dataElementGroup.setMembers(Sets.newHashSet(new DataElement(), new DataElement()));
+
+        when( idObjectManager.getObject( DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID ) )
+            .thenReturn( dataElementGroup );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
+            .thenReturn( new OrganisationUnit( "aaa" ) );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
+            .thenReturn( new OrganisationUnit( "bbb" ) );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
+            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
+
+        rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+        rb.addDimension("DE_GROUP-" + DATA_ELEMENT_GROUP_UID +";cYeuwXTCPkU;Jtf34kNZhz");
+        rb.addPeDimension(PERIOD_DIMENSION);
+
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+                .filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() )
+                .build();
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject dimension = params.getDimension("dx");
+        assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
+
+        BaseIdentifiableObject aggregation = dimension.getDimensionalAggregation().getGroupBy().get(0);
+        assertThat(aggregation.getUid(), is(dataElementGroup.getUid()));
+        assertThat(aggregation.getCode(), is(dataElementGroup.getCode()));
+        assertThat(aggregation.getName(), is(dataElementGroup.getName()));
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
+    {
+        final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+        final String INDICATOR_GROUP_UID = "iezv4GO4vD9";
+
+        when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
+        when( dimensionService.getDataDimensionalItemObject( UID, "Jtf34kNZhzP" ) ).thenReturn( new DataElement() );
+
+        DataElementGroup dataElementGroup = new DataElementGroup( "dummyEG" );
+        dataElementGroup.setUid( DATA_ELEMENT_GROUP_UID );
+        dataElementGroup.setCode( "CODE_10" );
+        dataElementGroup.setMembers( Sets.newHashSet( new DataElement(), new DataElement() ) );
+
+        IndicatorGroup indicatorGroup = new IndicatorGroup( "dummyIG" );
+        indicatorGroup.setUid( INDICATOR_GROUP_UID );
+        indicatorGroup.setCode( "CODE_10" );
+        indicatorGroup.setMembers( Sets.newHashSet( new Indicator(), new Indicator() ) );
+
+        when( idObjectManager.getObject( DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID ) )
+            .thenReturn( dataElementGroup );
+        when( idObjectManager.getObject( IndicatorGroup.class, UID, INDICATOR_GROUP_UID ) )
+            .thenReturn( indicatorGroup );
+
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "goRUwCHPg1M" ) )
+            .thenReturn( new OrganisationUnit( "aaa" ) );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "fdc6uOvgoji" ) )
+            .thenReturn( new OrganisationUnit( "bbb" ) );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
+            .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
+
+        rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
+        rb.addDimension("DE_GROUP-" + DATA_ELEMENT_GROUP_UID +";cYeuwXTCPkU;Jtf34kNZhz;IN_GROUP-" + INDICATOR_GROUP_UID);
+        rb.addPeDimension(PERIOD_DIMENSION);
+
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+                .filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() )
+                .build();
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject dimension = params.getDimension("dx");
+        assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 2 ) );
+
+        assertThat( dimension.getDimensionalAggregation().getGroupBy(),
+                IsIterableContainingInAnyOrder.containsInAnyOrder(
+                        allOf( hasProperty( "name", is( indicatorGroup.getName() ) ),
+                                hasProperty( "uid", is( indicatorGroup.getUid() ) ),
+                                hasProperty( "code", is( indicatorGroup.getCode() ) ) ) ,
+                        allOf( hasProperty( "name", is( dataElementGroup.getName() ) ),
+                                hasProperty( "uid", is( dataElementGroup.getUid() ) ),
+                                hasProperty( "code", is( dataElementGroup.getCode() ) ) )));
+    }
+
+
+
     private void initOrgUnitGroup(String ouGroupUID) {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
                 .thenReturn( buildOrganizationalUnitGroup(ouGroupUID, "Chiefdom", "CODE_001") );
@@ -267,6 +369,7 @@ public class DefaultDataQueryServiceTest
                 .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
     }
+
     private void assertOrgUnitGroup(DataQueryParams params, String ouGroupUID, DimensionalObject dimension) {
         assertThat( dimension.getDimensionalAggregation().getGroupBy(), hasSize( 1 ) );
 

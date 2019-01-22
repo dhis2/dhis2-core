@@ -257,10 +257,10 @@ public class DefaultDataQueryService
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
-            DimensionalAggregation dimensionalAggregation = null;
+            DimensionalAggregation dimensionalAggregation = new DimensionalAggregation();
             for ( String uid : items )
             {
-                if ( uid.startsWith( KEY_DE_GROUP ) )
+                if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
                 {
                     String groupUid = DimensionalObjectUtils.getUidFromGroupParam( uid );
 
@@ -269,9 +269,10 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
+                        dimensionalAggregation.addGroupBy(group);
                     }
                 }
-                else if ( uid.startsWith( KEY_IN_GROUP ) )
+                else if ( uid.startsWith( KEY_IN_GROUP ) ) // INDICATOR GROUP
                 {
                     String groupUid = DimensionalObjectUtils.getUidFromGroupParam( uid );
 
@@ -280,8 +281,9 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
+                        dimensionalAggregation.addGroupBy(group);
                     }
-                    dimensionalAggregation = new DimensionalAggregation(Lists.newArrayList(group));
+
                 }
                 else
                 {
