@@ -185,7 +185,7 @@ public class BaseDimensionalObject
         object.filter = this.filter;
         object.dataDimension = this.dataDimension;
         object.fixed = this.fixed;
-
+        object.dimensionalAggregation = this.dimensionalAggregation;
         return object;
     }
 
