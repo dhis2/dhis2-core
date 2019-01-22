@@ -184,6 +184,25 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         return description.toString();
     }
 
+    @Override
+    public String isFilterExpressionValid( String filter )
+    {
+        String expr = getSubstitutedSQLFunc( getSubstitutedExpression( filter ) );
+
+        if ( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
+                || ExpressionUtils.UNKNOWN_VARIABLE.equals( expr ) )
+        {
+            return expr;
+        }
+
+        if ( !ExpressionUtils.isBoolean( expr, null ) )
+        {
+            return ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
+        }
+
+        return ExpressionUtils.VALID;
+    }
+
     protected abstract Map<String, ProgramD2Function> getD2Functions();
 
     protected abstract Map<String, SqlFunction> getSQLFunctions();

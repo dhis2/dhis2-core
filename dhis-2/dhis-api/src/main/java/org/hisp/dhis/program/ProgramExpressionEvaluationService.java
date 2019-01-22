@@ -48,4 +48,6 @@ public interface ProgramExpressionEvaluationService
      * @return The description
      */
     String getExpressionDescription( String expression );
+
+    String isFilterExpressionValid( String filter );
 }

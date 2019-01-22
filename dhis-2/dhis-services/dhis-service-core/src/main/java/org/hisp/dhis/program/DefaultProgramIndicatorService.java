@@ -358,7 +358,7 @@ public class DefaultProgramIndicatorService
     @Transactional
     public String filterIsValid( String filter )
     {
-        return expressionEvaluationService.isValidExpression( filter );
+        return expressionEvaluationService.isFilterExpressionValid( filter );
     }
 
     // -------------------------------------------------------------------------

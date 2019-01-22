@@ -135,9 +135,9 @@ public interface ProgramIndicatorService
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param expression an expression string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#EXPRESSION_NOT_VALID},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#EXPRESSION_NOT_VALID},
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
     String expressionIsValid( String expression );
 
@@ -145,9 +145,9 @@ public interface ProgramIndicatorService
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param filter a filter string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
     
