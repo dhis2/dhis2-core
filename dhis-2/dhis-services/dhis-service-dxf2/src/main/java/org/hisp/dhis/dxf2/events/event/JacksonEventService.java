@@ -150,7 +150,7 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
 
-        return addEvents( events, jobId, updateImportOptions( importOptions ) );
+        return  processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     @Override
@@ -165,7 +165,7 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseJsonEvents( input );
 
-        return addEvents( events, jobId, updateImportOptions( importOptions ) );
+        return  processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     // -------------------------------------------------------------------------
@@ -204,94 +204,5 @@ public class JacksonEventService extends AbstractEventService
         }
 
         return events;
-    }
-
-    private ImportSummaries addEvents( List<Event> events, JobConfiguration jobId, ImportOptions importOptions )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-
-        notifier.clear( jobId ).notify( jobId, "Importing events" );
-        Clock clock = new Clock( log ).startClock();
-
-        List<Event> create = new ArrayList<>();
-        List<Event> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
-
-        if ( importOptions.getImportStrategy().isCreate() )
-        {
-            create.addAll( events );
-        }
-        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
-        {
-            for ( Event event : events )
-            {
-                sortCreatesAndUpdates( event, create, update );
-            }
-        }
-        else if ( importOptions.getImportStrategy().isUpdate() )
-        {
-            update.addAll( events );
-        }
-        else if ( importOptions.getImportStrategy().isDelete() )
-        {
-            delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
-        }
-        else if ( importOptions.getImportStrategy().isSync() )
-        {
-            for ( Event event : events )
-            {
-                if ( event.isDeleted() )
-                {
-                    delete.add( event.getEvent() );
-                }
-                else
-                {
-                    sortCreatesAndUpdates( event, create, update );
-                }
-            }
-        }
-
-        importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
-        importSummaries.addImportSummaries( updateEvents( update, importOptions, false, true ) );
-        importSummaries.addImportSummaries( deleteEvents( delete, true ) );
-
-        if ( jobId != null )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addJobSummary( jobId, importSummaries, ImportSummaries.class );
-        }
-        else
-        {
-            clock.logTime( "Import done" );
-        }
-
-        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
-        {
-            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
-        }
-
-        return importSummaries;
-    }
-
-    private void sortCreatesAndUpdates( Event event, List<Event> create, List<Event> update )
-    {
-        if ( StringUtils.isEmpty( event.getEvent() ) )
-        {
-            create.add( event );
-        }
-        else
-        {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
-
-            if ( programStageInstance == null )
-            {
-                create.add( event );
-            }
-            else
-            {
-                update.add( event );
-            }
-        }
     }
 }
