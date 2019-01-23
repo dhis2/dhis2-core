@@ -220,7 +220,7 @@ public class InitTableAlteror
             "AND latitude IS NOT NULL " +
             "AND geometry IS NULL;" +
             "ALTER TABLE programstageinstance DROP COLUMN latitude;" +
-            "ALTER TABLE programstageinstance DROP COLUMN longitude;");
+            "ALTER TABLE programstageinstance DROP COLUMN longitude;" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
