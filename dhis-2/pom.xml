@@ -1373,6 +1373,12 @@
         <version>1.5.0</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>io.github.benas</groupId>
+        <artifactId>random-beans</artifactId>
+        <version>3.7.0</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
