@@ -28,18 +28,21 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.junit.Assert.*;
+
+import java.util.*;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -60,12 +63,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.junit.Assert.*;
+/*
+ * THIS TEST IS DEPRECATED BY ExpressionService2Test !!!
+ */
 
 /**
  * @author Lars Helge Overland
@@ -232,7 +235,6 @@ public class ExpressionServiceTest
 
         coc = categoryService.getDefaultCategoryOptionCombo();
 
-        coc.getId();
         optionCombos.add( coc );
 
         opA = new DataElementOperand( deA, coc );
@@ -417,7 +419,7 @@ public class ExpressionServiceTest
     {
         Set<String> aggregates = new HashSet<>();
         Set<String> nonAggregates = new HashSet<>();
-        expressionService.getAggregatesAndNonAggregatesInExpression( expressionK.toString(), aggregates, nonAggregates );
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionK, aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
         assertTrue( aggregates.contains( expressionJ ) );
@@ -427,7 +429,7 @@ public class ExpressionServiceTest
 
         aggregates = new HashSet<>();
         nonAggregates = new HashSet<>();
-        expressionService.getAggregatesAndNonAggregatesInExpression( expressionL.toString(), aggregates, nonAggregates );
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionL, aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
         assertTrue( aggregates.contains( expressionJ ) );
@@ -453,8 +455,8 @@ public class ExpressionServiceTest
     {
         Expression expression = new Expression( expressionString, "Test " + expressionString );
         
-        return expressionService.getExpressionValue( expression, new HashMap<DimensionalItemObject, Double>(),
-            new HashMap<String, Double>(), new HashMap<String, Integer>(), 0 );
+        return expressionService.getExpressionValue( expression, new HashMap<>(),
+                new HashMap<>(), new HashMap<>(), 0 );
     }
 
     @Test
@@ -750,7 +752,7 @@ public class ExpressionServiceTest
 
         List<Expression> expressions = expressionService.getAllExpressions();
 
-        assertTrue( expressions.size() == 2 );
+        assertEquals(2, expressions.size());
         assertTrue( expressions.contains( exprA ) );
         assertTrue( expressions.contains( exprB ) );
     }
