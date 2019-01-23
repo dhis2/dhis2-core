@@ -223,20 +223,20 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, importOptions );
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, importOptions );
     }
 }

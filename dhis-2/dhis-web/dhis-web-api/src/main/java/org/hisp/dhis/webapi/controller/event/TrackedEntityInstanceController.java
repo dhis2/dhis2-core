@@ -688,22 +688,28 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    public void updateTrackedEntityInstanceXml( 
+        @PathVariable String id, 
+        @RequestParam( required = false ) String program,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, program, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    public void updateTrackedEntityInstanceJson( 
+        @PathVariable String id, 
+        @RequestParam( required = false ) String program,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, program, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );

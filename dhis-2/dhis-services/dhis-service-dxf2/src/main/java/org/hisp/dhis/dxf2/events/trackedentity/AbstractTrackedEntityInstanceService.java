@@ -50,6 +50,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.query.Query;
@@ -141,6 +142,8 @@ public abstract class AbstractTrackedEntityInstanceService
     private I18nManager i18nManager;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
+    
+    private final CachingMap<String, Program> programCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
 
@@ -353,7 +356,7 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
         updateRelationships( dtoEntityInstance );
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+        updateAttributeValues( dtoEntityInstance, daoEntityInstance, null, user );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
@@ -388,7 +391,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
-                importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
+
+                importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, null, user, importOptions ) );
             }
 
             clearSession();
@@ -398,12 +402,12 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, String programId, ImportOptions importOptions )
     {
-        return updateTrackedEntityInstance( trackedEntityInstance, currentUserService.getCurrentUser(), importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, currentUserService.getCurrentUser(), importOptions );
     }
 
-    private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, User user, ImportOptions importOptions )
+    private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, String programId, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
@@ -419,6 +423,7 @@ public abstract class AbstractTrackedEntityInstanceService
         importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+        Program program = getProgram( new IdSchemes(), programId );
 
         if ( daoEntityInstance == null )
         {
@@ -463,7 +468,7 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.updateTrackedEntityInstance( daoEntityInstance );
 
         updateRelationships( dtoEntityInstance );
-        updateAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+        updateAttributeValues( dtoEntityInstance, daoEntityInstance, program, user );
 
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
@@ -589,15 +594,19 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, Program program, User user )
     {
         Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap = getTeiAttributeValueMap( trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
+        
+        Set<String> incomingAttributes = new HashSet<>();
 
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
             String storedBy = getStoredBy( dtoAttribute, new ImportSummary(), user );
 
             TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap.get( dtoAttribute.getAttribute() );
+            
+            incomingAttributes.add( dtoAttribute.getAttribute() );
 
             if ( existingAttributeValue != null ) // value exists
             {
@@ -622,6 +631,19 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 daoEntityInstance.getTrackedEntityAttributeValues().add( newAttributeValue );
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( newAttributeValue );
+            }
+        }
+        
+        if ( program != null )
+        {
+            for( TrackedEntityAttribute att : program.getTrackedEntityAttributes() )
+            {
+                TrackedEntityAttributeValue attVal = teiAttributeToValueMap.get( att.getUid() );
+                
+                if ( attVal != null && !incomingAttributes.contains( att.getUid() ) )
+                {
+                    trackedEntityAttributeValueService.deleteTrackedEntityAttributeValue( attVal );
+                }
             }
         }
     }
@@ -653,6 +675,17 @@ public abstract class AbstractTrackedEntityInstanceService
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
         return organisationUnitCache.get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+    }
+    
+    private Program getProgram( IdSchemes idSchemes, String id )
+    {
+        if ( id == null )
+        {
+            return null;
+        }
+        
+        return programCache
+            .get( id, () -> manager.getObject( Program.class, idSchemes.getProgramIdScheme(), id ) );
     }
 
     private TrackedEntityType getTrackedEntityType( IdSchemes idSchemes, String id )
