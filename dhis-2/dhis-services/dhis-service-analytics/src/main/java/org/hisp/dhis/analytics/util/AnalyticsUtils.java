@@ -606,9 +606,9 @@ public class AnalyticsUtils
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
             // Add additional items from the aggregation data
-            if ( dimension.getDimensionalAggregation() != null )
+            if ( dimension.getDimensionalKeywords() != null )
             {
-                dimension.getDimensionalAggregation().getGroupBy()
+                dimension.getDimensionalKeywords().getGroupBy()
                     .forEach( b -> map.put( b.getUid(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
             }
         }

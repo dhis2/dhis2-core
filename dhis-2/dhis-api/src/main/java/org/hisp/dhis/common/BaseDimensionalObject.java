@@ -90,10 +90,10 @@ public class BaseDimensionalObject
     private String filter;
 
     /**
-     * A {@link DimensionalAggregation} defines a pre-defined group of items. For instance,
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance,
      * all the OU withing a district
      */
-    private DimensionalAggregation dimensionalAggregation;
+    private DimensionalKeywords dimensionalKeywords;
 
     /**
      * Indicates whether this dimension is fixed, meaning that the name of the
@@ -145,12 +145,12 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
-    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalAggregation dimensionalAggregation, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
         this.displayName = displayName;
-        this.dimensionalAggregation = dimensionalAggregation;
+        this.dimensionalKeywords = dimensionalKeywords;
     }
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
@@ -185,7 +185,7 @@ public class BaseDimensionalObject
         object.filter = this.filter;
         object.dataDimension = this.dataDimension;
         object.fixed = this.fixed;
-        object.dimensionalAggregation = this.dimensionalAggregation;
+        object.dimensionalKeywords = this.dimensionalKeywords;
         return object;
     }
 
@@ -382,13 +382,13 @@ public class BaseDimensionalObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DimensionalAggregation getDimensionalAggregation()
+    public DimensionalKeywords getDimensionalKeywords()
     {
-        return this.dimensionalAggregation;
+        return this.dimensionalKeywords;
     }
 
-    public void setDimensionalAggregation(DimensionalAggregation dimensionalAggregation) {
-        this.dimensionalAggregation = dimensionalAggregation;
+    public void setDimensionalKeywords(DimensionalKeywords dimensionalKeywords) {
+        this.dimensionalKeywords = dimensionalKeywords;
     }
 
     @Override

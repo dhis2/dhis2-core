@@ -68,7 +68,7 @@ public class BaseDimensionalObjectTest
         target.setAggregationType( AggregationType.AVERAGE );
         target.setDataDimension( true );
         target.setFixed( true );
-        target.setDimensionalAggregation( new DimensionalAggregation( aNewEnhancedRandomBuilder().build()
+        target.setDimensionalKeywords( new DimensionalKeywords( aNewEnhancedRandomBuilder().build()
             .objects( BaseIdentifiableObject.class, 5 ).collect( Collectors.toList() ) ) );
 
         BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
@@ -94,8 +94,8 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.getAggregationType(), is( target.getAggregationType() ) );
         assertThat( cloned.isDataDimension(), is( target.isDataDimension() ) );
         assertThat( cloned.isFixed(), is( target.isFixed() ) );
-        assertThat( cloned.getDimensionalAggregation().getGroupBy(),
-            hasSize( target.getDimensionalAggregation().getGroupBy().size() ) );
+        assertThat( cloned.getDimensionalKeywords().getGroupBy(),
+            hasSize( target.getDimensionalKeywords().getGroupBy().size() ) );
 
     }
 

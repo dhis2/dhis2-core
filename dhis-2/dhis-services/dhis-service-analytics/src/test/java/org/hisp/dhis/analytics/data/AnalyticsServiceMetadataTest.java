@@ -156,7 +156,7 @@ public class AnalyticsServiceMetadataTest
             // FILTERS (OU)
             .withFilters( Collections.singletonList(
                     new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    new DimensionalAggregation(
+                    new DimensionalKeywords(
                         Lists.newArrayList(
                                 buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
                                 buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
@@ -199,7 +199,7 @@ public class AnalyticsServiceMetadataTest
                     new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                     new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
                     "display name",
-                            new DimensionalAggregation( Collections.singletonList( indicatorGroup ) ),
+                            new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
                     Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withFilters( Collections.singletonList(
@@ -236,7 +236,7 @@ public class AnalyticsServiceMetadataTest
             // FILTERS (OU)
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    new DimensionalAggregation(
+                    new DimensionalKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
                     ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
@@ -267,7 +267,7 @@ public class AnalyticsServiceMetadataTest
                         new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                         new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
                                 "display name",
-                                new DimensionalAggregation( Collections.singletonList( dataElementGroup ) ),
+                                new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
                                 Lists.newArrayList(
                                         createDataElement( 'A', new CategoryCombo() ),
                                         createDataElement( 'B', new CategoryCombo() ) ) ) ) )

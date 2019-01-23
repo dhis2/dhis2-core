@@ -168,5 +168,5 @@ public interface DimensionalObject
      */
     String getKey();
 
-    DimensionalAggregation getDimensionalAggregation();
+    DimensionalKeywords getDimensionalKeywords();
 }

@@ -32,18 +32,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 
+ * 
  * @author Luciano Fiandesio
  */
-public class DimensionalAggregation
+public class DimensionalKeywords
 {
     private List<BaseIdentifiableObject> groupBy;
 
-    public DimensionalAggregation( List<BaseIdentifiableObject> groupBy )
+    public DimensionalKeywords(List<BaseIdentifiableObject> groupBy )
     {
         this.groupBy = groupBy;
     }
 
-    public DimensionalAggregation()
+    public DimensionalKeywords()
     {
         this.groupBy = new ArrayList<>();
     }

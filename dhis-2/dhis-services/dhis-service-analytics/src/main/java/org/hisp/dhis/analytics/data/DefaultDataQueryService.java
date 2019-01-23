@@ -255,7 +255,7 @@ public class DefaultDataQueryService
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
-            DimensionalAggregation dimensionalAggregation = new DimensionalAggregation();
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
             for ( String uid : items )
             {
                 if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
@@ -267,7 +267,7 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
-                        dimensionalAggregation.addGroupBy(group);
+                        dimensionalKeywords.addGroupBy(group);
                     }
                 }
                 else if ( uid.startsWith( KEY_IN_GROUP ) ) // INDICATOR GROUP
@@ -279,7 +279,7 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
-                        dimensionalAggregation.addGroupBy(group);
+                        dimensionalKeywords.addGroupBy(group);
                     }
 
                 }
@@ -299,7 +299,7 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension dx is present in query without any valid dimension options" );
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalAggregation, dataDimensionItems );
+            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dimensionalKeywords, dataDimensionItems );
         }
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
@@ -424,11 +424,11 @@ public class DefaultDataQueryService
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
-            DimensionalAggregation dimensionalAggregation = null;
+            DimensionalKeywords dimensionalKeywords = null;
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
-                dimensionalAggregation = new DimensionalAggregation(
+                dimensionalKeywords = new DimensionalKeywords(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
                         .filter( Objects::nonNull ).collect( Collectors.toList() ) );
 
@@ -437,7 +437,7 @@ public class DefaultDataQueryService
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
-                dimensionalAggregation = new DimensionalAggregation(
+                dimensionalKeywords = new DimensionalKeywords(
                     groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
                         .collect( Collectors.toList() ) );
             }
@@ -460,7 +460,7 @@ public class DefaultDataQueryService
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                dimensionalAggregation, orgUnits );
+                    dimensionalKeywords, orgUnits );
         }
 
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
