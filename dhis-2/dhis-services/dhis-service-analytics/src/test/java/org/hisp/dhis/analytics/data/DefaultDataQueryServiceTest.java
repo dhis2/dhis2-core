@@ -158,8 +158,10 @@ public class DefaultDataQueryServiceTest
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 3 ) )
             .thenReturn( buildOrgUnitLevel( 3, "level3UID", "Chiefdom", null ) );
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "3" ) ).thenReturn( 3 );
-        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
+        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "3" ) )
+            .thenReturn( 3 );
+        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
+            .thenReturn( 2 );
 
         when( organisationUnitService.getOrganisationUnitsAtLevels( any( Collection.class ), any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
@@ -168,7 +170,8 @@ public class DefaultDataQueryServiceTest
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
         rb.addPeDimension( PERIOD_DIMENSION );
 
-        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .filter( rb.getFilterParams() )
             .dimension( rb.getDimensionParams() ).build();
 
         DataQueryParams params = target.getFromRequest( request );
@@ -233,7 +236,9 @@ public class DefaultDataQueryServiceTest
         rb.addPeDimension( PERIOD_DIMENSION );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
         rb.addOuDimension( "OU_GROUP-" + ouGroupUID + ";ImspTQPwCqd" );
-        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( rb.getDimensionParams() ).build();
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( rb.getDimensionParams() )
+            .build();
         DataQueryParams params = target.getFromRequest( request );
 
         assertOrgUnitGroup( params, ouGroupUID, params.getDimension( "ou" ) );
@@ -255,7 +260,6 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         assertOrgUnitGroup( params, ouGroupUID, params.getFilter( "ou" ) );
-
     }
 
     @Test
