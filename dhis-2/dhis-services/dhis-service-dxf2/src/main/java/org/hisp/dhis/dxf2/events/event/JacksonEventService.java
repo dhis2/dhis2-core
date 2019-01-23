@@ -150,6 +150,7 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
 
+        
         return  processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
