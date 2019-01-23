@@ -31,6 +31,7 @@ package org.hisp.dhis.expressionparser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.expression.MissingValueStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,14 +53,21 @@ public class ExpressionValueVisitor
 {
     private Map<String, Double> keyValueMap;
 
+    private int itemsFound;
+
+    private int itemValuesFound;
+
     public Double getExpressionValue( ParseTree parseTree,
         Map<DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap,
-        Integer days )
+        Integer days, MissingValueStrategy missingValueStrategy )
     {
 
         this.constantMap = constantMap;
         this.orgUnitCountMap = orgUnitCountMap;
+
+        itemsFound = 0;
+        itemValuesFound = 0;
 
         if ( days != null )
         {
@@ -68,7 +76,30 @@ public class ExpressionValueVisitor
 
         makeKeyValueMap( valueMap );
 
-        return castDouble( visit( parseTree ) );
+        Double value = castDouble( visit( parseTree ) );
+
+        switch ( missingValueStrategy )
+        {
+            case SKIP_IF_ANY_VALUE_MISSING:
+                if ( itemValuesFound < itemsFound )
+                {
+                    return null;
+                }
+
+            case SKIP_IF_ALL_VALUES_MISSING:
+                if ( itemsFound != 0 && itemValuesFound == 0 )
+                {
+                    return null;
+                }
+
+            case NEVER_SKIP:
+                if ( value == null )
+                {
+                    return 0d;
+                }
+        }
+
+        return value;
     }
 
     // -------------------------------------------------------------------------
@@ -256,6 +287,15 @@ public class ExpressionValueVisitor
      */
     private Object getItemValue( String itemId )
     {
-        return keyValueMap.get( itemId );
+        itemsFound++;
+
+        Double value = keyValueMap.get( itemId );
+
+        if ( value != null )
+        {
+            itemValuesFound++;
+        }
+
+        return value;
     }
 }

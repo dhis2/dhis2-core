@@ -40,6 +40,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -55,6 +56,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
 
 /**
  * Parses expressions using the ANTLR parser.
@@ -140,7 +143,8 @@ public class DefaultExpressionParserService
     @Override
     public Double getExpressionValue( String expression,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days )
+        Map<String, Integer> orgUnitCountMap, Integer days,
+        MissingValueStrategy missingValueStrategy )
     {
         if ( expression == null )
         {
@@ -159,7 +163,7 @@ public class DefaultExpressionParserService
         try
         {
             return expressionValueVisitor.getExpressionValue( parseTree, valueMap,
-                    constantMap, orgUnitCountMap, days );
+                    constantMap, orgUnitCountMap, days, missingValueStrategy );
         }
         catch ( ExpressionParserException ex )
         {
@@ -232,10 +236,10 @@ public class DefaultExpressionParserService
         Integer days = period != null ? period.getDaysInPeriod() : null;
 
         Double denominatorValue = getExpressionValue( indicator.getDenominator(),
-            valueMap, constantMap, orgUnitCountMap, days );
+            valueMap, constantMap, orgUnitCountMap, days, NEVER_SKIP );
 
         Double numeratorValue = getExpressionValue( indicator.getNumerator(),
-            valueMap, constantMap, orgUnitCountMap, days );
+            valueMap, constantMap, orgUnitCountMap, days, NEVER_SKIP );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {

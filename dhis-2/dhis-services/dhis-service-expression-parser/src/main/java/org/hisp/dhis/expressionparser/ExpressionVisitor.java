@@ -98,19 +98,14 @@ public abstract class ExpressionVisitor
 
     protected Map<String, Integer> orgUnitCountMap = null;
 
-    protected Double days = DEFAULT_DAYS;
+    protected Double days = DEFAULT_ITEM_VALUE;
 
     protected Map<String, String> itemDescriptions = null;
 
     /**
-     * Dummy value to use when the value is not yet known.
+     * Default item value to use when the value is not present.
      */
-    protected final static Double DUMMY_VALUE = 1.0;
-
-    /**
-     * Default value to use for days if not known.
-     */
-    private final static Double DEFAULT_DAYS = 0.0;
+    protected final static Double DEFAULT_ITEM_VALUE = 0.0;
 
 
     // -------------------------------------------------------------------------
@@ -170,7 +165,7 @@ public abstract class ExpressionVisitor
     {
         String constantId = ctx.constantId().getText();
 
-        Double value = constantMap == null ? DUMMY_VALUE : constantMap.get( constantId );
+        Double value = constantMap == null ? DEFAULT_ITEM_VALUE : constantMap.get( constantId );
 
         if ( value == null )
         {
@@ -409,9 +404,7 @@ public abstract class ExpressionVisitor
     {
         Double d1 = castDouble( visit( ctx.expr( 0 ) ) );
 
-        return d1 == null
-            ? null
-            : fn.apply( d1 );
+        return fn.apply( d1 == null ? DEFAULT_ITEM_VALUE : d1 );
     }
 
     /**
@@ -441,9 +434,9 @@ public abstract class ExpressionVisitor
      */
     protected Double double2( Double d1, Double d2, BiFunction<Double, Double, Double> fn )
     {
-        return d1 == null || d2 == null
-            ? null
-            : fn.apply( d1, d2 );
+        return fn.apply(
+            d1 == null ? DEFAULT_ITEM_VALUE : d1,
+            d2 == null ? DEFAULT_ITEM_VALUE : d2 );
     }
 
     /**

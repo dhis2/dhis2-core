@@ -29,6 +29,7 @@ package org.hisp.dhis.expressionparser;
  */
 
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -88,11 +89,14 @@ public interface ExpressionParserService
      * @param orgUnitCountMap the mapping between organisation unit group uid
      *        and count of organisation units to use in the calculation.
      * @param days the number of days to use in the calculation.
+     * @param missingValueStrategy the strategy to use when data values are
+     *        missing when calculating the expression.
      * @return the calculated value as a double.
      */
     Double getExpressionValue( String expression,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days );
+        Map<String, Integer> orgUnitCountMap, Integer days,
+        MissingValueStrategy missingValueStrategy );
 
     // -------------------------------------------------------------------------
     // Indicator expression methods

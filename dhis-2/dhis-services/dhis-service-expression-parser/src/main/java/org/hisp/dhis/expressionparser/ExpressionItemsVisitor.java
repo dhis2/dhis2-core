@@ -168,7 +168,7 @@ public class ExpressionItemsVisitor
 
         if ( orgUnitGroupsNeeded == null && itemDescriptions == null )
         {
-            return DUMMY_VALUE;
+            return DEFAULT_ITEM_VALUE;
         }
 
         OrganisationUnitGroup orgUnitGroup = organisationUnitGroupService.getOrganisationUnitGroup( orgUnitGroupId );
@@ -188,7 +188,7 @@ public class ExpressionItemsVisitor
             itemDescriptions.put( ctx.getText(), orgUnitGroup.getDisplayName() );
         }
 
-        return DUMMY_VALUE;
+        return DEFAULT_ITEM_VALUE;
     }
 
     // -------------------------------------------------------------------------
@@ -261,7 +261,7 @@ public class ExpressionItemsVisitor
     {
         if ( dimensionalItemObjects == null && itemDescriptions == null )
         {
-            return DUMMY_VALUE;
+            return DEFAULT_ITEM_VALUE;
         }
 
         DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
@@ -286,6 +286,6 @@ public class ExpressionItemsVisitor
             itemDescriptions.put( exprText, item.getDisplayName() );
         }
 
-        return DUMMY_VALUE;
+        return DEFAULT_ITEM_VALUE;
     }
 }

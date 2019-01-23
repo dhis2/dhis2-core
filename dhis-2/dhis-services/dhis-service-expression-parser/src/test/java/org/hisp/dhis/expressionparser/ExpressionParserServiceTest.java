@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -63,8 +64,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.AbstractMap.SimpleEntry;
 import static org.hisp.dhis.common.ReportingRateMetric.*;
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.junit.Assert.*;
 
 /**
@@ -168,11 +169,11 @@ public class ExpressionParserServiceTest
 
     private Map<String, Double> constantMap;
 
-    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new HashMap<String, Integer>()
-    {{
-        put( "orgUnitGrpA", 1000000 );
-        put( "orgUnitGrpB", 2000000 );
-    }};
+    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP =
+        new ImmutableMap.Builder<String, Integer>()
+        .put( "orgUnitGrpA", 1000000 )
+        .put( "orgUnitGrpB", 2000000 )
+        .build();
 
     private final static int DAYS = 30;
 
@@ -475,11 +476,13 @@ public class ExpressionParserServiceTest
      * getItemsInExpression, if any, separated by spaces.
      *
      * @param expr expression to evaluate
+     * @param missingValueStrategy strategy to use if item value is missing
      * @return result from getItemsInExpression and getExpressionValue
      */
-    private String eval( String expr )
+    private String eval( String expr, MissingValueStrategy missingValueStrategy )
     {
-        try {
+        try
+        {
             expressionParserService.getExpressionDescription( expr );
         }
         catch ( ExpressionParserException ex )
@@ -492,9 +495,20 @@ public class ExpressionParserServiceTest
 
         Object value = expressionParserService
             .getExpressionValue( expr, valueMap, constantMap,
-                ORG_UNIT_COUNT_MAP, DAYS );
+                ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy );
 
         return result( value, items );
+    }
+
+    /**
+     * Evaluates a test expression, returns NULL if any values are missing.
+     *
+     * @param expr expression to evaluate
+     * @return result from getItemsInExpression and getExpressionValue
+     */
+    private String eval( String expr )
+    {
+        return eval( expr, SKIP_IF_ANY_VALUE_MISSING );
     }
 
     /**
@@ -977,17 +991,17 @@ public class ExpressionParserServiceTest
 
         // IsNull
 
-        assertEquals( "0 DeA", eval( "if( isNull( #{dataElemenA} ), 1, 0)" ) );
-        assertEquals( "1 DeE", eval( "if( isNull( #{dataElemenE} ), 1, 0)" ) );
+        assertEquals( "0 DeA", eval( "if( isNull( #{dataElemenA} ), 1, 0)", NEVER_SKIP ) );
+        assertEquals( "1 DeE", eval( "if( isNull( #{dataElemenE} ), 1, 0)", NEVER_SKIP ) );
 
         // Coalesce
 
-        assertEquals( "3 DeA", eval( "coalesce( #{dataElemenA} )" ) );
-        assertEquals( "3 DeA DeE", eval( "coalesce( #{dataElemenA}, #{dataElemenE} )" ) );
-        assertEquals( "3 DeA DeE", eval( "coalesce( #{dataElemenE}, #{dataElemenA} )" ) );
-        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenA}, #{dataElemenC}, #{dataElemenE} )" ) );
-        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenC}, #{dataElemenE}, #{dataElemenA} )" ) );
-        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenE}, #{dataElemenA}, #{dataElemenC} )" ) );
+        assertEquals( "3 DeA", eval( "coalesce( #{dataElemenA} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeE", eval( "coalesce( #{dataElemenA}, #{dataElemenE} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeE", eval( "coalesce( #{dataElemenE}, #{dataElemenA} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenA}, #{dataElemenC}, #{dataElemenE} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenC}, #{dataElemenE}, #{dataElemenA} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE", eval( "coalesce( #{dataElemenE}, #{dataElemenA}, #{dataElemenC} )", NEVER_SKIP ) );
 
         // Maximum
 
@@ -998,6 +1012,28 @@ public class ExpressionParserServiceTest
 
         assertEquals( "1", eval( "minimum( 3, 5, 1, 4, 2 )" ) );
         assertEquals( "null DeE", eval( "minimum( #{dataElemenE} )" ) );
+    }
+
+    @Test
+    public void testExpressionMissingValueStrategy()
+    {
+        assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeE", eval( "#{dataElemenE}", SKIP_IF_ANY_VALUE_MISSING ) );
+
+        assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "16 DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "null DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "null DeE", eval( "#{dataElemenE}", SKIP_IF_ALL_VALUES_MISSING ) );
+
+        assertEquals( "3 DeA", eval( "#{dataElemenA}", NEVER_SKIP ) );
+        assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", NEVER_SKIP ) );
+        assertEquals( "16 DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", NEVER_SKIP ) );
+        assertEquals( "0 DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", NEVER_SKIP ) );
+        assertEquals( "0 DeE", eval( "#{dataElemenE}", NEVER_SKIP ) );
     }
 
     @Test
