@@ -61,24 +61,15 @@ public class BaseDimensionalObjectTest
         target.setDimensionType( DimensionType.DATA_X );
         target.setDimensionName( "test-dimension-name" );
         target.setDisplayName( "display-name" );
-        target.setItems(
-                Lists.newArrayList(
-                        buildDimensionalItemObject(),
-                        buildDimensionalItemObject()
-                )
-        );
+        target.setItems( Lists.newArrayList( buildDimensionalItemObject(), buildDimensionalItemObject() ) );
         target.setFilter( "test-filter" );
         target.setLegendSet(
-            new LegendSet( "legend-name", "symbolizer-test", Sets.newHashSet(
-                    buildLegend(),
-                    buildLegend()
-            ) ) );
-        target.setAggregationType(AggregationType.AVERAGE);
-        target.setDataDimension(true);
-        target.setFixed(true);
-        target.setDimensionalAggregation(new DimensionalAggregation(
-                aNewEnhancedRandomBuilder().build().objects(BaseIdentifiableObject.class, 5)
-                        .collect(Collectors.toList())));
+            new LegendSet( "legend-name", "symbolizer-test", Sets.newHashSet( buildLegend(), buildLegend() ) ) );
+        target.setAggregationType( AggregationType.AVERAGE );
+        target.setDataDimension( true );
+        target.setFixed( true );
+        target.setDimensionalAggregation( new DimensionalAggregation( aNewEnhancedRandomBuilder().build()
+            .objects( BaseIdentifiableObject.class, 5 ).collect( Collectors.toList() ) ) );
 
         BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
 
@@ -90,15 +81,12 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.getItems(), hasSize( 2 ) );
         assertThat( cloned.getItems(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf(
-                        hasProperty( "name", Matchers.is( target.getItems().get(0).getName() ) ),
-                        hasProperty( "uid", Matchers.is( target.getItems().get(0).getUid() ) ),
-                        hasProperty( "code", Matchers.is( target.getItems().get(0).getCode() ) ) ),
-                allOf(  hasProperty( "name", Matchers.is( target.getItems().get(1).getName() ) ),
-                        hasProperty( "uid", Matchers.is( target.getItems().get(1).getUid() ) ),
-                        hasProperty( "code", Matchers.is( target.getItems().get(1).getCode() ) ) )
-            )
-        );
+                allOf( hasProperty( "name", Matchers.is( target.getItems().get( 0 ).getName() ) ),
+                    hasProperty( "uid", Matchers.is( target.getItems().get( 0 ).getUid() ) ),
+                    hasProperty( "code", Matchers.is( target.getItems().get( 0 ).getCode() ) ) ),
+                allOf( hasProperty( "name", Matchers.is( target.getItems().get( 1 ).getName() ) ),
+                    hasProperty( "uid", Matchers.is( target.getItems().get( 1 ).getUid() ) ),
+                    hasProperty( "code", Matchers.is( target.getItems().get( 1 ).getCode() ) ) ) ) );
         assertThat( cloned.getFilter(), is( target.getFilter() ) );
         assertThat( cloned.getLegendSet().getName(), is( "legend-name" ) );
         assertThat( cloned.getLegendSet().getSymbolizer(), is( "symbolizer-test" ) );
@@ -108,7 +96,6 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.isFixed(), is( target.isFixed() ) );
         assertThat( cloned.getDimensionalAggregation().getGroupBy(),
             hasSize( target.getDimensionalAggregation().getGroupBy().size() ) );
-
 
     }
 

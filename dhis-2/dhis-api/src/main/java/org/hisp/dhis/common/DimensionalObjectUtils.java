@@ -28,19 +28,10 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -280,7 +271,7 @@ public class DimensionalObjectUtils
 
         List<Object> values = new ArrayList<>( grid.getUniqueValues( dim.getDimension() ) );
 
-        values.sort(ObjectStringValueComparator.INSTANCE);
+        values.sort( ObjectStringValueComparator.INSTANCE );
 
         // Use order of items in filter if specified
 
@@ -407,7 +398,7 @@ public class DimensionalObjectUtils
      */
     public static List<DimensionalItemObject> asList( Collection<? extends DimensionalItemObject> collection )
     {
-        return new ArrayList<>(collection);
+        return new ArrayList<>( collection );
     }
 
     /**

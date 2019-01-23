@@ -63,8 +63,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -432,8 +430,7 @@ public class DefaultDataQueryService
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
                 dimensionalAggregation = new DimensionalAggregation(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
-                                              .filter(Objects::nonNull)
-                                              .collect( Collectors.toList() ) );
+                        .filter( Objects::nonNull ).collect( Collectors.toList() ) );
 
             }
 
