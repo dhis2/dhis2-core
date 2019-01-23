@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramD2Function;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * @Author Zubair Asghar.
@@ -81,5 +82,17 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     protected Map<String, String> getSourceVariableMap()
     {
         return VARIABLE_SAMPLE_VALUE_MAP;
+    }
+
+    @Override
+    protected Map<String, String> getSourceDataElement( String uid, Matcher matcher )
+    {
+        return null;
+    }
+
+    @Override
+    protected Map<String, String> getSourceAttribute( String uid, Matcher matcher )
+    {
+        return null;
     }
 }

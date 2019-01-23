@@ -28,20 +28,17 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,12 +47,15 @@ import java.util.regex.Pattern;
  */
 public abstract class BaseProgramExpressionEvaluationService implements ProgramExpressionEvaluationService
 {
-    private static final String SEPARATOR_ID = "\\.";
     private static final String KEY_DATAELEMENT = "#";
     private static final String KEY_ATTRIBUTE = "A";
     private static final String KEY_PROGRAM_VARIABLE = "V";
     private static final String KEY_CONSTANT = "C";
 
+    protected static final String SEPARATOR_ID = "\\.";
+    protected static final String DESCRIPTION = "description";
+    protected static final String SAMPLE_VALUE = "sample";
+    protected static final String ERROR = "error";
     protected static final String VAR_EVENT_DATE = "event_date";
     protected static final String VAR_EXECUTION_DATE = "execution_date";
     protected static final String VAR_DUE_DATE = "due_date";
@@ -90,17 +90,14 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
 
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+    private final ImmutableMap<String, BiFunction<String, Matcher, Map<String, String>>> IMPLEMENTATION_MAPPER =
+        new ImmutableMap.Builder<String, BiFunction<String, Matcher, Map<String, String>>>()
+        .put( KEY_DATAELEMENT, this::getSourceDataElement )
+        .put( KEY_ATTRIBUTE, this::getSourceAttribute )
+        .build();
 
     @Autowired
     private ConstantService constantService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -142,32 +139,17 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
             String key = matcher.group( 1 );
             String uid = matcher.group( 2 );
 
-            if ( KEY_DATAELEMENT.equals( key ) )
+            if ( IMPLEMENTATION_MAPPER.containsKey( key ) )
             {
-                String de = matcher.group( 3 );
+                Map<String, String> result = IMPLEMENTATION_MAPPER.get( key ).apply( uid, matcher );
 
-                ProgramStage programStage = programStageService.getProgramStage( uid );
-                DataElement dataElement = dataElementService.getDataElement( de );
-
-                if ( programStage != null && dataElement != null )
+                if ( !result.containsKey( ERROR ) )
                 {
-                    String programStageName = programStage.getDisplayName();
-                    String dataElementName = dataElement.getDisplayName();
-
-                    matcher.appendReplacement( description, programStageName + SEPARATOR_ID
-                        + dataElementName );
+                    matcher.appendReplacement( description, result.get( DESCRIPTION ) );
                 }
             }
-            else if ( KEY_ATTRIBUTE.equals( key ) )
-            {
-                TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
 
-                if ( attribute != null )
-                {
-                    matcher.appendReplacement( description, attribute.getDisplayName() );
-                }
-            }
-            else if ( KEY_CONSTANT.equals( key ) )
+            if ( KEY_CONSTANT.equals( key ) )
             {
                 Constant constant = constantService.getConstant( uid );
 
@@ -217,6 +199,10 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
 
     protected abstract Map<String, String> getSourceVariableMap();
 
+    protected abstract Map<String, String> getSourceDataElement( String uid, Matcher matcher );
+
+    protected abstract Map<String, String> getSourceAttribute( String uid, Matcher matcher );
+
     /**
      * Generates an expression where all items are substituted with a sample
      * value in order to maintain a valid expression syntax.
@@ -234,40 +220,21 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
             String key = matcher.group( 1 );
             String uid = matcher.group( 2 );
 
-            if ( KEY_DATAELEMENT.equals( key ) )
+            if ( IMPLEMENTATION_MAPPER.containsKey( key ) )
             {
-                String de = matcher.group( 3 );
+                Map<String, String> result = IMPLEMENTATION_MAPPER.get( key ).apply( uid, matcher );
 
-                ProgramStage programStage = programStageService.getProgramStage( uid );
-                DataElement dataElement = dataElementService.getDataElement( de );
-
-                if ( programStage != null && dataElement != null )
+                if ( !result.containsKey( ERROR ) )
                 {
-                    String sample = ValidationUtils.getSubstitutionValue( dataElement.getValueType() );
-
-                    matcher.appendReplacement( expr, sample );
+                    matcher.appendReplacement( expr, result.get( SAMPLE_VALUE ) );
                 }
                 else
                 {
-                    return ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION;
+                    return result.get( ERROR );
                 }
             }
-            else if ( KEY_ATTRIBUTE.equals( key ) )
-            {
-                TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
 
-                if ( attribute != null )
-                {
-                    String sample = ValidationUtils.getSubstitutionValue( attribute.getValueType() );
-
-                    matcher.appendReplacement( expr, sample );
-                }
-                else
-                {
-                    return ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION;
-                }
-            }
-            else if ( KEY_CONSTANT.equals( key ) )
+            if ( KEY_CONSTANT.equals( key ) )
             {
                 Constant constant = constantService.getConstant( uid );
 
@@ -315,6 +282,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         while ( matcher.find() )
         {
             String d2FunctionName = matcher.group( "func" );
+
             if ( getSQLFunctions().containsKey( d2FunctionName ) )
             {
                 matcher.appendReplacement( expr, getSQLFunctions().get( d2FunctionName ).getSampleValue() );

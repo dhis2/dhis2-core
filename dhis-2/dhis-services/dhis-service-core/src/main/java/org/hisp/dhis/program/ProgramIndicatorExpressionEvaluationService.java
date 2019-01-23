@@ -36,14 +36,32 @@ import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * @Author Zubair Asghar.
  */
 public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
+
     private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
@@ -97,5 +115,53 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
     protected Map<String, String> getSourceVariableMap()
     {
         return VARIABLE_SAMPLE_VALUE_MAP;
+    }
+
+    @Override
+    protected Map<String, String> getSourceDataElement( String uid, Matcher matcher )
+    {
+        Map<String, String> resultMap = new HashMap<>();
+
+        String de = matcher.group( 3 );
+
+        ProgramStage programStage = programStageService.getProgramStage( uid );
+        DataElement dataElement = dataElementService.getDataElement( de );
+
+        if ( programStage != null && dataElement != null )
+        {
+            String programStageName = programStage.getDisplayName();
+            String dataElementName = dataElement.getDisplayName();
+
+            resultMap.put( DESCRIPTION, programStageName + SEPARATOR_ID + dataElementName );
+            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( dataElement.getValueType() ) );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            return  resultMap;
+        }
+
+        return resultMap;
+    }
+
+    @Override
+    protected Map<String, String> getSourceAttribute( String uid, Matcher matcher )
+    {
+        Map<String, String> resultMap = new HashMap<>();
+
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
+
+        if ( attribute != null )
+        {
+            resultMap.put( DESCRIPTION, attribute.getDisplayName() );
+            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            return  resultMap;
+        }
+
+        return resultMap;
     }
 }
