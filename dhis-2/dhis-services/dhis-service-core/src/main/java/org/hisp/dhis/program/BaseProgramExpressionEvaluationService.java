@@ -90,6 +90,16 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
 
+    protected static Map<String, ProgramD2Function> D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+        .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
+        .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
+        .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )
+        .put( DaysBetweenProgramD2Function.KEY, new DaysBetweenProgramD2Function() )
+        .put( WeeksBetweenProgramD2Function.KEY, new WeeksBetweenProgramD2Function() )
+        .put( MonthsBetweenProgramD2Function.KEY, new MonthsBetweenProgramD2Function() )
+        .put( YearsBetweenProgramD2Function.KEY, new YearsBetweenProgramD2Function() )
+        .put( MinutesBetweenProgramD2Function.KEY, new MinutesBetweenProgramD2Function() ).build();
+
     protected static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( VAR_COMPLETED_DATE, "'2017-07-08'" )
         .put( VAR_CURRENT_DATE, "'2017-07-08'" )
@@ -222,8 +232,6 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
 
     protected abstract Map<String, SqlFunction> getSQLFunctions();
 
-    protected abstract Map<String, String> getSourceVariableMap();
-
     protected abstract Map<String, String> getSourceDataElement( String uid, Matcher matcher );
 
     protected abstract Map<String, String> getSourceAttribute( String uid, Matcher matcher );
@@ -274,7 +282,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
             }
             else if ( KEY_PROGRAM_VARIABLE.equals( key ) )
             {
-                String sampleValue = getSourceVariableMap().get( uid );
+                String sampleValue = VARIABLE_SAMPLE_VALUE_MAP.get( uid );
 
                 if ( sampleValue != null )
                 {

@@ -28,9 +28,28 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.program.AddDaysProgramD2Function;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
+import org.hisp.dhis.program.CeilProgramD2Function;
+import org.hisp.dhis.program.ConcatenateProgramD2Function;
+import org.hisp.dhis.program.FloorProgramD2Function;
+import org.hisp.dhis.program.HasValueProgramD2Function;
+import org.hisp.dhis.program.LeftProgramD2Function;
+import org.hisp.dhis.program.LengthProgramD2Function;
+import org.hisp.dhis.program.ModulusProgramD2Function;
+import org.hisp.dhis.program.OrgUnitGroupProgramD2Function;
 import org.hisp.dhis.program.ProgramD2Function;
+import org.hisp.dhis.program.RightProgramD2Function;
+import org.hisp.dhis.program.RoundProgramD2Function;
+import org.hisp.dhis.program.SplitProgramD2Function;
+import org.hisp.dhis.program.SubStringProgramD2Function;
+import org.hisp.dhis.program.UserRoleProgramD2Function;
+import org.hisp.dhis.program.ValidatePatternProgramD2Function;
+import org.hisp.dhis.program.ZPVCProgramD2Function;
+import org.hisp.dhis.program.ZingProgramD2Function;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,22 +60,38 @@ import java.util.regex.Matcher;
  */
 public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
+    private static Map<String, ProgramD2Function> PROGRAM_RULE_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+        .put( UserRoleProgramD2Function.KEY, new UserRoleProgramD2Function() )
+        .put( OrgUnitGroupProgramD2Function.KEY, new OrgUnitGroupProgramD2Function() )
+        .put( LengthProgramD2Function.KEY, new LengthProgramD2Function() )
+        .put( SplitProgramD2Function.KEY, new SplitProgramD2Function() )
+        .put( SubStringProgramD2Function.KEY, new SubStringProgramD2Function() )
+        .put( LeftProgramD2Function.KEY, new LeftProgramD2Function() )
+        .put( RightProgramD2Function.KEY, new RightProgramD2Function() )
+        .put( ValidatePatternProgramD2Function.KEY, new ValidatePatternProgramD2Function() )
+        .put( ZPVCProgramD2Function.KEY, new ZPVCProgramD2Function() )
+        .put( HasValueProgramD2Function.KEY, new HasValueProgramD2Function() )
+        .put( AddDaysProgramD2Function.KEY, new AddDaysProgramD2Function() )
+        .put( ConcatenateProgramD2Function.KEY, new ConcatenateProgramD2Function() )
+        .put( OneIfZeroOrPositiveSqlFunction.KEY, new ConcatenateProgramD2Function() )
+        .put( ZingProgramD2Function.KEY, new ZingProgramD2Function() )
+        .put( ModulusProgramD2Function.KEY, new ModulusProgramD2Function() )
+        .put( RoundProgramD2Function.KEY, new RoundProgramD2Function() )
+        .put( FloorProgramD2Function.KEY, new FloorProgramD2Function() )
+        .put( CeilProgramD2Function.KEY, new CeilProgramD2Function() )
+        .build();
+
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        return null;
+        D2_FUNC_MAP.putAll( PROGRAM_RULE_D2_FUNC_MAP );
+        return D2_FUNC_MAP;
     }
 
     @Override
     protected Map<String, SqlFunction> getSQLFunctions()
     {
         return new HashMap<>();
-    }
-
-    @Override
-    protected Map<String, String> getSourceVariableMap()
-    {
-        return VARIABLE_SAMPLE_VALUE_MAP;
     }
 
     @Override

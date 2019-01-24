@@ -70,32 +70,16 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
 
-    private static final Map<String, ProgramD2Function> PI_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
-        .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
-        .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
-        .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )
-        .put( DaysBetweenProgramD2Function.KEY, new DaysBetweenProgramD2Function() )
-        .put( WeeksBetweenProgramD2Function.KEY, new WeeksBetweenProgramD2Function() )
-        .put( MonthsBetweenProgramD2Function.KEY, new MonthsBetweenProgramD2Function() )
-        .put( YearsBetweenProgramD2Function.KEY, new YearsBetweenProgramD2Function() )
-        .put( MinutesBetweenProgramD2Function.KEY, new MinutesBetweenProgramD2Function() ).build();
-
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        return PI_FUNC_MAP;
+        return D2_FUNC_MAP;
     }
 
     @Override
     protected Map<String, SqlFunction> getSQLFunctions()
     {
         return SQL_FUNC_MAP;
-    }
-
-    @Override
-    protected Map<String, String> getSourceVariableMap()
-    {
-        return VARIABLE_SAMPLE_VALUE_MAP;
     }
 
     @Override
