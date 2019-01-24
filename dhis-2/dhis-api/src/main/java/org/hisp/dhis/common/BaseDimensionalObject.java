@@ -90,6 +90,12 @@ public class BaseDimensionalObject
     private String filter;
 
     /**
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance,
+     * all the OU withing a district
+     */
+    private DimensionalKeywords dimensionalKeywords;
+
+    /**
      * Indicates whether this dimension is fixed, meaning that the name of the
      * dimension will be returned as is for all dimension items in the response.
      */
@@ -139,6 +145,14 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
+    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.dimensionName = dimensionName;
+        this.displayName = displayName;
+        this.dimensionalKeywords = dimensionalKeywords;
+    }
+
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
         this( dimension, dimensionType, dimensionName, displayName, items );
@@ -171,7 +185,7 @@ public class BaseDimensionalObject
         object.filter = this.filter;
         object.dataDimension = this.dataDimension;
         object.fixed = this.fixed;
-
+        object.dimensionalKeywords = this.dimensionalKeywords;
         return object;
     }
 
@@ -363,6 +377,18 @@ public class BaseDimensionalObject
     public void setDataDimension( boolean dataDimension )
     {
         this.dataDimension = dataDimension;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DimensionalKeywords getDimensionalKeywords()
+    {
+        return this.dimensionalKeywords;
+    }
+
+    public void setDimensionalKeywords(DimensionalKeywords dimensionalKeywords) {
+        this.dimensionalKeywords = dimensionalKeywords;
     }
 
     @Override
