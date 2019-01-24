@@ -68,6 +68,8 @@ public interface ProgramRuleVariableService
      */
     ProgramRuleVariable getProgramRuleVariable( int id );
 
+    ProgramRuleVariable getProgramRuleVariable( String name );
+
     /**
      * Returns all {@link ProgramRuleVariable}.
      *

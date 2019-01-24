@@ -33,8 +33,10 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -90,7 +92,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
 
-    protected static Map<String, ProgramD2Function> D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+    protected static Map<String, ProgramD2Function> COMMON_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
         .put( CountProgramD2Function.KEY, new CountProgramD2Function() )
         .put( CountIfConditionProgramD2Function.KEY, new CountIfConditionProgramD2Function() )
@@ -132,10 +134,19 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         .build();
 
     @Autowired
-    private ConstantService constantService;
+    protected ConstantService constantService;
 
     @Autowired
-    private I18nManager i18nManager;
+    protected I18nManager i18nManager;
+
+    @Autowired
+    protected DataElementService dataElementService;
+
+    @Autowired
+    protected ProgramStageService programStageService;
+
+    @Autowired
+    protected TrackedEntityAttributeService attributeService;
 
     @Override
     public String isValidExpression( String expression )

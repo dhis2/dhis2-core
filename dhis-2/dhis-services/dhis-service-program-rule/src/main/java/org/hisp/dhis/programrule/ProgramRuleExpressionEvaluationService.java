@@ -31,6 +31,8 @@ package org.hisp.dhis.programrule;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.AddDaysProgramD2Function;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
 import org.hisp.dhis.program.CeilProgramD2Function;
@@ -50,6 +52,9 @@ import org.hisp.dhis.program.UserRoleProgramD2Function;
 import org.hisp.dhis.program.ValidatePatternProgramD2Function;
 import org.hisp.dhis.program.ZPVCProgramD2Function;
 import org.hisp.dhis.program.ZingProgramD2Function;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +65,9 @@ import java.util.regex.Matcher;
  */
 public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
+    @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
+
     private static Map<String, ProgramD2Function> PROGRAM_RULE_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( UserRoleProgramD2Function.KEY, new UserRoleProgramD2Function() )
         .put( OrgUnitGroupProgramD2Function.KEY, new OrgUnitGroupProgramD2Function() )
@@ -84,8 +92,8 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        D2_FUNC_MAP.putAll( PROGRAM_RULE_D2_FUNC_MAP );
-        return D2_FUNC_MAP;
+        COMMON_D2_FUNC_MAP.putAll( PROGRAM_RULE_D2_FUNC_MAP );
+        return COMMON_D2_FUNC_MAP;
     }
 
     @Override
@@ -97,12 +105,67 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     @Override
     protected Map<String, String> getSourceDataElement( String uid, Matcher matcher )
     {
-        return null;
+        Map<String, String> resultMap = new HashMap<>();
+
+        DataElement dataElement = null;
+
+        ProgramRuleVariable ruleVariable = programRuleVariableService.getProgramRuleVariable( uid );
+
+        if ( ruleVariable != null && ruleVariable.hasDataElement() )
+        {
+            dataElement = dataElementService.getDataElement( ruleVariable.getDataElement().getUid() );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE );
+            return  resultMap;
+        }
+
+
+        if ( dataElement != null )
+        {
+            resultMap.put( DESCRIPTION, dataElement.getDisplayName() );
+            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( dataElement.getValueType() ) );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            return  resultMap;
+        }
+
+        return resultMap;
     }
 
     @Override
     protected Map<String, String> getSourceAttribute( String uid, Matcher matcher )
     {
-        return null;
+        Map<String, String> resultMap = new HashMap<>();
+
+        TrackedEntityAttribute attribute = null;
+
+        ProgramRuleVariable ruleVariable = programRuleVariableService.getProgramRuleVariable( uid );
+
+        if ( ruleVariable != null && ruleVariable.hasAttribute() )
+        {
+            attribute = attributeService.getTrackedEntityAttribute( ruleVariable.getAttribute().getUid() );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE );
+            return  resultMap;
+        }
+
+        if ( attribute != null )
+        {
+            resultMap.put( DESCRIPTION, attribute.getDisplayName() );
+            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            return  resultMap;
+        }
+
+        return resultMap;
     }
 }

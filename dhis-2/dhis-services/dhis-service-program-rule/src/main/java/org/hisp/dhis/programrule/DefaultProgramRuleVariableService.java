@@ -81,6 +81,12 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
+    public ProgramRuleVariable getProgramRuleVariable( String name )
+    {
+        return programRuleVariableStore.getByName( name );
+    }
+
+    @Override
     public List<ProgramRuleVariable> getAllProgramRuleVariable()
     {
         return programRuleVariableStore.getAll();

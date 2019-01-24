@@ -38,11 +38,8 @@ import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,15 +50,6 @@ import java.util.regex.Matcher;
  */
 public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
-    @Autowired
-    private ProgramStageService programStageService;
-
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
-
     private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
@@ -73,7 +61,7 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        return D2_FUNC_MAP;
+        return COMMON_D2_FUNC_MAP;
     }
 
     @Override
