@@ -196,8 +196,6 @@ public class ProgramRuleServiceTest
         
         assertEquals( ruleH, programRuleService.getProgramRule( idH ) );
     }
-    
-    
 
     @Test
     public void testDeleteProgramRule()

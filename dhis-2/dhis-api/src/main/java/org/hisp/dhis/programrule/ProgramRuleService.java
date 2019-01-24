@@ -113,7 +113,21 @@ public interface ProgramRuleService
      */
     List<ProgramRule> getProgramRules( Program program, String key );
 
+    /**
+     * Indicates whether the given program rule expression is valid.
+     *
+     * @param expression an expression string.
+     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#EXPRESSION_NOT_VALID},
+     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     */
     String expressionIsValid( String expression );
 
+    /**
+     * Get description of an program rule expression.
+     *
+     * @param expression An expression string
+     * @return The description
+     */
     String getExpressionDescription( String expression );
 }

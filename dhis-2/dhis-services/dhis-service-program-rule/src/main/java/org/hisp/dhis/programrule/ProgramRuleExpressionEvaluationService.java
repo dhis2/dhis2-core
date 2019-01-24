@@ -28,7 +28,6 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
 import org.hisp.dhis.program.ProgramD2Function;
@@ -42,30 +41,6 @@ import java.util.regex.Matcher;
  */
 public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
-    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
-        .put( VAR_COMPLETED_DATE, "'2017-07-08'" )
-        .put( VAR_CURRENT_DATE, "'2017-07-08'" )
-        .put( VAR_DUE_DATE, "'2017-07-08'" )
-        .put( VAR_ENROLLMENT_COUNT, "1" )
-        .put( VAR_ENROLLMENT_DATE, "'2017-07-08'" )
-        .put( VAR_ENROLLMENT_STATUS, "'COMPLETED'" )
-        .put( VAR_EVENT_COUNT, "1" )
-        .put( VAR_EVENT_DATE, "'2017-07-08'" )
-        .put( VAR_EXECUTION_DATE, "'2017-07-08'" )
-        .put( VAR_INCIDENT_DATE, "'2017-07-08'" )
-        .put( VAR_ANALYTICS_PERIOD_START, "'2017-07-01'" )
-        .put( VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" )
-        .put( VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
-        .put( VAR_TEI_COUNT, "1" )
-        .put( VAR_VALUE_COUNT, "1" )
-        .put( VAR_ENROLLMENT_ID, "WZbXY0S00sw" )
-        .put( VAR_ENVIRONMENT, "SERVER" )
-        .put( VAR_EVENT_ID, "WZbXY0S00qq" )
-        .put( VAR_PROGRAM_NAME, "Child Program" )
-        .put( VAR_ORGUNIT_CODE, "code1" )
-        .put( VAR_ORGUNIT, "Sierra Leone" )
-        .put( VAR_ANALYTICS_PERIOD_END, "'2017-07-07'" ).build();
-
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
