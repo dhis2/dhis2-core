@@ -36,9 +36,13 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -58,31 +62,31 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     protected static final String DESCRIPTION = "description";
     protected static final String SAMPLE_VALUE = "sample";
     protected static final String ERROR = "error";
-    protected static final String VAR_EVENT_DATE = "event_date";
-    protected static final String VAR_EXECUTION_DATE = "execution_date";
-    protected static final String VAR_DUE_DATE = "due_date";
-    protected static final String VAR_ENROLLMENT_DATE = "enrollment_date";
-    protected static final String VAR_INCIDENT_DATE = "incident_date";
-    protected static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
-    protected static final String VAR_CURRENT_DATE = "current_date";
-    protected static final String VAR_VALUE_COUNT = "value_count";
-    protected static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
-    protected static final String VAR_EVENT_COUNT = "event_count";
-    protected static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
-    protected static final String VAR_TEI_COUNT = "tei_count";
-    protected static final String VAR_COMPLETED_DATE = "completed_date";
-    protected static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
-    protected static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
-    protected static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
-    protected static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
+    private static final String VAR_EVENT_DATE = "event_date";
+    private static final String VAR_EXECUTION_DATE = "execution_date";
+    private static final String VAR_DUE_DATE = "due_date";
+    private static final String VAR_ENROLLMENT_DATE = "enrollment_date";
+    private static final String VAR_INCIDENT_DATE = "incident_date";
+    private static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
+    private static final String VAR_CURRENT_DATE = "current_date";
+    private static final String VAR_VALUE_COUNT = "value_count";
+    private static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
+    private static final String VAR_EVENT_COUNT = "event_count";
+    private static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
+    private static final String VAR_TEI_COUNT = "tei_count";
+    private static final String VAR_COMPLETED_DATE = "completed_date";
+    private static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
+    private static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
+    private static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
+    private static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
 
     // Additional variables for program rule
-    protected static final String VAR_ENROLLMENT_ID = "enrollment_id";
-    protected static final String VAR_ENVIRONMENT = "environment";
-    protected static final String VAR_EVENT_ID = "event_id";
-    protected static final String VAR_PROGRAM_NAME = "program_name";
-    protected static final String VAR_ORGUNIT_CODE = "orgunit_code";
-    protected static final String VAR_ORGUNIT = "org_unit";
+    private static final String VAR_ENROLLMENT_ID = "enrollment_id";
+    private static final String VAR_ENVIRONMENT = "environment";
+    private static final String VAR_EVENT_ID = "event_id";
+    private static final String VAR_PROGRAM_NAME = "program_name";
+    private static final String VAR_ORGUNIT_CODE = "orgunit_code";
+    private static final String VAR_ORGUNIT = "org_unit";
 
     private static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     private static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
@@ -91,6 +95,9 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
 
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
+
+    private static final List<String> ERROR_CODES = Arrays.asList( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION,
+        ExpressionUtils.UNKNOWN_VARIABLE, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE, ExpressionUtils.EXPRESSION_NOT_VALID );
 
     protected static Map<String, ProgramD2Function> COMMON_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
@@ -102,7 +109,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         .put( YearsBetweenProgramD2Function.KEY, new YearsBetweenProgramD2Function() )
         .put( MinutesBetweenProgramD2Function.KEY, new MinutesBetweenProgramD2Function() ).build();
 
-    protected static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
         .put( VAR_COMPLETED_DATE, "'2017-07-08'" )
         .put( VAR_CURRENT_DATE, "'2017-07-08'" )
         .put( VAR_DUE_DATE, "'2017-07-08'" )
@@ -149,7 +156,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     protected TrackedEntityAttributeService attributeService;
 
     @Override
-    public String isValidExpression( String expression )
+    public String isExpressionValid( String expression )
     {
         String expr = getSubstitutedSQLFunc( getSubstitutedExpression( expression ) );
 
@@ -225,8 +232,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     {
         String expr = getSubstitutedSQLFunc( getSubstitutedExpression( filter ) );
 
-        if ( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
-                || ExpressionUtils.UNKNOWN_VARIABLE.equals( expr ) )
+        if ( ERROR_CODES.contains( expr ) )
         {
             return expr;
         }
@@ -247,6 +253,21 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
 
     protected abstract Map<String, String> getSourceAttribute( String uid, Matcher matcher );
 
+    protected Map<String, String> setAttributeDescription( TrackedEntityAttribute attribute, Map<String, String> resultMap )
+    {
+        if ( attribute != null )
+        {
+            resultMap.put( DESCRIPTION, attribute.getDisplayName() );
+            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
+        }
+        else
+        {
+            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            return  resultMap;
+        }
+
+        return resultMap;
+    }
     /**
      * Generates an expression where all items are substituted with a sample
      * value in order to maintain a valid expression syntax.

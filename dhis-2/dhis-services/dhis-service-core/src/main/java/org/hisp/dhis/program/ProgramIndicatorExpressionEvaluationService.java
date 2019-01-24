@@ -104,17 +104,6 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
 
-        if ( attribute != null )
-        {
-            resultMap.put( DESCRIPTION, attribute.getDisplayName() );
-            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
-        }
-        else
-        {
-            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
-            return  resultMap;
-        }
-
-        return resultMap;
+        return setAttributeDescription( attribute, resultMap );
     }
 }

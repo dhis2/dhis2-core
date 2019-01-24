@@ -65,10 +65,12 @@ import java.util.regex.Matcher;
  */
 public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
+    private static final String PROGRAM_RULE_VARIABLE_VALUE = "1";
+
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
-    private static Map<String, ProgramD2Function> PROGRAM_RULE_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
+    private static final Map<String, ProgramD2Function> PROGRAM_RULE_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( UserRoleProgramD2Function.KEY, new UserRoleProgramD2Function() )
         .put( OrgUnitGroupProgramD2Function.KEY, new OrgUnitGroupProgramD2Function() )
         .put( LengthProgramD2Function.KEY, new LengthProgramD2Function() )
@@ -107,25 +109,35 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     {
         Map<String, String> resultMap = new HashMap<>();
 
-        DataElement dataElement = null;
+        DataElement dataElement;
 
         ProgramRuleVariable ruleVariable = programRuleVariableService.getProgramRuleVariable( uid );
 
-        if ( ruleVariable != null && ruleVariable.hasDataElement() )
+        if ( ruleVariable != null )
         {
-            dataElement = dataElementService.getDataElement( ruleVariable.getDataElement().getUid() );
-        }
-        else
-        {
-            resultMap.put( ERROR, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE );
-            return  resultMap;
-        }
+            if ( ProgramRuleVariableSourceType.CALCULATED_VALUE.equals( ruleVariable.getSourceType() ) )
+            {
+                resultMap.put( DESCRIPTION, ruleVariable.getName() );
+                resultMap.put( SAMPLE_VALUE, PROGRAM_RULE_VARIABLE_VALUE );
 
+                return resultMap;
+            }
 
-        if ( dataElement != null )
-        {
-            resultMap.put( DESCRIPTION, dataElement.getDisplayName() );
-            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( dataElement.getValueType() ) );
+            if ( ruleVariable.hasDataElement() )
+            {
+                dataElement = dataElementService.getDataElement( ruleVariable.getDataElement().getUid() );
+            }
+            else
+            {
+                resultMap.put( ERROR, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE );
+                return  resultMap;
+            }
+
+            if ( dataElement != null )
+            {
+                resultMap.put( DESCRIPTION, dataElement.getDisplayName() );
+                resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( dataElement.getValueType() ) );
+            }
         }
         else
         {
@@ -141,24 +153,27 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     {
         Map<String, String> resultMap = new HashMap<>();
 
-        TrackedEntityAttribute attribute = null;
+        TrackedEntityAttribute attribute;
 
         ProgramRuleVariable ruleVariable = programRuleVariableService.getProgramRuleVariable( uid );
 
-        if ( ruleVariable != null && ruleVariable.hasAttribute() )
+        if( ruleVariable != null )
         {
-            attribute = attributeService.getTrackedEntityAttribute( ruleVariable.getAttribute().getUid() );
-        }
-        else
-        {
-            resultMap.put( ERROR, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE );
-            return  resultMap;
-        }
+            if ( ruleVariable.hasAttribute() )
+            {
+                attribute = attributeService.getTrackedEntityAttribute( ruleVariable.getAttribute().getUid() );
+            }
+            else
+            {
+                resultMap.put( ERROR, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE );
+                return  resultMap;
+            }
 
-        if ( attribute != null )
-        {
-            resultMap.put( DESCRIPTION, attribute.getDisplayName() );
-            resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
+            if ( attribute != null )
+            {
+                resultMap.put( DESCRIPTION, attribute.getDisplayName() );
+                resultMap.put( SAMPLE_VALUE, ValidationUtils.getSubstitutionValue( attribute.getValueType() ) );
+            }
         }
         else
         {

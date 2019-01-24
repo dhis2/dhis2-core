@@ -341,7 +341,7 @@ public class DefaultProgramIndicatorService
     @Transactional
     public String expressionIsValid( String expression )
     {
-        return expressionEvaluationService.isValidExpression( expression );
+        return expressionEvaluationService.isExpressionValid( expression );
     }
 
     @Transactional
