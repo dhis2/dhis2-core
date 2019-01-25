@@ -42,6 +42,7 @@ public enum ResourceTableType
     CATEGORY_STRUCTURE( "_categorystructure" ),
     DATA_ELEMENT_STRUCTURE( "_dataelementstructure" ),
     PERIOD_STRUCTURE( "_periodstructure" ),
+    OVERFLOW_PERIOD_STRUCTURE( "_overflowperiodstructure" ),
     DATE_PERIOD_STRUCTURE( "_dateperiodstructure" ),
     DATA_ELEMENT_CATEGORY_OPTION_COMBO( "_dataelementcategoryoptioncombo" ),
     DATA_APPROVAL_REMAP_LEVEL( "_dataapprovalremaplevel" ),

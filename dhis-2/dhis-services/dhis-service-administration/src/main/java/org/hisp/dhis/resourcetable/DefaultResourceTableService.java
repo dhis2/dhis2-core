@@ -205,6 +205,12 @@ public class DefaultResourceTableService
     public void generatePeriodTable()
     {
         resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
+    }    
+    
+    @Override
+    public void generateOverflowPeriodTable()
+    {
+        resourceTableStore.generateResourceTable( new OverflowPeriodResourceTable( periodService.getAllPeriods() ) );
     }
 
     @Override

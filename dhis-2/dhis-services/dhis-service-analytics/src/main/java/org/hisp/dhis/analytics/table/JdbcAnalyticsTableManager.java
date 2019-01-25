@@ -165,13 +165,22 @@ public class JdbcAnalyticsTableManager
             "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
             numericClause;
 
-        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause, "_periodstructure" );
 
-        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause, "_periodstructure" );
 
-        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause, "_periodstructure" );
 
-        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause, "_periodstructure" );
+        
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause, "_overflowperiodstructure" );
+
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause, "_overflowperiodstructure" );
+
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause, "_overflowperiodstructure" );
+
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause, "_overflowperiodstructure" );
+
     }
 
     /**
@@ -184,7 +193,7 @@ public class JdbcAnalyticsTableManager
      * @param whereClause where clause to constrain data query.
      */
     private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
-        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause, String periodStructure )
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
@@ -216,7 +225,7 @@ public class JdbcAnalyticsTableManager
             textValueExpression + " as textvalue " +
             "from datavalue dv " +
             "inner join period pe on dv.periodid=pe.periodid " +
-            "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+            "inner join " + periodStructure + " ps on dv.periodid=ps.periodid " +
             "inner join dataelement de on dv.dataelementid=de.dataelementid " +
             "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
             "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
