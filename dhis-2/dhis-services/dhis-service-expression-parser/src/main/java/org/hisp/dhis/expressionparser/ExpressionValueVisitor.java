@@ -29,15 +29,12 @@ package org.hisp.dhis.expressionparser;
  */
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.expressionparser.generated.ExpressionParser.*;
 
 /**

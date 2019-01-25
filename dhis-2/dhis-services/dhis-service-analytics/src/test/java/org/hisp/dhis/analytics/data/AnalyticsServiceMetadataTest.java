@@ -50,7 +50,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
