@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandom;
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -51,7 +50,6 @@ import com.google.common.collect.Sets;
  */
 public class BaseDimensionalObjectTest
 {
-
     @Test
     public void verifyInstanceCloneObject()
     {
@@ -96,20 +94,15 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.isFixed(), is( target.isFixed() ) );
         assertThat( cloned.getDimensionalKeywords().getGroupBy(),
             hasSize( target.getDimensionalKeywords().getGroupBy().size() ) );
-
     }
 
     private DimensionalItemObject buildDimensionalItemObject()
     {
         return aNewEnhancedRandom().nextObject( BaseDimensionalItemObject.class );
-
     }
 
     private Legend buildLegend()
     {
-
         return aNewEnhancedRandom().nextObject( Legend.class );
-
     }
-
 }

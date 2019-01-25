@@ -1,5 +1,14 @@
 package org.hisp.dhis.common;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.legend.LegendSet;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -8,15 +17,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.QueryKey;
-import org.hisp.dhis.legend.LegendSet;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -387,7 +387,8 @@ public class BaseDimensionalObject
         return this.dimensionalKeywords;
     }
 
-    public void setDimensionalKeywords(DimensionalKeywords dimensionalKeywords) {
+    public void setDimensionalKeywords( DimensionalKeywords dimensionalKeywords )
+    {
         this.dimensionalKeywords = dimensionalKeywords;
     }
 

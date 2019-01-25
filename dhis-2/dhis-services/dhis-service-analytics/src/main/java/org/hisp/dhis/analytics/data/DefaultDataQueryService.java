@@ -67,8 +67,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 public class DefaultDataQueryService
-    implements
-    DataQueryService
+    implements DataQueryService
 {
     private IdentifiableObjectManager idObjectManager;
 
@@ -304,12 +303,12 @@ public class DefaultDataQueryService
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, buildCategoryOptionComboList(items, inputIdScheme) );
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( ATTRIBUTEOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, buildCategoryOptionComboList(items, inputIdScheme) );
+            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( PERIOD_DIM_ID.equals( dimension ) )
@@ -523,14 +522,6 @@ public class DefaultDataQueryService
         throw new IllegalQueryException( "Dimension identifier does not reference any dimension: " + dimension );
     }
 
-    private List<DimensionalItemObject> buildCategoryOptionComboList(List<String> items, IdScheme inputIdScheme) {
-
-
-        return items.stream().map(item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
@@ -563,6 +554,13 @@ public class DefaultDataQueryService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private List<DimensionalItemObject> buildCategoryOptionComboList( List<String> items, IdScheme inputIdScheme )
+    {
+        return items.stream().map( item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item ) )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+    }
 
     private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
     {

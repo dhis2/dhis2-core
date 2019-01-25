@@ -244,7 +244,7 @@ public class DimensionalObjectUtils
      */
     public static String getUidFromGroupParam( String param )
     {
-        return getValueFromKeywordParam(param);
+        return getValueFromKeywordParam( param );
     }
 
     /**
@@ -468,7 +468,7 @@ public class DimensionalObjectUtils
      */
     public static List<String> getDimensionalItemIds( Collection<DimensionalItemObject> objects )
     {
-        return objects.stream().map(DimensionalItemObject::getDimensionItem).collect( Collectors.toList() );
+        return objects.stream().map( DimensionalItemObject::getDimensionItem ).collect( Collectors.toList() );
     }
 
     /**

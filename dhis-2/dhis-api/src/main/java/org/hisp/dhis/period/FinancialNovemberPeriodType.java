@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,33 +28,53 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
+
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * @author Luciano Fiandesio
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class DimensionalKeywords
+public class FinancialNovemberPeriodType 
+    extends FinancialPeriodType
 {
-    private List<BaseIdentifiableObject> groupBy;
 
-    public DimensionalKeywords(List<BaseIdentifiableObject> groupBy )
+    private static final long serialVersionUID = -8443905531396977357L;
+
+    private static final String ISO_FORMAT = "yyyyNov";
+
+    private static final String ISO8601_DURATION = "P1Y";
+
+    public static final String NAME = "FinancialNov";
+
+    @Override
+    protected int getBaseMonth()
     {
-        this.groupBy = groupBy;
+        return Calendar.NOVEMBER;
     }
 
-    public DimensionalKeywords()
+    @Override
+    public String getName()
     {
-        this.groupBy = new ArrayList<>();
+        return NAME;
     }
 
-    public void addGroupBy( BaseIdentifiableObject groupByItem )
+    @Override
+    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        this.groupBy.add( groupByItem );
+        return String.format( "%dNov", dateTimeUnit.getYear() + 1 );
     }
 
-    public List<BaseIdentifiableObject> getGroupBy()
+    @Override
+    public String getIsoFormat()
     {
-        return groupBy;
+        return ISO_FORMAT;
+    }
+
+    @Override
+    public String getIso8601Duration()
+    {
+        return ISO8601_DURATION;
     }
 }
