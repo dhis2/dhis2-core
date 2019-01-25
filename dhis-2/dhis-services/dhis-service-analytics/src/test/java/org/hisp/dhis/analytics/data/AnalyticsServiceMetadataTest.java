@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -94,7 +94,7 @@ public class AnalyticsServiceMetadataTest
     private DefaultQueryValidator queryValidator;
 
     @Mock
-    private ExpressionService expressionService;
+    private ExpressionParserService expressionParserService;
 
     @Mock
     private ConstantService constantService;
@@ -126,7 +126,7 @@ public class AnalyticsServiceMetadataTest
     public void setUp()
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-            queryValidator, expressionService, constantService, organisationUnitService, systemSettingManager,
+            queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
             eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();

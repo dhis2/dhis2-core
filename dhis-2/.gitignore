@@ -8,6 +8,7 @@
 /dhis-services/dhis-service-administration/target/
 /dhis-services/dhis-service-analytics/target/
 /dhis-services/dhis-service-core/target/
+/dhis-services/dhis-service-expression-parser/target/
 /dhis-services/dhis-service-dxf2/target/
 /dhis-services/dhis-service-mobile/target/
 /dhis-services/dhis-service-node/target/
