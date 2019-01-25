@@ -34,7 +34,6 @@ import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -110,6 +109,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
+    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
 
     public static final int DX_INDEX = 0;
 
@@ -269,6 +269,11 @@ public class DataQueryParams
      * The time field used as basis for aggregation.
      */
     protected String timeField;
+
+    /**
+     * The organisation unit field used as basis for aggregation in the hierarchy.
+     */
+    protected String orgUnitField;
 
     /**
      * The API version used for the request.
@@ -446,6 +451,7 @@ public class DataQueryParams
         params.endDate = this.endDate;
         params.order = this.order;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.currentUser = this.currentUser;
@@ -464,6 +470,47 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
 
         return params;
+    }
+
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+
+        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+
+        return key
+            .add( aggregationType )
+            .add( skipMeta )
+            .add( skipData )
+            .add( skipHeaders )
+            .add( skipRounding )
+            .add( completedOnly )
+            .add( hierarchyMeta )
+            .add( ignoreLimit )
+            .add( hideEmptyRows )
+            .add( hideEmptyColumns )
+            .add( showHierarchy )
+            .add( includeNumDen )
+            .add( includePeriodStartEndDates )
+            .add( includeMetadataDetails )
+            .add( displayProperty )
+            .add( outputIdScheme )
+            .add( outputFormat )
+            .add( duplicatesOnly )
+            .add( approvalLevel )
+            .add( startDate )
+            .add( endDate )
+            .add( order )
+            .add( timeField )
+            .add( orgUnitField )
+            .addIgnoreNull( apiVersion ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -523,10 +570,7 @@ public class DataQueryParams
      */
     public boolean hasPeriods()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( PERIOD_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( PERIOD_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( PERIOD_DIM_ID ).isEmpty();
     }
 
     /**
@@ -591,10 +635,7 @@ public class DataQueryParams
      */
     public boolean hasOrganisationUnits()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( ORGUNIT_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( ORGUNIT_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( ORGUNIT_DIM_ID ).isEmpty();
     }
 
     /**
@@ -685,7 +726,7 @@ public class DataQueryParams
      */
     public boolean isDataType( DataType dataType )
     {
-        return this.dataType != null && this.dataType.equals( dataType );
+        return this.dataType != null && this.dataType == dataType;
     }
 
     /**
@@ -878,20 +919,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( DimensionType dimensionType )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        if ( dimensionType != null )
-        {
-            for ( DimensionalObject dimension : getDimensionsAndFilters() )
-            {
-                if ( dimension.getDimensionType().equals( dimensionType ) )
-                {
-                    list.add( dimension );
-                }
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionType == d.getDimensionType() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -899,17 +929,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        for ( DimensionalObject dimension : getDimensionsAndFilters() )
-        {
-            if ( dimensionTypes.contains( dimension.getDimensionType() ) )
-            {
-                list.add( dimension );
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -940,41 +962,46 @@ public class DataQueryParams
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
     }
 
-    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
+    /**
+     * Returns all dimension items part of dimensions of the given dimension type.
+     */
+    public List<DimensionalItemObject> getDimensionalItemObjects( DimensionType dimensionType )
     {
-        List<DimensionalItemObject> items = new ArrayList<>();
-
-        if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
-        {
-            List<DimensionalItemObject> des = getDataElements();
-
-            if ( !des.isEmpty() )
-            {
-                Set<CategoryCombo> categoryCombos = Sets.newHashSet();
-
-                for ( DimensionalItemObject de : des )
-                {
-                    categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
-                }
-
-                for ( CategoryCombo cc : categoryCombos )
-                {
-                    items.addAll( cc.getSortedOptionCombos() );
-                }
-            }
-        }
-        else
-        {
-            items.addAll( getDimensionOptions( dimension ) );
-        }
-
-        return items;
+        return getDimensionsAndFilters( dimensionType ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toList() );
     }
 
     /**
-     * Retrieves the options for the given dimension identifier. If the "co"
-     * dimension is specified, all category option combinations for the first data
-     * element is returned. Returns an empty array if the dimension is not present.
+     * Retrieves the dimension items for the given dimension. If the given dimension
+     * is {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID}, the category option
+     * combinations associated with all data elements in this query through their
+     * category combinations are retrieved.
+     */
+    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
+    {
+        if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
+        {
+            return getDataElements().stream()
+                .map( de -> ((DataElement) de).getCategoryCombos() )
+                .flatMap( cc -> cc.stream() )
+                .distinct() // Get unique category combinations
+                .map( cc -> cc.getSortedOptionCombos() )
+                .flatMap( coc -> coc.stream() )
+                .collect( Collectors.toList() );
+        }
+        else
+        {
+            return getDimensionOptions( dimension );
+        }
+    }
+
+    /**
+     * Retrieves the options for the given dimension identifier. If the
+     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all
+     * category option combinations for the first data element is returned. Returns an
+     * empty array if the dimension is not present.
      */
     public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {
@@ -1190,6 +1217,23 @@ public class DataQueryParams
     public String getTimeFieldAsFieldFallback()
     {
         return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
+    }
+
+    /**
+     * Indicates whether a (non-default) organisation unit field is specified.
+     */
+    public boolean hasOrgUnitField()
+    {
+        return orgUnitField != null;
+    }
+
+    /**
+     * Returns the organisation unit field if specified; if not
+     * returns the default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
+     */
+    public String getOrgUnitFieldFallback()
+    {
+        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
     }
 
     /**
@@ -1453,7 +1497,7 @@ public class DataQueryParams
 
         while ( dimensionIter.hasNext() )
         {
-            if ( !dimensionIter.next().getDimensionType().equals( type ) )
+            if ( dimensionIter.next().getDimensionType() != type )
             {
                 dimensionIter.remove();
             }
@@ -1463,7 +1507,7 @@ public class DataQueryParams
 
         while ( filterIter.hasNext() )
         {
-            if ( !filterIter.next().getDimensionType().equals( type ) )
+            if ( filterIter.next().getDimensionType() != type )
             {
                 filterIter.remove();
             }
@@ -1911,6 +1955,11 @@ public class DataQueryParams
         return timeField;
     }
 
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
     public DhisApiVersion getApiVersion()
     {
         return apiVersion;
@@ -2030,7 +2079,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicatfors()
+    public List<DimensionalItemObject> getAllIndicators()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -2108,7 +2157,16 @@ public class DataQueryParams
     public List<DimensionalObject> getDataElementGroupSets()
     {
         return ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
+            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET == d.getDimensionType() ).collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns all data element groups part of dimensions and filters of type
+     * data element group set.
+     */
+    public List<DimensionalItemObject> getAllDataElementGroups()
+    {
+        return getDimensionalItemObjects( DimensionType.DATA_ELEMENT_GROUP_SET );
     }
 
     /**
@@ -2117,13 +2175,10 @@ public class DataQueryParams
      */
     public Set<DimensionalItemObject> getCategoryOptions()
     {
-        final Set<DimensionalItemObject> categoryOptions = new HashSet<>();
-
-        ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.CATEGORY.equals( d.getDimensionType() ) )
-            .forEach( d -> categoryOptions.addAll( d.getItems() ) );
-
-        return categoryOptions;
+        return getDimensionsAndFilters( DimensionType.CATEGORY ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -2770,6 +2825,12 @@ public class DataQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 

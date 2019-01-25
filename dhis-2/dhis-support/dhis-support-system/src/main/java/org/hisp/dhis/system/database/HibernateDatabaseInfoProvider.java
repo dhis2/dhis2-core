@@ -28,23 +28,34 @@
 
 package org.hisp.dhis.system.database;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
-{    
+{
+    private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
+    private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
     private static final String DEL_A = "/";
     private static final String DEL_B = ":";
     private static final String DEL_C = "?";
+    private static final String POSTGRES_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)? .*$";
+
+    private static final Pattern PATTERN = Pattern.compile( POSTGRES_REGEX );
 
     private DatabaseInfo info;
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -54,11 +65,21 @@ public class HibernateDatabaseInfoProvider
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-        
+
     public void init()
     {
+        checkDatabaseConnectivity();
+
         boolean spatialSupport = isSpatialSupport();
-        
+
+        // Check if postgis is installed. If not, fail startup.
+
+        if ( !spatialSupport && !SystemUtils.isTestRun() )
+        {
+            log.error( POSTGIS_MISSING_ERROR );
+            throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+        }
+
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );
         String user = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String password = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
@@ -69,18 +90,19 @@ public class HibernateDatabaseInfoProvider
         info.setPassword( password );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
+        info.setDatabaseVersion( getDatabaseVersion() );
     }
-    
+
     // -------------------------------------------------------------------------
     // DatabaseInfoProvider implementation
     // -------------------------------------------------------------------------
 
     @Override
     public DatabaseInfo getDatabaseInfo()
-    {   
+    {
         return info;
     }
-    
+
     @Override
     public boolean isInMemory()
     {
@@ -91,17 +113,17 @@ public class HibernateDatabaseInfoProvider
     public String getNameFromConnectionUrl( String url )
     {
         String name = null;
-        
+
         if ( url != null && url.lastIndexOf( DEL_B ) != -1 )
         {
-            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );            
+            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );
             int endPos = url.lastIndexOf( DEL_C ) != -1 ? url.lastIndexOf( DEL_C ) : url.length();
             name = url.substring( startPos + 1, endPos );
         }
-        
+
         return name;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -110,6 +132,33 @@ public class HibernateDatabaseInfoProvider
      * Attempts to create a spatial database extension. Checks if spatial operations
      * are supported.
      */
+
+    private String getDatabaseVersion()
+    {
+        try
+        {
+            String version = jdbcTemplate.queryForObject( "select version();", String.class );
+
+            Matcher matcher = PATTERN.matcher( version );
+
+            if( matcher.find() )
+            {
+                version = matcher.group( 1 );
+            }
+
+            return version;
+        }
+        catch ( Exception ex )
+        {
+            return "";
+        }
+    }
+
+    private void checkDatabaseConnectivity()
+    {
+        jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
+    }
+
     private boolean isSpatialSupport()
     {
         try
@@ -119,15 +168,16 @@ public class HibernateDatabaseInfoProvider
         catch ( Exception ex )
         {
         }
-        
+
         try
         {
             String version = jdbcTemplate.queryForObject( "select postgis_full_version();", String.class );
-            
+
             return version != null;
         }
         catch ( Exception ex )
         {
+            log.error( "Exception when checking postgis version:", ex );
             return false;
         }
     }

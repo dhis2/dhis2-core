@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -136,7 +137,7 @@ public enum SettingKey
     CALENDAR( "keyCalendar", "iso8601", String.class ),
     DATE_FORMAT( "keyDateFormat", "yyyy-MM-dd", String.class ),
     APP_STORE_URL( "appStoreUrl", "https://www.dhis2.org/appstore", String.class ),
-    APP_STORE_INDEX_URL( "appStoreIndexUrl", "https://s3-eu-west-1.amazonaws.com/dhis2-appstore/appstore.json", String.class ),
+    APP_STORE_INDEX_URL( "keyAppStoreIndexUrl", "https://s3-eu-west-1.amazonaws.com/dhis2-appstore/appstore.json", String.class ),
     APP_STORE( "keyAppStoreUrl", "https://play.dhis2.org/appstore/", String.class ),
     APP_STORE_API_URL( "keyAppStoreApiUrl", "https://play.dhis2.org/appstore/api/apps", String.class ),
     STYLE( "keyStyle", "light_blue/light_blue.css", String.class ),
@@ -162,7 +163,24 @@ public enum SettingKey
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),
     KEY_SCHED_TASKS( "keySchedTasks" ),
-    LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class );
+    LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class ),
+    LOGGING_LEVEL( "keyLoggingLevel", "INFO", String.class ),
+    LOGGING_FORMAT( "keyLoggingFormat", "TEXT", String.class ),
+    LOGGING_ADAPTER_CONSOLE( "keyLoggingConsole", Boolean.TRUE, Boolean.class ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "keyLoggingConsoleLevel", "INFO", String.class ),
+    LOGGING_ADAPTER_CONSOLE_FORMAT( "keyLoggingConsoleFormat", "TEXT", String.class ),
+    LOGGING_ADAPTER_FILE( "keyLoggingFile", Boolean.FALSE, Boolean.class ),
+    LOGGING_ADAPTER_FILE_NAME( "keyLoggingFileName", "dhis2.log", String.class ),
+    LOGGING_ADAPTER_FILE_LEVEL( "keyLoggingFileLevel", "INFO", String.class ),
+    LOGGING_ADAPTER_FILE_FORMAT( "keyLoggingFileFormat", "JSON", String.class ),
+    LOGGING_ADAPTER_KAFKA( "keyLoggingKafka", Boolean.FALSE, Boolean.class ),
+    LOGGING_ADAPTER_KAFKA_LEVEL( "keyLoggingKafkaLevel", "INFO", String.class ),
+    LOGGING_ADAPTER_KAFKA_FORMAT( "keyLoggingKafkaFormat", "JSON", String.class ),
+    LOGGING_ADAPTER_KAFKA_TOPIC( "keyLoggingKafkaTopic", "dhis2-log", String.class ),
+    ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class );
 
     private final String name;
 
@@ -267,7 +285,7 @@ public enum SettingKey
             {
                 return FileResourceRetentionStrategy.valueOf( value );
             }
-            else if( Date.class.isAssignableFrom( settingClazz ) )
+            else if ( Date.class.isAssignableFrom( settingClazz ) )
             {
                 //Accepts String with date in ISO_LOCAL_DATE_TIME format
                 LocalDateTime dateTime = LocalDateTime.parse( value );
@@ -293,9 +311,9 @@ public enum SettingKey
 
     private static ImmutableSet<String> getNameSet()
     {
-        Set<String> names = Sets.newHashSet();
-        Sets.newHashSet( SettingKey.values() ).forEach( s -> names.add( s.getName() ) );
-        return ImmutableSet.copyOf( names );
+        return ImmutableSet.copyOf( Sets.newHashSet( SettingKey.values() ).stream()
+            .map( s -> s.getName() )
+            .collect( Collectors.toSet() ) );
     }
 
     // -------------------------------------------------------------------------

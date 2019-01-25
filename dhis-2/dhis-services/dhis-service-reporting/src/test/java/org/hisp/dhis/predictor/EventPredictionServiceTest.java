@@ -29,8 +29,8 @@ package org.hisp.dhis.predictor;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryManager;
@@ -97,7 +97,7 @@ import static org.junit.Assert.assertEquals;
  */
 @Category( IntegrationTest.class )
 public class EventPredictionServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private PredictorService predictorService;
@@ -387,7 +387,7 @@ public class EventPredictionServiceTest
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID ) );
 
-        int month = 201703;
+        int month = Integer.valueOf( testYear + "03" );
 
         for ( double value : values )
         {

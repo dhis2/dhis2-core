@@ -236,7 +236,7 @@ public class EventImportTest extends DhisSpringTest
     public void testAddEventOnNonExistentProgram()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( "nonexistent", programStageB.getUid(), organisationUnitB.getUid(), null, dataElementB, "10" );
+        InputStream is = createEventJsonInputStream( "null", programStageB.getUid(), organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(), CoreMatchers.containsString( "does not point to a valid program" ) );
@@ -247,7 +247,7 @@ public class EventImportTest extends DhisSpringTest
     public void testAddEventOnNonExistentProgramStage()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), "nonexistent", organisationUnitA.getUid(), null, dataElementA, "10" );
+        InputStream is = createEventJsonInputStream( programA.getUid(), "null", organisationUnitA.getUid(), null, dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(), CoreMatchers.containsString( "does not point to a valid programStage" ) );
@@ -275,18 +275,18 @@ public class EventImportTest extends DhisSpringTest
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
-            CoreMatchers.containsString( "No Event.trackedEntityInstance was provided for registration based program" ) );
+            CoreMatchers.containsString( "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
     }
 
     @Test
     public void testAddEventOnProgramWithRegistrationWithInvalidTei()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), "nonexistent", dataElementA, "10" );
+        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), "null", dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
-            CoreMatchers.containsString( "Event.trackedEntityInstance does not point to a valid tracked entity instance" ) );
+            CoreMatchers.containsString( "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
 
     }
 
@@ -314,9 +314,9 @@ public class EventImportTest extends DhisSpringTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    @SuppressWarnings("unchecked")
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person, DataElement dataElement, String value )
     {
-
         JSONObject eventJsonPayload = new JSONObject();
         eventJsonPayload.put( "program", program );
         eventJsonPayload.put( "programStage", programStage );

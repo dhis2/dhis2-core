@@ -120,6 +120,19 @@ public class TestDhisConfigurationProvider
         return false;
     }
 
+
+    @Override
+    public long getAnalyticsCacheExpiration()
+    {
+        return 0;
+    }
+
+    @Override
+    public boolean isAnalyticsCacheEnabled()
+    {
+        return false;
+    }
+
     @Override
     public boolean isClusterEnabled()
     {
@@ -157,5 +170,10 @@ public class TestDhisConfigurationProvider
             log.warn( String.format( "Could not load %s from classpath", fileName ), ex );
             return new Properties();
         }
+    }
+
+    public void addProperties( Properties properties )
+    {
+        this.properties.putAll( properties );
     }
 }

@@ -197,7 +197,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
         throws IOException
     {
@@ -214,7 +214,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
         Map<String, LinkedList<Notification>> notifications = new HashMap<>();
@@ -251,7 +251,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -267,7 +267,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -348,7 +348,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
+    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
@@ -379,9 +379,9 @@ public class SystemController
 
     private List<StyleObject> getFlagObjects()
     {
-        I18n i18n = i18nManager.getI18n();        
+        I18n i18n = i18nManager.getI18n();
         return systemSettingManager.getFlags().stream()
-            .map( flag -> new StyleObject( i18n.getString( flag ), flag, ( flag + ".png" ) ) )
+            .map( flag -> new StyleObject( i18n.getString( flag ), flag, (flag + ".png") ) )
             .collect( Collectors.toList() );
     }
 }

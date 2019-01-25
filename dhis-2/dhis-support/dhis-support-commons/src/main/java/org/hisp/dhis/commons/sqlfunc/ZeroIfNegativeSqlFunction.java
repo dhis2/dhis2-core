@@ -51,4 +51,9 @@ public class ZeroIfNegativeSqlFunction
 
         return "coalesce(case when " + value + " < 0 then 0 else " + value + " end, 0)";
     }
+    
+    public String getSampleValue()
+    {
+        return "1";
+    }
 }

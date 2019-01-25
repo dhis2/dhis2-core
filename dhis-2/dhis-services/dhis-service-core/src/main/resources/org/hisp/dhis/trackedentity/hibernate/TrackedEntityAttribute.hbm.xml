@@ -82,6 +82,8 @@
 
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"
       column="userid" foreign-key="fk_trackedentityattribute_userid" />
@@ -105,13 +107,6 @@
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="trackedentityattributetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="trackedentityattributeid" foreign-key="fk_objecttranslation_trackedentityattributeid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>

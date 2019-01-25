@@ -156,7 +156,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
-    
+
     @Autowired
     protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
 
@@ -183,34 +183,34 @@ public abstract class AbstractTrackedEntityInstanceService
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
-        
+
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
-        
+
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
             .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
-        
+
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
-        
+
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
             List<Program> programs = manager.getAll( Program.class );
-            
+
             for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
             {
                 attributes = new HashSet<>( trackedEntityTypeAttributes );
-                
+
                 // check if user can read the TEI
                 if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
                 {
                     // pick only those program attributes that user is the owner
                     for ( Program program : programs )
                     {
-                        if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) ) 
+                        if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) )
                         {
                             attributes.addAll( program.getTrackedEntityAttributes() );
                         }
                     }
-                    
+
                     dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
                 }
             }
@@ -218,19 +218,19 @@ public abstract class AbstractTrackedEntityInstanceService
         else
         {
             attributes = new HashSet<>( trackedEntityTypeAttributes );
-            
+
             if ( queryParams.hasProgram() )
             {
                 attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
             }
-            
+
             for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
             {
                 if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
                 {
                     dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
                 }
-            }            
+            }
         }
 
         return dtoTeis;
@@ -285,7 +285,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             throw new IllegalQueryException( errors.toString() );
         }
-        
+
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
 
         return getTei( daoTrackedEntityInstance, readableAttributes, params, user );
@@ -480,7 +480,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -505,7 +504,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
-                importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, importOptions ) );
+                importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, importOptions, false ) );
             }
 
             clearSession();
@@ -516,7 +515,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Override
     public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance,
-        ImportOptions importOptions )
+        ImportOptions importOptions, boolean singleUpdate )
     {
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
         importOptions = updateImportOptions( importOptions );
@@ -607,7 +606,7 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        if ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty() )
+        if ( singleUpdate && ( !importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty() ))
         {
             importSummary.setRelationships( handleRelationships( dtoEntityInstance, daoEntityInstance, importOptions ) );
         }
@@ -898,7 +897,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
     }
-    
+
     private void addAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
     {
@@ -1270,7 +1269,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 trackedEntityInstance.getProgramOwners().add( new ProgramOwner( programOwner ) );
             }
 
-        }        
+        }
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {

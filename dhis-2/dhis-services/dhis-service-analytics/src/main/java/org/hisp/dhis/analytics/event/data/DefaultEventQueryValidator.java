@@ -126,6 +126,11 @@ public class DefaultEventQueryValidator
             violation = "Time field is invalid: " + params.getTimeField();
         }
 
+        if ( params.hasOrgUnitField() && !params.orgUnitFieldIsValid() )
+        {
+            violation = "Org unit field is invalid: " + params.getOrgUnitField();
+        }
+
         if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
         {
             violation = "Cluster size must be a positive number: " + params.getClusterSize();

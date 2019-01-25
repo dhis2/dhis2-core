@@ -28,11 +28,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -48,6 +45,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -81,7 +79,7 @@ import java.util.Map;
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
-    private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultObjectBundleService.class );
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -124,9 +122,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     @Autowired
     private SystemService systemService;
-
-    @Autowired
-    private AmqpService amqpService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -274,12 +269,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.CREATE );
 
-            if ( amqpService.isEnabled() )
-            {
-                audit.setValue( renderService.toJsonAsString( object ) );
-                amqpService.publish( audit );
-            }
-
             if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
@@ -391,12 +380,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.UPDATE );
 
-            if ( amqpService.isEnabled() )
-            {
-                audit.setValue( renderService.toJsonAsString( patch ) );
-                amqpService.publish( audit );
-            }
-
             if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
@@ -482,12 +465,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setUid( object.getUid() );
             audit.setCode( object.getCode() );
             audit.setType( AuditType.DELETE );
-
-            if ( amqpService.isEnabled() )
-            {
-                audit.setValue( renderService.toJsonAsString( object ) );
-                amqpService.publish( audit );
-            }
 
             if ( log.isDebugEnabled() )
             {

@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.event.data;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -40,15 +40,18 @@ import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +76,7 @@ import java.util.Map;
  */
 @Category( IntegrationTest.class )
 public class EventAnalyticsServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     private Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
 
@@ -81,6 +84,12 @@ public class EventAnalyticsServiceTest
 
     @Autowired
     private EventAnalyticsService eventAnalyticsService;
+
+    @Autowired
+    private PeriodService periodService;
+
+    @Autowired
+    private DataElementService dataElementService;
 
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
@@ -91,29 +100,39 @@ public class EventAnalyticsServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    @Autowired
+    private UserService _userService;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Override
     public void setUpTest()
         throws IOException
     {
+        userService = _userService;
         Period peJan = createPeriod( "2017-01" );
         Period peFeb = createPeriod( "2017-02" );
         Period peMar = createPeriod( "2017-03" );
         Period peApril = createPeriod( "2017-04" );
 
-        idObjectManager.save( peJan );
-        idObjectManager.save( peFeb );
-        idObjectManager.save( peMar );
-        idObjectManager.save( peApril );
+        periodService.addPeriod( peJan );
+        periodService.addPeriod( peFeb );
+        periodService.addPeriod( peMar );
+        periodService.addPeriod( peApril );
 
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
         DataElement deC = createDataElement( 'C' );
         DataElement deD = createDataElement( 'D' );
 
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
-        idObjectManager.save( deD );
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
 
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
@@ -206,6 +225,7 @@ public class EventAnalyticsServiceTest
 
         results.put( "events_2017", events_2017_keyValue );
 
+        createAndInjectAdminUser();
     }
 
     @Override

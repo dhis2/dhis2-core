@@ -53,7 +53,6 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -123,9 +122,6 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private I18nManager i18nManager;
-
-    @Autowired
-    private SchedulingManager schedulingManager;
 
     @Autowired
     @Qualifier( "emailMessageSender" )
@@ -498,11 +494,13 @@ public class DefaultPushAnalysisService
     {
         ExternalFileResource externalFileResource = new ExternalFileResource();
 
-        externalFileResource.setFileResource( fileResource );
         externalFileResource.setExpires( null );
 
         fileResource.setAssigned( true );
-        schedulingManager.executeJob( () -> fileResourceService.saveFileResource( fileResource, bytes ) );
+
+        String fileResourceUid = fileResourceService.saveFileResource( fileResource, bytes );
+
+        externalFileResource.setFileResource( fileResourceService.getFileResource( fileResourceUid ) );
 
         return externalFileResourceService.saveExternalFileResource( externalFileResource );
 

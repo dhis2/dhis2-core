@@ -69,6 +69,7 @@ public class EventQueryParams
     extends DataQueryParams
 {
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
     /**
      * The query items.
@@ -222,6 +223,7 @@ public class EventQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.timeField = this.timeField;
+        params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
@@ -314,6 +316,45 @@ public class EventQueryParams
         return builder
             .withAggregateData( true )
             .removeDimension( DATA_X_DIM_ID ).build();
+    }
+
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    @Override
+    public String getKey()
+    {
+        QueryKey key = new QueryKey()
+            .add( super.getKey() );
+
+        items.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        itemFilters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        itemProgramIndicators.forEach( e -> key.add( e.getUid() ) );
+        asc.forEach( e -> e.getUid() );
+        desc.forEach( e -> e.getUid() );
+
+        return key
+            .addIgnoreNull( value, () -> value.getUid() )
+            .addIgnoreNull( programIndicator, () -> programIndicator.getUid() )
+            .addIgnoreNull( organisationUnitMode )
+            .addIgnoreNull( page )
+            .addIgnoreNull( pageSize )
+            .addIgnoreNull( sortOrder )
+            .addIgnoreNull( limit )
+            .addIgnoreNull( outputType )
+            .addIgnoreNull( eventStatus )
+            .addIgnoreNull( collapseDataDimensions )
+            .addIgnoreNull( coordinatesOnly )
+            .addIgnoreNull( geometryOnly )
+            .addIgnoreNull( aggregateData )
+            .addIgnoreNull( clusterSize )
+            .addIgnoreNull( coordinateField )
+            .addIgnoreNull( bbox )
+            .addIgnoreNull( includeClusterPoints )
+            .addIgnoreNull( programStatus )
+            .addIgnoreNull( includeMetadataDetails )
+            .addIgnoreNull( dataIdScheme )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -440,6 +481,33 @@ public class EventQueryParams
 
         if ( program.getDataElements().stream()
             .anyMatch( de -> de.getValueType().isDate() && timeField.equals( de.getUid() ) ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Indicates whether the given organisation unit field is valid, i.e.
+     * whether it matches the identifier of an attribute or data element of
+     * organisation unit value type part of the query program.
+     */
+    public boolean orgUnitFieldIsValid()
+    {
+        if ( orgUnitField == null )
+        {
+            return true;
+        }
+
+        if ( program.getTrackedEntityAttributes().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+        {
+            return true;
+        }
+
+        if ( program.getDataElements().stream()
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
         {
             return true;
         }
@@ -1079,6 +1147,12 @@ public class EventQueryParams
         public Builder withTimeField( String timeField )
         {
             this.params.timeField = timeField;
+            return this;
+        }
+
+        public Builder withOrgUnitField( String orgUnitField )
+        {
+            this.params.orgUnitField = orgUnitField;
             return this;
         }
 

@@ -228,6 +228,11 @@ public class DefaultProgramMessageService
             programInstance = params.getProgramStageInstance().getProgramInstance();
         }
 
+        if ( programInstance == null )
+        {
+            throw new IllegalQueryException( "ProgramInstance or ProgramStageInstance has to be provided" );
+        }
+
         programs = new HashSet<>( programService.getUserPrograms( user ) );
 
         if ( user != null && !programs.contains( programInstance.getProgram() ) )
@@ -309,11 +314,11 @@ public class DefaultProgramMessageService
 
             if ( message.hasProgramInstance() )
             {
-                object = message.getProgramInstance();
+                object = message.getProgramInstance().getProgram();
             }
             else if( message.hasProgramStageInstance() )
             {
-                object = message.getProgramStageInstance();
+                object = message.getProgramStageInstance().getProgramStage();
             }
 
             if ( object != null )
@@ -382,9 +387,13 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            strategies.stream()
-                .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                .forEach( st -> st.setAttributes( message ) );
+            for( DeliveryChannelStrategy strategy : strategies )
+            {
+                if ( strategy.getDeliveryChannel().equals( channel ) )
+                {
+                    strategy.setAttributes( message );
+                }
+            }
         }
 
         return message;

@@ -38,7 +38,9 @@ import java.util.Map;
  */
 public interface GatewayAdministrationService
 {
-    String setDefaultGateway( String uid );
+    void setDefaultGateway( String uid );
+
+    void setDefaultGateway( SmsGatewayConfig config );
 
     boolean removeGatewayByUid( String uid );
 
@@ -48,13 +50,19 @@ public interface GatewayAdministrationService
 
     SmsGatewayConfig getDefaultGateway();
 
+    boolean hasDefaultGateway();
+
     List<SmsGatewayConfig> listGateways();
 
-    SmsGatewayConfig getGatewayConfigurationByUid( String uid );
-
-    SmsGatewayConfig getGatewayConfigurationByName( String gatewayName );
+    SmsGatewayConfig getByUid(String uid );
 
     boolean addOrUpdateGateway( SmsGatewayConfig config, Class<?> klass );
 
+    boolean addGateway( SmsGatewayConfig config );
+
+    void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig );
+
     boolean loadGatewayConfigurationMap( SmsConfiguration smsConfiguration );
+
+    Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config );
 }

@@ -28,9 +28,9 @@
   <dt>$i18n.getString( "external_configuration_directory" ):</dt><dd>$!info.externalDirectory</dd>
   <dt>$i18n.getString( "file_store_provider" ):</dt><dd>$!info.fileStoreProvider</dd>
   <dt>$i18n.getString( "node_id" ):</dt><dd>$!info.nodeId</dd>
-  <dt>$i18n.getString( "cache_provider" ):</dt><dd>$!info.cacheProvider</dd>
   <dt>$i18n.getString( "database_name" ):</dt><dd>$!info.databaseInfo.name</dd>
   <dt>$i18n.getString( "database_user" ):</dt><dd>$!info.databaseInfo.user</dd>
+  <dt>$i18n.getString( "database_version" ):</dt><dd>$!info.databaseInfo.databaseVersion</dd>
   <dt>$i18n.getString( "read_replica_count" ):</dt><dd>$info.readReplicaCount</dd>
   <dt>$i18n.getString( "java_opts" ):</dt><dd>$!info.javaOpts</dd>
   <dt>$i18n.getString( "java_version" ):</dt><dd>$!info.javaVersion</dd>

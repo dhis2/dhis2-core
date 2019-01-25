@@ -103,12 +103,6 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public void update( IncomingSms incomingSms )
-    {
-        sessionFactory.getCurrentSession().update( incomingSms );
-    }
-
-    @Override
     public List<IncomingSms> getAllUnparsedSmses()
     {
         CriteriaBuilder builder = getCriteriaBuilder();

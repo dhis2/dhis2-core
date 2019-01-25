@@ -48,7 +48,8 @@ public enum DhisApiVersion
     V29( 29 ),
     V30( 30 ),
     V31( 31 ),
-    DEFAULT( V31.getVersion() );
+    V32( 32 ),
+    DEFAULT( V32.getVersion() );
 
     final int version;
 

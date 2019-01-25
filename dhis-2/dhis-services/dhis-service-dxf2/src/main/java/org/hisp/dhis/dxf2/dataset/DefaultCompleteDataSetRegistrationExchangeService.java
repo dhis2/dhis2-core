@@ -144,7 +144,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
-    
+
     @Autowired
     private InputUtils inputUtils;
 
@@ -209,12 +209,20 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         cdsrStore.writeCompleteDataSetRegistrationsXml( params, out );
     }
 
+    @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out )
     {
         decideAccess( params );
         validate( params );
 
         cdsrStore.writeCompleteDataSetRegistrationsJson( params, out );
+    }
+
+    @Override
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
+                                                       IdSchemes idSchemes )
+    {
+        cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, outputStream, idSchemes );
     }
 
     @Override
@@ -282,8 +290,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
         {
-            validationError(
-                "At least one valid period, start/end dates, created or created duration must be specified" );
+            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
@@ -324,15 +331,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         limitToValidIdSchemes( params );
     }
 
-    /*
+    /**
      * Limit valid IdSchemes for export to UID, CODE, NAME
      */
     private static void limitToValidIdSchemes( ExportParams params )
     {
         IdSchemes schemes = params.getOutputIdSchemes();
 
-        // If generic IdScheme is set to ID -> override to UID
-        // For others: nullify field (inherits from generic scheme)
+        // If generic IdScheme is set to ID -> override to UID, for others: nullify field (inherits from generic scheme)
 
         if ( !EXPORT_ID_SCHEMES.contains( schemes.getIdScheme() ) )
         {
@@ -476,6 +482,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             String storedBy;
+            String lastUpdatedBy;
+            Boolean isCompleted;
 
             try
             {
@@ -506,6 +514,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 storedBy = cdsr.getStoredBy();
                 validateStoredBy( storedBy, i18n );
                 storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
+
+                lastUpdatedBy = cdsr.getLastUpdatedBy();
+                validateStoredBy( lastUpdatedBy, i18n );
+                lastUpdatedBy = StringUtils.isBlank( lastUpdatedBy ) ? currentUser : lastUpdatedBy;
+
+                cdsr.setLastUpdatedBy( lastUpdatedBy );
+
+                boolean DEFAULT_COMPLETENESS_STATUS = true;
+                isCompleted = cdsr.getCompleted();
+                isCompleted = ( isCompleted == null ) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
+                cdsr.setCompleted( isCompleted );
 
                 // TODO Check if Period is within range of data set?
             }
@@ -580,6 +599,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 else if ( strategy.isDelete() )
                 {
                     // TODO Does 'delete' even make sense for CDSR?
+
                     // Replace existing CDSR
 
                     deleteCount++;
@@ -653,8 +673,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now,
         String storedBy )
     {
+        Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
+
         return new CompleteDataSetRegistration( mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo,
-            cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now, storedBy );
+            date, storedBy, date, cdsr.getLastUpdatedBy(), cdsr.getCompleted() );
     }
 
     private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
@@ -797,8 +819,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
-        // TODO Consider need for checking/re-heating attrOptCombo and period
-        // caches
+        // TODO Consider need for checking/re-heating attrOptCombo and period caches
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
@@ -817,16 +838,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     public MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
-        String ds = StringUtils.trimToNull( cdsr.getDataSet() ), pe = StringUtils.trimToNull( cdsr.getPeriod() ),
-            ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
-            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );    
-        
-        if( aoc == null )
+        String ds = StringUtils.trimToNull( cdsr.getDataSet() );
+        String pe = StringUtils.trimToNull( cdsr.getPeriod() );
+        String ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() );
+        String aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
+
+        if ( aoc == null )
         {
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
-        
+
         return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
@@ -881,8 +903,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
             }
 
-            // Ensure AOC is set is required, or is otherwise set to the default
-            // COC
+            // Ensure AOC is set is required, or is otherwise set to the default COC
 
             if ( attrOptCombo == null )
             {
@@ -988,8 +1009,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static class ImportConflictException
-        extends
-        RuntimeException
+        extends RuntimeException
     {
         private final ImportConflict importConflict;
 

@@ -95,7 +95,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
 public class MeController
 {
     @Autowired
@@ -235,9 +235,9 @@ public class MeController
             updatePassword( currentUser, user.getUserCredentials().getPassword() );
         }
 
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp(user.getWhatsApp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() +  "'" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
