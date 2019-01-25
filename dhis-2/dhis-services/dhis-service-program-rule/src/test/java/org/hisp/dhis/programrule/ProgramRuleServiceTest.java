@@ -30,10 +30,16 @@ package org.hisp.dhis.programrule;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,6 +47,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.junit.Assert.*;
 
 public class ProgramRuleServiceTest
@@ -56,6 +64,10 @@ public class ProgramRuleServiceTest
     private ProgramRuleAction programRuleActionB;
     private ProgramRuleVariable programRuleVariableA;
     private ProgramRuleVariable programRuleVariableB;
+    private ProgramRuleVariable programRuleVariableC;
+
+    private TrackedEntityAttribute attribute;
+    private DataElement dataElement;
     
     @Autowired
     private ProgramService programService;
@@ -71,10 +83,25 @@ public class ProgramRuleServiceTest
     
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private DataElementService dataElementService;
     
     @Override
     public void setUpTest()
     {
+        attribute = createTrackedEntityAttribute( 'A' );
+        attribute.setValueType( ValueType.INTEGER );
+
+        dataElement = createDataElement( 'D' );
+        dataElement.setValueType( ValueType.INTEGER );
+
+        attributeService.addTrackedEntityAttribute( attribute );
+        dataElementService.addDataElement( dataElement );
+
         programA = createProgram( 'A', null, null );
         programB = createProgram( 'B', null, null );
         programC = createProgram( 'C', null, null );
@@ -101,9 +128,19 @@ public class ProgramRuleServiceTest
         programRuleActonService.addProgramRuleAction( programRuleActionB );
         
         programRuleVariableA = createProgramRuleVariable( 'A', programA );
+        programRuleVariableA.setAttribute( attribute );
+        programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+
         programRuleVariableB = createProgramRuleVariable( 'B', programA );
+        programRuleVariableB.setDataElement( dataElement );
+        programRuleVariableB.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+
+        programRuleVariableC = createProgramRuleVariable( 'C', programA );
+        programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.CALCULATED_VALUE );
+
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );  
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
     }
     
     @Test
@@ -219,7 +256,44 @@ public class ProgramRuleServiceTest
         assertNull( programRuleService.getProgramRule( idI ) );
         assertNull( programRuleService.getProgramRule( idJ ) );
     }
-    
+
+    @Test
+    public void testSimpleExpression()
+    {
+        String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
+        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testIfProgramRuleVariableIsCalculatedValue()
+    {
+        String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableC.getName() + "}";
+        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testIfDataElementDoesNotExist()
+    {
+        programRuleVariableB.setDataElement( null );
+        String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
+        assertEquals( ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testIfAttributeDoesNotExist()
+    {
+        programRuleVariableA.setAttribute( null );
+        String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
+        assertEquals( ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testIfProgramRuleVariableDoesNotExist()
+    {
+        String expression = KEY_ATTRIBUTE + "{ghostVariable} == " + KEY_DATAELEMENT + "{" + programRuleVariableC.getName() + "}";
+        assertEquals( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION, programRuleService.expressionIsValid( expression ) );
+    }
+
     /*TODO: Fix the functionality for 2 level cascading deletes.
         
     @Test

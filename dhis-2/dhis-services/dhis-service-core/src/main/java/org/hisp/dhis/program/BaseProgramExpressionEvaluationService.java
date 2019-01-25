@@ -201,8 +201,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
                     matcher.appendReplacement( description, result.get( DESCRIPTION ) );
                 }
             }
-
-            if ( KEY_CONSTANT.equals( key ) )
+            else if ( KEY_CONSTANT.equals( key ) )
             {
                 Constant constant = constantService.getConstant( uid );
 
@@ -298,8 +297,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
                     return result.get( ERROR );
                 }
             }
-
-            if ( KEY_CONSTANT.equals( key ) )
+            else if ( KEY_CONSTANT.equals( key ) )
             {
                 Constant constant = constantService.getConstant( uid );
 
