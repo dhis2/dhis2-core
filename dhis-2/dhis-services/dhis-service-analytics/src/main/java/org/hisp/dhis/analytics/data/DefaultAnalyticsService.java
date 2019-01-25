@@ -54,7 +54,6 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.DataQueryParams.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -68,7 +67,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -89,7 +88,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.context.annotation.Primary;
 
 /**
  * @author Lars Helge Overland
@@ -114,7 +112,7 @@ public class DefaultAnalyticsService
 
     private QueryValidator queryValidator;
 
-    private ExpressionService expressionService;
+    private ExpressionParserService expressionParserService;
 
     private ConstantService constantService;
 
@@ -152,32 +150,31 @@ public class DefaultAnalyticsService
     @Autowired
     public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
         AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
-        ExpressionService expressionService, ConstantService constantService,
+        ExpressionParserService expressionParserService, ConstantService constantService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
         DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider )
     {
-
-        checkNotNull(analyticsManager);
-        checkNotNull(rawAnalyticsManager);
-        checkNotNull(securityManager);
-        checkNotNull(queryPlanner);
-        checkNotNull(queryValidator);
-        checkNotNull(expressionService);
-        checkNotNull(constantService);
-        checkNotNull(organisationUnitService);
-        checkNotNull(systemSettingManager);
-        checkNotNull(eventAnalyticsService);
-        checkNotNull(dataQueryService);
-        checkNotNull(dhisConfig);
-        checkNotNull(cacheProvider);
+        checkNotNull( analyticsManager );
+        checkNotNull( rawAnalyticsManager );
+        checkNotNull( securityManager );
+        checkNotNull( queryPlanner );
+        checkNotNull( queryValidator );
+        checkNotNull( expressionParserService );
+        checkNotNull( constantService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( eventAnalyticsService );
+        checkNotNull( dataQueryService );
+        checkNotNull( dhisConfig );
+        checkNotNull( cacheProvider );
 
         this.analyticsManager = analyticsManager;
         this.rawAnalyticsManager = rawAnalyticsManager;
         this.securityManager = securityManager;
         this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
-        this.expressionService = expressionService;
+        this.expressionParserService = expressionParserService;
         this.constantService = constantService;
         this.organisationUnitService = organisationUnitService;
         this.systemSettingManager = systemSettingManager;
@@ -467,7 +464,7 @@ public class DefaultAnalyticsService
 
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
-                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
+                    IndicatorValue value = expressionParserService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
@@ -1010,7 +1007,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getOrganisationUnitGroupsInIndicators( indicators );
+        Set<OrganisationUnitGroup> orgUnitGroups = expressionParserService.getIndicatorOrgUnitGroups( indicators );
 
         if ( orgUnitGroups.isEmpty() )
         {
@@ -1274,7 +1271,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
+        List<DimensionalItemObject> items = Lists.newArrayList( expressionParserService.getIndicatorDimensionalItemObjects( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 

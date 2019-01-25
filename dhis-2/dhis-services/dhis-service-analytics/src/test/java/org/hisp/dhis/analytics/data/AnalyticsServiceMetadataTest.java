@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -94,7 +94,7 @@ public class AnalyticsServiceMetadataTest
     private DefaultQueryValidator queryValidator;
 
     @Mock
-    private ExpressionService expressionService;
+    private ExpressionParserService expressionParserService;
 
     @Mock
     private ConstantService constantService;
@@ -126,26 +126,28 @@ public class AnalyticsServiceMetadataTest
     public void setUp()
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-            queryValidator, expressionService, constantService, organisationUnitService, systemSettingManager,
+            queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
             eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();
         when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);
     }
 
-    private void initMock(DataQueryParams params) {
+    private void initMock( DataQueryParams params )
+    {
         when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-                eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
 
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsOuLevelData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -174,13 +176,13 @@ public class AnalyticsServiceMetadataTest
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertThat( items.get( "wjP19dkFeIk" ), allOf(
-                                                hasProperty( "name", is( "District" ) ),
-                                                hasProperty( "uid", is( "wjP19dkFeIk" ) ),
-                                                hasProperty( "code", is( nullValue() ) ) ) );
+            hasProperty( "name", is( "District" ) ),
+            hasProperty( "uid", is( "wjP19dkFeIk" ) ),
+            hasProperty( "code", is( nullValue() ) ) ) );
         assertThat( items.get( "tTUf91fCytl" ), allOf(
-                                                hasProperty( "name", is( "Chiefdom" ) ),
-                                                hasProperty( "uid", is( "tTUf91fCytl" ) ),
-                                                hasProperty( "code", is( "OU_12345" ) ) ) );
+            hasProperty( "name", is( "Chiefdom" ) ),
+            hasProperty( "uid", is( "tTUf91fCytl" ) ),
+            hasProperty( "code", is( "OU_12345" ) ) ) );
 
     }
 
@@ -205,7 +207,7 @@ public class AnalyticsServiceMetadataTest
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
                     ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
@@ -218,14 +220,14 @@ public class AnalyticsServiceMetadataTest
 
         assertThat( items.get( indicatorGroup.getUid() ),
             allOf(
-                    hasProperty( "name", is( indicatorGroup.getName() ) ),
-                    hasProperty( "uid", is( indicatorGroup.getUid() ) ),
-                    hasProperty( "code", is( indicatorGroup.getCode() ) )
+                hasProperty( "name", is( indicatorGroup.getName() ) ),
+                hasProperty( "uid", is( indicatorGroup.getUid() ) ),
+                hasProperty( "code", is( indicatorGroup.getCode() ) )
             ) );
-
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsOuGroupData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -249,7 +251,6 @@ public class AnalyticsServiceMetadataTest
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
             hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
-
     }
 
     @Test
@@ -284,17 +285,15 @@ public class AnalyticsServiceMetadataTest
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
 
         assertThat( items.get( dataElementGroup.getUid() ),
-                allOf(
-                        hasProperty( "name", is( dataElementGroup.getName() ) ),
-                        hasProperty( "uid", is( dataElementGroup.getUid() ) ),
-                        hasProperty( "code", is( dataElementGroup.getCode() ) )
-                ) );
-
+            allOf(
+                hasProperty( "name", is( dataElementGroup.getName() ) ),
+                hasProperty( "uid", is( dataElementGroup.getUid() ) ),
+                hasProperty( "code", is( dataElementGroup.getCode() ) )
+            ) );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
     {
-
         OrganisationUnitLevel oul = new OrganisationUnitLevel( level, name );
         oul.setUid( uid );
         oul.setCode( code );
