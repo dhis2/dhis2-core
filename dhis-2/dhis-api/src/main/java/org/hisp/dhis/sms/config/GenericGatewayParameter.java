@@ -71,8 +71,13 @@ public class GenericGatewayParameter
         this.key = key;
     }
 
-    @JsonProperty( value = "value" )
     public String getValue()
+    {
+        return value;
+    }
+
+    @JsonProperty( value = "value" )
+    public String getValueFilterIfClassified()
     {
         return classified ? "" : value;
     }
