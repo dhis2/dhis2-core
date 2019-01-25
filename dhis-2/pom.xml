@@ -455,6 +455,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-tracker</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-jdbc</artifactId>
         <version>${project.version}</version>
       </dependency>
