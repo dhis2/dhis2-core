@@ -1143,16 +1143,18 @@ public class ExpressionParserServiceTest
 
         assertEquals( 2.5, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 1.0, value.getAnnualizationFactor(), DELTA );
+        assertEquals( 100.0, value.getFactor(), DELTA );
+        assertEquals( 100, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 50.0, value.getValue(), DELTA );
 
         value = expressionParserService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
 
         assertEquals( 20.0, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 365.0, value.getAnnualizationFactor(), DELTA );
+        assertEquals( 36500.0, value.getFactor(), DELTA );
+        assertEquals( 36500, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 146000.0, value.getValue(), DELTA );
     }
 }
