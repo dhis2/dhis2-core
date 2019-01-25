@@ -54,7 +54,6 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.DataQueryParams.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -89,7 +88,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.context.annotation.Primary;
 
 /**
  * @author Lars Helge Overland
@@ -157,20 +155,19 @@ public class DefaultAnalyticsService
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
         DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider )
     {
-
-        checkNotNull(analyticsManager);
-        checkNotNull(rawAnalyticsManager);
-        checkNotNull(securityManager);
-        checkNotNull(queryPlanner);
-        checkNotNull(queryValidator);
-        checkNotNull(expressionParserService);
-        checkNotNull(constantService);
-        checkNotNull(organisationUnitService);
-        checkNotNull(systemSettingManager);
-        checkNotNull(eventAnalyticsService);
-        checkNotNull(dataQueryService);
-        checkNotNull(dhisConfig);
-        checkNotNull(cacheProvider);
+        checkNotNull( analyticsManager );
+        checkNotNull( rawAnalyticsManager );
+        checkNotNull( securityManager );
+        checkNotNull( queryPlanner );
+        checkNotNull( queryValidator );
+        checkNotNull( expressionParserService );
+        checkNotNull( constantService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( eventAnalyticsService );
+        checkNotNull( dataQueryService );
+        checkNotNull( dhisConfig );
+        checkNotNull( cacheProvider );
 
         this.analyticsManager = analyticsManager;
         this.rawAnalyticsManager = rawAnalyticsManager;

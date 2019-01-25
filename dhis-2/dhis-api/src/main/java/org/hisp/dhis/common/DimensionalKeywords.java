@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
- * 
  * @author Luciano Fiandesio
  */
 public class DimensionalKeywords
