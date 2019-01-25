@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.expressionparser;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,59 +28,23 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
+ * Exception without expression context, while parsing an expression.
+ * <p/>
+ * This exception is used for lower-level parsing errors that do not yet
+ * have any expression context that shows where they occur. By catching
+ * this exception, such context can be added and then the exception
+ * re-thrown as an ExpressionParserException. This prevents attributing
+ * multiple levels of context to the same error; only the immediate context
+ * need be displayed.
+ *
  * @author Jim Grace
  */
-public class MapMapMap<S, T, U, V>
-    extends HashMap<S, MapMap<T, U, V>>
+public class ExpressionParserExceptionWithoutContext
+    extends ExpressionParserException
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 4505153475282323148L;
-
-    public MapMap<T, U, V> putEntry( S key1, T key2, U key3, V value )
+    public ExpressionParserExceptionWithoutContext( String message )
     {
-        MapMap<T, U, V> map = this.get( key1 );
-        map = map == null ? new MapMap<>() : map;
-        map.putEntry( key2, key3, value );
-        return this.put( key1, map );
-    }
-
-    public void putEntries( S key1, MapMap<T, U, V> m )
-    {
-        MapMap<T, U, V> map = this.get( key1 );
-        map = map == null ? new MapMap<>() : map;
-        map.putMap( m );
-        this.put( key1, map );
-    }
-
-    public void putMap( MapMapMap<S, T, U, V> map )
-    {
-        for ( Entry<S, MapMap<T, U, V>> entry : map.entrySet() )
-        {
-            this.putEntries( entry.getKey(), entry.getValue() );
-        }
-    }
-
-    public V getValue( S key1, T key2, U key3 )
-    {
-        return this.get( key1 ) == null ? null : this.get( key1 ).getValue( key2, key3 );
-    }
-
-    @SafeVarargs
-    public static <S, T, U, V> MapMapMap<S, T, U, V> ofEntries( Map.Entry<S, MapMap<T, U, V>>... entries )
-    {
-        MapMapMap<S, T, U, V> map = new MapMapMap<>();
-
-        for ( Map.Entry<S, MapMap<T, U, V>> entry : entries )
-        {
-            map.put( entry.getKey(), entry.getValue() );
-        }
-
-        return map;
+        super( message );
     }
 }
