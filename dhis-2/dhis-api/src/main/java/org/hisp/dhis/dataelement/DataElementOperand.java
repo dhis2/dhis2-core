@@ -212,12 +212,12 @@ public class DataElementOperand
         }
         else if ( hasNonDefaultAttributeOptionCombo() )
         {
-            name += SPACE + SYMBOL_WILDCARD;
+            shortName += SPACE + SYMBOL_WILDCARD;
         }
 
         if ( hasNonDefaultAttributeOptionCombo() )
         {
-            name += SPACE + attributeOptionCombo.getName();
+            shortName += SPACE + attributeOptionCombo.getName();
         }
 
         return shortName;
