@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -40,13 +41,14 @@ import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Item part of meta data analytics response.
- * 
+ *
 * @author Lars Helge Overland
 */
 public class MetadataItem
-{    
+    implements Serializable
+{
     private String name;
-    
+
     private String legendSet;
 
     private String uid;
@@ -62,7 +64,7 @@ public class MetadataItem
     private ValueType valueType;
 
     private AggregationType aggregationType;
-    
+
     private TotalAggregationType totalAggregationType;
 
     // -------------------------------------------------------------------------
@@ -230,7 +232,7 @@ public class MetadataItem
     {
         this.dimensionItemType = dimensionItemType;
     }
-    
+
     @JsonProperty
     public String getName()
     {
