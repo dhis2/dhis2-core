@@ -157,7 +157,7 @@ public class SimplisticHttpGetGateWay
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) ) ;
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
