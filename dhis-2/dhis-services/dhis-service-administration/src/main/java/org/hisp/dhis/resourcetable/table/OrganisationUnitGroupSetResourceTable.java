@@ -38,6 +38,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
@@ -47,11 +48,15 @@ public class OrganisationUnitGroupSetResourceTable
     extends ResourceTable<OrganisationUnitGroupSet>
 {
     private boolean supportsPartialIndexes;
-    
-    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, boolean supportsPartialIndexes )
+
+    private int organisationUnitLevels;
+
+    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects,
+        boolean supportsPartialIndexes, int organisationUnitLevels )
     {
         super( objects );
         this.supportsPartialIndexes = supportsPartialIndexes;
+        this.organisationUnitLevels = organisationUnitLevels;
     }
 
     @Override
@@ -74,7 +79,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
         
-        return TextUtils.removeLastComma( statement ) + ")";
+        return removeLastComma( statement ) + ")";
     }
 
     @Override
@@ -104,28 +109,47 @@ public class OrganisationUnitGroupSetResourceTable
             }
             else
             {
-                sql += "(" +
-                    "select oug.name from orgunitgroup oug " +
-                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
-                    "where ougm.orgunitgroupid is not null " +
-                    "order by hierarchylevel desc " +
-                    "limit 1) as " + quote( groupSet.getName() ) + ", ";
+                sql += "coalesce(";
 
-                sql += "(" +
-                    "select oug.uid from orgunitgroup oug " +
-                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
-                    "where ougm.orgunitgroupid is not null " +
-                    "order by hierarchylevel desc " +
-                    "limit 1) as " + quote( groupSet.getUid() ) + ", ";
+                for ( int i = organisationUnitLevels; i > 0; i-- )
+                {
+                    sql += "(select oug.name from orgunitgroup oug " +
+                        "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel" + i + " " +
+                        "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
+                        "limit 1),";
+                }
+
+                if ( organisationUnitLevels == 0 )
+                {
+                    sql += "null";
+                }
+
+                sql = removeLastComma( sql ) +
+                    ") as " + quote( groupSet.getName() ) + ", ";
+
+                sql += "coalesce(";
+
+                for ( int i = organisationUnitLevels; i > 0; i-- )
+                {
+                    sql += "(select oug.uid from orgunitgroup oug " +
+                        "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel" + i + " " +
+                        "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
+                        "limit 1),";
+                }
+
+                if ( organisationUnitLevels == 0 )
+                {
+                    sql += "null";
+                }
+
+                sql = removeLastComma( sql ) +
+                    ") as " + quote( groupSet.getUid() ) + ", ";
             }
         }
         
-        sql = TextUtils.removeLastComma( sql ) + " ";
-        sql += "from organisationunit ou";
+        sql = removeLastComma( sql ) + " ";
+        sql += "from organisationunit ou " +
+            "inner join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
         
         return Optional.of( sql );
     }
