@@ -259,12 +259,9 @@ public class SmsMessageSender
 
     private void handleResponse( OutboundMessageResponse status )
     {
-        Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
-            GatewayResponse.RESULT_CODE_202 );
-
         GatewayResponse gatewayResponse = (GatewayResponse) status.getResponseObject();
 
-        if ( okCodes.contains( gatewayResponse ) )
+        if ( status.isOk() )
         {
             log.info( "SMS sent" );
 

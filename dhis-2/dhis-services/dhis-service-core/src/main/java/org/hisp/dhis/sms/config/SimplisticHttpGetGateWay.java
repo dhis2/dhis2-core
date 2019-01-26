@@ -28,21 +28,21 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.util.DebugUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,18 +77,14 @@ import java.util.stream.Collectors;
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
-    private static final String HTTP_POST = "POST";
-    private static final String HTTP_GET = "GET";
-    private static final String CONTENT_TYPE = "application/x-www-form-urlencoded; charset=UTF-8";
+    private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
 
-    private static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
-        .put( HttpURLConnection.HTTP_OK, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_CREATED, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_ACCEPTED, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_CONFLICT, GatewayResponse.FAILED ).build();
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    private static final ImmutableSet<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
-        HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
+    @Autowired
+    private RestTemplate restTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -112,110 +108,70 @@ public class SimplisticHttpGetGateWay
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
-        GenericHttpGatewayConfig genericHttpConfiguration = (GenericHttpGatewayConfig) config;
+        GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        OutboundMessageResponse status = new OutboundMessageResponse();
+        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
+        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
+        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
-        UriComponentsBuilder uri = buildUrl( genericHttpConfiguration );
-
-        BufferedReader reader = null;
-        OutputStreamWriter writer = null;
+        ResponseEntity<String> responseEntity = null;
 
         try
         {
-            URL requestURL = new URL( uri.build().encode().toUriString() );
+            URI url = uriBuilder.build().encode().toUri();
 
-            HttpURLConnection httpConnection = (HttpURLConnection) requestURL.openConnection();
-            httpConnection.setRequestProperty( "Content-Type", CONTENT_TYPE );
-            httpConnection.setRequestMethod( genericHttpConfiguration.isUseGet() ? HTTP_GET : HTTP_POST );
-            httpConnection.setDoOutput( true );
-
-            httpConnection = getRequestHeaderParameters( httpConnection, genericHttpConfiguration.getParameters() );
-
-            String data = getEncodedData( text, recipients, genericHttpConfiguration );
-
-            writer = new OutputStreamWriter( httpConnection.getOutputStream() );
-
-            writer.write( data );
-            writer.flush();
-
-            reader = new BufferedReader( new InputStreamReader( httpConnection.getInputStream() ) );
-
-            Integer responseCode = httpConnection.getResponseCode();
-
-            if ( OK_CODES.contains( responseCode ) )
-            {
-                status.setOk( true );
-            }
-            else
-            {
-                status.setOk( false );
-            }
-
-            GatewayResponse response = SIMPLISTIC_GATEWAY_RESPONSE_MAP.getOrDefault( responseCode, GatewayResponse.FAILED );
-
-            status.setResponseObject( response );
-            status.setDescription( response.getResponseMessage() );
+            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
         }
-        catch ( IOException e )
+        catch ( HttpClientErrorException ex )
         {
-            DebugUtils.getStackTrace( e );
-
-            setErrorStatus( status );
+            log.error( "Client error " + ex.getMessage() );
         }
-        finally
+        catch ( HttpServerErrorException ex )
         {
-            IOUtils.closeQuietly( reader );
-            IOUtils.closeQuietly( writer );
+            log.error( "Server error " + ex.getMessage() );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Error " + ex.getMessage() );
         }
 
-        return status;
+        return getResponse( responseEntity );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void setErrorStatus( OutboundMessageResponse status )
-    {
-        status.setResponseObject( GatewayResponse.FAILED );
-        status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
-        status.setOk( false );
-    }
-
     private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
     {
-        return UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+
+        for ( Map.Entry entry : getUrlParameters( config.getParameters() ).entrySet() )
+        {
+            uriBuilder.queryParam( entry.getKey().toString(), entry.getValue().toString() );
+        }
+
+        return uriBuilder;
     }
 
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) ) ;
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
     }
 
-    private HttpURLConnection getRequestHeaderParameters( HttpURLConnection urlConnection, List<GenericGatewayParameter> parameters )
+    private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
     {
-        parameters.stream().filter( GenericGatewayParameter::isHeader ).forEach( p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
-        return urlConnection;
-    }
-
-    private String getEncodedData( String text, Set<String> recipients, GenericHttpGatewayConfig config ) throws UnsupportedEncodingException
-    {
-        Map<String, String> parameters = getUrlParameters( config.getParameters() );
-        parameters.put( config.getMessageParameter(), text );
-        parameters.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
-
-        StringBuilder sb = new StringBuilder();
-
-        for( Map.Entry<String,String> entry : parameters.entrySet() )
+        if ( responseEntity == null || !OK_CODES.contains( responseEntity.getStatusCode() ) )
         {
-            sb.append( URLEncoder.encode( entry.getKey(), "UTF-8" ) )
-                .append( "=" )
-                .append( URLEncoder.encode( entry.getValue(), "UTF-8" ) ).append( "&" );
+            status.setResponseObject( GatewayResponse.FAILED );
+            status.setOk( false );
+
+            return status;
         }
 
-        return sb.toString();
+        return wrapHttpStatus( responseEntity.getStatusCode() );
     }
 }

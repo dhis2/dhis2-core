@@ -146,7 +146,7 @@ public class BulkSmsGateway
     {
         Random r = new Random();
 
-        int stopDuplicationID = r.nextInt( (MAX - MIN) + 1 ) + MIN;
+        int stopDuplicationID = r.nextInt( ( MAX - MIN ) + 1 ) + MIN;
 
         UriComponentsBuilder uriBuilder = null;
 
@@ -171,7 +171,7 @@ public class BulkSmsGateway
     {
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        if ( responseEntity == null )
+        if ( responseEntity == null || !OK_CODES.contains( responseEntity.getStatusCode() ) )
         {
             status.setResponseObject( GatewayResponse.FAILED );
             status.setOk( false );
