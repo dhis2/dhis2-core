@@ -785,11 +785,6 @@
         <version>2.4.2</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-jexl</artifactId>
-        <version>2.1.1</version>
-      </dependency>
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.12</version>
@@ -824,6 +819,11 @@
         <groupId>javax.interceptor</groupId>
         <artifactId>javax.interceptor-api</artifactId>
         <version>1.2.1</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sourceforge.javacsv</groupId>
+        <artifactId>javacsv</artifactId>
+        <version>2.0</version>
       </dependency>
 
       <!-- Apache Commons -->
@@ -873,6 +873,21 @@
         <version>2.6</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.11</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-jexl</artifactId>
+        <version>2.1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-email</artifactId>
+        <version>1.3.3</version>
+      </dependency>
+      <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>1.2</version>
@@ -887,16 +902,6 @@
             <artifactId>logkit</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-email</artifactId>
-        <version>1.3.3</version>
-      </dependency>
-      <dependency>
-        <groupId>net.sourceforge.javacsv</groupId>
-        <artifactId>javacsv</artifactId>
-        <version>2.0</version>
       </dependency>
 
       <!--DBMS -->
