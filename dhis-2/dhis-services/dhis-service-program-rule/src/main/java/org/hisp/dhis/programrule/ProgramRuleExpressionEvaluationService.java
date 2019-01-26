@@ -94,8 +94,12 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        COMMON_D2_FUNC_MAP.putAll( PROGRAM_RULE_D2_FUNC_MAP );
-        return COMMON_D2_FUNC_MAP;
+        Map<String, ProgramD2Function> combined = new HashMap<>();
+
+        combined.putAll( COMMON_D2_FUNC_MAP );
+        combined.putAll( PROGRAM_RULE_D2_FUNC_MAP );
+
+        return combined;
     }
 
     @Override

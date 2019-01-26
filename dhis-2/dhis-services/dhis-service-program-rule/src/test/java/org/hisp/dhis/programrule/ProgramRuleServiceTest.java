@@ -294,6 +294,27 @@ public class ProgramRuleServiceTest
         assertEquals( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION, programRuleService.expressionIsValid( expression ) );
     }
 
+    @Test
+    public void testFunctionExpression()
+    {
+        String functionExpression = "d2:length(#{" + programRuleVariableC.getName() + "}) > 1";
+        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( functionExpression ) );
+    }
+
+    @Test
+    public void testCascadedExpression()
+    {
+        String functionExpression = "d2:ceil(d2:length(#{" + programRuleVariableC.getName() + "})) > 1";
+        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( functionExpression ) );
+    }
+
+    @Test
+    public void testExpressionWhichDoesNotResultInBoolean()
+    {
+        String functionExpression = "d2:length(#{" + programRuleVariableC.getName() + "}) + " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
+        assertEquals( ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programRuleService.expressionIsValid( functionExpression ) );
+    }
+
     /*TODO: Fix the functionality for 2 level cascading deletes.
         
     @Test
