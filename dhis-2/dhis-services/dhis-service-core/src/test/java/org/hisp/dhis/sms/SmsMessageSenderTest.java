@@ -424,9 +424,11 @@ public class SmsMessageSenderTest
     private void setUp()
     {
         okStatus = new OutboundMessageResponse();
+        okStatus.setOk( true );
         okStatus.setResponseObject( GatewayResponse.RESULT_CODE_0 );
 
         failedStatus = new OutboundMessageResponse();
+        failedStatus.setOk( false );
         failedStatus.setResponseObject( GatewayResponse.FAILED );
 
         smsGatewayConfig = new BulkSmsGatewayConfig();
