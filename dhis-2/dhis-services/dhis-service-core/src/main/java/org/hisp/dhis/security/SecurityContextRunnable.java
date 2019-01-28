@@ -56,6 +56,10 @@ public abstract class SecurityContextRunnable
             before();
             call();
         }
+        catch ( Throwable ex )
+        {
+            handleError( ex );
+        }
         finally
         {
             after();
@@ -77,5 +81,9 @@ public abstract class SecurityContextRunnable
      */
     public void after()
     {   
+    }
+
+    public void handleError( Throwable ex )
+    {
     }
 }
