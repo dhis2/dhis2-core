@@ -140,7 +140,7 @@ public class DefaultTrackedEntityInstanceService
     private AclService aclService;
 
     @Autowired
-    private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     // -------------------------------------------------------------------------
     // Implementation methods
