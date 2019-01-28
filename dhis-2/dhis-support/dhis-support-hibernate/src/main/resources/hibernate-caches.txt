@@ -272,6 +272,9 @@ org.hisp.dhis.reporttable.ReportTable.dataDimensionItems
 org.hisp.dhis.validation.ValidationRuleGroup.attributeValues
 org.hisp.dhis.dataset.DataSet.translations
 org.hisp.dhis.reporttable.ReportTable.itemOrganisationUnitGroups
+org.hisp.dhis.dashboard.DashboardItem.users
+org.hisp.dhis.dashboard.DashboardItem.reports
+org.hisp.dhis.dashboard.DashboardItem.resources
 org.hisp.dhis.dashboard.DashboardItem.translations
 org.hisp.dhis.eventchart.EventChart.categoryOptionGroupSetDimensions
 org.hisp.dhis.predictor.PredictorGroup.members
