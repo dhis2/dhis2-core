@@ -5,6 +5,7 @@
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.user.UserSetting" table="usersetting">
+
     <cache usage="read-write" />
 
     <composite-id>

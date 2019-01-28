@@ -8,6 +8,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.MapView" table="mapview">
 
+    <cache usage="read-write" />
+
     <id name="id" column="mapviewid">
       <generator class="native" />
     </id>
@@ -68,6 +70,7 @@
     <!-- EventAnalyticalObject -->
 
     <list name="attributeDimensions" table="mapview_attributedimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_attributedimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
@@ -75,6 +78,7 @@
     </list>
 
     <list name="dataElementDimensions" table="mapview_dataelementdimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_dataelementdimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
