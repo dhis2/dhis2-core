@@ -28,7 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +44,7 @@ public class MapMap<T, U, V>
         map.put( valueKey, value );
         return this.put( key, map );
     }
-    
+
     public void putEntries( T key, Map<U, V> m )
     {
         Map<U, V> map = this.get( key );
@@ -61,12 +60,12 @@ public class MapMap<T, U, V>
             this.putEntries( entry.getKey(), entry.getValue() );
         }
     }
-    
+
     public V getValue( T key, U valueKey )
     {
         return this.get( key ) == null ? null : this.get( key ).get( valueKey );
     }
-    
+
     @SafeVarargs
     public static <T, U, V> MapMap<T, U, V> ofEntries( Map.Entry<T, Map<U, V>>... entries )
     {
