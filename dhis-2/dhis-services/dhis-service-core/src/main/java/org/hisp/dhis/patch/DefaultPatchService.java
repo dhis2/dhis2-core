@@ -50,16 +50,19 @@ import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Transactional
 public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );
@@ -195,11 +198,13 @@ public class DefaultPatchService implements PatchService
         {
             Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection sourceCollection = (Collection) ( (Collection) sourceValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
-            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection targetCollection =  ( Collection ) ( (Collection) targetValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
             for ( Object o : targetCollection )
             {

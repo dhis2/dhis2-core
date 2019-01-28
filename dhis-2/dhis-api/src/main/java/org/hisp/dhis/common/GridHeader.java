@@ -1,10 +1,5 @@
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,6 +28,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
@@ -40,8 +42,9 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 public class GridHeader
+    implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES = 
+    private static final ImmutableSet<String> NUMERIC_TYPES =
         ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     /**
@@ -55,7 +58,7 @@ public class GridHeader
     private String column;
 
     private ValueType valueType;
-    
+
     private String type;
 
     private boolean hidden;
@@ -220,13 +223,13 @@ public class GridHeader
     {
         return optionSet;
     }
-    
+
     @JsonProperty
     public String getLegendSet()
     {
         return legendSet != null ? legendSet.getUid() : null;
     }
-    
+
     @JsonIgnore
     public LegendSet getLegendSetObject()
     {

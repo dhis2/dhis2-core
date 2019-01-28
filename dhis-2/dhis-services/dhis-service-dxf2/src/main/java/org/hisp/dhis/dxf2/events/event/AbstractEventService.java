@@ -428,6 +428,11 @@ public abstract class AbstractEventService
         
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
+        if ( event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+        }
+
         if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
@@ -1128,6 +1133,11 @@ public abstract class AbstractEventService
         if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
+        }
+
+        if ( event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
