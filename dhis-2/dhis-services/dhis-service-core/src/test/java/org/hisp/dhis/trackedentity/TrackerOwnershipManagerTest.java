@@ -37,18 +37,19 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
+public class TrackerOwnershipManagerTest extends DhisSpringTest
 {
     @Autowired
     private TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -65,8 +66,6 @@ public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
     @Autowired
     private ProgramService programService;
     
-    private CurrentUserService mockCurrentUserService;
-
     private TrackedEntityInstance entityInstanceA1;
 
     private TrackedEntityInstance entityInstanceB1;
@@ -92,7 +91,7 @@ public class TrackerOwnershipAccessManagerTest extends DhisSpringTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
         
-        mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ), newHashSet( organisationUnitA ), ""  );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ), newHashSet( organisationUnitA ), "" );
         setDependency( trackerOwnershipAccessManager, "currentUserService", mockCurrentUserService, CurrentUserService.class );
 
         entityInstanceA1 = createTrackedEntityInstance( 'A', organisationUnitA );
