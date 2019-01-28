@@ -187,7 +187,6 @@ org.hisp.dhis.eventreport.EventReport.columnDimensions
 org.hisp.dhis.reporttable.ReportTable.organisationUnits
 org.hisp.dhis.dataset.DataSet.legendSets
 org.hisp.dhis.eventreport.EventReport.categoryDimensions
-org.hisp.dhis.mapping.MapView.organisationUnitLevels
 org.hisp.dhis.dataelement.DataElementGroupSetDimension.items
 org.hisp.dhis.dataelement.DataElementGroup.members
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet.attributeValues
@@ -221,9 +220,12 @@ org.hisp.dhis.user.User.apps
 org.hisp.dhis.legend.LegendSet.translations
 org.hisp.dhis.sqlview.SqlView.userAccesses
 org.hisp.dhis.program.ProgramIndicatorGroup.attributeValues
+org.hisp.dhis.mapping.MapView.organisationUnitLevels
 org.hisp.dhis.mapping.MapView.itemOrganisationUnitGroups
-org.hisp.dhis.eventreport.EventReport.itemOrganisationUnitGroups
 org.hisp.dhis.mapping.MapView.translations
+org.hisp.dhis.mapping.MapView.attributeDimensions
+org.hisp.dhis.mapping.MapView.dataElementDimensions
+org.hisp.dhis.eventreport.EventReport.itemOrganisationUnitGroups
 org.hisp.dhis.dataset.DataSet.userAccesses
 org.hisp.dhis.option.OptionGroupSet.userAccesses
 org.hisp.dhis.category.CategoryOptionGroup.userAccesses
@@ -244,6 +246,9 @@ org.hisp.dhis.dataelement.DataElement.legendSets
 org.hisp.dhis.category.CategoryCombo.optionCombos
 org.hisp.dhis.user.User.teiSearchOrganisationUnits
 org.hisp.dhis.eventreport.EventReport.rowDimensions
+org.hisp.dhis.eventreport.EventReport.attributeDimensions
+org.hisp.dhis.eventreport.EventReport.dataElementDimensions
+org.hisp.dhis.eventreport.EventReport.programIndicatorDimensions
 org.hisp.dhis.organisationunit.OrganisationUnit.dataSets
 org.hisp.dhis.eventchart.EventChart.userGroupAccesses
 org.hisp.dhis.dataelement.DataElementGroupSet.userAccesses
@@ -378,6 +383,9 @@ org.hisp.dhis.chart.Chart.categoryDimensions
 org.hisp.dhis.legend.LegendSet.userAccesses
 org.hisp.dhis.program.ProgramIndicator.analyticsPeriodBoundaries
 org.hisp.dhis.eventchart.EventChart.periods
+org.hisp.dhis.eventchart.EventChart.attributeDimensions
+org.hisp.dhis.eventchart.EventChart.dataElementDimensions
+org.hisp.dhis.eventchart.EventChart.programIndicatorDimensions
 org.hisp.dhis.category.CategoryOption.organisationUnits
 org.hisp.dhis.reporttable.ReportTable.translations
 org.hisp.dhis.dataset.DataSet.dataInputPeriods
