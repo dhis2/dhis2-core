@@ -86,15 +86,16 @@ org.hisp.dhis.dataelement.DataElementOperand
 org.hisp.dhis.color.ColorSet
 org.hisp.dhis.program.ProgramIndicatorGroup
 org.hisp.dhis.fileresource.FileResource
+org.hisp.dhis.dashboard.Dashboard
 org.hisp.dhis.dashboard.DashboardItem
 org.hisp.dhis.validation.ValidationRule
 org.hisp.dhis.program.ProgramStage
-org.hisp.dhis.dashboard.Dashboard
 org.hisp.dhis.program.ProgramStageSection
 org.hisp.dhis.organisationunit.OrganisationUnit
 org.hisp.dhis.option.Option
 org.hisp.dhis.analytics.AnalyticsTableHook
 org.hisp.dhis.dataapproval.DataApprovalAudit
+org.hisp.dhis.interpretation.Interpretation
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet.userGroupAccesses
 org.hisp.dhis.option.OptionSet.options
 org.hisp.dhis.chart.Chart.categoryOptionGroupSetDimensions
@@ -107,7 +108,10 @@ org.hisp.dhis.reporttable.ReportTable.userAccesses
 org.hisp.dhis.eventchart.EventChart.columnDimensions
 org.hisp.dhis.indicator.IndicatorGroup.members
 org.hisp.dhis.dataapproval.DataApprovalWorkflow.levels
+org.hisp.dhis.interpretation.Interpretation.comments
+org.hisp.dhis.interpretation.Interpretation.likedBy
 org.hisp.dhis.interpretation.Interpretation.userAccesses
+org.hisp.dhis.interpretation.Interpretation.userGroupAccesses
 org.hisp.dhis.option.OptionGroup.userAccesses
 org.hisp.dhis.dataapproval.DataApprovalLevel.userGroupAccesses
 org.hisp.dhis.chart.Chart.dataDimensionItems
@@ -151,6 +155,9 @@ org.hisp.dhis.chart.Chart.userGroupAccesses
 org.hisp.dhis.category.CategoryCombo.categories
 org.hisp.dhis.chart.Chart.organisationUnits
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet.translations
+org.hisp.dhis.dashboard.Dashboard.items
+org.hisp.dhis.dashboard.Dashboard.translations
+org.hisp.dhis.dashboard.Dashboard.userAccesses
 org.hisp.dhis.dashboard.Dashboard.userGroupAccesses
 org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup.translations
 org.hisp.dhis.dataapproval.DataApprovalWorkflow.userAccesses
@@ -170,7 +177,6 @@ org.hisp.dhis.dataelement.DataElementGroupSet.attributeValues
 org.hisp.dhis.sqlview.SqlView.attributeValues
 org.hisp.dhis.report.Report.userGroupAccesses
 org.hisp.dhis.dataelement.DataElement.groups
-org.hisp.dhis.dashboard.Dashboard.userAccesses
 org.hisp.dhis.eventreport.EventReport.categoryOptionGroupSetDimensions
 org.hisp.dhis.organisationunit.OrganisationUnitGroup.groupSets
 org.hisp.dhis.chart.Chart.userAccesses
@@ -376,7 +382,6 @@ org.hisp.dhis.category.Category.translations
 org.hisp.dhis.category.Category.userGroupAccesses
 org.hisp.dhis.constant.Constant.userGroupAccesses
 org.hisp.dhis.category.CategoryOptionGroupSet.userAccesses
-org.hisp.dhis.dashboard.Dashboard.translations
 org.hisp.dhis.validation.ValidationRuleGroup.members
 org.hisp.dhis.predictor.PredictorGroup.translations
 org.hisp.dhis.constant.Constant.userAccesses
