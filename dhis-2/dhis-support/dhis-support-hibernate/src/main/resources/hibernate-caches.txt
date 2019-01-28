@@ -27,6 +27,7 @@ org.hisp.dhis.eventreport.EventReport
 org.hisp.dhis.attribute.Attribute
 org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue
 org.hisp.dhis.mapping.Map
+org.hisp.dhis.mapping.MapView
 org.hisp.dhis.legend.LegendSet
 org.hisp.dhis.indicator.Indicator
 org.hisp.dhis.indicator.IndicatorType

@@ -8,6 +8,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.MapView" table="mapview">
 
+    <cache usage="read-write" />
+
     <id name="id" column="mapviewid">
       <generator class="native" />
     </id>
