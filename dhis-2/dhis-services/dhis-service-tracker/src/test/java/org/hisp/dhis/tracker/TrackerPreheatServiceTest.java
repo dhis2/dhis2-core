@@ -79,7 +79,7 @@ public class TrackerPreheatServiceTest
     public void testTemplate() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/single_event_template.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
