@@ -49,7 +49,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -102,9 +101,6 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     @Autowired
     private CategoryService dataElementCategoryService;
-
-    @Autowired
-    private EventDataValueService eventDataValueService;
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
@@ -297,7 +293,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             }
         }
 
-        eventDataValueService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 

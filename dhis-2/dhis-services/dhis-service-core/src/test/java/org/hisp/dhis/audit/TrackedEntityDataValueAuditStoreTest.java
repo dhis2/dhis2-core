@@ -31,9 +31,7 @@ package org.hisp.dhis.audit;
  */
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -41,7 +39,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -72,9 +69,6 @@ public class TrackedEntityDataValueAuditStoreTest
     private TrackedEntityDataValueAuditStore auditStore;
 
     @Autowired
-    private EventDataValueService eventDataValueService;
-
-    @Autowired
     private TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
@@ -99,28 +93,23 @@ public class TrackedEntityDataValueAuditStoreTest
 
     private DataElement dataElementB;
 
-    private ProgramStage stageA;
-
-    private ProgramStage stageB;
-
-    private OrganisationUnit organisationUnit;
-
-    private Program program;
+    private ProgramStageInstance stageInstance;
+    private EventDataValue dataValueA;
 
     @Override
     public void setUpTest()
     {
-        organisationUnit = createOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        program = createProgram( 'A', new HashSet<>(), organisationUnit );
+        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
 
-        stageA = new ProgramStage( "StageA", program );
+        ProgramStage stageA = new ProgramStage( "StageA", program );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
 
-        stageB = new ProgramStage( "StageB", program );
+        ProgramStage stageB = new ProgramStage( "StageB", program );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
 
@@ -141,43 +130,15 @@ public class TrackedEntityDataValueAuditStoreTest
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             new Date(), new Date(), organisationUnit );
-        ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
+        stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        String storedBy = "test-user";
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElementA, dataValueA );
-        dataElementEventDataValueMap.put( dataElementB, dataValueB );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap );
-
-        programStageInstanceService.updateProgramStageInstance( stageInstance );
+        dataValueA = new EventDataValue( dataElementA.getUid(), "1", "test-user" );
     }
 
     @Test
     public void testGetTrackedEntityDataValueAudits()
     {
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
-
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
-            new Date(), new Date(), organisationUnit );
-        ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
-            stageA, new Date(), new Date(), organisationUnit );
-
-        String storedBy = "test-user";
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElementA, dataValueA );
-        dataElementEventDataValueMap.put( dataElementB, dataValueB );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap );
-
-        programStageInstanceService.updateProgramStageInstance( stageInstance );
-
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance, dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
 

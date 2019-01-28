@@ -1172,12 +1172,7 @@
     <property name="relationshipTypeStore" ref="org.hisp.dhis.relationship.RelationshipTypeStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramStageInstanceService"
-    class="org.hisp.dhis.program.DefaultProgramStageInstanceService">
-    <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
-    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-  </bean>
+  <bean id="org.hisp.dhis.program.ProgramStageInstanceService" class="org.hisp.dhis.program.DefaultProgramStageInstanceService" />
 
   <bean id="org.hisp.dhis.program.ProgramInstanceService" class="org.hisp.dhis.program.DefaultProgramInstanceService" />
 
@@ -1266,10 +1261,6 @@
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
     <property name="attributeValueStore" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.eventdatavalue.EventDataValueService"
-    class="org.hisp.dhis.eventdatavalue.DefaultEventDataValueService">
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementService"
@@ -1657,11 +1648,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.eventdatavalue.EventDataValueDeletionHandler"
-    class="org.hisp.dhis.eventdatavalue.EventDataValueDeletionHandler">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler"
     class="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler">
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1753,7 +1739,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.eventdatavalue.EventDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
       <aop:before

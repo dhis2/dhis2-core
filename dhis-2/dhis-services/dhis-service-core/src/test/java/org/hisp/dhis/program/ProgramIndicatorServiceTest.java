@@ -39,9 +39,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -52,8 +50,6 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -94,9 +90,6 @@ public class ProgramIndicatorServiceTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private EventDataValueService eventDataValueService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -252,25 +245,6 @@ public class ProgramIndicatorServiceTest
         programStageInstances.add( stageInstanceB );
         programInstance.setProgramStageInstances( programStageInstances );
         programInstance.setProgram( programA );
-
-        String storedBy = "test-user";
-
-        EventDataValue dataValueA = new EventDataValue( deA.getUid(), "3", storedBy );
-        EventDataValue dataValueB = new EventDataValue( deB.getUid(), "1", storedBy );
-        EventDataValue dataValueC = new EventDataValue( deA.getUid(), "5", storedBy );
-        EventDataValue dataValueD = new EventDataValue( deB.getUid(), "7", storedBy );
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( deA, dataValueA );
-        dataElementEventDataValueMap.put( deB, dataValueB );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, dataElementEventDataValueMap);
-        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
-
-        dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( deA, dataValueC );
-        dataElementEventDataValueMap.put( deB, dataValueD );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, dataElementEventDataValueMap);
-        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         // ---------------------------------------------------------------------
         // Constant

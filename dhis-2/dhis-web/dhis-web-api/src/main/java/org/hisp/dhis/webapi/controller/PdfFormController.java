@@ -55,7 +55,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.PdfDataEntryFormImportUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -159,45 +158,4 @@ public class PdfFormController
     //--------------------------------------------------------------------------
     // Program Stage
     //--------------------------------------------------------------------------
-
-    @RequestMapping( value = "/programStage/{programStageUid}", method = RequestMethod.GET )
-    public void getFormPdfProgramStage( @PathVariable String programStageUid, HttpServletRequest request,
-        HttpServletResponse response, OutputStream out ) throws Exception
-    {
-        Document document = new Document();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfWriter writer = PdfWriter.getInstance( document, baos );
-
-        PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings();
-
-        PdfDataEntryFormUtil.setDefaultFooterOnDocument( document, request.getServerName(),
-            pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) );
-
-        pdfDataEntryFormService.generatePDFDataEntryForm( document, writer, programStageUid,
-            PdfDataEntryFormUtil.DATATYPE_PROGRAMSTAGE,
-            PdfDataEntryFormUtil.getDefaultPageSize( PdfDataEntryFormUtil.DATATYPE_PROGRAMSTAGE ),
-            pdfFormFontSettings, i18nManager.getI18nFormat() );
-
-        String fileName = programStageService.getProgramStage( programStageUid ).getName() + " " +
-            DateUtils.getMediumDateString() + ".pdf";
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
-        response.setContentLength( baos.size() );
-
-        baos.writeTo( out );
-    }
-
-    @RequestMapping( value = "/programStage", method = RequestMethod.POST )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PATIENT_DATAVALUE_ADD')" )
-    public void sendFormPdfProgramStage( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        InputStream in = request.getInputStream();
-
-        PdfDataEntryFormImportUtil pdfDataEntryFormImportUtil = new PdfDataEntryFormImportUtil();
-
-        pdfDataEntryFormImportUtil.importProgramStage( in, i18nManager.getI18nFormat() );
-
-        webMessageService.send( WebMessageUtils.ok( "Import successful." ), response, request );
-    }
 }

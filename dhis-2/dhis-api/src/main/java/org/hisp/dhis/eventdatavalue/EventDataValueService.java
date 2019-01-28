@@ -27,63 +27,30 @@ package org.hisp.dhis.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-
 /**
  * @author David Katuscak
  */
 public interface EventDataValueService
 {
-    /**
-     * Handles files for File EventDataValues and creates audit logs for the upcoming changes. DOES NOT PERSIST the changes to the PSI object
-     *
-     * @param newDataValues EventDataValues to add
-     * @param updatedDataValues EventDataValues to update
-     * @param removedDataValues EventDataValues to remove
-     * @param dataElementsCache DataElements cache map with DataElements required for creating audit logs for changed EventDataValues
-     * @param programStageInstance programStageInstance to which the EventDataValues belongs to
-     * @param singleValue specifies whether the update is a single value update
-     */
-    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
-
-    /**
-     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming changes.
-     * DOES NOT PERSIST the changes to the PSI object.
-     *
-     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
-     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
-     */
-    void validateAuditAndHandleFilesForEventDataValuesSave( ProgramStageInstance programStageInstance, Map<DataElement, EventDataValue> dataElementEventDataValueMap );
-
-    /**
-     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.
-     * DOES PERSIST the changes to the PSI object.
-     *
-     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
-     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
-     */
-    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance, Map<DataElement, EventDataValue> dataElementEventDataValueMap );
-
-    /**
-     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming update changes.
-     * DOES NOT PERSIST the changes to PSI object.
-     *
-     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
-     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
-     */
-    void validateAuditAndHandleFilesForEventDataValuesUpdate( ProgramStageInstance programStageInstance, Map<DataElement, EventDataValue> dataElementEventDataValueMap );
-
-    /**
-     * Handles files for File EventDataValues and creates audit logs for the upcoming delete changes.
-     * DOES NOT PERSIST the changes to PSI object.
-     *
-     * @param programStageInstance the ProgramStageInstance to delete EventDataValues from
-     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to delete
-     */
-    void auditAndHandleFilesForEventDataValuesDelete( ProgramStageInstance programStageInstance, Map<DataElement, EventDataValue> dataElementEventDataValueMap );
+//    /**
+//     * Handles files for File EventDataValues and creates audit logs for the upcoming changes. DOES NOT PERSIST the changes to the PSI object
+//     *
+//     * @param newDataValues EventDataValues to add
+//     * @param updatedDataValues EventDataValues to update
+//     * @param removedDataValues EventDataValues to remove
+//     * @param dataElementsCache DataElements cache map with DataElements required for creating audit logs for changed EventDataValues
+//     * @param programStageInstance programStageInstance to which the EventDataValues belongs to
+//     * @param singleValue specifies whether the update is a single value update
+//     */
+//    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
+//        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+//
+//    /**
+//     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.
+//     * DOES PERSIST the changes to the PSI object.
+//     *
+//     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
+//     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
+//     */
+//    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance, Map<DataElement, EventDataValue> dataElementEventDataValueMap );
 }

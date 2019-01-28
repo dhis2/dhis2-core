@@ -32,17 +32,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -73,15 +68,6 @@ public class ProgramExpressionServiceTest
 
     @Autowired
     private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private EventDataValueService eventDataValueService;
 
     private ProgramExpression programExpressionA;
 
@@ -126,21 +112,6 @@ public class ProgramExpressionServiceTest
 
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
-
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
-            new Date(), new Date(), organisationUnit );
-        ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
-            stageA, new Date(), new Date(), organisationUnit );
-
-        String storedBy = "test-user";
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
-        EventDataValue dataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElementA, dataValueA );
-        dataElementEventDataValueMap.put( dataElementB, dataValueB );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstance, dataElementEventDataValueMap);
-        programStageInstanceService.updateProgramStageInstance( stageInstance );
 
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );

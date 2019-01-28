@@ -33,7 +33,6 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,8 +53,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
@@ -106,9 +103,6 @@ public class EventPredictionServiceTest
 
     @Autowired
     private PredictionService predictionService;
-
-    @Autowired
-    private EventDataValueService eventDataValueService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -330,15 +324,6 @@ public class EventPredictionServiceTest
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
-
-        String storedBy = "test-user";
-        EventDataValue dataValueA = new EventDataValue( dataElementX.getUid(), "4", storedBy );
-        EventDataValue dataValueB = new EventDataValue( dataElementX.getUid(), "5", storedBy );
-
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementX, dataValueA ) );
-        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, Collections.singletonMap( dataElementX, dataValueB ) );
-        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );

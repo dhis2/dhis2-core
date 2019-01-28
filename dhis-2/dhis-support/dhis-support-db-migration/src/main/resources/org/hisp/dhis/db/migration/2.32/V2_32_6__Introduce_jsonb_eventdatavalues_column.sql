@@ -2,7 +2,7 @@
 ---------- SQL commands converting trackedentitydatavalue into new json column in programstageinstance  ----------
 ------------------------------------------------------------------------------------------------------------------
 
-alter table programstageinstance add column eventdatavalues jsonb;
+alter table programstageinstance add column if not exists eventdatavalues jsonb;
 
 -- Fixes invalid timestamps in DB (problems found in Demo DB, but can be run on all DBs)
 update trackedentitydatavalue set created = substring( created::text, 1, 23 )::timestamp where created::text ~ '.*\.\d{6}$';

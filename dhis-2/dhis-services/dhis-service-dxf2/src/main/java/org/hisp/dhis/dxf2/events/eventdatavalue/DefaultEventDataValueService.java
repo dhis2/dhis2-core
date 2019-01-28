@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.security.Authorities;
@@ -67,17 +68,17 @@ public class DefaultEventDataValueService implements EventDataValueService
 {
     private final ApplicationEventPublisher eventPublisher;
 
-    private final org.hisp.dhis.eventdatavalue.EventDataValueService eventDataValueService;
+    private final ProgramStageInstanceService programStageInstanceService;
 
     private final TrackerAccessManager trackerAccessManager;
 
     @Autowired
     public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher,
-        org.hisp.dhis.eventdatavalue.EventDataValueService eventDataValueService, TrackerAccessManager trackerAccessManager )
+        TrackerAccessManager trackerAccessManager, ProgramStageInstanceService programStageInstanceService )
     {
         this.eventPublisher = eventPublisher;
-        this.eventDataValueService = eventDataValueService;
         this.trackerAccessManager = trackerAccessManager;
+        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override
@@ -118,7 +119,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             }
         }
 
-        eventDataValueService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
 
         if ( isUpdate && !importOptions.isSkipNotifications() )
         {

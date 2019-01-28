@@ -34,12 +34,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -48,8 +45,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -181,9 +176,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
-
-    @Autowired
-    private EventDataValueService eventDataValueService;
 
     @Override
     public void setUpTest()
@@ -408,31 +400,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programStageInstanceC.setExecutionDate( new Date() );
         programStageInstanceC.setUid( "UID-PS3" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-
-        ProgramStageInstance programStageInstanceTempA = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
-        ProgramStageInstance programStageInstanceTempB = programStageInstanceService.getProgramStageInstance( "UID-PS2" );
-        ProgramStageInstance programStageInstanceTempC = programStageInstanceService.getProgramStageInstance( "UID-PS3" );
-
-        String storedBy = "test-user";
-        EventDataValue diagnosis = new EventDataValue( dataElementA.getUid(), "malaria", storedBy );
-        EventDataValue bcgdoze = new EventDataValue( dataElementB.getUid(), "bcgdoze", storedBy );
-        EventDataValue weight = new EventDataValue( dataElementC.getUid(), "80", storedBy );
-        EventDataValue height = new EventDataValue( dataElementD.getUid(), "165", storedBy );
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElementA, diagnosis );
-        dataElementEventDataValueMap.put( dataElementB, bcgdoze );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempA, dataElementEventDataValueMap);
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempA );
-
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempB, Collections.singletonMap( dataElementA, diagnosis ) );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempB );
-
-        dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElementC, weight );
-        dataElementEventDataValueMap.put( dataElementD, height );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstanceTempC, dataElementEventDataValueMap);
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceTempC );
 
         programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA, programStageInstanceB, programStageInstanceC ) );
         programInstanceService.updateProgramInstance( programInstanceA );

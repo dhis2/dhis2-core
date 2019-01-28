@@ -57,8 +57,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
@@ -99,9 +97,6 @@ import com.google.common.collect.Sets;
 public class EventValidationServiceTest
     extends IntegrationTestBase
 {
-    @Autowired
-    private EventDataValueService eventDataValueService;
-
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
 
@@ -286,15 +281,6 @@ public class EventValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleASliding );
         validationRuleService.saveValidationRule( validationRuleDSliding );
         validationRuleService.saveValidationRule( validationRuleISliding );
-
-        String storedBy = "test-user";
-        EventDataValue dataValueA = new EventDataValue( dataElementA.getUid(), "4", storedBy );
-        EventDataValue dataValueB = new EventDataValue( dataElementA.getUid(), "5", storedBy );
-
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceA, Collections.singletonMap( dataElementA, dataValueA ) );
-        programStageInstanceService.updateProgramStageInstance( stageInstanceA );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( stageInstanceB, Collections.singletonMap( dataElementA, dataValueB ) );
-        programStageInstanceService.updateProgramStageInstance( stageInstanceB );
 
         Map<Date, Grid> dateGridMap = new HashMap<>();
         dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );

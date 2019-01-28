@@ -40,10 +40,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -51,8 +49,6 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -121,9 +117,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     @Mock
     private ProgramStageInstanceStore programStageInstanceStore;
-
-    @Mock
-    private EventDataValueService eventDataValueService;
 
     @InjectMocks
     private DefaultProgramNotificationService programNotificationService;
@@ -601,18 +594,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programStageInstance.setProgramStage( programStage );
-
-        String storedBy = "test-user";
-        EventDataValue eventDataValue = new EventDataValue( dataElement.getUid(), DE_PHONE_NUMBER, storedBy );
-        eventDataValue.setAutoFields();
-
-        EventDataValue eventDataValueEmail = new EventDataValue( dataElementEmail.getUid(), DE_EMAIL, storedBy );
-        eventDataValueEmail.setAutoFields();
-
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap = new HashMap<>();
-        dataElementEventDataValueMap.put( dataElement, eventDataValue );
-        dataElementEventDataValueMap.put( dataElementEmail, eventDataValueEmail );
-        eventDataValueService.validateAuditAndHandleFilesForEventDataValuesSave( programStageInstance, dataElementEventDataValueMap);
 
         // lists returned by stubs
         programStageInstances.add( programStageInstance );
