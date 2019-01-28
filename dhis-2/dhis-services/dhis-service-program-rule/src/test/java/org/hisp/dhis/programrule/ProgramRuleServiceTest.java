@@ -49,6 +49,7 @@ import java.util.Set;
 
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.junit.Assert.*;
 
 public class ProgramRuleServiceTest
@@ -313,6 +314,20 @@ public class ProgramRuleServiceTest
     {
         String functionExpression = "d2:length(#{" + programRuleVariableC.getName() + "}) + " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
         assertEquals( ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programRuleService.expressionIsValid( functionExpression ) );
+    }
+
+    @Test
+    public void testExpressionWithVariables()
+    {
+        String expression = KEY_PROGRAM_VARIABLE + "{enrollment_id} == " + KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "}";
+        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testExpressionWithNullVariables()
+    {
+        String expression = KEY_PROGRAM_VARIABLE + "{enrollment_idd} == " + KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "}";
+        assertEquals( ExpressionUtils.UNKNOWN_VARIABLE, programRuleService.expressionIsValid( expression ) );
     }
 
     /*TODO: Fix the functionality for 2 level cascading deletes.

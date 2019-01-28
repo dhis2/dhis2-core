@@ -60,6 +60,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     protected static final String DESCRIPTION = "description";
     protected static final String SAMPLE_VALUE = "sample";
     protected static final String ERROR = "error";
+
     private static final String VAR_EVENT_DATE = "event_date";
     private static final String VAR_EXECUTION_DATE = "execution_date";
     private static final String VAR_DUE_DATE = "due_date";
