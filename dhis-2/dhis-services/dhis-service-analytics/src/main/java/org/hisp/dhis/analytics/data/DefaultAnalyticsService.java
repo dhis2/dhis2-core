@@ -542,7 +542,7 @@ public class DefaultAnalyticsService
 
                 if ( params.isIncludeNumDen() )
                 {
-                    grid.addNullValues( 3 );
+                    grid.addNullValues( 5 );
                 }
             }
         }
@@ -622,7 +622,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( 5 );
             }
         }
     }
@@ -731,7 +731,8 @@ public class DefaultAnalyticsService
                     {
                         grid.addValue( actual )
                             .addValue( target )
-                            .addValue( PERCENT );
+                            .addValue( PERCENT )
+                            .addNullValues( 2 );
                     }
                 }
             }
