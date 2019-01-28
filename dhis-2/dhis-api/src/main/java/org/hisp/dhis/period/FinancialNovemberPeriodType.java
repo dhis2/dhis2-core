@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,54 +28,53 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Calendar;
+
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class MapMap<T, U, V>
-    extends HashMap<T, Map<U, V>>
+public class FinancialNovemberPeriodType 
+    extends FinancialPeriodType
 {
-    public Map<U, V> putEntry( T key, U valueKey, V value )
+
+    private static final long serialVersionUID = -8443905531396977357L;
+
+    private static final String ISO_FORMAT = "yyyyNov";
+
+    private static final String ISO8601_DURATION = "P1Y";
+
+    public static final String NAME = "FinancialNov";
+
+    @Override
+    protected int getBaseMonth()
     {
-        Map<U, V> map = this.get( key );
-        map = map == null ? new HashMap<>() : map;
-        map.put( valueKey, value );
-        return this.put( key, map );
+        return Calendar.NOVEMBER;
     }
 
-    public void putEntries( T key, Map<U, V> m )
+    @Override
+    public String getName()
     {
-        Map<U, V> map = this.get( key );
-        map = map == null ? new HashMap<>() : map;
-        map.putAll( m );
-        this.put( key, map );
+        return NAME;
     }
 
-    public void putMap( MapMap<T, U, V> map )
+    @Override
+    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        for ( Map.Entry<T, Map<U, V>> entry : map.entrySet() )
-        {
-            this.putEntries( entry.getKey(), entry.getValue() );
-        }
+        return String.format( "%dNov", dateTimeUnit.getYear() + 1 );
     }
 
-    public V getValue( T key, U valueKey )
+    @Override
+    public String getIsoFormat()
     {
-        return this.get( key ) == null ? null : this.get( key ).get( valueKey );
+        return ISO_FORMAT;
     }
 
-    @SafeVarargs
-    public static <T, U, V> MapMap<T, U, V> ofEntries( Map.Entry<T, Map<U, V>>... entries )
+    @Override
+    public String getIso8601Duration()
     {
-        MapMap<T, U, V> map = new MapMap<>();
-
-        for ( Map.Entry<T, Map<U, V>> entry : entries )
-        {
-            map.put( entry.getKey(), entry.getValue() );
-        }
-
-        return map;
+        return ISO8601_DURATION;
     }
 }
