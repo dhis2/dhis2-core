@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -38,6 +39,9 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
@@ -117,5 +121,34 @@ public class TrackerPreheatServiceTest
         assertFalse( bundle.getEvents().isEmpty() );
 
         Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+
+        assertTrue( collectedMap.containsKey( DataElement.class ) );
+        assertTrue( collectedMap.get( DataElement.class ).containsKey( TrackerIdentifier.UID ) );
+
+        Set<String> dataElements = collectedMap.get( DataElement.class ).get( TrackerIdentifier.UID );
+
+        assertTrue( dataElements.contains( "DSKTW8qFP0z" ) );
+        assertTrue( dataElements.contains( "VD2olWcRozZ" ) );
+        assertTrue( dataElements.contains( "WS3e6pInnuA" ) );
+        assertTrue( dataElements.contains( "h7hXjNVMiRl" ) );
+        assertTrue( dataElements.contains( "KCLriKKezWO" ) );
+        assertTrue( dataElements.contains( "A8qxpcalLtf" ) );
+        assertTrue( dataElements.contains( "zal5vkVEpV0" ) );
+        assertTrue( dataElements.contains( "kAfSfT69m0E" ) );
+        assertTrue( dataElements.contains( "wIUShyK7lIa" ) );
+        assertTrue( dataElements.contains( "ICfA0klVxkd" ) );
+        assertTrue( dataElements.contains( "xaPkxL28aPx" ) );
+        assertTrue( dataElements.contains( "Kvm949EFjjv" ) );
+        assertTrue( dataElements.contains( "xaQ4gqDYGL9" ) );
+        assertTrue( dataElements.contains( "MqGMwzt7M7w" ) );
+        assertTrue( dataElements.contains( "WdTLfnn4S1I" ) );
+        assertTrue( dataElements.contains( "hxUvZqnmBDv" ) );
+        assertTrue( dataElements.contains( "JXF90RhgNiI" ) );
+        assertTrue( dataElements.contains( "gfEoDU4GtXK" ) );
+        assertTrue( dataElements.contains( "qw67QlOlzdp" ) );
+
+        assertTrue( collectedMap.containsKey( Program.class ) );
+        assertTrue( collectedMap.containsKey( ProgramStage.class ) );
+        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
     }
 }
