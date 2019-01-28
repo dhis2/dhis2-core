@@ -65,7 +65,7 @@ public class TrackerBundleParams
     /**
      * What identifiers to match on.
      */
-    private TrackerPreheatIdentifier identifier = TrackerPreheatIdentifier.UID;
+    private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -145,12 +145,12 @@ public class TrackerBundleParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerPreheatIdentifier getIdentifier()
+    public TrackerIdentifier getIdentifier()
     {
         return identifier;
     }
 
-    public TrackerBundleParams setIdentifier( TrackerPreheatIdentifier identifier )
+    public TrackerBundleParams setIdentifier( TrackerIdentifier identifier )
     {
         this.identifier = identifier;
         return this;
@@ -208,6 +208,8 @@ public class TrackerBundleParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityInstance> getTrackedEntities()
     {
         return trackedEntities;
@@ -219,6 +221,8 @@ public class TrackerBundleParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
@@ -230,6 +234,8 @@ public class TrackerBundleParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
         return events;

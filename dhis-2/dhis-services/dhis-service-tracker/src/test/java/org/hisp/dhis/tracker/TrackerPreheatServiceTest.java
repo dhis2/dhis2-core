@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -47,7 +48,9 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -69,14 +72,14 @@ public class TrackerPreheatServiceTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testTemplate() throws IOException
+    public void testEventMetadata() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -91,5 +94,28 @@ public class TrackerPreheatServiceTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
+    }
+
+    @Test
+    public void testCollectIdentifiersSimple() throws IOException
+    {
+        TrackerBundle bundle = new TrackerBundle();
+        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+        assertTrue( collectedMap.isEmpty() );
+    }
+
+    @Test
+    public void testCollectIdentifiersEvents() throws IOException
+    {
+        TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+            TrackerBundleParams.class );
+
+        TrackerBundle bundle = params.toTrackerBundle();
+
+        assertTrue( bundle.getTrackedEntities().isEmpty() );
+        assertTrue( bundle.getEnrollments().isEmpty() );
+        assertFalse( bundle.getEvents().isEmpty() );
+
+        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
     }
 }

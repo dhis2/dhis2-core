@@ -45,8 +45,8 @@ public class TrackerPreheatTest
         TrackerPreheat preheat = new TrackerPreheat();
 
         assertTrue( preheat.isEmpty() );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.UID ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.CODE ) );
     }
 
     @Test
@@ -62,21 +62,21 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerPreheatIdentifier.UID, de1 );
-        preheat.put( TrackerPreheatIdentifier.UID, de2 );
-        preheat.put( TrackerPreheatIdentifier.UID, de3 );
+        preheat.put( TrackerIdentifier.UID, de1 );
+        preheat.put( TrackerIdentifier.UID, de2 );
+        preheat.put( TrackerIdentifier.UID, de3 );
 
         assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
+        assertFalse( preheat.isEmpty( TrackerIdentifier.UID ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.CODE ) );
 
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de1.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de2.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de3.getUid() ) );
 
-        assertEquals( de1.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
-        assertEquals( de2.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ).getUid() );
-        assertEquals( de3.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
+        assertEquals( de1.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
+        assertEquals( de2.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de2.getUid() ).getUid() );
+        assertEquals( de3.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
     }
 
     @Test
@@ -95,21 +95,21 @@ public class TrackerPreheatTest
         de3.setAutoFields();
         de3.setCode( "Code3" );
 
-        preheat.put( TrackerPreheatIdentifier.CODE, de1 );
-        preheat.put( TrackerPreheatIdentifier.CODE, de2 );
-        preheat.put( TrackerPreheatIdentifier.CODE, de3 );
+        preheat.put( TrackerIdentifier.CODE, de1 );
+        preheat.put( TrackerIdentifier.CODE, de2 );
+        preheat.put( TrackerIdentifier.CODE, de3 );
 
         assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
+        assertFalse( preheat.isEmpty( TrackerIdentifier.CODE ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.UID ) );
 
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.CODE, DataElement.class, de2.getCode() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.CODE, DataElement.class, de1.getCode() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.CODE, DataElement.class, de2.getCode() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.CODE, DataElement.class, de3.getCode() ) );
 
-        assertEquals( de1.getCode(), preheat.get( TrackerPreheatIdentifier.CODE, DataElement.class, de1.getCode() ).getCode() );
-        assertEquals( de2.getCode(), preheat.get( TrackerPreheatIdentifier.CODE, DataElement.class, de2.getCode() ).getCode() );
-        assertEquals( de3.getCode(), preheat.get( TrackerPreheatIdentifier.CODE, DataElement.class, de3.getCode() ).getCode() );
+        assertEquals( de1.getCode(), preheat.get( TrackerIdentifier.CODE, DataElement.class, de1.getCode() ).getCode() );
+        assertEquals( de2.getCode(), preheat.get( TrackerIdentifier.CODE, DataElement.class, de2.getCode() ).getCode() );
+        assertEquals( de3.getCode(), preheat.get( TrackerIdentifier.CODE, DataElement.class, de3.getCode() ).getCode() );
     }
 
     @Test
@@ -125,19 +125,19 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerPreheatIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
 
         assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
+        assertFalse( preheat.isEmpty( TrackerIdentifier.UID ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.CODE ) );
 
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de1.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de2.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de3.getUid() ) );
 
-        assertEquals( de1.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
-        assertEquals( de2.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ).getUid() );
-        assertEquals( de3.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
+        assertEquals( de1.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
+        assertEquals( de2.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de2.getUid() ).getUid() );
+        assertEquals( de3.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
     }
 
     @Test
@@ -153,20 +153,20 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerPreheatIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
 
         assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
+        assertFalse( preheat.isEmpty( TrackerIdentifier.UID ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.CODE ) );
 
-        preheat.remove( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() );
+        preheat.remove( TrackerIdentifier.UID, DataElement.class, de2.getUid() );
 
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertFalse( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertTrue( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de1.getUid() ) );
+        assertFalse( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de2.getUid() ) );
+        assertTrue( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de3.getUid() ) );
 
-        assertEquals( de1.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
-        assertEquals( de3.getUid(), preheat.get( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
+        assertEquals( de1.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de1.getUid() ).getUid() );
+        assertEquals( de3.getUid(), preheat.get( TrackerIdentifier.UID, DataElement.class, de3.getUid() ).getUid() );
     }
 
     @Test
@@ -182,16 +182,16 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerPreheatIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
 
         assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( TrackerPreheatIdentifier.UID ) );
-        assertTrue( preheat.isEmpty( TrackerPreheatIdentifier.CODE ) );
+        assertFalse( preheat.isEmpty( TrackerIdentifier.UID ) );
+        assertTrue( preheat.isEmpty( TrackerIdentifier.CODE ) );
 
-        preheat.remove( TrackerPreheatIdentifier.UID, DataElement.class, Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
+        preheat.remove( TrackerIdentifier.UID, DataElement.class, Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
 
-        assertFalse( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertFalse( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertFalse( preheat.containsKey( TrackerPreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
+        assertFalse( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de1.getUid() ) );
+        assertFalse( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de2.getUid() ) );
+        assertFalse( preheat.containsKey( TrackerIdentifier.UID, DataElement.class, de3.getUid() ) );
     }
 }

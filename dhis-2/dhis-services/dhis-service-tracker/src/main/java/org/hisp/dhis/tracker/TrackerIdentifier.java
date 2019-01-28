@@ -33,7 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerPreheatIdentifier
+public enum TrackerIdentifier
 {
     /**
      * Preheat using UID identifiers.

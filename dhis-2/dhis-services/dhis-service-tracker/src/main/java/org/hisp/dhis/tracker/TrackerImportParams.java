@@ -67,7 +67,7 @@ public class TrackerImportParams
     /**
      * What identifiers to match on.
      */
-    private TrackerPreheatIdentifier identifier = TrackerPreheatIdentifier.UID;
+    private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -152,12 +152,12 @@ public class TrackerImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerPreheatIdentifier getIdentifier()
+    public TrackerIdentifier getIdentifier()
     {
         return identifier;
     }
 
-    public TrackerImportParams setIdentifier( TrackerPreheatIdentifier identifier )
+    public TrackerImportParams setIdentifier( TrackerIdentifier identifier )
     {
         this.identifier = identifier;
         return this;

@@ -57,7 +57,7 @@ public class TrackerBundle
     /**
      * What identifiers to match on.
      */
-    private TrackerPreheatIdentifier identifier = TrackerPreheatIdentifier.UID;
+    private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -120,12 +120,12 @@ public class TrackerBundle
         return this;
     }
 
-    public TrackerPreheatIdentifier getIdentifier()
+    public TrackerIdentifier getIdentifier()
     {
         return identifier;
     }
 
-    public TrackerBundle setIdentifier( TrackerPreheatIdentifier identifier )
+    public TrackerBundle setIdentifier( TrackerIdentifier identifier )
     {
         this.identifier = identifier;
         return this;
