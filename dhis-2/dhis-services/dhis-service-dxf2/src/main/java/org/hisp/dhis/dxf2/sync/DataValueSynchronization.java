@@ -123,7 +123,9 @@ public class DataValueSynchronization
         final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
         final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
-        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
+
+        //Have to use this as (int) Match.ceil doesn't work until I am casting int to doublee to use this as (int) Match.ceil doesn't work until I am casting int to double
+        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
 
         log.info( objectsToSynchronize + " DataValues to synchronize were found." );
         log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
@@ -139,7 +141,6 @@ public class DataValueSynchronization
             {
                 syncResult = false;
             }
-            //TODO: Possible improvement is to update lastSuccessTime timestamp to those that were just synced. But it will require more effort
         }
 
         if ( syncResult )
@@ -159,7 +160,10 @@ public class DataValueSynchronization
             return SynchronizationResult.newFailureResultWithMessage( "Completeness Synchronisation failed. Remote " +
                     "server is unavailable." );
         }
-        final Clock clock = new Clock( log ).startClock().logTime( "Starting Completeness Synchronisation job." );
+
+        final Clock clock = new Clock( log )
+            .startClock()
+            .logTime( "Starting Completeness Synchronisation job." );
 
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved

@@ -149,7 +149,6 @@ public class DefaultSynchronizationManager
 
     private ImportSummary executeDataSetCompletenessPush( SystemInstance instance )  throws WebMessageParseException
     {
-
         final Date startTime = new Date();
 
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
@@ -249,7 +248,6 @@ public class DefaultSynchronizationManager
         // subsequently part of next synch process without being ignored
         // ---------------------------------------------------------------------
 
-        final Date startTime = new Date();
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
         final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
