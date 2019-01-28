@@ -28,28 +28,7 @@ package org.hisp.dhis.expressionparser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.Sets;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.expression.MissingValueStrategy;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.expressionparser.generated.ExpressionLexer;
-import org.hisp.dhis.expressionparser.generated.ExpressionParser;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,7 +36,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.expressionparser.generated.ExpressionLexer;
+import org.hisp.dhis.expressionparser.generated.ExpressionParser;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.period.Period;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.Sets;
 
 /**
  * Parses expressions using the ANTLR parser.
