@@ -38,7 +38,7 @@
 
     <property name="standardInterval" />
 
-    <set name="programStageSections" order-by="sortOrder">
+    <set name="programStageSections" order-by="sortOrder" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageSection" />
     </set>

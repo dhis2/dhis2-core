@@ -30,10 +30,14 @@ package org.hisp.dhis.dxf2.metadata;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
@@ -44,8 +48,10 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,6 +67,9 @@ public class MetadataImportServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws Exception
@@ -145,5 +154,36 @@ public class MetadataImportServiceTest
         assertEquals( Status.OK, report.getStatus() );
     }
 
+    @Test
+    public void testImportProgramWithProgramStageSections() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
 
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Program program = manager.get( Program.class,  "s5uvS0Q7jnX");
+
+        assertNotNull( program );
+        assertEquals( 1, program.getProgramStages().size() );
+
+        ProgramStage programStage = program.getProgramStages().iterator().next();
+        assertNotNull( programStage );
+
+        Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
+        ProgramStageSection programStageSection = programStageSections.iterator().next();
+
+
+        assertNotNull( programStage.getProgram() );
+        assertNotNull( programStageSections );
+        assertEquals( 2, programStageSections.size() );
+        assertNotNull( programStageSection.getProgramStage() );
+
+    }
 }

@@ -49,6 +49,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         }
 
         syncSharingForEventProgram( (Program) object );
+
+        updateProgramStage( (Program) object );
     }
 
     @Override
@@ -74,6 +76,23 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         AccessStringHelper.copySharing( program, programStage );
 
         programStage.setUser( program.getUser() );
+        sessionFactory.getCurrentSession().update( programStage );
+    }
+
+    private void updateProgramStage( Program program )
+    {
+        if ( program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        ProgramStage programStage = program.getProgramStages().iterator().next();
+
+        if ( programStage.getProgram() == null )
+        {
+            programStage.setProgram( program );
+        }
+
         sessionFactory.getCurrentSession().update( programStage );
     }
 }
