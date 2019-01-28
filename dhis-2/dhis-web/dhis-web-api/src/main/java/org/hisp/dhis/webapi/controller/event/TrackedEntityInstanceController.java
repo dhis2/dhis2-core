@@ -80,7 +80,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -857,10 +857,10 @@ public class TrackedEntityInstanceController
                 if ( program.getAccessLevel() == AccessLevel.CLOSED )
                 {
                    throw new WebMessageException(
-                        WebMessageUtils.unathorized( TrackerOwnershipAccessManager.PROGRAM_ACCESS_CLOSED ) );
+                        WebMessageUtils.unathorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
                 }
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED ) );
+                    WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
             
             if (trackedEntityInstanceParams.isIncludeProgramOwners())
