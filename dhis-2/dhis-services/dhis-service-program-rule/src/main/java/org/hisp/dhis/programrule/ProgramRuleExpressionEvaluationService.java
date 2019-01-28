@@ -32,7 +32,10 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.AddDaysProgramD2Function;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
 import org.hisp.dhis.program.CeilProgramD2Function;
@@ -54,6 +57,7 @@ import org.hisp.dhis.program.ZPVCProgramD2Function;
 import org.hisp.dhis.program.ZingProgramD2Function;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -66,9 +70,6 @@ import java.util.regex.Matcher;
 public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressionEvaluationService
 {
     private static final String PROGRAM_RULE_VARIABLE_VALUE = "1";
-
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
 
     private static final Map<String, ProgramD2Function> PROGRAM_RULE_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( UserRoleProgramD2Function.KEY, new UserRoleProgramD2Function() )
@@ -91,12 +92,30 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
         .put( CeilProgramD2Function.KEY, new CeilProgramD2Function() )
         .build();
 
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private ProgramRuleVariableService programRuleVariableService;
+
+    private DataElementService dataElementService;
+
+    private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    public ProgramRuleExpressionEvaluationService( ConstantService constantService, I18nManager i18nManager, ProgramRuleVariableService programRuleVariableService,
+        DataElementService dataElementService, TrackedEntityAttributeService attributeService )
+    {
+        super(constantService, i18nManager);
+        this.programRuleVariableService = programRuleVariableService;
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+    }
+
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()
     {
-        Map<String, ProgramD2Function> combined = new HashMap<>();
-
-        combined.putAll( COMMON_D2_FUNC_MAP );
+        Map<String, ProgramD2Function> combined = new HashMap<>( COMMON_D2_FUNC_MAP );
         combined.putAll( PROGRAM_RULE_D2_FUNC_MAP );
 
         return combined;

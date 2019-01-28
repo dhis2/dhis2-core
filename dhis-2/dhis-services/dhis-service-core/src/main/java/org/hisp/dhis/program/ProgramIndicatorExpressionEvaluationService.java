@@ -37,9 +37,14 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +62,26 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
+
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private DataElementService dataElementService;
+
+    private TrackedEntityAttributeService attributeService;
+
+    private ProgramStageService programStageService;
+
+    @Autowired
+    public ProgramIndicatorExpressionEvaluationService( ConstantService constantService, I18nManager i18nManager, DataElementService dataElementService,
+        TrackedEntityAttributeService attributeService, ProgramStageService programStageService )
+    {
+        super(constantService, i18nManager);
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+        this.programStageService = programStageService;
+    }
 
     @Override
     protected Map<String, ProgramD2Function> getD2Functions()

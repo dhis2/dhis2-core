@@ -33,12 +33,10 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -140,20 +138,20 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         .put( KEY_ATTRIBUTE, this::getSourceAttribute )
         .build();
 
-    @Autowired
-    protected ConstantService constantService;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private ConstantService constantService;
+
+    private I18nManager i18nManager;
 
     @Autowired
-    protected I18nManager i18nManager;
-
-    @Autowired
-    protected DataElementService dataElementService;
-
-    @Autowired
-    protected ProgramStageService programStageService;
-
-    @Autowired
-    protected TrackedEntityAttributeService attributeService;
+    public BaseProgramExpressionEvaluationService( ConstantService constantService, I18nManager i18nManager )
+    {
+        this.constantService = constantService;
+        this.i18nManager = i18nManager;
+    }
 
     @Override
     public String isExpressionValid( String expression )
