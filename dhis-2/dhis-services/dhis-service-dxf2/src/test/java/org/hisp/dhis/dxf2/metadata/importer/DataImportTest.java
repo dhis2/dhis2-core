@@ -346,7 +346,7 @@ public class DataImportTest extends DhisSpringTest
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.UPDATE );
 
-        ImportSummary summary = teiDXF2Service.updateTrackedEntityInstanceJson( teiUID, is, io );
+        ImportSummary summary = teiDXF2Service.updateTrackedEntityInstanceJson( teiUID, null, is, io );
         sessionFactory.getCurrentSession().flush();
         sessionFactory.getCurrentSession().clear();
 

@@ -75,6 +75,7 @@
   <bean id="org.hisp.dhis.interpretation.InterpretationStore" class="org.hisp.dhis.interpretation.hibernate.HibernateInterpretationStore">
     <property name="clazz" value="org.hisp.dhis.interpretation.Interpretation" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataentryform.DataEntryFormStore" class="org.hisp.dhis.dataentryform.hibernate.HibernateDataEntryFormStore">
@@ -747,12 +748,14 @@
   <bean id="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" class="org.hisp.dhis.keyjsonvalue.hibernate.HibernateKeyJsonValueStore">
     <property name="clazz" value="org.hisp.dhis.keyjsonvalue.KeyJsonValue" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore"
     class="org.hisp.dhis.userkeyjsonvalue.hibernate.HibernateUserKeyJsonValueStore">
     <property name="clazz" value="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.fileresource.FileResourceStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

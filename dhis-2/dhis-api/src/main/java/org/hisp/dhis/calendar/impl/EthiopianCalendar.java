@@ -94,6 +94,11 @@ public class EthiopianCalendar extends ChronologyBasedCalendar
     @Override
     public DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days )
     {
+        if ( days < 0 )
+        {
+            return minusDays( dateTimeUnit, Math.abs( days ) );
+        }
+
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
