@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,19 +28,17 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerBundleMode
+public interface TrackerValidationService
 {
     /**
-     * If bundle is valid, commit the bundle to the database.
-     * Commits at intervals.
+     * Validate tracker bundle
+     *
+     * @param bundle Bundle to validate
      */
-    COMMIT,
-
-    /**
-     * Validate bundle only (dry run)
-     */
-    VALIDATE;
+    void validate( TrackerBundle bundle );
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.bundle;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -32,6 +32,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.bundle;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -31,6 +31,16 @@ package org.hisp.dhis.tracker;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerPreheatService
+public enum TrackerBundleMode
 {
+    /**
+     * If bundle is valid, commit the bundle to the database.
+     * Commits at intervals.
+     */
+    COMMIT,
+
+    /**
+     * Validate bundle only (dry run)
+     */
+    VALIDATE;
 }

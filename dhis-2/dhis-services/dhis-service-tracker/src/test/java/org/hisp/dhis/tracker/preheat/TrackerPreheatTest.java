@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.preheat;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

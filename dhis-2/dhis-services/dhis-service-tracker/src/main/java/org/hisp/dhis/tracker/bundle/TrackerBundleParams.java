@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.bundle;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,25 +28,35 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundle
+public class TrackerBundleParams
 {
+    /**
+     * User uid to use for import job.
+     */
+    private String userId;
+
     /**
      * User to use for import job.
      */
+
     private User user;
 
     /**
@@ -94,8 +104,21 @@ public class TrackerBundle
      */
     private List<Event> events = new ArrayList<>();
 
-    public TrackerBundle()
+    public TrackerBundleParams()
     {
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    public TrackerBundleParams setUserId( String userId )
+    {
+        this.userId = userId;
+        return this;
     }
 
     public User getUser()
@@ -103,126 +126,140 @@ public class TrackerBundle
         return user;
     }
 
-    public TrackerBundle setUser( User user )
+    public TrackerBundleParams setUser( User user )
     {
         this.user = user;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerBundleMode getImportMode()
     {
         return importMode;
     }
 
-    public TrackerBundle setImportMode( TrackerBundleMode importMode )
+    public TrackerBundleParams setImportMode( TrackerBundleMode importMode )
     {
         this.importMode = importMode;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerIdentifier getIdentifier()
     {
         return identifier;
     }
 
-    public TrackerBundle setIdentifier( TrackerIdentifier identifier )
+    public TrackerBundleParams setIdentifier( TrackerIdentifier identifier )
     {
         this.identifier = identifier;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerImportStrategy getImportStrategy()
     {
         return importStrategy;
     }
 
-    public TrackerBundle setImportStrategy( TrackerImportStrategy importStrategy )
+    public TrackerBundleParams setImportStrategy( TrackerImportStrategy importStrategy )
     {
         this.importStrategy = importStrategy;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AtomicMode getAtomicMode()
     {
         return atomicMode;
     }
 
-    public TrackerBundle setAtomicMode( AtomicMode atomicMode )
+    public TrackerBundleParams setAtomicMode( AtomicMode atomicMode )
     {
         this.atomicMode = atomicMode;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FlushMode getFlushMode()
     {
         return flushMode;
     }
 
-    public TrackerBundle setFlushMode( FlushMode flushMode )
+    public TrackerBundleParams setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
     }
 
-    public TrackerBundle setSkipValidation( boolean skipValidation )
+    public TrackerBundleParams setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityInstance> getTrackedEntities()
     {
         return trackedEntities;
     }
 
-    public TrackerBundle setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
+    public TrackerBundleParams setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;
     }
 
-    public TrackerBundle addTrackedEntity( TrackedEntityInstance... trackedEntity )
-    {
-        trackedEntities.addAll( Arrays.asList( trackedEntity ) );
-        return this;
-    }
-
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
     }
 
-    public TrackerBundle setEnrollments( List<Enrollment> enrollments )
+    public TrackerBundleParams setEnrollments( List<Enrollment> enrollments )
     {
         this.enrollments = enrollments;
         return this;
     }
 
-    public TrackerBundle addEnrollment( Enrollment... enrollment )
-    {
-        enrollments.addAll( Arrays.asList( enrollment ) );
-        return this;
-    }
-
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
         return events;
     }
 
-    public TrackerBundle setEvents( List<Event> events )
+    public TrackerBundleParams setEvents( List<Event> events )
     {
         this.events = events;
         return this;
     }
 
-    public TrackerBundle addEvent( Event... event )
+    public TrackerBundle toTrackerBundle()
     {
-        events.addAll( Arrays.asList( event ) );
-        return this;
+        return new TrackerBundle()
+            .setUser( user )
+            .setImportMode( importMode )
+            .setImportStrategy( importStrategy )
+            .setAtomicMode( atomicMode )
+            .setFlushMode( flushMode )
+            .setSkipValidation( skipValidation )
+            .setTrackedEntities( trackedEntities )
+            .setEnrollments( enrollments )
+            .setEvents( events );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.preheat;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -31,12 +31,6 @@ package org.hisp.dhis.tracker;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationService
+public interface TrackerPreheatService
 {
-    /**
-     * Validate tracker bundle
-     *
-     * @param bundle Bundle to validate
-     */
-    void validate( TrackerBundle bundle );
 }
