@@ -1766,8 +1766,18 @@ function insertDataValues( json )
     dhis2.de.currentMinMaxValueMap = []; // Reset
     
     var period = dhis2.de.getSelectedPeriod();
-        
-	if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 )
+    
+    var dataSet = dhis2.de.dataSets[dhis2.de.currentDataSetId];
+    
+    var periodLocked = false;
+    
+    if ( dataSet && dataSet.expiryDays > 0 )
+    {
+        var maxDate = moment( period.endDate, dhis2.period.format.toUpperCase() ).add( parseInt(dataSet.expiryDays), 'day' );
+        periodLocked = moment().isAfter( maxDate );
+    }
+
+    if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 || periodLocked )
 	{
 		dhis2.de.lockForm();
 		setHeaderDelayMessage( i18n_dataset_is_locked );
