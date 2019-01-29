@@ -117,10 +117,13 @@ public interface ProgramRuleService
     /**
      * Indicates whether the given program rule expression is valid.
      *
-     * @param expression an expression string.
-     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
-     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
-     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @param expression a string.
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, otherwise one of the following
+     *         {@link ExpressionValidationOutcome#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION},
+     *         {@link ExpressionValidationOutcome#NO_ATTR_IN_PROGRAM_RULE_VARIABLE},
+     *         {@link ExpressionValidationOutcome#NO_DE_IN_PROGRAM_RULE_VARIABLE},
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID}.
      */
     ExpressionValidationOutcome expressionIsValid( String expression );
 

@@ -137,9 +137,10 @@ public interface ProgramIndicatorService
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param expression an expression string.
-     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, otherwise one of the following
      *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
-     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION},
+     *         {@link ExpressionValidationOutcome#UNKNOWN_VARIABLE}.
      */
     ExpressionValidationOutcome expressionIsValid( String expression );
 
@@ -147,11 +148,13 @@ public interface ProgramIndicatorService
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param filter a filter string.
-     * @return the  {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, otherwise one of the following
      *         {@link ExpressionValidationOutcome#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION},
+     *         {@link ExpressionValidationOutcome#UNKNOWN_VARIABLE}.
      */
-    ExpressionValidationOutcome filterIsValid(String filter );
+    ExpressionValidationOutcome filterIsValid( String filter );
     
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
