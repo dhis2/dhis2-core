@@ -70,14 +70,18 @@ public class HibernateDatabaseInfoProvider
     {
         checkDatabaseConnectivity();
 
-        boolean spatialSupport = isSpatialSupport();
+        boolean spatialSupport = false;
 
         // Check if postgis is installed. If not, fail startup.
-
-        if ( !spatialSupport && !SystemUtils.isTestRun() )
+        if ( !SystemUtils.isTestRun() )
         {
-            log.error( POSTGIS_MISSING_ERROR );
-            throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+            spatialSupport = isSpatialSupport();
+
+            if ( !spatialSupport )
+            {
+                log.error( POSTGIS_MISSING_ERROR );
+                throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+            }
         }
 
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );

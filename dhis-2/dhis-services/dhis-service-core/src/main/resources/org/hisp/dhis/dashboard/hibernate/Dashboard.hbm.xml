@@ -22,6 +22,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="items" table="dashboard_items"  cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="dashboardid" foreign-key="fk_dashboard_items_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="dashboarditemid" class="org.hisp.dhis.dashboard.DashboardItem"

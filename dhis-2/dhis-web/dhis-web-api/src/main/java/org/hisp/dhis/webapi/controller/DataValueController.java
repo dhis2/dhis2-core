@@ -320,6 +320,7 @@ public class DataValueController
                     // If we fail to delete the fileResource now, mark it as unassigned for removal later
                     fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
                 }
+
                 dataValue.setValue( StringUtils.EMPTY );
             }
 
