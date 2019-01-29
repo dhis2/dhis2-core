@@ -110,7 +110,8 @@ public class DateUtils
     private static final DateTimeFormatter HTTP_DATE_FORMAT = DateTimeFormat.forPattern( "EEE, dd MMM yyyy HH:mm:ss 'GMT'" ).withLocale( Locale.ENGLISH );
     private static final DateTimeFormatter TIMESTAMP_UTC_TZ_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).withZoneUTC();
 
-    private static final double DAYS_IN_YEAR = 365.0;
+    public static final double DAYS_IN_YEAR = 365.0;
+
     private static final long MS_PER_DAY = 86400000;
     private static final long MS_PER_S = 1000;
 
@@ -574,23 +575,6 @@ public class DateUtils
         cal.add( Calendar.DATE, days );
 
         return cal.getTime();
-    }
-
-    /**
-     * Returns the annualization factor for the given indicator and start-end date interval.
-     */
-    public static double getAnnualizationFactor( Indicator indicator, Date startDate, Date endDate )
-    {
-        double factor = 1.0;
-
-        if ( indicator.isAnnualized() )
-        {
-            final int daysInPeriod = DateUtils.daysBetween( startDate, endDate ) + 1;
-
-            factor = DAYS_IN_YEAR / daysInPeriod;
-        }
-
-        return factor;
     }
 
     /**
