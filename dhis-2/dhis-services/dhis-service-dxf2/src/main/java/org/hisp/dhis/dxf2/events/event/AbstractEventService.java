@@ -114,7 +114,7 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -228,7 +228,7 @@ public abstract class AbstractEventService
     protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
-    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     protected AclService aclService;
