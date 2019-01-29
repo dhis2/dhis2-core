@@ -35,6 +35,7 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.util.DateUtils;
 
@@ -339,13 +340,13 @@ public class DefaultProgramIndicatorService
     }
 
     @Transactional
-    public String expressionIsValid( String expression )
+    public ExpressionValidationOutcome expressionIsValid( String expression )
     {
         return expressionEvaluationService.isExpressionValid( expression );
     }
 
     @Transactional
-    public String filterIsValid( String filter )
+    public ExpressionValidationOutcome filterIsValid( String filter )
     {
         return expressionEvaluationService.isFilterExpressionValid( filter );
     }

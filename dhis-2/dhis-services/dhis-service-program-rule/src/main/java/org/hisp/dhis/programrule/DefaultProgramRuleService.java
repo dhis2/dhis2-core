@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.program.Program;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,7 +123,7 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public String expressionIsValid( String expression )
+    public ExpressionValidationOutcome expressionIsValid( String expression )
     {
         return expressionEvaluationService.isFilterExpressionValid( expression );
     }

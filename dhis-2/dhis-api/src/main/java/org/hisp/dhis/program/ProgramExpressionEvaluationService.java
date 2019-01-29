@@ -28,6 +28,8 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
+
 /**
  * @Author Zubair Asghar.
  */
@@ -37,9 +39,11 @@ public interface ProgramExpressionEvaluationService
      * Indicates whether the given program indicator or program rule expression is valid.
      *
      * @param expression an expression string.
-     * @return true if expression is valid, false otherwise.
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
-    String isExpressionValid( String expression );
+    ExpressionValidationOutcome isExpressionValid( String expression );
 
     /**
      * Get description of an expression.
@@ -53,9 +57,9 @@ public interface ProgramExpressionEvaluationService
      * Indicates whether the given program indicator expression is valid.
      *
      * @param filter a filter string.
-     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
-    String isFilterExpressionValid( String filter );
+    ExpressionValidationOutcome isFilterExpressionValid( String filter );
 }

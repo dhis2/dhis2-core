@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -117,11 +118,11 @@ public interface ProgramRuleService
      * Indicates whether the given program rule expression is valid.
      *
      * @param expression an expression string.
-     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#EXPRESSION_NOT_VALID},
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
-    String expressionIsValid( String expression );
+    ExpressionValidationOutcome expressionIsValid( String expression );
 
     /**
      * Get description of an program rule expression.

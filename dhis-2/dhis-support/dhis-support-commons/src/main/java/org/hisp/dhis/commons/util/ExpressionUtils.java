@@ -55,14 +55,6 @@ public class ExpressionUtils
 
     private static final Pattern NUMERIC_PATTERN = Pattern.compile( "^(-?0|-?[1-9]\\d*)(\\.\\d+)?$" );
 
-    public static final String VALID = "valid";
-    public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
-    public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
-    public static final String NO_DE_IN_PROGRAM_RULE_VARIABLE = "dataelement_missing_in_program_rule_variable";
-    public static final String NO_ATTR_IN_PROGRAM_RULE_VARIABLE = "attribute_missing_in_program_rule_variable";
-    public static final String UNKNOWN_VARIABLE = "unknown_variable";
-    public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
-
     static
     {
         Map<String, Object> functions = new HashMap<>();

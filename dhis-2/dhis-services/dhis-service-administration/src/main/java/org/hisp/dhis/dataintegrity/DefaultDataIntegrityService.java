@@ -31,7 +31,6 @@ package org.hisp.dhis.dataintegrity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -657,8 +656,8 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! ExpressionUtils.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+            .filter( pi -> ! ExpressionValidationOutcome.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
     }
@@ -669,8 +668,8 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! ( pi.hasFilter() ? ExpressionUtils.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+            .filter( pi -> ( ! ( pi.hasFilter() ? ExpressionValidationOutcome.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter) );
 
         return invalidFilters;
     }

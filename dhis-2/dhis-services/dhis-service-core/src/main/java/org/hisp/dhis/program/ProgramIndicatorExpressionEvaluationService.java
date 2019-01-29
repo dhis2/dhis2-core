@@ -36,10 +36,10 @@ import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -115,7 +115,7 @@ public class ProgramIndicatorExpressionEvaluationService extends BaseProgramExpr
         }
         else
         {
-            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            resultMap.put( ERROR, ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION.getKey() );
             return  resultMap;
         }
 

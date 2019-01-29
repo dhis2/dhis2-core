@@ -44,12 +44,12 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -668,9 +668,9 @@ public class ProgramIndicatorServiceTest
         programIndicatorService.addProgramIndicator( indicatorA );
         programIndicatorService.addProgramIndicator( indicatorD );
 
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.expressionIsValid( indicatorB.getExpression() ) );
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.expressionIsValid( indicatorA.getExpression() ) );
-        assertEquals( ExpressionUtils.EXPRESSION_NOT_VALID, programIndicatorService.expressionIsValid( indicatorD.getExpression() ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.expressionIsValid( indicatorB.getExpression() ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.expressionIsValid( indicatorA.getExpression() ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_NOT_VALID, programIndicatorService.expressionIsValid( indicatorD.getExpression() ) );
     }
     
     @Test
@@ -680,9 +680,9 @@ public class ProgramIndicatorServiceTest
         String exprB = "d2:zing(#{" + psA.getUid() + "." + deA.getUid() + "})";
         String exprC = "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} > 10',2,1)";
         
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.expressionIsValid( exprA ) );
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.expressionIsValid( exprB ) );
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.expressionIsValid( exprC ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.expressionIsValid( exprA ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.expressionIsValid( exprB ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.expressionIsValid( exprC ) );
     }
 
     @Test
@@ -694,10 +694,10 @@ public class ProgramIndicatorServiceTest
         String filterC = KEY_ATTRIBUTE + "{invaliduid} == 100";
         String filterD = KEY_ATTRIBUTE + "{" + atA.getUid() + "} + 200";
 
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.filterIsValid( filterA ) );
-        assertEquals( ExpressionUtils.VALID, programIndicatorService.filterIsValid( filterB ) );
-        assertEquals( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION, programIndicatorService.filterIsValid( filterC ) );
-        assertEquals( ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programIndicatorService.filterIsValid( filterD ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.filterIsValid( filterA ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programIndicatorService.filterIsValid( filterB ) );
+        assertEquals( ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION, programIndicatorService.filterIsValid( filterC ) );
+        assertEquals( ExpressionValidationOutcome.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programIndicatorService.filterIsValid( filterD ) );
     }
     
     

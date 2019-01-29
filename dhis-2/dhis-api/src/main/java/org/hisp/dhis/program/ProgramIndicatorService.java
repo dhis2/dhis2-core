@@ -28,6 +28,8 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
+
 import java.util.Date;
 import java.util.List;
 
@@ -135,21 +137,21 @@ public interface ProgramIndicatorService
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param expression an expression string.
-     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#EXPRESSION_NOT_VALID},
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     *         {@link ExpressionValidationOutcome#EXPRESSION_NOT_VALID},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
-    String expressionIsValid( String expression );
+    ExpressionValidationOutcome expressionIsValid( String expression );
 
     /**
      * Indicates whether the given program indicator expression is valid.
      * 
      * @param filter a filter string.
-     * @return the string {@link org.hisp.dhis.commons.util.ExpressionUtils#VALID} if valid, if not any of
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link org.hisp.dhis.commons.util.ExpressionUtils#INVALID_IDENTIFIERS_IN_EXPRESSION}.
+     * @return the  {@link ExpressionValidationOutcome#VALID} if valid, if not any of
+     *         {@link ExpressionValidationOutcome#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
+     *         {@link ExpressionValidationOutcome#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
-    String filterIsValid( String filter );
+    ExpressionValidationOutcome filterIsValid(String filter );
     
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup

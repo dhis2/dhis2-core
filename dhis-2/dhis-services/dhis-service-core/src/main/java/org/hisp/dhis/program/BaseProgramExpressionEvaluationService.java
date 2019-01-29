@@ -33,6 +33,7 @@ import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,8 +97,8 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     private static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
 
-    private static final List<String> ERROR_CODES = Arrays.asList( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION,
-        ExpressionUtils.UNKNOWN_VARIABLE, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE, ExpressionUtils.EXPRESSION_NOT_VALID );
+    private static final List<ExpressionValidationOutcome> ERROR_CODES = Arrays.asList( ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION,
+        ExpressionValidationOutcome.UNKNOWN_VARIABLE, ExpressionValidationOutcome.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, ExpressionValidationOutcome.NO_DE_IN_PROGRAM_RULE_VARIABLE, ExpressionValidationOutcome.EXPRESSION_NOT_VALID );
 
     protected static Map<String, ProgramD2Function> COMMON_D2_FUNC_MAP = ImmutableMap.<String, ProgramD2Function> builder()
         .put( CountIfValueProgramD2Function.KEY, new CountIfValueProgramD2Function() )
@@ -155,21 +157,26 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     }
 
     @Override
-    public String isExpressionValid( String expression )
+    public ExpressionValidationOutcome isExpressionValid( String expression )
     {
         String expr = getSubstitutedSQLFunc( getSubstitutedExpression( expression ) );
 
-        if ( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) || ExpressionUtils.UNKNOWN_VARIABLE.equals( expr ) )
+        Optional<ExpressionValidationOutcome> outcome = ExpressionValidationOutcome.from( expr );
+
+        if ( outcome.isPresent() )
         {
-            return expr;
+            if ( ERROR_CODES.contains( outcome.get() ) )
+            {
+                return outcome.get();
+            }
         }
 
         if ( !ExpressionUtils.isValid( expr, null ) )
         {
-            return ExpressionUtils.EXPRESSION_NOT_VALID;
+            return ExpressionValidationOutcome.EXPRESSION_NOT_VALID;
         }
 
-        return ExpressionUtils.VALID;
+        return ExpressionValidationOutcome.VALID;
     }
 
     @Override
@@ -226,21 +233,26 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
     }
 
     @Override
-    public String isFilterExpressionValid( String filter )
+    public ExpressionValidationOutcome isFilterExpressionValid( String filter )
     {
         String expr = getSubstitutedSQLFunc( getSubstitutedExpression( filter ) );
 
-        if ( ERROR_CODES.contains( expr ) )
+        Optional<ExpressionValidationOutcome> outcome = ExpressionValidationOutcome.from( expr );
+
+        if ( outcome.isPresent() )
         {
-            return expr;
+            if ( ERROR_CODES.contains( outcome.get() ) )
+            {
+                return outcome.get();
+            }
         }
 
         if ( !ExpressionUtils.isBoolean( expr, null ) )
         {
-            return ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
+            return ExpressionValidationOutcome.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
         }
 
-        return ExpressionUtils.VALID;
+        return ExpressionValidationOutcome.VALID;
     }
 
     protected abstract Map<String, ProgramD2Function> getD2Functions();
@@ -260,7 +272,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
         }
         else
         {
-            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            resultMap.put( ERROR, ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION.getKey() );
             return  resultMap;
         }
 
@@ -306,7 +318,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
                 }
                 else
                 {
-                    return ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION;
+                    return ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION.getKey();
                 }
             }
             else if ( KEY_PROGRAM_VARIABLE.equals( key ) )
@@ -319,7 +331,7 @@ public abstract class BaseProgramExpressionEvaluationService implements ProgramE
                 }
                 else
                 {
-                    return ExpressionUtils.UNKNOWN_VARIABLE;
+                    return ExpressionValidationOutcome.UNKNOWN_VARIABLE.getKey();
                 }
             }
         }

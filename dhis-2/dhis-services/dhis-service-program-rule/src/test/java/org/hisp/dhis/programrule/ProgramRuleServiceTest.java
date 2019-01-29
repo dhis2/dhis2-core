@@ -31,9 +31,9 @@ package org.hisp.dhis.programrule;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -262,14 +262,14 @@ public class ProgramRuleServiceTest
     public void testSimpleExpression()
     {
         String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
-        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
     public void testIfProgramRuleVariableIsCalculatedValue()
     {
         String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableC.getName() + "}";
-        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
@@ -277,7 +277,7 @@ public class ProgramRuleServiceTest
     {
         programRuleVariableB.setDataElement( null );
         String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
-        assertEquals( ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.NO_DE_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
@@ -285,49 +285,62 @@ public class ProgramRuleServiceTest
     {
         programRuleVariableA.setAttribute( null );
         String expression = KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "} == " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
-        assertEquals( ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.NO_ATTR_IN_PROGRAM_RULE_VARIABLE, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
     public void testIfProgramRuleVariableDoesNotExist()
     {
         String expression = KEY_ATTRIBUTE + "{ghostVariable} == " + KEY_DATAELEMENT + "{" + programRuleVariableC.getName() + "}";
-        assertEquals( ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
     public void testFunctionExpression()
     {
         String functionExpression = "d2:length(#{" + programRuleVariableC.getName() + "}) > 1";
-        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( functionExpression ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( functionExpression ) );
     }
 
     @Test
     public void testCascadedExpression()
     {
         String functionExpression = "d2:ceil(d2:length(#{" + programRuleVariableC.getName() + "})) > 1";
-        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( functionExpression ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( functionExpression ) );
     }
 
     @Test
     public void testExpressionWhichDoesNotResultInBoolean()
     {
         String functionExpression = "d2:length(#{" + programRuleVariableC.getName() + "}) + " + KEY_DATAELEMENT + "{" + programRuleVariableB.getName() + "}";
-        assertEquals( ExpressionUtils.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programRuleService.expressionIsValid( functionExpression ) );
+        assertEquals( ExpressionValidationOutcome.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programRuleService.expressionIsValid( functionExpression ) );
     }
 
     @Test
     public void testExpressionWithVariables()
     {
         String expression = KEY_PROGRAM_VARIABLE + "{enrollment_id} == " + KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "}";
-        assertEquals( ExpressionUtils.VALID, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( expression ) );
     }
 
     @Test
     public void testExpressionWithNullVariables()
     {
         String expression = KEY_PROGRAM_VARIABLE + "{enrollment_idd} == " + KEY_ATTRIBUTE + "{" + programRuleVariableA.getName() + "}";
-        assertEquals( ExpressionUtils.UNKNOWN_VARIABLE, programRuleService.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.UNKNOWN_VARIABLE, programRuleService.expressionIsValid( expression ) );
+    }
+
+    @Test
+    public void testExpressionLiteralValues()
+    {
+        String expression = " 1 < 2 + 1";
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( expression ) );
+
+        expression = " 1 > 2 + 1";
+        assertEquals( ExpressionValidationOutcome.VALID, programRuleService.expressionIsValid( expression ) );
+
+        expression = " 1 + 2";
+        assertEquals( ExpressionValidationOutcome.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programRuleService.expressionIsValid( expression ) );
     }
 
     /*TODO: Fix the functionality for 2 level cascading deletes.

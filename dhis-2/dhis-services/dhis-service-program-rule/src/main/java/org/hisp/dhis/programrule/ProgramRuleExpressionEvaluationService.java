@@ -31,10 +31,10 @@ package org.hisp.dhis.programrule;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.AddDaysProgramD2Function;
 import org.hisp.dhis.program.BaseProgramExpressionEvaluationService;
@@ -152,7 +152,7 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
             }
             else
             {
-                resultMap.put( ERROR, ExpressionUtils.NO_DE_IN_PROGRAM_RULE_VARIABLE );
+                resultMap.put( ERROR, ExpressionValidationOutcome.NO_DE_IN_PROGRAM_RULE_VARIABLE.getKey() );
                 return  resultMap;
             }
 
@@ -164,7 +164,7 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
         }
         else
         {
-            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            resultMap.put( ERROR, ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION.getKey() );
             return  resultMap;
         }
 
@@ -188,7 +188,7 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
             }
             else
             {
-                resultMap.put( ERROR, ExpressionUtils.NO_ATTR_IN_PROGRAM_RULE_VARIABLE );
+                resultMap.put( ERROR, ExpressionValidationOutcome.NO_ATTR_IN_PROGRAM_RULE_VARIABLE.getKey() );
                 return  resultMap;
             }
 
@@ -200,7 +200,7 @@ public class ProgramRuleExpressionEvaluationService extends BaseProgramExpressio
         }
         else
         {
-            resultMap.put( ERROR, ExpressionUtils.INVALID_IDENTIFIERS_IN_EXPRESSION );
+            resultMap.put( ERROR, ExpressionValidationOutcome.INVALID_IDENTIFIERS_IN_EXPRESSION.getKey() );
             return  resultMap;
         }
 

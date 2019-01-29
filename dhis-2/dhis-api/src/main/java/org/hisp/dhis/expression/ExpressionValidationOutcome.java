@@ -28,18 +28,26 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Optional;
+
 /**
 * @author Lars Helge Overland
 */
 public enum ExpressionValidationOutcome
 {
-    VALID( "valid" ), 
+    VALID( "valid" ),
     EXPRESSION_IS_EMPTY( "expression_is_empty"),
     DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST( "dimensional_item_object_does_not_exist" ),
     CONSTANT_DOES_NOT_EXIST( "constant_does_not_exist"),
     ORG_UNIT_GROUP_DOES_NOT_EXIST( "org_unit_group_does_not_exist"),
-    EXPRESSION_IS_NOT_WELL_FORMED( "expression_is_not_well_formed");
-    
+    EXPRESSION_IS_NOT_WELL_FORMED( "expression_is_not_well_formed"),
+    EXPRESSION_NOT_VALID( "expression_not_valid" ),
+    INVALID_IDENTIFIERS_IN_EXPRESSION( "invalid_identifiers_in_expression" ),
+    NO_DE_IN_PROGRAM_RULE_VARIABLE( "dataelement_missing_in_program_rule_variable" ),
+    NO_ATTR_IN_PROGRAM_RULE_VARIABLE( "attribute_missing_in_program_rule_variable" ),
+    UNKNOWN_VARIABLE( "unknown_variable" ),
+    FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE( "filter_not_evaluating_to_true_or_false" );
+
     private final String key;
     
     ExpressionValidationOutcome( String key )
@@ -55,5 +63,18 @@ public enum ExpressionValidationOutcome
     public String getKey()
     {
         return key;
+    }
+
+    public static Optional<ExpressionValidationOutcome> from( String key )
+    {
+        for ( ExpressionValidationOutcome outcome : ExpressionValidationOutcome.values() )
+        {
+            if ( outcome.getKey().equals( key ) )
+            {
+                return Optional.of( outcome );
+            }
+        }
+
+        return Optional.empty();
     }
 }
