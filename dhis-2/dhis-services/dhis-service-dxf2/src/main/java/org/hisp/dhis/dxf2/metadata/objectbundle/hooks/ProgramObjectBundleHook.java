@@ -28,16 +28,19 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Transactional
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
@@ -48,9 +51,11 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        syncSharingForEventProgram( (Program) object );
+        Session session = sessionFactory.getCurrentSession();
 
-        updateProgramStage( (Program) object );
+        syncSharingForEventProgram( session, (Program) object );
+
+        updateProgramStage( session, (Program) object );
     }
 
     @Override
@@ -61,10 +66,14 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        syncSharingForEventProgram( (Program) object );
+        Session session = sessionFactory.getCurrentSession();
+
+        syncSharingForEventProgram( session, (Program) object );
+
+        updateProgramStage( session, (Program) object );
     }
 
-    private void syncSharingForEventProgram( Program program )
+    private void syncSharingForEventProgram( Session session, Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
             || program.getProgramStages().isEmpty() )
@@ -76,23 +85,21 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         AccessStringHelper.copySharing( program, programStage );
 
         programStage.setUser( program.getUser() );
-        sessionFactory.getCurrentSession().update( programStage );
+        session.update( programStage );
     }
 
-    private void updateProgramStage( Program program )
+    private void updateProgramStage( Session session, Program program )
     {
         if ( program.getProgramStages().isEmpty() )
         {
             return;
         }
 
-        ProgramStage programStage = program.getProgramStages().iterator().next();
-
-        if ( programStage.getProgram() == null )
-        {
-            programStage.setProgram( program );
-        }
-
-        sessionFactory.getCurrentSession().update( programStage );
+        program.getProgramStages().stream()
+            .filter( ps -> ps.getProgram() == null )
+            .forEach( ps -> {
+                ps.setProgram( program );
+                session.update( ps );
+        } );
     }
 }
