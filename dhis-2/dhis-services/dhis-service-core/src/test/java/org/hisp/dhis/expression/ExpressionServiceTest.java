@@ -236,7 +236,7 @@ public class ExpressionServiceTest
         idObjectManager.save( opA );
         idObjectManager.save( opB );
         
-        period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 2, 1 ) );
+        period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
         prA = createProgram( 'A' );
         
@@ -641,6 +641,7 @@ public class ExpressionServiceTest
         Indicator indicatorB = createIndicator( 'B', indicatorType );
         indicatorB.setNumerator( expressionN );
         indicatorB.setDenominator( expressionF );
+        indicatorB.setAnnualized( true );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
@@ -655,15 +656,19 @@ public class ExpressionServiceTest
         
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
+        assertEquals( 100, value.getMultiplier() );
+        assertEquals( 1, value.getDivisor() );
+        assertEquals( 100d, value.getFactor(), DELTA );
         assertEquals( 200d, value.getValue(), DELTA );
         
         value = expressionService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
 
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 300d, value.getValue(), DELTA );
+        assertEquals( 36500, value.getMultiplier() );
+        assertEquals( 31, value.getDivisor() );
+        assertEquals( 1177.419, value.getFactor(), DELTA );
+        assertEquals( 3532.258, value.getValue(), DELTA );
     }
     
     // -------------------------------------------------------------------------
