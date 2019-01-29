@@ -840,4 +840,24 @@ public class Program
     {
         this.accessLevel = accessLevel;
     }
+
+    public boolean isOpen()
+    {
+        return this.accessLevel == AccessLevel.OPEN;
+    }
+
+    public boolean isAudited()
+    {
+        return this.accessLevel == AccessLevel.AUDITED;
+    }
+
+    public boolean isProtected()
+    {
+        return this.accessLevel == AccessLevel.PROTECTED;
+    }
+
+    public boolean isClosed()
+    {
+        return this.accessLevel == AccessLevel.CLOSED;
+    }
 }

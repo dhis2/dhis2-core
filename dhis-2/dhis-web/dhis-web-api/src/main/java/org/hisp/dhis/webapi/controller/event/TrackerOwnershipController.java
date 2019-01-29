@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -61,7 +61,7 @@ public class TrackerOwnershipController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     protected FieldFilterService fieldFilterService;
