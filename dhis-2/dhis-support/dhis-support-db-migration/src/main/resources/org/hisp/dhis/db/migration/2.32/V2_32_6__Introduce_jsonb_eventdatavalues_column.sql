@@ -4,6 +4,9 @@
 
 alter table programstageinstance add column if not exists eventdatavalues jsonb;
 
+-- Makes sure there is no NOT NULL constraint -> prevents following lines from failing. NOT NULL constraint is added back at the end
+alter table programstageinstance alter column eventdatavalues drop not null;
+
 -- Fixes invalid timestamps in DB (problems found in Demo DB, but can be run on all DBs)
 update trackedentitydatavalue set created = substring( created::text, 1, 23 )::timestamp where created::text ~ '.*\.\d{6}$';
 update trackedentitydatavalue set lastupdated = substring( lastupdated::text, 1, 23 )::timestamp where lastupdated::text ~ '.*\.\d{6}$';
