@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -65,11 +65,11 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.expressionIsValid( expression );
+        ExpressionValidationOutcome result = programIndicatorService.expressionIsValid( expression );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ExpressionUtils.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
+        message.setStatus( ExpressionValidationOutcome.VALID.equals( result ) ? Status.OK : Status.ERROR );
+        message.setMessage( i18n.getString( result.getKey() ) );
 
         if ( message.isOk() )
         {
@@ -84,11 +84,11 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.filterIsValid( expression );
+        ExpressionValidationOutcome result = programIndicatorService.filterIsValid( expression );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ExpressionUtils.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
+        message.setStatus( ExpressionValidationOutcome.VALID.equals( result ) ? Status.OK : Status.ERROR );
+        message.setMessage( i18n.getString( result.getKey() ) );
 
         if ( message.isOk() )
         {
