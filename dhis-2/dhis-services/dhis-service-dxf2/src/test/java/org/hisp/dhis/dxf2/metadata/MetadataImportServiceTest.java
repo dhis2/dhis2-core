@@ -174,16 +174,13 @@ public class MetadataImportServiceTest
         assertEquals( 1, program.getProgramStages().size() );
 
         ProgramStage programStage = program.getProgramStages().iterator().next();
-        assertNotNull( programStage );
+        assertNotNull( programStage.getProgram() );
 
         Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
-        ProgramStageSection programStageSection = programStageSections.iterator().next();
-
-
-        assertNotNull( programStage.getProgram() );
         assertNotNull( programStageSections );
         assertEquals( 2, programStageSections.size() );
-        assertNotNull( programStageSection.getProgramStage() );
 
+        ProgramStageSection programStageSection = programStageSections.iterator().next();
+        assertNotNull( programStageSection.getProgramStage() );
     }
 }

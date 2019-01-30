@@ -94,9 +94,9 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         }
 
         program.getProgramStages().stream()
-            .filter( ps -> ps.getProgram() == null )
-            .forEach( ps ->
-                ps.setProgram( program ) );
+            .forEach( ps -> {
+                if ( ps.getProgram() == null )  ps.setProgram( program );
+            });
 
         session.update( program );
     }

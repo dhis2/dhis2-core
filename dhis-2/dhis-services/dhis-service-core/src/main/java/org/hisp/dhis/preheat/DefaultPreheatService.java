@@ -858,10 +858,7 @@ public class DefaultPreheatService implements PreheatService
                 for ( IdentifiableObject refObject : refObjects )
                 {
                     IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-                    if ( ref != null && ref.getId() != 0 )
-                    {
-                        objects.add( ref );
-                    }
+                    if ( ref != null && ref.getId() != 0 ) objects.add( ref );
                 }
 
                 ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
