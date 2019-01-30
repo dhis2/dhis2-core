@@ -47,6 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
 public class TrackerIdentifierCollector
 {
     public static Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collect( TrackerBundle bundle )
