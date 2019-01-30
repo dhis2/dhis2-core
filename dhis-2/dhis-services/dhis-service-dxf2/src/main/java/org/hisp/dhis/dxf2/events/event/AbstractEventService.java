@@ -428,7 +428,7 @@ public abstract class AbstractEventService
         
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
-        if ( EventStatus.ACTIVE.equals( event.getStatus() ) && event.getEventDate() == null )
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
         }
