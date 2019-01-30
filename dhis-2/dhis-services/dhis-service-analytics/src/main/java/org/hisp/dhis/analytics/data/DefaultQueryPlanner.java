@@ -28,44 +28,32 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.common.DimensionalObject.*;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 /**
  * @author Lars Helge Overland
@@ -74,12 +62,15 @@ public class DefaultQueryPlanner
     implements QueryPlanner
 {
     private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
-
-    @Autowired
     private QueryValidator queryValidator;
-
-    @Autowired
     private PartitionManager partitionManager;
+
+    public DefaultQueryPlanner(QueryValidator queryValidator, PartitionManager partitionManager) {
+        checkNotNull( queryValidator );
+        checkNotNull( partitionManager );
+        this.queryValidator = queryValidator;
+        this.partitionManager = partitionManager;
+    }
 
     // -------------------------------------------------------------------------
     // QueryPlanner implementation
@@ -98,16 +89,16 @@ public class DefaultQueryPlanner
 
         partitionManager.filterNonExistingPartitions( params.getPartitions(), plannerParams.getTableName() );
 
-        final List<DataQueryParams> queries = Lists.newArrayList( params );
+        final List<DataQueryParams> queries = Lists.newArrayList( params);
 
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
-            .add( q -> groupByOrgUnitLevel( q ) )
-            .add( q -> groupByPeriodType( q ) )
-            .add( q -> groupByDataType( q ) )
-            .add( q -> groupByAggregationType( q ) )
-            .add( q -> groupByDaysInPeriod( q ) )
-            .add( q -> groupByDataPeriodType( q ) )
-            .add( q -> groupByPeriod( q ) )
+            .add(this::groupByOrgUnitLevel)
+            .add(this::groupByPeriodType)
+            .add(this::groupByDataType)
+            .add(this::groupByAggregationType)
+            .add(this::groupByDaysInPeriod)
+            .add(this::groupByDataPeriodType)
+            .add(this::groupByPeriod)
             .addAll( plannerParams.getQueryGroupers() )
             .build();
 
@@ -175,7 +166,7 @@ public class DefaultQueryPlanner
         {
             DimensionalObject dim = query.getDimension( dimension );
 
-            List<DimensionalItemObject> values = null;
+            List<DimensionalItemObject> values;
 
             if ( dim == null || (values = dim.getItems()) == null || values.isEmpty() )
             {
@@ -429,7 +420,7 @@ public class DefaultQueryPlanner
                     .withDataElements( aggregationTypeDataElementMap.get( aggregationType ) )
                     .withAggregationType( aggregationType ).build();
 
-                queries.add( query );
+                queries.add( aggregationType.getPeriodAggregationType().equals(AggregationType.AVERAGE) ? addNextFinancialYear(query) : query );
             }
         }
         else if ( !params.getDataElementGroupSets().isEmpty() )
@@ -606,5 +597,45 @@ public class DefaultQueryPlanner
         {
             log.debug( String.format( "Split on '%s': %d", splitCriteria, queries.size() ) );
         }
+    }
+
+    private DataQueryParams addNextFinancialYear(DataQueryParams params) {
+        ArrayList<DimensionalItemObject> periods = Lists.newArrayList( params.getPeriods().iterator() );
+        List<DimensionalItemObject> nextFinancialYears = new ArrayList<>(periods);
+
+        for ( DimensionalItemObject period : periods )
+        {
+            if ( period instanceof Period ) // is this needed ??
+            {
+                Period p = (Period) period;
+                if ( p.getPeriodType().getName().startsWith(FinancialPeriodType.NAME_PREFIX ) )
+                {
+                    nextFinancialYears.add( getNextFinancialYear( p ) );
+                }
+            }
+        }
+        return DataQueryParams.newBuilder(params).withPeriods(nextFinancialYears).build();
+
+    }
+
+    private Period getNextFinancialYear( Period period )
+    {
+
+        // add a new query to fetch the denominator for the second part of the year
+        Period nextFinYear = new Period();
+        nextFinYear.setAutoFields();
+
+        nextFinYear.setPeriodType( period.getPeriodType() );
+        nextFinYear.setStartDate( plusOneYear( period.getStartDate() ) );
+        nextFinYear.setEndDate( plusOneYear( period.getEndDate() ) );
+        return nextFinYear;
+    }
+
+    private Date plusOneYear( Date d )
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime( d );
+        cal.add( Calendar.YEAR, 1 );
+        return cal.getTime();
     }
 }

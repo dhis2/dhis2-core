@@ -74,6 +74,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -530,7 +531,7 @@ public class DefaultAnalyticsService
                 .retainDataDimension( DataDimensionItemType.DATA_ELEMENT )
                 .withIncludeNumDen( false ).build();
 
-            Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( dataSourceParams );
+            Map<String, Object> aggregatedDataMap = calculateFinancialYear(params, getAggregatedDataValueMapObjectTyped( dataSourceParams ));
 
             for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
             {
@@ -546,6 +547,88 @@ public class DefaultAnalyticsService
                 }
             }
         }
+    }
+
+    private Map<String, Object> calculateFinancialYear( DataQueryParams params, Map<String, Object> map )
+    {
+
+        ArrayList<DimensionalItemObject> periods = Lists.newArrayList( params.getPeriods().iterator() );
+        for ( DimensionalItemObject period : periods )
+        {
+            if ( period instanceof Period ) // is this needed ??
+            {
+                Period p = (Period) period;
+                if ( p.getPeriodType().getName().startsWith( FinancialPeriodType.NAME_PREFIX ) )
+                {
+                    String uid = getDenominatorUid( params );
+                    Object val1 = null;
+                    Object val2 = null;
+                    String keyForRemoval = null;
+                    for ( String key : map.keySet() )
+                    {
+                        if ( key.startsWith( uid ) )
+                        {
+                            if ( key.endsWith( p.getIsoDate() ) )
+                            {
+                                val1 = map.get( key );
+                            }
+                            else
+                            {
+                                val2 = map.get( key );
+                                keyForRemoval = key;
+                            }
+
+                        }
+                    }
+                    if ( val1 != null && val2 != null )
+                    {
+                        Double denominatorValue = calculateDenominator( (Double) val1, (Double) val2,
+                            p.getIsoDate().substring( 4 ) );
+                        map.put( uid + "-" + p.getUid(), denominatorValue );
+                        map.remove( keyForRemoval );
+                    }
+                    else
+                    {
+                        // TODO throws exception ?
+                    }
+
+                }
+            }
+        }
+
+        return map;
+
+    }
+
+    private String getDenominatorUid( DataQueryParams params )
+    {
+        // TODO can there be more than 1 "average" aggregation type ?
+        return params.getDataElements().stream().filter( d -> d.getAggregationType().isAverage() ).findFirst()
+            .orElseThrow( NullPointerException::new ).getUid(); // TODO which exception ?
+
+    }
+
+    private Double calculateDenominator( Double year1Value, Double year2Value, String financialYearStartsIn )
+    {
+
+        Double val;
+        switch ( financialYearStartsIn )
+        {
+        case "Oct":
+            val = (0.25 * year1Value) + (0.75 * year2Value);
+            break;
+        case "July":
+            val = (0.50 * year1Value) + (0.50 * year2Value);
+            break;
+        case "April":
+            val = (0.75 * year1Value) + (0.25 * year2Value);
+            break;
+        default:
+            throw new NullPointerException( "" ); // TODO
+
+        }
+
+        return val;
     }
 
     /**

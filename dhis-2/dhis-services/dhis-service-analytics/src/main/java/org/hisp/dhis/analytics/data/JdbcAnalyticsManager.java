@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -152,7 +153,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map = null;
+            Map<String, Object> map;
 
             try
             {
@@ -251,7 +252,7 @@ public class JdbcAnalyticsManager
      */
     private String getNumericValueColumn( DataQueryParams params )
     {
-        String sql = "";
+        String sql;
 
         AnalyticsAggregationType aggType = params.getAggregationType();
 
@@ -536,7 +537,7 @@ public class JdbcAnalyticsManager
 
         List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
-        cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
+        cols = cols.stream().map(AnalyticsSqlUtils::quote).collect( Collectors.toList() );
 
         if ( params.isDataApproval() )
         {
