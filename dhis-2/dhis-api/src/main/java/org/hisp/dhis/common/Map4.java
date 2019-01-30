@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Jim Grace
@@ -68,11 +69,11 @@ public class Map4<R, S, T, U, V>
     }
 
     @SafeVarargs
-    public static <R, S, T, U, V> Map4<R, S, T, U, V> asMap4( final SimpleEntry<R, MapMapMap<S, T, U, V>>... entries )
+    public static <R, S, T, U, V> Map4<R, S, T, U, V> ofEntries( Map.Entry<R, MapMapMap<S, T, U, V>>... entries )
     {
         Map4<R, S, T, U, V> map = new Map4<>();
 
-        for ( SimpleEntry<R, MapMapMap<S, T, U, V>> entry : entries )
+        for ( Map.Entry<R, MapMapMap<S, T, U, V>> entry : entries )
         {
             map.put( entry.getKey(), entry.getValue() );
         }

@@ -193,7 +193,7 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
             {
                 return true;
             }
@@ -206,7 +206,7 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
             {
                 return true;
             }

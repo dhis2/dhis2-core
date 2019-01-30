@@ -86,8 +86,6 @@ public class SystemInfo
 
     private String fileStoreProvider;
 
-    private String cacheProvider;
-
     private String readOnlyMode;
 
     private String nodeId;
@@ -361,18 +359,6 @@ public class SystemInfo
     public void setFileStoreProvider( String fileStoreProvider )
     {
         this.fileStoreProvider = fileStoreProvider;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCacheProvider()
-    {
-        return cacheProvider;
-    }
-
-    public void setCacheProvider( String cacheProvider )
-    {
-        this.cacheProvider = cacheProvider;
     }
 
     @JsonProperty

@@ -425,6 +425,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-expression-parser</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-reporting</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -482,6 +487,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-db-migration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-amqp</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -666,6 +676,20 @@
         <groupId>biz.paluch.redis</groupId>
         <artifactId>lettuce</artifactId>
         <version>${lettuce.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.springframework.data</groupId>
@@ -761,11 +785,6 @@
         <version>2.4.2</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-jexl</artifactId>
-        <version>2.1.1</version>
-      </dependency>
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.12</version>
@@ -800,6 +819,11 @@
         <groupId>javax.interceptor</groupId>
         <artifactId>javax.interceptor-api</artifactId>
         <version>1.2.1</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sourceforge.javacsv</groupId>
+        <artifactId>javacsv</artifactId>
+        <version>2.0</version>
       </dependency>
 
       <!-- Apache Commons -->
@@ -849,6 +873,21 @@
         <version>2.6</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.11</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-jexl</artifactId>
+        <version>2.1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-email</artifactId>
+        <version>1.3.3</version>
+      </dependency>
+      <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>1.2</version>
@@ -863,16 +902,6 @@
             <artifactId>logkit</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-email</artifactId>
-        <version>1.3.3</version>
-      </dependency>
-      <dependency>
-        <groupId>net.sourceforge.javacsv</groupId>
-        <artifactId>javacsv</artifactId>
-        <version>2.0</version>
       </dependency>
 
       <!--DBMS -->
@@ -972,6 +1001,13 @@
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
         <version>${jclouds.version}</version>
+      </dependency>
+
+      <!--ExpressionParser -->
+      <dependency>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-runtime</artifactId>
+        <version>4.7.2</version>
       </dependency>
 
       <!--Reporting -->
@@ -1158,6 +1194,108 @@
         <version>2.2.6</version>
       </dependency>
 
+      <!-- AMQP -->
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-server</artifactId>
+        <version>${artemis.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-amqp-protocol</artifactId>
+        <version>${artemis.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.1.24.Final</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.qpid</groupId>
+        <artifactId>qpid-jms-client</artifactId>
+        <version>0.39.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.qpid</groupId>
+        <artifactId>proton-j</artifactId>
+        <version>0.31.0</version>
+      </dependency>
+
       <!-- SMS -->
       <dependency>
         <groupId>org.rxtx</groupId>
@@ -1246,6 +1384,18 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.skyscreamer</groupId>
+        <artifactId>jsonassert</artifactId>
+        <version>1.5.0</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.github.benas</groupId>
+        <artifactId>random-beans</artifactId>
+        <version>3.7.0</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -1266,12 +1416,13 @@
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->
     <powermock.version>1.6.6</powermock.version>
-    <jackson.version>2.9.5</jackson.version>
+    <jackson.version>2.9.8</jackson.version>
     <slf4j.version>1.7.5</slf4j.version>
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
-    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <jacoco.version>0.8.2</jacoco.version>
+    <artemis.version>2.6.3</artemis.version>
+    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   </properties>
 </project>

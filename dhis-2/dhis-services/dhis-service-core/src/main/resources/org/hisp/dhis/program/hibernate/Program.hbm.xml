@@ -15,9 +15,9 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
 
     <property name="description" type="text" />
 

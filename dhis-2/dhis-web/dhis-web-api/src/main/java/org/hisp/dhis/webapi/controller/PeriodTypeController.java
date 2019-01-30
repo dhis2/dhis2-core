@@ -40,7 +40,11 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.PeriodTypeDTO;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping( value = "/periodTypes" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
 public class PeriodTypeController
 {
     private final PeriodService periodService;

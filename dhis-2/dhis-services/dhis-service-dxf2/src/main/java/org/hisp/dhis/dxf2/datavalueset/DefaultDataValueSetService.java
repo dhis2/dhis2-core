@@ -808,7 +808,7 @@ public class DefaultDataValueSetService
         if ( dataSet != null && completeDate != null )
         {
             notifier.notify( id, notificationLevel, "Completing data set" );
-            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, summary ); //TODO
+            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, currentUserName, summary ); //TODO
         }
         else
         {
@@ -1317,7 +1317,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     private void handleComplete( DataSet dataSet, Date completeDate, Period period, OrganisationUnit orgUnit,
-        CategoryOptionCombo attributeOptionCombo, ImportSummary summary )
+        CategoryOptionCombo attributeOptionCombo, String currentUserName, ImportSummary summary )
     {
         if ( orgUnit == null )
         {
@@ -1348,7 +1348,7 @@ public class DefaultDataValueSetService
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username, completeDate, completeAlready.getLastUpdatedBy(), completeAlready.getCompleted() );
+                    attributeOptionCombo, completeDate, username, completeDate, currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }

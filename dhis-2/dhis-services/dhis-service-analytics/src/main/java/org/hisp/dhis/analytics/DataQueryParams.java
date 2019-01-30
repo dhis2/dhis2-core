@@ -88,6 +88,8 @@ public class DataQueryParams
     public static final String PERIOD_START_DATE_ID = "pestartdate";
     public static final String PERIOD_END_DATE_ID = "peenddate";
     public static final String FACTOR_ID = "factor";
+    public static final String MULTIPLIER_ID = "multiplier";
+    public static final String DIVISOR_ID = "divisor";
     public static final String LEVEL_PREFIX = "uidlevel";
     public static final String KEY_DE_GROUP = "DE_GROUP-";
     public static final String KEY_IN_GROUP = "IN_GROUP-";
@@ -98,6 +100,8 @@ public class DataQueryParams
     public static final String PERIOD_START_DATE_NAME = "Period start date";
     public static final String PERIOD_END_DATE_NAME = "Period end date";
     public static final String FACTOR_HEADER_NAME = "Factor";
+    public static final String MULTIPLIER_HEADER_NAME = "Multiplier";
+    public static final String DIVISOR_HEADER_NAME = "Divisor";
 
     public static final String DISPLAY_NAME_DATA_X = "Data";
     public static final String DISPLAY_NAME_CATEGORYOPTIONCOMBO = "Category option combo";
@@ -470,6 +474,47 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
 
         return params;
+    }
+
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+
+        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+
+        return key
+            .add( aggregationType )
+            .add( skipMeta )
+            .add( skipData )
+            .add( skipHeaders )
+            .add( skipRounding )
+            .add( completedOnly )
+            .add( hierarchyMeta )
+            .add( ignoreLimit )
+            .add( hideEmptyRows )
+            .add( hideEmptyColumns )
+            .add( showHierarchy )
+            .add( includeNumDen )
+            .add( includePeriodStartEndDates )
+            .add( includeMetadataDetails )
+            .add( displayProperty )
+            .add( outputIdScheme )
+            .add( outputFormat )
+            .add( duplicatesOnly )
+            .add( approvalLevel )
+            .add( startDate )
+            .add( endDate )
+            .add( order )
+            .add( timeField )
+            .add( orgUnitField )
+            .addIgnoreNull( apiVersion ).build();
     }
 
     // -------------------------------------------------------------------------

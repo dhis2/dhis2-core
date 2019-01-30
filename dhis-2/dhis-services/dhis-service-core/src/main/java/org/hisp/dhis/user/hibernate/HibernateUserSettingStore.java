@@ -43,6 +43,8 @@ import org.hisp.dhis.user.UserSettingStore;
 public class HibernateUserSettingStore
     implements UserSettingStore
 {
+    private static final boolean CACHEABLE = true;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -83,7 +85,7 @@ public class HibernateUserSettingStore
 
         query.setParameter( "user", user );
         query.setParameter( "name", name );
-        query.setCacheable( true );
+        query.setCacheable( CACHEABLE );
 
         return (UserSetting) query.uniqueResult();
     }
@@ -95,6 +97,7 @@ public class HibernateUserSettingStore
         Session session = sessionFactory.getCurrentSession();
         Query query = session.createQuery( "from UserSetting us where us.user = :user" );
         query.setParameter( "user", user );
+        query.setCacheable( CACHEABLE );
 
         return query.list();
     }
@@ -111,7 +114,7 @@ public class HibernateUserSettingStore
     public void removeUserSettings( User user )
     {
         Session session = sessionFactory.getCurrentSession();
-        
+
         String hql = "delete from UserSetting us where us.user = :user";
 
         session.createQuery( hql ).setParameter( "user", user ).executeUpdate();
