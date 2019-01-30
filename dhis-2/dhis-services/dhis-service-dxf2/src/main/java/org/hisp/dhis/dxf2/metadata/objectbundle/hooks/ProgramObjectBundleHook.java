@@ -69,8 +69,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         Session session = sessionFactory.getCurrentSession();
 
         syncSharingForEventProgram( session, (Program) object );
-
-        updateProgramStage( session, (Program) object );
     }
 
     private void syncSharingForEventProgram( Session session, Program program )
@@ -97,9 +95,9 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
         program.getProgramStages().stream()
             .filter( ps -> ps.getProgram() == null )
-            .forEach( ps -> {
-                ps.setProgram( program );
-                session.update( ps );
-        } );
+            .forEach( ps ->
+                ps.setProgram( program ) );
+
+        session.update( program );
     }
 }
