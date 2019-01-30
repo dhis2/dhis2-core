@@ -115,7 +115,7 @@ public class OrgUnitsParentAssignmentTests
     }
 
     @Test
-    public void orgUnits_assignParent_shouldAssignReferencesToBothOrgUnits()
+    public void shouldAssignReferenceToBoth()
     {
         String orgUnitId = orgUnitActions.createOrgUnit();
 
@@ -131,7 +131,7 @@ public class OrgUnitsParentAssignmentTests
     }
 
     @Test
-    public void orgUnits_assignParent_adjustsChildLevel()
+    public void shouldAdjustChildLevel()
     {
         String parentOrgUnitId = createOrgUnitWithLevelAndParent( 1, null );
         String intOrgUnit = createOrgUnitWithLevelAndParent( 1, parentOrgUnitId );

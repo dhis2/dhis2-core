@@ -120,7 +120,7 @@ public class OrgUnitsTest
     }
 
     @Test
-    public void orgUnits_add_withoutPermissions()
+    public void shouldNotAddWithoutPermissions()
     {
         String userName = DataGenerator.randomString();
         String psw = "!XPTOqwerty1";
@@ -136,7 +136,7 @@ public class OrgUnitsTest
 
     // todo add tests for creation with level.
     @Test
-    public void orgUnits_add_withoutLevel()
+    public void shouldAddWithoutLevel()
     {
         OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
 
@@ -156,7 +156,7 @@ public class OrgUnitsTest
     }
 
     @Test
-    public void orgUnits_update()
+    public void shouldUpdate()
     {
         OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
 

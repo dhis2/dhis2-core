@@ -66,7 +66,7 @@ public class UsersRemovalTests
     }
 
     @Test
-    public void users_remove_userWhoLoggedIn()
+    public void shouldRemoveWhenUserWasLoggedIn()
     {
         loginActions.loginAsUser( userName, password );
 
@@ -80,7 +80,7 @@ public class UsersRemovalTests
 
     @Test
     //jira issue 5573
-    public void users_remove_userWhoWasGrantedAccessToMetadata()
+    public void shouldRemoveWhenUserWasGrantedAccessToMetadata()
     {
         String id = optionActions.createOptionSet();
 

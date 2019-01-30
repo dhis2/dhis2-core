@@ -85,7 +85,7 @@ public class OptionSetTests
     }
 
     @Test
-    public void optionSet_remove_withAssociatedData()
+    public void shouldNotBeRemovedWithAssociatedData()
     {
         String optionSetId = createOptionSet();
         createOption( optionSetId );
@@ -99,7 +99,7 @@ public class OptionSetTests
     }
 
     @Test
-    public void optionSet_associate_withOption()
+    public void shouldBeAbleToReferenceWithOption()
     {
         String id = createOptionSet();
         String optionId = createOption( id );
@@ -111,7 +111,7 @@ public class OptionSetTests
     }
 
     @Test
-    public void optionSet_addOptions()
+    public void shouldAddOptions()
     {
         String option1 = createOption( null );
         String option2 = createOption( null );
@@ -126,7 +126,7 @@ public class OptionSetTests
     }
 
     @Test
-    public void optionSet_removeOption()
+    public void shouldRemoveOptions()
     {
         String option1 = createOption( null );
         String optionSetId = createOptionSet( option1 );

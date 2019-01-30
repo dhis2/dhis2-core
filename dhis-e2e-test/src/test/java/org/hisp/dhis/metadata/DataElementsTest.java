@@ -103,7 +103,7 @@ public class DataElementsTest
 
     @ParameterizedTest
     @MethodSource( "getDataElementCombinations" )
-    public void dataElement_create( String domainType, String valueType, String aggregationType, boolean withCategoryCombo,
+    public void shouldCreate( String domainType, String valueType, String aggregationType, boolean withCategoryCombo,
         String categoryComboDimensionType )
     {
         JsonObject body = generateBaseBody();

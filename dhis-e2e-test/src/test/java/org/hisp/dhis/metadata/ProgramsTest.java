@@ -86,7 +86,7 @@ public class ProgramsTest
 
     @ParameterizedTest( name = "withType[{0}]" )
     @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void programs_add( String programType )
+    public void programCreate( String programType )
     {
         ApiResponse response = programActions.createProgram( programType );
 
@@ -94,7 +94,7 @@ public class ProgramsTest
     }
 
     @Test
-    public void programs_addProgramStage()
+    public void shouldAddProgramStages()
     {
         // create program and program stage
         String uid = programActions.createTrackerProgram().extractUid();

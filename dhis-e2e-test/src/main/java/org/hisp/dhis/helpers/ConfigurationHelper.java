@@ -90,13 +90,16 @@ public class ConfigurationHelper
     {
         String property = System.getProperty( key );
 
-        if (StringUtils.isEmpty( property )) {
-            if (isRequired) {
+        if ( StringUtils.isEmpty( property ) )
+        {
+            if ( isRequired )
+            {
                 logger.severe( String.format( "Required property %s was not set. Please set %s and repeat execution.", key, key ) );
                 return null;
             }
 
-            if (! StringUtils.isEmpty( defaultValue)) {
+            if ( !StringUtils.isEmpty( defaultValue ) )
+            {
                 logger.info( String.format( "Property %s was not set, using default value %s", key, defaultValue ) );
                 return defaultValue;
             }

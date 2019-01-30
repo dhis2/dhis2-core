@@ -115,6 +115,7 @@ public class OptionActions
     /**
      * Grants user read and write access to option set.
      * Validates that request was successful.
+     *
      * @param optionSetId
      * @param userId
      */

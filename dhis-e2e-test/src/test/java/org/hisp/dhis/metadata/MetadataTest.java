@@ -100,7 +100,7 @@ public class MetadataTest
     @ParameterizedTest
     @MethodSource( "getSchemaEndpoints" )
     // todo add better schema validation when spec is ready
-    public void metadata_get_matchesSchema( String endpoint, String schema )
+    public void getMatchesSchema( String endpoint, String schema )
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
@@ -123,7 +123,7 @@ public class MetadataTest
 
     @ParameterizedTest
     @MethodSource( "getSchemaEndpoints" )
-    public void metadata_post( String endpoint, String schema )
+    public void postBasedOnSchema( String endpoint, String schema )
     {
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations", "relationshipTypes" );
 

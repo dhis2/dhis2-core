@@ -125,6 +125,7 @@ public class RestApiActions
     public ApiResponse get()
     {
         Response response = this.given()
+            .contentType( ContentType.TEXT )
             .when()
             .get();
 
@@ -141,6 +142,7 @@ public class RestApiActions
     public ApiResponse get( String path, String queryParams )
     {
         Response response = this.given()
+            .contentType( ContentType.TEXT )
             .when()
             .get( path + "?" + queryParams );
 

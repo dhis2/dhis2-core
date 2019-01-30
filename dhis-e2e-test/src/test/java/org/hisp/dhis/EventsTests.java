@@ -84,7 +84,7 @@ public class EventsTests
     }
 
     @Test
-    public void event_anonymous_create()
+    public void shouldCreateAnonymousEvent()
     {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty( "orgUnit", orgUnitId );

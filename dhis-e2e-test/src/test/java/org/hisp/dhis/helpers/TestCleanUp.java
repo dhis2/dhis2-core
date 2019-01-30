@@ -58,12 +58,11 @@ package org.hisp.dhis.helpers;
 
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 
 import java.util.*;
 import java.util.logging.Logger;
-
-import static io.restassured.RestAssured.when;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -128,9 +127,7 @@ public class TestCleanUp
 
     private boolean deleteEntity( String resource, String id )
     {
-        ApiResponse response = new ApiResponse( when()
-            .delete( resource + "/" + id )
-            .thenReturn() );
+        ApiResponse response = new RestApiActions( resource ).delete( id );
 
         if ( response.statusCode() == 200 )
         {

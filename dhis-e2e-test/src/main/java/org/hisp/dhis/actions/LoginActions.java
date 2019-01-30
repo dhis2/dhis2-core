@@ -29,11 +29,9 @@
 package org.hisp.dhis.actions;
 
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.preemptive;
 
 /**
@@ -55,14 +53,8 @@ public class LoginActions
 
     public ApiResponse getLoggedInUserInfo()
     {
-        ApiResponse apiResponse = new ApiResponse(
-            given()
-                .contentType( ContentType.TEXT )
-                .when()
-                .get( "/me" )
-                .thenReturn()
-        );
+        ApiResponse response = new RestApiActions( "/me" ).get();
 
-        return apiResponse;
+        return response;
     }
 }
