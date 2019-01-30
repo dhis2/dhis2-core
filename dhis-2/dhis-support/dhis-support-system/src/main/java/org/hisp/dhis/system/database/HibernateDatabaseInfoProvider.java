@@ -28,6 +28,9 @@
 
 package org.hisp.dhis.system.database;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -35,9 +38,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -70,14 +70,18 @@ public class HibernateDatabaseInfoProvider
     {
         checkDatabaseConnectivity();
 
-        boolean spatialSupport = isSpatialSupport();
+        boolean spatialSupport = false;
 
         // Check if postgis is installed. If not, fail startup.
-
-        if ( !spatialSupport && !SystemUtils.isTestRun() )
+        if ( !SystemUtils.isTestRun() )
         {
-            log.error( POSTGIS_MISSING_ERROR );
-            throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+            spatialSupport = isSpatialSupport();
+
+            if ( !spatialSupport )
+            {
+                log.error( POSTGIS_MISSING_ERROR );
+                throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+            }
         }
 
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );

@@ -244,16 +244,24 @@ public class DefaultExpressionParserService
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
-            double annualizationFactor = period != null ?
-                DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
+            int multiplier = indicator.getIndicatorType().getFactor();
 
-            int factor = indicator.getIndicatorType().getFactor();
+            int divisor = 1;
+
+            if ( indicator.isAnnualized() && period != null )
+            {
+                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+
+                multiplier *= DateUtils.DAYS_IN_YEAR;
+
+                divisor = daysInPeriod;
+            }
 
             return new IndicatorValue()
                 .setNumeratorValue( numeratorValue )
                 .setDenominatorValue( denominatorValue )
-                .setFactor( factor )
-                .setAnnualizationFactor( annualizationFactor );
+                .setMultiplier( multiplier )
+                .setDivisor( divisor );
         }
 
         return null;

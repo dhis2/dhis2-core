@@ -28,10 +28,13 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -43,12 +46,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,9 +55,9 @@ import java.util.Set;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
-    private final TrackerOwnershipAccessManager ownershipAccessManager;
+    private final TrackerOwnershipManager ownershipAccessManager;
 
-    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipAccessManager ownershipAccessManager )
+    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager )
     {
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
@@ -137,14 +136,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
+        if ( !aclService.canDataRead( user, program ) )
+        {
+            errors.add( "User has no data read access to program: " + program.getUid() );
         }
 
         TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
@@ -154,10 +148,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
         }
 
-        // check for ownership access
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
-            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
 
         return errors;
@@ -174,14 +167,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
-            {
-                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-            }
+        if ( !aclService.canDataWrite( user, program ) )
+        {
+            errors.add( "User has no data write access to program: " + program.getUid() );
         }
 
         TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
@@ -191,10 +179,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
         }
 
-        // check for ownership access
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
-            errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
 
         return errors;
@@ -211,16 +198,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        OrganisationUnit ou = programInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
-        }
-
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
@@ -235,10 +212,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            // check for ownership access
             if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
+        }
+        else
+        {
+            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+                {
+                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
+                }
             }
         }
 
@@ -256,16 +243,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        OrganisationUnit ou = programInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
-            {
-                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-            }
-        }
-
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataWrite( user, program ) )
@@ -280,10 +257,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            // check for ownership access
             if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
+        }
+        else
+        {
+            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+                {
+                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+                }
             }
         }
 
@@ -299,16 +286,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         if ( user == null || user.isSuper() || programStageInstance == null )
         {
             return errors;
-        }
-
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
         }
 
         ProgramStage programStage = programStageInstance.getProgramStage();
@@ -337,10 +314,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            // check for ownership access
             if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
+        }
+        else
+        {
+            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+                {
+                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
+                }
             }
         }
 
@@ -360,26 +347,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( isWritableInSearchScopeOrgUnit( programStageInstance ) )
-            {
-                if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-                {
-                    errors.add( "User has no write access for scheduled events to organisation unit: " + ou.getUid() );
-                }
-            }
-            else
-            {
-                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
-                {
-                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
-
         ProgramStage programStage = programStageInstance.getProgramStage();
 
         if ( isNull( programStage ) )
@@ -391,6 +358,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( program.isWithoutRegistration() )
         {
+            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+                {
+                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+                }
+            }
             if ( !aclService.canDataWrite( user, program ) )
             {
                 errors.add( "User has no data write access to program: " + program.getUid() );
@@ -413,10 +388,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            // check for ownership access
             if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
-                errors.add( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED );
+                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
 
@@ -585,11 +559,5 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isNull( ProgramStage programStage )
     {
         return programStage == null || programStage.getProgram() == null;
-    }
-    
-    private boolean isWritableInSearchScopeOrgUnit( ProgramStageInstance programStageInstance )
-    {
-        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getEventDataValues().isEmpty()
-            && programStageInstance.getExecutionDate() == null;
     }
 }

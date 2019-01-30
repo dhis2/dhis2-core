@@ -28,10 +28,31 @@ package org.hisp.dhis.expressionparser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
+import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ReportingRate;
@@ -61,12 +82,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.ReportingRateMetric.*;
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Jim Grace
@@ -1143,16 +1159,18 @@ public class ExpressionParserServiceTest
 
         assertEquals( 2.5, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 1.0, value.getAnnualizationFactor(), DELTA );
+        assertEquals( 100.0, value.getFactor(), DELTA );
+        assertEquals( 100, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 50.0, value.getValue(), DELTA );
 
         value = expressionParserService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
 
         assertEquals( 20.0, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 365.0, value.getAnnualizationFactor(), DELTA );
+        assertEquals( 36500.0, value.getFactor(), DELTA );
+        assertEquals( 36500, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 146000.0, value.getValue(), DELTA );
     }
 }

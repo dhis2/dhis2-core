@@ -142,7 +142,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -241,7 +241,7 @@ public abstract class AbstractEventService
     protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
-    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     protected AclService aclService;
@@ -440,6 +440,11 @@ public abstract class AbstractEventService
         importOptions = updateImportOptions( importOptions );
 
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
+
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+        }
 
         if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
         {

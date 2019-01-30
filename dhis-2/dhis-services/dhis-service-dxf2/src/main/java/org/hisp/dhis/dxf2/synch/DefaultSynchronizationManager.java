@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
@@ -70,9 +73,6 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -149,7 +149,6 @@ public class DefaultSynchronizationManager
 
     private ImportSummary executeDataSetCompletenessPush( SystemInstance instance )  throws WebMessageParseException
     {
-
         final Date startTime = new Date();
 
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
@@ -249,7 +248,6 @@ public class DefaultSynchronizationManager
         // subsequently part of next synch process without being ignored
         // ---------------------------------------------------------------------
 
-        final Date startTime = new Date();
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
         final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );

@@ -87,7 +87,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -159,7 +159,7 @@ public abstract class AbstractTrackedEntityInstanceService
     protected FileResourceService fileResourceService;
 
     @Autowired
-    protected TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+    protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     protected Notifier notifier;
@@ -208,7 +208,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     // pick only those program attributes that user is the owner
                     for ( Program program : programs )
                     {
-                        if ( trackerOwnershipAccessManager.isOwner( user, daoTrackedEntityInstance, program ) )
+                        if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
                         {
                             attributes.addAll( program.getTrackedEntityAttributes() );
                         }

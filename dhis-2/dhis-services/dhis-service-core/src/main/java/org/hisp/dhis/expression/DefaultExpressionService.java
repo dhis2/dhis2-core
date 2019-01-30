@@ -234,15 +234,24 @@ public class DefaultExpressionService
 
             final double numeratorValue = calculateExpression( numeratorExpression );
 
-            final double annualizationFactor = period != null ?
-                DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
-            final int factor = indicator.getIndicatorType().getFactor();
+            int multiplier = indicator.getIndicatorType().getFactor();
+
+            int divisor = 1;
+
+            if ( indicator.isAnnualized() && period != null )
+            {
+                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+
+                multiplier *= DateUtils.DAYS_IN_YEAR;
+
+                divisor = daysInPeriod;
+            }
 
             return new IndicatorValue()
                 .setNumeratorValue( numeratorValue )
                 .setDenominatorValue( denominatorValue )
-                .setFactor( factor )
-                .setAnnualizationFactor( annualizationFactor );
+                .setMultiplier( multiplier )
+                .setDivisor( divisor );
         }
 
         return null;

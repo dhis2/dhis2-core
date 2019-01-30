@@ -28,18 +28,36 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -60,12 +78,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -241,7 +255,7 @@ public class ExpressionServiceTest
         idObjectManager.save( opA );
         idObjectManager.save( opB );
         
-        period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 2, 1 ) );
+        period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
         prA = createProgram( 'A' );
         
@@ -646,6 +660,7 @@ public class ExpressionServiceTest
         Indicator indicatorB = createIndicator( 'B', indicatorType );
         indicatorB.setNumerator( expressionN );
         indicatorB.setDenominator( expressionF );
+        indicatorB.setAnnualized( true );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
@@ -660,15 +675,19 @@ public class ExpressionServiceTest
         
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
+        assertEquals( 100, value.getMultiplier() );
+        assertEquals( 1, value.getDivisor() );
+        assertEquals( 100d, value.getFactor(), DELTA );
         assertEquals( 200d, value.getValue(), DELTA );
         
         value = expressionService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
 
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
-        assertEquals( 100, value.getFactor() );
-        assertEquals( 300d, value.getValue(), DELTA );
+        assertEquals( 36500, value.getMultiplier() );
+        assertEquals( 31, value.getDivisor() );
+        assertEquals( 1177.419, value.getFactor(), DELTA );
+        assertEquals( 3532.258, value.getValue(), DELTA );
     }
     
     // -------------------------------------------------------------------------
