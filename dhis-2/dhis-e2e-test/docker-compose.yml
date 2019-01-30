@@ -10,8 +10,8 @@ services:
 
   e2e-test-web:
     build:
-      dockerfile: ./Dockerfile
-      context: ..
+      dockerfile: ../../Dockerfile
+      context: ../..
     volumes:
       - ./config/dhis2_home:/DHIS2_home
     depends_on:
