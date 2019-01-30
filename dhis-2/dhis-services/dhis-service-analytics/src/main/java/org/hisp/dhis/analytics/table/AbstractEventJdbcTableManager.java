@@ -118,7 +118,7 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || " + columnName + " || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else
         {
