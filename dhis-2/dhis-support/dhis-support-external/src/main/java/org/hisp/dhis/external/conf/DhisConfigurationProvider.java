@@ -138,6 +138,13 @@ public interface DhisConfigurationProvider
     boolean isClusterEnabled();
 
     /**
+     * Returns the server base url
+     *
+     * @return the url.
+     */
+    String getServerBaseUrl();
+
+    /**
      * Indicates whether LDAP authentication is configured.
      *
      * @return true if LDAP authentication is configured.
