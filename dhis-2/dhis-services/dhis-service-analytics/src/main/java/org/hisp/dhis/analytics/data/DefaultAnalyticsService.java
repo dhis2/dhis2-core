@@ -34,8 +34,7 @@ import static org.hisp.dhis.common.DataDimensionItemType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.*;
 import static org.hisp.dhis.common.ReportingRateMetric.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
@@ -375,7 +374,7 @@ public class DefaultAnalyticsService
      * Adds headers to the given grid based on the given data query parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @return the grid.
+     *
      */
     private void addHeaders( DataQueryParams params, Grid grid )
     {
@@ -549,9 +548,18 @@ public class DefaultAnalyticsService
         }
     }
 
+    /**
+     * DHIS2-5836
+     * Calculates a value based on a weighted average of the 2 denominator values, extracted by
+     * aggregate financial year query.
+     *
+     * @param params a DataQueryParams object
+     * @param map a Map containing the values for nominator and denominator
+     *
+     * @return a Map containing the values for nominator and denominator
+     */
     private Map<String, Object> adjustForFinancialYears( DataQueryParams params, Map<String, Object> map )
     {
-
         for ( DimensionalItemObject period : params.getPeriods() )
         {
             Period p = (Period) period;
@@ -578,9 +586,8 @@ public class DefaultAnalyticsService
                 }
                 if ( val1 != null && val2 != null )
                 {
-
                     Double denominatorValue = calculateDenominator( (Double) val1, (Double) val2, (FinancialPeriodType) p.getPeriodType() );
-                    map.put( uid + "-" + p.getUid(), denominatorValue );
+                    map.put( uid + SEPARATOR + p.getUid(), denominatorValue );
                     map.remove( keyForRemoval );
                 }
                 else
@@ -590,9 +597,7 @@ public class DefaultAnalyticsService
 
             }
         }
-
         return map;
-
     }
 
     private String getDenominatorUid( DataQueryParams params )
@@ -600,16 +605,21 @@ public class DefaultAnalyticsService
         // TODO can there be more than 1 "average" aggregation type ?
         return params.getDataElements().stream().filter( d -> d.getAggregationType().isAverage() ).findFirst()
             .orElseThrow( NullPointerException::new ).getUid(); // TODO which exception ?
-
     }
 
+    /**
+     * Apply weighted average based on the value of two annual values
+     *
+     * @param year1Value value for first part of financial year
+     * @param year2Value value for second part of financial year
+     * @param financialPeriodType the Financial Period Type selected for the query
+     * @return a weighted average
+     */
     private Double calculateDenominator( Double year1Value, Double year2Value, FinancialPeriodType financialPeriodType )
     {
-
         int mnt = financialPeriodType.getBaseMonth();
-        return (year1Value * mnt / 12) + (year2Value * ((12 - mnt) / 12));
+        return (year1Value * ((double) (12 - mnt) / 12)) + (year2Value * ((double) mnt / 12));
     }
-
 
     /**
      * Adds data element operand values to the given grid based on the given data

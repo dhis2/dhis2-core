@@ -32,9 +32,13 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
+import static org.hisp.dhis.analytics.GridAsserter.KeyValue.tuple;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -49,6 +53,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.expressionparser.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -59,12 +64,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
@@ -76,75 +84,8 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceMetadataTest
+public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
-    @Mock
-    private AnalyticsManager analyticsManager;
-
-    @Mock
-    private RawAnalyticsManager rawAnalyticsManager;
-
-    @Mock
-    private AnalyticsSecurityManager securityManager;
-
-    @Mock
-    private QueryPlanner queryPlanner;
-
-    @Spy
-    private DefaultQueryValidator queryValidator;
-
-    @Mock
-    private ExpressionParserService expressionParserService;
-
-    @Mock
-    private ConstantService constantService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
-    private EventAnalyticsService eventAnalyticsService;
-
-    @Mock
-    private DataQueryService dataQueryService;
-
-    @Mock
-    private DhisConfigurationProvider dhisConfig;
-
-    @Mock
-    private CacheProvider cacheProvider;
-
-    private AnalyticsService target;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
-    public void setUp()
-    {
-        target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-            queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
-
-        doNothing().when( queryValidator ).validateMaintenanceMode();
-        when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);
-    }
-
-    private void initMock( DataQueryParams params )
-    {
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
-        Map<String, Object> aggregatedValues = new HashMap<>();
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
-
-    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -174,16 +115,11 @@ public class AnalyticsServiceMetadataTest
 
         Grid grid = target.getAggregatedDataValues( params );
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertThat( items.get( "wjP19dkFeIk" ), allOf(
-            hasProperty( "name", is( "District" ) ),
-            hasProperty( "uid", is( "wjP19dkFeIk" ) ),
-            hasProperty( "code", is( nullValue() ) ) ) );
-        assertThat( items.get( "tTUf91fCytl" ), allOf(
-            hasProperty( "name", is( "Chiefdom" ) ),
-            hasProperty( "uid", is( "tTUf91fCytl" ) ),
-            hasProperty( "code", is( "OU_12345" ) ) ) );
-
+        GridAsserter.addGrid(grid)
+                .metadataItemsHasSize(9)
+                .metadataItemWithUidHas("wjP19dkFeIk", tuple("name" , "District" ), tuple("code", null))
+                .metadataItemWithUidHas("tTUf91fCytl", tuple("name" , "Chiefdom" ), tuple("code", "OU_12345"))
+                .verify();
     }
 
     @Test
@@ -216,14 +152,13 @@ public class AnalyticsServiceMetadataTest
         initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
 
-        assertThat( items.get( indicatorGroup.getUid() ),
-            allOf(
-                hasProperty( "name", is( indicatorGroup.getName() ) ),
-                hasProperty( "uid", is( indicatorGroup.getUid() ) ),
-                hasProperty( "code", is( indicatorGroup.getCode() ) )
-            ) );
+        GridAsserter.addGrid(grid)
+                .metadataItemsHasSize(10)
+                .metadataItemWithUidHas(indicatorGroup.getUid(),
+                        tuple("name" , indicatorGroup.getName() ),
+                        tuple("code", indicatorGroup.getCode()))
+                .verify();
     }
 
     @Test
@@ -240,17 +175,21 @@ public class AnalyticsServiceMetadataTest
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     new DimensionalKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+                        ImmutableList.of(
+                                new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                                new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .build();
 
         initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
-            hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
+        GridAsserter.addGrid(grid)
+                .metadataItemsHasSize(8)
+                .metadataItemWithUidHas("tTUf91fCytl",
+                        tuple("name" , "Chiefdom" ),
+                        tuple("code", "OU_12345"))
+                .verify();
     }
 
     @Test
@@ -282,14 +221,12 @@ public class AnalyticsServiceMetadataTest
         initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-
-        assertThat( items.get( dataElementGroup.getUid() ),
-            allOf(
-                hasProperty( "name", is( dataElementGroup.getName() ) ),
-                hasProperty( "uid", is( dataElementGroup.getUid() ) ),
-                hasProperty( "code", is( dataElementGroup.getCode() ) )
-            ) );
+        GridAsserter.addGrid(grid)
+                .metadataItemsHasSize(8)
+                .metadataItemWithUidHas(dataElementGroup.getUid(),
+                        tuple("name" , dataElementGroup.getName() ),
+                        tuple("code", dataElementGroup.getCode()))
+                .verify();
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
