@@ -531,7 +531,7 @@ public class DefaultAnalyticsService
                 .retainDataDimension( DataDimensionItemType.DATA_ELEMENT )
                 .withIncludeNumDen( false ).build();
 
-            Map<String, Object> aggregatedDataMap = calculateFinancialYear(params, getAggregatedDataValueMapObjectTyped( dataSourceParams ));
+            Map<String, Object> aggregatedDataMap = adjustForFinancialYears(params, getAggregatedDataValueMapObjectTyped( dataSourceParams ));
 
             for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
             {
@@ -549,50 +549,45 @@ public class DefaultAnalyticsService
         }
     }
 
-    private Map<String, Object> calculateFinancialYear( DataQueryParams params, Map<String, Object> map )
+    private Map<String, Object> adjustForFinancialYears( DataQueryParams params, Map<String, Object> map )
     {
 
-        ArrayList<DimensionalItemObject> periods = Lists.newArrayList( params.getPeriods().iterator() );
-        for ( DimensionalItemObject period : periods )
+        for ( DimensionalItemObject period : params.getPeriods() )
         {
-            if ( period instanceof Period ) // is this needed ??
+            Period p = (Period) period;
+            if ( p.getPeriodType() instanceof FinancialPeriodType )
             {
-                Period p = (Period) period;
-                if ( p.getPeriodType().getName().startsWith( FinancialPeriodType.NAME_PREFIX ) )
+                String uid = getDenominatorUid( params );
+                Object val1 = null;
+                Object val2 = null;
+                String keyForRemoval = null;
+                for ( String key : map.keySet() )
                 {
-                    String uid = getDenominatorUid( params );
-                    Object val1 = null;
-                    Object val2 = null;
-                    String keyForRemoval = null;
-                    for ( String key : map.keySet() )
+                    if ( key.startsWith( uid ) )
                     {
-                        if ( key.startsWith( uid ) )
+                        if ( key.endsWith( p.getIsoDate() ) )
                         {
-                            if ( key.endsWith( p.getIsoDate() ) )
-                            {
-                                val1 = map.get( key );
-                            }
-                            else
-                            {
-                                val2 = map.get( key );
-                                keyForRemoval = key;
-                            }
-
+                            val1 = map.get( key );
+                        }
+                        else
+                        {
+                            val2 = map.get( key );
+                            keyForRemoval = key;
                         }
                     }
-                    if ( val1 != null && val2 != null )
-                    {
-                        Double denominatorValue = calculateDenominator( (Double) val1, (Double) val2,
-                            p.getIsoDate().substring( 4 ) );
-                        map.put( uid + "-" + p.getUid(), denominatorValue );
-                        map.remove( keyForRemoval );
-                    }
-                    else
-                    {
-                        // TODO throws exception ?
-                    }
-
                 }
+                if ( val1 != null && val2 != null )
+                {
+
+                    Double denominatorValue = calculateDenominator( (Double) val1, (Double) val2, (FinancialPeriodType) p.getPeriodType() );
+                    map.put( uid + "-" + p.getUid(), denominatorValue );
+                    map.remove( keyForRemoval );
+                }
+                else
+                {
+                    // TODO throws exception ?
+                }
+
             }
         }
 
@@ -608,28 +603,13 @@ public class DefaultAnalyticsService
 
     }
 
-    private Double calculateDenominator( Double year1Value, Double year2Value, String financialYearStartsIn )
+    private Double calculateDenominator( Double year1Value, Double year2Value, FinancialPeriodType financialPeriodType )
     {
 
-        Double val;
-        switch ( financialYearStartsIn )
-        {
-        case "Oct":
-            val = (0.25 * year1Value) + (0.75 * year2Value);
-            break;
-        case "July":
-            val = (0.50 * year1Value) + (0.50 * year2Value);
-            break;
-        case "April":
-            val = (0.75 * year1Value) + (0.25 * year2Value);
-            break;
-        default:
-            throw new NullPointerException( "" ); // TODO
-
-        }
-
-        return val;
+        int mnt = financialPeriodType.getBaseMonth();
+        return (year1Value * mnt / 12) + (year2Value * ((12 - mnt) / 12));
     }
+
 
     /**
      * Adds data element operand values to the given grid based on the given data

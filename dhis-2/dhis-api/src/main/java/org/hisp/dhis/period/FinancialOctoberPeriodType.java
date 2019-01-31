@@ -47,10 +47,10 @@ public class FinancialOctoberPeriodType
 
     private static final String ISO8601_DURATION = "P1Y";
 
-    public static final String NAME = NAME_PREFIX + "Oct";
+    public static final String NAME = "FinancialOct";
 
     @Override
-    protected int getBaseMonth()
+    public int getBaseMonth()
     {
         return Calendar.OCTOBER;
     }
