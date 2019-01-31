@@ -53,7 +53,7 @@ public class TestRunStorage
     {
         if ( createdEntities == null )
         {
-            return new HashMap<>();
+            return new LinkedHashMap<>( );
         }
 
         return createdEntities;
