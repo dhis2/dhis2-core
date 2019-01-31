@@ -28,93 +28,55 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.DimensionItem;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.doAnswer;
+
+import java.util.*;
+import java.util.function.Function;
+
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.period.*;
 import org.hisp.dhis.program.Program;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
  */
 public class QueryPlannerTest
-    extends DhisSpringTest
 {
     private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
 
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private QueryValidator queryValidator;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    @Mock
+    private PartitionManager partitionManager;
 
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -162,22 +124,12 @@ public class QueryPlannerTest
     private DataElementGroupSet dgsA;
     private DataElementGroupSet dgsB;
 
-    @Override
-    public void setUpTest()
-    {
-        itA = createIndicatorType( 'A' );
+    private DefaultQueryPlanner subject;
 
-        idObjectManager.save( itA );
-
-        inA = createIndicator( 'A', itA );
-        inB = createIndicator( 'B', itA );
-
-        idObjectManager.save( inA );
-        idObjectManager.save( inB );
-
-        prA = createProgram( 'A' );
-
-        idObjectManager.save( prA );
+    @Before
+    public void setUp() {
+        queryValidator = new DefaultQueryValidator();
+        subject = new DefaultQueryPlanner(queryValidator, partitionManager);
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
@@ -191,39 +143,7 @@ public class QueryPlannerTest
         deJ = createDataElement( 'J', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
         deK = createDataElement( 'K', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
 
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        dataElementService.addDataElement( deE );
-        dataElementService.addDataElement( deF );
-        dataElementService.addDataElement( deG );
-        dataElementService.addDataElement( deH );
-        dataElementService.addDataElement( deI );
-        dataElementService.addDataElement( deJ );
-        dataElementService.addDataElement( deK );
-
-        DataSet dsA = createDataSet( 'A', monthly );
-        DataSet dsB = createDataSet( 'B', monthly );
-        DataSet dsC = createDataSet( 'C', yearly );
-        DataSet dsD = createDataSet( 'D', yearly );
-
-        dsC.addDataSetElement( deI, cc );
-        dsC.addDataSetElement( deJ, cc );
-        dsC.addDataSetElement( deK, cc );
-
-        dataSetService.addDataSet( dsA );
-        dataSetService.addDataSet( dsB );
-        dataSetService.addDataSet( dsC );
-        dataSetService.addDataSet( dsD );
-
-        rrA = new ReportingRate( dsA );
-        rrB = new ReportingRate( dsB );
-        rrC = new ReportingRate( dsC );
-        rrD = new ReportingRate( dsD );
-
-        cc = categoryService.getDefaultCategoryCombo();
-        coc = categoryService.getDefaultCategoryOptionCombo();
+        // OUs
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
@@ -231,11 +151,12 @@ public class QueryPlannerTest
         ouD = createOrganisationUnit( 'D' );
         ouE = createOrganisationUnit( 'E' );
 
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        organisationUnitService.addOrganisationUnit( ouD );
-        organisationUnitService.addOrganisationUnit( ouE );
+        // Category combo
+        coc = new CategoryOptionCombo();
+        coc.setUid("bjaqzAFrDOS");
+
+        dgsA = createDataElementGroupSet( 'A' );
+        dgsA.getMembers().add( degA );
 
         degA = createDataElementGroup( 'A' );
         degA.addDataElement( deA );
@@ -248,18 +169,79 @@ public class QueryPlannerTest
         degC = createDataElementGroup( 'C' );
         degC.addDataElement( deK );
 
-        dataElementService.addDataElementGroup( degA );
-        dataElementService.addDataElementGroup( degB );
-
-        dgsA = createDataElementGroupSet( 'A' );
-        dgsA.getMembers().add( degA );
-
         dgsB = createDataElementGroupSet( 'B' );
         dgsB.getMembers().add( degB );
         dgsB.getMembers().add( degC );
 
-        dataElementService.addDataElementGroupSet( dgsA );
-        dataElementService.addDataElementGroupSet( dgsB );
+        DataSet dsA = createDataSet( 'A', monthly );
+        DataSet dsB = createDataSet( 'B', monthly );
+        DataSet dsC = createDataSet( 'C', yearly );
+        DataSet dsD = createDataSet( 'D', yearly );
+
+        dsC.addDataSetElement( deI, cc );
+        dsC.addDataSetElement( deJ, cc );
+        dsC.addDataSetElement( deK, cc );
+
+        rrA = new ReportingRate( dsA );
+        rrB = new ReportingRate( dsB );
+        rrC = new ReportingRate( dsC );
+        rrD = new ReportingRate( dsD );
+    }
+
+    public void setUpTest()
+    {
+        itA = createIndicatorType( 'A' );
+
+        //idObjectManager.save( itA );
+
+        inA = createIndicator( 'A', itA );
+        inB = createIndicator( 'B', itA );
+
+//        idObjectManager.save( inA );
+//        idObjectManager.save( inB );
+
+        prA = createProgram( 'A' );
+
+        //idObjectManager.save( prA );
+
+
+//        dataElementService.addDataElement( deA );
+//        dataElementService.addDataElement( deB );
+//        dataElementService.addDataElement( deC );
+//        dataElementService.addDataElement( deD );
+//        dataElementService.addDataElement( deE );
+//        dataElementService.addDataElement( deF );
+//        dataElementService.addDataElement( deG );
+//        dataElementService.addDataElement( deH );
+//        dataElementService.addDataElement( deI );
+//        dataElementService.addDataElement( deJ );
+//        dataElementService.addDataElement( deK );
+
+
+//        dataSetService.addDataSet( dsA );
+//        dataSetService.addDataSet( dsB );
+//        dataSetService.addDataSet( dsC );
+//        dataSetService.addDataSet( dsD );
+
+
+//        cc = categoryService.getDefaultCategoryCombo();
+//        coc = categoryService.getDefaultCategoryOptionCombo();
+
+
+//        organisationUnitService.addOrganisationUnit( ouA );
+//        organisationUnitService.addOrganisationUnit( ouB );
+//        organisationUnitService.addOrganisationUnit( ouC );
+//        organisationUnitService.addOrganisationUnit( ouD );
+//        organisationUnitService.addOrganisationUnit( ouE );
+
+
+
+//        dataElementService.addDataElementGroup( degA );
+//        dataElementService.addDataElementGroup( degB );
+
+
+//        dataElementService.addDataElementGroupSet( dgsA );
+//        dataElementService.addDataElementGroupSet( dgsB );
     }
 
     // -------------------------------------------------------------------------
@@ -269,6 +251,7 @@ public class QueryPlannerTest
     @Test
     public void testSetGetCopy()
     {
+
         List<DimensionalItemObject> desA = getList( deA, deB );
         List<DimensionalItemObject> ousA = getList( ouA, ouB );
         List<DimensionalItemObject> ousB = getList( ouC, ouD );
@@ -536,7 +519,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -565,7 +548,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 6, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -594,12 +577,6 @@ public class QueryPlannerTest
         ouA.getChildren().add( ouC );
         ouD.getChildren().add( ouB );
         ouC.getChildren().add( ouE );
-        organisationUnitService.updateOrganisationUnit( ouA );
-        organisationUnitService.updateOrganisationUnit( ouB );
-        organisationUnitService.updateOrganisationUnit( ouC );
-        organisationUnitService.updateOrganisationUnit( ouD );
-        organisationUnitService.updateOrganisationUnit( ouE );
-
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
@@ -608,7 +585,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 5, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -637,7 +614,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -666,7 +643,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -694,7 +671,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 3, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -713,6 +690,7 @@ public class QueryPlannerTest
     @Test( expected = IllegalQueryException.class )
     public void planQueryG()
     {
+
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
@@ -720,7 +698,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        queryPlanner.planQuery( params, plannerParams );
+        subject.planQuery( params, plannerParams );
     }
 
     /**
@@ -738,7 +716,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -767,7 +745,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 12, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -793,7 +771,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        queryPlanner.planQuery( params, plannerParams );
+        subject.planQuery( params, plannerParams );
     }
 
     /**
@@ -811,7 +789,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         List<DataQueryParams> queries = queryGroups.getAllQueries();
 
@@ -840,7 +818,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
@@ -868,7 +846,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -896,7 +874,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         List<DataQueryParams> queries = queryGroups.getAllQueries();
 
@@ -924,7 +902,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        queryPlanner.planQuery( params, plannerParams );
+        subject.planQuery( params, plannerParams );
     }
 
     /**
@@ -940,14 +918,14 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) ).build();
 
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
-        queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
+        queryGroupers.add( q -> subject.groupByStartEndDateRestriction( q ) );
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).
             withTableName( ANALYTICS_TABLE_NAME ).
             withQueryGroupers( queryGroupers ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         List<DataQueryParams> queries = queryGroups.getAllQueries();
 
@@ -983,14 +961,14 @@ public class QueryPlannerTest
             .withFilterPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) ).build();
 
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
-        queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
+        queryGroupers.add( q -> subject.groupByStartEndDateRestriction( q ) );
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).
             withTableName( ANALYTICS_TABLE_NAME ).
             withQueryGroupers( queryGroupers ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         List<DataQueryParams> queries = queryGroups.getAllQueries();
 
@@ -1030,7 +1008,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 2, queryGroups.getAllQueries().size() );
 
@@ -1062,7 +1040,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 2, queryGroups.getAllQueries().size() );
 
@@ -1089,7 +1067,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -1120,7 +1098,10 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        doAnswer( (Answer<Void>) invocation -> null).when( partitionManager ).filterNonExistingPartitions( params.getPartitions(),
+            plannerParams.getTableName() );
+
+        DataQueryGroups queryGroups = subject.planQuery( params, plannerParams );
 
         assertEquals( 2, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -1148,7 +1129,7 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withTableName( ANALYTICS_TABLE_NAME ).build();
 
-        DataQueryParams query = queryPlanner.withTableNameAndPartitions( params, plannerParams );
+        DataQueryParams query = subject.withTableNameAndPartitions( params, plannerParams );
 
         Partitions partitions = query.getPartitions();
 
