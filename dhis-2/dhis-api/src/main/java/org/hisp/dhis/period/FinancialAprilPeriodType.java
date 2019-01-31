@@ -47,7 +47,7 @@ public class FinancialAprilPeriodType
 
     private static final String ISO8601_DURATION = "P1Y";
 
-    public static final String NAME = "FinancialApril";
+    public static final String NAME = FINANCIAL_PERIOD_NAME_PREFIX + "April";
 
     @Override
     public int getBaseMonth()

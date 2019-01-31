@@ -608,7 +608,7 @@ public class DefaultQueryPlanner
             if ( period instanceof Period ) // is this needed ??
             {
                 Period p = (Period) period;
-                if ( p.getPeriodType().getName().startsWith(FinancialPeriodType.NAME_PREFIX ) )
+                if ( p.getPeriodType().getName().startsWith(FinancialPeriodType.FINANCIAL_PERIOD_NAME_PREFIX) )
                 {
                     nextFinancialYears.add( getNextFinancialYear( p ) );
                 }

@@ -46,7 +46,7 @@ public abstract class FinancialPeriodType
      * Determines if a de-serialized file is compatible with this class.
      */
     private static final long serialVersionUID = 2649990007010207631L;
-
+    public static final String FINANCIAL_PERIOD_NAME_PREFIX = "Financial";
     public static final int FREQUENCY_ORDER = 365;
 
     // -------------------------------------------------------------------------
