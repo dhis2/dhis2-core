@@ -420,7 +420,9 @@ public class DefaultQueryPlanner
                     .withDataElements( aggregationTypeDataElementMap.get( aggregationType ) )
                     .withAggregationType( aggregationType ).build();
 
-                queries.add( aggregationType.getPeriodAggregationType().equals(AggregationType.AVERAGE) ? addNextFinancialYear(query) : query );
+                queries.add( aggregationType.getPeriodAggregationType().equals( AggregationType.AVERAGE )
+                    ? addNextFinancialYear( query )
+                    : query );
             }
         }
         else if ( !params.getDataElementGroupSets().isEmpty() )
@@ -599,29 +601,25 @@ public class DefaultQueryPlanner
         }
     }
 
-    private DataQueryParams addNextFinancialYear(DataQueryParams params) {
+    private DataQueryParams addNextFinancialYear( DataQueryParams params )
+    {
         ArrayList<DimensionalItemObject> periods = Lists.newArrayList( params.getPeriods().iterator() );
-        List<DimensionalItemObject> nextFinancialYears = new ArrayList<>(periods);
+        List<DimensionalItemObject> nextFinancialYears = new ArrayList<>( periods );
 
         for ( DimensionalItemObject period : periods )
         {
-            if ( period instanceof Period ) // is this needed ??
+            Period p = (Period) period;
+            if ( p.getPeriodType().getName().startsWith( FinancialPeriodType.FINANCIAL_PERIOD_NAME_PREFIX ) )
             {
-                Period p = (Period) period;
-                if ( p.getPeriodType().getName().startsWith(FinancialPeriodType.FINANCIAL_PERIOD_NAME_PREFIX) )
-                {
-                    nextFinancialYears.add( getNextFinancialYear( p ) );
-                }
+                nextFinancialYears.add( getNextFinancialYear( p ) );
             }
         }
-        return DataQueryParams.newBuilder(params).withPeriods(nextFinancialYears).build();
+        return DataQueryParams.newBuilder( params ).withPeriods( nextFinancialYears ).build();
 
     }
 
     private Period getNextFinancialYear( Period period )
     {
-
-        // add a new query to fetch the denominator for the second part of the year
         Period nextFinYear = new Period();
         nextFinYear.setAutoFields();
 

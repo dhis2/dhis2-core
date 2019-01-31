@@ -28,6 +28,8 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -47,11 +49,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.*;
-import org.hisp.dhis.program.Program;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,8 +69,6 @@ public class QueryPlannerTest
 {
     private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
 
-    private QueryValidator queryValidator;
-
     @Mock
     private PartitionManager partitionManager;
 
@@ -84,12 +81,6 @@ public class QueryPlannerTest
 
     private PeriodType monthly = new MonthlyPeriodType();
     private PeriodType yearly = new YearlyPeriodType();
-
-    private IndicatorType itA;
-    private Indicator inA;
-    private Indicator inB;
-
-    private Program prA;
 
     private DataElement deA;
     private DataElement deB;
@@ -128,8 +119,8 @@ public class QueryPlannerTest
 
     @Before
     public void setUp() {
-        queryValidator = new DefaultQueryValidator();
-        subject = new DefaultQueryPlanner(queryValidator, partitionManager);
+        // using the 'real' DefaultQueryValidator, no mocks
+        subject = new DefaultQueryPlanner(new DefaultQueryValidator(), partitionManager);
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
@@ -154,6 +145,9 @@ public class QueryPlannerTest
         // Category combo
         coc = new CategoryOptionCombo();
         coc.setUid("bjaqzAFrDOS");
+
+        cc = new CategoryCombo();
+        cc.setUid("bjaqzAFrDZZ");
 
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
@@ -186,62 +180,6 @@ public class QueryPlannerTest
         rrB = new ReportingRate( dsB );
         rrC = new ReportingRate( dsC );
         rrD = new ReportingRate( dsD );
-    }
-
-    public void setUpTest()
-    {
-        itA = createIndicatorType( 'A' );
-
-        //idObjectManager.save( itA );
-
-        inA = createIndicator( 'A', itA );
-        inB = createIndicator( 'B', itA );
-
-//        idObjectManager.save( inA );
-//        idObjectManager.save( inB );
-
-        prA = createProgram( 'A' );
-
-        //idObjectManager.save( prA );
-
-
-//        dataElementService.addDataElement( deA );
-//        dataElementService.addDataElement( deB );
-//        dataElementService.addDataElement( deC );
-//        dataElementService.addDataElement( deD );
-//        dataElementService.addDataElement( deE );
-//        dataElementService.addDataElement( deF );
-//        dataElementService.addDataElement( deG );
-//        dataElementService.addDataElement( deH );
-//        dataElementService.addDataElement( deI );
-//        dataElementService.addDataElement( deJ );
-//        dataElementService.addDataElement( deK );
-
-
-//        dataSetService.addDataSet( dsA );
-//        dataSetService.addDataSet( dsB );
-//        dataSetService.addDataSet( dsC );
-//        dataSetService.addDataSet( dsD );
-
-
-//        cc = categoryService.getDefaultCategoryCombo();
-//        coc = categoryService.getDefaultCategoryOptionCombo();
-
-
-//        organisationUnitService.addOrganisationUnit( ouA );
-//        organisationUnitService.addOrganisationUnit( ouB );
-//        organisationUnitService.addOrganisationUnit( ouC );
-//        organisationUnitService.addOrganisationUnit( ouD );
-//        organisationUnitService.addOrganisationUnit( ouE );
-
-
-
-//        dataElementService.addDataElementGroup( degA );
-//        dataElementService.addDataElementGroup( degB );
-
-
-//        dataElementService.addDataElementGroupSet( dgsA );
-//        dataElementService.addDataElementGroupSet( dgsB );
     }
 
     // -------------------------------------------------------------------------
@@ -1139,6 +1077,74 @@ public class QueryPlannerTest
         assertEquals( 3, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
         assertEquals( ANALYTICS_TABLE_NAME, query.getTableName() );
+    }
+
+    @Test
+    public void verifyAverageFinancialYearPeriodHasDenominatorQueryWithNextYearFinancialYear()
+    {
+        DataElement deL = createDataElement( 'L', ValueType.INTEGER, AggregationType.AVERAGE );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( getList( createPeriod( PeriodType.getPeriodTypeFromIsoString( "2017Oct" ),
+                    getDate( 2017, 10, 1 ), getDate( 2018, 9, 30 ) ) ) )
+            .withDataElements( getList( deA, deL ) )
+            .withOrganisationUnits( getList( ouA ) ).build();
+
+        QueryPlannerParams queryPlannerParams = QueryPlannerParams.newBuilder().withTableName( "analytics" )
+            .withOptimalQueries( 4 ).build();
+
+        DataQueryGroups dataQueryGroups = subject.planQuery( params, queryPlannerParams );
+
+        assertThat( dataQueryGroups.getSequentialQueries(), hasSize( 2 ) );
+        assertThat( dataQueryGroups.getAllQueries(), hasSize( 2 ) );
+
+        Optional<DataQueryParams> qpList = dataQueryGroups.getAllQueries().stream()
+            .filter( q -> q.getAggregationType().getPeriodAggregationType().equals( AggregationType.AVERAGE ) )
+            .findFirst();
+
+        if ( qpList.isPresent() )
+        {
+            assertThat( qpList.get().getDimension( "pe" ).getItems(), hasSize( 2 ) );
+            assertThat( qpList.get().getDimension( "pe" ).getItems(),
+                hasItem( allOf(
+                    hasProperty( "periodType", isA( FinancialOctoberPeriodType.class ) ),
+                    hasProperty( "startDate", equalTo( getDate( 2018, 10, 1 ) ) ), // + 1 year
+                    hasProperty( "endDate", equalTo( getDate( 2019, 9, 30 ) ) ) // + 1 year
+                ) ) );
+        }
+        else
+        {
+            fail( "Was expecting a DataQueryParams with AggregationType: AVERAGE" );
+        }
+    }
+
+    @Test
+    public void verifyNonAverageFinancialYearDoesNotGetPlusOneFinancialYearAdded()
+    {
+        DataElement deL = createDataElement( 'L', ValueType.INTEGER, AggregationType.SUM );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( getList( createPeriod( PeriodType.getPeriodTypeFromIsoString( "2017Oct" ),
+                getDate( 2017, 10, 1 ), getDate( 2018, 9, 30 ) ) ) )
+            .withDataElements( getList( deA, deL ) )
+            .withOrganisationUnits( getList( ouA ) ).build();
+
+        QueryPlannerParams queryPlannerParams = QueryPlannerParams.newBuilder().withTableName( "analytics" )
+            .withOptimalQueries( 4 ).build();
+
+        DataQueryGroups dataQueryGroups = subject.planQuery( params, queryPlannerParams );
+
+        assertThat( dataQueryGroups.getSequentialQueries(), hasSize( 1 ) );
+        assertThat( dataQueryGroups.getAllQueries(), hasSize( 2 ) );
+
+        dataQueryGroups.getAllQueries().forEach( q -> {
+            assertThat( q.getDimension( "pe" ).getItems(), hasSize( 1 ) );
+            assertThat( q.getDimension( "pe" ).getItems(),
+                hasItem( allOf(
+                    hasProperty( "periodType", isA( FinancialOctoberPeriodType.class ) ),
+                    hasProperty( "startDate", equalTo( getDate( 2017, 10, 1 ) ) ),
+                    hasProperty( "endDate", equalTo( getDate( 2018, 9, 30 ) ) ) ) ) );
+        } );
     }
 
     // -------------------------------------------------------------------------
