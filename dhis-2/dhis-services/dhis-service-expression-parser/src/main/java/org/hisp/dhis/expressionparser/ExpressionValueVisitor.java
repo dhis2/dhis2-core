@@ -106,53 +106,66 @@ public class ExpressionValueVisitor
     @Override
     public Object visitDataElement( DataElementContext ctx )
     {
-        return getItemValue( ctx.dataElementId().getText() );
+        return getItemValue( ctx.UID().getText() );
     }
 
     @Override
-    public Object visitDataElementOperandWithoutAoc( DataElementOperandWithoutAocContext ctx )
+    public Object visitDataElementOperandCoc( DataElementOperandCocContext ctx )
     {
-        return getItemValue( ctx.dataElementOperandIdWithoutAoc().getText() );
+        return getItemValue( ctx.UID( 0 ).getText()
+            + "." + ctx.UID( 1 ).getText() );
     }
 
     @Override
-    public Object visitDataElementOperandWithAoc( DataElementOperandWithAocContext ctx )
+    public Object visitDataElementOperandAoc( DataElementOperandAocContext ctx )
     {
-        return getItemValue( ctx.dataElementOperandIdWithAoc().getText() );
+        return getItemValue( ctx.UID( 0 ).getText()
+            + ".*." + ctx.UID( 1 ).getText() );
+    }
+
+    @Override
+    public Object visitDataElementOperandCocAndAoc( DataElementOperandCocAndAocContext ctx )
+    {
+        return getItemValue( ctx.UID( 0 ).getText()
+            + "." + ctx.UID( 1 ).getText()
+            + "." + ctx.UID( 2 ).getText() );
     }
 
     @Override
     public Object visitProgramDataElement( ProgramDataElementContext ctx )
     {
-        return getItemValue( ctx.programDataElementId().getText() );
+        return getItemValue( ctx.UID( 0 ).getText()
+            + "." + ctx.UID( 1 ).getText() );
     }
 
     @Override
     public Object visitProgramAttribute ( ProgramAttributeContext ctx )
     {
-        return getItemValue( ctx.programAttributeId().getText() );
+        return getItemValue( ctx.UID( 0 ).getText()
+            + "." + ctx.UID( 1 ).getText() );
     }
 
     @Override
     public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
     {
-        return getItemValue( ctx.programIndicatorId().getText() );
+        return getItemValue( ctx.UID().getText() );
     }
 
     @Override
     public Object visitReportingRate ( ReportingRateContext ctx )
     {
-        return getItemValue( ctx.reportingRateId().getText() );
+        return getItemValue( ctx.UID().getText()
+            + "." + ctx.keyword().getText() );
     }
 
     @Override
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
     {
-        Integer count = orgUnitCountMap.get( ctx.orgUnitCountId().getText() );
+        Integer count = orgUnitCountMap.get( ctx.UID().getText() );
 
         if ( count == null )
         {
-            throw new ExpressionParserExceptionWithoutContext( "Can't find count for organisation unit " + ctx.orgUnitCountId().getText() );
+            throw new ExpressionParserExceptionWithoutContext( "Can't find count for organisation unit " + ctx.UID().getText() );
         }
 
         return count.doubleValue();

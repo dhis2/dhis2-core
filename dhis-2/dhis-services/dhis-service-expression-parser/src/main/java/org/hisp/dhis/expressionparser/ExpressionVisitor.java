@@ -163,7 +163,7 @@ public abstract class ExpressionVisitor
     @Override
     public final Object visitConstant( ConstantContext ctx )
     {
-        String constantId = ctx.constantId().getText();
+        String constantId = ctx.UID().getText();
 
         Double value = constantMap == null ? DEFAULT_ITEM_VALUE : constantMap.get( constantId );
 

@@ -31,6 +31,7 @@ package org.hisp.dhis.expressionparser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -65,7 +66,7 @@ public class ExpressionItemsVisitor
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
 
-    private Set<DimensionalItemObject> dimensionalItemObjects = null;
+    private Set<DimensionalItemId> itemIds = null;
 
     private Set<OrganisationUnitGroup> orgUnitGroupsNeeded = null;
 
@@ -78,13 +79,13 @@ public class ExpressionItemsVisitor
         constantService = _constantService;
     }
 
-    public Set<DimensionalItemObject> getDimensionalItemObjects( ParseTree parseTree )
+    public Set<DimensionalItemId> getItemIds( ParseTree parseTree )
     {
-        dimensionalItemObjects = new HashSet<>();
+        itemIds = new HashSet<>();
 
         castDouble( visit( parseTree ) );
 
-        return dimensionalItemObjects;
+        return itemIds;
     }
 
     public Set<OrganisationUnitGroup> getOrgUnitGroups( ParseTree parseTree )
@@ -122,49 +123,104 @@ public class ExpressionItemsVisitor
     @Override
     public Object visitDataElement ( DataElementContext ctx )
     {
-        return getExpressionItem( DATA_ELEMENT, ctx.dataElementId().getText(), ctx.getText() );
+        String[] ids =
+        {
+            ctx.UID().getText()
+        };
+
+        return getExpressionItem( DATA_ELEMENT, ids, ctx.getText() );
     }
 
     @Override
-    public Object visitDataElementOperandWithoutAoc ( DataElementOperandWithoutAocContext ctx )
+    public Object visitDataElementOperandCoc ( DataElementOperandCocContext ctx )
     {
-        return getExpressionItem( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithoutAoc().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID( 0 ).getText(),
+                ctx.UID( 1 ).getText(),
+                null
+            };
+
+        return getExpressionItem( DATA_ELEMENT_OPERAND, ids, ctx.getText() );
     }
 
     @Override
-    public Object visitDataElementOperandWithAoc ( DataElementOperandWithAocContext ctx )
+    public Object visitDataElementOperandAoc ( DataElementOperandAocContext ctx )
     {
-        return getExpressionItem( DATA_ELEMENT_OPERAND, ctx.dataElementOperandIdWithAoc().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID( 0 ).getText(),
+                null,
+                ctx.UID( 1 ).getText()
+            };
+
+        return getExpressionItem( DATA_ELEMENT_OPERAND, ids, ctx.getText() );
+    }
+
+    @Override
+    public Object visitDataElementOperandCocAndAoc ( DataElementOperandCocAndAocContext ctx )
+    {
+        String[] ids =
+            {
+                ctx.UID( 0 ).getText(),
+                ctx.UID( 1 ).getText(),
+                ctx.UID( 2 ).getText()
+            };
+
+        return getExpressionItem( DATA_ELEMENT_OPERAND, ids, ctx.getText() );
     }
 
     @Override
     public Object visitProgramDataElement ( ProgramDataElementContext ctx )
     {
-        return getExpressionItem( PROGRAM_DATA_ELEMENT, ctx.programDataElementId().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID( 0 ).getText(),
+                ctx.UID( 1 ).getText()
+            };
+
+        return getExpressionItem( PROGRAM_DATA_ELEMENT, ids, ctx.getText() );
     }
 
     @Override
     public Object visitProgramAttribute ( ProgramAttributeContext ctx )
     {
-        return getExpressionItem( PROGRAM_ATTRIBUTE, ctx.programAttributeId().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID( 0 ).getText(),
+                ctx.UID( 1 ).getText()
+            };
+
+        return getExpressionItem( PROGRAM_ATTRIBUTE, ids, ctx.getText() );
     }
 
     @Override
     public Object visitProgramIndicator ( ProgramIndicatorContext ctx )
     {
-        return getExpressionItem( PROGRAM_INDICATOR, ctx.programIndicatorId().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID().getText()
+            };
+
+        return getExpressionItem( PROGRAM_INDICATOR, ids, ctx.getText() );
     }
 
     @Override
     public final Object visitReportingRate( ReportingRateContext ctx )
     {
-        return getExpressionItem( REPORTING_RATE, ctx.reportingRateId().getText(), ctx.getText() );
+        String[] ids =
+            {
+                ctx.UID().getText(),
+                ctx.keyword().getText()
+            };
+
+        return getExpressionItem( REPORTING_RATE, ids, ctx.getText() );
     };
 
     @Override
     public Object visitOrgUnitCount( OrgUnitCountContext ctx )
     {
-        String orgUnitGroupId = ctx.orgUnitCountId().getText();
+        String orgUnitGroupId = ctx.UID().getText();
 
         if ( orgUnitGroupsNeeded == null && itemDescriptions == null )
         {
@@ -257,32 +313,29 @@ public class ExpressionItemsVisitor
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Object getExpressionItem( DimensionItemType type, String itemId, String exprText )
+    private Object getExpressionItem( DimensionItemType type, String[] ids, String exprText )
     {
-        if ( dimensionalItemObjects == null && itemDescriptions == null )
+        if ( itemIds == null && itemDescriptions == null )
         {
             return DEFAULT_ITEM_VALUE;
         }
 
-        DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
+        DimensionalItemId itemId = new DimensionalItemId( type, ids );
 
-        if ( item == null )
+        if ( itemIds != null )
         {
-            throw new ExpressionParserExceptionWithoutContext( "Can't find " + type.name() + " matching '" + itemId + "'" );
-        }
-
-        if ( item.getDimensionItemType() != type )
-        {
-            throw new ExpressionParserExceptionWithoutContext( "Expected " + type.name() + " but found " + item.getDimensionItemType().name() + " " + itemId );
-        }
-
-        if ( dimensionalItemObjects != null )
-        {
-            dimensionalItemObjects.add( item );
+            itemIds.add( itemId );
         }
 
         if ( itemDescriptions != null )
         {
+            DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
+
+            if ( item == null )
+            {
+                throw new ExpressionParserExceptionWithoutContext( "Can't find " + type.name() + " for '" + exprText + "'" );
+            }
+
             itemDescriptions.put( exprText, item.getDisplayName() );
         }
 

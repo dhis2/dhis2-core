@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
  */
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.user.User;
 
@@ -75,4 +77,20 @@ public interface DimensionService
      * @return a dimensional item object.
      */
     DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
+
+    /**
+     * Gets a dimension item object from its dimension item id.
+     *
+     * @param itemId the id of the dimension item object to get.
+     * @return a dimensional item object.
+     */
+    DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId );
+
+    /**
+     * Gets a map from dimension item ids to their dimension item objects.
+     *
+     * @param itemIds a set of ids of the dimension item objects to get.
+     * @return a map from the item ids to the dimension item objects.
+     */
+    Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds );
 }

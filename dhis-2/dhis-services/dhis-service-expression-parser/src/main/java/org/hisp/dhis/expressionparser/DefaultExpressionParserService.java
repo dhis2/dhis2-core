@@ -38,6 +38,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -89,6 +90,16 @@ public class DefaultExpressionParserService
     @Override
     public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
     {
+        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression );
+
+        Map<DimensionalItemId, DimensionalItemObject> objectMap = dimensionService.getDataDimensionalItemObjects( itemIds );
+
+        return new HashSet<>( objectMap.values() );
+    }
+
+    @Override
+    public Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression )
+    {
         if ( expression == null )
         {
             return new HashSet<>();
@@ -102,7 +113,7 @@ public class DefaultExpressionParserService
         {
             try
             {
-                return expressionItemsVisitor.getDimensionalItemObjects( parseTree );
+                return expressionItemsVisitor.getItemIds( parseTree );
             }
             catch ( ExpressionParserException ex )
             {
@@ -196,15 +207,17 @@ public class DefaultExpressionParserService
     @Override
     public Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators )
     {
-        Set<DimensionalItemObject> items = Sets.newHashSet();
+        Set<DimensionalItemId> itemIds = Sets.newHashSet();
 
         for ( Indicator indicator : indicators )
         {
-            items.addAll( getExpressionDimensionalItemObjects( indicator.getNumerator() ) );
-            items.addAll( getExpressionDimensionalItemObjects( indicator.getDenominator() ) );
+            itemIds.addAll( getExpressionDimensionalItemIds( indicator.getNumerator() ) );
+            itemIds.addAll( getExpressionDimensionalItemIds( indicator.getDenominator() ) );
         }
 
-        return items;
+        Collection<DimensionalItemObject> items = dimensionService.getDataDimensionalItemObjects( itemIds ).values();
+
+        return new HashSet<>( items );
     }
 
     @Override

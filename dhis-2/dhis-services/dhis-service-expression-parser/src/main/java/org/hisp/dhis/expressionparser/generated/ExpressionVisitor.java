@@ -1,4 +1,4 @@
-// Generated from Expression.g4 by ANTLR 4.7.2
+// Generated from /Users/jim/dev/dhis2/dhis2-core/dhis-2/dhis-services/dhis-service-expression-parser/src/main/resources/org/hisp/dhis/expressionparser/Expression.g4 by ANTLR 4.7.2
 package org.hisp.dhis.expressionparser.generated;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -89,17 +89,23 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDataElement(ExpressionParser.DataElementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandWithoutAoc}.
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandCoc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDataElementOperandWithoutAoc(ExpressionParser.DataElementOperandWithoutAocContext ctx);
+	T visitDataElementOperandCoc(ExpressionParser.DataElementOperandCocContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandWithAoc}.
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandAoc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDataElementOperandWithAoc(ExpressionParser.DataElementOperandWithAocContext ctx);
+	T visitDataElementOperandAoc(ExpressionParser.DataElementOperandAocContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandCocAndAoc}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDataElementOperandCocAndAoc(ExpressionParser.DataElementOperandCocAndAocContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#programDataElement}.
 	 * @param ctx the parse tree
@@ -142,60 +148,6 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDays(ExpressionParser.DaysContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDataElementId(ExpressionParser.DataElementIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandIdWithoutAoc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDataElementOperandIdWithoutAoc(ExpressionParser.DataElementOperandIdWithoutAocContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#dataElementOperandIdWithAoc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDataElementOperandIdWithAoc(ExpressionParser.DataElementOperandIdWithAocContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#programDataElementId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitProgramDataElementId(ExpressionParser.ProgramDataElementIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#programAttributeId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitProgramAttributeId(ExpressionParser.ProgramAttributeIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#programIndicatorId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitProgramIndicatorId(ExpressionParser.ProgramIndicatorIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#orgUnitCountId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitOrgUnitCountId(ExpressionParser.OrgUnitCountIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#reportingRateId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitReportingRateId(ExpressionParser.ReportingRateIdContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionParser#constantId}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstantId(ExpressionParser.ConstantIdContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ExpressionParser#numericLiteral}.
 	 * @param ctx the parse tree

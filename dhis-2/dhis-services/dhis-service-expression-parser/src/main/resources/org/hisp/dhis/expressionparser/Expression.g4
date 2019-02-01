@@ -36,8 +36,9 @@ expr
     // Other
 
     |   dataElement
-    |   dataElementOperandWithoutAoc
-    |   dataElementOperandWithAoc
+    |   dataElementOperandCoc
+    |   dataElementOperandAoc
+    |   dataElementOperandCocAndAoc
     |   programDataElement
     |   programAttribute
     |   programIndicator
@@ -116,79 +117,47 @@ a3  // 3 arguments
     ;
 
 dataElement
-    :   '#{' dataElementId '}'
+    :   '#{' UID '}'
     ;
 
-dataElementOperandWithoutAoc
-    :   '#{' dataElementOperandIdWithoutAoc ('.*')? '}'
+dataElementOperandCoc
+    :   '#{' UID '.' UID ('.*')? '}'
     ;
 
-dataElementOperandWithAoc
-    :   '#{' dataElementOperandIdWithAoc '}'
+dataElementOperandAoc
+    :   '#{'  UID '.*.'  UID '}'
+    ;
+
+dataElementOperandCocAndAoc
+    :   '#{' UID '.' UID '.'  UID '}'
     ;
 
 programDataElement
-    :   'D{' programDataElementId '}'
+    :   'D{' UID '.' UID '}'
     ;
 
 programAttribute
-    :   'A{' programAttributeId '}'
+    :   'A{' UID '.' UID '}'
     ;
 
 programIndicator
-    :   'I{' programIndicatorId '}'
+    :   'I{' UID '}'
     ;
 
 orgUnitCount
-    :   'OUG{' orgUnitCountId '}'
+    :   'OUG{' UID '}'
     ;
 
 reportingRate
-    :   'R{' reportingRateId '}'
+    :   'R{' UID '.' keyword '}'
     ;
 
 constant
-    :   'C{' constantId '}'
+    :   'C{' UID '}'
     ;
 
 days
     :   '[days]'
-    ;
-
-dataElementId
-    :   UID
-    ;
-
-dataElementOperandIdWithoutAoc
-    :   UID '.' UID
-    ;
-
-dataElementOperandIdWithAoc
-    :   UID ('.' UID '.' | '.*.')  UID
-    ;
-
-programDataElementId
-    :   UID '.' UID
-    ;
-
-programAttributeId
-    :   UID '.' UID
-    ;
-
-programIndicatorId
-    :   UID
-    ;
-
-orgUnitCountId
-    :   UID
-    ;
-
-reportingRateId
-    :   UID '.' keyword
-    ;
-
-constantId
-    :   UID
     ;
 
 numericLiteral

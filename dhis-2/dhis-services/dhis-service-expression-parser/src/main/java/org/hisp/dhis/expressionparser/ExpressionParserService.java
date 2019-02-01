@@ -28,6 +28,7 @@ package org.hisp.dhis.expressionparser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
@@ -69,6 +70,14 @@ public interface ExpressionParserService
      * @return a set of dimensional item objects.
      */
     Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression );
+
+    /**
+     * Returns all dimensional item object ids in the given expression.
+     *
+     * @param expression the expression to parse
+     * @return a set of dimensional item object ids.
+     */
+     Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression );
 
     /**
      * Returns all OrganisationUnitGroups in the given expression.
