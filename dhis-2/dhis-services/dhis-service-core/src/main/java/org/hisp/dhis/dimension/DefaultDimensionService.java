@@ -29,6 +29,8 @@ package org.hisp.dhis.dimension;
  */
 
 import com.google.common.collect.Sets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.category.CategoryDimension;
@@ -89,6 +91,8 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 public class DefaultDimensionService
     implements DimensionService
 {
+    private static final Log log = LogFactory.getLog( DefaultDimensionService.class );
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -452,6 +456,10 @@ public class DefaultDimensionService
                 case PROGRAM_INDICATOR:
                     atomicIds.putValue( ProgramIndicator.class, ids[0] );
                     break;
+
+                default:
+                    log.warn( "Unrecognized DimensionItemType " + itemId.getDimensionItemType().name() + " in getAtomicIds" );
+                    break;
             }
         }
 
@@ -565,6 +573,10 @@ public class DefaultDimensionService
                     {
                         itemObjectMap.put( itemId, programIndicator );
                     }
+                    break;
+
+                default:
+                    log.warn( "Unrecognized DimensionItemType " + itemId.getDimensionItemType().name() + " in getItemObjectMap" );
                     break;
             }
         }
