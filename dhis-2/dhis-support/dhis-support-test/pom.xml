@@ -80,7 +80,7 @@
     <dependency>
       <groupId>io.github.benas</groupId>
       <artifactId>random-beans</artifactId>
-      <scope>provided</scope>
+      <version>3.7.0</version>
     </dependency>
   </dependencies>
   <properties>

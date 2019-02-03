@@ -157,7 +157,7 @@ public class DataIntegrityServiceTest
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
                 organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
                 dataEntryFormService, categoryService, periodService, programIndicatorService );
-
+        rnd = new BeanRandomizer();
         setUpFixtures();
     }
 
