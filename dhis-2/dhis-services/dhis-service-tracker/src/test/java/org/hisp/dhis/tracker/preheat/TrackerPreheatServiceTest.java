@@ -154,4 +154,17 @@ public class TrackerPreheatServiceTest
         assertTrue( collectedMap.containsKey( ProgramStage.class ) );
         assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
     }
+
+    @Test
+    public void testPreheatEvents() throws IOException
+    {
+        TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+            TrackerBundleParams.class );
+
+        TrackerBundle bundle = params.toTrackerBundle();
+
+        assertTrue( bundle.getTrackedEntities().isEmpty() );
+        assertTrue( bundle.getEnrollments().isEmpty() );
+        assertFalse( bundle.getEvents().isEmpty() );
+    }
 }
