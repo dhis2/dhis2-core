@@ -41,7 +41,9 @@ public class GenericHttpGatewayConfig
     private String messageParameter;
 
     private String recipientParameter;
-    
+
+    private boolean useGet;
+
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
     public GenericHttpGatewayConfig()
@@ -103,5 +105,16 @@ public class GenericHttpGatewayConfig
     public boolean isOutbound()
     {
         return true;
+    }
+
+    @JsonProperty( value = "useGet" )
+    public boolean isUseGet()
+    {
+        return useGet;
+    }
+
+    public void setUseGet( boolean useGet )
+    {
+        this.useGet = useGet;
     }
 }

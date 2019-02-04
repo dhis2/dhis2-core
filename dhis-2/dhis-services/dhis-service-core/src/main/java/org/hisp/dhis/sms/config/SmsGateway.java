@@ -54,8 +54,8 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( SmsGateway.class );
 
-    private static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
-            HttpStatus.ACCEPTED, HttpStatus.CREATED );
+    protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+        HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
         .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
