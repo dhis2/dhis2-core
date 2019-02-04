@@ -64,20 +64,23 @@ public class JdbcResourceTableStore
 
     @Autowired
     private StatementBuilder statementBuilder;
-    
+
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
     // -------------------------------------------------------------------------
     // ResourceTableStore implementation
     // -------------------------------------------------------------------------
 
+    @Override
     public void generateResourceTable( ResourceTable<?> resourceTable )
     {
+        log.info( String.format( "Generating resource table: '%s'", resourceTable.getTableName() ) );
+
         final Clock clock = new Clock().startClock();
         final String createTableSql = resourceTable.getCreateTempTableStatement();
         final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
@@ -93,13 +96,13 @@ public class JdbcResourceTableStore
         {
             jdbcTemplate.execute( resourceTable.getDropTempTableStatement() );
         }
-                
+
         // ---------------------------------------------------------------------
         // Create temporary table
         // ---------------------------------------------------------------------
 
-        log.info( "Create table SQL: " + createTableSql );
-        
+        log.debug( String.format( "Create table SQL: '%s'", createTableSql ) );
+
         jdbcTemplate.execute( createTableSql );
 
         // ---------------------------------------------------------------------
@@ -108,20 +111,20 @@ public class JdbcResourceTableStore
 
         if ( populateTableSql.isPresent() )
         {
-            log.info( "Populate table SQL: " + populateTableSql.get() );
-            
+            log.debug( String.format( "Populate table SQL: '%s'", populateTableSql.get() ) );
+
             jdbcTemplate.execute( populateTableSql.get() );
         }
         else if ( populateTableContent.isPresent() )
         {
             List<Object[]> content = populateTableContent.get();
-            
-            log.info( "Populate table content rows: " + content.size() );
-            
+
+            log.debug( String.format( "Populate table content rows: '%d'", content.size() ) );
+
             if ( content.size() > 0 )
             {
                 int columns = content.get( 0 ).length;
-                
+
                 batchUpdate( columns, resourceTable.getTempTableName(), content );
             }
         }
@@ -129,15 +132,15 @@ public class JdbcResourceTableStore
         // ---------------------------------------------------------------------
         // Invoke hooks
         // ---------------------------------------------------------------------
-        
+
         List<AnalyticsTableHook> hooks = analyticsTableHookService
             .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType() );
-        
+
         if ( !hooks.isEmpty() )
         {
             analyticsTableHookService.executeAnalyticsTableSqlHooks( hooks );
-        
-            log.info( "Invoked resource table hooks: " + hooks.size() );
+
+            log.info( String.format( "Invoked resource table hooks: '%d'", hooks.size() ) );
         }
 
         // ---------------------------------------------------------------------
@@ -146,11 +149,11 @@ public class JdbcResourceTableStore
 
         for ( final String sql : createIndexSql )
         {
-            log.info( "Create index SQL: " + sql );
-            
+            log.debug( String.format( "Create index SQL: '%s'", sql ) );
+
             jdbcTemplate.execute( sql );
         }
-        
+
         // ---------------------------------------------------------------------
         // Swap tables
         // ---------------------------------------------------------------------
@@ -159,10 +162,10 @@ public class JdbcResourceTableStore
         {
             jdbcTemplate.execute( resourceTable.getDropTableStatement() );
         }
-        
+
         jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
-        
-        log.info( "Swapped resource table: " + resourceTable.getTableName() );
+
+        log.debug( String.format( "Swapped resource table: '%s'", resourceTable.getTableName() ) );
 
         // ---------------------------------------------------------------------
         // Analyze
@@ -170,14 +173,16 @@ public class JdbcResourceTableStore
 
         if ( analyzeTableSql != null )
         {
-            log.info( "Analyze table SQL: " + analyzeTableSql );
-            
+            log.debug( "Analyze table SQL: " + analyzeTableSql );
+
             jdbcTemplate.execute( analyzeTableSql );
         }
-        
-        log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
+
+        log.debug( String.format( "Analyzed resource table: '%s'", resourceTable.getTableName() ) );
+
+        log.info( String.format( "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.time() ) );
     }
-    
+
     @Override
     public void batchUpdate( int columns, String tableName, List<Object[]> batchArgs )
     {
@@ -185,16 +190,16 @@ public class JdbcResourceTableStore
         {
             return;
         }
-        
+
         StringBuilder builder = new StringBuilder( "insert into " + tableName + " values (" );
-        
+
         for ( int i = 0; i < columns; i++ )
         {
             builder.append( "?," );
         }
-        
+
         builder.deleteCharAt( builder.length() - 1 ).append( ")" );
-        
+
         jdbcTemplate.batchUpdate( builder.toString(), batchArgs );
     }
 }
