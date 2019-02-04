@@ -180,7 +180,7 @@ public class JdbcResourceTableStore
 
         log.debug( String.format( "Analyzed resource table: '%s'", resourceTable.getTableName() ) );
 
-        log.info( String.format( "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.getTime() ) );
+        log.info( String.format( "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.time() ) );
     }
 
     @Override
