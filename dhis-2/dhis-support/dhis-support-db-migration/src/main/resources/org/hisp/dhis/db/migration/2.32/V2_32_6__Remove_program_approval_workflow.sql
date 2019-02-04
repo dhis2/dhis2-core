@@ -1,2 +1,2 @@
 
-alter table program drop column workflowid;
+alter table program drop column if exists workflowid;
