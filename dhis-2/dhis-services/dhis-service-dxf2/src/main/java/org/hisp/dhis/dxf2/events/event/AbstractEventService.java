@@ -1890,7 +1890,10 @@ public abstract class AbstractEventService
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
 
-            eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            {
+                eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            }
         }
     }
 
