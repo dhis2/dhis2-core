@@ -63,6 +63,30 @@ public class PartitionUtils
      * @param year the year.
      * @return the start date.
      */
+    public static Date getIsoCalendarStartDate( Integer year )
+    {
+        return new DateTimeUnit( year, 1, 1 ).toJdkDate();
+    }
+    
+    /**
+     * Returns the start date for the given year, inclusive.
+     *
+     * @param calendar the calendar to base the date on.
+     * @param year the year.
+     * @return the start date.
+     */
+    public static Date getIsoCalendarEndDate( Integer year )
+    {
+        return new DateTimeUnit( year + 1, 1, 1 ).toJdkDate();
+    }
+    
+    /**
+     * Returns the start date for the given year, inclusive.
+     *
+     * @param calendar the calendar to base the date on.
+     * @param year the year.
+     * @return the start date.
+     */
     public static Date getStartDate( Calendar calendar, Integer year )
     {
         return calendar.isoStartOfYear( year ).toJdkDate();

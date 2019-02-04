@@ -410,8 +410,6 @@ public abstract class AbstractJdbcTableManager
      */
     protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Calendar calendar = PeriodType.getCalendar();
-
         Collections.sort( dataYears );
 
         String baseName = getAnalyticsTableType().getTableName();
@@ -420,7 +418,7 @@ public abstract class AbstractJdbcTableManager
 
         for ( Integer year : dataYears )
         {
-            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
+            table.addPartitionTable( year, PartitionUtils.getIsoCalendarStartDate( year ), PartitionUtils.getIsoCalendarEndDate( year ) );
         }
 
         return table;
