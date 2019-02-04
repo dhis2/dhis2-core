@@ -91,10 +91,17 @@ public class DimensionalItemId
     public boolean equals( Object o )
     {
         if ( this == o )
+        {
             return true;
+        }
+
         if ( o == null || getClass() != o.getClass() )
+        {
             return false;
+        }
+
         DimensionalItemId that = (DimensionalItemId) o;
+
         return dimensionItemType == that.dimensionItemType &&
             Arrays.equals( ids, that.ids );
     }
