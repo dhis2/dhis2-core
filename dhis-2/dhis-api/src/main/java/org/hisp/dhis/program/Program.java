@@ -38,7 +38,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -122,11 +121,6 @@ public class Program
     private boolean skipOffline;
 
     /**
-     * The approval workflow (if any) for this program.
-     */
-    private DataApprovalWorkflow workflow;
-
-    /**
      * Property indicating whether a list of tracked entity instances should be
      * displayed, or whether a query must be made.
      */
@@ -139,8 +133,8 @@ public class Program
     private Boolean useFirstStageDuringRegistration = false;
 
     /**
-     * Property indicating type of feature - none, point, symbol, polygon or 
-     * multipolygon - to capture for program. 
+     * Property indicating type of feature - none, point, symbol, polygon or
+     * multipolygon - to capture for program.
      */
     private FeatureType featureType;
 
@@ -159,20 +153,20 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;    
-    
+    private int completeEventsExpiryDays;
+
     /**
      * Property indicating minimum number of attributes required to fill
      * before search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
-    
+
     /**
      * Property indicating maximum number of TEI to return after search
      */
     private int maxTeiCountToReturn = 0;
-    
-    
+
+
     /**
      * Property indicating level of access
      */
@@ -219,19 +213,19 @@ public class Program
         organisationUnits.clear();
         organisationUnits.addAll( updates );
     }
-    
+
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
      */
     public List<String> getSearchableAttributeIds()
-    {        
+    {
         return programAttributes.stream()
             .filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() )
             .map( ProgramTrackedEntityAttribute::getAttribute )
             .map( TrackedEntityAttribute::getUid )
             .collect( Collectors.toList() );
     }
-    
+
     /**
      * Returns display in list TrackedEntityAttributes
      */
@@ -240,7 +234,7 @@ public class Program
         return programAttributes.stream()
             .filter( pa -> pa.isDisplayInList() )
             .map( ProgramTrackedEntityAttribute::getAttribute )
-            .collect( Collectors.toList() );        
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -269,7 +263,7 @@ public class Program
             .flatMap( ps -> ps.getAllDataElements().stream() )
             .collect( Collectors.toSet() );
     }
-    
+
     /**
      * Returns data elements which are part of the stages of this program which
      * have a legend set and is of numeric value type.
@@ -662,18 +656,6 @@ public class Program
         this.categoryCombo = categoryCombo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalWorkflow getWorkflow()
-    {
-        return workflow;
-    }
-
-    public void setWorkflow( DataApprovalWorkflow workflow )
-    {
-        this.workflow = workflow;
-    }
-
     /**
      * Indicates whether this program has a category combination which is different
      * from the default category combination.
@@ -780,7 +762,7 @@ public class Program
     {
         this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMaxTeiCountToReturn()
@@ -830,7 +812,7 @@ public class Program
     {
         this.programSections = programSections;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AccessLevel getAccessLevel()
@@ -842,7 +824,7 @@ public class Program
     {
         this.accessLevel = accessLevel;
     }
-    
+
     public boolean isOpen()
     {
         return this.accessLevel == AccessLevel.OPEN;
