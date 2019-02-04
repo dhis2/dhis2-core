@@ -563,12 +563,16 @@ public class DefaultAnalyticsService
         for ( DimensionalItemObject period : params.getPeriods() )
         {
             Period p = (Period) period;
+
             if ( p.getPeriodType() instanceof FinancialPeriodType )
             {
                 String uid = getDenominatorUid( params );
+
                 Object val1 = null;
                 Object val2 = null;
+
                 String keyForRemoval = null;
+
                 for ( String key : map.keySet() )
                 {
                     if ( key.startsWith( uid ) )
@@ -587,7 +591,9 @@ public class DefaultAnalyticsService
                 if ( val1 != null && val2 != null )
                 {
                     Double denominatorValue = calculateDenominator( (Double) val1, (Double) val2, (FinancialPeriodType) p.getPeriodType() );
+
                     map.put( uid + SEPARATOR + p.getUid(), denominatorValue );
+
                     map.remove( keyForRemoval );
                 }
                 else
@@ -617,8 +623,9 @@ public class DefaultAnalyticsService
      */
     private Double calculateDenominator( Double year1Value, Double year2Value, FinancialPeriodType financialPeriodType )
     {
-        int mnt = financialPeriodType.getBaseMonth();
-        return (year1Value * ((double) (12 - mnt) / 12)) + (year2Value * ((double) mnt / 12));
+        int month = financialPeriodType.getBaseMonth();
+
+        return (year1Value * ((double) (12 - month) / 12)) + (year2Value * ((double) month / 12));
     }
 
     /**

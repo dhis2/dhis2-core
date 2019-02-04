@@ -93,8 +93,6 @@ public class GridAsserter
 
         private Optional<Integer> metadataRows = Optional.empty();
 
-        private boolean ignoreMetadataItemCheck = false;
-
         private Map<String, List<Object>> rowValues = new HashMap<>();
 
         private Map<String, Map<String, String>> metadataItemValues = new HashMap<>();
@@ -137,6 +135,12 @@ public class GridAsserter
             assertEquals( "Provided metadata row number does not match", metadataRows.orElse( 0 ),
                 Integer.valueOf( metaDataItemMap != null ? metaDataItemMap.size() : 0 ) );
 
+            checkGridValues(grid);
+
+            checkMetadataItemsMap(grid);
+        }
+
+        private void checkGridValues(Grid grid) {
             // check values
             if ( !grid.getRows().isEmpty() )
             {
@@ -147,8 +151,12 @@ public class GridAsserter
                     checkRowValues( rowValues.get( uid ), row );
                 }
             }
+        }
 
-            // check metadata items
+        private void checkMetadataItemsMap(Grid grid) {
+
+            Map<String, Object> metaDataItemMap = (Map<String, Object>) grid.getMetaData().get( "items" );
+
             if ( metaDataItemMap != null && !metaDataItemMap.isEmpty() )
             {
                 Set<String> uids = metadataItemValues.keySet();
@@ -209,7 +217,5 @@ public class GridAsserter
             fail( "cant find uid" );
             return null;
         }
-
     }
-
 }

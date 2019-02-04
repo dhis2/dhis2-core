@@ -60,7 +60,7 @@ public class AnalyticsServiceBaseTest
 {
 
     @Mock
-    AnalyticsManager analyticsManager;
+    protected AnalyticsManager analyticsManager;
 
     @Mock
     private RawAnalyticsManager rawAnalyticsManager;
@@ -69,7 +69,7 @@ public class AnalyticsServiceBaseTest
     private AnalyticsSecurityManager securityManager;
 
     @Mock
-    QueryPlanner queryPlanner;
+    protected QueryPlanner queryPlanner;
 
     @Spy
     private DefaultQueryValidator queryValidator;
@@ -98,7 +98,7 @@ public class AnalyticsServiceBaseTest
     @Mock
     private CacheProvider cacheProvider;
 
-    AnalyticsService target;
+    protected AnalyticsService target;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -114,7 +114,7 @@ public class AnalyticsServiceBaseTest
         when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );
     }
 
-    void initMock( DataQueryParams params )
+    protected void initMock( DataQueryParams params )
     {
         when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
