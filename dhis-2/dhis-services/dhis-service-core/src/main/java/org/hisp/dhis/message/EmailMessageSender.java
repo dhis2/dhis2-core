@@ -74,6 +74,7 @@ public class EmailMessageSender
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
     private static final String LB = System.getProperty( "line.separator" );
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
+    private static final String HOST = "Host: ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -93,7 +94,7 @@ public class EmailMessageSender
         this.userSettingService = userSettingService;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
     
@@ -112,8 +113,9 @@ public class EmailMessageSender
             return status;
         }
 
+        String serverBaseUrl = systemSettingManager.getInstanceBaseUrl();
         String plainContent = renderPlainContent( text, sender );
-        String htmlContent = renderHtmlContent( text, footer, sender );
+        String htmlContent = renderHtmlContent( text, footer, serverBaseUrl != null ? HOST + serverBaseUrl : "", sender );
 
         try
         {
@@ -290,7 +292,7 @@ public class EmailMessageSender
                 + (sender.getPhoneNumber() != null ? (sender.getPhoneNumber() + LB) : StringUtils.EMPTY));
     }
 
-    private String renderHtmlContent( String text, String footer, User sender )
+    private String renderHtmlContent( String text, String footer, String serverBaseUrl, User sender )
     {
         Map<String, Object> content = new HashMap<>();
 
@@ -302,6 +304,11 @@ public class EmailMessageSender
         if ( !Strings.isNullOrEmpty( footer ) )
         {
             content.put( "footer", footer );
+        }
+
+        if ( !Strings.isNullOrEmpty( serverBaseUrl ) )
+        {
+            content.put("serverBaseUrl", serverBaseUrl );
         }
 
         if ( sender != null )
