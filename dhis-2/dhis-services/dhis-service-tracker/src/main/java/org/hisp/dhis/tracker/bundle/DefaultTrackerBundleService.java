@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker.bundle;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,22 +28,25 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerPreheatService
+@Service
+public class DefaultTrackerBundleService implements TrackerBundleService
 {
-    /**
-     * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes automatically.
-     *
-     * @param params Params for preheating
-     */
-    TrackerPreheat preheat( TrackerPreheatParams params );
+    @Override
+    public List<TrackerBundle> create( TrackerBundleParams params )
+    {
+        return null;
+    }
 
-    /**
-     * Validate PreheatParams.
-     *
-     * @param params PreheatParams
-     */
-    void validate( TrackerPreheatParams params );
+    @Override
+    public void commit( TrackerBundle bundle )
+    {
+
+    }
 }

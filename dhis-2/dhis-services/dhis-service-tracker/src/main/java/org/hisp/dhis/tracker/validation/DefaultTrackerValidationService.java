@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,22 +28,18 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.springframework.stereotype.Service;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerPreheatService
+@Service
+public class DefaultTrackerValidationService implements TrackerValidationService
 {
-    /**
-     * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes automatically.
-     *
-     * @param params Params for preheating
-     */
-    TrackerPreheat preheat( TrackerPreheatParams params );
+    @Override
+    public void validate( TrackerBundle bundle )
+    {
 
-    /**
-     * Validate PreheatParams.
-     *
-     * @param params PreheatParams
-     */
-    void validate( TrackerPreheatParams params );
+    }
 }
