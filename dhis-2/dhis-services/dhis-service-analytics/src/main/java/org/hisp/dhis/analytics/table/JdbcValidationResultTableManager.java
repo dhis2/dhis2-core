@@ -50,6 +50,7 @@ import java.util.concurrent.Future;
 
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
 
 /**
  * @author Henning Håkonsen
@@ -176,19 +177,19 @@ public class JdbcValidationResultTableManager
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)",
-                "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+                "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)",
-                "acs." + quote( category.getUid() ), category.getCreated() ) );
+                "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -197,10 +198,10 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11)", NOT_NULL, "vr.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer", NOT_NULL, "ps.year" ) );
 
         return filterDimensionColumns( columns );
     }

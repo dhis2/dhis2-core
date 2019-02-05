@@ -30,12 +30,17 @@ package org.hisp.dhis.webapi.controller.metadata;
  *
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -48,6 +53,8 @@ import org.springframework.stereotype.Component;
 @Scope( "prototype" )
 public class MetadataAsyncImporter extends SecurityContextRunnable
 {
+    private static final Log log = LogFactory.getLog( MetadataAsyncImporter.class );
+
     @Autowired
     private MetadataImportService metadataImportService;
 
@@ -56,6 +63,9 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private Notifier notifier;
 
     private MetadataImportParams params;
 
@@ -86,6 +96,13 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
     public void after()
     {
         DbmsUtils.unbindSessionFromThread( sessionFactory );
+    }
+
+    @Override
+    public void handleError( Throwable ex )
+    {
+        log.error( DebugUtils.getStackTrace( ex ) );
+        notifier.notify( params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
     }
 
     public void setParams( MetadataImportParams params )
