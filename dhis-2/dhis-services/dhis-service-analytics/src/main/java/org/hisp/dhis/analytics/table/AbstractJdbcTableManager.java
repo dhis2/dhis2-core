@@ -326,11 +326,10 @@ public abstract class AbstractJdbcTableManager
         {
             String notNull = col.getNotNull().isNotNull() ? " not null" : "";
 
-            sqlCreate += col.getName() + " " + col.getDataType() + notNull + ",";
+            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
         }
 
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
-
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 

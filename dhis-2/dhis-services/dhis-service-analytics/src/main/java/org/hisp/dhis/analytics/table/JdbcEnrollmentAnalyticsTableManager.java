@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -50,7 +51,13 @@ import java.util.*;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
+import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 
 /**
  * @author Markus Bekken
@@ -142,7 +149,6 @@ public class JdbcEnrollmentAnalyticsTableManager
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
@@ -157,23 +163,23 @@ public class JdbcEnrollmentAnalyticsTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "text", "dps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, TEXT, "dps." + column ) );
         }
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
-            String dataType = getColumnType( attribute.getValueType() );
+            ColumnDataType dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
             String select = getSelectClause( attribute.getValueType() );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
@@ -185,9 +191,9 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11)", NOT_NULL, "pi.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ) );
 
         final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
             "where psi.programinstanceid=pi.programinstanceid " +
@@ -195,7 +201,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and psi.deleted is false " +
             "order by psi.executiondate desc " +
             "limit 1) as " + quote( "executiondate" );
-        columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql ) );
+        columns.add( new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, executionDateSql ) );
 
         final String dueDateSql = "(select psi.duedate from programstageinstance psi " +
             "where psi.programinstanceid = pi.programinstanceid " +
@@ -203,21 +209,21 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and psi.deleted is false " +
             "order by psi.duedate desc " +
             "limit 1) as " + quote( "duedate" );
-        columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
+        columns.add( new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, dueDateSql ) );
 
-        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
-        columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "ST_X(pi.geometry)" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "ST_Y(pi.geometry)" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11)", NOT_NULL, "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text", NOT_NULL, "ou.name" ) );
-        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
+        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "case pi.status when 'COMPLETED' then pi.enddate end" ) );
+        columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), CHARACTER_50, "pi.status" ) );
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "ST_X(pi.geometry)" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "ST_Y(pi.geometry)" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ) );
 
-        columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry" ).withIndexType( "gist" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" ).withIndexType( "gist" ) );
 
         if ( program.isRegistration() )
         {
-            columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
+            columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
         }
 
         return filterDimensionColumns( columns );
