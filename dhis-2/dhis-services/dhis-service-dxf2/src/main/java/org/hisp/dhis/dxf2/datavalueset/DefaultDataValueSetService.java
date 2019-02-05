@@ -1049,8 +1049,8 @@ public class DefaultDataValueSetService
 
             if ( zeroInsignificant )
             {
-                //value is 0 and at the same time 0 is not significant => changing value to empty string
-                dataValue.setValue( "" );
+                //value is 0 and at the same time 0 is not significant => do not store it
+                continue;
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
