@@ -50,6 +50,11 @@ public class AnalyticsTableColumn
     private String dataType;
 
     /**
+     * Column not null constraint, default is to allow null values.
+     */
+    private NotNullConstraint notNull = NotNullConstraint.NULL;
+
+    /**
      * The column SQL alias.
      */
     private String alias;
@@ -87,65 +92,22 @@ public class AnalyticsTableColumn
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = NotNullConstraint.NULL;
         this.alias = alias;
     }
 
     /**
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
+     * @param notNull analytics table column not null constraint.
      * @param alias source table column alias and name.
-     * @param indexColumns columns to index, defaults to this column name.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias, List<String> indexColumns )
+    public AnalyticsTableColumn( String name, String dataType, NotNullConstraint notNull, String alias )
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = notNull;
         this.alias = alias;
-        this.indexColumns = indexColumns;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param created date when column data was created.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.created = created;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param skipIndex indicates whether to skip indexing this column.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.skipIndex = skipIndex;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param skipIndex indicates whether to skip indexing this column.
-     * @param indexType index type.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex, String indexType )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.skipIndex = skipIndex;
-        this.indexType = indexType;
     }
 
     // -------------------------------------------------------------------------
@@ -159,6 +121,50 @@ public class AnalyticsTableColumn
     public boolean hasIndexColumns()
     {
         return !indexColumns.isEmpty();
+    }
+
+    /**
+     * Sets the created date.
+     *
+     * @param created the created date of the underlying dimension.
+     */
+    public AnalyticsTableColumn withCreated( Date created )
+    {
+        this.created = created;
+        return this;
+    }
+
+    /**
+     * Sets the index columns.
+     *
+     * @param indexColumns columns to index, defaults to this column name.
+     */
+    public AnalyticsTableColumn withIndexColumns( List<String> indexColumns )
+    {
+        this.indexColumns = indexColumns;
+        return this;
+    }
+
+    /**
+     * Sets whether to skip indexes.
+     *
+     * @param skipIndex indicates whether to skip indexing this column.
+     */
+    public AnalyticsTableColumn withSkipIndex( boolean skipIndex )
+    {
+        this.skipIndex = skipIndex;
+        return this;
+    }
+
+    /**
+     * Sets the index type.
+     *
+     * @param indexType the index type.
+     */
+    public AnalyticsTableColumn withIndexType( String indexType )
+    {
+        this.indexType = indexType;
+        return this;
     }
 
     // -------------------------------------------------------------------------
@@ -178,6 +184,11 @@ public class AnalyticsTableColumn
     public String getAlias()
     {
         return alias;
+    }
+
+    public NotNullConstraint getNotNull()
+    {
+        return notNull;
     }
 
     public Date getCreated()

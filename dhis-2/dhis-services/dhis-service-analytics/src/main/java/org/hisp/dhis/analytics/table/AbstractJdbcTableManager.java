@@ -324,7 +324,9 @@ public abstract class AbstractJdbcTableManager
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+
+            sqlCreate += col.getName() + " " + col.getDataType() + notNull + ",";
         }
 
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
