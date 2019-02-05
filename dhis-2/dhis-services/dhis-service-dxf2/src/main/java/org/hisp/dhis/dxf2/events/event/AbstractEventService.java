@@ -1807,8 +1807,6 @@ public abstract class AbstractEventService
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions );
-
-                programInstance.getProgramStageInstances().add( programStageInstance );
             }
             else
             {
