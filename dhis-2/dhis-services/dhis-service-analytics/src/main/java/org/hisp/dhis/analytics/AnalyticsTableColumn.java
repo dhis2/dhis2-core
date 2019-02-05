@@ -55,6 +55,11 @@ public class AnalyticsTableColumn
     private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
 
     /**
+     * Column not null constraint, default is to allow null values.
+     */
+    private NotNullConstraint notNull = NotNullConstraint.NULL;
+
+    /**
      * The column SQL alias.
      */
     private String alias;
