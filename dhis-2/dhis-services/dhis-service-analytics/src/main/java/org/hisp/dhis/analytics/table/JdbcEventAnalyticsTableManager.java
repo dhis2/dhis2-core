@@ -241,7 +241,7 @@ public class JdbcEventAnalyticsTableManager
             String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
                 "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
 
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
+            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
         for ( DataElement dataElement : program.getDataElementsWithLegendSet() )
@@ -273,7 +273,7 @@ public class JdbcEventAnalyticsTableManager
             String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
                 "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
 
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributesWithLegendSet() )
@@ -308,7 +308,7 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "lastupdated" ), "timestamp", "psi.lastupdated" ) );
         columns.add( new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "psigeometry" ), "geometry", "psi.geometry", false, "gist" ) );
+        columns.add( new AnalyticsTableColumn( quote( "psigeometry" ), "geometry", "psi.geometry" ).withIndexType( "gist" ) );
 
         // TODO lat and lng deprecated in 2.30, should be removed after 2.33
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );

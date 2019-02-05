@@ -94,20 +94,6 @@ public class AnalyticsTableColumn
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
      * @param alias source table column alias and name.
-     * @param indexColumns columns to index, defaults to this column name.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, List<String> indexColumns )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.indexColumns = indexColumns;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
      * @param created date when column data was created.
      */
     public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
@@ -116,36 +102,6 @@ public class AnalyticsTableColumn
         this.dataType = dataType;
         this.alias = alias;
         this.created = created;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param skipIndex indicates whether to skip indexing this column.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.skipIndex = skipIndex;
-    }
-
-    /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param skipIndex indicates whether to skip indexing this column.
-     * @param indexType index type.
-     */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex, String indexType )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.skipIndex = skipIndex;
-        this.indexType = indexType;
     }
 
     // -------------------------------------------------------------------------
@@ -159,6 +115,39 @@ public class AnalyticsTableColumn
     public boolean hasIndexColumns()
     {
         return !indexColumns.isEmpty();
+    }
+
+    /**
+     * Sets the index columns.
+     *
+     * @param indexColumns columns to index, defaults to this column name.
+     */
+    public AnalyticsTableColumn withIndexColumns( List<String> indexColumns )
+    {
+        this.indexColumns = indexColumns;
+        return this;
+    }
+
+    /**
+     * Sets whether to skip indexes.
+     *
+     * @param skipIndex indicates whether to skip indexing this column.
+     */
+    public AnalyticsTableColumn withSkipIndex( boolean skipIndex )
+    {
+        this.skipIndex = skipIndex;
+        return this;
+    }
+
+    /**
+     * Sets the index type.
+     *
+     * @param indexType the index type.
+     */
+    public AnalyticsTableColumn withIndexType( String indexType )
+    {
+        this.indexType = indexType;
+        return this;
     }
 
     // -------------------------------------------------------------------------

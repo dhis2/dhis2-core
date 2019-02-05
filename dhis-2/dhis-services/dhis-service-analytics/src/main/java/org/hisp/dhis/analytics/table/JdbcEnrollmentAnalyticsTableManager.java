@@ -181,7 +181,7 @@ public class JdbcEnrollmentAnalyticsTableManager
                 "where trackedentityinstanceid=pi.trackedentityinstanceid " +
                 "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
 
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
@@ -212,7 +212,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
-        columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry", false, "gist" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry" ).withIndexType( "gist" ) );
 
         if ( program.isRegistration() )
         {

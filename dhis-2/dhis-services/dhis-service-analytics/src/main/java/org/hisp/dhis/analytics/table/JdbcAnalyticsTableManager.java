@@ -359,8 +359,8 @@ public class JdbcAnalyticsTableManager
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid", newArrayList( quote( "dx" ), quote( "co" ) ) ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid", newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
+        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
         columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
