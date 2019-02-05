@@ -50,6 +50,11 @@ public class AnalyticsTableColumn
     private String dataType;
 
     /**
+     * Column not null constraint, default is to allow null values.
+     */
+    private NotNullConstraint notNull = NotNullConstraint.NULL;
+
+    /**
      * The column SQL alias.
      */
     private String alias;
@@ -87,21 +92,22 @@ public class AnalyticsTableColumn
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = NotNullConstraint.NULL;
         this.alias = alias;
     }
 
     /**
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
+     * @param notNull analytics table column not null constraint.
      * @param alias source table column alias and name.
-     * @param created date when column data was created.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
+    public AnalyticsTableColumn( String name, String dataType, NotNullConstraint notNull, String alias )
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = notNull;
         this.alias = alias;
-        this.created = created;
     }
 
     // -------------------------------------------------------------------------
@@ -115,6 +121,17 @@ public class AnalyticsTableColumn
     public boolean hasIndexColumns()
     {
         return !indexColumns.isEmpty();
+    }
+
+    /**
+     * Sets the created date.
+     *
+     * @param created the created date of the underlying dimension.
+     */
+    public AnalyticsTableColumn withCreated( Date created )
+    {
+        this.created = created;
+        return this;
     }
 
     /**
@@ -167,6 +184,11 @@ public class AnalyticsTableColumn
     public String getAlias()
     {
         return alias;
+    }
+
+    public NotNullConstraint getNotNull()
+    {
+        return notNull;
     }
 
     public Date getCreated()

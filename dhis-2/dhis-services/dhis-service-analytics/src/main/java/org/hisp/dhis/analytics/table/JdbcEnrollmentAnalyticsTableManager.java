@@ -50,6 +50,7 @@ import java.util.*;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
 
 /**
  * @author Markus Bekken
@@ -156,12 +157,12 @@ public class JdbcEnrollmentAnalyticsTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -184,7 +185,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11)", NOT_NULL, "pi.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
 
@@ -208,8 +209,8 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "ST_X(pi.geometry)" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "ST_Y(pi.geometry)" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11)", NOT_NULL, "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text", NOT_NULL, "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), "geometry", "pi.geometry" ).withIndexType( "gist" ) );

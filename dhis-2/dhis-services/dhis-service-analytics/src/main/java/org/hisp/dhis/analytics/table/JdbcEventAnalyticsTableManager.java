@@ -60,6 +60,7 @@ import com.google.common.collect.Lists;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
 
 /**
  * @author Lars Helge Overland
@@ -195,7 +196,7 @@ public class JdbcEventAnalyticsTableManager
             {
                 if ( category.isDataDimension() )
                 {
-                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
                 }
             }
         }
@@ -212,17 +213,17 @@ public class JdbcEventAnalyticsTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -295,10 +296,10 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ps" ), "character(11) not null", "ps.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "psi" ), "character(11)", NOT_NULL, "psi.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11)", NOT_NULL, "pi.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ps" ), "character(11)", NOT_NULL, "ps.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11)", NOT_NULL, "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" ) );
@@ -314,8 +315,8 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ) );
 
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11)", NOT_NULL, "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text", NOT_NULL, "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         if ( program.isRegistration() )
