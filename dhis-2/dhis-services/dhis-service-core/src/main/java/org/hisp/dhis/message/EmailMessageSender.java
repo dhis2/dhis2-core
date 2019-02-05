@@ -41,6 +41,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -94,7 +95,14 @@ public class EmailMessageSender
         this.userSettingService = userSettingService;
     }
 
-// -------------------------------------------------------------------------
+    private DhisConfigurationProvider configurationProvider;
+
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
+    }
+
+    // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
     
@@ -113,7 +121,7 @@ public class EmailMessageSender
             return status;
         }
 
-        String serverBaseUrl = systemSettingManager.getInstanceBaseUrl();
+        String serverBaseUrl = configurationProvider.getServerBaseUrl();
         String plainContent = renderPlainContent( text, sender );
         String htmlContent = renderHtmlContent( text, footer, serverBaseUrl != null ? HOST + serverBaseUrl : "", sender );
 

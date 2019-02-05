@@ -450,7 +450,7 @@ public class HibernateGenericStore<T>
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
-        Root root = query.from( getClazz() );
+        Root<T> root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ( "attributeValues" ), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );

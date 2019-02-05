@@ -55,7 +55,7 @@ public class SystemSettingInterceptor
     private static final Set<SettingKey> SETTINGS = Sets.newHashSet( SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO,
         SettingKey.APPLICATION_NOTIFICATION, SettingKey.APPLICATION_FOOTER, SettingKey.APPLICATION_RIGHT_FOOTER,
         SettingKey.FLAG, SettingKey.START_MODULE, SettingKey.MULTI_ORGANISATION_UNIT_FORMS, SettingKey.ACCOUNT_RECOVERY,
-        SettingKey.INSTANCE_BASE_URL, SettingKey.GOOGLE_ANALYTICS_UA, SettingKey.OPENID_PROVIDER,
+        SettingKey.GOOGLE_ANALYTICS_UA, SettingKey.OPENID_PROVIDER,
         SettingKey.OPENID_PROVIDER_LABEL, SettingKey.HELP_PAGE_LINK, SettingKey.REQUIRE_ADD_TO_VIEW, SettingKey.ALLOW_OBJECT_ASSIGNMENT,
         SettingKey.CALENDAR, SettingKey.DATE_FORMAT, SettingKey.RECAPTCHA_SITE );
     
