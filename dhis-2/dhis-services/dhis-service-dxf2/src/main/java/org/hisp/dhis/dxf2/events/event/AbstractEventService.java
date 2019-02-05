@@ -296,8 +296,6 @@ public abstract class AbstractEventService
 
     private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
 
-    private Set<ProgramInstance> programInstancesToUpdate = new HashSet<>();
-
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -2373,10 +2371,7 @@ public abstract class AbstractEventService
 
     private void updateEntities( User user )
     {
-        programInstancesToUpdate.forEach( pi -> manager.update( pi, user ) );
         trackedEntityInstancesToUpdate.forEach( tei -> manager.update( tei, user ) );
-
-        programInstancesToUpdate.clear();
         trackedEntityInstancesToUpdate.clear();
     }
 
@@ -2432,8 +2427,6 @@ public abstract class AbstractEventService
             {
                 if ( !bulkUpdate )
                 {
-                    manager.update( programStageInstance.getProgramInstance(), user );
-
                     if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
                     {
                         manager.update( programStageInstance.getProgramInstance().getEntityInstance(), user );
@@ -2441,8 +2434,6 @@ public abstract class AbstractEventService
                 }
                 else
                 {
-                    programInstancesToUpdate.add( programStageInstance.getProgramInstance() );
-
                     if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
                     {
                         trackedEntityInstancesToUpdate.add( programStageInstance.getProgramInstance().getEntityInstance() );
