@@ -2066,12 +2066,12 @@ public abstract class AbstractEventService
         {
             validUsername = User.getSafeUsername( fallbackUsername );
         }
-        else if ( validUsername.length() > 255 )
+        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
                 importSummary.getConflicts().add( new ImportConflict( "Username",
-                    validUsername + " is more than 255 characters, using current username instead" ) );
+                    validUsername + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );
