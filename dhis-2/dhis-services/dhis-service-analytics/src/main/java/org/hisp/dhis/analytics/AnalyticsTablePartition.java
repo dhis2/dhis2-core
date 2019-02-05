@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
 
 /**
  * Class representing an analytics database table partition.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsTablePartition
@@ -43,22 +43,22 @@ public class AnalyticsTablePartition
      * The master analytics table for this partition.
      */
     private AnalyticsTable masterTable;
-    
+
     /**
      * The year for which this partition may contain data.
      */
     private Integer year;
-    
+
     /**
      * The start date for which this partition may contain data, inclusive.
      */
     private Date startDate;
-    
+
     /**
      * The end date for which this partition may contain data, exclusive.
      */
     private Date endDate;
-    
+
     /**
      * Indicates whether data approval applies to this partition.
      */
@@ -93,7 +93,7 @@ public class AnalyticsTablePartition
 
         return name;
     }
-    
+
     public String getTempTableName()
     {
         String name = masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
@@ -110,12 +110,12 @@ public class AnalyticsTablePartition
 
         return name;
     }
-    
+
     public AnalyticsTable getMasterTable()
     {
         return masterTable;
     }
-    
+
     public Integer getYear()
     {
         return year;
@@ -135,7 +135,7 @@ public class AnalyticsTablePartition
     {
         return dataApproval;
     }
-    
+
     @Override
     public String toString()
     {

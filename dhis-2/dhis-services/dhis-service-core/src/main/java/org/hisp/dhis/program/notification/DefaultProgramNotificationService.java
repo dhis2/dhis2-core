@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -539,8 +540,15 @@ public class DefaultProgramNotificationService
 
     private void sendAll( MessageBatch messageBatch )
     {
-        sendDhisMessages( messageBatch.dhisMessages );
-        sendProgramMessages( messageBatch.programMessages );
+        try
+        {
+            sendDhisMessages( messageBatch.dhisMessages );
+            sendProgramMessages( messageBatch.programMessages );
+        }
+        catch ( Exception e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+        }
     }
 
     // -------------------------------------------------------------------------

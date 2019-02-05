@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.data;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -53,6 +55,8 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -74,6 +78,7 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -98,8 +103,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
@@ -149,6 +157,8 @@ public class DefaultAnalyticsService
 
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
+    private static final int MAX_CACHE_ENTRIES = 20000;
+    private static final String CACHE_REGION = "analyticsQueryResponse";
 
     @Autowired
     private AnalyticsManager analyticsManager;
@@ -183,9 +193,29 @@ public class DefaultAnalyticsService
     @Autowired
     private DataQueryService dataQueryService;
 
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
+
+    private Cache<Grid> queryCache;
+
+    @PostConstruct
+    public void init()
+    {
+        Long expiration = dhisConfig.getAnalyticsCacheExpiration();
+        boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
+
+        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
+            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
+
+        log.info( String.format( "Analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
+    }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
@@ -200,6 +230,12 @@ public class DefaultAnalyticsService
         params = securityManager.withDimensionConstraints( params );
 
         queryValidator.validate( params );
+
+        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        {
+            final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
+        }
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -460,7 +496,7 @@ public class DefaultAnalyticsService
 
                     IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
-                    if ( value != null )
+                    if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
                         List<DimensionItem> row = new ArrayList<>( dimensionItems );
 
@@ -480,6 +516,30 @@ public class DefaultAnalyticsService
                 }
             }
         }
+    }
+    
+    /**
+     * Checks whether the measure criteria in dataqueryparams is satisfied for
+     * this indicator value.
+     * 
+     * @param params The dataQueryParams
+     * @param value The indicatorValue
+     * @param indicator The indicator
+     * @return True if all the measure criteria are satisfied for this indicator
+     *         value. False otherwise
+     */
+    private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
+    {
+        if ( !params.hasMeasureCriteria() )
+        {
+            return true;
+        }
+
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+
+        // if any one measureFilter is invalid return false.
+        return !params.getMeasureCriteria().entrySet().stream().anyMatch(
+            measureValue -> !measureValue.getKey().measureIsValid( indicatorRoundedValue, measureValue.getValue() ) );
     }
 
     /**
@@ -804,7 +864,7 @@ public class DefaultAnalyticsService
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
             dimensionItems.put( PERIOD_DIM_ID, periodUids );
-            dimensionItems.put( CATEGORYOPTIONCOMBO_DIM_ID, cocNameMap.keySet() );
+            dimensionItems.put( CATEGORYOPTIONCOMBO_DIM_ID, Sets.newHashSet( cocNameMap.keySet() ) );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
@@ -1243,6 +1303,7 @@ public class DefaultAnalyticsService
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
             .replaceDimension( dimension )
+            .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withSkipMeta( true ).build();

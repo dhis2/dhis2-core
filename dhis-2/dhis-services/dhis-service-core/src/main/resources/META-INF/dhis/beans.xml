@@ -527,6 +527,16 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
+  
+  <bean id="org.hisp.dhis.program.EventSyncService"
+    class="org.hisp.dhis.program.DefaultEventSyncService">
+    <property name="eventSyncStore" ref="org.hisp.dhis.program.EventSyncStore" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.EventSyncStore"
+    class="org.hisp.dhis.program.hibernate.HibernateEventSyncStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramInstanceStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore">
@@ -1309,8 +1319,8 @@
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityProgramOwnerService" />
 
-  <bean id="org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager"
-    class="org.hisp.dhis.trackedentity.DefaultTrackerOwnershipAccessManager">
+  <bean id="org.hisp.dhis.trackedentity.TrackerOwnershipManager"
+    class="org.hisp.dhis.trackedentity.DefaultTrackerOwnershipManager">
   </bean>
 
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService"

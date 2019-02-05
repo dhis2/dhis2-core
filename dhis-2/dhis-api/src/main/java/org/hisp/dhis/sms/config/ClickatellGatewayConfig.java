@@ -51,18 +51,6 @@ public class ClickatellGatewayConfig
         this.authToken = authToken;
     }
 
-    @JsonProperty( value = "default" )
-    public boolean getStatus()
-    {
-        return super.isDefault();
-    }
-
-    @JsonProperty( value = "name" )
-    public String getName()
-    {
-        return super.getName();
-    }
-
     @Override
     public boolean isInbound()
     {

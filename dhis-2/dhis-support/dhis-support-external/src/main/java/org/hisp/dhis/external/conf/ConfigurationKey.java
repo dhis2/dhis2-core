@@ -89,7 +89,10 @@ public enum ConfigurationKey
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
-    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
+    LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB", false ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0", false ),
+    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0", false );
 
     private final String key;
 

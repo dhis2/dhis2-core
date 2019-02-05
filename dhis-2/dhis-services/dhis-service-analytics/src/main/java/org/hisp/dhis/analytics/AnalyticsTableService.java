@@ -30,25 +30,25 @@ package org.hisp.dhis.analytics;
 
 /**
  * Service for analytics table generation and analysis.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableService
 {
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-     * 
+     *
      * @return the type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
-    
+
     /**
      * Rebuilds the analytics tables.
-     * 
+     *
      * @param params the {@link AnalyticsTableUpdateParams}.
      */
     void update( AnalyticsTableUpdateParams params );
-    
+
     /**
      * Drops main and temporary analytics tables.
      */

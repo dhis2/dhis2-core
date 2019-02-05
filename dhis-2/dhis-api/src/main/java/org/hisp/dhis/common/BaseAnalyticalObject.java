@@ -587,7 +587,7 @@ public abstract class BaseAnalyticalObject
         {
             return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
         }
-        else if ( DATA_COLLAPSED_DIM_ID.contains( dimension ) )
+        else if ( DATA_COLLAPSED_DIM_ID.equals( dimension ) )
         {
             return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
         }

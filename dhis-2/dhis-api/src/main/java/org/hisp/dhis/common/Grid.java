@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 import net.sf.jasperreports.engine.JRDataSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public interface Grid
-    extends JRDataSource
+    extends JRDataSource, Serializable
 {
     /**
      * Returns the grid title.
@@ -104,7 +105,7 @@ public interface Grid
      * Sets a map of internal meta-data.
      */
     Grid setInternalMetaData( Map<String, Object> internalMetaData );
-    
+
     /**
      * Returns all visible headers, ie. headers which are not hidden.
      */
@@ -123,7 +124,7 @@ public interface Grid
      * @param header the grid header.
      */
     Grid addHeader( GridHeader header );
-    
+
     /**
      * Adds a header value at the given column index.
      *
@@ -134,7 +135,7 @@ public interface Grid
 
     /**
      * Adds a list of headers.
-     * 
+     *
      * @param headerIndex the index to insert the first grid header at.
      * @param headers list of headers.
      */
@@ -146,7 +147,7 @@ public interface Grid
      * @param number the number of columns to add.
      */
     Grid addEmptyHeaders( int number );
-    
+
     /**
      * Returns the current height / number of rows in the grid.
      */
@@ -190,7 +191,7 @@ public interface Grid
     Grid addValues( Object[] values );
 
     /**
-     * Adds the given values to the end of the current row in the specified 
+     * Adds the given values to the end of the current row in the specified
      * order.
      *
      * @param values the values to add.
@@ -284,7 +285,7 @@ public interface Grid
      * is matched against the values in the reference column, and the list of values
      * is used to populate the row values left to right. Where there is no match,
      * null values are inserted.
-     * 
+     *
      * @param referenceColumnIndex the reference column index.
      * @param valueMap the map of values to list of values.
      * @param newColumns the number of new columns to add.
@@ -297,16 +298,16 @@ public interface Grid
      * @param columnIndex the column index.
      */
     Grid removeColumn( int columnIndex );
-    
+
     /**
-     * Removes from the grid columns with corresponding headers which only contain 
+     * Removes from the grid columns with corresponding headers which only contain
      * null values.
      */
     Grid removeEmptyColumns();
-    
+
     /**
      * Indicates whether the column with the given index only contains null values.
-     * 
+     *
      * @param columnIndex the column index.
      */
     boolean columnIsEmpty( int columnIndex );

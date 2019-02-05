@@ -259,6 +259,10 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler"
+        class="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler">
+  </bean>
+
   <!-- AOP definitions -->
 
   <aop:config>

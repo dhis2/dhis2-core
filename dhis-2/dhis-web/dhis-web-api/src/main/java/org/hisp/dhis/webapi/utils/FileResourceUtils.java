@@ -32,9 +32,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Lars Helge Overland
@@ -43,7 +48,7 @@ public class FileResourceUtils
 {
     /**
      * Transfers the given multipart file content to a local temporary file.
-     *  
+     * 
      * @param multipartFile the multipart file.
      * @return a temporary local file.
      * @throws IOException if the file content could not be transferred.
@@ -58,8 +63,8 @@ public class FileResourceUtils
     }
 
     /**
-     * Indicates whether the content type represented by the given string
-     * is a valid, known content type.
+     * Indicates whether the content type represented by the given string is a
+     * valid, known content type.
      * 
      * @param contentType the content type string.
      * @return true if the content is valid, false if not.
@@ -76,5 +81,24 @@ public class FileResourceUtils
         }
 
         return true;
+    }
+
+    /**
+     *
+     * Builds a {@link FileResource} from a {@link MultipartFile}.
+     *
+     * @param key the key to associate to the {@link FileResource}
+     * @param file a {@link MultipartFile}
+     * @param domain a {@link FileResourceDomain}
+     * @return a valid {@link FileResource} populated with data from the provided
+     *         file
+     * @throws IOException if hashing fails
+     *
+     */
+    public static FileResource build( String key, MultipartFile file, FileResourceDomain domain )
+        throws IOException
+    {
+        return new FileResource( key, file.getName(), file.getContentType(), file.getSize(),
+            ByteSource.wrap( file.getBytes() ).hash( Hashing.md5() ).toString(), domain );
     }
 }

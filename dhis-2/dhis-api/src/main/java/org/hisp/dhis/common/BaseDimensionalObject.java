@@ -8,7 +8,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.legend.LegendSet;
 
 import java.util.ArrayList;
@@ -220,6 +222,21 @@ public class BaseDimensionalObject
         return new ArrayList<>( Arrays.asList( filterItems.split( DimensionalObject.OPTION_SEP ) ) );
     }
 
+    @Override
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        key.add( getDimension() );
+        getItems().forEach( e -> key.add( e.getDimensionItem() ) );
+
+        return key
+            .add( allItems )
+            .addIgnoreNull( legendSet )
+            .addIgnoreNull( aggregationType )
+            .addIgnoreNull( filter ).asPlainKey();
+    }
+
     //--------------------------------------------------------------------------
     // Getters and setters
     //--------------------------------------------------------------------------
@@ -356,7 +373,7 @@ public class BaseDimensionalObject
             .add( "name", item.getName() )
             .toString() )
             .collect( Collectors.toList() );
-        
+
         return MoreObjects.toStringHelper( this )
             .add( "Dimension", uid )
             .add( "type", dimensionType )
