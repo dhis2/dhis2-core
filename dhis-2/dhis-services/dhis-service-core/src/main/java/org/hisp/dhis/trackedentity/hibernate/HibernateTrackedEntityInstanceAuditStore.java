@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -52,32 +51,20 @@ public class HibernateTrackedEntityInstanceAuditStore
     implements TrackedEntityInstanceAuditStore
 {
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    @Override
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
-
-    // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
     public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
     {
-        sessionFactory.getCurrentSession().save( trackedEntityInstanceAudit );
+        getSession().save( trackedEntityInstanceAudit );
     }
 
     @Override
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {
         String hql = "delete TrackedEntityInstanceAudit where trackedEntityInstance = :trackedEntityInstance";
-        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();
     }
 
     @Override

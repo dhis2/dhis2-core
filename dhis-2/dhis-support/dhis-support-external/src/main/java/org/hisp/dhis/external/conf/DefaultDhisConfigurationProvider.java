@@ -244,6 +244,12 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public String getServerBaseUrl()
+    {
+        return StringUtils.trimToNull( properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey() ) );
+    }
+
+    @Override
     public boolean isLdapConfigured()
     {
         String ldapUrl = getProperty( ConfigurationKey.LDAP_URL );
