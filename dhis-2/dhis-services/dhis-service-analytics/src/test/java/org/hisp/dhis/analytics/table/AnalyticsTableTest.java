@@ -54,49 +54,49 @@ public class AnalyticsTableTest
     {
         Program program = new Program( "ProgramA", "DescriptionA" );
         program.setUid( "UIDA" );
-        
+
         AnalyticsTable tableA = new AnalyticsTable( "analytics_event", Lists.newArrayList(), Lists.newArrayList(), program );
-        
+
         assertEquals( "analytics_event_uida", tableA.getTableName() );
     }
-    
+
     @Test
     public void testGetTablePartitionName()
     {
         Program program = new Program( "ProgramA", "DescriptionA" );
         program.setUid( "UIDA" );
-        
+
         Period periodA = new YearlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         Period periodB = new YearlyPeriodType().createPeriod( new DateTime( 2015, 1, 1, 0, 0 ).toDate() );
-        
+
         AnalyticsTable tableA = new AnalyticsTable( "analytics_event", Lists.newArrayList(), Lists.newArrayList(), program );
-        
+
         tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
         tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
-        
+
         AnalyticsTablePartition partitionA = tableA.getPartitionTables().get( 0 );
         AnalyticsTablePartition partitionB = tableA.getPartitionTables().get( 1 );
-        
+
         assertNotNull( partitionA );
         assertNotNull( partitionB );
-        
+
         assertEquals( "analytics_event_2014_uida", partitionA.getTableName() );
         assertEquals( "analytics_event_2015_uida", partitionB.getTableName() );
 
         assertEquals( "analytics_event_temp_2014_uida", partitionA.getTempTableName() );
         assertEquals( "analytics_event_temp_2015_uida", partitionB.getTempTableName() );
     }
-    
+
     @Test
     public void testEquals()
-    {        
+    {
         AnalyticsTable tableA = new AnalyticsTable( "analytics", Lists.newArrayList(), Lists.newArrayList() );
         AnalyticsTable tableB = new AnalyticsTable( "analytics", Lists.newArrayList(), Lists.newArrayList() );
-        
+
         List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
         uniqueList.add( tableA );
         uniqueList.add( tableB );
-        
+
         assertEquals( 1, uniqueList.size() );
     }
 }
