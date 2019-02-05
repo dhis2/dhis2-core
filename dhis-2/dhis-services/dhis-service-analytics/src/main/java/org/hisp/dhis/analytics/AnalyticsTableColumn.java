@@ -47,12 +47,12 @@ public class AnalyticsTableColumn
     /**
      * The column data type.
      */
-    private String dataType;
+    private ColumnDataType dataType;
 
     /**
      * Column not null constraint, default is to allow null values.
      */
-    private NotNullConstraint notNull = NotNullConstraint.NULL;
+    private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
 
     /**
      * The column SQL alias.
@@ -88,11 +88,11 @@ public class AnalyticsTableColumn
      * @param dataType analytics table column data type.
      * @param alias source table column alias and name.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias )
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, String alias )
     {
         this.name = name;
         this.dataType = dataType;
-        this.notNull = NotNullConstraint.NULL;
+        this.notNull = ColumnNotNullConstraint.NULL;
         this.alias = alias;
     }
 
@@ -102,7 +102,7 @@ public class AnalyticsTableColumn
      * @param notNull analytics table column not null constraint.
      * @param alias source table column alias and name.
      */
-    public AnalyticsTableColumn( String name, String dataType, NotNullConstraint notNull, String alias )
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias )
     {
         this.name = name;
         this.dataType = dataType;
@@ -122,6 +122,10 @@ public class AnalyticsTableColumn
     {
         return !indexColumns.isEmpty();
     }
+
+    // -------------------------------------------------------------------------
+    // Builder methods
+    // -------------------------------------------------------------------------
 
     /**
      * Sets the created date.
@@ -176,7 +180,7 @@ public class AnalyticsTableColumn
         return name;
     }
 
-    public String getDataType()
+    public ColumnDataType getDataType()
     {
         return dataType;
     }
@@ -186,7 +190,7 @@ public class AnalyticsTableColumn
         return alias;
     }
 
-    public NotNullConstraint getNotNull()
+    public ColumnNotNullConstraint getNotNull()
     {
         return notNull;
     }

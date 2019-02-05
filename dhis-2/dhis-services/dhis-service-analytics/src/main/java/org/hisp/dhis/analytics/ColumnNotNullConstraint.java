@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics;
 /**
 * @author Lars Helge Overland
 */
-public enum NotNullConstraint
+public enum ColumnNotNullConstraint
 {
     NULL, NOT_NULL;
 
