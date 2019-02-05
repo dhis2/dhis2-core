@@ -63,7 +63,13 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized
@@ -313,38 +319,38 @@ public class JdbcAnalyticsTableManager
 
         for ( DataElementGroupSet groupSet : dataElementGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "degs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "degs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "dcs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "dcs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( Category category : disaggregationCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "dcs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11, "dcs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
         for ( Category category : attributeCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11, "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
@@ -352,36 +358,34 @@ public class JdbcAnalyticsTableManager
         for ( PeriodType periodType : periodTypes )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
         }
 
         String approvalCol = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11)", NOT_NULL, "de.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11)", NOT_NULL, "co.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11)", NOT_NULL, "ao.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
-        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), "timestamp", "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer", NOT_NULL, "ps.year" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pe" ), "text", NOT_NULL, "ps.iso" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11)", NOT_NULL, "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );
-        columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", approvalCol ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
+        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
+        columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), INTEGER, approvalCol ) );
 
         return filterDimensionColumns( columns );
     }
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
         return Lists.newArrayList(
-            new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ),
-            new AnalyticsTableColumn( quote( "daysno" ), "integer", NOT_NULL, "daysno" ),
-            new AnalyticsTableColumn( quote( "value" ), dbl, "value" ),
-            new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
+            new AnalyticsTableColumn( quote( "daysxvalue" ), DOUBLE, "daysxvalue" ),
+            new AnalyticsTableColumn( quote( "daysno" ), INTEGER, NOT_NULL, "daysno" ),
+            new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ),
+            new AnalyticsTableColumn( quote( "textvalue" ), TEXT, "textvalue" ) );
     }
 
     private List<Integer> getDataYears( Date earliest )

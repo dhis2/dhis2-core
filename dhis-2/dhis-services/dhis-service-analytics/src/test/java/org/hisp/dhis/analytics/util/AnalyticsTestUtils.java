@@ -92,7 +92,7 @@ public class AnalyticsTestUtils
 
         reader.readRecord(); // Ignore first row
         ArrayList<String[]> lines = new ArrayList<>();
-        
+
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
@@ -112,17 +112,17 @@ public class AnalyticsTestUtils
     public static void assertResultGrid( Grid aggregatedResultData, Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedResultData );
-        
+
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
         {
             int numberOfDimensions = aggregatedResultData.getRows().get( 0 ).size() - 1;
 
             StringBuilder key = new StringBuilder();
-            
+
             for ( int j = 0; j < numberOfDimensions; j++ )
             {
                 key.append( aggregatedResultData.getValue( i, j ).toString() );
-                
+
                 if ( j != numberOfDimensions - 1 )
                 {
                     key.append( "-" );

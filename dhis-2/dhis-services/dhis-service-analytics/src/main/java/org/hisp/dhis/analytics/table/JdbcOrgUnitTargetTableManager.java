@@ -52,7 +52,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 
 /**
  * @author Lars Helge Overland
@@ -135,19 +137,17 @@ public class JdbcOrgUnitTargetTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11)", NOT_NULL, "oug.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
 
         return filterDimensionColumns( columns );
     }
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ) );
     }
 
     @Override
