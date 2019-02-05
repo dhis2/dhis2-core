@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.springframework.scheduling.annotation.Async;
@@ -63,31 +64,31 @@ public abstract class AbstractEventJdbcTableManager
      *
      * @param valueType the value type to represent as database column type.
      */
-    protected String getColumnType( ValueType valueType )
+    protected ColumnDataType getColumnType( ValueType valueType )
     {
         if ( valueType.isDecimal() )
         {
-            return statementBuilder.getDoubleColumnType();
+            return ColumnDataType.DOUBLE;
         }
         else if ( valueType.isInteger() )
         {
-            return "bigint";
+            return ColumnDataType.BIGINT;
         }
         else if ( valueType.isBoolean() )
         {
-            return "integer";
+            return ColumnDataType.INTEGER;
         }
         else if ( valueType.isDate() )
         {
-            return "timestamp";
+            return ColumnDataType.TIMESTAMP;
         }
         else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "geometry(Point, 4326)";
+            return ColumnDataType.GEOMETRY_POINT;
         }
         else
         {
-            return "text";
+            return ColumnDataType.TEXT;
         }
     }
 
