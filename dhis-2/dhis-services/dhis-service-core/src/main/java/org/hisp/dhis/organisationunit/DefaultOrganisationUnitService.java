@@ -698,7 +698,7 @@ public class DefaultOrganisationUnitService
                 OrganisationUnit orgunit = iter.next();
 
                 double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint,
-                    ValidationUtils.getCoordinatePoint2D( orgunit.getCoordinates() ) );
+                    ValidationUtils.getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry()) ) );
 
                 if ( distancebetween > distance )
                 {

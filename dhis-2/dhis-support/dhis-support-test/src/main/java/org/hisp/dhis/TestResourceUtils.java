@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.filter;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +26,34 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.util.GeoUtils;
+package org.hisp.dhis;
 
-public class OrganisationUnitPolygonCoveringCoordinateFilter
-    implements Filter<OrganisationUnit>
+import java.io.File;
+import java.io.IOException;
+
+import org.springframework.core.io.ClassPathResource;
+import org.testcontainers.shaded.com.google.common.io.Files;
+
+import com.google.common.base.Charsets;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class TestResourceUtils
 {
-    private double longitude;
-    private double latitude;
 
-    public OrganisationUnitPolygonCoveringCoordinateFilter( double longitude, double latitude )
+    public static File getFile( String path )
+        throws IOException
     {
-        this.longitude = longitude;
-        this.latitude = latitude;
+
+        return new ClassPathResource( path ).getFile();
     }
 
-    @Override
-    public boolean retain( OrganisationUnit unit )
+    public static String getFileContent( String path )
+        throws IOException
     {
-        Geometry geometry = unit.getGeometry();
-        return geometry != null && FeatureType.getTypeFromName(geometry.getGeometryType()) == FeatureType.POLYGON
-            && GeoUtils.checkPointWithMultiPolygon( longitude, latitude, unit.getGeometry() );
+
+        return Files.toString( getFile( path ), Charsets.UTF_8 );
     }
+
 }
