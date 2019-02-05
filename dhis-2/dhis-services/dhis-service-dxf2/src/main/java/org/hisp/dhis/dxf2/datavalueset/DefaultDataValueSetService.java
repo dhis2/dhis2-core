@@ -1045,12 +1045,11 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            boolean zeroInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
 
-            if ( zeroInsignificant )
+            if ( zeroAndInsignificant )
             {
-                //value is 0 and at the same time 0 is not significant => do not store it
-                continue;
+                continue; // Ignore value
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
