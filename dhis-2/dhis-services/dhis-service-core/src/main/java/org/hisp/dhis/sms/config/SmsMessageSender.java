@@ -166,7 +166,7 @@ public class SmsMessageSender
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
         }
 
-        batch.getMessages().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
+        batch.getMessages().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
 
         sliceBatchMessages( batch );
 

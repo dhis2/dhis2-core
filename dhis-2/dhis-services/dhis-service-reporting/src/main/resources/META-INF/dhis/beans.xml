@@ -150,9 +150,9 @@
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
-    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+    <property name="configurationProvider" ref="dhisConfigurationProvider" />
   </bean>
 
   <!-- Data element history -->

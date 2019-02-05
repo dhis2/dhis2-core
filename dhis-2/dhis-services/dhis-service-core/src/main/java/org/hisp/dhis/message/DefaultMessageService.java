@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -121,6 +122,14 @@ public class DefaultMessageService
         this.messageSenders = messageSenders;
 
         log.info( "Found the following message senders: " + messageSenders );
+    }
+
+    private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +227,7 @@ public class DefaultMessageService
     public int sendSystemErrorNotification( String subject, Throwable t )
     {
         String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String baseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         String text = new StringBuilder()
             .append( subject + LN + LN )
@@ -457,7 +466,7 @@ public class DefaultMessageService
     {
         HashMap<String, Object> values = new HashMap<>( 2 );
 
-        String baseUrl = systemSettingManager.getInstanceBaseUrl();
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         if ( baseUrl == null )
         {
