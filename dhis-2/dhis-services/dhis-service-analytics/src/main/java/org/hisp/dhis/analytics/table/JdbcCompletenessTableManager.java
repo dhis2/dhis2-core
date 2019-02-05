@@ -53,6 +53,7 @@ import java.util.concurrent.Future;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.analytics.NotNullConstraint.NOT_NULL;
 
 /**
  * @author Lars Helge Overland
@@ -166,23 +167,23 @@ public class JdbcCompletenessTableManager
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( Category category : attributeCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -195,8 +196,8 @@ public class JdbcCompletenessTableManager
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
         columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer not null", "ps.year" ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11)", NOT_NULL, "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "year" ), "integer", NOT_NULL, "ps.year" ) );
 
         return filterDimensionColumns( columns );
     }
