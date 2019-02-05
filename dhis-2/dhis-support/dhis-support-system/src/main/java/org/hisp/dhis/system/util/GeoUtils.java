@@ -28,21 +28,22 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
-import org.apache.commons.lang3.StringUtils;
-import org.geotools.geojson.geom.GeometryJSON;
-import org.geotools.referencing.GeodeticCalculator;
-import org.hisp.dhis.organisationunit.FeatureType;
-
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.vividsolutions.jts.geom.MultiPolygon;
+import org.apache.commons.lang3.StringUtils;
+import org.geotools.geojson.geom.GeometryJSON;
+import org.geotools.referencing.GeodeticCalculator;
+import org.hisp.dhis.organisationunit.FeatureType;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
 
 /**
  * @author Lars Helge Overland
@@ -62,9 +63,9 @@ public class GeoUtils
      *
      * <ul>
      * <li>Index 0: Maximum latitude (north edge of box shape).</li>
-     * <li>Index 1: Maxium longitude (east edge of box shape).</li>
+     * <li>Index 1: Maximum longitude (east edge of box shape).</li>
      * <li>Index 2: Minimum latitude (south edge of box shape).</li>
-     * <li>Index 3: Minumum longitude (west edge of box shape).</li>
+     * <li>Index 3: Minimum longitude (west edge of box shape).</li>
      * </ul>
      *
      * @param longitude the longitude.
@@ -125,7 +126,7 @@ public class GeoUtils
     public static Point getGeoJsonPoint( double longitude, double latitude )
         throws IOException
     {
-        Point point = null;
+        Point point;
 
         GeometryJSON gtjson = new GeometryJSON();
 
@@ -159,34 +160,29 @@ public class GeoUtils
      *
      * @param longitude the longitude.
      * @param latitude the latitude.
-     * @param multiPolygonJson the GeoJSON coordinates of the MultiPolygon
-     * @param featureType the featureType of the MultiPolygon.
+     * @param geometry the GeoJSON coordinates of the MultiPolygon
      */
     public static boolean checkPointWithMultiPolygon( double longitude, double latitude,
-        String multiPolygonJson, FeatureType featureType )
+        Geometry geometry )
     {
         try
         {
             boolean contains = false;
 
-            GeometryJSON gtjson = new GeometryJSON();
-
             Point point = getGeoJsonPoint( longitude, latitude );
+
+            FeatureType featureType = FeatureType.getTypeFromName(geometry.getGeometryType());
 
             if ( point != null && point.isValid() )
             {
                 if ( featureType == FeatureType.POLYGON )
                 {
-                    Polygon polygon = gtjson.readPolygon( new StringReader(
-                        "{\"type\":\"Polygon\", \"coordinates\":" + multiPolygonJson + "}" ) );
-
+                    Polygon polygon = (Polygon) geometry;
                     contains = polygon.contains( point );
                 }
                 else if ( featureType == FeatureType.MULTI_POLYGON )
                 {
-                    MultiPolygon multiPolygon = gtjson.readMultiPolygon( new StringReader(
-                        "{\"type\":\"MultiPolygon\", \"coordinates\":" + multiPolygonJson + "}" ) );
-
+                    MultiPolygon multiPolygon = (MultiPolygon) geometry;
                     contains = multiPolygon.contains( point );
                 }
             }
@@ -204,7 +200,7 @@ public class GeoUtils
      * @param svg the String encoded SVG.
      * @return the escaped representation.
      */
-    public static final String replaceUnsafeSvgText( String svg )
+    public static String replaceUnsafeSvgText(String svg )
     {
         if ( svg == null )
         {

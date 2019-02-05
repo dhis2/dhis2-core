@@ -168,35 +168,35 @@ public class OrganisationUnitTest
         assertEquals( expected, unitD.getParentNameGraph( null, false ) );        
     }
     
-    @Test
-    public void testSetMultiPolygonCoordinatesFromCollection()
-    {
-        OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( CoordinateUtils.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList ) );
-        
-        assertEquals( multiPolygonCoordinates, unit.getCoordinates() );
-    }
-
-    @Test
-    public void testSetPointCoordinatesFromCollection()
-    {
-        OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
-        
-        assertEquals( pointCoordinates, unit.getCoordinates() );
-    }
-    
-    @Test
-    public void testGetCoordinatesAsCollection()
-    {   
-        OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( multiPolygonCoordinates );
-        unit.setFeatureType( FeatureType.MULTI_POLYGON );
-        
-        assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).size() );
-        
-        assertEquals( tupleA, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 0 ) );
-        assertEquals( tupleB, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 1 ) );
-        assertEquals( tupleC, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 2 ) );
-    }
+//    @Test
+//    public void testSetMultiPolygonCoordinatesFromCollection()
+//    {
+//        OrganisationUnit unit = new OrganisationUnit();
+//        unit.setCoordinates( CoordinateUtils.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList ) );
+//
+//        assertEquals( multiPolygonCoordinates, unit.getCoordinates() );
+//    }
+//
+//    @Test
+//    public void testSetPointCoordinatesFromCollection()
+//    {
+//        OrganisationUnit unit = new OrganisationUnit();
+//        unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
+//
+//        assertEquals( pointCoordinates, unit.getCoordinates() );
+//    }
+//
+//    @Test
+//    public void testGetCoordinatesAsCollection()
+//    {
+//        OrganisationUnit unit = new OrganisationUnit();
+//        unit.setCoordinates( multiPolygonCoordinates );
+//        unit.setFeatureType( FeatureType.MULTI_POLYGON );
+//
+//        assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).size() );
+//
+//        assertEquals( tupleA, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 0 ) );
+//        assertEquals( tupleB, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 1 ) );
+//        assertEquals( tupleC, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 2 ) );
+//    }
 }
