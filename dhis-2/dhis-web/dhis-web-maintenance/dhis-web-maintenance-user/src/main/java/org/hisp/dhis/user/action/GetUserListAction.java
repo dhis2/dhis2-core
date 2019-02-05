@@ -28,14 +28,15 @@ package org.hisp.dhis.user.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -123,7 +124,7 @@ public class GetUserListAction
     {
         UserQueryParams params = new UserQueryParams();
         
-        params.setQuery( key );
+        params.setQuery( StringUtils.trimToNull( key ) );
         params.setInactiveMonths( months );
         params.setSelfRegistered( selfRegistered );
         params.setInvitationStatus( UserInvitationStatus.fromValue( invitationStatus ) );
