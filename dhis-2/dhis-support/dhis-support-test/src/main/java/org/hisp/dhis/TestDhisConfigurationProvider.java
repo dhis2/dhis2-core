@@ -79,6 +79,12 @@ public class TestDhisConfigurationProvider
     }
 
     @Override
+    public String getServerBaseUrl()
+    {
+        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(), ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
+    }
+
+    @Override
     public String getPropertyOrDefault( ConfigurationKey key, String defaultValue )
     {
         return this.properties.getProperty( key.getKey(), defaultValue );

@@ -1,4 +1,4 @@
-package org.hisp.dhis.security;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,62 +28,32 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public abstract class SecurityContextRunnable
-    implements Runnable
+* @author Lars Helge Overland
+*/
+public enum ColumnDataType
 {
-    private final SecurityContext securityContext;
+    CHARACTER_11( "character(11)" ),
+    CHARACTER_50( "character(50)" ),
+    TEXT( "text" ),
+    DATE( "date" ),
+    TIMESTAMP( "timestamp" ),
+    INTEGER( "integer" ),
+    BIGINT( "bigint" ),
+    DOUBLE( "double precision" ),
+    BOOLEAN( "boolean" ),
+    GEOMETRY( "geometry" ),
+    GEOMETRY_POINT( "geometry(Point, 4326)" );
 
-    public SecurityContextRunnable()
+    String value;
+
+    ColumnDataType( String value )
     {
-        this.securityContext = SecurityContextHolder.getContext();
+        this.value = value;
     }
 
-    @Override
-    final public void run()
+    public String getValue()
     {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
-    }
-
-    public abstract void call();
-    
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
-    {
-    }
-
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
-    {   
-    }
-
-    public void handleError( Throwable ex )
-    {
+        return value;
     }
 }

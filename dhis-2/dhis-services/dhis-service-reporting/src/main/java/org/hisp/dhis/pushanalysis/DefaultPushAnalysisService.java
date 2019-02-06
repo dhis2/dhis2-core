@@ -39,6 +39,8 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -101,6 +103,9 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
@@ -188,10 +193,10 @@ public class DefaultPushAnalysisService
             return;
         }
 
-        if ( systemSettingManager.getInstanceBaseUrl() == null )
+        if ( dhisConfigurationProvider.getServerBaseUrl() == null )
         {
             log( jobId, NotificationLevel.ERROR,
-                "Missing system setting '" + SettingKey.INSTANCE_BASE_URL.getName() + "'. Terminating PushAnalysis.",
+                "Missing configuration '" + ConfigurationKey.SERVER_BASE_URL.getKey() + "'. Terminating PushAnalysis.",
                 true, null );
             return;
         }
@@ -279,7 +284,7 @@ public class DefaultPushAnalysisService
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
         itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
-        itemHtml.put( "instanceBaseUrl", systemSettingManager.getInstanceBaseUrl() );
+        itemHtml.put( "instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl() );
         itemHtml.put( "instanceName", (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE ) );
 
         //----------------------------------------------------------------------
@@ -347,7 +352,7 @@ public class DefaultPushAnalysisService
 
     private String getItemLink( DashboardItem item )
     {
-        String result = systemSettingManager.getInstanceBaseUrl();
+        String result = dhisConfigurationProvider.getServerBaseUrl();
 
         switch ( item.getType() )
         {
@@ -447,7 +452,7 @@ public class DefaultPushAnalysisService
 
         String accessToken = saveFileResource( fileResource, bytes );
 
-        return systemSettingManager.getInstanceBaseUrl() + "/api/externalFileResources/" + accessToken;
+        return dhisConfigurationProvider.getServerBaseUrl() + "/api/externalFileResources/" + accessToken;
 
     }
 

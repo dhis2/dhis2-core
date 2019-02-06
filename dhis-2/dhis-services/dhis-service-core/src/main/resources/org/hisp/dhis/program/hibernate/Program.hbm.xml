@@ -134,9 +134,6 @@
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
 
-    <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
-      foreign-key="fk_program_workflowid" />
-
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="programattributevalues" cascade="all-delete-orphan">
