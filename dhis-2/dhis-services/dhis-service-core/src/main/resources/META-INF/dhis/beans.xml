@@ -965,6 +965,7 @@
   <bean id="emailMessageSender" class="org.hisp.dhis.message.EmailMessageSender">
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="configurationProvider" ref="dhisConfigurationProvider" />
   </bean>
 
   <bean id="org.hisp.dhis.email.EmailService" class="org.hisp.dhis.email.DefaultEmailService">

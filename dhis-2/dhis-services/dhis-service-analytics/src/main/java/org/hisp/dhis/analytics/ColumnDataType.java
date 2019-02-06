@@ -1,8 +1,4 @@
-package org.hisp.dhis.email;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.MoreObjects;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,75 +29,31 @@ import com.google.common.base.MoreObjects;
  */
 
 /**
- * Created by zubair on 30.03.17.
- */
-public class EmailConfiguration
+* @author Lars Helge Overland
+*/
+public enum ColumnDataType
 {
-    private String hostName;
+    CHARACTER_11( "character(11)" ),
+    CHARACTER_50( "character(50)" ),
+    TEXT( "text" ),
+    DATE( "date" ),
+    TIMESTAMP( "timestamp" ),
+    INTEGER( "integer" ),
+    BIGINT( "bigint" ),
+    DOUBLE( "double precision" ),
+    BOOLEAN( "boolean" ),
+    GEOMETRY( "geometry" ),
+    GEOMETRY_POINT( "geometry(Point, 4326)" );
 
-    private String username;
+    String value;
 
-    private String password;
-
-    private String from;
-
-    private int port;
-
-    private boolean tls;
-
-    public EmailConfiguration( String hostName, String username, String password, String from, int port, boolean tls )
+    ColumnDataType( String value )
     {
-        this.hostName = StringUtils.trimToNull( hostName );
-        this.username = StringUtils.trimToNull( username );
-        this.password = StringUtils.trimToNull( password );
-        this.from = from;
-        this.port = port;
-        this.tls = tls;
+        this.value = value;
     }
 
-    @Override
-    public String toString()
+    public String getValue()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "Host name", hostName )
-            .add( "Username", username )
-            .add( "From", from )
-            .add( "Port", port )
-            .add( "TLS", tls ).toString();
-    }
-    
-    public boolean isOk()
-    {
-        return hostName != null && username != null && password != null;
-    }
-
-    public String getHostName()
-    {
-        return hostName;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public String getFrom()
-    {
-        return from;
-    }
-
-    public int getPort()
-    {
-        return port;
-    }
-
-    public boolean isTls()
-    {
-        return tls;
+        return value;
     }
 }

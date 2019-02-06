@@ -28,6 +28,11 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -50,8 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -134,19 +137,17 @@ public class JdbcOrgUnitTargetTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
 
         return filterDimensionColumns( columns );
     }
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ) );
     }
 
     @Override

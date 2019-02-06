@@ -77,8 +77,6 @@ public interface SystemSettingManager
 
     String getEmailSender();
 
-    String getInstanceBaseUrl();
-
     boolean accountRecoveryEnabled();
 
     boolean selfRegistrationNoRecaptcha();

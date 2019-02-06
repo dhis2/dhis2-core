@@ -167,7 +167,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit, boolean skipAccessValidation,
         boolean createIfNotExists )
     {
-        if ( entityInstance == null || program == null | orgUnit == null )
+        if ( entityInstance == null || program == null || orgUnit == null )
         {
             return;
         }

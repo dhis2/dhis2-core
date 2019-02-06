@@ -257,7 +257,7 @@ public abstract class AbstractEventService
 
     @Autowired
     protected UserService userService;
-
+    
     @Autowired
     protected EventSyncService eventSyncService;
 
@@ -291,8 +291,6 @@ public abstract class AbstractEventService
 
     private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
 
-    private Set<ProgramInstance> programInstancesToUpdate = new HashSet<>();
-
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -306,7 +304,6 @@ public abstract class AbstractEventService
 
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
-
 
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
@@ -1517,19 +1514,19 @@ public abstract class AbstractEventService
 
         if ( !eventIds.isEmpty() )
         {
-            eventSyncService.getEvents( (List<String>) eventIds ).forEach( psi -> programStageInstanceCache.put( psi.getUid(), ( ProgramStageInstance ) psi ) );
+            eventSyncService.getEvents( (List<String>) eventIds ).forEach( psi -> programStageInstanceCache.put( psi.getUid(), psi ) );
 
             manager.getObjects( TrackedEntityInstance.class, IdentifiableProperty.UID,
                 events.stream()
                 .filter( event -> event.getTrackedEntityInstance() != null )
                 .map( Event::getTrackedEntityInstance ).collect( Collectors.toSet() ) )
-            .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), (TrackedEntityInstance) tei ) );
+            .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), tei ) );
 
             manager.getObjects( ProgramInstance.class, IdentifiableProperty.UID,
                 events.stream()
                 .filter( event -> event.getEnrollment() != null )
                 .map( Event::getEnrollment ).collect( Collectors.toSet() ) )
-            .forEach( tei -> programInstanceCache.put( tei.getUid(), (ProgramInstance) tei ) );
+            .forEach( tei -> programInstanceCache.put( tei.getUid(), tei ) );
         }
     }
 
@@ -1640,7 +1637,10 @@ public abstract class AbstractEventService
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
                     completedBy, storedBy, event.getEvent(), aoc, importOptions, importSummary );
 
-                programInstance.getProgramStageInstances().add( programStageInstance );
+                if ( program.isRegistration() )
+                {
+                    programInstance.getProgramStageInstances().add( programStageInstance );
+                }
             }
             else
             {
@@ -1796,12 +1796,12 @@ public abstract class AbstractEventService
         {
             validUsername = User.getSafeUsername( fallbackUsername );
         }
-        else if ( validUsername.length() >= 31 )
+        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
                 importSummary.getConflicts().add( new ImportConflict( "Username",
-                    validUsername + " is more than 31 characters, using current username instead" ) );
+                    validUsername + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );
@@ -2099,10 +2099,7 @@ public abstract class AbstractEventService
 
     private void updateEntities( User user )
     {
-        programInstancesToUpdate.forEach( pi -> manager.update( pi, user ) );
         trackedEntityInstancesToUpdate.forEach( tei -> manager.update( tei, user ) );
-
-        programInstancesToUpdate.clear();
         trackedEntityInstancesToUpdate.clear();
     }
 
@@ -2158,8 +2155,6 @@ public abstract class AbstractEventService
             {
                 if ( !bulkUpdate )
                 {
-                    manager.update( programStageInstance.getProgramInstance(), user );
-
                     if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
                     {
                         manager.update( programStageInstance.getProgramInstance().getEntityInstance(), user );
@@ -2167,8 +2162,6 @@ public abstract class AbstractEventService
                 }
                 else
                 {
-                    programInstancesToUpdate.add( programStageInstance.getProgramInstance() );
-
                     if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
                     {
                         trackedEntityInstancesToUpdate.add( programStageInstance.getProgramInstance().getEntityInstance() );

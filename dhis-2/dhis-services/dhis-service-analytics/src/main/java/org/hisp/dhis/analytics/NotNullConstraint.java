@@ -1,8 +1,4 @@
-package org.hisp.dhis.email;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.MoreObjects;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,75 +29,14 @@ import com.google.common.base.MoreObjects;
  */
 
 /**
- * Created by zubair on 30.03.17.
- */
-public class EmailConfiguration
+* @author Lars Helge Overland
+*/
+public enum NotNullConstraint
 {
-    private String hostName;
+    NULL, NOT_NULL;
 
-    private String username;
-
-    private String password;
-
-    private String from;
-
-    private int port;
-
-    private boolean tls;
-
-    public EmailConfiguration( String hostName, String username, String password, String from, int port, boolean tls )
+    public boolean isNotNull()
     {
-        this.hostName = StringUtils.trimToNull( hostName );
-        this.username = StringUtils.trimToNull( username );
-        this.password = StringUtils.trimToNull( password );
-        this.from = from;
-        this.port = port;
-        this.tls = tls;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "Host name", hostName )
-            .add( "Username", username )
-            .add( "From", from )
-            .add( "Port", port )
-            .add( "TLS", tls ).toString();
-    }
-    
-    public boolean isOk()
-    {
-        return hostName != null && username != null && password != null;
-    }
-
-    public String getHostName()
-    {
-        return hostName;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public String getFrom()
-    {
-        return from;
-    }
-
-    public int getPort()
-    {
-        return port;
-    }
-
-    public boolean isTls()
-    {
-        return tls;
+        return this == NOT_NULL;
     }
 }

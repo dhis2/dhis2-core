@@ -1045,12 +1045,11 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            boolean zeroInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
 
-            if ( zeroInsignificant )
+            if ( zeroAndInsignificant )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getValue(), "Value is zero and not significant, must match data element: " + dataElement.getUid() ) );
-                continue;
+                continue; // Ignore value
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );

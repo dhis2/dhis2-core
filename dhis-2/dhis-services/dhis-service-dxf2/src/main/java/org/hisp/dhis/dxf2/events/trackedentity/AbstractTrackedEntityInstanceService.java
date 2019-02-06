@@ -92,6 +92,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -1169,12 +1170,12 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             storedBy = User.getSafeUsername( fallbackUsername );
         }
-        else if ( storedBy.length() >= 31 )
+        else if ( storedBy.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
                 importSummary.getConflicts().add( new ImportConflict( "stored by",
-                    storedBy + " is more than 31 characters, using current username instead" ) );
+                    storedBy + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
             storedBy = User.getSafeUsername( fallbackUsername );

@@ -28,7 +28,14 @@
 
 package org.hisp.dhis;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,13 +46,7 @@ import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -76,6 +77,12 @@ public class TestDhisConfigurationProvider
     public String getProperty( ConfigurationKey key )
     {
         return this.properties.getProperty( key.getKey(), key.getDefaultValue() );
+    }
+
+    @Override
+    public String getServerBaseUrl()
+    {
+        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(), ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
     }
 
     @Override
