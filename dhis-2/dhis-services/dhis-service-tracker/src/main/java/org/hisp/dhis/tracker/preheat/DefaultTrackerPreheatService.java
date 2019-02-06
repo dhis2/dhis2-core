@@ -28,7 +28,23 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.timer.SystemTimer;
+import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierCollector;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -36,15 +52,68 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultTrackerPreheatService implements TrackerPreheatService
 {
+    private static final Log log = LogFactory.getLog( DefaultTrackerPreheatService.class );
+
+    private final SchemaService schemaService;
+    private final QueryService queryService;
+    private final IdentifiableObjectManager manager;
+    private final CurrentUserService currentUserService;
+    private final PeriodStore periodStore;
+
+    public DefaultTrackerPreheatService( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
+        CurrentUserService currentUserService, PeriodStore periodStore )
+    {
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.manager = manager;
+        this.currentUserService = currentUserService;
+        this.periodStore = periodStore;
+    }
+
     @Override
     public TrackerPreheat preheat( TrackerPreheatParams params )
     {
-        return null;
+        Timer timer = new SystemTimer().start();
+
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setUser( params.getUser() );
+        preheat.setDefaults( manager.getDefaults() );
+
+        if ( preheat.getUser() == null )
+        {
+            preheat.setUser( currentUserService.getCurrentUser() );
+        }
+
+        generateUid( params );
+
+        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> identifiers = TrackerIdentifierCollector.collect( params );
+
+        periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
+        periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+
+        log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
+
+        return preheat;
     }
 
     @Override
     public void validate( TrackerPreheatParams params )
     {
 
+    }
+
+    private void generateUid( TrackerPreheatParams params )
+    {
+        params.getTrackedEntities().stream()
+            .filter( o -> StringUtils.isEmpty( o.getTrackedEntityInstance() ) )
+            .forEach( o -> o.setTrackedEntityInstance( CodeGenerator.generateUid() ) );
+
+        params.getEnrollments().stream()
+            .filter( o -> StringUtils.isEmpty( o.getEnrollment() ) )
+            .forEach( o -> o.setEnrollment( CodeGenerator.generateUid() ) );
+
+        params.getEvents().stream()
+            .filter( o -> StringUtils.isEmpty( o.getEvent() ) )
+            .forEach( o -> o.setEvent( CodeGenerator.generateUid() ) );
     }
 }

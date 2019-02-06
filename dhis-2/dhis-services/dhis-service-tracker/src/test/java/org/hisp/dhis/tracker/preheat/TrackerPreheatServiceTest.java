@@ -108,8 +108,8 @@ public class TrackerPreheatServiceTest
     @Test
     public void testCollectIdentifiersSimple() throws IOException
     {
-        TrackerBundle bundle = new TrackerBundle();
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+        TrackerBundleParams params = new TrackerBundleParams();
+        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( params );
         assertTrue( collectedMap.isEmpty() );
     }
 
@@ -119,13 +119,11 @@ public class TrackerPreheatServiceTest
         TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class );
 
-        TrackerBundle bundle = params.toTrackerBundle();
+        assertTrue( params.getTrackedEntities().isEmpty() );
+        assertTrue( params.getEnrollments().isEmpty() );
+        assertFalse( params.getEvents().isEmpty() );
 
-        assertTrue( bundle.getTrackedEntities().isEmpty() );
-        assertTrue( bundle.getEnrollments().isEmpty() );
-        assertFalse( bundle.getEvents().isEmpty() );
-
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( params );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
         assertTrue( collectedMap.get( DataElement.class ).containsKey( TrackerIdentifier.UID ) );
