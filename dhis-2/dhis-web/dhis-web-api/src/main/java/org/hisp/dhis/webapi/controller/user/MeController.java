@@ -94,6 +94,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/me", method = RequestMethod.GET )
 public class MeController
 {
@@ -214,7 +215,6 @@ public class MeController
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
