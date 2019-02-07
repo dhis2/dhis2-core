@@ -28,10 +28,10 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appstore.AppStore;
-import org.hisp.dhis.appstore.AppStoreManager;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.appstore2.AppStoreService;
+import org.hisp.dhis.appstore2.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,32 +44,33 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
 @Controller
 @RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
 public class AppStoreController
 {
     public static final String RESOURCE_PATH = "/appStore";
 
     @Autowired
-    private AppStoreManager appStoreManager;
+    private AppStoreService appStoreService;
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody AppStore getAppStore( HttpServletResponse response )
+    public @ResponseBody List<WebApp> listAppStore( HttpServletResponse response )
         throws IOException
     {
-        return appStoreManager.getAppStore();
+        return appStoreService.getAppStore();
     }
 
     @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromAppStore( @PathVariable String versionId )
+    public void installAppFromStore( @PathVariable String versionId )
     {
-        appStoreManager.installAppFromAppStore( versionId );
+        appStoreService.installAppFromAppStore( versionId );
     }
 }
