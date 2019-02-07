@@ -28,7 +28,10 @@
 
 package org.hisp.dhis;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -53,7 +56,7 @@ public class TestRunStorage
     {
         if ( createdEntities == null )
         {
-            return new HashMap<>();
+            return new LinkedHashMap<>();
         }
 
         return createdEntities;
