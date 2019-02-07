@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -439,5 +440,13 @@ public class TrackerPreheat
         IdentifiableObject defaultObject = getDefaults().get( klass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
+            .add( "map=" + map )
+            .toString();
     }
 }

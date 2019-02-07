@@ -28,21 +28,31 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +96,37 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
 
         generateUid( params );
 
-        Map<Class<?>, Set<String>> identifiers = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
+
+        for ( Class<?> klass : identifierMap.keySet() )
+        {
+            Set<String> identifiers = identifierMap.get( klass ); // assume UID for now, will be done according to IdSchemes
+            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
+
+            if ( klass.isAssignableFrom( TrackedEntityInstance.class ) )
+            {
+            }
+            else if ( klass.isAssignableFrom( TrackedEntityAttribute.class ) )
+            {
+            }
+            else if ( klass.isAssignableFrom( Enrollment.class ) )
+            {
+            }
+            else if ( klass.isAssignableFrom( Event.class ) )
+            {
+            }
+            else
+            {
+                for ( List<String> ids : splitList )
+                {
+                    Query query = Query.from( schemaService.getDynamicSchema( klass ) );
+                    query.setUser( preheat.getUser() );
+                    query.add( Restrictions.in( "id", ids ) );
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+                    preheat.put( TrackerIdentifier.UID, objects );
+                }
+            }
+        }
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );

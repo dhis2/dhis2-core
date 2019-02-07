@@ -43,6 +43,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -169,22 +170,42 @@ public class TrackerPreheatServiceTest
     @Test
     public void testPreheatEvents() throws IOException
     {
-        TrackerBundle bundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
+        objectBundleParams.setObjects( metadata );
+
+        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( objectBundle );
+
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        assertTrue( bundle.getTrackedEntities().isEmpty() );
-        assertTrue( bundle.getEnrollments().isEmpty() );
-        assertFalse( bundle.getEvents().isEmpty() );
+        assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
+        assertTrue( trackerBundle.getEnrollments().isEmpty() );
+        assertFalse( trackerBundle.getEvents().isEmpty() );
 
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setTrackedEntities( bundle.getTrackedEntities() )
-            .setEnrollments( bundle.getEnrollments() )
-            .setEvents( bundle.getEvents() );
+        TrackerPreheatParams trackerPreheatParams = new TrackerPreheatParams()
+            .setTrackedEntities( trackerBundle.getTrackedEntities() )
+            .setEnrollments( trackerBundle.getEnrollments() )
+            .setEvents( trackerBundle.getEvents() );
 
-        trackerPreheatService.validate( params );
+        trackerPreheatService.validate( trackerPreheatParams );
 
-        TrackerPreheat preheat = trackerPreheatService.preheat( params );
+        TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
 
         assertNotNull( preheat );
+        assertNotNull( preheat.getMap() );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( DataElement.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( OrganisationUnit.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( Program.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( ProgramStage.class ) );
     }
 }
