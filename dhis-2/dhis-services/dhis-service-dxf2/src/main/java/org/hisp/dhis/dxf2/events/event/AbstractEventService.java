@@ -1335,7 +1335,11 @@ public abstract class AbstractEventService
     }
 
     private void preheatDataElementsCache(Event event, ImportOptions importOptions) {
-        event.getDataValues().forEach( dv -> getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(), dv.getDataElement() ) );
+        Set<String> dataElementUids = event.getDataValues().stream().map( dv -> dv.getDataElement() ).collect( Collectors.toSet());
+
+        List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID, dataElementUids );
+
+        dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
     }
 
     @Override
