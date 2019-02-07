@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.type;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,25 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appstore2.AppStoreService;
-import org.hisp.dhis.appstore2.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( AppStore2Controller.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
-public class AppStore2Controller
+@RequestMapping( "/type/testV31V32" )
+@ApiVersion( { DhisApiVersion.V31, DhisApiVersion.V32 } )
+public class ApiTypeV31V32Controller
 {
-    public static final String RESOURCE_PATH = "/appStore";
-
-    @Autowired
-    private AppStoreService appStoreService;
-
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<WebApp> listAppStore( HttpServletResponse response )
-        throws IOException
+    @RequestMapping
+    public void test( HttpServletResponse response ) throws IOException
     {
-        return appStoreService.getAppStore();
-    }
-
-    @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromStore( @PathVariable String versionId )
-    {
-        appStoreService.installAppFromAppStore( versionId );
+        response.getWriter().println( "TEST" );
     }
 }
