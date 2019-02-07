@@ -642,10 +642,11 @@ dhis2.period.WeeklyGenerator.prototype = Object.create( dhis2.period.BaseGenerat
 
 $.extend( dhis2.period.WeeklyGenerator.prototype, {
   $generate: function(offset) {
+
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 1 );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 1 );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -688,9 +689,9 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
  * @param startDayOfWeek The week type ( Sunday = 0, Monday = 1, etc. )
  * @returns {Date} The first date of the given year
  */
-dhis2.period.getStartDateOfYear = function(year, startDayOfWeek )
+dhis2.period.getStartDateOfYear = function(calendar, year, startDayOfWeek )
 {
-    var day4OfYear = this.calendar.newDate( year, 1, 4 );
+    var day4OfYear = calendar.newDate( year, 1, 4 );
 
     var startDate = day4OfYear;
 
@@ -728,7 +729,7 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 3 );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 3 );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -783,7 +784,7 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 4 );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 4 );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -838,7 +839,7 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 6 );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 6 );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -893,7 +894,7 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 7 );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 7 );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -948,7 +949,7 @@ $.extend( dhis2.period.BiWeeklyGenerator.prototype, {
         var year = offset + this.calendar.today().year();
         var periods = [];
 
-        var startDate = dhis2.period.getStartDateOfYear( year, 1 );
+        var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 1 );
 
         // no reliable way to figure out number of weeks in a year (can differ in different calendars)
         // goes up to 200, but break when week is back to 1
