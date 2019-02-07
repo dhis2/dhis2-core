@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.webapi.controller.type;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,31 +28,25 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/method/testAllExcludeV26" )
-public class ApiMethodAllExcludeV26Controller
+@RequestMapping( "/type/testDefaultV31" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V31 } )
+public class ApiTypeDefaultV31Controller
 {
-    @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
-    public void testAllA( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
-    public void testAllB( HttpServletResponse response ) throws IOException
+    @RequestMapping
+    public void test( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
