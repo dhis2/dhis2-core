@@ -96,19 +96,19 @@ public class DefaultCsvImportService
     // -------------------------------------------------------------------------
 
     @Override
-    public Metadata fromCsv( InputStream input, CsvImportClass importClass, boolean firstRowIsHeader )
+    public Metadata fromCsv( InputStream input, CsvImportOptions options )
         throws IOException
     {
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
 
-        if ( firstRowIsHeader )
+        if ( options.isFirstRowIsHeader() )
         {
             reader.readRecord(); // Ignore first row
         }
 
         Metadata metadata = new Metadata();
 
-        switch ( importClass )
+        switch ( options.getImportClass() )
         {
         case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
             metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
