@@ -86,7 +86,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
 
         generateUid( params );
 
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> identifiers = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> identifiers = TrackerIdentifierCollector.collect( params );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );

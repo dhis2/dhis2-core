@@ -53,9 +53,9 @@ import java.util.Set;
  */
 public class TrackerIdentifierCollector
 {
-    public static Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collect( TrackerBundleParams params )
+    public static Map<Class<?>, Set<String>> collect( TrackerBundleParams params )
     {
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map = new HashMap<>();
+        Map<Class<?>, Set<String>> map = new HashMap<>();
 
         collectTrackedEntities( map, params.getIdentifier(), params.getTrackedEntities() );
         collectEnrollments( map, params.getIdentifier(), params.getEnrollments() );
@@ -64,9 +64,9 @@ public class TrackerIdentifierCollector
         return map;
     }
 
-    public static Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collect( TrackerPreheatParams params )
+    public static Map<Class<?>, Set<String>> collect( TrackerPreheatParams params )
     {
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map = new HashMap<>();
+        Map<Class<?>, Set<String>> map = new HashMap<>();
 
         collectTrackedEntities( map, params.getIdentifier(), params.getTrackedEntities() );
         collectEnrollments( map, params.getIdentifier(), params.getEnrollments() );
@@ -76,7 +76,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectTrackedEntities(
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map, TrackerIdentifier identifier, List<TrackedEntityInstance> trackedEntities )
+        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<TrackedEntityInstance> trackedEntities )
     {
         if ( trackedEntities.isEmpty() )
         {
@@ -93,7 +93,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectEnrollments(
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map, TrackerIdentifier identifier, List<Enrollment> enrollments )
+        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Enrollment> enrollments )
     {
         if ( enrollments.isEmpty() )
         {
@@ -112,7 +112,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectEvents(
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map, TrackerIdentifier identifier, List<Event> events )
+        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Event> events )
     {
         if ( events.isEmpty() )
         {
@@ -135,7 +135,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectAttributes(
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map, TrackerIdentifier identifier, List<Attribute> attributes )
+        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Attribute> attributes )
     {
         if ( !attributes.isEmpty() )
         {
@@ -147,7 +147,7 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static <T> void addIdentifier( Map<Class<?>, Map<TrackerIdentifier, Set<String>>> map,
+    private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,
         Class<T> klass, TrackerIdentifier identifier, String str )
     {
         if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
@@ -157,14 +157,9 @@ public class TrackerIdentifierCollector
 
         if ( !map.containsKey( klass ) )
         {
-            map.put( klass, new HashMap<>() );
+            map.put( klass, new HashSet<>() );
         }
 
-        if ( !map.get( klass ).containsKey( identifier ) )
-        {
-            map.get( klass ).put( identifier, new HashSet<>() );
-        }
-
-        map.get( klass ).get( identifier ).add( str );
+        map.get( klass ).add( str );
     }
 }

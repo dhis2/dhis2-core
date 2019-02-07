@@ -43,7 +43,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -109,7 +108,7 @@ public class TrackerPreheatServiceTest
     public void testCollectIdentifiersSimple() throws IOException
     {
         TrackerBundleParams params = new TrackerBundleParams();
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
         assertTrue( collectedMap.isEmpty() );
     }
 
@@ -123,12 +122,10 @@ public class TrackerPreheatServiceTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertFalse( params.getEvents().isEmpty() );
 
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
-        assertTrue( collectedMap.get( DataElement.class ).containsKey( TrackerIdentifier.UID ) );
-
-        Set<String> dataElements = collectedMap.get( DataElement.class ).get( TrackerIdentifier.UID );
+        Set<String> dataElements = collectedMap.get( DataElement.class );
 
         assertTrue( dataElements.contains( "DSKTW8qFP0z" ) );
         assertTrue( dataElements.contains( "VD2olWcRozZ" ) );
