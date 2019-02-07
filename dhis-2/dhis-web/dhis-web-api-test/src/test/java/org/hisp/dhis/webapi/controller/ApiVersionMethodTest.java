@@ -97,30 +97,27 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodAllExcludeV31() throws Exception
+    public void testMethodAllExcludeV32() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/method/testAllExcludeV31";
+        String endpoint = "/method/testAllExcludeV32";
 
         mvc.perform( get( endpoint ).session( session ) )
-            .andExpect( status().isNotFound() );
-
-        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
         mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/31" + endpoint + "/a" ).session( session ) )
-            .andExpect( status().isNotFound() );
-
-        mvc.perform( get( "/31" + endpoint + "/b" ).session( session ) )
-            .andExpect( status().isNotFound() );
-
         mvc.perform( get( "/32" + endpoint + "/a" ).session( session ) )
-            .andExpect( status().isOk() );
+            .andExpect( status().isNotFound() );
 
         mvc.perform( get( "/32" + endpoint + "/b" ).session( session ) )
+            .andExpect( status().isNotFound() );
+
+        mvc.perform( get( "/31" + endpoint + "/a" ).session( session ) )
+            .andExpect( status().isOk() );
+
+        mvc.perform( get( "/31" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isOk() );
     }
 
