@@ -114,17 +114,17 @@ public class DefaultDataIntegrityService
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
         ProgramIndicatorService programIndicatorService )
     {
-        checkNotNull(i18nManager);
-        checkNotNull(dataElementService);
-        checkNotNull(indicatorService);
-        checkNotNull(dataSetService);
-        checkNotNull(organisationUnitService);
-        checkNotNull(organisationUnitGroupService);
-        checkNotNull(validationRuleService);
-        checkNotNull(dataEntryFormService);
-        checkNotNull(categoryService);
-        checkNotNull(periodService);
-        checkNotNull(programIndicatorService);
+        checkNotNull( i18nManager );
+        checkNotNull( dataElementService );
+        checkNotNull( indicatorService );
+        checkNotNull( dataSetService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( validationRuleService );
+        checkNotNull( dataEntryFormService );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( programIndicatorService );
 
         this.i18nManager = i18nManager;
         this.dataElementService = dataElementService;

@@ -52,15 +52,29 @@ public class BeanRandomizer
                 .build();
     }
 
+    /**
+     * Generates an instance of the specified type and fill the instance's properties with random data
+     * @param type The bean type
+     * @param excludedFields a list of fields to exclude from the random population
+     *
+     * @return an instance of the specified type
+     */
     public <T> T randomObject(final Class<T> type, final String... excludedFields )
     {
         return rnd.nextObject( type, excludedFields );
     }
 
+    /**
+     * Generates multiple instances of the specified type and fills each instance's properties with random data
+     * @param type The bean type
+     * @param amount the amount of beans to generate
+     * @param excludedFields a list of fields to exclude from the random population
+     *
+     * @return an instance of the specified type
+     */
     public <T> List<T> randomObjects(final Class<T> type, int amount, final String... excludedFields )
     {
         return rnd.objects( type, amount, excludedFields ).collect( Collectors.toList() );
     }
-
 
 }

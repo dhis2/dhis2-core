@@ -178,11 +178,6 @@
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.github.benas</groupId>
-      <artifactId>random-beans</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
