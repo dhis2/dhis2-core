@@ -40,18 +40,18 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/method/testAllExcludeV26" )
-public class ApiMethodAllExcludeV26Controller
+@RequestMapping( "/method/testAllExcludeV31" )
+public class ApiMethodAllExcludeV31Controller
 {
     @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V31 )
     public void testAllA( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V31 )
     public void testAllB( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
