@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/periodTypes" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
 public class PeriodTypeController
 {
     private final PeriodService periodService;
