@@ -173,7 +173,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles("test")
+@ActiveProfiles(profiles = {"test"})
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -372,7 +372,7 @@ public abstract class DhisConvenienceTest
             targetService = getRealObject( targetService );
 
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
-                + fieldName.substring( 1, fieldName.length() );
+                + fieldName.substring( 1 );
 
             Class<?>[] argumentClass = new Class<?>[]{ clazz };
 

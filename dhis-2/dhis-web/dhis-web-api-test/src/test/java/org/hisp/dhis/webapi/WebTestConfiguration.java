@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi;
  */
 
 
-import org.hisp.dhis.TestDhisConfigurationProvider;
+import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,8 +45,8 @@ public class WebTestConfiguration
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TestDhisConfigurationProvider testDhisConfigurationProvider = new TestDhisConfigurationProvider();
+        H2DhisConfigurationProvider h2DhisConfigurationProvider = new H2DhisConfigurationProvider();
 
-        return testDhisConfigurationProvider;
+        return h2DhisConfigurationProvider;
     }
 }

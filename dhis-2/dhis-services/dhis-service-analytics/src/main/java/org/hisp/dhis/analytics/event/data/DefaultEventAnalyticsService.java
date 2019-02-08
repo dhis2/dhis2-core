@@ -118,6 +118,7 @@ import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Lars Helge Overland
@@ -178,6 +179,9 @@ public class DefaultEventAnalyticsService
     @Autowired
     private CacheProvider cacheProvider;
 
+    @Autowired
+    private Environment environment;
+
     // -------------------------------------------------------------------------
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -192,7 +196,7 @@ public class DefaultEventAnalyticsService
     public void init()
     {
         Long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
+        boolean enabled = expiration > 0 && !SystemUtils.isTestRun(this.environment.getActiveProfiles());
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
             .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();

@@ -31,7 +31,9 @@ package org.hisp.dhis;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 
@@ -42,17 +44,25 @@ import java.util.Properties;
  */
 @Configuration
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
-public class IntegrationTestConfig
+public class IntegrationTestConfig implements EnvironmentAware
 {
     private static final Logger log = LoggerFactory.getLogger(IntegrationTestConfig.class);
     private static final String POSTGRES_DATABASE_NAME = "dhis";
 
     private static final String POSTGRES_CREDENTIALS = "dhis";
 
+    private Environment environment;
+
+    @Override
+    public void setEnvironment(final Environment environment) {
+        this.environment = environment;
+    }
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TestDhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider();
+
+        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         Properties properties = new Properties();

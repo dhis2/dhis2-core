@@ -42,7 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -51,16 +53,26 @@ import java.util.concurrent.TimeUnit;
  */
 public class InputUtils
 {
-    private static final Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    private static Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE;
 
     @Autowired
     private CategoryService categoryService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+
+        ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .initialCapacity( 1000 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+    }
 
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as

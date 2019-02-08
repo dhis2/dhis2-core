@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -107,6 +108,12 @@ public class DefaultUserSettingService implements UserSettingService
         this.systemSettingManager = systemSettingManager;
     }
 
+    private Environment env;
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
@@ -115,7 +122,7 @@ public class DefaultUserSettingService implements UserSettingService
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
 
     }
 

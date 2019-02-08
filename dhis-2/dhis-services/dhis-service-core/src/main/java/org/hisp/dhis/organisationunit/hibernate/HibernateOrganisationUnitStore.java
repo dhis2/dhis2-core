@@ -1,30 +1,8 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
-import org.hisp.dhis.system.util.SqlUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.util.Assert;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -53,6 +31,35 @@ import org.springframework.util.Assert;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
+import org.hisp.dhis.system.util.SqlUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.util.Assert;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Kristian Nordal
@@ -238,12 +245,17 @@ public class HibernateOrganisationUnitStore
 
         Map<String, Set<String>> map = new HashMap<>();
 
-        jdbcTemplate.query( sql, rs -> {
-            String organisationUnitId = rs.getString( "ou_uid" );
-            Set<String> dataSetIds = SqlUtils.getArrayAsSet( rs, "ds_uid" );
+        jdbcTemplate.query( sql, new RowCallbackHandler()
+        {
+            @Override
+            public void processRow( ResultSet rs ) throws SQLException
+            {
+                String organisationUnitId = rs.getString( "ou_uid" );
+                Set<String> dataSetIds = SqlUtils.getArrayAsSet( rs, "ds_uid" );
 
-            map.put( organisationUnitId, dataSetIds );
-        });
+                map.put( organisationUnitId, dataSetIds );
+            }
+        } );
 
         return map;
     }
@@ -252,15 +264,15 @@ public class HibernateOrganisationUnitStore
     @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getWithinCoordinateArea( double[] box )
     {
-        // can't use hibernate-spatial 'makeenvelope' function, because not available in current hibernate version
-        // https://hibernate.atlassian.net/browse/HHH-13083
+        // can't use hibernate-spatial 'makeenvelope' function, because not available in
+        // current hibernate version
+        // see: https://hibernate.atlassian.net/browse/HHH-13083
 
-        // TODO original query was selecting only OU with featureType='Point' -> shall I do the same?
-        if (box != null && box.length == 4) {
+        if ( box != null && box.length == 4 )
+        {
             return getSession().createQuery(
-                    "from OrganisationUnit ou " +
-                            "where within(ou.geometry, " + doMakeEnvelopeSql(box) + ") = true", OrganisationUnit.class)
-                    .getResultList();
+                    "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
+                    OrganisationUnit.class ).getResultList();
         }
         return new ArrayList<>();
     }
