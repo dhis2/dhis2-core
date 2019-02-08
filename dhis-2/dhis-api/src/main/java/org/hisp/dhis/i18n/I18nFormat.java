@@ -1,5 +1,7 @@
 package org.hisp.dhis.i18n;
 
+import org.hisp.dhis.calendar.Calendar;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,18 +34,12 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.joda.time.DateTime;
 
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.ResourceBundle;
 
@@ -231,21 +227,10 @@ public class I18nFormat
 
         if ( periodType instanceof WeeklyAbstractPeriodType ) // Use ISO dates due to potential week confusion
         {
-            DateTime dateTime = new DateTime( period.getStartDate() );
-            LocalDate date = Instant.ofEpochMilli( period.getStartDate().getTime() ).atZone( ZoneId.systemDefault() ).toLocalDate();
-            WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
+            Calendar calendar = PeriodType.getCalendar();
+            DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
 
-            String year = String.valueOf( date.get( weekFields.weekBasedYear() ) );
-            String week = String.valueOf( date.get( weekFields.weekOfWeekBasedYear() ) );
-
-            if ( periodType instanceof WeeklyPeriodType )
-            {
-                return String.format( "W%s %s", week, year );
-            }
-
-            year += dateTime.dayOfWeek().getAsShortText() + " " + year;
-
-            return String.format( "W%s %s", week, year );
+            return periodType.getIsoDate( dateTimeUnit, calendar ) ;
         }
 
         String keyStartDate = "format." + typeName + ".startDate";
