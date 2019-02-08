@@ -30,8 +30,6 @@ package org.hisp.dhis.period;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.time.LocalDate;
@@ -130,9 +128,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
 
         for ( int i = 0; i < calendar.weeksInYear( start.getYear() ); i++ )
         {
-            DateInterval interval = calendar.toInterval( start, DateIntervalType.ISO8601_WEEK );
-            periods.add( new Period( this, interval.getFrom().toJdkDate(), interval.getTo().toJdkDate() ) );
-
+            periods.add( createPeriod( start, calendar ) );
             start = calendar.plusWeeks( start, 1 );
         }
 
