@@ -192,7 +192,7 @@ public class DefaultGmlImportService
 
     private PreProcessingResult preProcessGml( InputStream inputStream )
     {
-        Metadata metadata = null;
+        Metadata metadata;
 
         try ( InputStream dxfStream = transformGml( inputStream ) )
         {
@@ -200,7 +200,6 @@ public class DefaultGmlImportService
         }
         catch ( IOException | TransformerException e )
         {
-            e.printStackTrace();
             return PreProcessingResult.failure( e );
         }
 

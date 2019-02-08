@@ -34,13 +34,13 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vividsolutions.jts.geom.MultiPolygon;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.referencing.GeodeticCalculator;
 import org.hisp.dhis.organisationunit.FeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
@@ -251,7 +251,12 @@ public class GeoUtils
             throw new IllegalArgumentException( "Invalid featureType '" + featureType.value() + "'" );
         }
 
-        return geometryJSON.read( String.format( "{\"type\": \"%s\", \"coordinates\": %s}", featureType.value(), coordinates) );
+        Geometry geometry = geometryJSON
+            .read( String.format( "{\"type\": \"%s\", \"coordinates\": %s}", featureType.value(), coordinates ) );
+
+        geometry.setSRID( 4326 );
+
+        return geometry;
     }
 
     public static String getCoordinatesFromGeometry( Geometry geometry )

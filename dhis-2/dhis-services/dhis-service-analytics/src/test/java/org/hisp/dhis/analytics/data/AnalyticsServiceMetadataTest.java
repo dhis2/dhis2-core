@@ -72,6 +72,7 @@ import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
@@ -117,6 +118,9 @@ public class AnalyticsServiceMetadataTest
     @Mock
     private CacheProvider cacheProvider;
 
+    @Mock
+    private Environment environment;
+
     private AnalyticsService target;
 
     @Rule
@@ -127,7 +131,7 @@ public class AnalyticsServiceMetadataTest
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
+            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();
         when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);

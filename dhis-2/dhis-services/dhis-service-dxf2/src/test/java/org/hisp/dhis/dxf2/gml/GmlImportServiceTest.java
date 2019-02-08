@@ -28,63 +28,38 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.common.Coordinate.CoordinateUtils.getCoordinatesAsList;
-import static org.hisp.dhis.common.IdentifiableProperty.*;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.contains;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.CoordinatesTuple;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.schema.*;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public class GmlImportServiceTest extends DhisConvenienceTest
+@Category( IntegrationTest.class )
+public class GmlImportServiceTest extends IntegrationTestBase
 {
     private InputStream inputStream;
 
@@ -96,49 +71,29 @@ public class GmlImportServiceTest extends DhisConvenienceTest
 
     private JobConfiguration id;
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
+    private GmlImportService gmlImportService;
 
-    private GmlImportService subject;
-
-    @Mock
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    private RenderService renderService;
-
-    @Mock
-    private SchemaService schemaService;
-
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
-
-    @Mock
+    @Autowired
     private UserService _userService;
 
-    @Mock
-    private MetadataImportService metadataImportService;
-
-    @Mock
-    private Notifier notifier;
-
-    @Mock
-    private MergeService mergeService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @Override
     public void setUpTest()
         throws IOException
     {
-        Jackson2PropertyIntrospectorService introspectorService = new Jackson2PropertyIntrospectorService();
-        renderService = new DefaultRenderService();
-
-        subject = new DefaultGmlImportService(renderService, identifiableObjectManager,
-                schemaService, metadataImportService, notifier, mergeService);
-
         inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
 
         /*
@@ -154,44 +109,37 @@ public class GmlImportServiceTest extends DhisConvenienceTest
          *       such as <posList>, <coordinates> and <pos>.
          */
 
-        this.userService = _userService;
+        userService = _userService;
+
         boOrgUnit = createOrganisationUnit( 'A' );
         boOrgUnit.setName( "Bo" );
+        organisationUnitService.addOrganisationUnit( boOrgUnit );
 
         bontheOrgUnit = createOrganisationUnit( 'B' );
         bontheOrgUnit.setName( "AA Bonthe" ); // Match on Code, therefore wrong name
         bontheOrgUnit.setCode( "CODE_BONTHE" );
+        organisationUnitService.addOrganisationUnit( bontheOrgUnit );
 
         ojdOrgUnit = createOrganisationUnit( 'C' );
         ojdOrgUnit.setUid( "ImspTQPwCqd" );
         ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" ); // Match on UID, therefore wrong name
+        organisationUnitService.addOrganisationUnit( ojdOrgUnit );
 
         bliOrgUnit = createOrganisationUnit( 'D' );
         bliOrgUnit.setName( "Blindern" );
+        organisationUnitService.addOrganisationUnit( bliOrgUnit );
 
         forskOrgUnit = createOrganisationUnit( 'E' );
         forskOrgUnit.setName( "Forskningsparken" );
+        organisationUnitService.addOrganisationUnit( forskOrgUnit );
 
-        user = createAdminUser();
+        user = createAndInjectAdminUser();
 
         id = new JobConfiguration( "gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
         importOptions.setPreheatCache( true );
-
-        when(identifiableObjectManager.exists(OrganisationUnit.class, "ImspTQPwCqd")).thenReturn(true);
-        when(identifiableObjectManager.getObjects(eq(OrganisationUnit.class), eq(UID),
-                (Collection<String>) Mockito.argThat(containsInAnyOrder(ojdOrgUnit.getUid()))))
-                .thenReturn(Lists.newArrayList(ojdOrgUnit));
-        when(identifiableObjectManager.getObjects(eq(OrganisationUnit.class), eq(CODE),
-                (Collection<String>) Mockito.argThat(containsInAnyOrder(bontheOrgUnit.getCode()))))
-                .thenReturn(Lists.newArrayList(bontheOrgUnit));
-        when(identifiableObjectManager.getObjects(eq(OrganisationUnit.class), eq(NAME),
-                (Collection<String>) Mockito.argThat(containsInAnyOrder(boOrgUnit.getName(),
-                        bliOrgUnit.getName(), forskOrgUnit.getName()))))
-                .thenReturn(Lists.newArrayList(boOrgUnit, bliOrgUnit, forskOrgUnit));
-
     }
 
     // -------------------------------------------------------------------------
@@ -205,7 +153,7 @@ public class GmlImportServiceTest extends DhisConvenienceTest
         importParams.setId( id );
         importParams.setUser( user );
 
-        subject.importGml( inputStream, importParams );
+        gmlImportService.importGml( inputStream, importParams );
 
         assertNotNull( boOrgUnit.getGeometry() );
 
@@ -226,7 +174,7 @@ public class GmlImportServiceTest extends DhisConvenienceTest
         assertEquals( 1, getCoordinates( forskOrgUnit ).size() );
 
         assertEquals( 76, getCoordinates( boOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 189, getCoordinates( bontheOrgUnit ).get( 0 ).getNumberOfCoordinates() );
+        assertEquals( 189, getCoordinates( bontheOrgUnit ).get( 1 ).getNumberOfCoordinates() );
         assertEquals( 1, getCoordinates( ojdOrgUnit ).get( 0 ).getNumberOfCoordinates() );
         assertEquals( 1, getCoordinates( bliOrgUnit ).get( 0 ).getNumberOfCoordinates() );
         assertEquals( 76, getCoordinates( forskOrgUnit ).get( 0 ).getNumberOfCoordinates() );

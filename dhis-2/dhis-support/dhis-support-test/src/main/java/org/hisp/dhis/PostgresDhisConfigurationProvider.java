@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,13 @@
 
 package org.hisp.dhis;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.test.context.ActiveProfiles;
-
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
-public class UnitTestConfiguration
+public class PostgresDhisConfigurationProvider
+    extends
+        H2DhisConfigurationProvider
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
+    public PostgresDhisConfigurationProvider() {
     }
 }

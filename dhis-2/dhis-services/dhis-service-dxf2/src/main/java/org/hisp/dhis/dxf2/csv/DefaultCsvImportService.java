@@ -28,8 +28,16 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
-import com.google.api.client.util.Lists;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -41,7 +49,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -61,15 +72,8 @@ import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+import com.csvreader.CsvReader;
+import com.google.api.client.util.Lists;
 
 /**
  * TODO Unit testing
@@ -90,6 +94,8 @@ public class DefaultCsvImportService
 
     @Autowired
     private IndicatorGroupService indicatorGroupService;
+
+    private String JSON_GEOMETRY_TEMLPLATE = "{\"type\":\"%s\", \"coordinates\":%s}";
 
     // -------------------------------------------------------------------------
     // CsvImportService implementation
@@ -437,6 +443,16 @@ public class DefaultCsvImportService
         return list;
     }
 
+    private void setGeometry( OrganisationUnit ou, FeatureType featureType, String coordinates )
+        throws IOException
+    {
+
+        if ( !featureType.equals( FeatureType.NONE ) && StringUtils.isNotBlank( coordinates ) )
+        {
+            ou.setGeometryAsJson( String.format( JSON_GEOMETRY_TEMLPLATE, featureType.value(), coordinates ) );
+        }
+    }
+
     private List<OrganisationUnit> organisationUnitsFromCsv( CsvReader reader )
         throws IOException
     {
@@ -456,8 +472,8 @@ public class DefaultCsvImportService
                 object.setOpeningDate( getMediumDate( getSafe( values, 6, "1970-01-01", null ) ) );
                 object.setClosedDate( getMediumDate( getSafe( values, 7, null, null ) ) );
                 object.setComment( getSafe( values, 8, null, null ) );
-                //object.setFeatureType( FeatureType.valueOf( getSafe( values, 9, "NONE", 50 ) ) );
-                //object.setCoordinates( getSafe( values, 10, null, null ) );
+                setGeometry( object, FeatureType.valueOf( getSafe( values, 9, "NONE", 50 ) ),
+                    getSafe( values, 10, null, null ) );
                 object.setUrl( getSafe( values, 11, null, 255 ) );
                 object.setContactPerson( getSafe( values, 12, null, 255 ) );
                 object.setAddress( getSafe( values, 13, null, 255 ) );
@@ -593,7 +609,7 @@ public class DefaultCsvImportService
      */
     private static String getSafe( String[] values, int index, String defaultValue, Integer maxChars )
     {
-        String string = null;
+        String string;
 
         if ( values == null || index < 0 || index >= values.length )
         {

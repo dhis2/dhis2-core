@@ -126,12 +126,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.21.0</version>
             <configuration>
-              <systemProperties>
-                <property>
-                  <name>org.hisp.dhis.test</name>
-                  <value>true</value>
-                </property>
-              </systemProperties>
               <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
@@ -149,12 +143,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.21.0</version>
             <configuration>
-              <systemProperties>
-                <property>
-                  <name>org.hisp.dhis.test</name>
-                  <value>true</value>
-                </property>
-              </systemProperties>
               <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx1024m</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
@@ -173,12 +161,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.21.0</version>
             <configuration>
-              <systemProperties>
-                <property>
-                  <name>org.hisp.dhis.test</name>
-                  <value>true</value>
-                </property>
-              </systemProperties>
               <trimStackTrace>false</trimStackTrace>
               <argLine>${argLine} -Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>

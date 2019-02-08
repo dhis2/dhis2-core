@@ -1102,7 +1102,11 @@ public class OrganisationUnit
         {
             GeometryJSON geometryJSON = new GeometryJSON();
 
-            this.geometry = geometryJSON.read( geometryAsJsonString );
+            Geometry geometry = geometryJSON.read( geometryAsJsonString );
+
+            geometry.setSRID( 4326 );
+
+            this.geometry = geometry;
         }
     }
 }
