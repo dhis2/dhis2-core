@@ -144,8 +144,9 @@ public class ProgramIndicatorServiceTest
     private ProgramIndicator indicatorE;
     
     private ProgramIndicator indicatorF;
-    
 
+    private ProgramIndicator indicatorG;
+    
     @Override
     public void setUpTest()
     {
@@ -298,6 +299,12 @@ public class ProgramIndicatorServiceTest
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
             AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
+
+        String expressionG = KEY_DATAELEMENT + "V{tei_count}";
+        String filterG = "d2:daysBetween(V{enrollment_date},V{event_date}) > 90";
+        indicatorG = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionG, filterG );
+        indicatorG.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "monthly" ), -6) );
     }
 
     // -------------------------------------------------------------------------
@@ -659,5 +666,16 @@ public class ProgramIndicatorServiceTest
         assertEquals( ProgramIndicator.VALID, programIndicatorService.filterIsValid( filterB ) );
         assertEquals( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION, programIndicatorService.filterIsValid( filterC ) );
         assertEquals( ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programIndicatorService.filterIsValid( filterD ) );
+    }
+
+    @Test
+    public void testEventDateEnrollment()
+    {
+        String expectedFilter = "(cast(executiondate as date) - cast(enrollmentdate as date)) > 90";
+        Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
+        Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
+        
+        String actualFilter = programIndicatorService.getAnalyticsSQl( indicatorG.getFilter(), indicatorG, false, reportingStartDate, reportingEndDate );
+        assertEquals( expectedFilter, actualFilter );
     }
 }

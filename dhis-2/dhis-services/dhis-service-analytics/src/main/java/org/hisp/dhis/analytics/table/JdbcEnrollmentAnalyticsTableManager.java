@@ -184,23 +184,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
-
-        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
-            "where psi.programinstanceid=pi.programinstanceid " +
-            "and psi.executiondate is not null " +
-            "and psi.deleted is false " +
-            "order by psi.executiondate desc " +
-            "limit 1) as " + quote( "executiondate" );
-        columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql ) );
-
-        final String dueDateSql = "(select psi.duedate from programstageinstance psi " +
-            "where psi.programinstanceid = pi.programinstanceid " +
-            "and psi.duedate is not null " +
-            "and psi.deleted is false " +
-            "order by psi.duedate desc " +
-            "limit 1) as " + quote( "duedate" );
-        columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
-
         columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
