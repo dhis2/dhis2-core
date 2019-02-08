@@ -194,7 +194,7 @@ public class DataIntegrityServiceTest
         unitE = createOrganisationUnit( 'E', unitD );
         unitF = createOrganisationUnit( 'F' );
         unitA.setParent( unitC );
-        allOrgUnits = Lists.newArrayList(unitA, unitB, unitC, unitD, unitE, unitF);
+        allOrgUnits = newArrayList(unitA, unitB, unitC, unitD, unitE, unitF);
 
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new QuarterlyPeriodType() );
@@ -328,7 +328,7 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetDataSetsNotAssignedToOrganisationUnits()
     {
-        when(dataSetService.getAllDataSets()).thenReturn(Lists.newArrayList(dataSetA, dataSetB));
+        when(dataSetService.getAllDataSets()).thenReturn(newArrayList(dataSetA, dataSetB));
         Collection<DataSet> expected = subject.getDataSetsNotAssignedToOrganisationUnits();
         assertThat(expected, hasSize(1));
         assertThat(expected, hasItem(dataSetB));
@@ -337,7 +337,7 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetIndicatorsWithIdenticalFormulas()
     {
-        when(indicatorService.getAllIndicators()).thenReturn(Lists.newArrayList(indicatorA, indicatorB, indicatorC));
+        when(indicatorService.getAllIndicators()).thenReturn(newArrayList(indicatorA, indicatorB, indicatorC));
         Set<Set<Indicator>> expected = subject.getIndicatorsWithIdenticalFormulas();
 
         Collection<Indicator> violation = expected.iterator().next();
