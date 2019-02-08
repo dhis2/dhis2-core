@@ -84,4 +84,29 @@ public class HibernateProgramRuleStore
             .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoCondition()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isNull( root.get( "condition" ) ) ) );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoPriority()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+                .addPredicate( root -> builder.isNull( root.get( "priority" ) ) ) );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoAction()
+    {
+        return getQuery( "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY" )
+            .getResultList();
+    }
 }

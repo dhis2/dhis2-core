@@ -58,6 +58,12 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +102,15 @@ public class DefaultDataIntegrityService
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private ProgramRuleService programRuleService;
+
+    @Autowired
+    private ProgramRuleActionService programRuleActionService;
+
+    @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
 
     private DataElementService dataElementService;
 
@@ -173,6 +188,7 @@ public class DefaultDataIntegrityService
     {
         this.programIndicatorService = programIndicatorService;
     }
+
     // -------------------------------------------------------------------------
     // DataIntegrityService implementation
     // -------------------------------------------------------------------------
@@ -672,5 +688,53 @@ public class DefaultDataIntegrityService
             .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
 
         return invalidFilters;
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoPriority()
+    {
+        return programRuleService.getProgramRulesWithNoPriority();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoAction()
+    {
+        return programRuleService.getProgramRulesWithNoAction();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoCondition()
+    {
+        return programRuleService.getProgramRulesWithNoCondition();
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoDataObject()
+    {
+        return null;
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoNotificationTemplate()
+    {
+        return null;
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId()
+    {
+        return null;
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoProgramStageId()
+    {
+        return null;
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getProgramRuleVariablesWithNoDataObject()
+    {
+        return null;
     }
 }

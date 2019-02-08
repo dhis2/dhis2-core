@@ -32,9 +32,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -51,6 +53,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -78,6 +87,15 @@ public class DataIntegrityServiceTest
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private ProgramRuleService programRuleService;
+
+    @Autowired
+    private ProgramRuleActionService ruleActionService;
+
+    @Autowired
+    private ProgramService programService;
 
     private DataElement elementA;
     private DataElement elementB;
@@ -107,7 +125,9 @@ public class DataIntegrityServiceTest
     private OrganisationUnitGroup unitGroupB;
     private OrganisationUnitGroup unitGroupC;
     private OrganisationUnitGroup unitGroupD;
-      
+
+    private Program programA;
+    private Program programB;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -177,7 +197,13 @@ public class DataIntegrityServiceTest
         
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
-        
+
+        programA = createProgram( 'A' );
+        programB = createProgram( 'B' );
+
+        programService.addProgram( programA );
+        programService.addProgram( programB );
+
         // ---------------------------------------------------------------------
         // Groups
         // ---------------------------------------------------------------------
@@ -305,5 +331,61 @@ public class DataIntegrityServiceTest
         Collection<OrganisationUnit> expected = dataIntegrityService.getOrganisationUnitsWithoutGroups();
         
         assertTrue( message( expected ), equals( expected, unitD, unitE ) );
+    }
+
+    @Test
+    public void testGetAllProgramRulesWithNoCondition()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, "2 > 1", 1 );
+        ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionC", programA, null, null, null, 0 );
+
+        int idA = programRuleService.addProgramRule( ruleA );
+        int idB = programRuleService.addProgramRule( ruleB );
+        int idC = programRuleService.addProgramRule( ruleC );
+
+        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoCondition();
+
+        assertEquals( 1, rules.size() );
+        assertTrue( rules.contains( ruleC ) );
+    }
+
+    @Test
+    public void testGetAllProgramRulesWithNoPriority()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 0 );
+
+        int idA = programRuleService.addProgramRule( ruleA );
+        int idC = programRuleService.addProgramRule( ruleB );
+
+        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoPriority();
+
+        assertEquals( 1, rules.size() );
+        assertTrue( rules.contains( ruleA ) );
+    }
+
+    @Test
+    public void testGetAllProgramRulesWithNoAction()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 0 );
+
+        int idA = programRuleService.addProgramRule( ruleA );
+        int idC = programRuleService.addProgramRule( ruleB );
+
+        ProgramRuleAction ruleActionA = new ProgramRuleAction();
+        ruleActionA.setProgramRule( ruleA );
+        ruleActionA.setContent( "content" );
+        ruleActionA.setProgramRuleActionType( ProgramRuleActionType.CREATEEVENT );
+        ruleActionService.addProgramRuleAction( ruleActionA );
+
+        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
+        programRuleService.updateProgramRule( ruleA );
+
+        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoAction();
+
+        assertEquals( 1, rules.size() );
+        assertTrue( rules.contains( ruleB ) );
     }
 }

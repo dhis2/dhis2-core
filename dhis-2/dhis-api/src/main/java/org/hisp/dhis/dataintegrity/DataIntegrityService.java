@@ -38,6 +38,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.*;
@@ -214,4 +217,52 @@ public interface DataIntegrityService
      * Get all ProgramIndicators with invalid filters.
      */
     Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters();
+
+    /**
+     *
+     * @return all {@link ProgramRule} with no priority
+     */
+    List<ProgramRule> getProgramRulesWithNoPriority();
+
+    /**
+     *
+     * @return all {@link ProgramRule} which are not linked to any {@link ProgramRuleAction}
+     */
+    List<ProgramRule> getProgramRulesWithNoAction();
+
+    /**
+     *
+     * @return all {@link ProgramRule} with no condition
+     */
+    List<ProgramRule> getProgramRulesWithNoCondition();
+
+    /**
+     *
+     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement/TrackedEntityAttribute
+     */
+    List<ProgramRuleVariable> getProgramRuleVariablesWithNoDataObject();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any DataElement/TrackedEntityAttribute
+     */
+    List<ProgramRuleAction> getProgramRuleActionsWithNoDataObject();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.notification.NotificationTemplate}
+     */
+    List<ProgramRuleAction> getProgramRuleActionsWithNoNotificationTemplate();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStageSection}
+     */
+    List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStage}
+     */
+    List<ProgramRuleAction> getProgramRuleActionsWithNoProgramStageId();
 }
