@@ -294,10 +294,10 @@ public class DefaultProgramIndicatorService
         }
 
         String sqlExpression = TextUtils.removeNewlines( expression );
+        
+        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
 
         sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
-
-        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
 
         sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
             endDate );
@@ -378,7 +378,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate );
+            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate, programIndicator );
 
             if ( sql != null )
             {
@@ -637,7 +637,7 @@ public class DefaultProgramIndicatorService
      * @return a SQL select clause.
      */
     private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate,
-        Date endDate )
+        Date endDate, ProgramIndicator indicator )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -646,6 +646,10 @@ public class DefaultProgramIndicatorService
         if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
         {
             return "'" + DateUtils.getLongDateString() + "'";
+        }
+        else if ( ProgramIndicator.VAR_EVENT_DATE.equals( var ) )
+        {
+            return statementBuilder.getProgramIndicatorEventColumnSql( null, variableColumnName, startDate, endDate, indicator );
         }
         else if ( ProgramIndicator.VAR_VALUE_COUNT.equals( var ) )
         {
