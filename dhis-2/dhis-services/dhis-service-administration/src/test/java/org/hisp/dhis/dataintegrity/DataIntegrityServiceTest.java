@@ -354,10 +354,27 @@ public class DataIntegrityServiceTest
     public void testGetAllProgramRulesWithNoPriority()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 0 );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 1 );
 
         int idA = programRuleService.addProgramRule( ruleA );
         int idC = programRuleService.addProgramRule( ruleB );
+
+        ProgramRuleAction ruleActionA = new ProgramRuleAction();
+        ruleActionA.setProgramRule( ruleA );
+        ruleActionA.setContent( "content" );
+        ruleActionA.setProgramRuleActionType( ProgramRuleActionType.ASSIGN );
+        ruleActionService.addProgramRuleAction( ruleActionA );
+
+        ProgramRuleAction ruleActionB = new ProgramRuleAction();
+        ruleActionB.setProgramRule( ruleB );
+        ruleActionB.setContent( "content" );
+        ruleActionB.setProgramRuleActionType( ProgramRuleActionType.ASSIGN );
+        ruleActionService.addProgramRuleAction( ruleActionB );
+
+        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
+        ruleB.setProgramRuleActions( Sets.newHashSet( ruleActionB ) );
+        programRuleService.updateProgramRule( ruleA );
+        programRuleService.updateProgramRule( ruleB );
 
         List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoPriority();
 

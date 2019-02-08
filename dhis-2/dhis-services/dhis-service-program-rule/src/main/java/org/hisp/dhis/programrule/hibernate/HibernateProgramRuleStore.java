@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -97,10 +98,9 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-                .addPredicate( root -> builder.isNull( root.get( "priority" ) ) ) );
+        return getQuery( "FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+            .getResultList();
     }
 
     @Override
