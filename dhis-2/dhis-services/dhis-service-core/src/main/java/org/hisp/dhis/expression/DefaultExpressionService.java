@@ -73,6 +73,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
@@ -455,17 +456,59 @@ public class DefaultExpressionService
             return dimensionItems;
         }
 
+        Set<String> dataElementOperandIds = new HashSet<>();
+        Set<String> dataElementIds = new HashSet<>();
+        Set<String> categoryOptionComboIds = new HashSet<>();
+
         Matcher matcher = VARIABLE_PATTERN.matcher( expression );
 
         while ( matcher.find() )
         {
             String dimensionItem = matcher.group( GROUP_ID );
-            
-            DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
 
-            if ( dimensionItemObject != null )
+            if ( "#".equals( matcher.group( GROUP_KEY ) ) )
             {
-                dimensionItems.add( dimensionItemObject );
+                dataElementOperandIds.add( dimensionItem );
+                dataElementIds.add( matcher.group( GROUP_ID1 ) );
+                categoryOptionComboIds.add( matcher.group( GROUP_ID2 ) );
+                categoryOptionComboIds.add( matcher.group( GROUP_ID3 ) );
+            }
+            else
+            {
+                DimensionalItemObject dimensionItemObject = dimensionService
+                    .getDataDimensionalItemObject( dimensionItem );
+
+                if ( dimensionItemObject != null )
+                {
+                    dimensionItems.add( dimensionItemObject );
+                }
+            }
+        }
+
+        List<DataElement> dataElements = idObjectManager.get( DataElement.class, dataElementIds );
+        List<CategoryOptionCombo> categoryOptionCombos = idObjectManager.get( CategoryOptionCombo.class, categoryOptionComboIds );
+
+        Map<String, DataElement> dataElementMap = dataElements.stream().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
+        Map<String, CategoryOptionCombo> categoryOptionComboMap = categoryOptionCombos.stream().collect( Collectors.toMap( CategoryOptionCombo::getUid, c -> c ) );
+
+        for ( String dataElementOperandId : dataElementOperandIds )
+        {
+            DataElement dataElement = dataElementMap.get( TextUtils.splitSafe( dataElementOperandId, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0 ) );
+            CategoryOptionCombo categoryOptionCombo = categoryOptionComboMap.get( TextUtils.splitSafe( dataElementOperandId, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1 ) );
+            CategoryOptionCombo attributeOptionCombo = categoryOptionComboMap.get( TextUtils.splitSafe( dataElementOperandId, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2 ) );
+
+            if ( dataElement != null )
+            {
+                if ( categoryOptionCombo == null &&
+                    attributeOptionCombo == null )
+                {
+                    dimensionItems.add( dataElement );
+                }
+                else
+                {
+                    dimensionItems.add( new DataElementOperand( dataElement,
+                        categoryOptionCombo, attributeOptionCombo ) );
+                }
             }
         }
 
