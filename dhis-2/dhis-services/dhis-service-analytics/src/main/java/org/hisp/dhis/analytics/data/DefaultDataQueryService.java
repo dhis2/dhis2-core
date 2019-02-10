@@ -532,7 +532,7 @@ public class DefaultDataQueryService
         {
             DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
                 .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
-                .filter( ou -> ou != null )
+                .filter( Objects::nonNull )
                 .forEach( ou -> units.add( ou ) );
         }
         else if ( currentUser != null && currentUser.hasOrganisationUnit() )
