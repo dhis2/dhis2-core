@@ -108,8 +108,8 @@ public class TrackerPreheatServiceTest
     @Test
     public void testCollectIdentifiersSimple() throws IOException
     {
-        TrackerBundle bundle = new TrackerBundle();
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+        TrackerBundleParams params = new TrackerBundleParams();
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
         assertTrue( collectedMap.isEmpty() );
     }
 
@@ -119,18 +119,14 @@ public class TrackerPreheatServiceTest
         TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class );
 
-        TrackerBundle bundle = params.toTrackerBundle();
+        assertTrue( params.getTrackedEntities().isEmpty() );
+        assertTrue( params.getEnrollments().isEmpty() );
+        assertFalse( params.getEvents().isEmpty() );
 
-        assertTrue( bundle.getTrackedEntities().isEmpty() );
-        assertTrue( bundle.getEnrollments().isEmpty() );
-        assertFalse( bundle.getEvents().isEmpty() );
-
-        Map<Class<?>, Map<TrackerIdentifier, Set<String>>> collectedMap = TrackerIdentifierCollector.collect( bundle );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
-        assertTrue( collectedMap.get( DataElement.class ).containsKey( TrackerIdentifier.UID ) );
-
-        Set<String> dataElements = collectedMap.get( DataElement.class ).get( TrackerIdentifier.UID );
+        Set<String> dataElements = collectedMap.get( DataElement.class );
 
         assertTrue( dataElements.contains( "DSKTW8qFP0z" ) );
         assertTrue( dataElements.contains( "VD2olWcRozZ" ) );
@@ -174,22 +170,42 @@ public class TrackerPreheatServiceTest
     @Test
     public void testPreheatEvents() throws IOException
     {
-        TrackerBundle bundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
+        objectBundleParams.setObjects( metadata );
+
+        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( objectBundle );
+
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        assertTrue( bundle.getTrackedEntities().isEmpty() );
-        assertTrue( bundle.getEnrollments().isEmpty() );
-        assertFalse( bundle.getEvents().isEmpty() );
+        assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
+        assertTrue( trackerBundle.getEnrollments().isEmpty() );
+        assertFalse( trackerBundle.getEvents().isEmpty() );
 
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setTrackedEntities( bundle.getTrackedEntities() )
-            .setEnrollments( bundle.getEnrollments() )
-            .setEvents( bundle.getEvents() );
+        TrackerPreheatParams trackerPreheatParams = new TrackerPreheatParams()
+            .setTrackedEntities( trackerBundle.getTrackedEntities() )
+            .setEnrollments( trackerBundle.getEnrollments() )
+            .setEvents( trackerBundle.getEvents() );
 
-        trackerPreheatService.validate( params );
+        trackerPreheatService.validate( trackerPreheatParams );
 
-        TrackerPreheat preheat = trackerPreheatService.preheat( params );
+        TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
 
         assertNotNull( preheat );
+        assertNotNull( preheat.getMap() );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( DataElement.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( OrganisationUnit.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( Program.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdentifier.UID ).get( ProgramStage.class ) );
     }
 }

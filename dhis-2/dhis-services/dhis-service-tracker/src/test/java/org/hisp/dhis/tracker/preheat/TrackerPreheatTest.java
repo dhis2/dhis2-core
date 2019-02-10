@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.preheat;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -54,6 +55,11 @@ public class TrackerPreheatParams
      */
 
     private User user;
+
+    /**
+     * What identifiers to match on.
+     */
+    private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Tracked entities to import.
@@ -95,6 +101,18 @@ public class TrackerPreheatParams
     public void setUser( User user )
     {
         this.user = user;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerIdentifier getIdentifier()
+    {
+        return identifier;
+    }
+
+    public void setIdentifier( TrackerIdentifier identifier )
+    {
+        this.identifier = identifier;
     }
 
     @JsonProperty
