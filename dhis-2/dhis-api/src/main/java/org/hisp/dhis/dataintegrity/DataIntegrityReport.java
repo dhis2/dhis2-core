@@ -37,7 +37,9 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.ArrayList;
@@ -100,6 +102,12 @@ public class DataIntegrityReport
     private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction = new HashMap<>();
 
     //-------------------------------------------------------------------------
     // Constructors
@@ -342,5 +350,35 @@ public class DataIntegrityReport
     public void setInvalidProgramIndicatorExpressions( Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
     {
         this.invalidProgramIndicatorExpressions = invalidProgramIndicatorExpressions;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithoutCondition()
+    {
+        return programRulesWithoutCondition;
+    }
+
+    public void setProgramRulesWithoutCondition( Map<Program, Collection<ProgramRule>> programRulesWithoutCondition )
+    {
+        this.programRulesWithoutCondition = programRulesWithoutCondition;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
+    {
+        return programRulesWithNoPriority;
+    }
+
+    public void setProgramRulesWithNoPriority( Map<Program, Collection<ProgramRule>> programRulesWithNoPriority )
+    {
+        this.programRulesWithNoPriority = programRulesWithNoPriority;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
+    {
+        return programRulesWithNoAction;
+    }
+
+    public void setProgramRulesWithNoAction( Map<Program, Collection<ProgramRule>> programRulesWithNoAction )
+    {
+        this.programRulesWithNoAction = programRulesWithNoAction;
     }
 }

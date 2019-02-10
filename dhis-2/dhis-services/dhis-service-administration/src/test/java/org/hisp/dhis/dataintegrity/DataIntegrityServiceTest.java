@@ -340,14 +340,30 @@ public class DataIntegrityServiceTest
         ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, "2 > 1", 1 );
         ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionC", programA, null, null, null, 0 );
 
+        ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
+        ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, null, 0 );
+
         int idA = programRuleService.addProgramRule( ruleA );
         int idB = programRuleService.addProgramRule( ruleB );
         int idC = programRuleService.addProgramRule( ruleC );
+        int idD = programRuleService.addProgramRule( ruleD );
+        int idE = programRuleService.addProgramRule( ruleE );
 
-        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoCondition();
+        Map<Program, Collection<ProgramRule>> collectionMap = dataIntegrityService.getProgramRulesWithNoCondition();
 
-        assertEquals( 1, rules.size() );
-        assertTrue( rules.contains( ruleC ) );
+        assertTrue( collectionMap.containsKey( programA ) );
+
+        Collection<ProgramRule> rulesA = collectionMap.get( programA );
+
+        assertEquals( 1, rulesA.size() );
+        assertTrue( rulesA.contains( ruleC ) );
+
+        assertTrue( collectionMap.containsKey( programB ) );
+
+        Collection<ProgramRule> rulesB = collectionMap.get( programB );
+
+        assertEquals( 1, rulesB.size() );
+        assertTrue( rulesB.contains( ruleE ) );
     }
 
     @Test
@@ -376,10 +392,14 @@ public class DataIntegrityServiceTest
         programRuleService.updateProgramRule( ruleA );
         programRuleService.updateProgramRule( ruleB );
 
-        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoPriority();
+        Map<Program, Collection<ProgramRule>> collectionMap = dataIntegrityService.getProgramRulesWithNoPriority();
 
-        assertEquals( 1, rules.size() );
-        assertTrue( rules.contains( ruleA ) );
+        assertTrue( collectionMap.containsKey( programA ) );
+
+        Collection<ProgramRule> rulesA = collectionMap.get( programA );
+
+        assertEquals( 1, rulesA.size() );
+        assertTrue( rulesA.contains( ruleA ) );
     }
 
     @Test
@@ -400,9 +420,13 @@ public class DataIntegrityServiceTest
         ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
         programRuleService.updateProgramRule( ruleA );
 
-        List<ProgramRule> rules = dataIntegrityService.getProgramRulesWithNoAction();
+        Map<Program, Collection<ProgramRule>> collectionMap = dataIntegrityService.getProgramRulesWithNoAction();
 
-        assertEquals( 1, rules.size() );
-        assertTrue( rules.contains( ruleB ) );
+        assertTrue( collectionMap.containsKey( programA ) );
+
+        Collection<ProgramRule> rulesA = collectionMap.get( programA );
+
+        assertEquals( 1, rulesA.size() );
+        assertTrue( rulesA.contains( ruleB ) );
     }
 }

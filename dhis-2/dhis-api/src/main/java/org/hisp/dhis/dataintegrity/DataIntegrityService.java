@@ -37,6 +37,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -220,21 +221,21 @@ public interface DataIntegrityService
 
     /**
      *
-     * @return all {@link ProgramRule} with no priority
+     * Get all ProgramRules with no priority and grouped them by {@link Program}
      */
-    List<ProgramRule> getProgramRulesWithNoPriority();
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority();
 
     /**
      *
-     * @return all {@link ProgramRule} which are not linked to any {@link ProgramRuleAction}
+     * Get all ProgramRules with no action and grouped them by {@link Program}
      */
-    List<ProgramRule> getProgramRulesWithNoAction();
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction();
 
     /**
      *
-     * @return all {@link ProgramRule} with no condition
+     * Get all ProgramRules with no condition expression and grouped them by {@link Program}
      */
-    List<ProgramRule> getProgramRulesWithNoCondition();
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition();
 
     /**
      *

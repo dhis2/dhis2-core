@@ -117,6 +117,15 @@ public class FlattenedDataIntegrityReport
     @JsonProperty
     private Map<String, String> invalidProgramIndicatorFilters;
 
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoCondition;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoPriority;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoAction;
+
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
         dataElementsWithoutDataSet = transformCollection( report.getDataElementsWithoutDataSet() );
@@ -164,6 +173,12 @@ public class FlattenedDataIntegrityReport
         invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
 
         invalidProgramIndicatorFilters = transformMapOfStrings( report.getInvalidProgramIndicatorFilters() );
+
+        programRulesWithNoCondition = transformMapOfCollections( report.getProgramRulesWithoutCondition() );
+
+        programRulesWithNoPriority = transformMapOfCollections( report.getProgramRulesWithNoPriority() );
+
+        programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
     }
 
     // -------------------------------------------------------------------------

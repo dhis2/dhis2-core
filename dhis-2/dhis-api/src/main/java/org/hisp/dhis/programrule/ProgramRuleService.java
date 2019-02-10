@@ -117,7 +117,6 @@ public interface ProgramRuleService
      *
      * @return all {@link ProgramRule} with no priority
      */
-
     List<ProgramRule> getProgramRulesWithNoPriority();
 
     List<ProgramRule> getProgramRulesWithNoCondition();

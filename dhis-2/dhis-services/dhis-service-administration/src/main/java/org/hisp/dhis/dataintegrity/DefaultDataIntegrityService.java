@@ -56,6 +56,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -647,6 +648,12 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked ProgramIndicators" );
 
+        report.setProgramRulesWithoutCondition( getProgramRulesWithNoCondition() );
+        report.setProgramRulesWithNoPriority( getProgramRulesWithNoPriority() );
+        report.setProgramRulesWithNoAction( getProgramRulesWithNoAction() );
+
+        log.info( "Checked ProgramRules" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -673,7 +680,7 @@ public class DefaultDataIntegrityService
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
             .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
     }
@@ -685,27 +692,33 @@ public class DefaultDataIntegrityService
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
             .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
 
         return invalidFilters;
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesWithNoPriority()
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
     {
-        return programRuleService.getProgramRulesWithNoPriority();
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoPriority();
+
+        return groupCollectionByProgram( programRules );
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesWithNoAction()
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
     {
-        return programRuleService.getProgramRulesWithNoAction();
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoAction();
+
+        return groupCollectionByProgram( programRules );
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesWithNoCondition()
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition()
     {
-        return programRuleService.getProgramRulesWithNoCondition();
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoCondition();
+
+        return groupCollectionByProgram( programRules );
     }
 
     @Override
@@ -736,5 +749,24 @@ public class DefaultDataIntegrityService
     public List<ProgramRuleVariable> getProgramRuleVariablesWithNoDataObject()
     {
         return null;
+    }
+
+    private Map<Program, Collection<ProgramRule>> groupCollectionByProgram( List<ProgramRule> programRules )
+    {
+        Map<Program, Collection<ProgramRule>> collectionMap = new HashMap<>();
+
+        for ( ProgramRule rule : programRules )
+        {
+            Program program = rule.getProgram();
+
+            if ( !collectionMap.containsKey( program ) )
+            {
+                collectionMap.put( program, Sets.newHashSet() );
+            }
+
+            collectionMap.get( program ).add( rule );
+        }
+
+        return collectionMap;
     }
 }
