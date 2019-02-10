@@ -91,7 +91,6 @@ public class DefaultDataQueryService
         AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
         CurrentUserService currentUserService, I18nManager i18nManager )
     {
-
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
         checkNotNull( dimensionService );
@@ -525,27 +524,20 @@ public class DefaultDataQueryService
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
-        List<OrganisationUnit> units = new ArrayList<>();
+        final List<OrganisationUnit> units = new ArrayList<>();
 
         User currentUser = securityManager.getCurrentUser( params );
 
         if ( userOrgUnit != null )
         {
-            List<String> ous = DimensionalObjectUtils.getItemsFromParam( userOrgUnit );
-
-            for ( String ou : ous )
-            {
-                OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, ou );
-
-                if ( unit != null )
-                {
-                    units.add( unit );
-                }
-            }
+            DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
+                .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
+                .filter( ou -> ou != null )
+                .forEach( ou -> units.add( ou ) );
         }
         else if ( currentUser != null && currentUser.hasOrganisationUnit() )
         {
-            units = currentUser.getSortedOrganisationUnits();
+            units.addAll( currentUser.getSortedOrganisationUnits() );
         }
 
         return units;
