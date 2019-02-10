@@ -348,7 +348,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
+    @ApiVersion( exclude = { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";

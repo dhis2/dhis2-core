@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,32 +28,15 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( "/method/testAllExcludeV26" )
-public class ApiMethodAllExcludeV26Controller
+* @author Lars Helge Overland
+*/
+public enum NotNullConstraint
 {
-    @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
-    public void testAllA( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    NULL, NOT_NULL;
 
-    @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
-    public void testAllB( HttpServletResponse response ) throws IOException
+    public boolean isNotNull()
     {
-        response.getWriter().println( "TEST" );
+        return this == NOT_NULL;
     }
 }

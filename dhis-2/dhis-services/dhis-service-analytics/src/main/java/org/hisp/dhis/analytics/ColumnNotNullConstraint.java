@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,47 +28,15 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( "/method/testV26V27" )
-public class ApiMethodV26V27Controller
+* @author Lars Helge Overland
+*/
+public enum ColumnNotNullConstraint
 {
-    @RequestMapping( "a" )
-    @ApiVersion( DhisApiVersion.V26 )
-    public void testV26( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    NULL, NOT_NULL;
 
-    @RequestMapping( value = "a", method = RequestMethod.POST )
-    @ApiVersion( DhisApiVersion.V26 )
-    public void testPostV26( HttpServletResponse response ) throws IOException
+    public boolean isNotNull()
     {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( "b" )
-    @ApiVersion( DhisApiVersion.V27 )
-    public void testV27( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( value = "b", method = RequestMethod.PUT )
-    @ApiVersion( DhisApiVersion.V27 )
-    public void testPutV27( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
+        return this == NOT_NULL;
     }
 }

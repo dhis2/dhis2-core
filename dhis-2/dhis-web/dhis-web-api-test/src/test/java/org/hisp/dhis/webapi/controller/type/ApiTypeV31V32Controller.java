@@ -40,13 +40,13 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/type/testInheritedFromBase" )
-@ApiVersion( DhisApiVersion.V32 )
-public class InheritedFromBaseVersionController extends BaseWithVersionController
+@RequestMapping( "/type/testV31V32" )
+@ApiVersion( { DhisApiVersion.V31, DhisApiVersion.V32 } )
+public class ApiTypeV31V32Controller
 {
     @RequestMapping
     public void test( HttpServletResponse response ) throws IOException
     {
-        response.getWriter().println();
+        response.getWriter().println( "TEST" );
     }
 }

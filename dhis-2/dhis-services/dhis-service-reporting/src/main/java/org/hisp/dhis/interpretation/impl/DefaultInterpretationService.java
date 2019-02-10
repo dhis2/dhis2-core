@@ -32,6 +32,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -46,7 +47,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -111,13 +111,6 @@ public class DefaultInterpretationService
     {
         this.messageService = messageService;
     }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
     
     private AclService aclService;
 
@@ -131,6 +124,13 @@ public class DefaultInterpretationService
     public void setI18nManager( I18nManager i18nManager )
     {
         this.i18nManager = i18nManager;
+    }
+
+    private DhisConfigurationProvider configurationProvider;
+
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -361,7 +361,7 @@ public class DefaultInterpretationService
             path = "";
             break;
         }
-        return systemSettingManager.getInstanceBaseUrl() + path;
+        return configurationProvider.getServerBaseUrl() + path;
     }
 
     @Override

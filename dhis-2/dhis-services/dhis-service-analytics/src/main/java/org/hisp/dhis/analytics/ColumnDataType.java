@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,32 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( "/type/testInheritedFromBase" )
-@ApiVersion( DhisApiVersion.V32 )
-public class InheritedFromBaseVersionController extends BaseWithVersionController
+* @author Lars Helge Overland
+*/
+public enum ColumnDataType
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    CHARACTER_11( "character(11)" ),
+    CHARACTER_50( "character(50)" ),
+    TEXT( "text" ),
+    DATE( "date" ),
+    TIMESTAMP( "timestamp" ),
+    INTEGER( "integer" ),
+    BIGINT( "bigint" ),
+    DOUBLE( "double precision" ),
+    BOOLEAN( "boolean" ),
+    GEOMETRY( "geometry" ),
+    GEOMETRY_POINT( "geometry(Point, 4326)" );
+
+    String value;
+
+    ColumnDataType( String value )
     {
-        response.getWriter().println();
+        this.value = value;
+    }
+
+    public String getValue()
+    {
+        return value;
     }
 }
