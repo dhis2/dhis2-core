@@ -124,6 +124,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
@@ -265,6 +266,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected EventSyncService eventSyncService;
+
+    @Autowired
+    private ProgramRuleVariableService ruleVariableService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -1365,7 +1369,7 @@ public abstract class AbstractEventService
                     dataValue.getProvidedElsewhere(), null, null );
             }
 
-            if ( !importOptions.isSkipNotifications() )
+            if ( !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
             {
                 eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
@@ -1914,7 +1918,10 @@ public abstract class AbstractEventService
                 programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
             }
 
-            eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            {
+                eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+            }
         }
     }
 
