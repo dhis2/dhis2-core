@@ -66,7 +66,7 @@ public class HibernateProgramRuleActionStore
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoDataObject()
     {
-        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dcd dhataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
+        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
             .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
             .getResultList();
     }
