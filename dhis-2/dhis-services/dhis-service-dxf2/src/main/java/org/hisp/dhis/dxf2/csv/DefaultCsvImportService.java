@@ -446,7 +446,7 @@ public class DefaultCsvImportService
         throws IOException
     {
 
-        if ( !featureType.equals( FeatureType.NONE ) && StringUtils.isNotBlank( coordinates ) )
+        if ( !(featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
         {
             ou.setGeometryAsJson( String.format( JSON_GEOMETRY_TEMLPLATE, featureType.value(), coordinates ) );
         }

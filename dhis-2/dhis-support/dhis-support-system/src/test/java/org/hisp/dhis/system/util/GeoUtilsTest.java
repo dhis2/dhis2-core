@@ -129,7 +129,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.MULTI_POLYGON, _multipolygon );
 
-            TestCase.assertEquals("MultiPolygon", g.getGeometryType());
+            assertEquals("MultiPolygon", g.getGeometryType());
             assertTrue( g.isValid() );
         }
         catch ( IOException e )

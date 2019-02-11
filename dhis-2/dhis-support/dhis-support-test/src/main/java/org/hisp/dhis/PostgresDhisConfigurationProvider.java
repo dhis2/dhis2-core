@@ -35,6 +35,5 @@ public class PostgresDhisConfigurationProvider
     extends
         H2DhisConfigurationProvider
 {
-    public PostgresDhisConfigurationProvider() {
-    }
+
 }

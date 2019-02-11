@@ -74,6 +74,11 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private Environment env;
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
 
     private OrganisationUnitStore organisationUnitStore;
 
@@ -115,12 +120,6 @@ public class DefaultOrganisationUnitService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
-    }
-
-    private Environment env;
-
-    public void setEnv(Environment env) {
-        this.env = env;
     }
 
     @PostConstruct

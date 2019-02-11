@@ -30,25 +30,18 @@ package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Point;
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
 
 /**
  * @author Lars Helge Overland

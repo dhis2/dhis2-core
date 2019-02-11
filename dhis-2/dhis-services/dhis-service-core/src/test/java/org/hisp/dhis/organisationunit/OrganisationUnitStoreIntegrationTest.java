@@ -51,6 +51,12 @@ import com.vividsolutions.jts.geom.Geometry;
 @Category( IntegrationTest.class )
 public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 {
+    private final static long _150KM = 150_000;
+
+    private final static long _190KM = 190_000;
+
+    private final static long _250KM = 250_000;
+
     @Autowired
     private OrganisationUnitStore organisationUnitStore;
 
@@ -59,12 +65,6 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
     {
         return false;
     }
-
-    private final static long _150KM = 150_000;
-
-    private final static long _190KM = 190_000;
-
-    private final static long _250KM = 250_000;
 
     @Test
     public void verifyGetOrgUnitsWithinAGeoBox() throws IOException {

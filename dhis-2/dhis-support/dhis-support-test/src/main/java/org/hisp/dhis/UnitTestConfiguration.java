@@ -32,7 +32,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

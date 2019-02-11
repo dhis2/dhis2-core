@@ -30,12 +30,10 @@ package org.hisp.dhis.organisationunit;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.util.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.user.User;
 import org.junit.Ignore;
 import org.junit.Test;

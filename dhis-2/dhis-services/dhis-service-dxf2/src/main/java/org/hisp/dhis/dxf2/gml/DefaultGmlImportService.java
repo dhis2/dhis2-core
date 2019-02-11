@@ -42,8 +42,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -68,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 import org.xml.sax.SAXParseException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -127,12 +126,12 @@ public class DefaultGmlImportService
     public DefaultGmlImportService( RenderService renderService, IdentifiableObjectManager idObjectManager,
         SchemaService schemaService, MetadataImportService importService, Notifier notifier, MergeService mergeService )
     {
-        Preconditions.checkNotNull(renderService);
-        Preconditions.checkNotNull(idObjectManager);
-        Preconditions.checkNotNull(schemaService);
-        Preconditions.checkNotNull(importService);
-        Preconditions.checkNotNull(notifier);
-        Preconditions.checkNotNull(mergeService);
+        Preconditions.checkNotNull( renderService );
+        Preconditions.checkNotNull( idObjectManager );
+        Preconditions.checkNotNull( schemaService );
+        Preconditions.checkNotNull( importService );
+        Preconditions.checkNotNull( notifier );
+        Preconditions.checkNotNull( mergeService );
 
         this.renderService = renderService;
         this.idObjectManager = idObjectManager;
@@ -140,7 +139,6 @@ public class DefaultGmlImportService
         this.importService = importService;
         this.notifier = notifier;
         this.mergeService = mergeService;
-
     }
 
     @Transactional

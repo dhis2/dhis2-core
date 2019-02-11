@@ -28,7 +28,14 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
@@ -42,16 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.common.collect.Sets;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -73,6 +71,13 @@ public class DefaultUserSettingService implements UserSettingService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    private Environment env;
+
+    public void setEnv( Environment env )
+    {
+        this.env = env;
+    }
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -106,12 +111,6 @@ public class DefaultUserSettingService implements UserSettingService
     public void setSystemSettingManager( SystemSettingManager systemSettingManager )
     {
         this.systemSettingManager = systemSettingManager;
-    }
-
-    private Environment env;
-
-    public void setEnv(Environment env) {
-        this.env = env;
     }
 
     // -------------------------------------------------------------------------
