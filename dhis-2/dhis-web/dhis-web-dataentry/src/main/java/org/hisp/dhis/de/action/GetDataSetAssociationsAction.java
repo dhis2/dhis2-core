@@ -38,12 +38,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitDataSetAssociationSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;

@@ -28,11 +28,21 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -81,7 +91,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -95,17 +104,9 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

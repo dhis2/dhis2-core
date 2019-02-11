@@ -28,18 +28,36 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -60,12 +78,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland

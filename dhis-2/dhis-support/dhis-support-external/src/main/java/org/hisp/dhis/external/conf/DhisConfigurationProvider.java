@@ -28,14 +28,14 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.encryption.EncryptionStatus;
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.hisp.dhis.encryption.EncryptionStatus;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * Interface which provides access to the DHIS 2 configuration specified through

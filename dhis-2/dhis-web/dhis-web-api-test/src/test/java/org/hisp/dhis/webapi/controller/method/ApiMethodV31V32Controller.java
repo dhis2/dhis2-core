@@ -28,14 +28,15 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

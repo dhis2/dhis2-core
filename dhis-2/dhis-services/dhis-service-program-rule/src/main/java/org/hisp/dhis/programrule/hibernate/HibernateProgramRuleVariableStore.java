@@ -28,14 +28,15 @@ package org.hisp.dhis.programrule.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
 
 /**
  * @author markusbekken

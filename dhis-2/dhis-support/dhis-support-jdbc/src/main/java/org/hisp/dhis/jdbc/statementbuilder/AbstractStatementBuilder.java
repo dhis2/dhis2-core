@@ -28,6 +28,14 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -36,14 +44,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.util.Assert;
-
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +82,7 @@ public abstract class AbstractStatementBuilder
         
         column = column.replaceAll( qte, ( qte + qte ) );
         
-        return column != null ? ( qte + column + qte ) : null;
+        return qte + column + qte;
     }
 
     @Override

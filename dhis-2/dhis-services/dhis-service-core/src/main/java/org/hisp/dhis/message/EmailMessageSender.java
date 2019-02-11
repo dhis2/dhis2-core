@@ -28,8 +28,13 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,12 +47,12 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
@@ -57,12 +62,8 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland

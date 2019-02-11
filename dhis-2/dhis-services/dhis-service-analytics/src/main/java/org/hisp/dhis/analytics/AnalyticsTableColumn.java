@@ -28,9 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Class representing an analytics database table column.
