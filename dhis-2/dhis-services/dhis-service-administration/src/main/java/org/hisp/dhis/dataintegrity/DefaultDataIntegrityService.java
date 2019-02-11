@@ -91,13 +91,10 @@ public class DefaultDataIntegrityService
 
     private I18nManager i18nManager;
 
-    @Autowired
     private ProgramRuleService programRuleService;
 
-    @Autowired
     private ProgramRuleActionService programRuleActionService;
 
-    @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
     private DataElementService dataElementService;
@@ -128,7 +125,8 @@ public class DefaultDataIntegrityService
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
         ValidationRuleService validationRuleService, ExpressionService expressionService,
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService )
+        ProgramIndicatorService programIndicatorService, ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
+        ProgramRuleActionService programRuleActionService )
     {
         checkNotNull( i18nManager );
         checkNotNull( dataElementService );
@@ -141,6 +139,9 @@ public class DefaultDataIntegrityService
         checkNotNull( categoryService );
         checkNotNull( periodService );
         checkNotNull( programIndicatorService );
+        checkNotNull( programRuleService );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( programRuleActionService );
 
         this.i18nManager = i18nManager;
         this.dataElementService = dataElementService;
@@ -154,6 +155,9 @@ public class DefaultDataIntegrityService
         this.categoryService = categoryService;
         this.periodService = periodService;
         this.programIndicatorService = programIndicatorService;
+        this.programRuleService = programRuleService;
+        this.programRuleVariableService = programRuleVariableService;
+        this.programRuleActionService = programRuleActionService;
     }
 
     // -------------------------------------------------------------------------
@@ -627,6 +631,8 @@ public class DefaultDataIntegrityService
 
         report.setProgramRuleActionsWithNoDataObject( getProgramRuleActionsWithNoDataObject() );
         report.setProgramRuleActionsWithNoNotification( getProgramRuleActionsWithNoNotificationTemplate() );
+        report.setProgramRuleActionsWithNoSectionId( getProgramRuleActionsWithNoSectionId() );
+        report.setProgramRuleActionsWithNoStageId( getProgramRuleActionsWithNoProgramStageId() );
 
         log.info( "Checked ProgramRuleActions" );
 
