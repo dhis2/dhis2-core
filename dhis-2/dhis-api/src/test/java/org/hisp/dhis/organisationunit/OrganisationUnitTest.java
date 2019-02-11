@@ -64,7 +64,8 @@ public class OrganisationUnitTest
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     private OrganisationUnit unitD;
-    GeometryJSON geometryJSON = new GeometryJSON();
+
+    private GeometryJSON geometryJSON = new GeometryJSON();
 
     @Before
     public void before()

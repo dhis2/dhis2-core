@@ -43,8 +43,6 @@ import org.junit.Test;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import junit.framework.TestCase;
-
 /**
  * Lars Helge Overland
  */
