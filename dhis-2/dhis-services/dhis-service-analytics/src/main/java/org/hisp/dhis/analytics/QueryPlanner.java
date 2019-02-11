@@ -74,6 +74,14 @@ public interface QueryPlanner
     DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams );
 
     /**
+     * Sets partitions on the given query
+     *
+     * @param params the data query parameters
+     * @return a data query parameters
+     */
+    DataQueryParams assignPartitionsFromQueryPeriods( DataQueryParams params );
+
+    /**
      * If organisation units appear as dimensions; groups the given query into
      * sub queries based on the level of the organisation units. Sets the organisation
      * unit level on each query. If organisation units appear as filter; replaces
