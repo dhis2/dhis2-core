@@ -46,9 +46,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -72,13 +74,16 @@ public class DefaultEventDataValueService implements EventDataValueService
 
     private final TrackerAccessManager trackerAccessManager;
 
+    private ProgramRuleVariableService ruleVariableService;
+
     @Autowired
-    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher,
-        TrackerAccessManager trackerAccessManager, ProgramStageInstanceService programStageInstanceService )
+    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher, TrackerAccessManager trackerAccessManager,
+        ProgramStageInstanceService programStageInstanceService, ProgramRuleVariableService ruleVariableService )
     {
         this.eventPublisher = eventPublisher;
         this.trackerAccessManager = trackerAccessManager;
         this.programStageInstanceService = programStageInstanceService;
+        this.ruleVariableService = ruleVariableService;
     }
 
     @Override
@@ -95,6 +100,8 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             return;
         }
+
+        Program program = programStageInstance.getProgramStage().getProgram();
 
         Set<EventDataValue> newDataValues = new HashSet<>();
         Set<EventDataValue> updatedDataValues = new HashSet<>();
@@ -117,14 +124,14 @@ public class DefaultEventDataValueService implements EventDataValueService
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
                     removedDataValuesDueToEmptyValue, storedBy );
             }
+
+            if ( isUpdate && !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
+            {
+                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
+            }
         }
 
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
-
-        if ( isUpdate && !importOptions.isSkipNotifications() )
-        {
-            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
-        }
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
