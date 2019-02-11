@@ -89,7 +89,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -161,17 +160,8 @@ public class DefaultDimensionService
     public <T extends IdentifiableObject> List<T> getCanReadObjects( User user, List<T> objects )
     {
         List<T> list = new ArrayList<>( objects );
-        Iterator<T> iterator = list.iterator();
 
-        while ( iterator.hasNext() )
-        {
-            T object = iterator.next();
-
-            if ( !aclService.canRead( user, object ) )
-            {
-                iterator.remove();
-            }
-        }
+        list.removeIf(object -> !aclService.canRead(user, object));
 
         return list;
     }
@@ -350,10 +340,10 @@ public class DefaultDimensionService
             String id1 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1 );
             String id2 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2 );
 
-            DataElementOperand operand = null;
-            ReportingRate reportingRate = null;
-            ProgramDataElementDimensionItem programDataElement = null;
-            ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
+            DataElementOperand operand;
+            ReportingRate reportingRate;
+            ProgramDataElementDimensionItem programDataElement;
+            ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
             if ( ( operand = getDataElementOperand( idScheme, id0, id1, id2 ) ) != null )
             {

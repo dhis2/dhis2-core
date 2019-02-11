@@ -450,7 +450,9 @@ public class DataSet
      */
     public Set<DataElement> getDataElements()
     {
-        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
+        return ImmutableSet.copyOf(
+                dataSetElements.stream().map(DataSetElement::getDataElement).collect( Collectors.toSet() )
+        );
     }
 
     public Set<DataElement> getDataElementsInSections()
