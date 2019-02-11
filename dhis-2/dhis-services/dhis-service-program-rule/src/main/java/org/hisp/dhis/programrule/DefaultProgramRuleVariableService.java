@@ -100,4 +100,16 @@ public class DefaultProgramRuleVariableService
 
         return !ruleVariables.isEmpty();
     }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoDataElement()
+    {
+        return programRuleVariableStore.getVariablesWithNoDataElement();
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoAttribute()
+    {
+        return programRuleVariableStore.getVariablesWithNoAttribute();
+    }
 }

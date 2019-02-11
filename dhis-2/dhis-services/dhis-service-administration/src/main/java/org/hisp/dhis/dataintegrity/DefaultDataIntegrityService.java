@@ -654,6 +654,11 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked ProgramRules" );
 
+        report.setProgramRuleVariablesWithNoDataElement( getProgramRuleVariablesWithNoDataElement() );
+        report.setProgramRuleVariablesWithNoAttribute( getProgramRuleVariablesWithNoAttribute() );
+
+        log.info( "Checked ProgramRuleVariables" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -702,7 +707,7 @@ public class DefaultDataIntegrityService
     {
         List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoPriority();
 
-        return groupCollectionByProgram( programRules );
+        return groupRulesByProgram( programRules );
     }
 
     @Override
@@ -710,7 +715,7 @@ public class DefaultDataIntegrityService
     {
         List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoAction();
 
-        return groupCollectionByProgram( programRules );
+        return groupRulesByProgram( programRules );
     }
 
     @Override
@@ -718,7 +723,7 @@ public class DefaultDataIntegrityService
     {
         List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoCondition();
 
-        return groupCollectionByProgram( programRules );
+        return groupRulesByProgram( programRules );
     }
 
     @Override
@@ -746,12 +751,22 @@ public class DefaultDataIntegrityService
     }
 
     @Override
-    public List<ProgramRuleVariable> getProgramRuleVariablesWithNoDataObject()
+    public  Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
     {
-        return null;
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoDataElement();
+
+        return groupVariablesByProgram( ruleVariables );
     }
 
-    private Map<Program, Collection<ProgramRule>> groupCollectionByProgram( List<ProgramRule> programRules )
+    @Override
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
+    {
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoAttribute();
+
+        return groupVariablesByProgram( ruleVariables );
+    }
+
+    private Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> programRules )
     {
         Map<Program, Collection<ProgramRule>> collectionMap = new HashMap<>();
 
@@ -765,6 +780,25 @@ public class DefaultDataIntegrityService
             }
 
             collectionMap.get( program ).add( rule );
+        }
+
+        return collectionMap;
+    }
+
+    private  Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram( List<ProgramRuleVariable> ruleVariables )
+    {
+        Map<Program, Collection<ProgramRuleVariable>> collectionMap = new HashMap<>();
+
+        for ( ProgramRuleVariable variable : ruleVariables )
+        {
+            Program program = variable.getProgram();
+
+            if ( !collectionMap.containsKey( program ) )
+            {
+                collectionMap.put( program, Sets.newHashSet() );
+            }
+
+            collectionMap.get( program ).add( variable );
         }
 
         return collectionMap;

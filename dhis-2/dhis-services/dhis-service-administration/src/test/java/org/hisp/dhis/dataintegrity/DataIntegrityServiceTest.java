@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,6 +59,11 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -92,7 +96,13 @@ public class DataIntegrityServiceTest
     private ProgramRuleService programRuleService;
 
     @Autowired
+    private ProgramRuleVariableService ruleVariableService;
+
+    @Autowired
     private ProgramRuleActionService ruleActionService;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
 
     @Autowired
     private ProgramService programService;
@@ -100,6 +110,8 @@ public class DataIntegrityServiceTest
     private DataElement elementA;
     private DataElement elementB;
     private DataElement elementC;
+
+    private TrackedEntityAttribute attributeA;
     
     private DataElementGroup elementGroupA;
     
@@ -143,11 +155,13 @@ public class DataIntegrityServiceTest
         elementA = createDataElement( 'A' );
         elementB = createDataElement( 'B' );
         elementC = createDataElement( 'C' );
+        attributeA = createTrackedEntityAttribute( 'A' );
 
         dataElementService.addDataElement( elementA );
         dataElementService.addDataElement( elementB );
         dataElementService.addDataElement( elementC );
-        
+        attributeService.addTrackedEntityAttribute( attributeA );
+
         indicatorTypeA = createIndicatorType( 'A' );
         
         indicatorService.addIndicatorType( indicatorTypeA );
@@ -428,5 +442,43 @@ public class DataIntegrityServiceTest
 
         assertEquals( 1, rulesA.size() );
         assertTrue( rulesA.contains( ruleB ) );
+    }
+
+    @Test
+    public void testGetAllProgramRuleVariablesWithNoDataElement()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, elementA, false, null );
+        ProgramRuleVariable variableC = new ProgramRuleVariable( "RuleVariableC", programA, ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, null, false, null );
+
+        int idA = ruleVariableService.addProgramRuleVariable( variableA );
+        int idC = ruleVariableService.addProgramRuleVariable( variableC );
+
+        Map<Program, Collection<ProgramRuleVariable>> collectionMap = dataIntegrityService.getProgramRuleVariablesWithNoDataElement();
+
+        assertTrue( collectionMap.containsKey( programA ) );
+
+        Collection<ProgramRuleVariable> variables = collectionMap.get( programA );
+
+        assertEquals( 1, variables.size() );
+        assertTrue( variables.contains( variableC ) );
+    }
+
+    @Test
+    public void testGetAllProgramRuleVariablesWithNoAttribute()
+    {
+        ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, true, null );
+        ProgramRuleVariable variableD = new ProgramRuleVariable( "RuleVariableD", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, null, null, true, null );
+
+        int idB = ruleVariableService.addProgramRuleVariable( variableB );
+        int idD = ruleVariableService.addProgramRuleVariable( variableD );
+
+        Map<Program, Collection<ProgramRuleVariable>> collectionMap = dataIntegrityService.getProgramRuleVariablesWithNoAttribute();
+
+        assertTrue( collectionMap.containsKey( programA ) );
+
+        Collection<ProgramRuleVariable> variables = collectionMap.get( programA );
+
+        assertEquals( 1, variables.size() );
+        assertTrue( variables.contains( variableD ) );
     }
 }

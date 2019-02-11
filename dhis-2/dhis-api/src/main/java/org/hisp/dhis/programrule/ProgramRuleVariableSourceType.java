@@ -29,7 +29,10 @@ package org.hisp.dhis.programrule;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Set;
 
 /**
  * @author markusbekken
@@ -45,6 +48,11 @@ public enum ProgramRuleVariableSourceType
     TEI_ATTRIBUTE( "tei_attribute" );
 
     private final String value;
+
+    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = Sets.newHashSet( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT,
+        DATAELEMENT_PREVIOUS_EVENT );
+
+    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES = Sets.newHashSet( TEI_ATTRIBUTE );
 
     ProgramRuleVariableSourceType( String value )
     {
@@ -62,5 +70,25 @@ public enum ProgramRuleVariableSourceType
         }
 
         return null;
+    }
+
+    public static Set<ProgramRuleVariableSourceType> getDataTypes()
+    {
+        return DATA_TYPES;
+    }
+
+    public static Set<ProgramRuleVariableSourceType> getAttributeTypes()
+    {
+        return ATTRIBUTE_TYPES;
+    }
+
+    public static boolean isDataType( ProgramRuleVariableSourceType type )
+    {
+        return DATA_TYPES.contains( type );
+    }
+
+    public static boolean isAttributeType( ProgramRuleVariableSourceType type )
+    {
+        return ATTRIBUTE_TYPES.contains( type );
     }
 }

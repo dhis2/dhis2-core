@@ -126,6 +126,12 @@ public class FlattenedDataIntegrityReport
     @JsonProperty
     private Map<String, Collection<String>> programRulesWithNoAction;
 
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleVariableWithNoDataElement;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleVariableWithNoAttribute;
+
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
         dataElementsWithoutDataSet = transformCollection( report.getDataElementsWithoutDataSet() );
@@ -179,6 +185,10 @@ public class FlattenedDataIntegrityReport
         programRulesWithNoPriority = transformMapOfCollections( report.getProgramRulesWithNoPriority() );
 
         programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
+
+        programRuleVariableWithNoDataElement = transformMapOfCollections( report.getProgramRuleVariablesWithNoDataElement() );
+
+        programRuleVariableWithNoAttribute = transformMapOfCollections( report.getProgramRuleVariablesWithNoAttribute() );
     }
 
     // -------------------------------------------------------------------------

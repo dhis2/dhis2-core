@@ -40,6 +40,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.ArrayList;
@@ -108,6 +109,10 @@ public class DataIntegrityReport
     private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
 
     private Map<Program, Collection<ProgramRule>> programRulesWithNoAction = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute = new HashMap<>();
 
     //-------------------------------------------------------------------------
     // Constructors
@@ -380,5 +385,25 @@ public class DataIntegrityReport
     public void setProgramRulesWithNoAction( Map<Program, Collection<ProgramRule>> programRulesWithNoAction )
     {
         this.programRulesWithNoAction = programRulesWithNoAction;
+    }
+
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
+    {
+        return programRuleVariablesWithNoDataElement;
+    }
+
+    public void setProgramRuleVariablesWithNoDataElement( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement )
+    {
+        this.programRuleVariablesWithNoDataElement = programRuleVariablesWithNoDataElement;
+    }
+
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
+    {
+        return programRuleVariablesWithNoAttribute;
+    }
+
+    public void setProgramRuleVariablesWithNoAttribute( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
+    {
+        this.programRuleVariablesWithNoAttribute = programRuleVariablesWithNoAttribute;
     }
 }

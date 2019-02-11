@@ -239,9 +239,17 @@ public interface DataIntegrityService
 
     /**
      *
-     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement/TrackedEntityAttribute
+     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement
+     *  and grouped them by {@link Program}
      */
-    List<ProgramRuleVariable> getProgramRuleVariablesWithNoDataObject();
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all {@link ProgramRuleVariable} which are not linked to any TrackedEntityAttribute
+     *  and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute();
 
     /**
      *
