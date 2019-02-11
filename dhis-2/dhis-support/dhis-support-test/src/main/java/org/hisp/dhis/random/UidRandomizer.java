@@ -1,7 +1,5 @@
-package org.hisp.dhis.render;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +26,23 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.random;
 
-import java.io.IOException;
+import org.hisp.dhis.common.CodeGenerator;
+
+import io.github.benas.randombeans.api.Randomizer;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class UidRandomizer
+    implements
+    Randomizer<String>
 {
+
     @Override
-    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public String getRandomValue()
     {
-        String result = parser.getValueAsString();
-
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
+        return CodeGenerator.generateUid();
     }
 }

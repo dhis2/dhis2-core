@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.metadata;
  *
  */
 
+import java.io.InputStream;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -45,8 +47,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.io.InputStream;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

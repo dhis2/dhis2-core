@@ -29,6 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +74,7 @@ public class DefaultProgramStageDataElementService
     {
         return programStageDataElementStore.getAll();
     }
-    
+
     @Override
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
@@ -83,5 +85,11 @@ public class DefaultProgramStageDataElementService
     public void updateProgramStageDataElement( ProgramStageDataElement programStageDataElement )
     {
         programStageDataElementStore.update( programStageDataElement );
+    }
+
+    @Override
+    public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
+    {
+        return programStageDataElementStore.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
     }
 }

@@ -28,12 +28,9 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.core.io.ClassPathResource;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.core.io.ClassPathResource;
+
+import com.csvreader.CsvReader;
+import com.google.common.collect.Sets;
 
 /**
  * @author Henning Haakonsen

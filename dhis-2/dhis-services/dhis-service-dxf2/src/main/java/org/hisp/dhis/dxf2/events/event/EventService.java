@@ -28,6 +28,13 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
@@ -41,12 +48,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,9 +93,10 @@ public interface EventService
      * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      *
      * @param pageSize Specifies the max number for the events returned.
+     * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be synchronized
      * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      */
-    Events getAnonymousEventsForSync( int pageSize );
+    Events getAnonymousEventsForSync( int pageSize, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     // -------------------------------------------------------------------------
     // CREATE
