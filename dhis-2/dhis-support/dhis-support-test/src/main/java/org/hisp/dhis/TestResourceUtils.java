@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.Coordinate;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +26,34 @@ package org.hisp.dhis.common.Coordinate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.FeatureType;
+package org.hisp.dhis;
 
-import com.vividsolutions.jts.geom.Geometry;
+import java.io.File;
+import java.io.IOException;
+
+import org.springframework.core.io.ClassPathResource;
+import org.testcontainers.shaded.com.google.common.io.Files;
+
+import com.google.common.base.Charsets;
 
 /**
- * @author Henning Håkonsen
+ * @author Luciano Fiandesio
  */
-public interface CoordinateObject
+public class TestResourceUtils
 {
-    FeatureType getFeatureType();
 
-    String getCoordinates();
-
-    boolean hasCoordinates();
-
-    boolean hasDescendantsWithCoordinates();
-
-    default String extractCoordinates( Geometry geometry )
+    public static File getFile( String path )
+        throws IOException
     {
-        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
+
+        return new ClassPathResource( path ).getFile();
     }
+
+    public static String getFileContent( String path )
+        throws IOException
+    {
+
+        return Files.toString( getFile( path ), Charsets.UTF_8 );
+    }
+
 }

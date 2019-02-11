@@ -51,18 +51,18 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TestDhisConfigurationProvider
+public class H2DhisConfigurationProvider
     implements DhisConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( TestDhisConfigurationProvider.class );
+    private static final Log log = LogFactory.getLog( H2DhisConfigurationProvider.class );
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
 
-    public TestDhisConfigurationProvider() {
+    public H2DhisConfigurationProvider() {
         this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
     }
 
-    public TestDhisConfigurationProvider( String configurationFileName )
+    public H2DhisConfigurationProvider(String configurationFileName )
     {
         this.properties = getPropertiesFromFile( configurationFileName );
     }

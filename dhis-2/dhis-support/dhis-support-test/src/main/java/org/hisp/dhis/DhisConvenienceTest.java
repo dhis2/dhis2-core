@@ -31,6 +31,7 @@ package org.hisp.dhis;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -172,7 +173,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles("test")
+@ActiveProfiles(profiles = {"test"})
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -371,7 +372,7 @@ public abstract class DhisConvenienceTest
             targetService = getRealObject( targetService );
 
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
-                + fieldName.substring( 1, fieldName.length() );
+                + fieldName.substring( 1 );
 
             Class<?>[] argumentClass = new Class<?>[]{ clazz };
 
@@ -846,6 +847,15 @@ public abstract class DhisConvenienceTest
         unit.setCode( "OrganisationUnitCode" + uniqueCharacter );
         unit.setOpeningDate( date );
         unit.setComment( "Comment" + uniqueCharacter );
+
+        return unit;
+    }
+
+    public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry)
+    {
+        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
+
+        unit.setGeometry(geometry);
 
         return unit;
     }

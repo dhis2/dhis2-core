@@ -52,6 +52,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -74,6 +75,9 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_EHCACHE_PEER_LISTENER_PORT = "ehcache.peer.listener.port";
     private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remote.object.port";
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
+
+    @Autowired
+    private org.springframework.core.env.Environment environment;
 
     // -------------------------------------------------------------------------
     // Property resources
@@ -229,7 +233,7 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
 
-        if ( SystemUtils.isTestRun() )
+        if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {
             putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );
             putIfExists( "false", "hibernate.cache.use_second_level_cache", props );

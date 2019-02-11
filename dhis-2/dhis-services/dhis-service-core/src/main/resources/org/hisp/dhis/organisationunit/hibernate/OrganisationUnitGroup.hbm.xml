@@ -38,7 +38,7 @@
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
     </set>
 
-    <property name="coordinates" type="text" />
+    <property name="geometry" />
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroup_userid" />

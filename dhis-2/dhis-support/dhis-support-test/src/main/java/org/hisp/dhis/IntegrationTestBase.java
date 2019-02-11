@@ -44,16 +44,18 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-/**
+/*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
+@ActiveProfiles(profiles = {"test-postgres"})
 public abstract class IntegrationTestBase
     extends DhisConvenienceTest
     implements ApplicationContextAware

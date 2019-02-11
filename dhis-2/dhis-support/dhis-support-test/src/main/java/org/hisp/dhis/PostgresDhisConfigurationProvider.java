@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.Coordinate;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +26,14 @@ package org.hisp.dhis.common.Coordinate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.FeatureType;
-
-import com.vividsolutions.jts.geom.Geometry;
+package org.hisp.dhis;
 
 /**
- * @author Henning Håkonsen
+ * @author Luciano Fiandesio
  */
-public interface CoordinateObject
+public class PostgresDhisConfigurationProvider
+    extends
+        H2DhisConfigurationProvider
 {
-    FeatureType getFeatureType();
 
-    String getCoordinates();
-
-    boolean hasCoordinates();
-
-    boolean hasDescendantsWithCoordinates();
-
-    default String extractCoordinates( Geometry geometry )
-    {
-        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
-    }
 }

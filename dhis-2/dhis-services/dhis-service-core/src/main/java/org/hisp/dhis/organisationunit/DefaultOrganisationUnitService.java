@@ -49,8 +49,10 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -67,14 +69,16 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static final Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private Environment env;
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
 
     private OrganisationUnitStore organisationUnitStore;
 
@@ -116,6 +120,16 @@ public class DefaultOrganisationUnitService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .initialCapacity( 1000 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -698,7 +712,7 @@ public class DefaultOrganisationUnitService
                 OrganisationUnit orgunit = iter.next();
 
                 double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint,
-                    ValidationUtils.getCoordinatePoint2D( orgunit.getCoordinates() ) );
+                    ValidationUtils.getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry()) ) );
 
                 if ( distancebetween > distance )
                 {
