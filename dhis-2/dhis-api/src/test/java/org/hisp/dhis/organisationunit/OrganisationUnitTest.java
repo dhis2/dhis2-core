@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.vividsolutions.jts.geom.Point;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
@@ -191,19 +192,7 @@ public class OrganisationUnitTest
         unit.setGeometry( geometry );
 
         assertEquals( 3, CoordinateUtils
-            .getCoordinatesAsList( getCoordinatesAsString( unit.getGeometry() ), MULTI_POLYGON ).size() );
+            .getCoordinatesAsList(  unit.getCoordinates() , MULTI_POLYGON ).size() );
 
-    }
-
-    private String getCoordinatesAsString(Geometry geometry )
-        throws IOException
-    {
-        StringWriter o = new StringWriter();
-
-        geometryJSON.writeMultiPolygon( (MultiPolygon) geometry, o );
-
-        JsonNode actualObj = new ObjectMapper().readTree( o.toString() );
-
-        return actualObj.get( "coordinates" ).toString();
     }
 }

@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,7 +61,7 @@ import com.vividsolutions.jts.geom.Geometry;
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
     extends BaseDimensionalItemObject
-    implements MetadataObject
+    implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
@@ -1019,7 +1020,20 @@ public class OrganisationUnit
         this.geometry = geometry;
     }
 
-    public boolean hasCoordinates() {
+    @Override
+    public FeatureType getFeatureType()
+    {
+        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
+    }
+
+    @Override
+    public String getCoordinates()
+    {
+        return extractCoordinates( this.getGeometry() );
+    }
+
+    public boolean hasCoordinates()
+    {
         return this.geometry != null;
     }
 
