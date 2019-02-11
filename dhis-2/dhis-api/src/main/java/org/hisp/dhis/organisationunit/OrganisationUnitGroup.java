@@ -28,23 +28,19 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.Coordinate.CoordinateObject;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-
-import java.util.HashSet;
-import java.util.Set;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
@@ -62,9 +58,7 @@ public class OrganisationUnitGroup
 
     private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
 
-    private FeatureType featureType = FeatureType.NONE;
-
-    private String coordinates;
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -192,6 +186,19 @@ public class OrganisationUnitGroup
         this.groupSets = groupSets;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
+
     public boolean hasDescendantsWithCoordinates()
     {
         return CoordinateUtils.hasDescendantsWithCoordinates( members );
@@ -201,36 +208,19 @@ public class OrganisationUnitGroup
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FeatureType getFeatureType()
     {
-        return featureType;
-    }
 
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
+        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
     }
 
     @Override
-    public boolean hasFeatureType()
-    {
-        return getFeatureType() != null;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
     public String getCoordinates()
     {
-        return coordinates;
-    }
-
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
+        return extractCoordinates( this.geometry );
     }
 
     @Override
     public boolean hasCoordinates()
     {
-        return getCoordinates() != null;
+        return this.geometry != null;
     }
 }

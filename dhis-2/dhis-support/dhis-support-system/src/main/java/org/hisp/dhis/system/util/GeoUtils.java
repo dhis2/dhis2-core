@@ -37,13 +37,13 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.referencing.GeodeticCalculator;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
 
 /**
  * @author Lars Helge Overland
@@ -261,12 +261,6 @@ public class GeoUtils
 
     public static String getCoordinatesFromGeometry( Geometry geometry )
     {
-        String coordinatesKey = "\"coordinates\":";
-        String crsKey = ",\"crs\":";
-
-        GeoJsonWriter gjw = new GeoJsonWriter(  );
-        String geojson = gjw.write( geometry ).trim();
-
-        return geojson.substring( geojson.indexOf( coordinatesKey ) + coordinatesKey.length(), geojson.indexOf( crsKey ) );
+        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
     }
 }
