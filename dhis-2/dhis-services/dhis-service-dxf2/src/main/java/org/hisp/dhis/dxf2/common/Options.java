@@ -28,11 +28,11 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.util.DateUtils;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.hisp.dhis.api.util.DateUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

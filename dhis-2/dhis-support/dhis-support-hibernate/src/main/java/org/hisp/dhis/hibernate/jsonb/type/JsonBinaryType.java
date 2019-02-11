@@ -28,23 +28,31 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.ParameterizedType;
-import org.hibernate.usertype.UserType;
-import org.postgresql.util.PGobject;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Date;
 import java.util.Properties;
+
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.ParameterizedType;
+import org.hibernate.usertype.UserType;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.postgresql.util.PGobject;
+
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,6 +61,21 @@ import java.util.Properties;
 @SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
+    static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static
+    {
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
+        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
+        module.addSerializer( Date.class, new WriteDateStdSerializer() );
+
+        MAPPER.registerModules( module, new JtsModule(  ) );
+
+        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        MAPPER.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+    }
+
     ObjectWriter writer;
 
     ObjectReader reader;
@@ -100,9 +123,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            
+
             // Other types currently ignored
-            
+
             if ( content != null )
             {
                 return convertJsonToObject( content );
@@ -111,7 +134,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         return null;
     }
-    
+
     @Override
     public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
     {
@@ -180,11 +203,8 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    private void init( Class klass )
+    protected void init( Class klass )
     {
-        ObjectMapper MAPPER = new ObjectMapper();
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );
@@ -195,7 +215,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            
+
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );
@@ -210,7 +230,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     /**
      * Serializes an object to JSON.
-     * 
+     *
      * @param object the object to convert.
      * @return JSON content.
      */
@@ -228,7 +248,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     /**
      * Deserializes JSON content to an object.
-     * 
+     *
      * @param content the JSON content.
      * @return an object.
      */

@@ -98,6 +98,8 @@
 
   <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
 
+  <bean id="org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService" class="org.hisp.dhis.dxf2.events.eventdatavalue.DefaultEventDataValueService" />
+
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"

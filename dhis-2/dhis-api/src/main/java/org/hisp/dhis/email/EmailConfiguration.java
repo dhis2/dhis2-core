@@ -1,7 +1,8 @@
 package org.hisp.dhis.email;
 
-import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.MoreObjects;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

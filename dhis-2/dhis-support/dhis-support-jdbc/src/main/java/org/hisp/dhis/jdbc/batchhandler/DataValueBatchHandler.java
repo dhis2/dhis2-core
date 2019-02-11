@@ -28,15 +28,15 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.JdbcConfiguration;
-import org.hisp.quick.batchhandler.AbstractBatchHandler;
-import org.hisp.dhis.datavalue.DataValue;
-
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
 /**
  * @author Lars Helge Overland

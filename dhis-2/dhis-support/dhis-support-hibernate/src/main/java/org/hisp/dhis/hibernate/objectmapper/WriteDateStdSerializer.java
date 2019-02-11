@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.hibernate.objectmapper;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,22 +28,23 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.system.util.DateUtils;
-
 import java.io.IOException;
 import java.util.Date;
+
+import org.hisp.dhis.api.util.DateUtils;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ParseDateStdDeserializer extends JsonDeserializer<Date>
+public class WriteDateStdSerializer extends JsonSerializer<Date>
 {
     @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider ) throws IOException
     {
-        return DateUtils.parseDate( parser.getValueAsString() );
+        generator.writeString( DateUtils.getIso8601NoTz( date ) );
     }
 }
