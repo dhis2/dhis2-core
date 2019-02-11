@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -36,11 +35,12 @@ import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.retry.RetryContext;
 
 import java.util.Date;
@@ -55,27 +55,24 @@ import static org.mockito.Mockito.when;
  * @author aamerm
  */
 public class MetadataSyncPostProcessorTest
-    extends DhisSpringTest
 {
-    @Autowired
     @Mock
     private EmailService emailService;
 
-    @Autowired
     @Mock
     private MetadataRetryContext metadataRetryContext;
 
     @InjectMocks
-    @Autowired
     private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
     private MetadataVersion dataVersion;
     private MetadataSyncSummary metadataSyncSummary;
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Before
-    public void setUp() throws Exception
-    {
-        MockitoAnnotations.initMocks( this );
+    public void setUp() {
 
         dataVersion = new MetadataVersion();
         dataVersion.setType( VersionType.BEST_EFFORT );
@@ -86,7 +83,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsOk() throws Exception
+    public void testShouldSendSuccessEmailIfSyncSummaryIsOk()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.OK );
@@ -99,7 +96,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsWarning() throws Exception
+    public void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.WARNING );
@@ -113,7 +110,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsError() throws Exception
+    public void testShouldSendSuccessEmailIfSyncSummaryIsError()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.ERROR );
@@ -128,7 +125,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendEmailToAdminWithProperSubjectAndBody() throws Exception
+    public void testShouldSendEmailToAdminWithProperSubjectAndBody()
     {
         ImportReport importReport = mock( ImportReport.class );
 
