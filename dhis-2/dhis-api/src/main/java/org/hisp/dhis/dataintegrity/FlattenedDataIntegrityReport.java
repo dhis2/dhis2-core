@@ -127,10 +127,22 @@ public class FlattenedDataIntegrityReport
     private Map<String, Collection<String>> programRulesWithNoAction;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleVariableWithNoDataElement;
+    private Map<String, Collection<String>> programRuleVariablesWithNoDataElement;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleVariableWithNoAttribute;
+    private Map<String, Collection<String>> programRuleVariablesWithNoAttribute;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoDataObject;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoNotification;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoSectionId;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoStageId;
 
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
@@ -186,9 +198,17 @@ public class FlattenedDataIntegrityReport
 
         programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
 
-        programRuleVariableWithNoDataElement = transformMapOfCollections( report.getProgramRuleVariablesWithNoDataElement() );
+        programRuleVariablesWithNoDataElement = transformMapOfCollections( report.getProgramRuleVariablesWithNoDataElement() );
 
-        programRuleVariableWithNoAttribute = transformMapOfCollections( report.getProgramRuleVariablesWithNoAttribute() );
+        programRuleVariablesWithNoAttribute = transformMapOfCollections( report.getProgramRuleVariablesWithNoAttribute() );
+
+        programRuleActionsWithNoDataObject = transformMapOfCollections( report.getProgramRuleActionsWithNoDataObject() );
+
+        programRuleActionsWithNoNotification = transformMapOfCollections( report.getProgramRuleActionsWithNoNotification() );
+
+        programRuleActionsWithNoSectionId = transformMapOfCollections( report.getProgramRuleActionsWithNoSectionId() );
+
+        programRuleActionsWithNoStageId = transformMapOfCollections( report.getProgramRuleActionsWithNoStageId() );
     }
 
     // -------------------------------------------------------------------------

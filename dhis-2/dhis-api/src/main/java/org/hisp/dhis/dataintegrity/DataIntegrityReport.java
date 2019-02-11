@@ -40,6 +40,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
@@ -113,6 +114,14 @@ public class DataIntegrityReport
     private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement = new HashMap<>();
 
     private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId = new HashMap<>();
 
     //-------------------------------------------------------------------------
     // Constructors
@@ -405,5 +414,45 @@ public class DataIntegrityReport
     public void setProgramRuleVariablesWithNoAttribute( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
     {
         this.programRuleVariablesWithNoAttribute = programRuleVariablesWithNoAttribute;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
+    {
+        return programRuleActionsWithNoDataObject;
+    }
+
+    public void setProgramRuleActionsWithNoDataObject( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject )
+    {
+        this.programRuleActionsWithNoDataObject = programRuleActionsWithNoDataObject;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotification()
+    {
+        return programRuleActionsWithNoNotification;
+    }
+
+    public void setProgramRuleActionsWithNoNotification( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification )
+    {
+        this.programRuleActionsWithNoNotification = programRuleActionsWithNoNotification;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
+    {
+        return programRuleActionsWithNoSectionId;
+    }
+
+    public void setProgramRuleActionsWithNoSectionId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId )
+    {
+        this.programRuleActionsWithNoSectionId = programRuleActionsWithNoSectionId;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoStageId()
+    {
+        return programRuleActionsWithNoStageId;
+    }
+
+    public void setProgramRuleActionsWithNoStageId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId )
+    {
+        this.programRuleActionsWithNoStageId = programRuleActionsWithNoStageId;
     }
 }

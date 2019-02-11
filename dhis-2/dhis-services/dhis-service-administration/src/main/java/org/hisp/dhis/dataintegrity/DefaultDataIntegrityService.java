@@ -659,6 +659,11 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked ProgramRuleVariables" );
 
+        report.setProgramRuleActionsWithNoDataObject( getProgramRuleActionsWithNoDataObject() );
+        report.setProgramRuleActionsWithNoNotification( getProgramRuleActionsWithNoNotificationTemplate() );
+
+        log.info( "Checked ProgramRuleActions" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -727,28 +732,35 @@ public class DefaultDataIntegrityService
     }
 
     @Override
-    public List<ProgramRuleAction> getProgramRuleActionsWithNoDataObject()
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
     {
-        return null;
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToDataObject();
+
+        return groupActionsByProgramRule( ruleActions );
     }
 
     @Override
-    public List<ProgramRuleAction> getProgramRuleActionsWithNoNotificationTemplate()
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate()
     {
-        return null;
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToNotification();
+
+        return groupActionsByProgramRule( ruleActions );
     }
 
     @Override
-    public List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId()
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
     {
-        return null;
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoSectionId();
+
+        return groupActionsByProgramRule( ruleActions );
     }
 
     @Override
-    public List<ProgramRuleAction> getProgramRuleActionsWithNoProgramStageId()
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId()
     {
-        return null;
-    }
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoStageId();
+
+        return groupActionsByProgramRule( ruleActions );    }
 
     @Override
     public  Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
@@ -799,6 +811,25 @@ public class DefaultDataIntegrityService
             }
 
             collectionMap.get( program ).add( variable );
+        }
+
+        return collectionMap;
+    }
+
+    private  Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule( List<ProgramRuleAction> ruleActions )
+    {
+        Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = new HashMap<>();
+
+        for ( ProgramRuleAction action : ruleActions )
+        {
+            ProgramRule programRule = action.getProgramRule();
+
+            if ( !collectionMap.containsKey( programRule ) )
+            {
+                collectionMap.put( programRule, Sets.newHashSet() );
+            }
+
+            collectionMap.get( programRule ).add( action );
         }
 
         return collectionMap;

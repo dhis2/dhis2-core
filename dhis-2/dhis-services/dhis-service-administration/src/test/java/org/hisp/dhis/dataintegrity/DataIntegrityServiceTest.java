@@ -481,4 +481,62 @@ public class DataIntegrityServiceTest
         assertEquals( 1, variables.size() );
         assertTrue( variables.contains( variableD ) );
     }
+
+    @Test
+    public void testGetAllProgramRuleActionWithNoDataObject()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 0 );
+
+        int idA = programRuleService.addProgramRule( ruleA );
+        int idC = programRuleService.addProgramRule( ruleB );
+
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", ruleA, ProgramRuleActionType.HIDEFIELD, elementA, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", ruleB, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+
+        int idI = ruleActionService.addProgramRuleAction( actionI );
+        int idJ = ruleActionService.addProgramRuleAction( actionJ );
+
+        ruleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
+        programRuleService.updateProgramRule( ruleA );
+
+        Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = dataIntegrityService.getProgramRuleActionsWithNoDataObject();
+
+        assertTrue( collectionMap.containsKey( ruleB ) );
+
+        Collection<ProgramRuleAction> actions = collectionMap.get( ruleB );
+
+        assertEquals( 1, actions.size() );
+        assertTrue( actions.contains( actionJ ) );
+    }
+
+    @Test
+    public void testGetAllProgramRuleActionWithNoNotification()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "true", null );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programA, null, null, null, 0 );
+
+        int idA = programRuleService.addProgramRule( ruleA );
+        int idC = programRuleService.addProgramRule( ruleB );
+
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", ruleA, ProgramRuleActionType.SENDMESSAGE, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", ruleB, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+
+        actionI.setTemplateUid( "tempUId" );
+
+        int idI = ruleActionService.addProgramRuleAction( actionI );
+        int idJ = ruleActionService.addProgramRuleAction( actionJ );
+
+        ruleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
+        programRuleService.updateProgramRule( ruleA );
+
+        Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = dataIntegrityService.getProgramRuleActionsWithNoNotificationTemplate();
+
+        assertTrue( collectionMap.containsKey( ruleB ) );
+
+        Collection<ProgramRuleAction> actions = collectionMap.get( ruleB );
+
+        assertEquals( 1, actions.size() );
+        assertTrue( actions.contains( actionJ ) );
+    }
 }

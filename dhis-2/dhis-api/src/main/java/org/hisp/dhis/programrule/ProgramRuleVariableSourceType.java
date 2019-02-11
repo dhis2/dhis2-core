@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -49,10 +50,11 @@ public enum ProgramRuleVariableSourceType
 
     private final String value;
 
-    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = Sets.newHashSet( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT,
-        DATAELEMENT_PREVIOUS_EVENT );
+    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
+        DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT, DATAELEMENT_PREVIOUS_EVENT ).build();
 
-    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES = Sets.newHashSet( TEI_ATTRIBUTE );
+    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES =
+        new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( TEI_ATTRIBUTE ).build();
 
     ProgramRuleVariableSourceType( String value )
     {
@@ -80,15 +82,5 @@ public enum ProgramRuleVariableSourceType
     public static Set<ProgramRuleVariableSourceType> getAttributeTypes()
     {
         return ATTRIBUTE_TYPES;
-    }
-
-    public static boolean isDataType( ProgramRuleVariableSourceType type )
-    {
-        return DATA_TYPES.contains( type );
-    }
-
-    public static boolean isAttributeType( ProgramRuleVariableSourceType type )
-    {
-        return ATTRIBUTE_TYPES.contains( type );
     }
 }

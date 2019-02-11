@@ -255,23 +255,23 @@ public interface DataIntegrityService
      *
      * @return all {@link ProgramRuleAction} which are not linked to any DataElement/TrackedEntityAttribute
      */
-    List<ProgramRuleAction> getProgramRuleActionsWithNoDataObject();
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject();
 
     /**
      *
      * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.notification.NotificationTemplate}
      */
-    List<ProgramRuleAction> getProgramRuleActionsWithNoNotificationTemplate();
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate();
 
     /**
      *
      * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStageSection}
      */
-    List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId();
 
     /**
      *
      * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStage}
      */
-    List<ProgramRuleAction> getProgramRuleActionsWithNoProgramStageId();
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId();
 }
