@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.hibernate;
  */
 
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
@@ -50,5 +51,15 @@ public class HibernateProgramRuleVariableStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
+            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
     }
 }
