@@ -128,7 +128,10 @@ public class DefaultEventQueryPlanner
 
         String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
 
-        partitionManager.filterNonExistingPartitions( partitions, tableName );
+        if ( params.getCurrentUser() != null )
+        {
+            partitionManager.filterNonExistingPartitions( partitions, tableName );
+        }
 
         return new EventQueryParams.Builder( params )
             .withTableName( tableName )
