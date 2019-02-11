@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -116,7 +117,7 @@ public class JdbcAnalyticsManager
         .build();
 
     @Autowired
-    private PartitionManager partitionManager;
+    private QueryPlanner queryPlanner;
 
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -142,7 +143,7 @@ public class JdbcAnalyticsManager
                     .withDataPeriodsForAggregationPeriods( dataPeriodAggregationPeriodMap )
                     .build();
 
-                params = assignPartitionTable( params );
+                params = queryPlanner.assignPartitionsFromQueryPeriods( params );
             }
 
             String sql = getSelectClause( params );
@@ -700,23 +701,5 @@ public class JdbcAnalyticsManager
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
         Assert.isTrue( !( params.getAggregationType().isLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
             "Max one dimension period can be present per query for last period aggregation" );
-    }
-
-    /**
-     * Assigns correct partition tables
-     */
-    private DataQueryParams assignPartitionTable( DataQueryParams params )
-    {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
-
-        params =  DataQueryParams.newBuilder( params )
-            .withPartitions( partitions )
-            .build();
-
-        partitionManager.filterNonExistingPartitions( params.getPartitions(), params.getTableName() );
-
-        return params;
     }
 }
