@@ -49,6 +49,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -73,6 +74,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
 @ContextConfiguration(classes = WebTestConfiguration.class)
+@ActiveProfiles("test-h2")
 @Transactional
 public abstract class DhisWebSpringTest
     extends DhisConvenienceTest
