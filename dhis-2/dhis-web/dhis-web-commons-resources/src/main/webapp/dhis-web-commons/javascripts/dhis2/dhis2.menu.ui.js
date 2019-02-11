@@ -65,7 +65,8 @@
                 } else {
                     baseUrl = [href, dhis2.settings.baseUrl].join('/');
                 }
-                return baseUrl;
+
+                return baseUrl.replace(/\/+$/, "");
             }
         })();
 
