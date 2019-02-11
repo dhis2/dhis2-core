@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -189,5 +190,78 @@ public class ProgramRuleActionServiceTest
 
         assertNull( actionService.getProgramRuleAction( idI ) );
         assertNull( actionService.getProgramRuleAction( idJ ) );
+    }
+
+    @Test
+    public void testProgramRuleActionWithNoDataObject()
+    {
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+
+        int idI = actionService.addProgramRuleAction( actionI );
+        int idJ = actionService.addProgramRuleAction( actionJ );
+
+        programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
+        programRuleService.updateProgramRule( programRuleA );
+
+        List<ProgramRuleAction> ruleActions = actionService.getProgramActionsWithNoLinkToDataObject();
+
+        assertEquals( 1, ruleActions.size() );
+        assertTrue( ruleActions.contains( actionJ ) );
+        assertEquals( ruleActions.get( 0 ).getProgramRuleActionType(), ProgramRuleActionType.SETMANDATORYFIELD );
+    }
+
+    @Test
+    public void testProgramRuleActionWithNoNotification()
+    {
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.SENDMESSAGE, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+
+        actionI.setTemplateUid( "tempUId" );
+        int idI = actionService.addProgramRuleAction( actionI );
+        int idJ = actionService.addProgramRuleAction( actionJ );
+
+        programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
+        programRuleService.updateProgramRule( programRuleA );
+
+        List<ProgramRuleAction> ruleActions = actionService.getProgramActionsWithNoLinkToNotification();
+
+        assertEquals( 1, ruleActions.size() );
+        assertTrue( ruleActions.contains( actionJ ) );
+        assertEquals( ruleActions.get( 0 ).getProgramRuleActionType(), ProgramRuleActionType.SCHEDULEMESSAGE );
+    }
+
+    @Test
+    public void testProgramRuleActionWithNoSectionId()
+    {
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null);
+
+        int idI = actionService.addProgramRuleAction( actionI );
+
+        programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
+        programRuleService.updateProgramRule( programRuleA );
+
+        List<ProgramRuleAction> ruleActions = actionService.getProgramRuleActionsWithNoSectionId();
+
+        assertEquals( 1, ruleActions.size() );
+        assertTrue( ruleActions.contains( actionI ) );
+        assertEquals( ruleActions.get( 0 ).getProgramRuleActionType(), ProgramRuleActionType.HIDESECTION );
+    }
+
+    @Test
+    public void testProgramRuleActionWithNoStageId()
+    {
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null);
+
+        int idI = actionService.addProgramRuleAction( actionI );
+
+        programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
+        programRuleService.updateProgramRule( programRuleA );
+
+        List<ProgramRuleAction> ruleActions = actionService.getProgramRuleActionsWithNoStageId();
+
+        assertEquals( 1, ruleActions.size() );
+        assertTrue( ruleActions.contains( actionI ) );
+        assertEquals( ruleActions.get( 0 ).getProgramRuleActionType(), ProgramRuleActionType.HIDEPROGRAMSTAGE );
     }
 }
