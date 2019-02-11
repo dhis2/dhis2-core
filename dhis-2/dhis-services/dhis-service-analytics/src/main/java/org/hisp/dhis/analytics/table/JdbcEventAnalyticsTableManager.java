@@ -28,6 +28,17 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -40,34 +51,23 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 
 /**
  * @author Lars Helge Overland
@@ -171,7 +171,7 @@ public class JdbcEventAnalyticsTableManager
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-                "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " +
@@ -189,6 +189,10 @@ public class JdbcEventAnalyticsTableManager
     {
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+
+        final String dataValueClausePrefix = " and eventdatavalues #>> '{";
+        final String dataValueNumericClauseSuffix = ",value}' " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+        final String dataValueDateClauseSuffix = ",value}' " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
         //TODO dateClause regular expression
 
@@ -241,30 +245,43 @@ public class JdbcEventAnalyticsTableManager
         for ( DataElement dataElement : program.getDataElements() )
         {
             ColumnDataType dataType = getColumnType( dataElement.getValueType() );
-            String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
-            String select = getSelectClause( dataElement.getValueType() );
+            // Assemble a regex dataClause with using jsonb #>> operator
+            String dataClause = dataElement.isNumericType()
+                ? ( dataValueClausePrefix + dataElement.getUid() + dataValueNumericClauseSuffix )
+                : dataElement.getValueType().isDate()
+                ? ( dataValueClausePrefix + dataElement.getUid() + dataValueDateClauseSuffix )
+                : "";
+
+            // Assemble a String with using jsonb #>> operator that will fetch the required value
+            String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+            String select = getSelectClause( dataElement.getValueType(), columnName );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
-                "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
+            String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
+                dataClause + ") as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
         for ( DataElement dataElement : program.getDataElementsWithLegendSet() )
         {
+            // Assemble a regex dataClause with using jsonb #>> operator
+            String numericDataClause = dataValueClausePrefix + dataElement.getUid() + dataValueNumericClauseSuffix;
+            // Assemble a String with using jsonb #>> operator that will fetch the required value
+            String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+            String select = getSelectClause( dataElement.getValueType(), columnName );
+
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
                 String column = quote( dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
-                String select = getSelectClause( dataElement.getValueType() );
 
                 String sql =
                     "(select l.uid from maplegend l " +
-                    "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " " +
-                    "and l.endvalue > " + select + " " +
-                    "and l.maplegendsetid=" + legendSet.getId() + " " +
-                    "and dv.programstageinstanceid=psi.programstageinstanceid " +
-                    "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
+                        "inner join programstageinstance on l.startvalue <= " + select + " " +
+                        "and l.endvalue > " + select + " " +
+                        "and l.maplegendsetid=" + legendSet.getId() + " " +
+                        "and programstageinstanceid=psi.programstageinstanceid " +
+                        numericDataClause + ") as " + column;
 
                 columns.add( new AnalyticsTableColumn( column, CHARACTER_11, sql ) );
             }
@@ -274,7 +291,7 @@ public class JdbcEventAnalyticsTableManager
         {
             ColumnDataType dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-            String select = getSelectClause( attribute.getValueType() );
+            String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
@@ -285,10 +302,11 @@ public class JdbcEventAnalyticsTableManager
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {
+            String select = getSelectClause( attribute.getValueType(), "value" );
+
             for ( LegendSet legendSet : attribute.getLegendSets() )
             {
                 String column = quote( attribute.getUid() + PartitionUtils.SEP + legendSet.getUid() );
-                String select = getSelectClause( attribute.getValueType() );
 
                 String sql =
                     "(select l.uid from maplegend l " +

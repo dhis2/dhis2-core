@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.hibernate.objectmapper;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,28 +28,23 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.Date;
+
+import org.hisp.dhis.api.util.DateUtils;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class ParseDateStdDeserializer extends JsonDeserializer<Date>
 {
     @Override
-    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
     {
-        String result = parser.getValueAsString();
-
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
+        return DateUtils.parseDate( parser.getValueAsString() );
     }
 }
