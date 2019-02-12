@@ -40,7 +40,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -78,7 +77,6 @@ import org.mockito.junit.MockitoRule;
  */
 public class DataIntegrityServiceTest
 {
-
     @Mock
     private I18nManager i18nManager;
 
@@ -149,14 +147,12 @@ public class DataIntegrityServiceTest
     private OrganisationUnitGroup unitGroupA;
     private OrganisationUnitGroup unitGroupB;
     private OrganisationUnitGroup unitGroupC;
-    private OrganisationUnitGroup unitGroupD;
-
     @Before
     public void setUp()
     {
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
-                organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-                dataEntryFormService, categoryService, periodService, programIndicatorService );
+            organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
+            dataEntryFormService, categoryService, periodService, programIndicatorService );
         rnd = new BeanRandomizer();
         setUpFixtures();
     }
@@ -224,7 +220,6 @@ public class DataIntegrityServiceTest
         unitGroupA = createOrganisationUnitGroup( 'A' );
         unitGroupB = createOrganisationUnitGroup( 'B' );
         unitGroupC = createOrganisationUnitGroup( 'C' );
-        unitGroupD = createOrganisationUnitGroup( 'D' );
 
         unitGroupA.getMembers().add( unitA );
         unitGroupA.getMembers().add( unitB );
