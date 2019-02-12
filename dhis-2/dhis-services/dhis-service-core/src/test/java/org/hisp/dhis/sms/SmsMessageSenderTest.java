@@ -41,7 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -50,7 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @RunWith( MockitoJUnitRunner.class )
 public class SmsMessageSenderTest
@@ -116,11 +116,11 @@ public class SmsMessageSenderTest
         when( gatewayAdministrationService.getGatewayConfigurationMap() ).thenReturn( configMap );
 
         // stub for UserSettingService
-        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.valueOf( true ) );
+        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn(Boolean.TRUE);
 
         // stub for SmsGateways
         when ( bulkSmsGateway.accept( any() ) ).thenReturn( true );
-        when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( okStatus );
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( okStatus );
         when ( bulkSmsGateway.sendBatch( any(), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( summaryResponses );
     }
 
@@ -135,7 +135,7 @@ public class SmsMessageSenderTest
 
         verify( gatewayAdministrationService, times( 1 ) ).getDefaultGateway();
         verify( bulkSmsGateway, times( 1 ) ).accept( any() );
-        verify( bulkSmsGateway, times( 1 ) ).send( anyString(), anyString(), anySetOf( String.class ), any() );
+        verify( bulkSmsGateway, times( 1 ) ).send( anyString(), anyString(), anySet( ), any() );
     }
 
     @Test
@@ -196,7 +196,7 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageWithUserSMSSettingsDisabled()
     {
-        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.valueOf( false ) );
+        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn(Boolean.FALSE);
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, users, false );
 
@@ -218,7 +218,7 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageFailed()
     {
-        when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( failedStatus );
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( failedStatus );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, recipientsNormalized );
 
@@ -233,7 +233,7 @@ public class SmsMessageSenderTest
     {
         Set<String> tempRecipients = Sets.newHashSet();
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
         {
             tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
             return okStatus;
@@ -259,7 +259,7 @@ public class SmsMessageSenderTest
 
         generateRecipients( 500 );
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
         {
             recipientList.add( (Set<String>) invocation.getArguments()[2] );
 
@@ -271,7 +271,7 @@ public class SmsMessageSenderTest
         assertNotNull( status );
         assertTrue( status.isOk() );
 
-        recipientList.stream().forEach( set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
+        recipientList.forEach(set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
     }
 
     @Test
@@ -328,7 +328,7 @@ public class SmsMessageSenderTest
     {
         summaryResponses.clear();
 
-        when ( bulkSmsGateway.sendBatch( any(), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
+        when ( bulkSmsGateway.sendBatch( any(), isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
         {
             OutboundMessageBatch batch = (OutboundMessageBatch) invocation.getArguments()[0];
 

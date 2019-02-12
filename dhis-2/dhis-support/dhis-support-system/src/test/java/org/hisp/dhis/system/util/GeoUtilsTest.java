@@ -28,16 +28,20 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.*;
 import static org.hisp.dhis.system.util.GeoUtils.getBoxShape;
 import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
-import static org.junit.Assert.assertEquals;
-
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
+
+import org.geotools.geojson.geom.GeometryJSON;
+import org.hisp.dhis.TestResourceUtils;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * Lars Helge Overland
@@ -53,19 +57,19 @@ public class GeoUtilsTest
 
         double[] box = getBoxShape( 0, 0, 110574.27 );
 
-        assertEquals( 1d, box[0], DELTA );
-        assertEquals( 1d, box[1], DELTA );
-        assertEquals( -1d, box[2], DELTA );
-        assertEquals( -1d, box[3], DELTA );
+        Assert.assertEquals( 1d, box[0], DELTA );
+        Assert.assertEquals( 1d, box[1], DELTA );
+        Assert.assertEquals( -1d, box[2], DELTA );
+        Assert.assertEquals( -1d, box[3], DELTA );
 
         // Punta Arenas
 
         box = getBoxShape( -71, -53, 67137.20 );
 
-        assertEquals( -52.4, box[0], DELTA );
-        assertEquals( -70d, box[1], DELTA );
-        assertEquals( -53.6, box[2], DELTA );
-        assertEquals( -72d, box[3], DELTA );
+        Assert.assertEquals( -52.4, box[0], DELTA );
+        Assert.assertEquals( -70d, box[1], DELTA );
+        Assert.assertEquals( -53.6, box[2], DELTA );
+        Assert.assertEquals( -72d, box[3], DELTA );
     }
 
     @Test
@@ -85,7 +89,7 @@ public class GeoUtilsTest
 
         String actual = replaceUnsafeSvgText( text );
 
-        assertEquals( expected, actual );
+        Assert.assertEquals( expected, actual );
     }
 
     @Test
@@ -99,39 +103,36 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POINT, _point );
 
-            assertTrue( g.getGeometryType().equals( "Point" ) );
+            assertEquals("Point", g.getGeometryType());
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
         {
-            assertTrue( false );
-            e.printStackTrace();
+            fail();
         }
 
         try
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POLYGON, _polygon );
 
-            assertTrue( g.getGeometryType().equals( "Polygon" ) );
+            assertEquals("Polygon", g.getGeometryType());
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
         {
-            assertTrue( false );
-            e.printStackTrace();
+            fail();
         }
 
         try
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.MULTI_POLYGON, _multipolygon );
 
-            assertTrue( g.getGeometryType().equals( "MultiPolygon" ) );
+            assertEquals("MultiPolygon", g.getGeometryType());
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
         {
-            assertTrue( false );
-            e.printStackTrace();
+            fail();
         }
 
     }
@@ -147,5 +148,40 @@ public class GeoUtilsTest
         String res = GeoUtils.getCoordinatesFromGeometry( g );
 
         assertEquals( _multipolygon, res );
+    }
+
+    @Test
+    public void testVerifyPointIsWithinPolygon()
+            throws IOException
+    {
+        String downtownOslo = TestResourceUtils.getFileContent( "gis/downtownOslo.json" );
+
+        Geometry g = new GeometryJSON().read( downtownOslo );
+
+        boolean result = GeoUtils.checkPointWithMultiPolygon( 10.746517181396484, 59.91080384720672, g );
+
+        assertTrue( result );
+
+        result = GeoUtils.checkPointWithMultiPolygon( 10.755915641784668, 59.9139664757207, g );
+
+        assertFalse( result );
+
+    }
+
+    @Test
+    public void testVerifyPointIsWithinMultiPolygon()
+            throws IOException
+    {
+        String downtownOslo = TestResourceUtils.getFileContent( "gis/brasilMultiPolygon.json" );
+
+        Geometry g = new GeometryJSON().read( downtownOslo );
+        boolean result = GeoUtils.checkPointWithMultiPolygon( -43.96728515625, -16.699340234594537, g );
+
+        assertTrue( result );
+
+        result = GeoUtils.checkPointWithMultiPolygon( -43.681640625, -18.698285474146807, g );
+
+        assertFalse( result );
+
     }
 }
