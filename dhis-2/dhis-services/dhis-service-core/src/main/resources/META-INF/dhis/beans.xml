@@ -881,13 +881,13 @@
   </bean>
 
   <bean id="org.hisp.dhis.expression.ExpressionService" class="org.hisp.dhis.expression.DefaultExpressionService">
-    <property name="expressionStore" ref="org.hisp.dhis.expression.ExpressionStore" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
-    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="dimensionService" ref="org.hisp.dhis.dimension.DimensionService" />
-    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <constructor-arg index="0" ref="org.hisp.dhis.expression.ExpressionStore"/>
+    <constructor-arg index="1" ref="org.hisp.dhis.dataelement.DataElementService"/>
+    <constructor-arg index="2" ref="org.hisp.dhis.constant.ConstantService"/>
+    <constructor-arg index="3" ref="org.hisp.dhis.category.CategoryService"/>
+    <constructor-arg index="4" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"/>
+    <constructor-arg index="5" ref="org.hisp.dhis.dimension.DimensionService"/>
+    <constructor-arg index="6" ref="org.hisp.dhis.common.IdentifiableObjectManager"/>
   </bean>
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
@@ -913,6 +913,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+    <property name="env" ref="environment" />
   </bean>
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
@@ -926,6 +927,7 @@
     <property name="userSettingStore" ref="org.hisp.dhis.user.UserSettingStore" />
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="env" ref="environment" />
   </bean>
 
   <bean id="org.hisp.dhis.user.UserService" class="org.hisp.dhis.user.DefaultUserService">

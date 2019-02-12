@@ -40,7 +40,10 @@ import org.hisp.dhis.period.RelativePeriods;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.Date;
@@ -57,14 +60,24 @@ public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
-    private static Cache<String, Integer> PERIOD_ID_CACHE =  Caffeine.newBuilder()
-        .expireAfterWrite( 24, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    @Autowired
+    private Environment env;
+
+    private static Cache<String, Integer> PERIOD_ID_CACHE;
     
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
+
+    @PostConstruct
+    public void init()
+    {
+
+        PERIOD_ID_CACHE =  Caffeine.newBuilder()
+                .expireAfterWrite( 24, TimeUnit.HOURS )
+                .initialCapacity( 200 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 10000 ).build();
+    }
 
     @Override
     public void addPeriod( Period period )

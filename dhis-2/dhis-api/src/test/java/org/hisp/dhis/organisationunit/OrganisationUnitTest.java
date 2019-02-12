@@ -28,15 +28,20 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
+import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import org.geotools.geojson.geom.GeometryJSON;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Lars Helge Overland
@@ -46,9 +51,10 @@ public class OrganisationUnitTest
     private List<CoordinatesTuple> multiPolygonCoordinatesList = new ArrayList<>();
     private List<CoordinatesTuple> pointCoordinatesList = new ArrayList<>();
     
-    private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66]]],[[[77.77,88.88],[99.99,11.11],[22.22,33.33]]],[[[44.44,55.55],[66.66,77.77],[88.88,99.99]]]]";
-    private String pointCoordinates = "[11.11,22.22]";
-    
+    private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66],[11.11,22.22]]]," +
+                                             "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]]," +
+                                             "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
+
     private CoordinatesTuple tupleA;
     private CoordinatesTuple tupleB;
     private CoordinatesTuple tupleC;
@@ -57,8 +63,10 @@ public class OrganisationUnitTest
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
-    private OrganisationUnit unitD;    
-    
+    private OrganisationUnit unitD;
+
+    private GeometryJSON geometryJSON = new GeometryJSON();
+
     @Before
     public void before()
     {
@@ -167,36 +175,18 @@ public class OrganisationUnitTest
 
         assertEquals( expected, unitD.getParentNameGraph( null, false ) );        
     }
-    
-    @Test
-    public void testSetMultiPolygonCoordinatesFromCollection()
-    {
-        OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( CoordinateUtils.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList ) );
-        
-        assertEquals( multiPolygonCoordinates, unit.getCoordinates() );
-    }
 
     @Test
-    public void testSetPointCoordinatesFromCollection()
+    public void testGetCoordinatesAsCollection() throws IOException
     {
+
         OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
-        
-        assertEquals( pointCoordinates, unit.getCoordinates() );
-    }
-    
-    @Test
-    public void testGetCoordinatesAsCollection()
-    {   
-        OrganisationUnit unit = new OrganisationUnit();
-        unit.setCoordinates( multiPolygonCoordinates );
-        unit.setFeatureType( FeatureType.MULTI_POLYGON );
-        
-        assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).size() );
-        
-        assertEquals( tupleA, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 0 ) );
-        assertEquals( tupleB, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 1 ) );
-        assertEquals( tupleC, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 2 ) );
+        Geometry geometry = geometryJSON
+            .read( "{\"type\":\"MultiPolygon\", \"coordinates\":" + multiPolygonCoordinates + "}" );
+        unit.setGeometry( geometry );
+
+        assertEquals( 3, CoordinateUtils
+            .getCoordinatesAsList(  unit.getCoordinates() , MULTI_POLYGON ).size() );
+
     }
 }

@@ -28,14 +28,16 @@
 
 package org.hisp.dhis;
 
+import java.util.Properties;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
-
-import java.util.Properties;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,7 +54,8 @@ public class IntegrationTestConfig
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TestDhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider();
+
+        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         Properties properties = new Properties();

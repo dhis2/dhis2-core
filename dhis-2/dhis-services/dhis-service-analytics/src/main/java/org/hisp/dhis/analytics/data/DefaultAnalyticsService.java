@@ -128,6 +128,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -172,6 +173,8 @@ public class DefaultAnalyticsService
 
     private CacheProvider cacheProvider;
 
+    private Environment environment;
+
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -182,7 +185,7 @@ public class DefaultAnalyticsService
     public void init()
     {
         Long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
+        boolean enabled = expiration > 0 && !SystemUtils.isTestRun( this.environment.getActiveProfiles() );
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
             .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
@@ -191,12 +194,12 @@ public class DefaultAnalyticsService
     }
 
     @Autowired
-    public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
-        AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
-        ExpressionParserService expressionParserService, ConstantService constantService,
-        OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-        EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
-        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider )
+    public DefaultAnalyticsService(AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
+                                   AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
+                                   ExpressionParserService expressionParserService, ConstantService constantService,
+                                   OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+                                   EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
+                                   DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
     {
         checkNotNull( analyticsManager );
         checkNotNull( rawAnalyticsManager );
@@ -211,6 +214,7 @@ public class DefaultAnalyticsService
         checkNotNull( dataQueryService );
         checkNotNull( dhisConfig );
         checkNotNull( cacheProvider );
+        checkNotNull( environment );
 
         this.analyticsManager = analyticsManager;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -225,7 +229,7 @@ public class DefaultAnalyticsService
         this.dataQueryService = dataQueryService;
         this.dhisConfig = dhisConfig;
         this.cacheProvider = cacheProvider;
-
+        this.environment = environment;
     }
 
     @Override
