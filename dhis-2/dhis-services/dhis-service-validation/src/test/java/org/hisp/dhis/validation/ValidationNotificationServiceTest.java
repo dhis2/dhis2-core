@@ -30,8 +30,7 @@ package org.hisp.dhis.validation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anySetOf;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -113,7 +112,7 @@ public class ValidationNotificationServiceTest
         sentMessages = new ArrayList<>();
 
         when(
-            messageService.sendValidationMessage( anySetOf( User.class ), anyString(), anyString(), any( MessageConversationPriority.class ) )
+            messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
         ).then( invocation ->
             {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );

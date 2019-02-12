@@ -104,7 +104,6 @@ public class MetadataSyncDelegateTest
         SystemInfo systemInfo = new SystemInfo();
         systemInfo.setVersion( "2.26" );
         when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( null );
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
         assertFalse(shouldStopSync);
     }

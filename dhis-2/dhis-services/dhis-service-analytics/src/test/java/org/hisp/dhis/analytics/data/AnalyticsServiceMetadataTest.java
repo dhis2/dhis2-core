@@ -65,9 +65,11 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.ImmutableList;
@@ -77,6 +79,7 @@ import org.springframework.core.env.Environment;
 /**
  * @author Luciano Fiandesio
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class AnalyticsServiceMetadataTest
 {
     @Mock
@@ -122,9 +125,6 @@ public class AnalyticsServiceMetadataTest
     private Environment environment;
 
     private AnalyticsService target;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
     public void setUp()

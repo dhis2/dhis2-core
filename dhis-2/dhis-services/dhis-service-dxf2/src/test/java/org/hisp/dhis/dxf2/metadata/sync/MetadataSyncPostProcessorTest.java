@@ -129,8 +129,6 @@ public class MetadataSyncPostProcessorTest
     {
         ImportReport importReport = mock( ImportReport.class );
 
-        when( importReport.getTypeReportMap() ).thenReturn( new HashMap<>() );
-
         metadataSyncSummary.setImportReport( importReport );
         metadataSyncSummary.getImportReport().setStatus( Status.OK );
         metadataSyncSummary.setMetadataVersion( dataVersion );
