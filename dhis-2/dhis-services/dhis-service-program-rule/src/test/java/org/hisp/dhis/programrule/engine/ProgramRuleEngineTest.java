@@ -279,10 +279,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private void setupEvents()
     {
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
-        int idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
-        int idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        organisationUnitService.addOrganisationUnit( organisationUnitB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programS = createProgram( 'S', new HashSet<>(), organisationUnitB );
