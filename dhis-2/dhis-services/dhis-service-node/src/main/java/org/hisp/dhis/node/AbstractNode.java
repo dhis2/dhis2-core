@@ -37,6 +37,7 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +64,8 @@ public abstract class AbstractNode implements Node
     protected ImmutableList<Node> sortedChildren;
 
     protected Property property;
+
+    protected boolean toBeRemoved = false;
 
     protected AbstractNode( String name, NodeType nodeType )
     {
@@ -256,6 +259,16 @@ public abstract class AbstractNode implements Node
         }
 
         return Ordered.LOWEST_PRECEDENCE;
+    }
+
+    public boolean isToBeRemoved()
+    {
+        return toBeRemoved;
+    }
+
+    public void setToBeRemoved( boolean toBeRemoved )
+    {
+        this.toBeRemoved = toBeRemoved;
     }
 
     @Override
