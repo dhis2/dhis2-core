@@ -31,12 +31,12 @@
     <module>dhis-service-core</module>
     <!-- Level 6 -->
     <module>dhis-service-expression-parser</module>
-    <!-- Level 7 -->
     <module>dhis-service-validation</module>
-    <module>dhis-service-dxf2</module>
+    <module>dhis-service-program-rule</module>
     <module>dhis-service-mobile</module>
     <module>dhis-service-administration</module>
-    <module>dhis-service-program-rule</module>
+    <!-- Level 7 -->
+    <module>dhis-service-dxf2</module>
     <!-- Level 8 -->
     <module>dhis-service-analytics</module>
     <!-- Level 9 -->
