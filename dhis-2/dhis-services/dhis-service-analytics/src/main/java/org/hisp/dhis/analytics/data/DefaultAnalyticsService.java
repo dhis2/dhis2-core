@@ -194,12 +194,12 @@ public class DefaultAnalyticsService
     }
 
     @Autowired
-    public DefaultAnalyticsService(AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
-                                   AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
-                                   ExpressionParserService expressionParserService, ConstantService constantService,
-                                   OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-                                   EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
-                                   DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
+    public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
+        AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
+        ExpressionParserService expressionParserService, ConstantService constantService,
+        OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+        EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
+        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
     {
         checkNotNull( analyticsManager );
         checkNotNull( rawAnalyticsManager );
