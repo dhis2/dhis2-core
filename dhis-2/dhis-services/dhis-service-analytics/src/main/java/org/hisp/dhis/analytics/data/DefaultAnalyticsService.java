@@ -176,7 +176,6 @@ public class DefaultAnalyticsService
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
-
     private Cache<Grid> queryCache;
 
     @PostConstruct
