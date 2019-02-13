@@ -28,6 +28,13 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.HashSet;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -48,16 +55,12 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.util.HashSet;
-
-import javax.annotation.Nonnull;
 
 /**
  * Created by zubair@dhis2.org on 05.02.18.
@@ -132,7 +135,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         {
             eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
             return eventType;
-        }).when( publisher ).publishEnrollment( Mockito.any( ProgramNotificationTemplate.class ) ,Mockito.any( ProgramInstance.class ), Matchers.any( ProgramNotificationEventType.class ) );
+        }).when( publisher ).publishEnrollment( Mockito.any( ProgramNotificationTemplate.class ) ,Mockito.any( ProgramInstance.class ), any( ProgramNotificationEventType.class ) );
 
         doAnswer( invocationOnMock ->
         {
@@ -150,7 +153,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
-        verify( publisher ).publishEnrollment( Mockito.any( ProgramNotificationTemplate.class ), argumentInstanceCaptor.capture(), argumentEventCaptor.capture() );
+        verify( publisher ).publishEnrollment( any( ProgramNotificationTemplate.class ), argumentInstanceCaptor.capture(), argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
         assertEquals( programInstance, argumentInstanceCaptor.getValue() );
     }
@@ -160,12 +163,11 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-        doAnswer( invocationOnMock ->
-        {
+        doAnswer( invocationOnMock -> {
             eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
             return eventType;
-        }).when( publisher ).publishEvent( Mockito.any( ProgramNotificationTemplate.class ) ,Mockito.any( ProgramStageInstance.class ), Matchers.any( ProgramNotificationEventType.class ) );
-
+        } ).when( publisher ).publishEvent( any( ProgramNotificationTemplate.class ),
+            Mockito.any( ProgramStageInstance.class ), any( ProgramNotificationEventType.class ) );
 
         doAnswer( invocationOnMock ->
         {
@@ -183,7 +185,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
-        verify( publisher ).publishEvent( Mockito.any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );
+        verify( publisher ).publishEvent( any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
         assertEquals( programStageInstance, argumentStageInstanceCaptor.getValue() );
     }
@@ -195,11 +197,11 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
 
-        doAnswer( invocationOnMock ->
-        {
+        doAnswer( invocationOnMock -> {
             eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
             return eventType;
-        }).when( publisher ).publishEnrollment( Mockito.any( ProgramNotificationTemplate.class ) ,Mockito.any( ProgramInstance.class ), Matchers.any( ProgramNotificationEventType.class ) );
+        } ).when( publisher ).publishEnrollment( any( ProgramNotificationTemplate.class ), any( ProgramInstance.class ),
+            any( ProgramNotificationEventType.class ) );
 
         doAnswer( invocationOnMock ->
         {

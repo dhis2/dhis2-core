@@ -29,16 +29,15 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -63,14 +62,12 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -139,7 +136,7 @@ public class AnalyticsServiceMetadataTest
 
     private void initMock( DataQueryParams params )
     {
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
             DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );

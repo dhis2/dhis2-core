@@ -100,34 +100,6 @@ public class ValidationNotificationServiceTest
 
     private List<MockMessage> sentMessages;
 
-    /**
-     * We mock the sending of messages to write to a local List (which we can inspect).
-     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
-     */
-    @Before
-    public void initTest()
-    {
-        this.periodService = new DefaultPeriodService();
-
-        sentMessages = new ArrayList<>();
-
-        when(
-            messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
-        ).then( invocation ->
-            {
-                sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 42;
-            }
-        );
-
-        // Stub renderer
-        when(
-            renderer.render( any(), any() )
-        ).thenReturn(
-            new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
-        );
-    }
-
     // -------------------------------------------------------------------------
     // Test fixtures
     // -------------------------------------------------------------------------
@@ -151,6 +123,34 @@ public class ValidationNotificationServiceTest
      *               / \
      *  lvlTwoLeftLeft  lvlTwoLeftRight
      */
+
+    /**
+     * We mock the sending of messages to write to a local List (which we can inspect).
+     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
+     */
+    @Before
+    public void initTest()
+    {
+        this.periodService = new DefaultPeriodService();
+
+        sentMessages = new ArrayList<>();
+
+        when(
+                messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
+        ).then( invocation ->
+                {
+                    sentMessages.add( new MockMessage( invocation.getArguments() ) );
+                    return 42;
+                }
+        );
+
+        // Stub renderer
+        when(
+                renderer.render( any(), any() )
+        ).thenReturn(
+                new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
+        );
+    }
 
     // -------------------------------------------------------------------------
     // Tests
