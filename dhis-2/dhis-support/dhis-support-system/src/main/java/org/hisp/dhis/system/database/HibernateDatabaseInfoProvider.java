@@ -37,6 +37,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -66,6 +67,9 @@ public class HibernateDatabaseInfoProvider
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private Environment environment;
+
     public void init()
     {
         checkDatabaseConnectivity();
@@ -73,7 +77,7 @@ public class HibernateDatabaseInfoProvider
         boolean spatialSupport = false;
 
         // Check if postgis is installed. If not, fail startup.
-        if ( !SystemUtils.isTestRun() )
+        if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {
             spatialSupport = isSpatialSupport();
 

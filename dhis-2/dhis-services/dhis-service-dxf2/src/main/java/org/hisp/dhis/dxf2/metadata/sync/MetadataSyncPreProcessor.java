@@ -36,8 +36,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.util.DateUtils;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -220,24 +218,6 @@ public class MetadataSyncPreProcessor
     //----------------------------------------------------------------------------------------
     // Private Methods
     //----------------------------------------------------------------------------------------
-
-    // TODO remove?
-
-    private void handleAggregateImportSummary( ImportSummary importSummary, MetadataRetryContext context )
-    {
-        if ( importSummary != null )
-        {
-            ImportStatus status = importSummary.getStatus();
-
-            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
-            {
-                log.error( "Import Summary description: " + importSummary.getDescription() );
-                context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
-                throw new MetadataSyncServiceException( "The Data Push was not successful. " );
-            }
-        }
-
-    }
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
     {

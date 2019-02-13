@@ -301,23 +301,24 @@ public class DefaultExpressionService
     private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
     {
         Set<T> objects = new HashSet<>();
-        
+
         if ( expression == null )
         {
             return  objects;
         }
+
         final Matcher matcher = pattern.matcher( expression );
 
         while ( matcher.find() )
         {
             final T object = provider.apply( matcher );
-            
+
             if ( object != null )
             {
                 objects.add( object );
             }
         }
-        
+
         return objects;
     }
 
@@ -465,12 +466,10 @@ public class DefaultExpressionService
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
         return indicators.stream()
-                .flatMap(
-                        i -> Stream.of(i.getNumerator(), i.getDenominator())
-                )
-                .map( this::getDimensionalItemObjectsInExpression )
-                .flatMap( Set::stream )
-                .collect(Collectors.toSet());
+            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
+            .map( this::getDimensionalItemObjectsInExpression )
+            .flatMap( Set::stream )
+            .collect( Collectors.toSet() );
     }
 
     @Override

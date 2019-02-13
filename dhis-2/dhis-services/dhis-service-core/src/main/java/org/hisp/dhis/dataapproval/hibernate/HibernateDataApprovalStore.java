@@ -76,6 +76,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
@@ -97,13 +98,16 @@ public class HibernateDataApprovalStore
     @Autowired
     private CacheProvider cacheProvider;
 
+    @Autowired
+    private Environment env;
+
     @PostConstruct
     public void init()
     {
         IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "isDataApproved" )
             .expireAfterAccess( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------

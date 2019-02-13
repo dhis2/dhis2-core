@@ -62,10 +62,14 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.jgroups.annotations.ManagedOperation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,7 +83,6 @@ import org.mockito.junit.MockitoRule;
  */
 public class DataIntegrityServiceTest
 {
-
     @Mock
     private I18nManager i18nManager;
 
@@ -122,6 +125,15 @@ public class DataIntegrityServiceTest
     @Mock
     private ProgramIndicatorService programIndicatorService;
 
+    @Mock
+    private ProgramRuleService programRuleService;
+
+    @Mock
+    private ProgramRuleVariableService programRuleVariableService;
+
+    @Mock
+    private ProgramRuleActionService programRuleActionService;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -162,8 +174,8 @@ public class DataIntegrityServiceTest
     public void setUp()
     {
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
-                organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-                dataEntryFormService, categoryService, periodService, programIndicatorService );
+            organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
+            dataEntryFormService, categoryService, periodService, programIndicatorService, programRuleService, programRuleVariableService, programRuleActionService );
         rnd = new BeanRandomizer();
         setUpFixtures();
     }
@@ -245,7 +257,6 @@ public class DataIntegrityServiceTest
         unitGroupA = createOrganisationUnitGroup( 'A' );
         unitGroupB = createOrganisationUnitGroup( 'B' );
         unitGroupC = createOrganisationUnitGroup( 'C' );
-        unitGroupD = createOrganisationUnitGroup( 'D' );
 
         unitGroupA.getMembers().add( unitA );
         unitGroupA.getMembers().add( unitB );

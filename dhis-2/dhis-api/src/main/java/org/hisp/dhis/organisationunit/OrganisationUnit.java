@@ -28,19 +28,16 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
+import org.geotools.geojson.geom.GeometryJSON;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -48,7 +45,15 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
@@ -104,9 +109,7 @@ public class OrganisationUnit
 
     private Set<CategoryOption> categoryOptions = new HashSet<>();
 
-    private FeatureType featureType = FeatureType.NONE;
-
-    private String coordinates;
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Transient fields
@@ -140,11 +143,12 @@ public class OrganisationUnit
     }
 
     /**
-     * @param name
-     * @param shortName
-     * @param openingDate
-     * @param closedDate
-     * @param comment
+     * @param name OrgUnit name
+     * @param shortName OrgUnit short name
+     * @param code OrgUnit code
+     * @param openingDate OrgUnit opening date
+     * @param closedDate OrgUnit closing date
+     * @param comment a comment
      */
     public OrganisationUnit( String name, String shortName, String code, Date openingDate, Date closedDate,
         String comment )
@@ -158,12 +162,13 @@ public class OrganisationUnit
     }
 
     /**
-     * @param name
-     * @param parent
-     * @param shortName
-     * @param openingDate
-     * @param closedDate
-     * @param comment
+     * @param name OrgUnit name
+     * @param parent parent {@link OrganisationUnit}
+     * @param shortName OrgUnit short name
+     * @param code OrgUnit code
+     * @param openingDate OrgUnit opening date
+     * @param closedDate OrgUnit closing date
+     * @param comment a comment
      */
     public OrganisationUnit( String name, OrganisationUnit parent, String shortName, String code, Date openingDate,
         Date closedDate, String comment )
@@ -406,19 +411,6 @@ public class OrganisationUnit
         }
 
         return false;
-    }
-
-    public FeatureType getChildrenFeatureType()
-    {
-        for ( OrganisationUnit child : children )
-        {
-            if ( child.getFeatureType() != null )
-            {
-                return child.getFeatureType();
-            }
-        }
-
-        return FeatureType.NONE;
     }
 
     public OrganisationUnitGroup getGroupInGroupSet( OrganisationUnitGroupSet groupSet )
@@ -1018,39 +1010,31 @@ public class OrganisationUnit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
+    @Override
     public FeatureType getFeatureType()
     {
-        return featureType;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
+        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
     }
 
     @Override
-    public boolean hasFeatureType()
-    {
-        return getFeatureType() != null;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
     public String getCoordinates()
     {
-        return coordinates;
+        return extractCoordinates( this.getGeometry() );
     }
 
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
-    }
-
-    @Override
     public boolean hasCoordinates()
     {
-        return getCoordinates() != null;
+        return this.geometry != null;
     }
 
     // -------------------------------------------------------------------------
@@ -1107,5 +1091,36 @@ public class OrganisationUnit
     public void setMemberCount( Integer memberCount )
     {
         this.memberCount = memberCount;
+    }
+
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getGeometryAsJson()
+    {
+        GeometryJSON geometryJSON = new GeometryJSON();
+
+        return this.geometry != null ? geometryJSON.toString( this.geometry ) : null;
+    }
+
+    /**
+     * Set the Geometry field using a GeoJSON (https://en.wikipedia.org/wiki/GeoJSON) String,
+     * like
+     * {"type":"Point", "coordinates":[....]}
+     *
+     * @param geometryAsJsonString String containing a GeoJSON JSON payload
+     * @throws IOException an error occurs parsing the payload
+     */
+    public void setGeometryAsJson( String geometryAsJsonString )
+        throws IOException
+    {
+        if ( !Strings.isNullOrEmpty( geometryAsJsonString ) )
+        {
+            GeometryJSON geometryJSON = new GeometryJSON();
+
+            Geometry geometry = geometryJSON.read( geometryAsJsonString );
+
+            geometry.setSRID( 4326 );
+
+            this.geometry = geometry;
+        }
     }
 }
