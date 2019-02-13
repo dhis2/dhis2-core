@@ -124,8 +124,6 @@ public class MetadataVersionDelegateTest
         target = new MetadataVersionDelegate( metadataSystemSettingService, synchronizationManager, renderService,
             metadataVersionService );
 
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
     }
 
     @Test
@@ -159,6 +157,9 @@ public class MetadataVersionDelegateTest
     public void testShouldThrowExceptionWhenHTTPRequestFails()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
@@ -174,6 +175,9 @@ public class MetadataVersionDelegateTest
     public void testShouldGetRemoteMetadataVersionWithStatusOk()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
@@ -194,6 +198,9 @@ public class MetadataVersionDelegateTest
     public void testShouldGetMetaDataDifferenceWithStatusOk()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -235,6 +242,9 @@ public class MetadataVersionDelegateTest
     public void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -264,6 +274,9 @@ public class MetadataVersionDelegateTest
     public void testShouldReturnEmptyMetadataDifference()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -293,6 +306,9 @@ public class MetadataVersionDelegateTest
     public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -319,6 +335,9 @@ public class MetadataVersionDelegateTest
     public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -347,6 +366,9 @@ public class MetadataVersionDelegateTest
     public void testShouldThrowExceptionWhenRenderServiceThrowsException()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
@@ -367,6 +389,9 @@ public class MetadataVersionDelegateTest
     public void testShouldDownloadMetadataVersion()
         throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
 
