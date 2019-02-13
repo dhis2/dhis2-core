@@ -65,12 +65,21 @@ async function checkout (name, path, hash) {
 
 async function clone (name, url, clone_path) {
     console.log(`[clone] [${name}] clone started`)
-    try {
-        await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
-        console.log(`[clone] [${name}] clone successful`)
-    } catch (err) {
-        console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
-        process.exit(1)
+    let retries = 0
+    while (true) {
+        try {
+            await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
+            console.log(`[clone] [${name}] clone successful`)
+            return
+        } catch (err) {
+            if (retries >= 10) {
+                console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
+                process.exit(1)
+            }
+            console.log(`[clone] [${name}] failed, retrying`)
+            await exec(`rm -rf ${clone_path}`)
+            retries++
+        }
     }
 }
 
