@@ -1,7 +1,5 @@
-package org.hisp.dhis.render;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +26,34 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis;
 
+import java.io.File;
 import java.io.IOException;
 
+import org.springframework.core.io.ClassPathResource;
+import org.testcontainers.shaded.com.google.common.io.Files;
+
+import com.google.common.base.Charsets;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class TestResourceUtils
 {
-    @Override
-    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+
+    public static File getFile( String path )
+        throws IOException
     {
-        String result = parser.getValueAsString();
 
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
+        return new ClassPathResource( path ).getFile();
     }
+
+    public static String getFileContent( String path )
+        throws IOException
+    {
+
+        return Files.toString( getFile( path ), Charsets.UTF_8 );
+    }
+
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.render;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +26,42 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.system.util.DateUtils;
+package org.hisp.dhis.random;
 
-import java.io.IOException;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import org.hisp.dhis.period.PeriodType;
+
+import io.github.benas.randombeans.api.Randomizer;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class ParseDateStdDeserializer extends JsonDeserializer<Date>
+public class PeriodTypeRandomizer
+    implements
+    Randomizer<PeriodType>
 {
+
+    private List<PeriodType> periodTypes = Arrays.asList(
+            PeriodType.getPeriodTypeFromIsoString( "2011" ),
+            PeriodType.getPeriodTypeFromIsoString( "201101" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011W1" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011W32" ),
+            PeriodType.getPeriodTypeFromIsoString( "20110101" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011Q3" ),
+            PeriodType.getPeriodTypeFromIsoString( "201101B" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011S1" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011AprilS1" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011April" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011July" ),
+            PeriodType.getPeriodTypeFromIsoString( "2011Oct" )
+    );
+
     @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public PeriodType getRandomValue()
     {
-        return DateUtils.parseDate( parser.getValueAsString() );
+        return periodTypes.get(new Random().nextInt(periodTypes.size() -1 ));
     }
 }

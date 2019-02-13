@@ -30,20 +30,36 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
-import static org.hisp.dhis.common.DataDimensionItemType.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.ReportingRateMetric.*;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
+import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
 import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -53,14 +69,42 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.DimensionItem;
+import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.ProcessingHint;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -84,6 +128,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -128,10 +173,11 @@ public class DefaultAnalyticsService
 
     private CacheProvider cacheProvider;
 
+    private Environment environment;
+
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
-
 
     private Cache<Grid> queryCache;
 
@@ -139,7 +185,7 @@ public class DefaultAnalyticsService
     public void init()
     {
         Long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
+        boolean enabled = expiration > 0 && !SystemUtils.isTestRun( this.environment.getActiveProfiles() );
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
             .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
@@ -153,7 +199,7 @@ public class DefaultAnalyticsService
         ExpressionParserService expressionParserService, ConstantService constantService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
-        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider )
+        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
     {
         checkNotNull( analyticsManager );
         checkNotNull( rawAnalyticsManager );
@@ -168,6 +214,7 @@ public class DefaultAnalyticsService
         checkNotNull( dataQueryService );
         checkNotNull( dhisConfig );
         checkNotNull( cacheProvider );
+        checkNotNull( environment );
 
         this.analyticsManager = analyticsManager;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -182,7 +229,7 @@ public class DefaultAnalyticsService
         this.dataQueryService = dataQueryService;
         this.dhisConfig = dhisConfig;
         this.cacheProvider = cacheProvider;
-
+        this.environment = environment;
     }
 
     @Override

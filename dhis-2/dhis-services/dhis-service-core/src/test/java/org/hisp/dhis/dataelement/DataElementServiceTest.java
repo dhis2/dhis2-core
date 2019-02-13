@@ -28,22 +28,25 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Kristian Nordal
  */
 public class DataElementServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private DataElementService dataElementService;
@@ -408,5 +411,10 @@ public class DataElementServiceTest
 
         assertNotNull( dataElementService.getDataElement( id ) );
 
+    }
+
+    @Override public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

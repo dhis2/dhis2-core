@@ -28,20 +28,32 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -54,29 +66,27 @@ public class DefaultProgramStageInstanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private final ProgramStageInstanceStore programStageInstanceStore;
 
-    public void setProgramStageInstanceStore( ProgramStageInstanceStore programStageInstanceStore )
-    {
-        this.programStageInstanceStore = programStageInstanceStore;
-    }
+    private final ProgramInstanceService programInstanceService;
 
-    private ProgramInstanceService programInstanceService;
+    private final CurrentUserService currentUserService;
 
-    public void setProgramInstanceService( ProgramInstanceService programInstanceService )
-    {
-        this.programInstanceService = programInstanceService;
-    }
+    private final TrackedEntityDataValueAuditService dataValueAuditService;
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+    private final FileResourceService fileResourceService;
 
     @Autowired
-    private TrackedEntityDataValueAuditService dataValueAuditService;
+    public DefaultProgramStageInstanceService( CurrentUserService currentUserService, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceStore programStageInstanceStore, TrackedEntityDataValueAuditService dataValueAuditService,
+        FileResourceService fileResourceService)
+    {
+        this.currentUserService = currentUserService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceStore = programStageInstanceStore;
+        this.dataValueAuditService = dataValueAuditService;
+        this.fileResourceService = fileResourceService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -100,8 +110,6 @@ public class DefaultProgramStageInstanceService
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
     {
-        dataValueAuditService.deleteTrackedEntityDataValueAudits( programStageInstance );
-
         if ( forceDelete )
         {
             programStageInstanceStore.delete( programStageInstance );
@@ -109,7 +117,7 @@ public class DefaultProgramStageInstanceService
         else
         {
             // Soft delete
-            programStageInstance.setDeleted( !forceDelete );
+            programStageInstance.setDeleted( true );
             programStageInstanceStore.save( programStageInstance );
         }
 
@@ -252,5 +260,195 @@ public class DefaultProgramStageInstanceService
         }
 
         return programStageInstance;
+    }
+
+    // -------------------------------------------------------------------------
+    // EventDataValues - Implementation methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
+        Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
+    {
+        Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
+
+        if ( singleValue )
+        {
+            // If it is only a single value update, I don't won't to miss the values that
+            // are missing in the payload but already present in the DB
+            Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
+            Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(),
+                changedDataValues );
+
+            programStageInstance.setEventDataValues( Sets.union( unchangedDataValues, updatedOrNewDataValues ) );
+        }
+        else
+        {
+            programStageInstance.setEventDataValues( updatedOrNewDataValues );
+        }
+
+        auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache,
+            programStageInstance );
+        handleFileDataValueChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache );
+    }
+
+    @Override
+    public void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap )
+    {
+        validateEventDataValues( dataElementEventDataValueMap );
+        programStageInstance.setEventDataValues( (Set<EventDataValue>) dataElementEventDataValueMap.values() );
+        addProgramStageInstance( programStageInstance );
+
+        for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
+        {
+            entry.getValue().setAutoFields();
+            createAndAddAudit( entry.getValue(), entry.getKey(), programStageInstance, AuditType.CREATE );
+            handleFileDataValueSave( entry.getValue(), entry.getKey() );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // EventDataValues - Support methods
+    // -------------------------------------------------------------------------
+
+    // ---- Validation ----
+    private String validateEventDataValue( DataElement dataElement, EventDataValue eventDataValue )
+    {
+
+        if ( StringUtils.isEmpty( eventDataValue.getStoredBy() ) )
+        {
+            return "Stored by is null or empty";
+        }
+
+        if ( StringUtils.isEmpty( eventDataValue.getDataElement() ) )
+        {
+            return "Data element is null or empty";
+        }
+
+        if ( !dataElement.getUid().equals( eventDataValue.getDataElement() ) )
+        {
+            throw new IllegalQueryException( "DataElement " + dataElement.getUid()
+                + " assigned to EventDataValues does not match with one EventDataValue: "
+                + eventDataValue.getDataElement() );
+        }
+
+        String result = ValidationUtils.dataValueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
+
+        return result == null ? null : "Value is not valid:  " + result;
+    }
+
+    private void validateEventDataValues( Map<DataElement, EventDataValue> dataElementEventDataValueMap )
+    {
+        String result;
+        for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
+        {
+            result = validateEventDataValue( entry.getKey(), entry.getValue() );
+            if ( result != null )
+            {
+                throw new IllegalQueryException( result );
+            }
+        }
+    }
+
+    // ---- Audit ----
+    private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
+        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache,
+        ProgramStageInstance programStageInstance )
+    {
+
+        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.CREATE ) );
+        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.UPDATE ) );
+        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+            programStageInstance, AuditType.DELETE ) );
+    }
+
+    private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
+        ProgramStageInstance programStageInstance, AuditType auditType )
+    {
+        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
+            dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
+        dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
+    }
+
+    // ---- File Data Values Handling ----
+    private void handleFileDataValueChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
+        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache )
+    {
+        removedDataValues
+            .forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+        updatedDataValues
+            .forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+        newDataValues.forEach( dv -> handleFileDataValueSave( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+    }
+
+    private void handleFileDataValueUpdate( EventDataValue dataValue, DataElement dataElement )
+    {
+        String previousFileResourceUid = dataValue.getAuditValue();
+
+        if ( previousFileResourceUid == null || previousFileResourceUid.equals( dataValue.getValue() ) )
+        {
+            return;
+        }
+
+        FileResource fileResource = fetchFileResource( dataValue, dataElement );
+
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        fileResourceService.deleteFileResource( previousFileResourceUid );
+
+        setAssigned( fileResource );
+    }
+
+    /**
+     * Update FileResource with 'assigned' status.
+     */
+    private void handleFileDataValueSave( EventDataValue dataValue, DataElement dataElement )
+    {
+        FileResource fileResource = fetchFileResource( dataValue, dataElement );
+
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        setAssigned( fileResource );
+    }
+
+    /**
+     * Delete associated FileResource if it exists.
+     */
+    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement )
+    {
+        FileResource fileResource = fetchFileResource( dataValue, dataElement );
+
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        fileResourceService.deleteFileResource( fileResource.getUid() );
+    }
+
+    private FileResource fetchFileResource( EventDataValue dataValue, DataElement dataElement )
+    {
+        if ( !dataElement.isFileType() )
+        {
+            return null;
+        }
+
+        return fileResourceService.getFileResource( dataValue.getValue() );
+    }
+
+    private void setAssigned( FileResource fileResource )
+    {
+        fileResource.setAssigned( true );
+        fileResourceService.updateFileResource( fileResource );
     }
 }

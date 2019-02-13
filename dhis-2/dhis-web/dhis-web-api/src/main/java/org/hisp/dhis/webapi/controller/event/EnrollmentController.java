@@ -393,7 +393,6 @@ public class EnrollmentController
 
     private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
     {
-
         String idScheme = getParamValue( params, "idScheme" );
 
         if ( idScheme != null )

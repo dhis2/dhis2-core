@@ -54,7 +54,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 
 import static org.junit.Assert.*;
@@ -140,7 +140,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for smsSender
         when( smsSender.isConfigured() ).thenReturn( true );
 
-        when( smsSender.sendMessage( anyString(), anyString(), anyString() ) ).thenAnswer( invocation -> {
+        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
             message = (String) invocation.getArguments()[1];
             return response;
         });

@@ -28,8 +28,15 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
-import com.google.api.client.util.Lists;
+import static org.hisp.dhis.api.util.DateUtils.getMediumDate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -41,7 +48,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -61,15 +71,8 @@ import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+import com.csvreader.CsvReader;
+import com.google.api.client.util.Lists;
 
 /**
  * TODO Unit testing
@@ -91,6 +94,8 @@ public class DefaultCsvImportService
     @Autowired
     private IndicatorGroupService indicatorGroupService;
 
+    private String JSON_GEOMETRY_TEMLPLATE = "{\"type\":\"%s\", \"coordinates\":%s}";
+
     // -------------------------------------------------------------------------
     // CsvImportService implementation
     // -------------------------------------------------------------------------
@@ -106,43 +111,43 @@ public class DefaultCsvImportService
 
         switch ( importClass )
         {
-        case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
-            metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP_MEMBERSHIP:
-            metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
-            break;
-        case INDICATOR_GROUP_MEMBERSHIP:
-            metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
-            break;
-        case DATA_ELEMENT:
-            metadata.setDataElements( dataElementsFromCsv( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP:
-            metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION:
-            metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION_GROUP:
-            metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT:
-            metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT_GROUP:
-            metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
-            break;
-        case VALIDATION_RULE:
-            metadata.setValidationRules( validationRulesFromCsv( reader ) );
-            break;
-        case OPTION_SET:
-            setOptionSetsFromCsv( reader, metadata );
-            break;
-        case TRANSLATION:
-            break;
-        default:
-            break;
+            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+                metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP_MEMBERSHIP:
+                metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
+                break;
+            case INDICATOR_GROUP_MEMBERSHIP:
+                metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
+                break;
+            case DATA_ELEMENT:
+                metadata.setDataElements( dataElementsFromCsv( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP:
+                metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION:
+                metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION_GROUP:
+                metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT:
+                metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP:
+                metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
+                break;
+            case VALIDATION_RULE:
+                metadata.setValidationRules( validationRulesFromCsv( reader ) );
+                break;
+            case OPTION_SET:
+                setOptionSetsFromCsv( reader, metadata );
+                break;
+            case TRANSLATION:
+                break;
+            default:
+                break;
         }
 
         return metadata;
@@ -180,6 +185,7 @@ public class DefaultCsvImportService
                 }
             }
         }
+
         return Lists.newArrayList( uidMap.values() );
     }
 
@@ -324,8 +330,7 @@ public class DefaultCsvImportService
                 object.setDomainType( DataElementDomain.fromValue( domainType ) );
                 object.setValueType( ValueType.valueOf( getSafe( values, 7, ValueType.INTEGER.toString(), 50 ) ) );
 
-                object.setAggregationType(
-                    AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
+                object.setAggregationType( AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
                 String categoryComboUid = getSafe( values, 9, null, 11 );
                 object.setUrl( getSafe( values, 10, null, 255 ) );
                 object.setZeroIsSignificant( Boolean.valueOf( getSafe( values, 11, "false", null ) ) );
@@ -407,14 +412,11 @@ public class DefaultCsvImportService
                 setIdentifiableObject( object, values );
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
-                object
-                    .setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
+                object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
                 // Left here so nobody wonders what field 6 is for
                 // object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
-                object
-                    .setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
-                object.setPeriodType(
-                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
+                object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
+                object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
@@ -437,6 +439,16 @@ public class DefaultCsvImportService
         return list;
     }
 
+    private void setGeometry( OrganisationUnit ou, FeatureType featureType, String coordinates )
+        throws IOException
+    {
+
+        if ( !(featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
+        {
+            ou.setGeometryAsJson( String.format( JSON_GEOMETRY_TEMLPLATE, featureType.value(), coordinates ) );
+        }
+    }
+
     private List<OrganisationUnit> organisationUnitsFromCsv( CsvReader reader )
         throws IOException
     {
@@ -456,8 +468,8 @@ public class DefaultCsvImportService
                 object.setOpeningDate( getMediumDate( getSafe( values, 6, "1970-01-01", null ) ) );
                 object.setClosedDate( getMediumDate( getSafe( values, 7, null, null ) ) );
                 object.setComment( getSafe( values, 8, null, null ) );
-                object.setFeatureType( FeatureType.valueOf( getSafe( values, 9, "NONE", 50 ) ) );
-                object.setCoordinates( getSafe( values, 10, null, null ) );
+                setGeometry( object, FeatureType.valueOf( getSafe( values, 9, "NONE", 50 ) ),
+                    getSafe( values, 10, null, null ) );
                 object.setUrl( getSafe( values, 11, null, 255 ) );
                 object.setContactPerson( getSafe( values, 12, null, 255 ) );
                 object.setAddress( getSafe( values, 13, null, 255 ) );
@@ -513,7 +525,6 @@ public class DefaultCsvImportService
      * <li>option code</li>
      * </ul>
      */
-
     private void setOptionSetsFromCsv( CsvReader reader, Metadata metadata )
         throws IOException
     {
@@ -593,7 +604,7 @@ public class DefaultCsvImportService
      */
     private static String getSafe( String[] values, int index, String defaultValue, Integer maxChars )
     {
-        String string = null;
+        String string;
 
         if ( values == null || index < 0 || index >= values.length )
         {

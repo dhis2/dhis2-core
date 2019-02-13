@@ -28,11 +28,22 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import static org.hisp.dhis.common.Coordinate.CoordinateUtils.getCoordinatesAsList;
+import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.CoordinatesTuple;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -40,20 +51,15 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public class GmlImportServiceTest
-    extends DhisSpringTest
+@Category( IntegrationTest.class )
+public class GmlImportServiceTest extends IntegrationTestBase
 {
     private InputStream inputStream;
 
@@ -64,6 +70,12 @@ public class GmlImportServiceTest
     private ImportOptions importOptions;
 
     private JobConfiguration id;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -143,32 +155,35 @@ public class GmlImportServiceTest
 
         gmlImportService.importGml( inputStream, importParams );
 
-        assertNotNull( boOrgUnit.getCoordinates() );
-        assertNotNull( boOrgUnit.getFeatureType() );
+        assertNotNull( boOrgUnit.getGeometry() );
 
-        assertNotNull( bontheOrgUnit.getCoordinates() );
-        assertNotNull( bontheOrgUnit.getFeatureType() );
+        assertNotNull( bontheOrgUnit.getGeometry() );
 
-        assertNotNull( ojdOrgUnit.getCoordinates() );
-        assertNotNull( ojdOrgUnit.getFeatureType() );
+        assertNotNull( ojdOrgUnit.getGeometry() );
 
-        assertNotNull( bliOrgUnit.getCoordinates() );
-        assertNotNull( bliOrgUnit.getFeatureType() );
+        assertNotNull( bliOrgUnit.getGeometry() );
 
-        assertNotNull( forskOrgUnit.getCoordinates() );
-        assertNotNull( forskOrgUnit.getFeatureType() );
+        assertNotNull( forskOrgUnit.getGeometry() );
+
 
         // Check if data is correct
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( boOrgUnit.getCoordinates(), boOrgUnit.getFeatureType() ).size() );
-        assertEquals( 18, CoordinateUtils.getCoordinatesAsList( bontheOrgUnit.getCoordinates(), bontheOrgUnit.getFeatureType() ).size() );
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( ojdOrgUnit.getCoordinates(), ojdOrgUnit.getFeatureType() ).size() );
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( bliOrgUnit.getCoordinates(), bliOrgUnit.getFeatureType() ).size() );
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( forskOrgUnit.getCoordinates(), forskOrgUnit.getFeatureType() ).size() );
+        assertEquals( 1, getCoordinates( boOrgUnit ).size() );
+        assertEquals( 18, getCoordinates( bontheOrgUnit ).size() );
+        assertEquals( 1, getCoordinates( ojdOrgUnit ).size() );
+        assertEquals( 1, getCoordinates( bliOrgUnit ).size() );
+        assertEquals( 1, getCoordinates( forskOrgUnit ).size() );
 
-        assertEquals( 76, CoordinateUtils.getCoordinatesAsList( boOrgUnit.getCoordinates(), boOrgUnit.getFeatureType() ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 189, CoordinateUtils.getCoordinatesAsList( bontheOrgUnit.getCoordinates(), bontheOrgUnit.getFeatureType() ).get( 1 ).getNumberOfCoordinates() );
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( ojdOrgUnit.getCoordinates(), ojdOrgUnit.getFeatureType() ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 1, CoordinateUtils.getCoordinatesAsList( bliOrgUnit.getCoordinates(), bliOrgUnit.getFeatureType() ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 76, CoordinateUtils.getCoordinatesAsList( forskOrgUnit.getCoordinates(), forskOrgUnit.getFeatureType() ).get( 0 ).getNumberOfCoordinates() );
+        assertEquals( 76, getCoordinates( boOrgUnit ).get( 0 ).getNumberOfCoordinates() );
+        assertEquals( 189, getCoordinates( bontheOrgUnit ).get( 1 ).getNumberOfCoordinates() );
+        assertEquals( 1, getCoordinates( ojdOrgUnit ).get( 0 ).getNumberOfCoordinates() );
+        assertEquals( 1, getCoordinates( bliOrgUnit ).get( 0 ).getNumberOfCoordinates() );
+        assertEquals( 76, getCoordinates( forskOrgUnit ).get( 0 ).getNumberOfCoordinates() );
+
+    }
+
+    private List<CoordinatesTuple> getCoordinates( OrganisationUnit orgUnit )
+    {
+        return getCoordinatesAsList( getCoordinatesFromGeometry( orgUnit.getGeometry() ),
+            FeatureType.getTypeFromName( orgUnit.getGeometry().getGeometryType() ) );
     }
 }

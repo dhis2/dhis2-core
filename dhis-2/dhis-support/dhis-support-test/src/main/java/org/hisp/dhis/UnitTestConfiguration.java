@@ -43,8 +43,6 @@ public class UnitTestConfiguration
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TestDhisConfigurationProvider testDhisConfigurationProvider = new TestDhisConfigurationProvider();
-
-        return testDhisConfigurationProvider;
+        return new H2DhisConfigurationProvider();
     }
 }

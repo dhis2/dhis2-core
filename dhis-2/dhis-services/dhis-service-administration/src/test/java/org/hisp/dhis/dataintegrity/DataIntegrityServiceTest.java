@@ -28,19 +28,27 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -50,71 +58,111 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.validation.ValidationRuleService;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
 public class DataIntegrityServiceTest
-    extends DhisSpringTest
 {
-    @Autowired
-    private DataIntegrityService dataIntegrityService;
+    @Mock
+    private I18nManager i18nManager;
 
-    @Autowired
+    @Mock
     private DataElementService dataElementService;
 
-    @Autowired
+    @Mock
     private IndicatorService indicatorService;
 
-    @Autowired
+    @Mock
     private DataSetService dataSetService;
 
-    @Autowired
+    @Mock
     private OrganisationUnitService organisationUnitService;
 
-    @Autowired
+    @Mock
     private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Mock
+    private ValidationRuleService validationRuleService;
+
+    @Mock
+    private ExpressionService expressionService;
+
+    @Mock
+    private DataEntryFormService dataEntryFormService;
+
+    @Mock
+    private CategoryService categoryService;
+
+    @Mock
+    private PeriodService periodService;
+
+    @Mock
+    private ProgramIndicatorService programIndicatorService;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    private DefaultDataIntegrityService subject;
+
+    private BeanRandomizer rnd;
 
     private DataElement elementA;
     private DataElement elementB;
-    private DataElement elementC;
-    
+
     private DataElementGroup elementGroupA;
-    
+
     private IndicatorType indicatorTypeA;
-    
+
     private Indicator indicatorA;
     private Indicator indicatorB;
     private Indicator indicatorC;
-    
+
     private IndicatorGroup indicatorGroupA;
-    
+
     private DataSet dataSetA;
     private DataSet dataSetB;
-    
+
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     private OrganisationUnit unitD;
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
-    
+    private List<OrganisationUnit> allOrgUnits;
+
     private OrganisationUnitGroup unitGroupA;
     private OrganisationUnitGroup unitGroupB;
     private OrganisationUnitGroup unitGroupC;
-    private OrganisationUnitGroup unitGroupD;
-      
+    @Before
+    public void setUp()
+    {
+        subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
+            organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
+            dataEntryFormService, categoryService, periodService, programIndicatorService );
+        rnd = new BeanRandomizer();
+        setUpFixtures();
+    }
 
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
+
+    private void setUpFixtures()
     {
         // ---------------------------------------------------------------------
         // Objects
@@ -122,108 +170,76 @@ public class DataIntegrityServiceTest
 
         elementA = createDataElement( 'A' );
         elementB = createDataElement( 'B' );
-        elementC = createDataElement( 'C' );
 
-        dataElementService.addDataElement( elementA );
-        dataElementService.addDataElement( elementB );
-        dataElementService.addDataElement( elementC );
-        
         indicatorTypeA = createIndicatorType( 'A' );
-        
-        indicatorService.addIndicatorType( indicatorTypeA );
-        
+
         indicatorA = createIndicator( 'A', indicatorTypeA );
         indicatorB = createIndicator( 'B', indicatorTypeA );
         indicatorC = createIndicator( 'C', indicatorTypeA );
-        
+
         indicatorA.setNumerator( " " );
         indicatorB.setNumerator( "Numerator" );
         indicatorB.setDenominator( "Denominator" );
         indicatorC.setNumerator( "Numerator" );
         indicatorC.setDenominator( "Denominator" );
 
-        indicatorService.addIndicator( indicatorA );
-        indicatorService.addIndicator( indicatorB );
-        indicatorService.addIndicator( indicatorC );        
-        
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B', unitA );
         unitC = createOrganisationUnit( 'C', unitB );
         unitD = createOrganisationUnit( 'D', unitC );
         unitE = createOrganisationUnit( 'E', unitD );
         unitF = createOrganisationUnit( 'F' );
-
-        organisationUnitService.addOrganisationUnit( unitA );
-        organisationUnitService.addOrganisationUnit( unitB );
-        organisationUnitService.addOrganisationUnit( unitC );
-        organisationUnitService.addOrganisationUnit( unitD ); 
-        organisationUnitService.addOrganisationUnit( unitE );
-        organisationUnitService.addOrganisationUnit( unitF );
-        
         unitA.setParent( unitC );
+        allOrgUnits = newArrayList(unitA, unitB, unitC, unitD, unitE, unitF);
 
-        organisationUnitService.updateOrganisationUnit( unitA );
-        
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new QuarterlyPeriodType() );
 
         dataSetA.addDataSetElement( elementA );
         dataSetA.addDataSetElement( elementB );
-        
+
         dataSetA.getSources().add( unitA );
         unitA.getDataSets().add( dataSetA );
-        
-        dataSetB.addDataSetElement( elementA );     
-        
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        
+
+        dataSetB.addDataSetElement( elementA );
+
         // ---------------------------------------------------------------------
         // Groups
         // ---------------------------------------------------------------------
 
         elementGroupA = createDataElementGroup( 'A' );
-        
+
         elementGroupA.getMembers().add( elementA );
         elementA.getGroups().add( elementGroupA );
-        
-        dataElementService.addDataElementGroup( elementGroupA );
-        
+
         indicatorGroupA = createIndicatorGroup( 'A' );
-        
+
         indicatorGroupA.getMembers().add( indicatorA );
         indicatorA.getGroups().add( indicatorGroupA );
-        
-        indicatorService.addIndicatorGroup( indicatorGroupA );
-        
+
         unitGroupA = createOrganisationUnitGroup( 'A' );
         unitGroupB = createOrganisationUnitGroup( 'B' );
         unitGroupC = createOrganisationUnitGroup( 'C' );
-        unitGroupD = createOrganisationUnitGroup( 'D' );
-        
+
         unitGroupA.getMembers().add( unitA );
         unitGroupA.getMembers().add( unitB );
         unitGroupA.getMembers().add( unitC );
         unitA.getGroups().add( unitGroupA );
         unitB.getGroups().add( unitGroupA );
         unitC.getGroups().add( unitGroupA );
-        
+
         unitGroupB.getMembers().add( unitA );
         unitGroupB.getMembers().add( unitB );
         unitGroupB.getMembers().add( unitF );
         unitA.getGroups().add( unitGroupB );
         unitB.getGroups().add( unitGroupB );
         unitF.getGroups().add( unitGroupB );
-        
+
         unitGroupC.getMembers().add( unitA );
         unitA.getGroups().add( unitGroupC );
-        
-        organisationUnitGroupService.addOrganisationUnitGroup( unitGroupA );
-        organisationUnitGroupService.addOrganisationUnitGroup( unitGroupB );
-        organisationUnitGroupService.addOrganisationUnitGroup( unitGroupC );
-        organisationUnitGroupService.addOrganisationUnitGroup( unitGroupD );
+
     }
-    
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -231,79 +247,143 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetDataElementsWithoutDataSet()
     {
-        Collection<DataElement> expected = dataIntegrityService.getDataElementsWithoutDataSet();
-        
-        assertTrue( equals( expected, elementC ) );
+        subject.getDataElementsWithoutDataSet();
+        verify(dataElementService).getDataElementsWithoutDataSets();
+        verifyNoMoreInteractions(dataElementService);
     }
 
     @Test
     public void testGetDataElementsWithoutGroups()
     {
-        Collection<DataElement> expected = dataIntegrityService.getDataElementsWithoutGroups();
-        
-        assertTrue( message( expected ), equals( expected, elementB, elementC ) );
+        subject.getDataElementsWithoutGroups();
+        verify(dataElementService).getDataElementsWithoutGroups();
+        verifyNoMoreInteractions(dataElementService);
     }
 
     @Test
     public void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType()
     {
-        Map<DataElement, Collection<DataSet>> expected = dataIntegrityService.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
-        
-        assertEquals( 1, expected.size() );
-        assertEquals( elementA, expected.keySet().iterator().next() );
-        assertTrue( equals( expected.get( elementA ), dataSetA, dataSetB ) );
+        String seed = "abcde";
+        Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
+
+        DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 1) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 2) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 3) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 4) );
+
+        DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 4) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 5) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 6) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 1) );
+
+        when( dataElementService.getAllDataElements() ).thenReturn(new ArrayList<>(dataElements.values()));
+        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
+
+        SortedMap<DataElement, Collection<DataSet>> result = subject
+                .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
+
+        assertThat( result.get( dataElements.get(seed + 4) ), hasSize( 2 ) );
+        assertThat( result.get( dataElements.get(seed + 1) ), hasSize( 2 ) );
+        assertThat( result.get( dataElements.get(seed + 4) ), containsInAnyOrder( dataSet1, dataSet2 ) );
+        assertThat( result.get( dataElements.get(seed + 1) ), containsInAnyOrder( dataSet1, dataSet2 ) );
     }
+
+    @Test
+    public void testGetDataElementsAssignedToDataSetsWithDifferentPeriodTypeNoResult()
+    {
+
+        String seed = "abcde";
+        Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
+
+        DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 1) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 2) );
+        dataSet1.addDataSetElement( dataElements.get(seed + 3) );
+
+        DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 4) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 5) );
+        dataSet2.addDataSetElement( dataElements.get(seed + 6) );
+
+        when( dataElementService.getAllDataElements() ).thenReturn(new ArrayList<>(dataElements.values()));
+        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
+
+        SortedMap<DataElement, Collection<DataSet>> result = subject
+                .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
+        assertThat(result.keySet(), hasSize(0));
+    }
+
 
     @Test
     public void testGetDataSetsNotAssignedToOrganisationUnits()
     {
-        Collection<DataSet> expected = dataIntegrityService.getDataSetsNotAssignedToOrganisationUnits();
-        
-        assertTrue( message( expected ), equals( expected, dataSetB ) );
+        when(dataSetService.getAllDataSets()).thenReturn(newArrayList(dataSetA, dataSetB));
+        Collection<DataSet> expected = subject.getDataSetsNotAssignedToOrganisationUnits();
+        assertThat(expected, hasSize(1));
+        assertThat(expected, hasItem(dataSetB));
     }
 
     @Test
     public void testGetIndicatorsWithIdenticalFormulas()
     {
-        Set<Set<Indicator>> expected = dataIntegrityService.getIndicatorsWithIdenticalFormulas();
+        when(indicatorService.getAllIndicators()).thenReturn(newArrayList(indicatorA, indicatorB, indicatorC));
+        Set<Set<Indicator>> expected = subject.getIndicatorsWithIdenticalFormulas();
 
         Collection<Indicator> violation = expected.iterator().next();
-        
-        assertEquals( 1, expected.size());        
-        assertEquals( 2, violation.size() );
-        assertTrue( violation.contains( indicatorB ) );
-        assertTrue( violation.contains( indicatorC ) );
+        assertThat(expected, hasSize(1));
+        assertThat(violation, hasSize(2));
+        assertThat(violation, hasItem(indicatorB));
+        assertThat(violation, hasItem(indicatorC));
     }
 
     @Test
     public void testGetIndicatorsWithoutGroups()
     {
-        Collection<Indicator> expected = dataIntegrityService.getIndicatorsWithoutGroups();
-        
-        assertTrue( message( expected ), equals( expected, indicatorB, indicatorC ) );
+        subject.getIndicatorsWithoutGroups();
+        verify(indicatorService).getIndicatorsWithoutGroups();
+        verifyNoMoreInteractions(dataElementService);
     }
 
     @Test
     public void testGetOrganisationUnitsWithCyclicReferences()
     {
-        Collection<OrganisationUnit> expected = dataIntegrityService.getOrganisationUnitsWithCyclicReferences();
-        
-        assertTrue( message( expected ), equals( expected, unitA, unitB, unitC ) );
+        when(organisationUnitService.getAllOrganisationUnits()).thenReturn(allOrgUnits);
+
+        Collection<OrganisationUnit> expected = subject.getOrganisationUnitsWithCyclicReferences();
+        assertThat(expected, hasSize(3));
+        assertThat(expected, hasItems(unitA, unitB, unitC));
     }
 
     @Test
     public void testGetOrphanedOrganisationUnits()
     {
-        Collection<OrganisationUnit> expected = dataIntegrityService.getOrphanedOrganisationUnits();
-        
-        assertTrue( message( expected ), equals( expected, unitF ) );
+        when(organisationUnitService.getAllOrganisationUnits()).thenReturn(allOrgUnits);
+
+        Collection<OrganisationUnit> expected = subject.getOrphanedOrganisationUnits();
+        assertThat(expected, hasSize(1));
+        assertThat(expected, hasItem(unitF));
     }
 
     @Test
     public void testGetOrganisationUnitsWithoutGroups()
     {
-        Collection<OrganisationUnit> expected = dataIntegrityService.getOrganisationUnitsWithoutGroups();
-        
-        assertTrue( message( expected ), equals( expected, unitD, unitE ) );
+        subject.getOrganisationUnitsWithoutGroups();
+        verify(organisationUnitService).getOrganisationUnitsWithoutGroups();
+        verifyNoMoreInteractions(organisationUnitService);
+    }
+
+    private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {
+
+        return IntStream.range( 1, quantity + 1 ).mapToObj(i -> {
+            DataElement d = rnd.randomObject( DataElement.class );
+            d.setUid( uidSeed + i );
+            return d;
+        } ).collect( Collectors.toMap(DataElement::getUid, Function.identity()) );
     }
 }

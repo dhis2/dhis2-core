@@ -13,11 +13,13 @@ You can download pre-built WAR files from the [continuous integration server](ht
 
 You can explore various demos of DHIS 2 in the [play environment](https://play.dhis2.org/).
 
-The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
+For support and disussions visit the [community forum](https://community.dhis2.org/).
 
 For general info please visit the [project web page](https://www.dhis2.org/).
 
 For software development guides please visit the [project wiki](http://dhis2.github.io/).
+
+The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
 ## Build process
 
