@@ -62,14 +62,16 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.jgroups.annotations.ManagedOperation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -106,7 +108,7 @@ public class DataIntegrityServiceTest
     private DataElement elementC;
 
     private TrackedEntityAttribute attributeA;
-    
+
     @Mock
     private ValidationRuleService validationRuleService;
 
@@ -169,6 +171,13 @@ public class DataIntegrityServiceTest
 
     private Program programA;
     private Program programB;
+
+    private ProgramRule programRuleA;
+    private ProgramRule programRuleB;
+
+    private ProgramRuleVariable programRuleVariableA;
+
+    private ProgramRuleAction programRuleActionA;
 
     @Before
     public void setUp()
@@ -275,6 +284,12 @@ public class DataIntegrityServiceTest
         unitGroupC.getMembers().add( unitA );
         unitA.getGroups().add( unitGroupC );
 
+        programRuleA = createProgramRule( 'A', programA );
+        programRuleB = createProgramRule( 'B', programB );
+
+        programRuleVariableA = createProgramRuleVariable( 'A', programA );
+
+        programRuleActionA = createProgramRuleAction( 'A' );
     }
 
     // -------------------------------------------------------------------------
@@ -321,7 +336,7 @@ public class DataIntegrityServiceTest
         when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
 
         SortedMap<DataElement, Collection<DataSet>> result = subject
-                .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
+            .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
 
         assertThat( result.get( dataElements.get(seed + 4) ), hasSize( 2 ) );
         assertThat( result.get( dataElements.get(seed + 1) ), hasSize( 2 ) );
@@ -413,6 +428,56 @@ public class DataIntegrityServiceTest
         subject.getOrganisationUnitsWithoutGroups();
         verify(organisationUnitService).getOrganisationUnitsWithoutGroups();
         verifyNoMoreInteractions(organisationUnitService);
+    }
+
+    @Test
+    public void testGetProgramRulesWithNoExpression()
+    {
+        programRuleB.setCondition( null );
+        when( programRuleService.getProgramRulesWithNoCondition() ).thenReturn( Arrays.asList( programRuleB ) );
+
+        Map<Program, Collection<ProgramRule>> actual = subject.getProgramRulesWithNoCondition();
+
+        verify( programRuleService ).getProgramRulesWithNoCondition();
+        verify( programRuleService, times( 1 ) ).getProgramRulesWithNoCondition();
+
+        assertThat( actual, hasKey( programB ) );
+        assertThat( actual.get( programB ), hasSize( 1 ) );
+        assertThat( actual.get( programB ), contains( programRuleB ) );
+    }
+
+    @Test
+    public void testGetProgramRulesVariableWithNoDataElement()
+    {
+        programRuleVariableA.setProgram( programA );
+
+        when( programRuleVariableService.getVariablesWithNoDataElement() ).thenReturn( Arrays.asList( programRuleVariableA ) );
+
+        Map<Program, Collection<ProgramRuleVariable>> actual = subject.getProgramRuleVariablesWithNoDataElement();
+
+        verify( programRuleVariableService ).getVariablesWithNoDataElement();
+        verify( programRuleVariableService, times( 1 ) ).getVariablesWithNoDataElement();
+
+        assertThat( actual, hasKey( programA ) );
+        assertThat( actual.get( programA ), hasSize( 1 ) );
+        assertThat( actual.get( programA ), contains( programRuleVariableA ) );
+    }
+
+    @Test
+    public void testGetProgramRuleActionsWithNoDataObject()
+    {
+        programRuleActionA.setProgramRule( programRuleA );
+
+        when( programRuleActionService.getProgramActionsWithNoLinkToDataObject() ).thenReturn( Arrays.asList( programRuleActionA ) );
+
+        Map<ProgramRule, Collection<ProgramRuleAction>> actual = subject.getProgramRuleActionsWithNoDataObject();
+
+        verify( programRuleActionService ).getProgramActionsWithNoLinkToDataObject();
+        verify( programRuleActionService, times( 1 ) ).getProgramActionsWithNoLinkToDataObject();
+
+        assertThat( actual, hasKey( programRuleA ) );
+        assertThat( actual.get( programRuleA ), hasSize( 1 ) );
+        assertThat( actual.get( programRuleA ), contains( programRuleActionA ) );
     }
 
     private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {
