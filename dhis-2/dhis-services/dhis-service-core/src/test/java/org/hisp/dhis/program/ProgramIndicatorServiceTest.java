@@ -716,9 +716,14 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testEventDateEnrollment()
     {
-        String expectedFilter = "(cast(executiondate as date) - cast(enrollmentdate as date)) > 90";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
+        
+        String expectedFilter = "(cast((select executiondate from analytics_event_" 
+            + indicatorG.getProgram().getUid() + " where analytics_event_" 
+            + indicatorG.getProgram().getUid() + ".pi = ax.pi and executiondate" 
+            + " is not null and executiondate < cast( '2017-09-01' as date ) " 
+            + "order by executiondate desc limit 1 ) as date) - cast(enrollmentdate as date)) > 90";
         
         String actualFilter = programIndicatorService.getAnalyticsSQl( indicatorG.getFilter(), indicatorG, false, reportingStartDate, reportingEndDate );
         assertEquals( expectedFilter, actualFilter );
