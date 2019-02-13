@@ -65,7 +65,6 @@ public abstract class AbstractNode implements Node
 
     protected Property property;
 
-    protected boolean toBeRemoved = false;
 
     protected AbstractNode( String name, NodeType nodeType )
     {
@@ -259,16 +258,6 @@ public abstract class AbstractNode implements Node
         }
 
         return Ordered.LOWEST_PRECEDENCE;
-    }
-
-    public boolean isToBeRemoved()
-    {
-        return toBeRemoved;
-    }
-
-    public void setToBeRemoved( boolean toBeRemoved )
-    {
-        this.toBeRemoved = toBeRemoved;
     }
 
     @Override
