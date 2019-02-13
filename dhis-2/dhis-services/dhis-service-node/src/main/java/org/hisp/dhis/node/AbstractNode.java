@@ -37,7 +37,6 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
