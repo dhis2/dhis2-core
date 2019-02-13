@@ -444,6 +444,7 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
             $( document ).trigger( dhis2.de.event.dataValueSaved, [ dhis2.de.currentDataSetId, dataValue ] );
     		markValue( fieldId, resultColor );
     		setHeaderDelayMessage( i18n_offline_notification );
+            dhis2.availability.startAvailabilityCheck();
     	}
     }
 

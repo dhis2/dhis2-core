@@ -39,13 +39,14 @@ dhis2.availability._availableTimeoutHandler = -1;
  * when availability changes.
  *
  * @param onlineInterval How often to check for availability when online,
- *            default is 10000.
+ *            default is 15000.
  * @param offlineInterval How often to check for availability when offline,
- *            default is 1000.
+ *            default is 10000.
  */
 dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineInterval ) {
   onlineInterval = onlineInterval ? onlineInterval : 15000;
-  offlineInterval = offlineInterval ? offlineInterval : 1000;
+  offlineInterval = offlineInterval ? offlineInterval : 10000;
+  clearTimeout(dhis2.availability._availableTimeoutHandler);
 
   function _checkAvailability() {
     $.ajax({
@@ -62,19 +63,24 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
           $(document).trigger("dhis2.online", [true]);
         }
         dhis2.availability._isLoggedIn = true;
+
       },
       error: function ( jqXHR, textStatus, errorThrown ) {
         if( jqXHR.status == 401 ) {
+          // server online but not logged in
           $(document).trigger("dhis2.online", [false]);
+          dhis2.availability._isAvailable = true;
         }
         else if( dhis2.availability._isAvailable ) {
+          // server offline
           dhis2.availability._isAvailable = false;
           $(document).trigger("dhis2.offline");
         }
+
         dhis2.availability._isLoggedIn = false;
       },
       complete: function () {
-        if( dhis2.availability._isAvailable ) {
+        if( dhis2.availability._isAvailable && !dhis2.availability._isLoggedIn ) {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, onlineInterval);
         }
         else {
@@ -84,8 +90,7 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
     });
   }
 
-  // use 500ms for initial check
-  setTimeout(_checkAvailability, 500);
+  dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, 500 );
 };
 
 /**
@@ -125,6 +130,7 @@ dhis2.availability.syncCheckAvailability = function () {
         dhis2.availability._isAvailable = false;
         dhis2.availability._isLoggedIn = -1;
         $(document).trigger("dhis2.offline");
+        dhis2.availability.startAvailabilityCheck();
       }
     }
   });
