@@ -174,13 +174,13 @@ public class JdbcAnalyticsTableManager
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
+        final boolean skipZeroValues = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_ZERO_VALUES_IN_ANALYTICS_TABLE_EXPORT );
 
         final String approvalClause = getApprovalJoinClause( partition.getYear() );
         final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
-
-        String intClause =
-            "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
-            numericClause;
+        final String zeroValueCondition = skipZeroValues ? "" : " or de.zeroissignificant = true";
+        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
+        final String intClause = zeroValueClause + numericClause;
 
         populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
