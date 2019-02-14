@@ -1338,10 +1338,7 @@ public class DefaultDataValueSetService
 
         if ( completeAlready != null )
         {
-            //The method is called only via /dataSets endpoint which cannot un-complete the data set.
-            // Therefore, if entry is already present and completeDate is present (check is done
-            // when the method is called) I consider it as completed. (Note: It can be un-completed by
-            // use of /completeDataSetRegistrations endpoint. Therefore, I still need to do an update)
+            // At this point, DataSet is completed. Override, eventual non-completeness
             completeAlready.setDate( completeDate );
             completeAlready.setStoredBy( currentUserName );
             completeAlready.setLastUpdated( new Date() );
