@@ -113,24 +113,25 @@ public class DefaultValidationService
     @Autowired
     private ValidationResultService validationResultService;
 
+    private AnalyticsService analyticsService;
+
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
     }
 
-    private AnalyticsService analyticsService;
+    private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    private CurrentUserService currentUserService;
-
     // -------------------------------------------------------------------------
     // ValidationRule business logic
     // -------------------------------------------------------------------------
 
+    @Override
     public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters)
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
@@ -380,7 +381,7 @@ public class DefaultValidationService
                     if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
                     {
                         DataElementOperand deo = (DataElementOperand) item;
-    
+
                         if ( deo.getCategoryOptionCombo() != null )
                         {
                             periodTypeX.addDataElementOperand( deo );
@@ -463,7 +464,7 @@ public class DefaultValidationService
                             .getValue( CategoryOptionCombo.class, getIdPart( id, 1 ) ) );
 
                     if ( deo.getDataElement() != null &&
-                        (deo.getCategoryOptionCombo() != null || getIdPart( id, 1 ) == null) )
+                         (deo.getCategoryOptionCombo() != null || getIdPart( id, 1 ) == null ) )
                     {
                         dimObjects.put( id, deo );
                     }

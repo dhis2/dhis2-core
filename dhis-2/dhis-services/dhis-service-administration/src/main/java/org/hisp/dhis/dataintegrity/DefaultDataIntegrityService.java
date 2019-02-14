@@ -28,12 +28,18 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -48,11 +54,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -64,20 +66,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 
 /**
  * @author Lars Helge Overland
@@ -94,85 +82,64 @@ public class DefaultDataIntegrityService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private I18nManager i18nManager;
 
     private DataElementService dataElementService;
 
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
-    }
-
     private IndicatorService indicatorService;
-
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
-        this.indicatorService = indicatorService;
-    }
 
     private DataSetService dataSetService;
 
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
     private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
 
     private OrganisationUnitGroupService organisationUnitGroupService;
 
-    public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
-    {
-        this.organisationUnitGroupService = organisationUnitGroupService;
-    }
-
     private ValidationRuleService validationRuleService;
-
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
-    {
-        this.validationRuleService = validationRuleService;
-    }
 
     private ExpressionService expressionService;
 
-    public void setExpressionService( ExpressionService expressionService )
-    {
-        this.expressionService = expressionService;
-    }
-
     private DataEntryFormService dataEntryFormService;
-
-    public void setDataEntryFormService( DataEntryFormService dataEntryFormService )
-    {
-        this.dataEntryFormService = dataEntryFormService;
-    }
 
     private CategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
     private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
 
     private ProgramIndicatorService programIndicatorService;
 
-    public void setProgramIndicatorService( ProgramIndicatorService programIndicatorService )
+    @Autowired
+    public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
+        IndicatorService indicatorService, DataSetService dataSetService,
+        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
+        ValidationRuleService validationRuleService, ExpressionService expressionService,
+        DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
+        ProgramIndicatorService programIndicatorService )
     {
+        checkNotNull( i18nManager );
+        checkNotNull( dataElementService );
+        checkNotNull( indicatorService );
+        checkNotNull( dataSetService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( validationRuleService );
+        checkNotNull( dataEntryFormService );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( programIndicatorService );
+
+        this.i18nManager = i18nManager;
+        this.dataElementService = dataElementService;
+        this.indicatorService = indicatorService;
+        this.dataSetService = dataSetService;
+        this.organisationUnitService = organisationUnitService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.validationRuleService = validationRuleService;
+        this.expressionService = expressionService;
+        this.dataEntryFormService = dataEntryFormService;
+        this.categoryService = categoryService;
+        this.periodService = periodService;
         this.programIndicatorService = programIndicatorService;
     }
+
     // -------------------------------------------------------------------------
     // DataIntegrityService implementation
     // -------------------------------------------------------------------------
@@ -458,7 +425,7 @@ public class DefaultDataIntegrityService
 
         Set<OrganisationUnit> visited = new HashSet<>();
 
-        OrganisationUnit parent = null;
+        OrganisationUnit parent;
 
         for ( OrganisationUnit unit : organisationUnits )
         {
@@ -653,11 +620,11 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
     {
-        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
+        Map<ProgramIndicator, String> invalidExpressions;
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
             .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression) );
 
         return invalidExpressions;
     }
@@ -665,11 +632,11 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
     {
-        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
+        Map<ProgramIndicator, String> invalidFilters;
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
-            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+            .filter( pi -> ( ! (!pi.hasFilter() || ProgramIndicator.VALID.equals(programIndicatorService.filterIsValid(pi.getFilter()))) ) )
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter) );
 
         return invalidFilters;
     }

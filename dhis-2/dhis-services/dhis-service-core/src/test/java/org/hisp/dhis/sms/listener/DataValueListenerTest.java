@@ -62,7 +62,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -169,11 +169,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( registrationService.getCompleteDataSetRegistration( any(), any(), any(), any() ) )
             .thenReturn( fetchedCompleteDataSetRegistration );
 
-        doAnswer(invocation -> {
-            savedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
-            return savedCompleteDataSetRegistration;
-        }).when( registrationService ).saveCompleteDataSetRegistration( any() );
-
         doAnswer( invocation -> {
             deletedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
             return deletedCompleteDataSetRegistration;
@@ -183,11 +178,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( dataValueService.getDataValue( any(), any(), any(), any() ) )
             .thenReturn( fetchedDataValue );
 
-        when( dataValueService.addDataValue( any() ) )
-            .thenAnswer( invocation -> {
-                addedDataValue = (DataValue) invocation.getArguments()[0];
-                return addedDataValue;
-            });
 
         doAnswer( invocation -> {
             updatedDataValue = (DataValue) invocation.getArguments()[0];
@@ -214,14 +204,11 @@ public class DataValueListenerTest extends DhisConvenienceTest
             return updatedIncomingSms;
         }).when( incomingSmsService ).update( any() );
 
-        // Mock for dataElementService
-        when( dataElementService.getDataElement( anyInt() ) ).thenReturn( dataElement );
-
         // Mock for smsSender
         when( smsSender.isConfigured() ).thenReturn( smsConfigured );
 
-        when( smsSender.sendMessage( anyString(), anyString(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
+        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
+            message = invocation.getArgument(1);
             return response;
         });
     }

@@ -59,12 +59,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -223,7 +218,7 @@ public class DataElement
         return ImmutableSet.<CategoryCombo>builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
-                .map( dse -> dse.getCategoryCombo() )
+                .map(DataSetElement::getCategoryCombo)
                 .collect( Collectors.toSet() ) )
             .add( categoryCombo ).build();
     }
@@ -254,8 +249,8 @@ public class DataElement
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return getCategoryCombos().stream()
-            .map( c -> c.getOptionCombos() )
-            .flatMap( c -> c.stream() )
+            .map(CategoryCombo::getOptionCombos)
+            .flatMap(Collection::stream)
             .collect( Collectors.toSet() );
     }
 
@@ -295,7 +290,7 @@ public class DataElement
     public DataSet getDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        Collections.sort( list, DataSetFrequencyComparator.INSTANCE );
+        list.sort(DataSetFrequencyComparator.INSTANCE);
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -307,7 +302,7 @@ public class DataElement
     public DataSet getApprovalDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
+        list.sort(DataSetApprovalFrequencyComparator.INSTANCE);
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -319,7 +314,7 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-            dataSet -> dataSet != null ).collect( Collectors.toSet() ) );
+                Objects::nonNull).collect( Collectors.toSet() ) );
     }
 
     /**

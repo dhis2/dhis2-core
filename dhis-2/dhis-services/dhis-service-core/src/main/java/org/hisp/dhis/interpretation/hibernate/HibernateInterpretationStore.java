@@ -28,6 +28,8 @@ package org.hisp.dhis.interpretation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hibernate.query.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -36,8 +38,6 @@ import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
-
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -51,8 +51,9 @@ public class HibernateInterpretationStore
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql );
-        query.setParameter( "user", user );
+        Query query = getQuery( hql )
+            .setParameter( "user", user )
+            .setCacheable( cacheable );
 
         return query.list();
     }
@@ -63,10 +64,11 @@ public class HibernateInterpretationStore
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql );
-        query.setParameter( "user", user );
-        query.setMaxResults( first );
-        query.setMaxResults( max );
+        Query query = getQuery( hql )
+            .setParameter( "user", user )
+            .setMaxResults( first )
+            .setMaxResults( max )
+            .setCacheable( cacheable );
 
         return query.list();
     }
@@ -74,8 +76,9 @@ public class HibernateInterpretationStore
     @Override
     public int countMapInterpretations( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
-        query.setParameter( "map", map );
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" )
+            .setParameter( "map", map )
+            .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -83,8 +86,9 @@ public class HibernateInterpretationStore
     @Override
     public int countChartInterpretations( Chart chart )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
-        query.setParameter( "chart", chart );
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" )
+            .setParameter( "chart", chart )
+            .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -92,8 +96,9 @@ public class HibernateInterpretationStore
     @Override
     public int countReportTableInterpretations( ReportTable reportTable )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
-        query.setParameter( "reportTable", reportTable );
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" )
+            .setParameter( "reportTable", reportTable )
+            .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }
@@ -102,9 +107,10 @@ public class HibernateInterpretationStore
     public Interpretation getByChartId( int id )
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
-        
-        Query query = getSession().createQuery( hql );
-        
+
+        Query query = getSession().createQuery( hql )
+            .setCacheable( cacheable );
+
         return (Interpretation) query.uniqueResult();
     }
 }

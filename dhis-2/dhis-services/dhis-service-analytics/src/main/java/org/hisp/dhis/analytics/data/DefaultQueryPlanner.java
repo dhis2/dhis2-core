@@ -152,8 +152,30 @@ public class DefaultQueryPlanner
             PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
             PartitionUtils.getPartitions( params.getAllPeriods() );
 
+        if ( params.getCurrentUser() != null )
+        {
+            partitionManager.filterNonExistingPartitions( partitions, plannerParams.getTableName() );
+        }
+
         return DataQueryParams.newBuilder( params )
             .withTableName( plannerParams.getTableName() )
+            .withPartitions( partitions )
+            .build();
+    }
+
+    @Override
+    public DataQueryParams assignPartitionsFromQueryPeriods( DataQueryParams params )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
+
+        if ( params.getTableName() != null && params.getCurrentUser() != null )
+        {
+            partitionManager.filterNonExistingPartitions( partitions, params.getTableName() );
+        }
+
+        return DataQueryParams.newBuilder( params )
             .withPartitions( partitions )
             .build();
     }

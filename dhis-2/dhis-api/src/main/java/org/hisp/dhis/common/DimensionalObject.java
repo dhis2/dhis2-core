@@ -167,4 +167,6 @@ public interface DimensionalObject
      * Returns a unique key representing this dimension.
      */
     String getKey();
+
+    DimensionalKeywords getDimensionalKeywords();
 }

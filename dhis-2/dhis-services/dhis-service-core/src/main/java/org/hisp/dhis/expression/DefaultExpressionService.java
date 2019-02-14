@@ -28,39 +28,11 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.jep.CustomFunctions;
-import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.system.util.ExpressionUtils;
-import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.system.util.MathUtils.calculateExpression;
+import static org.hisp.dhis.system.util.MathUtils.isEqual;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,9 +44,42 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.hisp.dhis.system.util.MathUtils.*;
+import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.jep.CustomFunctions;
+import org.hisp.dhis.system.util.ExpressionUtils;
+import org.hisp.dhis.system.util.MathUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The expression is a string describing a formula containing data element ids
@@ -95,50 +100,38 @@ public class DefaultExpressionService
 
     private GenericStore<Expression> expressionStore;
 
-    public void setExpressionStore( GenericStore<Expression> expressionStore )
-    {
-        this.expressionStore = expressionStore;
-    }
-
     private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
-    }
 
     private ConstantService constantService;
 
-    public void setConstantService( ConstantService constantService )
-    {
-        this.constantService = constantService;
-    }
-
     private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
 
     private OrganisationUnitGroupService organisationUnitGroupService;
 
-    public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
-    {
-        this.organisationUnitGroupService = organisationUnitGroupService;
-    }
-
     private DimensionService dimensionService;
-
-    public void setDimensionService( DimensionService dimensionService )
-    {
-        this.dimensionService = dimensionService;
-    }
 
     private IdentifiableObjectManager idObjectManager;
 
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
+    @Autowired
+    public DefaultExpressionService( GenericStore<Expression> expressionStore, DataElementService dataElementService,
+        ConstantService constantService, CategoryService categoryService,
+        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
+        IdentifiableObjectManager idObjectManager )
     {
+        checkNotNull(expressionStore);
+        checkNotNull(dataElementService);
+        checkNotNull(constantService);
+        checkNotNull(categoryService);
+        checkNotNull(organisationUnitGroupService);
+        checkNotNull(dimensionService);
+        checkNotNull(idObjectManager);
+
+        this.expressionStore = expressionStore;
+        this.dataElementService = dataElementService;
+        this.constantService = constantService;
+        this.categoryService = categoryService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
     }
 
@@ -186,14 +179,14 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
-    
+
     @Override
     public Double getIndicatorValue( Indicator indicator, Period period,
         Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
         IndicatorValue value = getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
-        
+
         return value != null ? value.getValue() : null;
     }
 
@@ -231,15 +224,24 @@ public class DefaultExpressionService
 
             final double numeratorValue = calculateExpression( numeratorExpression );
 
-            final double annualizationFactor = period != null ?
-                DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
-            final int factor = indicator.getIndicatorType().getFactor();
+            int multiplier = indicator.getIndicatorType().getFactor();
+
+            int divisor = 1;
+
+            if ( indicator.isAnnualized() && period != null )
+            {
+                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+
+                multiplier *= DateUtils.DAYS_IN_YEAR;
+
+                divisor = daysInPeriod;
+            }
 
             return new IndicatorValue()
                 .setNumeratorValue( numeratorValue )
                 .setDenominatorValue( denominatorValue )
-                .setFactor( factor )
-                .setAnnualizationFactor( annualizationFactor );
+                .setMultiplier( multiplier )
+                .setDivisor( divisor );
         }
 
         return null;
@@ -275,48 +277,48 @@ public class DefaultExpressionService
     @Override
     public Set<CategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression, 
+        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression,
             ( m ) -> categoryService.getCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
     {
-        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
+        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression,
             ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( GROUP_ID ) ) );
     }
 
     /**
      * Returns a set of identifiable objects which are referenced in
      * the given expression based on the given regular expression pattern.
-     * 
+     *
      * @param pattern the regular expression pattern to match identifiable objects on.
      * @param expression the expression where identifiable objects are referenced.
-     * @param provider the provider of identifiable objects, accepts a matcher and 
+     * @param provider the provider of identifiable objects, accepts a matcher and
      *        provides the object.
      * @return a set of identifiable objects.
      */
     private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
     {
         Set<T> objects = new HashSet<>();
-        
+
         if ( expression == null )
         {
             return  objects;
         }
-        
+
         final Matcher matcher = pattern.matcher( expression );
 
         while ( matcher.find() )
         {
             final T object = provider.apply( matcher );
-            
+
             if ( object != null )
             {
                 objects.add( object );
             }
         }
-        
+
         return objects;
     }
 
@@ -334,9 +336,7 @@ public class DefaultExpressionService
             {
                 String dataElementUid = StringUtils.trimToNull( matcher.group( GROUP_DATA_ELEMENT ) );
                 String optionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
-
                 DataElement dataElement = dataElementService.getDataElement( dataElementUid );
-
                 CategoryOptionCombo optionCombo = optionComboUid == null ? null :
                     categoryService.getCategoryOptionCombo( optionComboUid );
 
@@ -451,7 +451,6 @@ public class DefaultExpressionService
         while ( matcher.find() )
         {
             String dimensionItem = matcher.group( GROUP_ID );
-            
             DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
 
             if ( dimensionItemObject != null )
@@ -466,17 +465,13 @@ public class DefaultExpressionService
     @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
-        Set<DimensionalItemObject> items = Sets.newHashSet();
-
-        for ( Indicator indicator : indicators )
-        {
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getNumerator() ) );
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getDenominator() ) );
-        }
-
-        return items;
+        return indicators.stream()
+            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
+            .map( this::getDimensionalItemObjectsInExpression )
+            .flatMap( Set::stream )
+            .collect( Collectors.toSet() );
     }
-    
+
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
     {
@@ -686,10 +681,10 @@ public class DefaultExpressionService
         if ( indicators != null && !indicators.isEmpty() )
         {
             Map<String, Constant> constants = new CachingMap<String, Constant>()
-                .load( idObjectManager.getAllNoAcl( Constant.class ), c -> c.getUid() );
+                .load( idObjectManager.getAllNoAcl( Constant.class ), BaseIdentifiableObject::getUid);
 
             Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
-                .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), g -> g.getUid() );
+                .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), BaseIdentifiableObject::getUid);
 
             for ( Indicator indicator : indicators )
             {
@@ -778,7 +773,7 @@ public class DefaultExpressionService
 
     /**
      * Generates an expression based on the given data maps.
-     * 
+     *
      * @param expression the expression.
      * @param valueMap the value map.
      * @param constantMap the constant map.
@@ -790,14 +785,14 @@ public class DefaultExpressionService
      */
     private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy, 
+        MissingValueStrategy missingValueStrategy,
         Map<String, List<Double>> aggregateMap )
     {
         if ( expression == null || expression.isEmpty() )
         {
             return null;
         }
-        
+
         expression = ExpressionUtils.normalizeExpression( expression );
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().

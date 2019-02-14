@@ -78,6 +78,7 @@
     </list>
 
     <list name="attributeDimensions" table="eventreport_attributedimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_attributedimensions_eventreportid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
@@ -85,6 +86,7 @@
     </list>
 
     <list name="dataElementDimensions" table="eventreport_dataelementdimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_dataelementdimensions_eventreportid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
@@ -92,6 +94,7 @@
     </list>
 
     <list name="programIndicatorDimensions" table="eventreport_programindicatordimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_programindicatordimensions_eventreportid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityprogramindicatordimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension"
