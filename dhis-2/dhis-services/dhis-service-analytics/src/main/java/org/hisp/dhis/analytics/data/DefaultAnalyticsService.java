@@ -113,9 +113,13 @@ import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYP
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
+import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
