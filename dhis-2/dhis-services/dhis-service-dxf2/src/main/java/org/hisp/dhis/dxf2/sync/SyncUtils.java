@@ -264,7 +264,7 @@ public class SyncUtils
             }
             catch ( InterruptedException e )
             {
-                log.error( "Sleep between sync retries failed.", e );                
+                log.error( "Sleep between sync retries failed.", e );
                 Thread.currentThread().interrupt();
             }
 
@@ -381,26 +381,44 @@ public class SyncUtils
     }
 
     /**
-     * Sets the time of the last successful synchronization operation.
+     * Sets the time of the last successful synchronization operation for given settingKey.
      *
-     * @param systemSettingManager Reference to SystemSettingManager
-     * @param settingKey           SettingKey used for keeping info about last sync success
-     * @param time                 Date of last sync success
+     * @param systemSettingManager SystemSettingManager
+     * @param settingKey SettingKey specifying the sync operation that was successfully done
+     * @param time The date and time of last successful sync
      */
-    static void setSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
+    public static void setLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
     {
         systemSettingManager.saveSystemSetting( settingKey, time );
     }
 
     /**
-     * Return the time of last successful sync.
+     * Return the time of last successful synchronization operation for given settingKey.
      *
      * @param systemSettingManager Reference to SystemSettingManager
-     * @param settingKey           SettingKey used for keeping info about last sync success
-     * @return The Date of last sync success
+     * @param settingKey SettingKey specifying the sync operation that was successfully done
+     * @return The date and time of last successful sync
      */
-    static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
+    public static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
     {
         return (Date) systemSettingManager.getSystemSetting( settingKey );
+    }
+
+    /**
+     * Checks the status of given importSummary and returns true if fine. False otherwise.
+     *
+     * @param summary ImportSummary to check
+     * @param endpoint Endpoint against which the sync was run
+     * @return true if sync was successful, false otherwise
+     */
+    public static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
+    {
+        if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
+        {
+            log.error( "Sync against endpoint: " + endpoint.name() + " failed: ImportSummary: " + summary );
+            return false;
+        }
+
+        return true;
     }
 }
