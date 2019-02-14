@@ -147,6 +147,7 @@ public class DataIntegrityServiceTest
     private OrganisationUnitGroup unitGroupA;
     private OrganisationUnitGroup unitGroupB;
     private OrganisationUnitGroup unitGroupC;
+
     @Before
     public void setUp()
     {

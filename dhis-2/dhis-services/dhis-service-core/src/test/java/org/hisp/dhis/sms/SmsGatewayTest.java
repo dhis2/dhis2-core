@@ -29,20 +29,27 @@ package org.hisp.dhis.sms;
  */
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -51,14 +58,16 @@ import static org.mockito.Mockito.*;
 /**
  * @author Zubair Asghar.
  */
-
-@RunWith( MockitoJUnitRunner.class )
 public class SmsGatewayTest extends DhisConvenienceTest
 {
     private static final String MESSAGE = "text-MESSAGE";
     private static final String SUBJECT = "subject";
     private static final String PHONE_NUMBER = "4X000000";
-    private static final String RESPONSE_STRING = "0|abc|5656";
+    private static final String SUCCESS_RESPONSE_STRING = "0|abc|5656";
+    private static final String ERROR_RESPONSE_STRING = "24|abc|5656";
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private RestTemplate restTemplate;
@@ -70,21 +79,28 @@ public class SmsGatewayTest extends DhisConvenienceTest
 
     private Set<String> recipients = new HashSet<>();
 
+    private OutboundMessageBatch batch;
+
+    private List<OutboundMessage> outboundMessageList = new ArrayList<>();
+
     @Before
     public void initTest()
     {
-        ResponseEntity<String> responseEntity = new ResponseEntity<>( RESPONSE_STRING, HttpStatus.OK );
-
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
-            .thenReturn( responseEntity );
+        smsGatewayConfig = new BulkSmsGatewayConfig();
+        smsGatewayConfig.setDefault( true );
 
         recipients.add( PHONE_NUMBER );
+
+        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
+        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
+        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
+
+        batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
     }
 
     @Test
     public void testAccept()
     {
-        smsGatewayConfig = new BulkSmsGatewayConfig();
         boolean result = bulkSmsGateway.accept( smsGatewayConfig );
 
         assertTrue( result );
@@ -96,20 +112,66 @@ public class SmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSend()
+    public void testSuccessful()
     {
-        BulkSmsGatewayConfig config = new BulkSmsGatewayConfig();
-        config.setDefault( true );
+        ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
-        smsGatewayConfig = config;
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+            .thenReturn( successResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
         assertNotNull( status );
         assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
+    }
+
+    @Test
+    public void testBulkSend()
+    {
+        ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
         when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+                .thenReturn( successResponse );
+
+        List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
+
+        assertNotNull( responses );
+        assertEquals( 3, responses.size() );
+    }
+
+    @Test
+    public void testFailureCode()
+    {
+        ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
+
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+            .thenReturn( errorResponse );
+
+        OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
+
+        assertNotNull( status2 );
+        assertFalse( status2.isOk() );
+        assertEquals( GatewayResponse.RESULT_CODE_24, status2.getResponseObject() );
+    }
+
+    @Test
+    public void testFailure()
+    {
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
             .thenReturn( null );
+
+        OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
+
+        assertNotNull( status2 );
+        assertFalse( status2.isOk() );
+        assertEquals( GatewayResponse.FAILED, status2.getResponseObject() );
+    }
+
+    @Test
+    public void testException()
+    {
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+            .thenThrow( HttpClientErrorException.class );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
