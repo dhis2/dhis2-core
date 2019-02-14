@@ -415,7 +415,7 @@ public class SyncUtils
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
-            log.error( "Sync against endpoint: " + endpoint.name() + " failed: ImportSummary: " + summary );
+            log.error( "Sync against endpoint " + endpoint.name() + " failed. ImportSummary: " + summary );
             return false;
         }
 

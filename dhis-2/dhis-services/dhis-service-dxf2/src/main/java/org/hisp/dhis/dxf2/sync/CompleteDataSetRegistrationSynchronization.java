@@ -46,7 +46,7 @@ public class CompleteDataSetRegistrationSynchronization
 {
     private static final Log log = LogFactory.getLog( CompleteDataSetRegistrationSynchronization.class );
 
-    private SynchronizationManager synchronizationManager;
+    private final SynchronizationManager synchronizationManager;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -81,9 +81,10 @@ public class CompleteDataSetRegistrationSynchronization
             importSummary = synchronizationManager.executeDataSetCompletenessPush();
             if ( SyncUtils.checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
             {
-                clock.logTime( "SUCCESS! Complete data set registration synchronization job is done. It took" );
+                String resultMsg = "Complete data set registration synchronization job is done. It took ";
+                clock.logTime( "SUCCESS! " + resultMsg );
                 SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
-                return SynchronizationResult.newSuccessResultWithMessage( "Complete data set registration synchronization done. It took " + clock.getTime() + " ms." );
+                return SynchronizationResult.newSuccessResultWithMessage( resultMsg + clock.getTime() + " ms." );
             }
 
         }
