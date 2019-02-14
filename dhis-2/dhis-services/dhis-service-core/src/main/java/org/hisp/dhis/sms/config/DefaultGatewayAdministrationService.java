@@ -56,8 +56,13 @@ public class DefaultGatewayAdministrationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private SmsConfigurationManager smsConfigurationManager;
+
+    @Autowired
+    public DefaultGatewayAdministrationService( SmsConfigurationManager smsConfigurationManager )
+    {
+        this.smsConfigurationManager = smsConfigurationManager;
+    }
 
     // -------------------------------------------------------------------------
     // GatewayAdministrationService implementation

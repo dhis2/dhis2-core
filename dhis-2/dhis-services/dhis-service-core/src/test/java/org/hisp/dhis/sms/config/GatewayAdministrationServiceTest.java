@@ -28,9 +28,85 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
+
+
 /**
  * @Author Zubair Asghar.
  */
 public class GatewayAdministrationServiceTest
 {
+    private BulkSmsGatewayConfig bulkConfig;
+    private ClickatellGatewayConfig clickatellConfig;
+    private SmsConfiguration spyConfiguration;
+
+    // -------------------------------------------------------------------------
+    // Mocking Dependencies
+    // -------------------------------------------------------------------------
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Mock
+    private SmsConfigurationManager smsConfigurationManager;
+
+    private DefaultGatewayAdministrationService subject;
+
+    @Before
+    public void setUp()
+    {
+        subject = new DefaultGatewayAdministrationService( smsConfigurationManager );
+
+        spyConfiguration = new SmsConfiguration();
+        bulkConfig = new BulkSmsGatewayConfig();
+        clickatellConfig = new ClickatellGatewayConfig();
+
+        when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
+
+        doAnswer( invocationOnMock ->
+        {
+            spyConfiguration = (SmsConfiguration) invocationOnMock.getArguments()[0];
+            return spyConfiguration;
+        }).when( smsConfigurationManager ).updateSmsConfiguration( any( SmsConfiguration.class ) );
+
+    }
+
+    @Test
+    public void testAddGateway()
+    {
+        boolean isAdded = subject.addGateway( bulkConfig );
+
+        assertTrue( isAdded );
+        assertEquals( bulkConfig, spyConfiguration.getGateways().get( 0 ) );
+        assertTrue( spyConfiguration.getGateways().get( 0 ).isDefault() );
+    }
+
+    @Test
+    public void testReturnFalseIfConfigIsNull()
+    {
+        assertFalse( subject.addGateway( null ) );
+    }
+
+    @Test
+    public void testSecondGatewayIsSetToFalse()
+    {
+        spyConfiguration.getGateways().add( bulkConfig );
+
+        when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
+
+        boolean isAdded = subject.addGateway( clickatellConfig );
+
+        assertTrue( isAdded );
+        assertEquals( 2, spyConfiguration.getGateways().size() );
+        assertTrue( spyConfiguration.getGateways().contains( clickatellConfig ) );
+        assertFalse( spyConfiguration.getGateways().get( 0 ).isDefault() );
+    }
 }

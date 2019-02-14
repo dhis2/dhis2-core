@@ -43,19 +43,19 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
 
 import com.google.common.collect.Sets;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Zubair Asghar.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class SmsMessageSenderTest
 {
     private static final Integer MAX_ALLOWED_RECIPIENTS = 200;
@@ -72,6 +72,9 @@ public class SmsMessageSenderTest
 
     @Mock
     private BulkSmsGateway bulkSmsGateway;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private ArrayList<SmsGateway> smsGateways;
 
@@ -115,7 +118,7 @@ public class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
-        smsMessageSender = new SmsMessageSender(gatewayAdministrationService, smsGateways, userSettingService);
+        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
