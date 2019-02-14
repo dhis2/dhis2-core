@@ -1265,7 +1265,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
 
-                if ( daoRelationship.getFrom().equals( relationshipItem ) && trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
+                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
                 {
                     Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
