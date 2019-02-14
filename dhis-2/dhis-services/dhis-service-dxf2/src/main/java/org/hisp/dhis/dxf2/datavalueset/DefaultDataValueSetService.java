@@ -1336,19 +1336,24 @@ public class DefaultDataValueSetService
         CompleteDataSetRegistration completeAlready = registrationService
             .getCompleteDataSetRegistration( dataSet, period, orgUnit, attributeOptionCombo );
 
-        String username = currentUserService.getCurrentUsername();
-
         if ( completeAlready != null )
         {
-            completeAlready.setStoredBy( username );
+            //The method is called only via /dataSets endpoint which cannot un-complete the data set.
+            // Therefore, if entry is already present and completeDate is present (check is done
+            // when the method is called) I consider it as completed. (Note: It can be un-completed by
+            // use of /completeDataSetRegistrations endpoint. Therefore, I still need to do an update)
             completeAlready.setDate( completeDate );
+            completeAlready.setStoredBy( currentUserName );
+            completeAlready.setLastUpdated( new Date() );
+            completeAlready.setLastUpdatedBy( currentUserName );
+            completeAlready.setCompleted( true );
 
             registrationService.updateCompleteDataSetRegistration( completeAlready );
         }
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username, completeDate, currentUserName, true );
+                attributeOptionCombo, completeDate, currentUserName, new Date(), currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }
