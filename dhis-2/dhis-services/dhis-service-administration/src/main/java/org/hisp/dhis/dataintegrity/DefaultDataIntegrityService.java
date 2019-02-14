@@ -89,35 +89,35 @@ public class DefaultDataIntegrityService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleService programRuleService;
 
-    private ProgramRuleActionService programRuleActionService;
+    private final ProgramRuleActionService programRuleActionService;
 
-    private ProgramRuleVariableService programRuleVariableService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    private IndicatorService indicatorService;
+    private final IndicatorService indicatorService;
 
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    private ValidationRuleService validationRuleService;
+    private final ValidationRuleService validationRuleService;
 
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    private DataEntryFormService dataEntryFormService;
+    private final DataEntryFormService dataEntryFormService;
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    private ProgramIndicatorService programIndicatorService;
+    private final ProgramIndicatorService programIndicatorService;
 
     @Autowired
     public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,

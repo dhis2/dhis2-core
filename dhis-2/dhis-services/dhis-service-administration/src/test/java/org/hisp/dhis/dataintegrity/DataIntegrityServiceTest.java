@@ -205,10 +205,6 @@ public class DataIntegrityServiceTest
         elementC = createDataElement( 'C' );
         attributeA = createTrackedEntityAttribute( 'A' );
 
-/*        dataElementService.addDataElement( elementA );
-        dataElementService.addDataElement( elementB );
-        dataElementService.addDataElement( elementC );*/
-
         indicatorTypeA = createIndicatorType( 'A' );
 
         indicatorA = createIndicator( 'A', indicatorTypeA );

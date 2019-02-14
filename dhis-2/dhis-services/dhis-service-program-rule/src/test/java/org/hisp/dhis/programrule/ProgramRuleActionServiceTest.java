@@ -195,8 +195,8 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoDataObject()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null);
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
         int idI = actionService.addProgramRuleAction( actionI );
         int idJ = actionService.addProgramRuleAction( actionJ );
@@ -214,8 +214,8 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoNotification()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.SENDMESSAGE, null, null, null, null, null, null, "$myvar", "true", null, null);
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.SENDMESSAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
         actionI.setTemplateUid( "tempUId" );
         int idI = actionService.addProgramRuleAction( actionI );
@@ -234,7 +234,7 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoSectionId()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null );
 
         int idI = actionService.addProgramRuleAction( actionI );
 
@@ -251,7 +251,7 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoStageId()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null);
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
 
         int idI = actionService.addProgramRuleAction( actionI );
 

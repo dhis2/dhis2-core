@@ -60,7 +60,7 @@ public enum ProgramRuleActionType
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
         new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
 
-    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>().add( HIDEFIELD,SETMANDATORYFIELD, HIDEOPTION,
+    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>().add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
         HIDEOPTIONGROUP, SHOWOPTIONGROUP ).build(); // Actions associated with DataElement Or TrackedEntityAttribute
 
     private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =

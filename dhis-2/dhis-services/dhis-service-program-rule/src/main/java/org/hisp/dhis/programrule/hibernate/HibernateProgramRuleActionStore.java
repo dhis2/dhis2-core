@@ -36,6 +36,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,8 +49,6 @@ public class HibernateProgramRuleActionStore
     private static final String QUERY = "FROM ProgramRuleAction pra WHERE pra.programRuleActionType =:type  AND pra.%s IS NULL";
 
     private static final ImmutableMap<ProgramRuleActionType, String> QUERY_FILTER = new ImmutableMap.Builder<ProgramRuleActionType, String>()
-        .put( ProgramRuleActionType.SENDMESSAGE, "templateUid" )
-        .put( ProgramRuleActionType.SCHEDULEMESSAGE, "templateUid" )
         .put( ProgramRuleActionType.HIDESECTION, "programStageSection" )
         .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, "programStage" )
         .build();
@@ -74,7 +73,7 @@ public class HibernateProgramRuleActionStore
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoNotification()
     {
-        return getQuery("FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:notificationTypes ) AND pra.templateUid IS NULL" )
+        return getQuery("FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
             .setParameter("notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
             .getResultList();
     }
@@ -82,8 +81,13 @@ public class HibernateProgramRuleActionStore
     @Override
     public List<ProgramRuleAction> getMalFormedRuleActionsByType( ProgramRuleActionType type )
     {
-        String filter = QUERY_FILTER.getOrDefault( type, "" );
+        if ( QUERY_FILTER.containsKey( type ) )
+        {
+            String filter = QUERY_FILTER.get( type );
 
-        return getQuery( String.format( QUERY, filter ) ).setParameter("type", type ).getResultList();
+            return getQuery( String.format( QUERY, filter ) ).setParameter( "type", type ).getResultList();
+        }
+
+        return new ArrayList<>();
     }
 }

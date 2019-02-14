@@ -68,7 +68,7 @@ public class HibernateProgramRuleVariableStore
     @Override
     public List<ProgramRuleVariable> getVariablesWithNoDataElement()
     {
-        return getQuery( "FROM ProgramRuleVariable prv WHERE prv.sourceType IN (:dataTypes ) AND prv.dataElement IS NULL" )
+        return getQuery( "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :dataTypes ) AND prv.dataElement IS NULL" )
             .setParameter( "dataTypes", ProgramRuleVariableSourceType.getDataTypes() )
             .getResultList();
     }
@@ -76,7 +76,7 @@ public class HibernateProgramRuleVariableStore
     @Override
     public List<ProgramRuleVariable> getVariablesWithNoAttribute()
     {
-        return getQuery( "FROM ProgramRuleVariable prv WHERE prv.sourceType IN (:attributeTypes ) AND prv.attribute IS NULL" )
+        return getQuery( "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :attributeTypes ) AND prv.attribute IS NULL" )
             .setParameter( "attributeTypes", ProgramRuleVariableSourceType.getAttributeTypes() )
             .getResultList();
     }

@@ -68,7 +68,7 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
-        return getQuery( "FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.program = :programId AND pra.programRuleActionType IN (:implementableTypes)" )
+        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
             .setParameter( "programId", program )
             .setParameter( "implementableTypes", types )
             .getResultList();
@@ -97,7 +97,7 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        return getQuery( "FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
             .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
             .getResultList();
     }
