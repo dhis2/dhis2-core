@@ -38,13 +38,17 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.user.CurrentUserService;
@@ -105,15 +109,47 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
 
             if ( klass.isAssignableFrom( TrackedEntityInstance.class ) )
             {
+                for ( List<String> ids : splitList )
+                {
+                    Query query = Query.from( schemaService.getDynamicSchema( org.hisp.dhis.trackedentity.TrackedEntityInstance.class ) );
+                    query.setUser( preheat.getUser() );
+                    query.add( Restrictions.in( "id", ids ) );
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+                    preheat.put( TrackerIdentifier.UID, objects );
+                }
             }
-            else if ( klass.isAssignableFrom( TrackedEntityAttribute.class ) )
+            else if ( klass.isAssignableFrom( Attribute.class ) )
             {
+                for ( List<String> ids : splitList )
+                {
+                    Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttributeValue.class ) );
+                    query.setUser( preheat.getUser() );
+                    query.add( Restrictions.in( "id", ids ) );
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+                    preheat.put( TrackerIdentifier.UID, objects );
+                }
             }
             else if ( klass.isAssignableFrom( Enrollment.class ) )
             {
+                for ( List<String> ids : splitList )
+                {
+                    Query query = Query.from( schemaService.getDynamicSchema( ProgramInstance.class ) );
+                    query.setUser( preheat.getUser() );
+                    query.add( Restrictions.in( "id", ids ) );
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+                    preheat.put( TrackerIdentifier.UID, objects );
+                }
             }
             else if ( klass.isAssignableFrom( Event.class ) )
             {
+                for ( List<String> ids : splitList )
+                {
+                    Query query = Query.from( schemaService.getDynamicSchema( ProgramStageInstance.class ) );
+                    query.setUser( preheat.getUser() );
+                    query.add( Restrictions.in( "id", ids ) );
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+                    preheat.put( TrackerIdentifier.UID, objects );
+                }
             }
             else
             {
