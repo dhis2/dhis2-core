@@ -131,7 +131,7 @@ public class SmsGatewayTest extends DhisConvenienceTest
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
         when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
-                .thenReturn( successResponse );
+            .thenReturn( successResponse );
 
         List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
 

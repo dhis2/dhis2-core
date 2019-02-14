@@ -76,7 +76,6 @@ public class GatewayAdministrationServiceTest
             spyConfiguration = (SmsConfiguration) invocationOnMock.getArguments()[0];
             return spyConfiguration;
         }).when( smsConfigurationManager ).updateSmsConfiguration( any( SmsConfiguration.class ) );
-
     }
 
     @Test
