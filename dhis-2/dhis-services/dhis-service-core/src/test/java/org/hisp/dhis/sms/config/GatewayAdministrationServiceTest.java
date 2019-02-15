@@ -84,6 +84,39 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
+    public void testGetByUid()
+    {
+        subject.addGateway( bulkConfig );
+        String uid = subject.getDefaultGateway().getUid();
+
+        SmsGatewayConfig gatewayConfig = subject.getByUid( uid );
+
+        assertNotNull( gatewayConfig );
+        assertEquals( bulkConfig, gatewayConfig );
+    }
+
+    @Test
+    public void testShouldReturnNullWhenUidIsNull()
+    {
+        assertNull( subject.getByUid( "" ) );
+        assertNull( subject.getByUid( null ) );
+    }
+
+    @Test
+    public void testSetDefaultGateway()
+    {
+        subject.addGateway( bulkConfig );
+        subject.addGateway( clickatellConfig );
+
+        assertNotEquals( clickatellConfig, subject.getDefaultGateway() );
+
+        subject.setDefaultGateway( clickatellConfig.getUid() );
+
+        assertEquals( clickatellConfig, subject.getDefaultGateway() );
+        assertNotEquals( bulkConfig, subject.getDefaultGateway() );
+    }
+
+    @Test
     public void testAddGateway()
     {
         boolean isAdded = subject.addGateway( bulkConfig );
@@ -223,5 +256,25 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.getGatewayConfigurationMap().isEmpty() );
         assertNull( subject.getDefaultGateway() );
+    }
+
+    @Test
+    public void testGetGatewayType()
+    {
+        subject.addGateway( bulkConfig );
+
+        Class<? extends SmsGatewayConfig> config = subject.getGatewayType( subject.getGatewayConfigurationMap().get( BULKSMS ) );
+
+        assertNotNull( config );
+        assertEquals( config, BulkSmsGatewayConfig.class );
+    }
+
+    @Test
+    public void testShouldReturnNullIfNoGatewayTypeFound()
+    {
+        subject.addGateway( bulkConfig );
+
+        assertNull( subject.getGatewayType( clickatellConfig ) );
+        assertNull( subject.getGatewayType( null ) );
     }
 }

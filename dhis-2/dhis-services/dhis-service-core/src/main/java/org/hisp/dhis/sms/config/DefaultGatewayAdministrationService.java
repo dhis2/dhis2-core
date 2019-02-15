@@ -317,6 +317,11 @@ public class DefaultGatewayAdministrationService
     @Override
     public Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config )
     {
+        if ( config == null )
+        {
+            return null;
+        }
+
         SmsConfiguration configuration = getSmsConfiguration();
 
         for ( SmsGatewayConfig gatewayConfig : configuration.getGateways() )
