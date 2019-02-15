@@ -1336,19 +1336,21 @@ public class DefaultDataValueSetService
         CompleteDataSetRegistration completeAlready = registrationService
             .getCompleteDataSetRegistration( dataSet, period, orgUnit, attributeOptionCombo );
 
-        String username = currentUserService.getCurrentUsername();
-
         if ( completeAlready != null )
         {
-            completeAlready.setStoredBy( username );
+            // At this point, DataSet is completed. Override, eventual non-completeness
             completeAlready.setDate( completeDate );
+            completeAlready.setStoredBy( currentUserName );
+            completeAlready.setLastUpdated( new Date() );
+            completeAlready.setLastUpdatedBy( currentUserName );
+            completeAlready.setCompleted( true );
 
             registrationService.updateCompleteDataSetRegistration( completeAlready );
         }
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username, completeDate, currentUserName, true );
+                attributeOptionCombo, completeDate, currentUserName, new Date(), currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }

@@ -28,15 +28,8 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -46,8 +39,14 @@ import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -113,6 +112,7 @@ public enum SettingKey
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
     LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", new Date( 0 ), Date.class ),
+    LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC( "keyLastCompleteDataSetRegistrationSyncSuccess", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
