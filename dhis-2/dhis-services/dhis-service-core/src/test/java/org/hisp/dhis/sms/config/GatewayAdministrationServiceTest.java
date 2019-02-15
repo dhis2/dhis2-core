@@ -44,6 +44,9 @@ import static org.junit.Assert.*;
  */
 public class GatewayAdministrationServiceTest
 {
+    private static final String BULKSMS = "bulksms";
+    private static final String CLICKATELL = "clickatell";
+
     private BulkSmsGatewayConfig bulkConfig;
     private ClickatellGatewayConfig clickatellConfig;
     private SmsConfiguration spyConfiguration;
@@ -67,7 +70,9 @@ public class GatewayAdministrationServiceTest
 
         spyConfiguration = new SmsConfiguration();
         bulkConfig = new BulkSmsGatewayConfig();
+        bulkConfig.setName( BULKSMS );
         clickatellConfig = new ClickatellGatewayConfig();
+        clickatellConfig.setName( CLICKATELL );
 
         when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
 
@@ -89,23 +94,134 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
+    public void testUpdateDefaultGatewaySuccess()
+    {
+        assertTrue( subject.addGateway( bulkConfig ) );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+        assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+
+        BulkSmsGatewayConfig updated = new BulkSmsGatewayConfig();
+        updated.setName( "changedbulksms" );
+
+        subject.updateGateway( bulkConfig, updated );
+
+        assertEquals( 1, spyConfiguration.getGateways().size() );
+        assertEquals( updated, subject.getDefaultGateway() );
+        assertEquals( "changedbulksms", subject.getDefaultGateway().getName() );
+    }
+
+    @Test
+    public void testUpdateGatewaySuccess()
+    {
+        assertTrue( subject.addGateway( bulkConfig ) );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+        assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+
+        subject.addGateway( clickatellConfig );
+
+        assertEquals( 2, spyConfiguration.getGateways().size() );
+
+        ClickatellGatewayConfig updated = new ClickatellGatewayConfig();
+        updated.setName( "changedclickatell" );
+        updated.setUid( "tempUId" );
+
+        subject.updateGateway( clickatellConfig, updated );
+
+        assertEquals( 2, subject.getGatewayConfigurationMap().size() );
+        assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
+        assertFalse( subject.getGatewayConfigurationMap().get( CLICKATELL ).isDefault() );
+        assertNotEquals( "tempUId", subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid() );
+    }
+
+    @Test
+    public void testNothingShouldBeUpdatedIfNullIsPassed()
+    {
+        bulkConfig.setName( BULKSMS );
+        assertTrue( subject.addGateway( bulkConfig ) );
+
+        subject.updateGateway( bulkConfig, null );
+    }
+
+    @Test
     public void testReturnFalseIfConfigIsNull()
     {
         assertFalse( subject.addGateway( null ) );
     }
 
     @Test
+    public void testWhenNoDefaultGateway()
+    {
+        assertNull( subject.getDefaultGateway() );
+    }
+
+    @Test
     public void testSecondGatewayIsSetToFalse()
     {
-        spyConfiguration.getGateways().add( bulkConfig );
-
         when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
 
+        subject.addGateway( bulkConfig );
+
+        clickatellConfig.setDefault( true );
         boolean isAdded = subject.addGateway( clickatellConfig );
 
         assertTrue( isAdded );
         assertEquals( 2, spyConfiguration.getGateways().size() );
         assertTrue( spyConfiguration.getGateways().contains( clickatellConfig ) );
-        assertFalse( spyConfiguration.getGateways().get( 0 ).isDefault() );
+
+        assertNotNull( subject.getDefaultGateway() );
+        assertEquals( subject.getDefaultGateway(), bulkConfig );
+    }
+
+    @Test
+    public void testRemoveDefaultGateway()
+    {
+        subject.addGateway( bulkConfig );
+        subject.addGateway( clickatellConfig );
+
+        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+        String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
+
+        assertNotNull( bulkId );
+        assertNotNull( clickatelId );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+
+        assertTrue( subject.removeGatewayByUid( bulkId ) );
+        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
+        assertNull( subject.getGatewayConfigurationMap().get( BULKSMS ) );
+        assertEquals( clickatellConfig, subject.getDefaultGateway() );
+    }
+
+    @Test
+    public void  testRemoveGateway()
+    {
+        subject.addGateway( bulkConfig );
+        subject.addGateway( clickatellConfig );
+
+        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+        String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
+
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+        assertEquals( 2, subject.getGatewayConfigurationMap().size() );
+
+        assertTrue( subject.removeGatewayByUid( clickatelId ) );
+        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
+        assertNull( subject.getGatewayConfigurationMap().get( CLICKATELL ) );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+    }
+
+    @Test
+    public void testRemoveSingleGateway()
+    {
+        subject.addGateway( bulkConfig );
+
+        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+
+        System.out.println( subject.getGatewayConfigurationMap() );
+        subject.removeGatewayByUid( bulkId );
+
+        assertTrue( subject.getGatewayConfigurationMap().isEmpty() );
+        assertNull( subject.getDefaultGateway() );
     }
 }

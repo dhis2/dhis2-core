@@ -195,7 +195,14 @@ public class DefaultGatewayAdministrationService
     @Override
     public void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig )
     {
+        if ( persisted == null || updatedConfig == null )
+        {
+            log.warn( "Gateway configurations cannot be null" );
+            return;
+        }
+
         updatedConfig.setUid( persisted.getUid() );
+        updatedConfig.setDefault( persisted.isDefault() );
 
         SmsConfiguration configuration = getSmsConfiguration();
 
@@ -367,7 +374,9 @@ public class DefaultGatewayAdministrationService
 
         if ( gatewayList == null || gatewayList.isEmpty() )
         {
-            log.info( "Gateway configuration not found" );
+            log.info( "No Gateway configuration not found" );
+
+            loadGatewayConfigurationMap( smsConfiguration );
             return;
         }
 
