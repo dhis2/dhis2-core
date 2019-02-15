@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule;
  */
 
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 

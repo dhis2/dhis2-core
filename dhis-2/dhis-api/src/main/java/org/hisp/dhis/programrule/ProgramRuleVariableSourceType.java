@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.util.Set;
