@@ -78,8 +78,8 @@ public class CompleteDataSetRegistrationSynchronization
         ImportSummary importSummary;
         try
         {
-            importSummary = synchronizationManager.executeDataSetCompletenessPush();
-            if ( SyncUtils.checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
+            importSummary = synchronizationManager.executeCompleteDataSetRegistrationPush();
+            if( SyncUtils.checkSummaryStatus( importSummary, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS ) )
             {
                 String resultMsg = "Complete data set registration synchronization job is done. It took ";
                 clock.logTime( "SUCCESS! " + resultMsg );
@@ -87,11 +87,9 @@ public class CompleteDataSetRegistrationSynchronization
                 return SynchronizationResult.newSuccessResultWithMessage( resultMsg + clock.getTime() + " ms." );
             }
 
-        }
-        catch ( Exception ex )
-        {
+        } catch ( Exception ex ) {
             log.error( "Exception happened while trying complete data set registration push " + ex.getMessage(), ex );
         }
-        return SynchronizationResult.newFailureResultWithMessage( "Complete data set registration synchronization failed." );
+        return SynchronizationResult.newFailureResultWithMessage( "Complete data set registration synchronization failed.");
     }
 }
