@@ -80,4 +80,12 @@ public interface ProgramRuleActionService
      * @return a list of ProgramRuleActions.
      */
     List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule );
+
+    List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject();
+
+    List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification();
+
+    List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
+
+    List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
 }

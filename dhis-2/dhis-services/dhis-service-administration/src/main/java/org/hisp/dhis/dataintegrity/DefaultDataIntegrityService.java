@@ -58,8 +58,15 @@ import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,29 +89,35 @@ public class DefaultDataIntegrityService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    private DataElementService dataElementService;
+    private final ProgramRuleService programRuleService;
 
-    private IndicatorService indicatorService;
+    private final ProgramRuleActionService programRuleActionService;
 
-    private DataSetService dataSetService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    private OrganisationUnitService organisationUnitService;
+    private final DataElementService dataElementService;
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final IndicatorService indicatorService;
 
-    private ValidationRuleService validationRuleService;
+    private final DataSetService dataSetService;
 
-    private ExpressionService expressionService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private DataEntryFormService dataEntryFormService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    private CategoryService categoryService;
+    private final ValidationRuleService validationRuleService;
 
-    private PeriodService periodService;
+    private final ExpressionService expressionService;
 
-    private ProgramIndicatorService programIndicatorService;
+    private final DataEntryFormService dataEntryFormService;
+
+    private final CategoryService categoryService;
+
+    private final PeriodService periodService;
+
+    private final ProgramIndicatorService programIndicatorService;
 
     @Autowired
     public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
@@ -112,7 +125,8 @@ public class DefaultDataIntegrityService
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
         ValidationRuleService validationRuleService, ExpressionService expressionService,
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService )
+        ProgramIndicatorService programIndicatorService, ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
+        ProgramRuleActionService programRuleActionService )
     {
         checkNotNull( i18nManager );
         checkNotNull( dataElementService );
@@ -125,6 +139,9 @@ public class DefaultDataIntegrityService
         checkNotNull( categoryService );
         checkNotNull( periodService );
         checkNotNull( programIndicatorService );
+        checkNotNull( programRuleService );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( programRuleActionService );
 
         this.i18nManager = i18nManager;
         this.dataElementService = dataElementService;
@@ -138,6 +155,9 @@ public class DefaultDataIntegrityService
         this.categoryService = categoryService;
         this.periodService = periodService;
         this.programIndicatorService = programIndicatorService;
+        this.programRuleService = programRuleService;
+        this.programRuleVariableService = programRuleVariableService;
+        this.programRuleActionService = programRuleActionService;
     }
 
     // -------------------------------------------------------------------------
@@ -598,6 +618,24 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked ProgramIndicators" );
 
+        report.setProgramRulesWithoutCondition( getProgramRulesWithNoCondition() );
+        report.setProgramRulesWithNoPriority( getProgramRulesWithNoPriority() );
+        report.setProgramRulesWithNoAction( getProgramRulesWithNoAction() );
+
+        log.info( "Checked ProgramRules" );
+
+        report.setProgramRuleVariablesWithNoDataElement( getProgramRuleVariablesWithNoDataElement() );
+        report.setProgramRuleVariablesWithNoAttribute( getProgramRuleVariablesWithNoAttribute() );
+
+        log.info( "Checked ProgramRuleVariables" );
+
+        report.setProgramRuleActionsWithNoDataObject( getProgramRuleActionsWithNoDataObject() );
+        report.setProgramRuleActionsWithNoNotification( getProgramRuleActionsWithNoNotificationTemplate() );
+        report.setProgramRuleActionsWithNoSectionId( getProgramRuleActionsWithNoSectionId() );
+        report.setProgramRuleActionsWithNoStageId( getProgramRuleActionsWithNoProgramStageId() );
+
+        log.info( "Checked ProgramRuleActions" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -624,7 +662,7 @@ public class DefaultDataIntegrityService
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
             .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
-            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression) );
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
     }
@@ -635,9 +673,137 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidFilters;
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! (!pi.hasFilter() || ProgramIndicator.VALID.equals(programIndicatorService.filterIsValid(pi.getFilter()))) ) )
-            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter) );
+            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
 
         return invalidFilters;
+    }
+
+    @Override
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
+    {
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoPriority();
+
+        return groupRulesByProgram( programRules );
+    }
+
+    @Override
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
+    {
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoAction();
+
+        return groupRulesByProgram( programRules );
+    }
+
+    @Override
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition()
+    {
+        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoCondition();
+
+        return groupRulesByProgram( programRules );
+    }
+
+    @Override
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
+    {
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToDataObject();
+
+        return groupActionsByProgramRule( ruleActions );
+    }
+
+    @Override
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate()
+    {
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToNotification();
+
+        return groupActionsByProgramRule( ruleActions );
+    }
+
+    @Override
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
+    {
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoSectionId();
+
+        return groupActionsByProgramRule( ruleActions );
+    }
+
+    @Override
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId()
+    {
+        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoStageId();
+
+        return groupActionsByProgramRule( ruleActions );    }
+
+    @Override
+    public  Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
+    {
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoDataElement();
+
+        return groupVariablesByProgram( ruleVariables );
+    }
+
+    @Override
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
+    {
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoAttribute();
+
+        return groupVariablesByProgram( ruleVariables );
+    }
+
+    private Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> programRules )
+    {
+        Map<Program, Collection<ProgramRule>> collectionMap = new HashMap<>();
+
+        for ( ProgramRule rule : programRules )
+        {
+            Program program = rule.getProgram();
+
+            if ( !collectionMap.containsKey( program ) )
+            {
+                collectionMap.put( program, Sets.newHashSet() );
+            }
+
+            collectionMap.get( program ).add( rule );
+        }
+
+        return collectionMap;
+    }
+
+    private  Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram( List<ProgramRuleVariable> ruleVariables )
+    {
+        Map<Program, Collection<ProgramRuleVariable>> collectionMap = new HashMap<>();
+
+        for ( ProgramRuleVariable variable : ruleVariables )
+        {
+            Program program = variable.getProgram();
+
+            if ( !collectionMap.containsKey( program ) )
+            {
+                collectionMap.put( program, Sets.newHashSet() );
+            }
+
+            collectionMap.get( program ).add( variable );
+        }
+
+        return collectionMap;
+    }
+
+    private  Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule( List<ProgramRuleAction> ruleActions )
+    {
+        Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = new HashMap<>();
+
+        for ( ProgramRuleAction action : ruleActions )
+        {
+            ProgramRule programRule = action.getProgramRule();
+
+            if ( !collectionMap.containsKey( programRule ) )
+            {
+                collectionMap.put( programRule, Sets.newHashSet() );
+            }
+
+            collectionMap.get( programRule ).add( action );
+        }
+
+        return collectionMap;
     }
 }
