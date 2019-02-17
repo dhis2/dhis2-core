@@ -29,6 +29,7 @@ package org.hisp.dhis.dataintegrity;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 
 import java.util.ArrayList;
@@ -117,6 +118,33 @@ public class FlattenedDataIntegrityReport
     @JsonProperty
     private Map<String, String> invalidProgramIndicatorFilters;
 
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoCondition;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoPriority;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRulesWithNoAction;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleVariablesWithNoDataElement;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleVariablesWithNoAttribute;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoDataObject;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoNotification;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoSectionId;
+
+    @JsonProperty
+    private Map<String, Collection<String>> programRuleActionsWithNoStageId;
+
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
         dataElementsWithoutDataSet = transformCollection( report.getDataElementsWithoutDataSet() );
@@ -164,6 +192,24 @@ public class FlattenedDataIntegrityReport
         invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
 
         invalidProgramIndicatorFilters = transformMapOfStrings( report.getInvalidProgramIndicatorFilters() );
+
+        programRulesWithNoCondition = transformMapOfCollections( report.getProgramRulesWithoutCondition() );
+
+        programRulesWithNoPriority = transformMapOfCollections( report.getProgramRulesWithNoPriority() );
+
+        programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
+
+        programRuleVariablesWithNoDataElement = transformMapOfCollections( report.getProgramRuleVariablesWithNoDataElement() );
+
+        programRuleVariablesWithNoAttribute = transformMapOfCollections( report.getProgramRuleVariablesWithNoAttribute() );
+
+        programRuleActionsWithNoDataObject = transformMapOfCollections( report.getProgramRuleActionsWithNoDataObject() );
+
+        programRuleActionsWithNoNotification = transformMapOfCollections( report.getProgramRuleActionsWithNoNotification() );
+
+        programRuleActionsWithNoSectionId = transformMapOfCollections( report.getProgramRuleActionsWithNoSectionId() );
+
+        programRuleActionsWithNoStageId = transformMapOfCollections( report.getProgramRuleActionsWithNoStageId() );
     }
 
     // -------------------------------------------------------------------------
@@ -188,7 +234,7 @@ public class FlattenedDataIntegrityReport
 
         for ( Map.Entry<? extends IdentifiableObject, String> entry : map.entrySet() )
         {
-            newMap.put( entry.getKey().getDisplayName(), entry.getValue() );
+            newMap.put( defaultIfNull( entry.getKey() ), entry.getValue() );
         }
 
         return newMap;
@@ -203,7 +249,7 @@ public class FlattenedDataIntegrityReport
             Collection<String> value = new HashSet<>();
             value.addAll( transformCollection( entry.getValue() ) );
 
-            newMap.put( entry.getKey().getDisplayName(), value );
+            newMap.put( defaultIfNull( entry.getKey() ), value );
         }
 
         return newMap;
@@ -215,7 +261,7 @@ public class FlattenedDataIntegrityReport
 
         for ( IdentifiableObject o : collection )
         {
-            newCollection.add( o.getDisplayName() );
+            newCollection.add( StringUtils.defaultIfBlank( o.getDisplayName(), o.getUid() ) );
         }
 
         return newCollection;
@@ -227,9 +273,19 @@ public class FlattenedDataIntegrityReport
 
         for ( SortedMap.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map.entrySet() )
         {
-            newMap.put( entry.getKey().getDisplayName(), transformCollection( entry.getValue() ) );
+            newMap.put( defaultIfNull( entry.getKey() ), transformCollection( entry.getValue() ) );
         }
 
         return newMap;
+    }
+
+    private String defaultIfNull( IdentifiableObject object )
+    {
+        if ( object.getDisplayName() == null )
+        {
+            return object.getUid();
+        }
+
+        return object.getDisplayName() + ":" + object.getUid();
     }
 }

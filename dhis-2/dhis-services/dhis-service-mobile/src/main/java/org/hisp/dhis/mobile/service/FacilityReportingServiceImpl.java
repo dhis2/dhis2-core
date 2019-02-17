@@ -289,7 +289,7 @@ public class FacilityReportingServiceImpl
 
                 for ( int i = 0; i < dataElementList.size(); i++ )
                 {
-                	List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
+                    List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
                     List<Model> newCategoryOptionCombos = new ArrayList<>();
 
                     for ( int j = 0; j < categoryOptionCombos.size(); j++ )
@@ -396,13 +396,11 @@ public class FacilityReportingServiceImpl
             registrationService.deleteCompleteDataSetRegistration( registration );
         }
 
-        registration = new CompleteDataSetRegistration();
+        String storedBy = currentUserService.getCurrentUser().getUsername();
+        Date now = new Date();
 
-        registration.setDataSet( dataSet );
-        registration.setPeriod( period );
-        registration.setSource( unit );
-        registration.setDate( new Date() );
-        registration.setStoredBy( currentUserService.getCurrentUser().getUsername() );
+        registration = new CompleteDataSetRegistration( dataSet, period, unit, optionCombo, now, storedBy, now, storedBy, true );
+
         registrationService.saveCompleteDataSetRegistration( registration );
 
         log.info( "Saved and registered data value set as complete: " + unit.getName() + ", " + dataSet.getName()
@@ -433,12 +431,12 @@ public class FacilityReportingServiceImpl
                     if ( period != null )
                     {
                         Set<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
-                        
+
                         Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
                             .setDataElements( dataElements )
                             .setPeriods( Sets.newHashSet( period ) )
                             .setOrganisationUnits( Sets.newHashSet( unit ) ) );
-                        
+
                         if ( dataValues != null && !dataValues.isEmpty() )
                         {
                             DataSetValue dataSetValue = new DataSetValue();

@@ -55,4 +55,16 @@ public interface ProgramRuleVariableStore
      * @return list of ProgramRuleVariables associated with given dataElement
      */
     List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement );
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link DataElement}.
+     */
+    List<ProgramRuleVariable> getVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     */
+    List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }

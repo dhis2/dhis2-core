@@ -92,4 +92,16 @@ public interface ProgramRuleVariableService
      * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
      */
     boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link DataElement}.
+     */
+    List<ProgramRuleVariable> getVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     */
+    List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }
