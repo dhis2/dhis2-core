@@ -556,7 +556,7 @@ public class DefaultDataQueryService
 
     private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
     {
-        return object.getItems().stream().filter( o -> aclService.canDataRead( user, o ) )
+        return object.getItems().stream().filter( o -> aclService.canDataOrMetadataRead( user, o ) )
             .collect( Collectors.toList() );
     }
 }
