@@ -35,12 +35,15 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.logging.LoggingManager;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -50,6 +53,7 @@ import java.util.Map;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Transactional
 public class DefaultTrackerImportService implements TrackerImportService
 {
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerImportService.class );
@@ -75,8 +79,21 @@ public class DefaultTrackerImportService implements TrackerImportService
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
+        TrackerBundleParams bundleParams = params.toTrackerBundleParams();
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
+
+        trackerBundles.forEach( tb -> {
+            trackerValidationService.validate( tb );
+            trackerBundleService.commit( tb );
+        } );
+
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );
+
+        if ( TrackerBundleMode.VALIDATE == params.getImportMode() )
+        {
+            return;
+        }
     }
 
     @Override

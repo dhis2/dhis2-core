@@ -98,9 +98,17 @@ public class TrackerPreheatParams
         return user;
     }
 
-    public void setUser( User user )
+    public TrackerPreheatParams setUser( User user )
     {
         this.user = user;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUsername()
+    {
+        return user != null ? user.getUsername() : "system-process";
     }
 
     @JsonProperty

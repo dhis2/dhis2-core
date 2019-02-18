@@ -28,25 +28,84 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Transactional
 public class DefaultTrackerBundleService implements TrackerBundleService
 {
+    private final TrackerPreheatService trackerPreheatService;
+    private final CurrentUserService currentUserService;
+    private final IdentifiableObjectManager manager;
+
+    public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService, CurrentUserService currentUserService,
+        IdentifiableObjectManager manager )
+    {
+        this.trackerPreheatService = trackerPreheatService;
+        this.currentUserService = currentUserService;
+        this.manager = manager;
+    }
+
     @Override
     public List<TrackerBundle> create( TrackerBundleParams params )
     {
-        return null;
+        TrackerBundle trackerBundle = params.toTrackerBundle();
+        TrackerPreheatParams preheatParams = params.toTrackerPreheatParams();
+        preheatParams.setUser( getUser( preheatParams.getUser(), preheatParams.getUserId() ) );
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
+        trackerBundle.setPreheat( preheat );
+
+        return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
     }
 
     @Override
     public void commit( TrackerBundle bundle )
     {
+        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        {
+            return;
+        }
 
+        System.err.println( "BUNDLE:" );
+        System.err.println( bundle );
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    private User getUser( User user, String userUid )
+    {
+        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
+        {
+            return manager.get( User.class, user.getUid() );
+        }
+
+        if ( !StringUtils.isEmpty( userUid ) )
+        {
+            user = manager.get( User.class, userUid );
+        }
+
+        if ( user == null )
+        {
+            user = currentUserService.getCurrentUser();
+        }
+
+        return user;
     }
 }

@@ -40,6 +40,5 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     @Override
     public void validate( TrackerBundle bundle )
     {
-
     }
 }

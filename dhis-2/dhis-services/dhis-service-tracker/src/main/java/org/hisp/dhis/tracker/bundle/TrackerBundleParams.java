@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -130,6 +131,13 @@ public class TrackerBundleParams
     {
         this.user = user;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUsername()
+    {
+        return user != null ? user.getUsername() : "system-process";
     }
 
     @JsonProperty
@@ -258,6 +266,16 @@ public class TrackerBundleParams
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
             .setSkipValidation( skipValidation )
+            .setTrackedEntities( trackedEntities )
+            .setEnrollments( enrollments )
+            .setEvents( events );
+    }
+
+    public TrackerPreheatParams toTrackerPreheatParams()
+    {
+        return new TrackerPreheatParams()
+            .setUserId( userId )
+            .setUser( user )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )
             .setEvents( events );

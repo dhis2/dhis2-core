@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -82,6 +83,11 @@ public class TrackerBundle
     private boolean skipValidation;
 
     /**
+     * Preheat bundle for all attached objects (or null if preheater not run yet).
+     */
+    private TrackerPreheat preheat;
+
+    /**
      * Tracked entities to import.
      */
     private List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
@@ -109,6 +115,11 @@ public class TrackerBundle
     {
         this.user = user;
         return this;
+    }
+
+    public String getUsername()
+    {
+        return user != null ? user.getUsername() : "system-process";
     }
 
     public TrackerBundleMode getImportMode()
@@ -177,6 +188,17 @@ public class TrackerBundle
         return this;
     }
 
+    public TrackerPreheat getPreheat()
+    {
+        return preheat;
+    }
+
+    public TrackerBundle setPreheat( TrackerPreheat preheat )
+    {
+        this.preheat = preheat;
+        return this;
+    }
+
     public List<TrackedEntityInstance> getTrackedEntities()
     {
         return trackedEntities;
@@ -226,5 +248,23 @@ public class TrackerBundle
     {
         events.addAll( Arrays.asList( event ) );
         return this;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerBundle{" +
+            "user=" + getUsername() +
+            ", importMode=" + importMode +
+            ", identifier=" + identifier +
+            ", importStrategy=" + importStrategy +
+            ", atomicMode=" + atomicMode +
+            ", flushMode=" + flushMode +
+            ", skipValidation=" + skipValidation +
+            ", preheat=" + preheat +
+            ", trackedEntities=" + trackedEntities +
+            ", enrollments=" + enrollments +
+            ", events=" + events +
+            '}';
     }
 }
