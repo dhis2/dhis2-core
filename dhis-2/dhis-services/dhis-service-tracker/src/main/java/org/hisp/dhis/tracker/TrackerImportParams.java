@@ -141,6 +141,13 @@ public class TrackerImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUsername()
+    {
+        return user != null ? user.getUsername() : "system-process";
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerBundleMode getImportMode()
     {
         return importMode;
