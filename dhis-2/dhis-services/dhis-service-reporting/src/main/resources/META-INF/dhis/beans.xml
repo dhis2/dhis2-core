@@ -142,6 +142,8 @@
     <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
   </bean>
   
+  <bean id="orgUnitDistributionService" class="org.hisp.dhis.orgunitdistribution.impl.DefaultOrgUnitDistributionServiceV2" />
+  
   <bean id="org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager"
     class="org.hisp.dhis.orgunitdistribution.jdbc.JdbcOrgUnitDistributionManager" />
 

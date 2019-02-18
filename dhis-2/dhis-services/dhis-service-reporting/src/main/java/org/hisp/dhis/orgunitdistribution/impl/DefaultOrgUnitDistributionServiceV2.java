@@ -40,12 +40,10 @@ import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
-@Service
 public class DefaultOrgUnitDistributionServiceV2
     implements OrgUnitDistributionServiceV2
 {
