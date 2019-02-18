@@ -1,5 +1,7 @@
 package org.hisp.dhis.orgunitdistribution.impl;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,12 +30,11 @@ package org.hisp.dhis.orgunitdistribution.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
@@ -54,11 +55,14 @@ public class DefaultOrgUnitDistributionServiceV2
     private OrgUnitDistributionManager distributionManager;
 
     @Override
-    public OrgUnitDistributionParams getParams( Set<String> orgUnits, Set<String> orgUnitGroupSets )
+    public OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets )
     {
+        List<String> ous = TextUtils.getOptions( orgUnits );
+        List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
+
         return new OrgUnitDistributionParams()
-            .setOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, orgUnits ) )
-            .setOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, orgUnitGroupSets ) );
+            .setOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
+            .setOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) );
     }
 
     @Override

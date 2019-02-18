@@ -28,8 +28,6 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 
@@ -38,11 +36,11 @@ public interface OrgUnitDistributionServiceV2
     /**
      * Returns parameters for the given query.
      *
-     * @param orgUnits the organisation units.
-     * @param orgUnitGroupSets the organisation unit group sets.
+     * @param orgUnits the organisation unit string.
+     * @param orgUnitGroupSets the organisation unit group set string.
      * @return a {@link OrgUnitDistributionParams}.
      */
-    OrgUnitDistributionParams getParams( Set<String> orgUnits, Set<String> orgUnitGroupSets );
+    OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets );
 
     /**
      * Returns the org unit distribution for the given parameters.

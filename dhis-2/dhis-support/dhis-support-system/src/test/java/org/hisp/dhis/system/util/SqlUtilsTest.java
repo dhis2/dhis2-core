@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.util;
 
+import static org.junit.Assert.assertEquals;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -29,8 +31,6 @@ package org.hisp.dhis.system.util;
  */
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland

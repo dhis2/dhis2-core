@@ -63,8 +63,8 @@ public class OrgUnitDistributionController
 
     @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = { "application/json" } )
     public @ResponseBody Grid getJson(
-        @RequestParam Set<String> ou,
-        @RequestParam Set<String> ougs,
+        @RequestParam String ou,
+        @RequestParam String ougs,
         @RequestParam( required = false ) Set<String> filter,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
