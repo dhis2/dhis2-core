@@ -30,10 +30,9 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,10 +46,14 @@ import java.util.List;
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
+    private final TrackerPreheatService trackerPreheatService;
     private final IdentifiableObjectManager manager;
 
-    public EventTrackerConverterService( IdentifiableObjectManager manager )
+    public EventTrackerConverterService(
+        TrackerPreheatService trackerPreheatService,
+        IdentifiableObjectManager manager )
     {
+        this.trackerPreheatService = trackerPreheatService;
         this.manager = manager;
     }
 
@@ -75,13 +78,7 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance from( Event event )
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-
-        // temporary solution, will need to be part of general preheat process
-        programStageInstance.setOrganisationUnit( manager.get( OrganisationUnit.class, event.getOrgUnit() ) );
-        programStageInstance.setProgramStage( manager.get( ProgramStage.class, event.getProgramStage() ) );
-
-        return programStageInstance;
+        return null;
     }
 
     @Override

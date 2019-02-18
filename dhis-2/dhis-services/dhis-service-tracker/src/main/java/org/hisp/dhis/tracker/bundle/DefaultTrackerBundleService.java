@@ -31,7 +31,12 @@ package org.hisp.dhis.tracker.bundle;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.logging.LoggingManager;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -55,7 +60,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
 
     private final TrackerPreheatService trackerPreheatService;
-    private final TrackerConverterService trackerConverterService;
+    private final TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
+    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
+    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
     private final CurrentUserService currentUserService;
     private final IdentifiableObjectManager manager;
     private final SessionFactory sessionFactory;
@@ -63,14 +70,18 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
-        TrackerConverterService trackerConverterService,
+        TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
+        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
+        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.trackerConverterService = trackerConverterService;
+        this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
+        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
+        this.eventTrackerConverterService = eventTrackerConverterService;
         this.currentUserService = currentUserService;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
