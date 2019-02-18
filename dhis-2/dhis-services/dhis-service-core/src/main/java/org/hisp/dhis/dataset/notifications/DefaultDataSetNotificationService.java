@@ -74,6 +74,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by zubair on 04.07.17.
  */
@@ -116,34 +118,51 @@ public class DefaultDataSetNotificationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private DataSetNotificationTemplateService dsntService;
+    private final DataSetNotificationTemplateService dsntService;
+
+    private final MessageService internalMessageService;
+
+    private final ProgramMessageService externalMessageService;
+
+    private final NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
+
+    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    private final PeriodService periodService;
+
+    private final CategoryService categoryService;
+
+    private final I18nManager i18nManager;
+
+    private final OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private MessageService internalMessageService;
+    public DefaultDataSetNotificationService( DataSetNotificationTemplateService dsntService, MessageService internalMessageService, ProgramMessageService externalMessageService,
+         NotificationMessageRenderer<CompleteDataSetRegistration> renderer, CompleteDataSetRegistrationService completeDataSetRegistrationService, PeriodService periodService,
+         CategoryService categoryService, I18nManager i18nManager, OrganisationUnitService organisationUnitService )
+    {
+        checkNotNull( dsntService );
+        checkNotNull( internalMessageService );
+        checkNotNull( externalMessageService );
+        checkNotNull( renderer );
+        checkNotNull( completeDataSetRegistrationService );
+        checkNotNull( periodService );
+        checkNotNull( categoryService );
+        checkNotNull( i18nManager );
+        checkNotNull( organisationUnitService );
 
-    @Autowired
-    private ProgramMessageService externalMessageService;
+        this.dsntService = dsntService;
+        this.internalMessageService = internalMessageService;
+        this.externalMessageService = externalMessageService;
+        this.renderer = renderer;
+        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+        this.periodService = periodService;
+        this.categoryService = categoryService;
+        this.i18nManager = i18nManager;
+        this.organisationUnitService = organisationUnitService;
+    }
 
-    @Autowired
-    private NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
-
-    @Autowired
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-    @Autowired
-    private PeriodService periodService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
@@ -352,7 +371,7 @@ public class DefaultDataSetNotificationService
 
     private ProgramMessageRecipients resolveEmails( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
     {
-        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ));
+        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ) );
 
         return pmr;
     }
