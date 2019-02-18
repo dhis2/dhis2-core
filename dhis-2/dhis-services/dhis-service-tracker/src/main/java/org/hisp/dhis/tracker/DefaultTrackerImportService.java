@@ -63,8 +63,11 @@ public class DefaultTrackerImportService implements TrackerImportService
     private final CurrentUserService currentUserService;
     private final IdentifiableObjectManager manager;
 
-    public DefaultTrackerImportService( TrackerBundleService trackerBundleService, TrackerValidationService trackerValidationService,
-        CurrentUserService currentUserService, IdentifiableObjectManager manager )
+    public DefaultTrackerImportService(
+        TrackerBundleService trackerBundleService,
+        TrackerValidationService trackerValidationService,
+        CurrentUserService currentUserService,
+        IdentifiableObjectManager manager )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;

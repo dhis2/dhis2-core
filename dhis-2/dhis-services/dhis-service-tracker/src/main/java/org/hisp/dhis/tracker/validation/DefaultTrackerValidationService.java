@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultTrackerValidationService implements TrackerValidationService
 {
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerValidationService.class );
+
     @Override
     public void validate( TrackerBundle bundle )
     {

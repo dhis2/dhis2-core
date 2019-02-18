@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -40,6 +38,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -47,7 +46,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
@@ -66,7 +64,7 @@ import java.util.Set;
 @Service
 public class DefaultTrackerPreheatService implements TrackerPreheatService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerPreheatService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerPreheatService.class );
 
     private final SchemaService schemaService;
     private final QueryService queryService;
@@ -74,8 +72,12 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
     private final CurrentUserService currentUserService;
     private final PeriodStore periodStore;
 
-    public DefaultTrackerPreheatService( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
-        CurrentUserService currentUserService, PeriodStore periodStore )
+    public DefaultTrackerPreheatService(
+        SchemaService schemaService,
+        QueryService queryService,
+        IdentifiableObjectManager manager,
+        CurrentUserService currentUserService,
+        PeriodStore periodStore )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;

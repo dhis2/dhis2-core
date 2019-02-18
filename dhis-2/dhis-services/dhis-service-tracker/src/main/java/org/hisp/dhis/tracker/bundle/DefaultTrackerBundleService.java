@@ -28,7 +28,10 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -48,16 +51,26 @@ import java.util.List;
 @Transactional
 public class DefaultTrackerBundleService implements TrackerBundleService
 {
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
+
     private final TrackerPreheatService trackerPreheatService;
     private final CurrentUserService currentUserService;
     private final IdentifiableObjectManager manager;
+    private final SessionFactory sessionFactory;
+    private final HibernateCacheManager cacheManager;
 
-    public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService, CurrentUserService currentUserService,
-        IdentifiableObjectManager manager )
+    public DefaultTrackerBundleService(
+        TrackerPreheatService trackerPreheatService,
+        CurrentUserService currentUserService,
+        IdentifiableObjectManager manager,
+        SessionFactory sessionFactory,
+        HibernateCacheManager cacheManager )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.currentUserService = currentUserService;
         this.manager = manager;
+        this.sessionFactory = sessionFactory;
+        this.cacheManager = cacheManager;
     }
 
     @Override
