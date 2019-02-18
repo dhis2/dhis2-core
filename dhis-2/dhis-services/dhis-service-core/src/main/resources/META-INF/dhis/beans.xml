@@ -1573,6 +1573,9 @@
 
   <bean id="org.hisp.dhis.predictor.PredictorDeletionHandler"
     class="org.hisp.dhis.predictor.PredictorDeletionHandler" />
+    
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler"
+    class="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler" />
 
   <bean id="org.hisp.dhis.predictor.PredictorGroupDeletionHandler"
     class="org.hisp.dhis.predictor.PredictorGroupDeletionHandler" />
@@ -1722,6 +1725,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.predictor.PredictorService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataapproval.DataApprovalService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
@@ -1733,8 +1737,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityTypeService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityInstanceService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )"
-        method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityAttributeService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipTypeService.delete*(..) )" method="intercept" />
@@ -1747,9 +1750,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
-      <aop:before
-        pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )"
-        method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )" method="intercept" />
     </aop:aspect>
   </aop:config>
 
