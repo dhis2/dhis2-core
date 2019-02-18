@@ -313,6 +313,52 @@ public class ExpressionServiceTest
         dataValueService.addDataValue( createDataValue( deB, period, unitA, "5", coc, coc ) );
     }
 
+    private DimensionalItemId getId( DimensionalItemObject o )
+    {
+        DimensionItemType type = o.getDimensionItemType();
+
+        switch ( type )
+        {
+            case DATA_ELEMENT:
+                return new DimensionalItemId( type, o.getUid() );
+
+            case DATA_ELEMENT_OPERAND:
+                DataElementOperand deo = (DataElementOperand)o;
+
+                return new DimensionalItemId( type,
+                    deo.getDataElement().getUid(),
+                    deo.getCategoryOptionCombo() == null ? null : deo.getCategoryOptionCombo().getUid(),
+                    deo.getAttributeOptionCombo() == null ? null : deo.getAttributeOptionCombo().getUid() );
+
+            case REPORTING_RATE:
+                ReportingRate rr = (ReportingRate)o;
+
+                return new DimensionalItemId( type,
+                    rr.getDataSet().getUid(),
+                    rr.getMetric().name() );
+
+            case PROGRAM_DATA_ELEMENT:
+                ProgramDataElementDimensionItem pde = (ProgramDataElementDimensionItem)o;
+
+                return new DimensionalItemId( type,
+                    pde.getProgram().getUid(),
+                    pde.getDataElement().getUid() );
+
+            case PROGRAM_ATTRIBUTE:
+                ProgramTrackedEntityAttributeDimensionItem pa = (ProgramTrackedEntityAttributeDimensionItem)o;
+
+                return new DimensionalItemId( type,
+                    pa.getProgram().getUid(),
+                    pa.getAttribute().getUid() );
+
+            case PROGRAM_INDICATOR:
+                return new DimensionalItemId( type, o.getUid() );
+
+            default:
+                return null;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Business logic tests
     // -------------------------------------------------------------------------
@@ -330,26 +376,14 @@ public class ExpressionServiceTest
     @Test
     public void testGetDimensionalItemIdsInExpression()
     {
-        SetMap<Class<? extends DimensionalItemObject>, String> idMap = expressionService.getDimensionalItemIdsInExpression( expressionI );
+        Set<DimensionalItemId> itemIds = expressionService.getDimensionalItemIdsInExpression( expressionI );
 
-        assertEquals( 4, idMap.size() );
-        assertTrue( idMap.containsKey( DataElementOperand.class ) );
-        assertTrue( idMap.containsKey( ProgramDataElementDimensionItem.class ) );
-        assertTrue( idMap.containsKey( ProgramTrackedEntityAttributeDimensionItem.class ) );
-        assertTrue( idMap.containsKey( ProgramIndicator.class ) );
-
-        assertEquals( 2, idMap.get( DataElementOperand.class ).size() );
-        assertTrue( idMap.get( DataElementOperand.class ).contains( opA.getDimensionItem() ) );
-        assertTrue( idMap.get( DataElementOperand.class ).contains( deB.getDimensionItem() ) );
-
-        assertEquals( 1, idMap.get( ProgramDataElementDimensionItem.class ).size() );
-        assertTrue( idMap.get( ProgramDataElementDimensionItem.class ).contains( pdeA.getDimensionItem() ) );
-
-        assertEquals( 1, idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).size() );
-        assertTrue( idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).contains( pteaA.getDimensionItem() ) );
-
-        assertEquals( 1, idMap.get( ProgramIndicator.class ).size() );
-        assertTrue( idMap.get( ProgramIndicator.class ).contains( piA.getDimensionItem() ) );
+        assertEquals( 5, itemIds.size() );
+        assertTrue( itemIds.contains( getId( opA ) ) );
+        assertTrue( itemIds.contains( getId( deB ) ) );
+        assertTrue( itemIds.contains( getId( pdeA ) ) );
+        assertTrue( itemIds.contains( getId( pteaA ) ) );
+        assertTrue( itemIds.contains( getId( piA ) ) );
     }
 
     @Test

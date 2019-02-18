@@ -51,12 +51,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
@@ -65,10 +61,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
-import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
 
 /**
  * @author Jim Grace
@@ -90,7 +82,7 @@ public class DefaultValidationService
     private ExpressionService expressionService;
 
     @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private DimensionService dimensionService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -333,9 +325,9 @@ public class DefaultValidationService
     {
         // 1. Find all dimensional object IDs in the expressions of the validation rules.
 
-        SetMap<Class<? extends DimensionalItemObject>, String> allItemIds = new SetMap<>();
+        Set<DimensionalItemId> allItemIds = new HashSet<>();
 
-        SetMap<PeriodTypeExtended, String> periodItemIds = new SetMap<>();
+        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
 
         for ( ValidationRule rule : rules )
         {
@@ -348,47 +340,38 @@ public class DefaultValidationService
 
             periodX.getRuleXs().add( new ValidationRuleExtended( rule ) );
 
-            SetMap<Class<? extends DimensionalItemObject>, String> dimensionItemIdentifiers = expressionService
-                .getDimensionalItemIdsInExpression( rule.getLeftSide().getExpression() );
-            dimensionItemIdentifiers.putValues(
+            Set<DimensionalItemId> ruleIds = Sets.union(
+                expressionService.getDimensionalItemIdsInExpression( rule.getLeftSide().getExpression() ),
                 expressionService.getDimensionalItemIdsInExpression( rule.getRightSide().getExpression() ) );
-
-            Set<String> ruleIds = dimensionItemIdentifiers.values().stream()
-                .reduce( new HashSet<>(), Sets::union );
 
             periodItemIds.putValues( periodX, ruleIds );
 
-            allItemIds.putValues( dimensionItemIdentifiers );
+            allItemIds.addAll( ruleIds );
         }
 
         // 2. Get the dimensional objects from the IDs. (Get them all at once for best performance.)
 
-        Map<String, DimensionalItemObject> dimensionItemMap = getDimensionalItemObjects( allItemIds );
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getDataDimensionalItemObjectMap( allItemIds );
 
         // 3. Save the dimensional objects in the extended period types.
 
-        for ( Map.Entry<PeriodTypeExtended, Set<String>> entry : periodItemIds.entrySet() )
+        for ( Map.Entry<PeriodTypeExtended, Set<DimensionalItemId>> entry : periodItemIds.entrySet() )
         {
             PeriodTypeExtended periodTypeX = entry.getKey();
 
-            for ( String itemId : entry.getValue() )
+            for ( DimensionalItemId itemId : entry.getValue() )
             {
                 DimensionalItemObject item = dimensionItemMap.get( itemId );
 
                 if ( item != null )
                 {
-                    if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
+                    if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
                     {
-                        DataElementOperand deo = (DataElementOperand) item;
-    
-                        if ( deo.getCategoryOptionCombo() != null )
-                        {
-                            periodTypeX.addDataElementOperand( deo );
-                        }
-                        else
-                        {
-                            periodTypeX.addDataElement( deo.getDataElement() );
-                        }
+                        periodTypeX.addDataElement( (DataElement) item );
+                    }
+                    else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
+                    {
+                        periodTypeX.addDataElementOperand( (DataElementOperand) item );
                     }
                     else if ( hasAttributeOptions( item ) )
                     {
@@ -414,144 +397,6 @@ public class DefaultValidationService
     {
         return object.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
             || ( (ProgramIndicator)object ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
-    }
-
-    /**
-     * Gets all required DimensionalItemObjects from their UIDs.
-     *
-     * @param expressionIdMap UIDs of DimensionalItemObjects to get.
-     * @return map of the DimensionalItemObjects.
-     */
-    private Map<String, DimensionalItemObject> getDimensionalItemObjects(
-        SetMap<Class<? extends DimensionalItemObject>, String> expressionIdMap )
-    {
-        // 1. Get ids for all the individual IdentifiableObjects within the DimensionalItemObjects:
-
-        SetMap<Class<? extends IdentifiableObject>, String> idsToGet = new SetMap<>();
-
-        getIdentifiableObjectIds( idsToGet, expressionIdMap, DataElementOperand.class, DataElement.class,
-            CategoryOptionCombo.class );
-        getIdentifiableObjectIds( idsToGet, expressionIdMap, ProgramDataElementDimensionItem.class, Program.class,
-            DataElement.class );
-        getIdentifiableObjectIds( idsToGet, expressionIdMap, ProgramTrackedEntityAttributeDimensionItem.class,
-            Program.class, TrackedEntityAttribute.class );
-        getIdentifiableObjectIds( idsToGet, expressionIdMap, ProgramIndicator.class, ProgramIndicator.class );
-
-        // 2. Look up all the IdentifiableObjects (each class all together, for best performance):
-
-        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> idMap = new MapMap<>();
-
-        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : idsToGet.entrySet() )
-        {
-            idMap.putEntries( e.getKey(), idObjectManager.get( e.getKey(), e.getValue() ).stream()
-                .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
-        }
-
-        // 3. Build the map of DimensionalItemObjects:
-
-        Map<String, DimensionalItemObject> dimObjects = new HashMap<>();
-
-        for ( Map.Entry<Class<? extends DimensionalItemObject>, Set<String>> entry : expressionIdMap.entrySet() )
-        {
-            for ( String id : entry.getValue() )
-            {
-                if ( entry.getKey() == DataElementOperand.class )
-                {
-                    DataElementOperand deo = new DataElementOperand(
-                        (DataElement) idMap.getValue( DataElement.class, getIdPart( id, 0 ) ),
-                        (CategoryOptionCombo) idMap
-                            .getValue( CategoryOptionCombo.class, getIdPart( id, 1 ) ) );
-
-                    if ( deo.getDataElement() != null &&
-                        (deo.getCategoryOptionCombo() != null || getIdPart( id, 1 ) == null) )
-                    {
-                        dimObjects.put( id, deo );
-                    }
-                }
-                else if ( entry.getKey() == ProgramDataElementDimensionItem.class )
-                {
-                    ProgramDataElementDimensionItem pde = new ProgramDataElementDimensionItem(
-                        (Program) idMap.getValue( Program.class, getIdPart( id, 0 ) ),
-                        (DataElement) idMap.getValue( DataElement.class, getIdPart( id, 1 ) ) );
-
-                    if ( pde.getProgram() != null && pde.getDataElement() != null )
-                    {
-                        dimObjects.put( id, pde );
-                    }
-                }
-                else if ( entry.getKey() == ProgramTrackedEntityAttributeDimensionItem.class )
-                {
-                    ProgramTrackedEntityAttributeDimensionItem pa = new ProgramTrackedEntityAttributeDimensionItem(
-                        (Program) idMap.getValue( Program.class, getIdPart( id, 0 ) ),
-                        (TrackedEntityAttribute) idMap.getValue( TrackedEntityAttribute.class, getIdPart( id, 1 ) ) );
-
-                    if ( pa.getProgram() != null && pa.getAttribute() != null )
-                    {
-                        dimObjects.put( id, pa );
-                    }
-                }
-                else if ( entry.getKey() == ProgramIndicator.class )
-                {
-                    ProgramIndicator pi = (ProgramIndicator) idMap.getValue( ProgramIndicator.class, id );
-
-                    if ( pi != null )
-                    {
-                        dimObjects.put( id, pi );
-                    }
-                }
-            }
-        }
-
-        return dimObjects;
-    }
-
-    /**
-     * Takes all the identifiers within a dimensional object class, and splits
-     * them into identifiers for the identifiable objects that make up
-     * the dimensional object.
-     *
-     * @param idsToGet        To add to: identifiable object IDs to look up.
-     * @param expressionIdMap Dimensional object IDs from expression.
-     * @param dimClass        Class of dimensional object
-     * @param idClasses       Component class(es) of identifiable objects
-     */
-    @SafeVarargs
-    private final void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
-        SetMap<Class<? extends DimensionalItemObject>, String> expressionIdMap,
-        Class<? extends DimensionalItemObject> dimClass,
-        Class<? extends IdentifiableObject>... idClasses )
-    {
-        Set<String> expressionIds = expressionIdMap.get( dimClass );
-
-        if ( expressionIds == null )
-        {
-            return;
-        }
-
-        for ( int i = 0; i < idClasses.length; i++ )
-        {
-            for ( String expressionId : expressionIds )
-            {
-                String objectId = getIdPart( expressionId, i );
-
-                if ( objectId != null )
-                {
-                    idsToGet.putValue( idClasses[i], objectId );
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets part of an object identifier which may be composite.
-     *
-     * @param id    The identifier to parse.
-     * @param index Index of the part to return.
-     * @return The identifier part.
-     */
-    private String getIdPart( String id, int index )
-    {
-        return splitSafe( id, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, index );
     }
 
     /**
