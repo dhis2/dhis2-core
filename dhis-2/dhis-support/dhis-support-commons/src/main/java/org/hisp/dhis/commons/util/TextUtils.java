@@ -29,6 +29,7 @@ package org.hisp.dhis.commons.util;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.collection.ListUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +57,7 @@ public class TextUtils
 
     private static final Pattern LINK_PATTERN = Pattern.compile( "((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )" );
     private static final String DELIMITER = ", ";
+    private static final String OPTION_SEP = ";";
 
     /**
      * Performs the htmlNewline(String) and htmlLinks(String) methods against
@@ -661,5 +663,22 @@ public class TextUtils
         }
 
         return replaced;
+    }
+
+    /**
+     * Splits the parameter into options based on {@code ;} (semicolon) as
+     * separator.
+     *
+     * @param param the parameter string.
+     * @return the list of options.
+     */
+    public static List<String> getOptions( String param )
+    {
+        if ( StringUtils.isEmpty( param ) )
+        {
+            return ListUtils.newList();
+        }
+
+        return ListUtils.newList( param.split( OPTION_SEP ) );
     }
 }

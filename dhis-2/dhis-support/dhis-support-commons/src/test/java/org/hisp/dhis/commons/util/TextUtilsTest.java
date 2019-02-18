@@ -36,6 +36,7 @@ import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.junit.Test;
 
@@ -45,35 +46,35 @@ import org.junit.Test;
 public class TextUtilsTest
 {
     private static final String STRING = "abcdefghij";
-    
+
     @Test
     public void testHtmlLinks()
     {
         assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", htmlLinks( "http://dhis2.org" ) );
         assertEquals( "<a href=\"https://dhis2.org\">https://dhis2.org</a>", htmlLinks( "https://dhis2.org" ) );
-        assertEquals( "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", htmlLinks( "www.dhis2.org" ) );        
-        assertEquals( "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.", 
+        assertEquals( "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", htmlLinks( "www.dhis2.org" ) );
+        assertEquals( "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
             htmlLinks( "Navigate to http://dhis2.org or www.dhis2.com to read more." ) );
     }
-    
+
     @Test
     public void testSubString()
     {
-        assertEquals( "abcdefghij", subString( STRING, 0, 10 ) );        
+        assertEquals( "abcdefghij", subString( STRING, 0, 10 ) );
         assertEquals( "cdef", subString( STRING, 2, 4 ) );
-        assertEquals( "ghij", subString( STRING, 6, 4 ) );        
+        assertEquals( "ghij", subString( STRING, 6, 4 ) );
         assertEquals( "ghij", subString( STRING, 6, 6 ) );
-        assertEquals( "", subString( STRING, 11, 3 ) );        
-        assertEquals( "j", subString( STRING, 9, 1 ) );        
+        assertEquals( "", subString( STRING, 11, 3 ) );
+        assertEquals( "j", subString( STRING, 9, 1 ) );
         assertEquals( "", subString( STRING, 4, 0 ) );
     }
-    
+
     @Test
     public void testTrim()
     {
         assertEquals( "abcdefgh", trimEnd( "abcdefghijkl", 4 ) );
     }
-    
+
     @Test
     public void testGetTokens()
     {
@@ -90,7 +91,7 @@ public class TextUtilsTest
         assertEquals( "or name='tom' or name='john' ", TextUtils.removeLastOr( "or name='tom' or name='john' or " ) );
         assertEquals( "or name='tom' or name='john' ", TextUtils.removeLastOr( "or name='tom' or name='john' or  " ) );
     }
-    
+
     @Test
     public void testRemoveLastAnd()
     {
@@ -100,7 +101,7 @@ public class TextUtilsTest
         assertEquals( "and name='tom' and name='john' ", TextUtils.removeLastAnd( "and name='tom' and name='john' and " ) );
         assertEquals( "and name='tom' and name='john' ", TextUtils.removeLastAnd( "and name='tom' and name='john' and  " ) );
     }
-    
+
     @Test
     public void testRemoveLastComma()
     {
@@ -110,7 +111,7 @@ public class TextUtilsTest
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john, " ) );
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john,  " ) );
     }
-    
+
     @Test
     public void testJoinReplaceNull()
     {
@@ -120,14 +121,14 @@ public class TextUtilsTest
         assertEquals( "greenred[n/a]", TextUtils.join( Arrays.asList( "green", "red", null ), null, "[n/a]" ) );
         assertEquals( "greenred", TextUtils.join( Arrays.asList( "green", "red", null ), null, null ) );
     }
-    
+
     @Test
     public void testGetPrettyClassName()
     {
         assertEquals( "Array List", TextUtils.getPrettyClassName( ArrayList.class ) );
         assertEquals( "Abstract Sequential List", TextUtils.getPrettyClassName( AbstractSequentialList.class ) );
     }
-    
+
     @Test
     public void testSplitSafe()
     {
@@ -137,7 +138,7 @@ public class TextUtilsTest
         assertEquals( "blue", TextUtils.splitSafe( "red-green-blue", "-", 2 ) );
         assertNull( TextUtils.splitSafe( "red-green-blue", "-", 3 ) );
         assertNull( TextUtils.splitSafe( "red-green-blue", "-", -2 ) );
-        assertNull( TextUtils.splitSafe( "red-green-blue-", "-", 3 ) );        
+        assertNull( TextUtils.splitSafe( "red-green-blue-", "-", 3 ) );
     }
 
     @Test
@@ -149,16 +150,24 @@ public class TextUtilsTest
         assertEquals( "mamamand", TextUtils.replaceFirst( "lalaland", "la", "ma", 3 ) );
         assertEquals( "lalaland", TextUtils.replaceFirst( "lalaland", "la", "ma", 0 ) );
     }
-    
+
     @Test
     public void testReplace()
-    {        
+    {
         String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement", "{column}", "name" );
-        
+
         assertEquals( "select * from dataelement where name = 'Foo'", actual );
-        
+
         actual = TextUtils.replace( "Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo" );
-        
+
         assertEquals( "Hi Frank and welcome to Oslo", actual );
+    }
+
+    @Test
+    public void testGetOptions()
+    {
+        assertEquals( ListUtils.newList( "uidA", "uidB" ), TextUtils.getOptions( "uidA;uidB" ) );
+        assertEquals( ListUtils.newList( "uidA" ), TextUtils.getOptions( "uidA" ) );
+        assertEquals( ListUtils.newList(), TextUtils.getOptions( null ) );
     }
 }
