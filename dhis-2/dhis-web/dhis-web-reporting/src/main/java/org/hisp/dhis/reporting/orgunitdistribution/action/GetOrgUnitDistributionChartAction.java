@@ -31,7 +31,7 @@ package org.hisp.dhis.reporting.orgunitdistribution.action;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
+import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.jfree.chart.JFreeChart;
 
@@ -48,19 +48,19 @@ public class GetOrgUnitDistributionChartAction
     // -------------------------------------------------------------------------
 
     private OrganisationUnitGroupService organisationUnitGroupService;
-    
+
     public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
     {
         this.organisationUnitGroupService = organisationUnitGroupService;
     }
 
-    private OrgUnitDistributionServiceV2 distributionService;
+    private OrgUnitDistributionService distributionService;
 
-    public void setDistributionService( OrgUnitDistributionServiceV2 distributionService )
+    public void setDistributionService( OrgUnitDistributionService distributionService )
     {
         this.distributionService = distributionService;
     }
-    
+
     private SelectionTreeManager selectionTreeManager;
 
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
@@ -103,7 +103,7 @@ public class GetOrgUnitDistributionChartAction
     {
         return height;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -113,9 +113,9 @@ public class GetOrgUnitDistributionChartAction
     {
         OrganisationUnitGroupSet groupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
         OrganisationUnit unit = selectionTreeManager.getReloadedSelectedOrganisationUnit();
-        
+
         chart = distributionService.getOrganisationUnitDistributionChart( groupSet, unit );
-        
+
         return SUCCESS;
     }
 }

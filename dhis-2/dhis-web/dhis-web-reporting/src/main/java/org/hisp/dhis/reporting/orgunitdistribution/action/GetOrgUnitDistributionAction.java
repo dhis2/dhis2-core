@@ -35,7 +35,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
+import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 
 import com.opensymphony.xwork2.Action;
@@ -47,27 +47,27 @@ public class GetOrgUnitDistributionAction
     implements Action
 {
     private static final Log log = LogFactory.getLog( GetOrgUnitDistributionAction.class );
-    
+
     private static final String DEFAULT_TYPE = "html";
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private OrganisationUnitGroupService organisationUnitGroupService;
-    
+
     public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
     {
         this.organisationUnitGroupService = organisationUnitGroupService;
     }
 
-    private OrgUnitDistributionServiceV2 distributionService;
+    private OrgUnitDistributionService distributionService;
 
-    public void setDistributionService( OrgUnitDistributionServiceV2 distributionService )
+    public void setDistributionService( OrgUnitDistributionService distributionService )
     {
         this.distributionService = distributionService;
     }
-    
+
     private SelectionTreeManager selectionTreeManager;
 
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
@@ -85,7 +85,7 @@ public class GetOrgUnitDistributionAction
     {
         this.groupSetId = groupSetId;
     }
-    
+
     private String type;
 
     public void setType( String type )
@@ -98,7 +98,7 @@ public class GetOrgUnitDistributionAction
     // -------------------------------------------------------------------------
 
     private Grid grid;
-    
+
     public Grid getGrid()
     {
         return grid;
@@ -112,18 +112,18 @@ public class GetOrgUnitDistributionAction
     public String execute()
     {
         type = StringUtils.defaultIfEmpty( type, DEFAULT_TYPE );
-        
+
         OrganisationUnit unit = selectionTreeManager.getReloadedSelectedOrganisationUnit();
-        
+
         if ( groupSetId != null && groupSetId > 0 )
         {
             OrganisationUnitGroupSet groupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
-            
+
             log.info( "Get distribution for group set: " + groupSet + " and organisation unit: " + unit );
-        
+
             grid = distributionService.getOrganisationUnitDistribution( groupSet, unit, false );
         }
-        
+
         return type;
     }
 }
