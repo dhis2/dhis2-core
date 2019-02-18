@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,45 +28,26 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Test;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitDistributionParams
+public class SqlUtilsTest
 {
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-    private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
-
-    public int getOrgUnitLevel()
+    @Test
+    public void testQuote()
     {
-        return !orgUnits.isEmpty() ? orgUnits.get( 0 ).getLevel() : 1; //TODO implement properly
+        assertEquals( "\"Some \"\"special\"\" value\"", SqlUtils.quote( "Some \"special\" value" ) );
+        assertEquals( "\"Data element\"", SqlUtils.quote( "Data element" ) );
     }
 
-    public List<OrganisationUnit> getOrgUnits()
+    @Test
+    public void testQuoteWithAlias()
     {
-        return orgUnits;
-    }
-
-    public OrgUnitDistributionParams setOrgUnits( List<OrganisationUnit> orgUnits )
-    {
-        this.orgUnits = orgUnits;
-        return this;
-    }
-
-    public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
-    {
-        return orgUnitGroupSets;
-    }
-
-    public OrgUnitDistributionParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
-    {
-        this.orgUnitGroupSets = orgUnitGroupSets;
-        return this;
+        assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
+        assertEquals( "ous.\"uid\"", SqlUtils.quote( "oug", "uid" ) );
     }
 }

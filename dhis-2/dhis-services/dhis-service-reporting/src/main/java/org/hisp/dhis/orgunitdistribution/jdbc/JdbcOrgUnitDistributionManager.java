@@ -99,7 +99,7 @@ public class JdbcOrgUnitDistributionManager
         String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", " +
             "count(ougs.organisationunitid) as count " +
             "from " + quote( "_orgunitstructure" ) + " ous " +
-            "inner join " + quote( "_organisationunitgroupsetstructure" ) + " ougs " +
+            "inner join " + quote( "_organisationunitgroupsetstructure" ) + " ougs on ous.organisationunitid = ougs.organisationunitid " +
             "where " + levelCol + " in (" + getQuotedCommaDelimitedString( orgUnits ) + ") " +
             "group by " + levelCol + ", " + getCommaDelimitedString( quotedGroupSets ) + ";";
 

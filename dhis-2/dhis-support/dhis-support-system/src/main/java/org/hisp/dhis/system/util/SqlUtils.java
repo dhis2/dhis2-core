@@ -64,9 +64,11 @@ public class SqlUtils
 
     /**
      * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
+     * of the given relation are encoded (replaced by double quotes that is). The
+     * column name is qualified by the given alias.
      *
      * @param relation the relation (typically a column).
+     * @param alias the alias.
      * @return the quoted relation.
      */
     public static String quote( String alias, String relation )

@@ -69,7 +69,7 @@ public class OrgUnitDistributionController
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitDistributionParams params = distributionService.getParams( ougs, ougs );
+        OrgUnitDistributionParams params = distributionService.getParams( ou, ougs );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
