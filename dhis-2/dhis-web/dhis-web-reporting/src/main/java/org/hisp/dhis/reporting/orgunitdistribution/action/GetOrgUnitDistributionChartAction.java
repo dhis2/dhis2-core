@@ -48,7 +48,7 @@ public class GetOrgUnitDistributionChartAction
     // -------------------------------------------------------------------------
 
     private OrganisationUnitGroupService organisationUnitGroupService;
-    
+
     public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
     {
         this.organisationUnitGroupService = organisationUnitGroupService;
@@ -60,7 +60,7 @@ public class GetOrgUnitDistributionChartAction
     {
         this.distributionService = distributionService;
     }
-    
+
     private SelectionTreeManager selectionTreeManager;
 
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
@@ -103,7 +103,7 @@ public class GetOrgUnitDistributionChartAction
     {
         return height;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -113,9 +113,9 @@ public class GetOrgUnitDistributionChartAction
     {
         OrganisationUnitGroupSet groupSet = organisationUnitGroupService.getOrganisationUnitGroupSet( groupSetId );
         OrganisationUnit unit = selectionTreeManager.getReloadedSelectedOrganisationUnit();
-        
+
         chart = distributionService.getOrganisationUnitDistributionChart( groupSet, unit );
-        
+
         return SUCCESS;
     }
 }
