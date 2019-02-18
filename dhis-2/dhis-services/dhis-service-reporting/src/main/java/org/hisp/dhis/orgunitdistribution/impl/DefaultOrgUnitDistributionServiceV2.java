@@ -1,5 +1,8 @@
 package org.hisp.dhis.orgunitdistribution.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,15 +33,20 @@ package org.hisp.dhis.orgunitdistribution.impl;
 
 import java.util.Set;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -66,7 +74,14 @@ public class DefaultOrgUnitDistributionServiceV2
     {
         validate( params );
 
-        return distributionManager.getOrgUnitDistribution( params );
+        Grid grid = new ListGrid();
+
+        addHeaders( params, grid );
+        addMetadata( params, grid );
+
+        distributionManager.getOrgUnitDistribution( params, grid );
+
+        return grid;
     }
 
     @Override
@@ -86,5 +101,34 @@ public class DefaultOrgUnitDistributionServiceV2
         {
             throw new IllegalQueryException( "At least one org unit group set must be specified" );
         }
+    }
+
+    private void addHeaders( OrgUnitDistributionParams params, Grid grid )
+    {
+        grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
+        params.getOrgUnitGroupSets().forEach( ougs ->
+            grid.addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, null, false, true ) ) );
+        grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
+    }
+
+    private void addMetadata( OrgUnitDistributionParams params, Grid grid )
+    {
+        Map<String, Object> metadata = new HashMap<>();
+        Map<String, Object> items = new HashMap<>();
+
+        params.getOrgUnits().stream()
+            .forEach( ou -> items.put( ou.getUid(), getItem( ou ) ) );
+        params.getOrgUnitGroupSets().stream()
+            .forEach( ougs -> items.put( ougs.getUid(), getItem( ougs ) ) );
+
+        metadata.put( "items", items );
+        grid.setMetaData( metadata );
+    }
+
+    private IdentifiableObject getItem( IdentifiableObject item )
+    {
+        BaseIdentifiableObject object = new BaseIdentifiableObject();
+        object.setName( item.getDisplayName() );
+        return object;
     }
 }

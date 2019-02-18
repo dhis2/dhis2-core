@@ -30,23 +30,20 @@ package org.hisp.dhis.orgunitdistribution.jdbc;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
 import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -58,13 +55,9 @@ public class JdbcOrgUnitDistributionManager
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params )
+    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params, Grid grid )
     {
         String sql = getDistributionSql( params );
-
-        Grid grid = new ListGrid();
-
-        addHeaders( params, grid );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -104,13 +97,5 @@ public class JdbcOrgUnitDistributionManager
             "group by " + levelCol + ", " + getCommaDelimitedString( quotedGroupSets ) + ";";
 
         return sql;
-    }
-
-    private void addHeaders( OrgUnitDistributionParams params, Grid grid )
-    {
-        grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
-        params.getOrgUnitGroupSets().forEach( ougs ->
-            grid.addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, null, false, true ) ) );
-        grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
     }
 }
