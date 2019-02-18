@@ -28,32 +28,53 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
 @Transactional
-public class DefaultTrackerConverterService implements TrackerConverterService
+public class TrackedEntityTrackerConverterService
+    implements TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
     @Override
-    public Event toEvent( ProgramStageInstance programStageInstance )
+    public TrackedEntityInstance to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
         return null;
     }
 
     @Override
-    public ProgramStageInstance toProgramStageInstance( Event event )
+    public TrackedEntityInstance to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }
 
     @Override
-    public ProgramStageInstance toProgramStageInstance( Event event, ProgramStageInstance programStageInstance )
+    public TrackedEntityInstance to( TrackerPreheat preheat, List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    {
+        return null;
+    }
+
+    @Override
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntityInstance trackedEntityInstance )
+    {
+        return null;
+    }
+
+    @Override
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( List<TrackedEntityInstance> trackedEntityInstances )
+    {
+        return null;
+    }
+
+    @Override
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, List<TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }

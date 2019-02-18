@@ -28,24 +28,55 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerConverterService<From, To>
+@Service
+@Transactional
+public class EnrollmentTrackerConverterService
+    implements TrackerConverterService<Enrollment, ProgramInstance>
 {
-    From to( To object );
+    @Override
+    public Enrollment to( ProgramInstance programInstance )
+    {
+        return null;
+    }
 
-    From to( List<To> objects );
+    @Override
+    public Enrollment to( List<ProgramInstance> programInstances )
+    {
+        return null;
+    }
 
-    From to( TrackerPreheat preheat, List<To> objects );
+    @Override
+    public Enrollment to( TrackerPreheat preheat, List<ProgramInstance> programInstances )
+    {
+        return null;
+    }
 
-    To from( From object );
+    @Override
+    public ProgramInstance from( Enrollment enrollment )
+    {
+        return null;
+    }
 
-    To from( List<From> objects );
+    @Override
+    public ProgramInstance from( List<Enrollment> enrollments )
+    {
+        return null;
+    }
 
-    To from( TrackerPreheat preheat, List<From> objects );
+    @Override
+    public ProgramInstance from( TrackerPreheat preheat, List<Enrollment> enrollments )
+    {
+        return null;
+    }
 }
