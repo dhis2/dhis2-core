@@ -28,11 +28,9 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -40,9 +38,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -140,17 +135,6 @@ public interface ExpressionService
      */
     String TRUE_VALUE = "1";
     String FALSE_VALUE = "0";
-
-    /**
-     * Variable types with their associated classes.
-     */
-    static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
-        "#", DataElementOperand.class,
-        "D", ProgramDataElementDimensionItem.class,
-        "A", ProgramTrackedEntityAttributeDimensionItem.class,
-        "I", ProgramIndicator.class,
-        "R", ReportingRate.class
-    );
 
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
@@ -339,9 +323,9 @@ public interface ExpressionService
      * in the given expression.
      *
      * @param expression the expression.
-     * @return sets of dimensional item identifiers, mapped by class.
+     * @return set of dimensional item identifiers.
      */
-    SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression );
+    Set<DimensionalItemId> getDimensionalItemIdsInExpression( String expression );
 
     /**
      * Returns all dimensional item objects which are present in the given expression.

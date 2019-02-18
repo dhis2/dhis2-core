@@ -57,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -64,6 +65,18 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hisp.dhis.common.DimensionItemType.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -81,6 +94,8 @@ public class DimensionServiceTest
     private Program prA;
     
     private TrackedEntityAttribute atA;
+
+    private ProgramIndicator piA;
     
     private Period peA;
     private Period peB;
@@ -107,7 +122,27 @@ public class DimensionServiceTest
     private OrganisationUnitGroup ouGroupA;
     private OrganisationUnitGroup ouGroupB;
     private OrganisationUnitGroup ouGroupC;
-        
+
+    private DimensionalItemObject itemObjectA;
+    private DimensionalItemObject itemObjectB;
+    private DimensionalItemObject itemObjectC;
+    private DimensionalItemObject itemObjectD;
+    private DimensionalItemObject itemObjectE;
+    private DimensionalItemObject itemObjectF;
+    private DimensionalItemObject itemObjectG;
+    private DimensionalItemObject itemObjectH;
+
+    private DimensionalItemId itemIdA;
+    private DimensionalItemId itemIdB;
+    private DimensionalItemId itemIdC;
+    private DimensionalItemId itemIdD;
+    private DimensionalItemId itemIdE;
+    private DimensionalItemId itemIdF;
+    private DimensionalItemId itemIdG;
+    private DimensionalItemId itemIdH;
+
+    private Set<DimensionalItemId> itemIds;
+
     @Autowired
     private DataElementService dataElementService;
     
@@ -151,6 +186,10 @@ public class DimensionServiceTest
         atA = createTrackedEntityAttribute( 'A' );
         
         idObjectManager.save( atA );
+
+        piA = createProgramIndicator( 'A', prA, null, null );
+
+        idObjectManager.save( piA );
         
         peA = createPeriod( "201201" );
         peB = createPeriod( "201202" );
@@ -224,6 +263,34 @@ public class DimensionServiceTest
         ouGroupSetA.getOrganisationUnitGroups().add( ouGroupC );
         
         organisationUnitGroupService.updateOrganisationUnitGroupSet( ouGroupSetA );
+
+        itemObjectA = deA;
+        itemObjectB = new DataElementOperand( deA, cocA );
+        itemObjectC = new DataElementOperand( deA, null, cocA );
+        itemObjectD = new DataElementOperand( deA, cocA, cocA );
+        itemObjectE = new ReportingRate( dsA );
+        itemObjectF = new ProgramDataElementDimensionItem( prA, deA );
+        itemObjectG = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        itemObjectH = piA;
+
+        itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid() );
+        itemIdB = new DimensionalItemId( DATA_ELEMENT_OPERAND, deA.getUid(), cocA.getUid() );
+        itemIdC = new DimensionalItemId( DATA_ELEMENT_OPERAND, deA.getUid(), null, cocA.getUid() );
+        itemIdD = new DimensionalItemId( DATA_ELEMENT_OPERAND, deA.getUid(), cocA.getUid(), cocA.getUid() );
+        itemIdE = new DimensionalItemId( REPORTING_RATE, dsA.getUid(), ReportingRateMetric.REPORTING_RATE.name() );
+        itemIdF = new DimensionalItemId( PROGRAM_DATA_ELEMENT, prA.getUid(), deA.getUid() );
+        itemIdG = new DimensionalItemId( PROGRAM_ATTRIBUTE, prA.getUid(), atA.getUid() );
+        itemIdH = new DimensionalItemId( PROGRAM_INDICATOR, piA.getUid() );
+
+        itemIds = new HashSet<>();
+        itemIds.add( itemIdA );
+        itemIds.add( itemIdB );
+        itemIds.add( itemIdC );
+        itemIds.add( itemIdD );
+        itemIds.add( itemIdE );
+        itemIds.add( itemIdF );
+        itemIds.add( itemIdG );
+        itemIds.add( itemIdH );
     }
         
     @Test
@@ -381,5 +448,51 @@ public class DimensionServiceTest
 
         assertNotNull( dimensionService.getDataDimensionalItemObject( idK ) );
         assertEquals( deoE, dimensionService.getDataDimensionalItemObject( idK ) );
+    }
+
+    @Test
+    public void testGetDataDimensionalItemObjects()
+    {
+        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( new HashSet<>() );
+
+        assertNotNull( objects );
+        assertEquals( 0, objects.size() );
+
+        objects = dimensionService.getDataDimensionalItemObjects( itemIds );
+
+        assertNotNull( objects );
+        assertEquals( 8, objects.size() );
+
+        assertTrue( objects.contains( itemObjectA ) );
+        assertTrue( objects.contains( itemObjectB ) );
+        assertTrue( objects.contains( itemObjectC ) );
+        assertTrue( objects.contains( itemObjectD ) );
+        assertTrue( objects.contains( itemObjectE ) );
+        assertTrue( objects.contains( itemObjectF ) );
+        assertTrue( objects.contains( itemObjectG ) );
+        assertTrue( objects.contains( itemObjectH ) );
+    }
+
+    @Test
+    public void testGetDataDimensionalItemObjectMap()
+    {
+        Map<DimensionalItemId, DimensionalItemObject> map = dimensionService.getDataDimensionalItemObjectMap( new HashSet<>() );
+
+        assertNotNull( map );
+        assertEquals( 0, map.size() );
+
+        map = dimensionService.getDataDimensionalItemObjectMap( itemIds );
+
+        assertNotNull( map );
+        assertEquals( 8, map.size() );
+
+        assertEquals( itemObjectA, map.get( itemIdA ) );
+        assertEquals( itemObjectB, map.get( itemIdB ) );
+        assertEquals( itemObjectC, map.get( itemIdC ) );
+        assertEquals( itemObjectD, map.get( itemIdD ) );
+        assertEquals( itemObjectE, map.get( itemIdE ) );
+        assertEquals( itemObjectF, map.get( itemIdF ) );
+        assertEquals( itemObjectG, map.get( itemIdG ) );
+        assertEquals( itemObjectH, map.get( itemIdH ) );
     }
 }
