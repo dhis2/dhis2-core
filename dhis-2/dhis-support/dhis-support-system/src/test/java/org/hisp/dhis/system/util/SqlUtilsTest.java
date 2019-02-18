@@ -48,6 +48,6 @@ public class SqlUtilsTest
     public void testQuoteWithAlias()
     {
         assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
-        assertEquals( "ous.\"uid\"", SqlUtils.quote( "oug", "uid" ) );
+        assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
     }
 }

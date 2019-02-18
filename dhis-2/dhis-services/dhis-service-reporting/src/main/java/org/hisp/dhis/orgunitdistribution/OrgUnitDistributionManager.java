@@ -35,5 +35,11 @@ import org.hisp.dhis.common.Grid;
  */
 public interface OrgUnitDistributionManager
 {
+    /**
+     * Returns the org unit distribution for the given parameters.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @return a {@link Grid}.
+     */
     Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
 }

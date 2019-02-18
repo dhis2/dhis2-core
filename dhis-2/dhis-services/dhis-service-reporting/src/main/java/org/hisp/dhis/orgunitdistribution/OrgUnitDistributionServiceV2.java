@@ -35,10 +35,30 @@ import org.hisp.dhis.common.IllegalQueryException;
 
 public interface OrgUnitDistributionServiceV2
 {
+    /**
+     * Returns parameters for the given query.
+     *
+     * @param orgUnits the organisation units.
+     * @param orgUnitGroupSets the organisation unit group sets.
+     * @return a {@link OrgUnitDistributionParams}.
+     */
     OrgUnitDistributionParams getParams( Set<String> orgUnits, Set<String> orgUnitGroupSets );
 
+    /**
+     * Returns the org unit distribution for the given parameters.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @return a {@link Grid}.
+     */
     Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
 
+    /**
+     * Validates the given parameters. Throws an {@link IllegalQueryException}
+     * if invalid.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @throws IllegalQueryException if invalid.
+     */
     void validate( OrgUnitDistributionParams params )
         throws IllegalQueryException;
 }
