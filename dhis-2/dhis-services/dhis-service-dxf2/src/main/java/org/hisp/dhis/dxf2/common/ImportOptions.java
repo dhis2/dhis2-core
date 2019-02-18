@@ -92,6 +92,8 @@ public class ImportOptions
 
     private boolean force;
 
+    private boolean firstRowIsHeader = true;
+
     private String filename;
 
     private NotificationLevel notificationLevel;
@@ -135,6 +137,7 @@ public class ImportOptions
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
         options.ignoreEmptyCollection = this.ignoreEmptyCollection;
+        options.firstRowIsHeader = this.firstRowIsHeader;
 
         return options;
     }
@@ -358,6 +361,12 @@ public class ImportOptions
         return notificationLevel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFirstRowIsHeader()
+    {
+        return firstRowIsHeader;
+    }
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -554,6 +563,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setFirstRowIsHeader( boolean firstRowIsHeader )
+    {
+        this.firstRowIsHeader = firstRowIsHeader;
+        return this;
+    }
+
     @Override
     public String toString()
     {
@@ -577,6 +592,7 @@ public class ImportOptions
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
             .add( "force", force )
+            .add( "firstRowIsHeader", firstRowIsHeader )
             .toString();
     }
 }

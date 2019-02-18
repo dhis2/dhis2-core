@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +28,35 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CsvImportService
+public class DataApprovalWorkflowDeletionHandler
+    extends DeletionHandler
 {
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Override
+    public String getClassName()
+    {
+        return DataApprovalWorkflow.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteDataApprovalLevel( DataApprovalLevel level )
+    {
+        for ( DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl( DataApprovalWorkflow.class ) )
+        {
+            if ( workflow.getLevels().contains( level ) )
+            {
+                workflow.getLevels().remove( level );
+                idObjectManager.updateNoAcl( workflow );
+            }
+        }
+    }
 }

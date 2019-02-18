@@ -33,53 +33,44 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 
-import java.util.Date;
-
 /**
  * @author Lars Helge Overland
  */
 public interface SynchronizationManager
 {
     /**
-     * Executes a data push to remote server.
-     * 
+     * Executes data value push to remote server.
+     *
      * @return an {@link ImportSummary}.
      */
-    ImportSummary executeDataPush() throws WebMessageParseException;
-    ImportSummary executeDataSetCompletenessPush() throws WebMessageParseException;
+    ImportSummary executeDataValuePush() throws WebMessageParseException;
+
+    /**
+     * Executes CompleteDataSetRegistration data push to remote server.
+     *
+     * @return an {@link ImportSummary}
+     * @throws WebMessageParseException
+     */
+    ImportSummary executeCompleteDataSetRegistrationPush() throws WebMessageParseException;
 
     /**
      * Executes an event push to remote server.
-     * 
+     *
      * @return an {@link ImportSummaries}.
      */
     ImportSummaries executeEventPush() throws WebMessageParseException;
 
     /**
-     * Returns the time of the last successful data sync operation.
-     *
-     * @return the time of the last successful data sync operation as a {@link Date}.
-     */
-    Date getLastDataSynchSuccess();
-
-    /**
-     * Returns the time of the last successful event sync operation.
-     *
-     * @return the time of the last successful event sync operation as a {@link Date}.
-     */
-    Date getLastEventSynchSuccess();
-    
-    /**
      * Executes a meta data pull operation from remote server.
-     * 
+     *
      * @param url the URL to the remote server.
      * @return an {@link ImportReport}.
      */
     ImportReport executeMetadataPull( String url );
-    
+
     /**
      * Indicates the availability status of the remote server.
-     * 
+     *
      * @return the {@link AvailabilityStatus} of the remote server.
      */
     AvailabilityStatus isRemoteServerAvailable();

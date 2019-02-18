@@ -48,7 +48,7 @@ public class DataSynchronizationJob
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
-    
+
     @Autowired
     private MessageService messageService;
 
@@ -72,28 +72,28 @@ public class DataSynchronizationJob
     {
         try
         {
-            synchronizationManager.executeDataPush();
+            synchronizationManager.executeDataValuePush();
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration, "Data synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Data value sync failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
-            log.error("Error while executing data sync task. "+ e.getMessage(), e );
+            log.error("Error while executing data value sync task. "+ e.getMessage(), e );
         }
 
         try
         {
-            synchronizationManager.executeDataSetCompletenessPush();
+            synchronizationManager.executeCompleteDataSetRegistrationPush();
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration, "completeness synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Complete data set registration sync failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
-            log.error( "Error while executing data completeness task. "+ e.getMessage(), e );
+            log.error( "Error while executing complete data set registration sync task. "+ e.getMessage(), e );
         }
 
         try
@@ -102,16 +102,16 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration, "Event synch failed: " + ex.getMessage() );
-            
-            messageService.sendSystemErrorNotification( "Event synch failed", ex );
+            notifier.notify( jobConfiguration, "Event sync failed: " + ex.getMessage() );
+
+            messageService.sendSystemErrorNotification( "Event sync failed", ex );
         }
         catch ( WebMessageParseException e )
         {
             log.error("Error while executing event sync task. "+ e.getMessage(), e );
         }
 
-        notifier.notify( jobConfiguration, "Data/Event synch successful" );
+        notifier.notify( jobConfiguration, "Data value, Complete data set registration and Event sync successful" );
     }
 
     @Override

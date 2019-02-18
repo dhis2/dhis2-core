@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
+import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -137,7 +138,9 @@ public class MetadataImportController
 
         params.setCsvImportClass( CsvImportClass.valueOf( classKey ) );
 
-        Metadata metadata = csvImportService.fromCsv( request.getInputStream(), params.getCsvImportClass() );
+        Metadata metadata = csvImportService.fromCsv( request.getInputStream(), new CsvImportOptions()
+            .setImportClass( params.getCsvImportClass() )
+            .setFirstRowIsHeader( params.isFirstRowIsHeader() ) );
 
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 

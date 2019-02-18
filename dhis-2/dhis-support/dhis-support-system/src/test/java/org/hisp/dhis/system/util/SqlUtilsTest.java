@@ -1,4 +1,6 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.system.util;
+
+import static org.junit.Assert.assertEquals;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +30,24 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CsvImportService
+public class SqlUtilsTest
 {
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+    @Test
+    public void testQuote()
+    {
+        assertEquals( "\"Some \"\"special\"\" value\"", SqlUtils.quote( "Some \"special\" value" ) );
+        assertEquals( "\"Data element\"", SqlUtils.quote( "Data element" ) );
+    }
+
+    @Test
+    public void testQuoteWithAlias()
+    {
+        assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
+        assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
+    }
 }

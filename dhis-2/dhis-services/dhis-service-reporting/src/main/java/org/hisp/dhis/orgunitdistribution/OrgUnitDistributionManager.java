@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.orgunitdistribution;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +28,18 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.hisp.dhis.common.Grid;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CsvImportService
+public interface OrgUnitDistributionManager
 {
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+    /**
+     * Returns the org unit distribution for the given parameters.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @return a {@link Grid}.
+     */
+    Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
 }

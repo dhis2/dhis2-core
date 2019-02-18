@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.orgunitdistribution;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +28,35 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-/**
- * @author Lars Helge Overland
- */
-public interface CsvImportService
+public interface OrgUnitDistributionServiceV2
 {
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+    /**
+     * Returns parameters for the given query.
+     *
+     * @param orgUnits the organisation unit string.
+     * @param orgUnitGroupSets the organisation unit group set string.
+     * @return a {@link OrgUnitDistributionParams}.
+     */
+    OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets );
+
+    /**
+     * Returns the org unit distribution for the given parameters.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @return a {@link Grid}.
+     */
+    Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
+
+    /**
+     * Validates the given parameters. Throws an {@link IllegalQueryException}
+     * if invalid.
+     *
+     * @param params the {@link OrgUnitDistributionParams}.
+     * @throws IllegalQueryException if invalid.
+     */
+    void validate( OrgUnitDistributionParams params )
+        throws IllegalQueryException;
 }

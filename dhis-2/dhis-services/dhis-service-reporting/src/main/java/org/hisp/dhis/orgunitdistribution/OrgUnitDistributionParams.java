@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.orgunitdistribution;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +28,45 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CsvImportService
+public class OrgUnitDistributionParams
 {
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
+
+    public int getOrgUnitLevel()
+    {
+        return !orgUnits.isEmpty() ? orgUnits.get( 0 ).getLevel() : 1; //TODO implement properly
+    }
+
+    public List<OrganisationUnit> getOrgUnits()
+    {
+        return orgUnits;
+    }
+
+    public OrgUnitDistributionParams setOrgUnits( List<OrganisationUnit> orgUnits )
+    {
+        this.orgUnits = orgUnits;
+        return this;
+    }
+
+    public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
+    {
+        return orgUnitGroupSets;
+    }
+
+    public OrgUnitDistributionParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
+    {
+        this.orgUnitGroupSets = orgUnitGroupSets;
+        return this;
+    }
 }
