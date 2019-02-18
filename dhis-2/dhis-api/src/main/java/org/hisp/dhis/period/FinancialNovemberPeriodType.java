@@ -49,7 +49,7 @@ public class FinancialNovemberPeriodType
     public static final String NAME = "FinancialNov";
 
     @Override
-    protected int getBaseMonth()
+    public int getBaseMonth()
     {
         return Calendar.NOVEMBER;
     }
@@ -76,5 +76,10 @@ public class FinancialNovemberPeriodType
     public String getIso8601Duration()
     {
         return ISO8601_DURATION;
+    }
+
+    @Override
+    public boolean isFinancialYear() {
+        return true;
     }
 }

@@ -50,7 +50,7 @@ public class FinancialOctoberPeriodType
     public static final String NAME = "FinancialOct";
 
     @Override
-    protected int getBaseMonth()
+    public int getBaseMonth()
     {
         return Calendar.OCTOBER;
     }
@@ -79,4 +79,8 @@ public class FinancialOctoberPeriodType
         return ISO8601_DURATION;
     }
 
+    @Override
+    public boolean isFinancialYear() {
+        return true;
+    }
 }

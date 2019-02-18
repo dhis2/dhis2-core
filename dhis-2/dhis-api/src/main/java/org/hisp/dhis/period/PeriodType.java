@@ -763,4 +763,8 @@ public abstract class PeriodType
     {
         return "[" + getName() + "]";
     }
+
+    public boolean isFinancialYear() {
+        return false;
+    }
 }

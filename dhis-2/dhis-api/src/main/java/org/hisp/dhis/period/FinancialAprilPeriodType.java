@@ -50,7 +50,7 @@ public class FinancialAprilPeriodType
     public static final String NAME = "FinancialApril";
 
     @Override
-    protected int getBaseMonth()
+    public int getBaseMonth()
     {
         return Calendar.APRIL;
     }
@@ -77,6 +77,11 @@ public class FinancialAprilPeriodType
     public String getIso8601Duration()
     {
         return ISO8601_DURATION;
+    }
+
+    @Override
+    public boolean isFinancialYear() {
+        return true;
     }
 
 }

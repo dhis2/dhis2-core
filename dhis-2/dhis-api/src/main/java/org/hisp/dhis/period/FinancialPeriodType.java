@@ -53,7 +53,7 @@ public abstract class FinancialPeriodType
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    protected abstract int getBaseMonth();
+    public abstract int getBaseMonth();
 
     // -------------------------------------------------------------------------
     // PeriodType functionality

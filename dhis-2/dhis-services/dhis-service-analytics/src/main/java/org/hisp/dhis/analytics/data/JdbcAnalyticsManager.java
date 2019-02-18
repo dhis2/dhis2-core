@@ -63,6 +63,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -84,6 +85,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +168,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map = null;
+            Map<String, Object> map;
 
             try
             {
@@ -226,8 +228,25 @@ public class JdbcAnalyticsManager
                 for ( DimensionalItemObject period : periods )
                 {
                     String[] keyCopy = keyArray.clone();
+
                     keyCopy[periodIndex] = ((Period) period).getIsoDate();
-                    dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+
+                    String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
+
+                    if ( dataValueMap.containsKey( replacementKey ) )
+                    {
+                        if ( requiresWeightedAvg( (Period) period ) )
+                        {
+                            value = calculateWeightedAvg( (Double) dataValueMap.get( replacementKey ), (Double) value,
+                                ((Period) period).getPeriodType() );
+
+                            dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                        }
+                    }
+                    else
+                    {
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    }
                 }
 
                 dataValueMap.remove( key );
@@ -235,6 +254,34 @@ public class JdbcAnalyticsManager
         }
     }
 
+    private boolean requiresWeightedAvg( Period period  )
+    {
+        return period.getPeriodType().isFinancialYear();
+    }
+
+    private Double calculateWeightedAvg( Double year1Value, Double year2Value, PeriodType periodType )
+    {
+        int weight = calculateWeightFactor( periodType );
+
+        return Precision.round( (year1Value * ((double) (12 - weight) / 12)) + (year2Value * ((double) weight / 12)), 2 );
+    }
+
+    /**
+     * Calculates the factor for the weighted average
+     *
+     * @param periodType a {@link PeriodType}
+     * @return a value based on the passed period type
+     */
+    private int calculateWeightFactor(PeriodType periodType )
+    {
+
+        if ( periodType.isFinancialYear() )
+        {
+            return ((FinancialPeriodType) periodType).getBaseMonth();
+        }
+        return 0;
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
