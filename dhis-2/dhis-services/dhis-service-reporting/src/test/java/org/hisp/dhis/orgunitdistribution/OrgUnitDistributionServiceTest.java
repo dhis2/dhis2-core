@@ -52,7 +52,7 @@ public class OrgUnitDistributionServiceTest
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
-    
+
     @Autowired
     private OrgUnitDistributionService distributionService;
 
@@ -61,28 +61,28 @@ public class OrgUnitDistributionServiceTest
     {
         OrganisationUnit unitA = createOrganisationUnit( 'A' ); //TODO make hierarchy
         OrganisationUnit unitB = createOrganisationUnit( 'B' );
-        
+
         organisationUnitService.addOrganisationUnit( unitA );
         organisationUnitService.addOrganisationUnit( unitB );
-        
+
         OrganisationUnitGroup groupA = createOrganisationUnitGroup( 'A' );
         OrganisationUnitGroup groupB = createOrganisationUnitGroup( 'B' );
-        
+
         groupA.getMembers().add( unitA );
         groupB.getMembers().add( unitB );
-        
+
         organisationUnitGroupService.addOrganisationUnitGroup( groupA );
         organisationUnitGroupService.addOrganisationUnitGroup( groupB );
-        
+
         OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
         groupSet.getOrganisationUnitGroups().add( groupA );
         groupSet.getOrganisationUnitGroups().add( groupB );
-        
+
         organisationUnitGroupService.addOrganisationUnitGroupSet( groupSet );
-        
+
         Grid grid = distributionService.getOrganisationUnitDistribution( groupSet, unitA, false );
         assertNotNull( grid );
         assertEquals( 4, grid.getWidth() ); // Including total
         assertEquals( 1, grid.getHeight() ); // Including total
-    }   
+    }
 }

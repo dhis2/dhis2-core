@@ -35,7 +35,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService;
+import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 
 import com.opensymphony.xwork2.Action;
@@ -61,9 +61,9 @@ public class GetOrgUnitDistributionAction
         this.organisationUnitGroupService = organisationUnitGroupService;
     }
 
-    private OrgUnitDistributionService distributionService;
+    private OrgUnitDistributionServiceV2 distributionService;
 
-    public void setDistributionService( OrgUnitDistributionService distributionService )
+    public void setDistributionService( OrgUnitDistributionServiceV2 distributionService )
     {
         this.distributionService = distributionService;
     }

@@ -141,6 +141,9 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
   </bean>
+  
+  <bean id="org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager"
+    class="org.hisp.dhis.orgunitdistribution.jdbc.JdbcOrgUnitDistributionManager" />
 
   <!-- Interpretation -->
 
