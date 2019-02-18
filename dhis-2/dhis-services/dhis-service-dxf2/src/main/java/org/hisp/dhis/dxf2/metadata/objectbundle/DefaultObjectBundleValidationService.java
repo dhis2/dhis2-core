@@ -540,11 +540,13 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
 
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = bundle.getObjectMap();
+
         schemaService.getMetadataSchemas().forEach( schema ->
         {
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
-            if ( bundle.getObjectMap().containsKey( klass ) )
+            if ( objectMap.containsKey( klass ) )
             {
                 klasses.add( klass );
             }
