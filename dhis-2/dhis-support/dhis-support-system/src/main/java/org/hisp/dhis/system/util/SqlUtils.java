@@ -47,6 +47,7 @@ public class SqlUtils
 {
     public static final String QUOTE = "\"";
     public static final String SEPARATOR = ".";
+    public static final String OPTION_SEP = ".";
 
     /**
      * Quotes the given relation (typically a column). Quotes part of
