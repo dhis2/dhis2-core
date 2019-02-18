@@ -218,7 +218,7 @@ public class DefaultDataSetNotificationService
 
             for ( DataSet dataSet : template.getDataSets() )
             {
-                if ( isValidForSending( createRespectiveRegistrationObject( dataSet, new OrganisationUnit() ), template ) )
+                if ( isValidForSending( getDataSetPeriod( dataSet ), template ) )
                 {
                     summaryCreated = true;
 
@@ -265,6 +265,13 @@ public class DefaultDataSetNotificationService
     private String createSubjectString( DataSetNotificationTemplate template )
     {
         return template.getRelativeScheduledDays() < 0 ? PENDING + SUMMARY_SUBJECT : OVERDUE + SUMMARY_SUBJECT;
+    }
+
+    private Period getDataSetPeriod( DataSet dataSet )
+    {
+        Period period = dataSet.getPeriodType().createPeriod();
+
+        return periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
     }
 
     private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
@@ -314,7 +321,7 @@ public class DefaultDataSetNotificationService
 
     private boolean isScheduledNow( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
     {
-        return !isCompleted( registration ) && isValidForSending( registration, template );
+        return !isCompleted( registration ) && isValidForSending( registration.getPeriod(), template );
     }
 
     private boolean isCompleted( CompleteDataSetRegistration registration )
@@ -322,14 +329,14 @@ public class DefaultDataSetNotificationService
        CompleteDataSetRegistration completed = completeDataSetRegistrationService.getCompleteDataSetRegistration(
            registration.getDataSet(), registration.getPeriod(), registration.getSource(), registration.getAttributeOptionCombo() );
 
-        return completed != null;
+        return completed != null && completed.getCompleted();
     }
 
-    private boolean isValidForSending( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
+    private boolean isValidForSending( Period period, DataSetNotificationTemplate template )
     {
         int daysToCompare;
 
-        Date dueDate = registration.getPeriod().getEndDate();
+        Date dueDate = period.getEndDate();
 
         daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
 
