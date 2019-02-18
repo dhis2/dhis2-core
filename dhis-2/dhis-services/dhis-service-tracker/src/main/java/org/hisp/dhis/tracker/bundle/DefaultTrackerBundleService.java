@@ -32,6 +32,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.logging.LoggingManager;
+import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -54,6 +55,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
 
     private final TrackerPreheatService trackerPreheatService;
+    private final TrackerConverterService trackerConverterService;
     private final CurrentUserService currentUserService;
     private final IdentifiableObjectManager manager;
     private final SessionFactory sessionFactory;
@@ -61,12 +63,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
+        TrackerConverterService trackerConverterService,
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager )
     {
         this.trackerPreheatService = trackerPreheatService;
+        this.trackerConverterService = trackerConverterService;
         this.currentUserService = currentUserService;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
