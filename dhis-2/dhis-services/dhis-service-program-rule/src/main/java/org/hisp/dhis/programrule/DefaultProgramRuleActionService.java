@@ -91,4 +91,28 @@ public class DefaultProgramRuleActionService
     {
         return programRuleActionStore.get( programRule );
     }
+
+    @Override
+    public List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject()
+    {
+        return programRuleActionStore.getProgramActionsWithNoDataObject();
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification()
+    {
+        return programRuleActionStore.getProgramActionsWithNoNotification();
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId()
+    {
+        return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDESECTION );
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoStageId()
+    {
+        return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDEPROGRAMSTAGE );
+    }
 }
