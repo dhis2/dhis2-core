@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -51,7 +52,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
 public class MessageConversation
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private static final int RECIPIENTS_MAX_DISPLAY = 25;
 
