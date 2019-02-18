@@ -138,6 +138,7 @@ public class JdbcMaintenanceStore
             "delete from programinstance where programinstanceid in " + piSelect,
             "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,
+            "delete from trackedentityprogramowner where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityinstance where deleted is true" };
 
         return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
