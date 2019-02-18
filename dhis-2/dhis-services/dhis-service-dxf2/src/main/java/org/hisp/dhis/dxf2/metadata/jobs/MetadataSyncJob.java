@@ -168,10 +168,10 @@ public class MetadataSyncJob
     {
         metadataSyncPreProcessor.setUp( context );
 
-        metadataSyncPreProcessor.handleAggregateDataPush( context );
+        metadataSyncPreProcessor.handleDataValuePush( context );
 
         metadataSyncPreProcessor.handleEventDataPush( context );
-        metadataSyncPreProcessor.handleDataSetCompletenessPush( context );
+        metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context );
         metadataSyncPreProcessor.handleTrackerDataPush( context );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
