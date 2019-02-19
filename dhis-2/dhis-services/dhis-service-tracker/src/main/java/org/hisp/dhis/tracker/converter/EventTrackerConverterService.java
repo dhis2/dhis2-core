@@ -30,12 +30,18 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,17 +66,24 @@ public class EventTrackerConverterService
     @Override
     public Event to( ProgramStageInstance programStageInstance )
     {
-        return null;
+        List<Event> events = to( Collections.singletonList( programStageInstance ) );
+
+        if ( events.isEmpty() )
+        {
+            return null;
+        }
+
+        return events.get( 0 );
     }
 
     @Override
-    public Event to( List<ProgramStageInstance> programStageInstances )
+    public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         return null;
     }
 
     @Override
-    public Event to( TrackerPreheat preheat, List<ProgramStageInstance> programStageInstances )
+    public List<Event> to( TrackerPreheat preheat, List<ProgramStageInstance> programStageInstances )
     {
         return null;
     }
@@ -78,18 +91,42 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance from( Event event )
     {
-        return null;
+        List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
+
+        if ( programStageInstances.isEmpty() )
+        {
+            return null;
+        }
+
+        return programStageInstances.get( 0 );
     }
 
     @Override
-    public ProgramStageInstance from( List<Event> events )
+    public List<ProgramStageInstance> from( List<Event> events )
     {
-        return null;
+        return from( preheat( events ), events );
     }
 
     @Override
-    public ProgramStageInstance from( TrackerPreheat preheat, List<Event> events )
+    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
-        return null;
+        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+
+        events.forEach( e -> {
+            ProgramStageInstance programStageInstance = new ProgramStageInstance();
+            programStageInstance.setProgramStage( preheat.get( TrackerIdentifier.UID, ProgramStage.class, e.getProgramStage() ) );
+            programStageInstance.setOrganisationUnit( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, e.getOrgUnit() ) );
+        } );
+
+
+        return programStageInstances;
+    }
+
+    private TrackerPreheat preheat( List<Event> events )
+    {
+        TrackerPreheatParams params = new TrackerPreheatParams()
+            .setEvents( events );
+
+        return trackerPreheatService.preheat( params );
     }
 }

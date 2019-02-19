@@ -39,13 +39,13 @@ public interface TrackerConverterService<From, To>
 {
     From to( To object );
 
-    From to( List<To> objects );
+    List<From> to( List<To> objects );
 
-    From to( TrackerPreheat preheat, List<To> objects );
+    List<From> to( TrackerPreheat preheat, List<To> objects );
 
     To from( From object );
 
-    To from( List<From> objects );
+    List<To> from( List<From> objects );
 
-    To from( TrackerPreheat preheat, List<From> objects );
+    List<To> from( TrackerPreheat preheat, List<From> objects );
 }

@@ -50,13 +50,14 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public TrackedEntityInstance to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    public List<TrackedEntityInstance> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }
 
     @Override
-    public TrackedEntityInstance to( TrackerPreheat preheat, List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    public List<TrackedEntityInstance> to( TrackerPreheat preheat,
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }
@@ -68,13 +69,14 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( List<TrackedEntityInstance> trackedEntityInstances )
+    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, List<TrackedEntityInstance> trackedEntityInstances )
+    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
+        List<TrackedEntityInstance> trackedEntityInstances )
     {
         return null;
     }

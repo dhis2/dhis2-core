@@ -100,7 +100,6 @@ public class EventTrackerConverterServiceTest
     @Test
     public void testToProgramStageInstance() throws IOException
     {
-        /*
         Event event = new Event();
         event.setProgram( "BFcipDERJne" );
         event.setProgramStage( "NpsdDv6kKSO" );
@@ -108,6 +107,7 @@ public class EventTrackerConverterServiceTest
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( event );
 
+        /*
         assertNotNull( programStageInstance );
         assertNotNull( programStageInstance.getProgramStage() );
         assertNotNull( programStageInstance.getProgramStage().getProgram() );
