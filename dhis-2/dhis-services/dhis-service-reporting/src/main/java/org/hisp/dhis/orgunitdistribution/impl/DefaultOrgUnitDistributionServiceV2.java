@@ -32,13 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -120,18 +119,11 @@ public class DefaultOrgUnitDistributionServiceV2
         Map<String, Object> items = new HashMap<>();
 
         params.getOrgUnits().stream()
-            .forEach( ou -> items.put( ou.getUid(), getItem( ou ) ) );
+            .forEach( ou -> items.put( ou.getUid(), new MetadataItem( ou.getDisplayName() ) ) );
         params.getOrgUnitGroupSets().stream()
-            .forEach( ougs -> items.put( ougs.getUid(), getItem( ougs ) ) );
+            .forEach( ougs -> items.put( ougs.getUid(), new MetadataItem( ougs.getDisplayName() ) ) );
 
         metadata.put( "items", items );
         grid.setMetaData( metadata );
-    }
-
-    private IdentifiableObject getItem( IdentifiableObject item )
-    {
-        BaseIdentifiableObject object = new BaseIdentifiableObject();
-        object.setName( item.getDisplayName() );
-        return object;
     }
 }
