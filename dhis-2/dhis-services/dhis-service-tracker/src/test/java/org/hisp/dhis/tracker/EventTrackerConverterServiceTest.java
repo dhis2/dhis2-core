@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -107,7 +109,6 @@ public class EventTrackerConverterServiceTest
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( event );
 
-        /*
         assertNotNull( programStageInstance );
         assertNotNull( programStageInstance.getProgramStage() );
         assertNotNull( programStageInstance.getProgramStage().getProgram() );
@@ -116,6 +117,5 @@ public class EventTrackerConverterServiceTest
         assertEquals( "BFcipDERJne", programStageInstance.getProgramStage().getProgram().getUid() );
         assertEquals( "NpsdDv6kKSO", programStageInstance.getProgramStage().getUid() );
         assertEquals( "PlKwabX2xRW", programStageInstance.getOrganisationUnit().getUid() );
-        */
     }
 }

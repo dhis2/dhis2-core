@@ -116,6 +116,8 @@ public class EventTrackerConverterService
             ProgramStageInstance programStageInstance = new ProgramStageInstance();
             programStageInstance.setProgramStage( preheat.get( TrackerIdentifier.UID, ProgramStage.class, e.getProgramStage() ) );
             programStageInstance.setOrganisationUnit( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, e.getOrgUnit() ) );
+
+            programStageInstances.add( programStageInstance );
         } );
 
 
