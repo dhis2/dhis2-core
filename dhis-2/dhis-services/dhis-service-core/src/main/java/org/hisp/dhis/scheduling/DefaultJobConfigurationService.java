@@ -31,8 +31,11 @@ package org.hisp.dhis.scheduling;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +59,8 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
+    private Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
+
     private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
@@ -222,8 +227,9 @@ public class DefaultJobConfigurationService
         {
             return jobConfiguration.getJobType().getJobParameters().newInstance();
         }
-        catch ( InstantiationException | IllegalAccessException ignored )
+        catch ( InstantiationException | IllegalAccessException ex )
         {
+            log.error( DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
