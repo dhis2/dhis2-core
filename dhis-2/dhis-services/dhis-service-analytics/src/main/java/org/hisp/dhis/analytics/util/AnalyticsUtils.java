@@ -99,7 +99,7 @@ import com.google.common.collect.Sets;
  */
 public class AnalyticsUtils
 {
-    private static final int DECIMALS_NO_ROUNDING = 10;
+    public static final int DECIMALS_NO_ROUNDING = 10;
     private static final String KEY_AGG_VALUE = "[aggregated]";
     private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
 

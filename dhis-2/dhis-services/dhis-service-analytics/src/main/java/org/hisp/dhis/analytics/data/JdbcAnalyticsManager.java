@@ -263,7 +263,8 @@ public class JdbcAnalyticsManager
     {
         int weight = calculateWeightFactor( periodType );
 
-        return Precision.round( (year1Value * ((double) (12 - weight) / 12)) + (year2Value * ((double) weight / 12)), 2 );
+        return Precision.round( (year1Value * ((double) (12 - weight) / 12)) + (year2Value * ((double) weight / 12)),
+                AnalyticsUtils.DECIMALS_NO_ROUNDING );
     }
 
     /**
@@ -272,9 +273,8 @@ public class JdbcAnalyticsManager
      * @param periodType a {@link PeriodType}
      * @return a value based on the passed period type
      */
-    private int calculateWeightFactor(PeriodType periodType )
+    private int calculateWeightFactor( PeriodType periodType )
     {
-
         if ( periodType.isFinancialYear() )
         {
             return ((FinancialPeriodType) periodType).getBaseMonth();

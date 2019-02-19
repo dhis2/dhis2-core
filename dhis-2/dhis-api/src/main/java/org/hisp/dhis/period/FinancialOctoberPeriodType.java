@@ -78,9 +78,4 @@ public class FinancialOctoberPeriodType
     {
         return ISO8601_DURATION;
     }
-
-    @Override
-    public boolean isFinancialYear() {
-        return true;
-    }
 }

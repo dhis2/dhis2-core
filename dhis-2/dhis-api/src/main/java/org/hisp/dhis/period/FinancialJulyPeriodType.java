@@ -79,9 +79,4 @@ public class FinancialJulyPeriodType
         return ISO8601_DURATION;
     }
 
-    @Override
-    public boolean isFinancialYear() {
-        return true;
-    }
-
 }

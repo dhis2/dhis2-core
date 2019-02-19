@@ -177,4 +177,10 @@ public abstract class FinancialPeriodType
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
     }
+
+    @Override
+    public boolean isFinancialYear()
+    {
+        return true;
+    }
 }
