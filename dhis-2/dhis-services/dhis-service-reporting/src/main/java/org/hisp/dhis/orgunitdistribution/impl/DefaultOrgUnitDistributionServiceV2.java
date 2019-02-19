@@ -121,7 +121,9 @@ public class DefaultOrgUnitDistributionServiceV2
         params.getOrgUnits().stream()
             .forEach( ou -> items.put( ou.getUid(), new MetadataItem( ou.getDisplayName() ) ) );
         params.getOrgUnitGroupSets().stream()
-            .forEach( ougs -> items.put( ougs.getUid(), new MetadataItem( ougs.getDisplayName() ) ) );
+            .map( ougs -> ougs.getOrganisationUnitGroups() )
+            .flatMap( oug -> oug.stream() )
+            .forEach( oug -> items.put( oug.getUid(), new MetadataItem( oug.getDisplayName() ) ) );
 
         metadata.put( "items", items );
         grid.setMetaData( metadata );
