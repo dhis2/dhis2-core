@@ -175,6 +175,7 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
 
         subject.updateGateway( bulkConfig, null );
+        verify( smsConfigurationManager, timeout( 0 ) ).updateSmsConfiguration( any() );
     }
 
     @Test
@@ -251,7 +252,6 @@ public class GatewayAdministrationServiceTest
 
         String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
 
-        System.out.println( subject.getGatewayConfigurationMap() );
         subject.removeGatewayByUid( bulkId );
 
         assertTrue( subject.getGatewayConfigurationMap().isEmpty() );
