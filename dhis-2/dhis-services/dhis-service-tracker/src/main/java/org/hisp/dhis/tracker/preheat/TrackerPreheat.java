@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -77,6 +78,30 @@ public class TrackerPreheat
      * All periodTypes available.
      */
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
+
+    /**
+     * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
+     * for object merging.
+     */
+    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
+
+    /**
+     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
+     * for object merging.
+     */
+    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntityAttributes = new HashMap<>();
+
+    /**
+     * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
+     * for object merging.
+     */
+    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> enrollments = new HashMap<>();
+
+    /**
+     * Internal map of all preheated events, mainly used for confirming existence for updates, and used
+     * for object merging.
+     */
+    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> events = new HashMap<>();
 
     public TrackerPreheat()
     {
@@ -404,6 +429,46 @@ public class TrackerPreheat
     public void setPeriodTypeMap( Map<String, PeriodType> periodTypeMap )
     {
         this.periodTypeMap = periodTypeMap;
+    }
+
+    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getTrackedEntities()
+    {
+        return trackedEntities;
+    }
+
+    public void setTrackedEntities( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntities )
+    {
+        this.trackedEntities = trackedEntities;
+    }
+
+    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getTrackedEntityAttributes()
+    {
+        return trackedEntityAttributes;
+    }
+
+    public void setTrackedEntityAttributes( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntityAttributes )
+    {
+        this.trackedEntityAttributes = trackedEntityAttributes;
+    }
+
+    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getEnrollments()
+    {
+        return enrollments;
+    }
+
+    public void setEnrollments( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> enrollments )
+    {
+        this.enrollments = enrollments;
+    }
+
+    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getEvents()
+    {
+        return events;
+    }
+
+    public void setEvents( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> events )
+    {
+        this.events = events;
     }
 
     public static Class<?> getRealClass( Class<?> klass )

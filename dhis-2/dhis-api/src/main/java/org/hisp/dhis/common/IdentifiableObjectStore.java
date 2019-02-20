@@ -106,11 +106,11 @@ public interface IdentifiableObjectStore<T>
     T getByCode( String code );
 
     /**
-     * Retrieves the attribute value associated with the unique attribute and 
+     * Retrieves the attribute value associated with the unique attribute and
      * the given value.
-     * 
+     *
      * @param attribute the attribute.
-     * @param value the value.
+     * @param value     the value.
      * @return the attribute value.
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
@@ -126,7 +126,7 @@ public interface IdentifiableObjectStore<T>
      * Retrieves the objects determined by the given first result and max result.
      *
      * @param first the first result object to return.
-     * @param max  the max number of result objects to return.
+     * @param max   the max number of result objects to return.
      * @return list of objects.
      */
     List<T> getAllOrderedName( int first, int max );
@@ -203,12 +203,28 @@ public interface IdentifiableObjectStore<T>
     List<T> getByUid( Collection<String> uids );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of uids.
+     *
+     * @param uids a collection of uids.
+     * @return a list of objects.
+     */
+    List<T> getByUid( Collection<String> uids, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given collection of codes.
      *
      * @param codes a collection of codes.
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes );
+
+    /**
+     * Retrieves a list of objects referenced by the given collection of codes.
+     *
+     * @param codes a collection of codes.
+     * @return a list of objects.
+     */
+    List<T> getByCode( Collection<String> codes, User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of names.
@@ -253,7 +269,7 @@ public interface IdentifiableObjectStore<T>
 
     /**
      * Returns all objects without considering sharing.
-     * 
+     *
      * @return a list of all objects.
      */
     List<T> getAllNoAcl();

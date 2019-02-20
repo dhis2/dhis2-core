@@ -36,17 +36,18 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.user.CurrentUserService;
@@ -71,19 +72,28 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
     private final IdentifiableObjectManager manager;
     private final CurrentUserService currentUserService;
     private final PeriodStore periodStore;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final ProgramInstanceStore programInstanceStore;
+    private final ProgramStageInstanceStore programStageInstanceStore;
 
     public DefaultTrackerPreheatService(
         SchemaService schemaService,
         QueryService queryService,
         IdentifiableObjectManager manager,
         CurrentUserService currentUserService,
-        PeriodStore periodStore )
+        PeriodStore periodStore,
+        TrackedEntityInstanceStore trackedEntityInstanceStore,
+        ProgramInstanceStore programInstanceStore,
+        ProgramStageInstanceStore programStageInstanceStore )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
         this.manager = manager;
         this.currentUserService = currentUserService;
         this.periodStore = periodStore;
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.programInstanceStore = programInstanceStore;
+        this.programStageInstanceStore = programStageInstanceStore;
     }
 
     @Override
@@ -113,44 +123,22 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
             {
                 for ( List<String> ids : splitList )
                 {
-                    Query query = Query.from( schemaService.getDynamicSchema( org.hisp.dhis.trackedentity.TrackedEntityInstance.class ) );
-                    query.setUser( preheat.getUser() );
-                    query.add( Restrictions.in( "id", ids ) );
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-                    preheat.put( TrackerIdentifier.UID, objects );
-                }
-            }
-            else if ( klass.isAssignableFrom( Attribute.class ) )
-            {
-                for ( List<String> ids : splitList )
-                {
-                    Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttributeValue.class ) );
-                    query.setUser( preheat.getUser() );
-                    query.add( Restrictions.in( "id", ids ) );
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-                    preheat.put( TrackerIdentifier.UID, objects );
+                    List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances =
+                        trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
                 }
             }
             else if ( klass.isAssignableFrom( Enrollment.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
-                    Query query = Query.from( schemaService.getDynamicSchema( ProgramInstance.class ) );
-                    query.setUser( preheat.getUser() );
-                    query.add( Restrictions.in( "id", ids ) );
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-                    preheat.put( TrackerIdentifier.UID, objects );
+                    List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
                 }
             }
             else if ( klass.isAssignableFrom( Event.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
-                    Query query = Query.from( schemaService.getDynamicSchema( ProgramStageInstance.class ) );
-                    query.setUser( preheat.getUser() );
-                    query.add( Restrictions.in( "id", ids ) );
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-                    preheat.put( TrackerIdentifier.UID, objects );
+                    List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getByUid( ids, preheat.getUser() );
                 }
             }
             else
