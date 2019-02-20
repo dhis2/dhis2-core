@@ -57,8 +57,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @Transactional
-public class J2MEDataValueSMSListener
-    extends BaseSMSListener
+public class LegacyJ2MEDataValueSMSListener
+    extends LegacyBaseSMSListener
 {
 
     // -------------------------------------------------------------------------

@@ -62,8 +62,8 @@ import javax.annotation.Resource;
 import java.util.*;
 
 @Transactional
-public class DataValueSMSListener
-    extends BaseSMSListener
+public class LegacyDataValueSMSListener
+    extends LegacyBaseSMSListener
 {
     private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
 

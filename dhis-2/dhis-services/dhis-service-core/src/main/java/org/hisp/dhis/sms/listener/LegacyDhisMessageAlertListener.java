@@ -49,8 +49,8 @@ import javax.annotation.Resource;
 import java.util.*;
 
 @Transactional
-public class DhisMessageAlertListener
-    extends BaseSMSListener
+public class LegacyDhisMessageAlertListener
+    extends LegacyBaseSMSListener
 {
     @Autowired
     private SMSCommandService smsCommandService;

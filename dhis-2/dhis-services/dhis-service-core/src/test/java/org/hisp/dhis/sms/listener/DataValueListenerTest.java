@@ -118,7 +118,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private UserService userService;
 
     @InjectMocks
-    private DataValueSMSListener dataValueSMSListener;
+    private LegacyDataValueSMSListener dataValueSMSListener;
 
     private CompleteDataSetRegistration fetchedCompleteDataSetRegistration;
     private CompleteDataSetRegistration savedCompleteDataSetRegistration;

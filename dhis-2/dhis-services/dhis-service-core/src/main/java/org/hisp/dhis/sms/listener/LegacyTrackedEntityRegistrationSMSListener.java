@@ -51,8 +51,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class TrackedEntityRegistrationSMSListener
-    extends BaseSMSListener
+public class LegacyTrackedEntityRegistrationSMSListener
+    extends LegacyBaseSMSListener
 {
     private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
 

@@ -61,9 +61,9 @@ import java.util.stream.Collectors;
  * Created by zubair@dhis2.org on 11.08.17.
  */
 @Transactional
-public abstract class BaseSMSListener implements IncomingSmsListener
+public abstract class LegacyBaseSMSListener implements IncomingSmsListener
 {
-    private static final Log log = LogFactory.getLog( BaseSMSListener.class );
+    private static final Log log = LogFactory.getLog( LegacyBaseSMSListener.class );
 
     private static final String DEFAULT_PATTERN =  "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
     private static final String NO_SMS_CONFIG = "No sms configuration found";

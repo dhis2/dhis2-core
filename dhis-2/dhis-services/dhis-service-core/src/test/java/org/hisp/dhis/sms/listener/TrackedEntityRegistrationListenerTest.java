@@ -94,7 +94,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private IncomingSmsService incomingSmsService;
 
     @InjectMocks
-    private TrackedEntityRegistrationSMSListener trackedEntityRegistrationSMSListener;
+    private LegacyTrackedEntityRegistrationSMSListener trackedEntityRegistrationSMSListener;
 
     private TrackedEntityType trackedEntityType;
     private TrackedEntityInstance trackedEntityInstance;

@@ -16,7 +16,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.sms.parser.SmsMessage;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,43 +101,15 @@ public abstract class AbstractSMSListener implements IncomingSmsListener
             return false;
         }
 
-        SmsMessage message = null;
 
-        try {
-
-            message = new SmsMessage(sms);
-
-        } catch (SMSParserException e) {
-
-            return false;
-
-        }
-
-        return isAcceptable(message);
+        return isAcceptable(sms);
     }
 
-    public abstract boolean isAcceptable (SmsMessage message);
+    public abstract boolean isAcceptable (IncomingSms message);
 
     @Override
     public void receive( IncomingSms sms )
     {
-        SmsMessage message = null;
-
-        try {
-
-            message = new SmsMessage(sms);
-
-        } catch (SMSParserException e) {
-
-            return;
-
-        }
-
-        if ( !message.validated() )
-        {
-            return;
-        }
-
         postProcess( sms );
 
         //markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );

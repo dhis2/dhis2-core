@@ -47,8 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 @Transactional
-public class UnregisteredSMSListener
-    extends BaseSMSListener
+public class LegacyUnregisteredSMSListener
+    extends LegacyBaseSMSListener
 {
 
     private static final String USER_NAME = "anonymous";
