@@ -660,6 +660,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 // Remove items we cant write to
                 .filter(
                     relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+                .filter(
+                    relationship -> relationship.getFrom().getTrackedEntityInstance().getUid().equals( daoEntityInstance.getUid() )
+                )
                 .map( org.hisp.dhis.relationship.Relationship::getUid )
                 // Remove items we are already referencing
                 .filter( ( uid ) -> !relationshipUids.contains( uid ) )
