@@ -45,13 +45,15 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An implementation of MapGenerationService that uses GeoTools to generate
@@ -62,6 +64,7 @@ import java.util.List;
  * @author Kjetil Andresen <kjetand@ifi.uio.no>
  * @author Olai Solheim <olais@ifi.uio.no>
  */
+@Service( "org.hisp.dhis.mapgeneration.MapGenerationService" )
 public class GeoToolsMapGenerationService
     implements MapGenerationService
 {
@@ -69,34 +72,30 @@ public class GeoToolsMapGenerationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
+    
+    private final AnalyticsService analyticsService;
+    
+    private final CurrentUserService currentUserService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    private final SystemSettingManager systemSettingManager;
+
+    private final I18nManager i18nManager;
+
+    public GeoToolsMapGenerationService( OrganisationUnitService organisationUnitService,
+        AnalyticsService analyticsService, CurrentUserService currentUserService,
+        SystemSettingManager systemSettingManager, I18nManager i18nManager )
     {
+        checkNotNull( organisationUnitService );
+        checkNotNull( analyticsService );
+        checkNotNull( currentUserService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( i18nManager );
+
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private AnalyticsService analyticsService;
-
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
         this.analyticsService = analyticsService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
+        this.systemSettingManager = systemSettingManager;
         this.i18nManager = i18nManager;
     }
 
@@ -248,7 +247,7 @@ public class GeoToolsMapGenerationService
         Color colorHigh = MapUtils.createColorFromString( StringUtils.trimToNull( mapView.getColorHigh() ) != null ? mapView.getColorHigh()
             : DEFAULT_COLOR_HIGH );
 
-        Float opacity = mapView.getOpacity() != null ? mapView.getOpacity().floatValue() : DEFAULT_OPACITY;
+        float opacity = mapView.getOpacity() != null ? mapView.getOpacity().floatValue() : DEFAULT_OPACITY;
 
         boolean hasLegendSet = mapView.hasLegendSet();
 
@@ -361,7 +360,6 @@ public class GeoToolsMapGenerationService
         Assert.notNull( titleImage, "Title image cannot be null" );
         Assert.notNull( legendImage, "Legend image cannot be null" );
         Assert.notNull( mapImage, "Map image cannot be null" );
-        Assert.notNull( legendImage.getType(), "Legend image type cannot be null" );
 
         // Create image, note that image height cannot be less than legend
 

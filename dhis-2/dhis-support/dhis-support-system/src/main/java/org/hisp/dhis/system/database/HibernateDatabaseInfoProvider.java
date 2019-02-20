@@ -41,10 +41,18 @@ import org.springframework.jdbc.core.JdbcOperations;
 import javax.annotation.Nonnull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "databaseInfoProvider" )
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
@@ -59,19 +67,22 @@ public class HibernateDatabaseInfoProvider
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
+    private final JdbcTemplate jdbcTemplate;
+    private final Environment environment;
 
-    private JdbcOperations jdbcTemplate;
-
-    private Environment environment;
-
-    public HibernateDatabaseInfoProvider( @Autowired DhisConfigurationProvider config, @Autowired JdbcOperations jdbcTemplate, @Autowired Environment environment )
+    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcTemplate jdbcTemplate,
+        Environment environment )
     {
+        checkNotNull( config );
+        checkNotNull( jdbcTemplate );
+        checkNotNull( environment );
         this.config = config;
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
     }
-
+    
+    @PostConstruct
     public void init()
     {
         checkDatabaseConnectivity();

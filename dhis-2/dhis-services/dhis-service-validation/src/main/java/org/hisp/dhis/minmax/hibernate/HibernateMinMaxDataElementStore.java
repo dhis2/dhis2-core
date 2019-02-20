@@ -28,6 +28,7 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,6 +46,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
@@ -54,21 +57,35 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Kristian Nordal
  */
+@Repository( "org.hisp.dhis.minmax.MinMaxDataElementStore" )
 public class HibernateMinMaxDataElementStore
     extends HibernateGenericStore<MinMaxDataElement>
     implements MinMaxDataElementStore
 {
-    @Autowired
-    private QueryParser queryParser;
+    private final QueryParser queryParser;
 
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    public HibernateMinMaxDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
+    {
+        super( sessionFactory, jdbcTemplate, MinMaxDataElement.class, false );
+
+        checkNotNull(queryParser);
+        checkNotNull(queryPlanner);
+        checkNotNull(schemaService);
+
+        this.queryParser = queryParser;
+        this.queryPlanner = queryPlanner;
+        this.schemaService = schemaService;
+    }
 
     // -------------------------------------------------------------------------
     // MinMaxDataElementStore Implementation

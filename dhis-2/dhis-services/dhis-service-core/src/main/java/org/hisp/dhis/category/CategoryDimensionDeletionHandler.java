@@ -30,22 +30,25 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.category.CategoryDimensionDeletionHandler" )
 public class CategoryDimensionDeletionHandler
     extends DeletionHandler
 {
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public CategoryDimensionDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
+
         this.jdbcTemplate = jdbcTemplate;
     }
 

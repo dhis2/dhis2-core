@@ -34,6 +34,8 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Henning Håkonsen
  */
@@ -41,17 +43,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class TwoFAPopulator
     extends AbstractStartupRoutine
 {
-    private UserService userService;
+    private final UserService userService;
 
-    public void setUserService( UserService userService )
+    private final CurrentUserService currentUserService;
+
+    public TwoFAPopulator( UserService userService, CurrentUserService currentUserService )
     {
+        checkNotNull( userService );
+        checkNotNull( currentUserService );
         this.userService = userService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
     }
 

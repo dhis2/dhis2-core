@@ -43,20 +43,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableSet;
@@ -65,10 +71,23 @@ import com.google.common.collect.Lists;
 /**
  * @author Markus Bekken
  */
+@Service( "org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" )
 public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
+
+    public JdbcEnrollmentAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate );
+    }
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -105,7 +124,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         final Program program = partition.getMasterTable().getProgram();
         final String tableName = partition.getTempTableName();
 
-        String sql = "insert into " + partition.getTempTableName() + " (";
+        StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( program );
 
@@ -113,33 +132,21 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql += col.getName() + ",";
+            sql.append(col.getName()).append(",");
         }
 
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
+        sql = new StringBuilder(TextUtils.removeLastComma(sql.toString()) + ") select ");
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql += col.getAlias() + ",";
+            sql.append(col.getAlias()).append(",");
         }
 
-        sql = TextUtils.removeLastComma( sql ) + " ";
+        sql = new StringBuilder(TextUtils.removeLastComma(sql.toString()) + " ");
 
-        sql += "from programinstance pi " +
-            "inner join program pr on pi.programid=pr.programid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
-            "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
-            "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-                "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
-            "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
-            "where pr.programid=" + program.getId() + " " +
-            "and pi.organisationunitid is not null " +
-            "and pi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and pi.incidentdate is not null " +
-            "and pi.deleted is false ";
+        sql.append("from programinstance pi " + "inner join program pr on pi.programid=pr.programid " + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " + "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " + "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " + "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " + "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " + "where pr.programid=").append(program.getId()).append(" ").append("and pi.organisationunitid is not null ").append("and pi.lastupdated <= '").append(getLongDateString(params.getStartTime())).append("' ").append("and pi.incidentdate is not null ").append("and pi.deleted is false ");
 
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+        invokeTimeAndLog(sql.toString(), tableName );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )

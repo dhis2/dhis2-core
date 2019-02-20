@@ -128,7 +128,7 @@ public abstract class AbstractPropertyIntrospectorService
         return klass;
     }
 
-    protected void updateJoinTables()
+    private void updateJoinTables()
     {
         if ( !roleToRole.isEmpty() )
         {
@@ -140,30 +140,21 @@ public abstract class AbstractPropertyIntrospectorService
         SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
         MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
-        Iterator<?> collectionIterator = metamodelImplementor.collectionPersisters().values().iterator();
-
-        while ( collectionIterator.hasNext() )
-        {
-            CollectionPersister collectionPersister = (CollectionPersister) collectionIterator.next();
+        for (CollectionPersister collectionPersister : metamodelImplementor.collectionPersisters().values()) {
             CollectionType collectionType = collectionPersister.getCollectionType();
 
-            if ( collectionPersister.isManyToMany() && collectionType.isAssociationType() )
-            {
-                Joinable associatedJoinable = collectionType.getAssociatedJoinable( sessionFactoryImplementor );
+            if (collectionPersister.isManyToMany() && collectionType.isAssociationType()) {
+                Joinable associatedJoinable = collectionType.getAssociatedJoinable(sessionFactoryImplementor);
 
-                if ( !joinTableToRoles.containsKey( associatedJoinable.getTableName() ) )
-                {
-                    joinTableToRoles.put( associatedJoinable.getTableName(), new ArrayList<>() );
+                if (!joinTableToRoles.containsKey(associatedJoinable.getTableName())) {
+                    joinTableToRoles.put(associatedJoinable.getTableName(), new ArrayList<>());
                 }
 
-                joinTableToRoles.get( associatedJoinable.getTableName() ).add( collectionPersister.getRole() );
-            }
-            else if ( collectionPersister.isInverse() )
-            {
-                if ( SetType.class.isInstance( collectionType ) )
-                {
+                joinTableToRoles.get(associatedJoinable.getTableName()).add(collectionPersister.getRole());
+            } else if (collectionPersister.isInverse()) {
+                if (collectionType instanceof SetType) {
                     SetType setType = (SetType) collectionType;
-                    setType.getAssociatedJoinable( sessionFactoryImplementor );
+                    setType.getAssociatedJoinable(sessionFactoryImplementor);
                 }
             }
         }
@@ -264,8 +255,8 @@ public abstract class AbstractPropertyIntrospectorService
                 }
             }
 
-            if ( SingleColumnType.class.isInstance( type ) || CustomType.class.isInstance( type )
-                || ManyToOneType.class.isInstance( type ) )
+            if ( type instanceof SingleColumnType || type instanceof CustomType
+                || type instanceof ManyToOneType)
             {
                 Column column = (Column) hibernateProperty.getColumnIterator().next();
 
@@ -275,25 +266,25 @@ public abstract class AbstractPropertyIntrospectorService
                 property.setMax( (double) column.getLength() );
                 property.setLength( column.getLength() );
 
-                if ( TextType.class.isInstance( type ) )
+                if (type instanceof TextType)
                 {
                     property.setMin( 0d );
                     property.setMax( (double) Integer.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if ( IntegerType.class.isInstance( type ) )
+                else if (type instanceof IntegerType)
                 {
                     property.setMin( 0d );
                     property.setMax( (double) Integer.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if ( LongType.class.isInstance( type ) )
+                else if (type instanceof LongType)
                 {
                     property.setMin( 0d );
                     property.setMax( (double) Long.MAX_VALUE );
                     property.setLength( Integer.MAX_VALUE );
                 }
-                else if ( DoubleType.class.isInstance( type ) )
+                else if (type instanceof DoubleType)
                 {
                     property.setMin( 0d );
                     property.setMax( Double.MAX_VALUE );
@@ -301,7 +292,7 @@ public abstract class AbstractPropertyIntrospectorService
                 }
             }
 
-            if ( ManyToOneType.class.isInstance( type ) )
+            if (type instanceof ManyToOneType)
             {
                 property.setManyToOne( true );
                 property.setRequired( property.isRequired() && !property.isCollection() );
@@ -315,7 +306,7 @@ public abstract class AbstractPropertyIntrospectorService
                     property.setInverseRole( klass.getName() + "." + property.getName() );
                 }
             }
-            else if ( OneToOneType.class.isInstance( type ) )
+            else if (type instanceof OneToOneType)
             {
                 property.setOneToOne( true );
             }

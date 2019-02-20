@@ -45,10 +45,12 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.dimension.AnalyticsDimensionService" )
 public class DefaultAnalyticsDimensionService
     implements AnalyticsDimensionService
 {

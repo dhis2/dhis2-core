@@ -38,10 +38,14 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
+@Service
 public class DataIntegrityJob
     extends AbstractJob
 {
@@ -49,18 +53,16 @@ public class DataIntegrityJob
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataIntegrityService dataIntegrityService;
+    private final DataIntegrityService dataIntegrityService;
 
-    public void setDataIntegrityService( DataIntegrityService dataIntegrityService )
+    private final Notifier notifier;
+
+    public DataIntegrityJob( DataIntegrityService dataIntegrityService, Notifier notifier )
     {
+        checkNotNull( dataIntegrityService );
+        checkNotNull( notifier );
+
         this.dataIntegrityService = dataIntegrityService;
-    }
-
-    private Notifier notifier;
-
-    @Autowired
-    public void setNotifier( Notifier notifier )
-    {
         this.notifier = notifier;
     }
 
@@ -69,7 +71,7 @@ public class DataIntegrityJob
     {
         return JobType.DATA_INTEGRITY;
     }
-
+    
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------

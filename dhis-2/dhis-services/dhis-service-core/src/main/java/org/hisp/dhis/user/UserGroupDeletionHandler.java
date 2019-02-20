@@ -32,12 +32,15 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.user.UserGroupDeletionHandler" )
 public class UserGroupDeletionHandler
     extends DeletionHandler
 {
@@ -45,13 +48,16 @@ public class UserGroupDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( idObjectManager );
+        checkNotNull( jdbcTemplate );
+
+        this.idObjectManager = idObjectManager;
         this.jdbcTemplate = jdbcTemplate;
     }
 

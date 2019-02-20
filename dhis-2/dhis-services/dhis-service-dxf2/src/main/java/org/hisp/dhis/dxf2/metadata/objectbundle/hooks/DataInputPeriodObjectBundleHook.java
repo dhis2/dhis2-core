@@ -33,10 +33,12 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Stian Sandvold
  */
+@Component
 public class DataInputPeriodObjectBundleHook
     extends AbstractObjectBundleHook
 {

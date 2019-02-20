@@ -56,7 +56,7 @@ import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -69,11 +69,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Default implementation that uses Jackson to serialize/deserialize
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.render.RenderService" )
 public class DefaultRenderService
     implements RenderService
 {
@@ -83,8 +86,14 @@ public class DefaultRenderService
 
     private static final XmlMapper xmlMapper = new XmlMapper();
 
-    @Autowired
     private SchemaService schemaService;
+
+    public DefaultRenderService( SchemaService schemaService )
+    {
+        checkNotNull( schemaService );
+
+        this.schemaService = schemaService;
+    }
 
     //--------------------------------------------------------------------------
     // RenderService

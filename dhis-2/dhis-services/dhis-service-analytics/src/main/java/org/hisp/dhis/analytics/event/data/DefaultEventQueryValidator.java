@@ -39,20 +39,30 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
     private static final Log log = LogFactory.getLog( DefaultEventQueryValidator.class );
 
-    @Autowired
-    private QueryValidator queryValidator;
+    private final QueryValidator queryValidator;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultEventQueryValidator( QueryValidator queryValidator, SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( queryValidator );
+        checkNotNull( systemSettingManager );
+
+        this.queryValidator = queryValidator;
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // EventQueryValidator implementation

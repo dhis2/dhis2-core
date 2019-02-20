@@ -46,6 +46,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
  *
  * @author Halvdan Hoem Grelland
  */
+@Component
 public class FileResourceCleanUpJob
     extends AbstractJob
 {

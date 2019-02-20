@@ -31,10 +31,14 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler" )
 public class TrackedEntityInstanceDeletionHandler
     extends DeletionHandler
 {
@@ -42,10 +46,11 @@ public class TrackedEntityInstanceDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
     
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )    
+    public TrackedEntityInstanceDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

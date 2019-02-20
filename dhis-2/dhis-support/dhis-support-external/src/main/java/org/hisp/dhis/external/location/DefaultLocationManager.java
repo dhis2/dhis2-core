@@ -40,6 +40,8 @@ import java.io.OutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import javax.annotation.PostConstruct;
+
 import static java.io.File.separator;
 
 /**
@@ -54,29 +56,21 @@ public class DefaultLocationManager
 
     private String externalDir = null;
 
-    public void setExternalDir( String externalDir )
-    {
-        this.externalDir = externalDir;
-    }
-
     private String environmentVariable;
 
-    public void setEnvironmentVariable( String environmentVariable )
-    {
-        this.environmentVariable = environmentVariable;
-    }
-    
     private String systemProperty;
 
-    public void setSystemProperty( String systemProperty )
+    public DefaultLocationManager( String externalDir, String environmentVariable, String systemProperty )
     {
+        this.externalDir = externalDir;
+        this.environmentVariable = environmentVariable;
         this.systemProperty = systemProperty;
     }
-    
+
     // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
-
+    @PostConstruct
     public void init()
     {
         String path = System.getProperty( systemProperty );

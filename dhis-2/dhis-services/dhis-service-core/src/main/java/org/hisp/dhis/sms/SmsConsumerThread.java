@@ -30,8 +30,6 @@ package org.hisp.dhis.sms;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
@@ -40,26 +38,36 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.SmsConsumerThread")
 public class SmsConsumerThread
 {
     private static final Log log = LogFactory.getLog( SmsConsumerThread.class );
 
     private List<IncomingSmsListener> listeners;
 
-    @Autowired
-    private MessageQueue messageQueue;
+    private final MessageQueue messageQueue;
 
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    private final MessageSender smsSender;
 
-    @Autowired
-    private IncomingSmsService incomingSmsService;
+    private final IncomingSmsService incomingSmsService;
 
-    public SmsConsumerThread()
+    public SmsConsumerThread( MessageQueue messageQueue, @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+        IncomingSmsService incomingSmsService )
     {
+        checkNotNull( messageQueue );
+        checkNotNull( smsSender );
+        checkNotNull( incomingSmsService );
+
+        this.messageQueue = messageQueue;
+        this.smsSender = smsSender;
+        this.incomingSmsService = incomingSmsService;
     }
+    
 
     public void spawnSmsConsumer()
     {

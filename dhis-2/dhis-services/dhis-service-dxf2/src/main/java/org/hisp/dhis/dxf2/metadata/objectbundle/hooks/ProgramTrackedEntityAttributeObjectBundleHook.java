@@ -38,10 +38,12 @@ import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ProgramTrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
 {

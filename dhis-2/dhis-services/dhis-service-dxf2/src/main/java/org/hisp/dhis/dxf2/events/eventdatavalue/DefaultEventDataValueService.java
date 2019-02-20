@@ -39,18 +39,14 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -62,9 +58,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author David Katuscak
  */
+@Service( "org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService" )
 @Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
@@ -72,10 +71,13 @@ public class DefaultEventDataValueService implements EventDataValueService
 
     private final TrackerAccessManager trackerAccessManager;
 
-    @Autowired
+
     public DefaultEventDataValueService( TrackerAccessManager trackerAccessManager,
         ProgramStageInstanceService programStageInstanceService )
     {
+        checkNotNull( trackerAccessManager );
+        checkNotNull( programStageInstanceService );
+
         this.trackerAccessManager = trackerAccessManager;
         this.programStageInstanceService = programStageInstanceService;
     }
@@ -94,8 +96,6 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             return;
         }
-
-        Program program = programStageInstance.getProgramStage().getProgram();
 
         Set<EventDataValue> newDataValues = new HashSet<>();
         Set<EventDataValue> updatedDataValues = new HashSet<>();

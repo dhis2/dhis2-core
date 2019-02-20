@@ -30,11 +30,15 @@ package org.hisp.dhis.report;
 
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.report.ReportDeletionHandler" )
 public class ReportDeletionHandler
     extends DeletionHandler
 {
@@ -42,10 +46,11 @@ public class ReportDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ReportService reportService;
+    private final ReportService reportService;
 
-    public void setReportService( ReportService reportService )
+    public ReportDeletionHandler( ReportService reportService )
     {
+        checkNotNull( reportService );
         this.reportService = reportService;
     }
 

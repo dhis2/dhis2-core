@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
  */
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
@@ -49,16 +50,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ListMapMap;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -89,7 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
@@ -98,63 +90,84 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.predictor.PredictionService" )
 @Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
 
-    @Autowired
-    private PredictorService predictorService;
+    private final PredictorService predictorService;
 
-    @Autowired
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     private AnalyticsService analyticsService;
 
-    @Autowired
-    protected Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    private final BatchHandlerFactory batchHandlerFactory;
 
+    private final CurrentUserService currentUserService;
+
+    public DefaultPredictionService( PredictorService predictorService, ConstantService constantService,
+        ExpressionService expressionService, DataValueService dataValueService, CategoryService categoryService,
+        OrganisationUnitService organisationUnitService, PeriodService periodService,
+        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService, Notifier notifier,
+        BatchHandlerFactory batchHandlerFactory, CurrentUserService currentUserService )
+    {
+        checkNotNull(predictorService);
+        checkNotNull(constantService);
+        checkNotNull(expressionService);
+        checkNotNull(dataValueService);
+        checkNotNull(categoryService);
+        checkNotNull(periodService);
+        checkNotNull(idObjectManager);
+        checkNotNull(analyticsService);
+        checkNotNull(notifier);
+        checkNotNull(batchHandlerFactory);
+        checkNotNull(currentUserService);
+
+
+        this.predictorService = predictorService;
+        this.constantService = constantService;
+        this.expressionService = expressionService;
+        this.dataValueService = dataValueService;
+        this.categoryService = categoryService;
+        this.organisationUnitService = organisationUnitService;
+        this.periodService = periodService;
+        this.idObjectManager = idObjectManager;
+        this.analyticsService = analyticsService;
+        this.notifier = notifier;
+        this.batchHandlerFactory = batchHandlerFactory;
+        this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
-    }
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
     // Prediction business logic
     // -------------------------------------------------------------------------
 
-    public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
+    private final static String NON_AOC = ""; // String that is not an Attribute Option Combo
 
     @Override
     public PredictionSummary predictJob( PredictorJobParameters params, JobConfiguration jobId )
@@ -382,7 +395,7 @@ public class DefaultPredictionService
 
         for (Map.Entry<DimensionalItemObject, Double> entry : b.entrySet() )
         {
-            c.put( (DimensionalItemObject)entry.getKey(), entry.getValue() );
+            c.put(entry.getKey(), entry.getValue() );
         }
 
         return c;
@@ -539,7 +552,7 @@ public class DefaultPredictionService
      */
     private Set<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
-        Set<Period> periods = new HashSet<Period>();
+        Set<Period> periods = new HashSet<>();
 
         Period period = periodType.createPeriod( startDate );
 
@@ -574,11 +587,11 @@ public class DefaultPredictionService
         int skipCount = firstNonNull( predictor.getSequentialSkipCount(),  0 );
         PeriodType periodType = predictor.getPeriodType();
 
-        ListMap<Period, Period> samplePeriodsMap = new ListMap<Period, Period>();
+        ListMap<Period, Period> samplePeriodsMap = new ListMap<>();
 
         for ( Period outputPeriod : outputPeriods )
         {
-            samplePeriodsMap.put( outputPeriod, new ArrayList<Period>() );
+            samplePeriodsMap.put( outputPeriod, new ArrayList<>() );
 
             Period p = periodType.getPreviousPeriod( outputPeriod, skipCount );
 
@@ -796,7 +809,7 @@ public class DefaultPredictionService
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 
         DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder()
-            .withPeriods( new ArrayList<Period>( periods ) )
+            .withPeriods(new ArrayList<>(periods) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
             .withOrganisationUnits( orgUnits );
 
@@ -813,9 +826,9 @@ public class DefaultPredictionService
         int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
-        Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap( p -> p.getIsoDate(), p -> p ) );
-        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
-        Map<String, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
+        Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap(Period::getIsoDate, p -> p ) );
+        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream().collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) );
+        Map<String, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap(BaseIdentifiableObject::getUid, o -> o ) );
 
         for ( List<Object> row : grid.getRows() )
         {

@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 @Order( 10 )
 public class AnalyticalObjectObjectBundleHook
     extends AbstractObjectBundleHook

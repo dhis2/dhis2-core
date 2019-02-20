@@ -46,9 +46,10 @@ public class RedisEnabledCondition implements ConfigurationCondition
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
-            .getBean( "dhisConfigurationProvider" );
-        return dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        // FIXME luciano
+//        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
+//            .getBean( "dhisConfigurationProvider" );
+        return false; //dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
     }
 
     @Override

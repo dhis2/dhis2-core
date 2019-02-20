@@ -32,15 +32,25 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Henning Håkonsen
  */
+@Component
 public class RemoveExpiredReservedValuesJob
     extends AbstractJob
 {
-    @Autowired
-    private ReservedValueService reservedValueService;
+    private final ReservedValueService reservedValueService;
+
+    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
+    {
+        checkNotNull( reservedValueService );
+
+        this.reservedValueService = reservedValueService;
+    }
 
     @Override
     public JobType getJobType()

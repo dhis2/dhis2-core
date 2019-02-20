@@ -230,7 +230,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportBasic()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -285,7 +284,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOrgUnitChildren()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -313,7 +311,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOutputSingleDataValueSetIdSchemeCode()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

@@ -32,26 +32,28 @@ import java.util.List;
 
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Service( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" )
 public class DefaultTrackedEntityInstanceFilterService
     implements TrackedEntityInstanceFilterService
 {
     
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    
-    private TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
+    private final TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
 
-    public void setTrackedEntityInstanceFilterStore( TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore )
+    public DefaultTrackedEntityInstanceFilterService(
+        TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore )
     {
+        checkNotNull(trackedEntityInstanceFilterStore);
+
         this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
     }
-    
+
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceFilterService implementation
     // -------------------------------------------------------------------------
