@@ -48,6 +48,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.user.CurrentUserService;
@@ -153,6 +154,9 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
                 }
             }
         }
+
+        // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );

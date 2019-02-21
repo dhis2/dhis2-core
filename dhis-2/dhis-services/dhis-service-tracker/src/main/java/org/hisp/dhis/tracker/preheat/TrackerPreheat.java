@@ -45,8 +45,10 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -78,6 +80,16 @@ public class TrackerPreheat
      * All periodTypes available.
      */
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
+
+    /**
+     * Set of UIDs of all unique tracked entity attributes.
+     */
+    private Set<String> uniqueTrackedEntityAttributes = new HashSet<>();
+
+    /**
+     * Maps program => attribute for mandatory PTEA.
+     */
+    private Map<String, String> mandatoryProgramAttributes = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
@@ -429,6 +441,26 @@ public class TrackerPreheat
     public void setPeriodTypeMap( Map<String, PeriodType> periodTypeMap )
     {
         this.periodTypeMap = periodTypeMap;
+    }
+
+    public Set<String> getUniqueTrackedEntityAttributes()
+    {
+        return uniqueTrackedEntityAttributes;
+    }
+
+    public void setUniqueTrackedEntityAttributes( Set<String> uniqueTrackedEntityAttributes )
+    {
+        this.uniqueTrackedEntityAttributes = uniqueTrackedEntityAttributes;
+    }
+
+    public Map<String, String> getMandatoryProgramAttributes()
+    {
+        return mandatoryProgramAttributes;
+    }
+
+    public void setMandatoryProgramAttributes( Map<String, String> mandatoryProgramAttributes )
+    {
+        this.mandatoryProgramAttributes = mandatoryProgramAttributes;
     }
 
     public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getTrackedEntities()
