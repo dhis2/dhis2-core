@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,8 +42,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,15 +68,6 @@ public class ProgramExpressionServiceTest
 
     @Autowired
     private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private TrackedEntityDataValueService dataValueService;
 
     private ProgramExpression programExpressionA;
 
@@ -124,17 +112,6 @@ public class ProgramExpressionServiceTest
 
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
-
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
-            new Date(), new Date(), organisationUnit );
-        ProgramStageInstance stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
-            stageA, new Date(), new Date(), organisationUnit );
-
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstance, dataElementA, "1" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstance, dataElementB, "2" );
-
-        dataValueService.saveTrackedEntityDataValue( dataValueA );
-        dataValueService.saveTrackedEntityDataValue( dataValueB );
 
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );

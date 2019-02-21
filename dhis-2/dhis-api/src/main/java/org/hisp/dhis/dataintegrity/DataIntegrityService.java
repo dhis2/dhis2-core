@@ -37,7 +37,11 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.*;
@@ -214,4 +218,60 @@ public interface DataIntegrityService
      * Get all ProgramIndicators with invalid filters.
      */
     Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters();
+
+    /**
+     *
+     * Get all ProgramRules with no priority and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority();
+
+    /**
+     *
+     * Get all ProgramRules with no action and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction();
+
+    /**
+     *
+     * Get all ProgramRules with no condition expression and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition();
+
+    /**
+     *
+     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement
+     *  and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all {@link ProgramRuleVariable} which are not linked to any TrackedEntityAttribute
+     *  and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any DataElement/TrackedEntityAttribute
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.notification.NotificationTemplate}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStageSection}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId();
+
+    /**
+     *
+     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStage}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId();
 }

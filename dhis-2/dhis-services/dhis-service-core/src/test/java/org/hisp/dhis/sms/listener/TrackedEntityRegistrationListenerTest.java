@@ -50,11 +50,12 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 
 import static org.junit.Assert.*;
@@ -63,7 +64,6 @@ import static org.mockito.Mockito.*;
 /**
  * @Author Zubair Asghar.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 {
     private static final String TEI_REGISTRATION_COMMAND = "tei";
@@ -71,6 +71,9 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
     private static final String ORIGINATOR = "47400000";
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private SMSCommandService smsCommandService;
@@ -140,7 +143,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for smsSender
         when( smsSender.isConfigured() ).thenReturn( true );
 
-        when( smsSender.sendMessage( anyString(), anyString(), anyString() ) ).thenAnswer( invocation -> {
+        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
             message = (String) invocation.getArguments()[1];
             return response;
         });

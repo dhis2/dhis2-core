@@ -296,7 +296,7 @@ public class DataValueSetServiceTest
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         _userService.addUser( user );
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration(dsA, peA, ouA, categoryOptionCombo,
-            getDate( 2012, 1, 9 ), "userA", "userA", new Date(), true);
+            getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true);
         registrationService.saveCompleteDataSetRegistration(completeDataSetRegistration);
     }
 
@@ -547,12 +547,26 @@ public class DataValueSetServiceTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() ); // Header row
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 1, summary.getImportCount().getIgnored() ); // Header row
-        assertEquals( ImportStatus.WARNING, summary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        assertImportDataValues( summary );
+    }
+
+    @Test
+    public void testImportDataValuesCsvWithoutHeader()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetBNoHeader.csv" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, new ImportOptions().setFirstRowIsHeader( false ), null );
+
+        assertEquals( 12, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertImportDataValues( summary );
     }
@@ -564,7 +578,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 5, summary.getConflicts().size() ); // False rows
+        assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False rows
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();

@@ -33,11 +33,11 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,7 +75,7 @@ public class ProgramStageInstance
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
 
-    private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
+    private Set<EventDataValue> eventDataValues = new HashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -264,14 +264,14 @@ public class ProgramStageInstance
         this.comments = comments;
     }
 
-    public Set<TrackedEntityDataValue> getDataValues()
+    public Set<EventDataValue> getEventDataValues()
     {
-        return dataValues;
+        return eventDataValues;
     }
 
-    public void setDataValues( Set<TrackedEntityDataValue> dataValues )
+    public void setEventDataValues( Set<EventDataValue> eventDataValues )
     {
-        this.dataValues = dataValues;
+        this.eventDataValues = eventDataValues;
     }
 
     public EventStatus getStatus()

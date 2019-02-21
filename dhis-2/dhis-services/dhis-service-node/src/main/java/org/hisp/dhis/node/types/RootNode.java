@@ -31,6 +31,8 @@ package org.hisp.dhis.node.types;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.config.Config;
 
+import java.util.Objects;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -66,5 +68,31 @@ public class RootNode extends ComplexNode
     public Config getConfig()
     {
         return config;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+        RootNode rootNode = (RootNode) o;
+        return Objects.equals( defaultNamespace, rootNode.defaultNamespace ) &&
+            config.equals( rootNode.config );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), defaultNamespace, config );
     }
 }

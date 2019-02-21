@@ -28,6 +28,8 @@ package org.hisp.dhis.common.Coordinate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.CoordinatesTuple;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -139,5 +141,16 @@ public class CoordinateUtils
         }
 
         return StringUtils.trimToNull( builder.toString() );
+    }
+
+    public static String getCoordinatesFromGeometry( Geometry geometry )
+    {
+        String coordinatesKey = "\"coordinates\":";
+        String crsKey = ",\"crs\":";
+
+        GeoJsonWriter gjw = new GeoJsonWriter(  );
+        String geojson = gjw.write( geometry ).trim();
+
+        return geojson.substring( geojson.indexOf( coordinatesKey ) + coordinatesKey.length(), geojson.indexOf( crsKey ) );
     }
 }

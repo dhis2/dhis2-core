@@ -28,6 +28,16 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,7 +54,6 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -62,18 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 
 /**
  * @author Lars Helge Overland
@@ -87,7 +84,6 @@ public abstract class AbstractJdbcTableManager
 
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
-    public static final String PREFIX_INDEX = "in_";
 
     @Autowired
     protected IdentifiableObjectManager idObjectManager;
@@ -154,10 +150,11 @@ public abstract class AbstractJdbcTableManager
                 break taskLoop;
             }
 
-            final String indexName = getIndexName( inx );
+            final String indexName = inx.getIndexName( getAnalyticsTableType() );
             final String indexType = inx.hasType() ? " using " + inx.getType() : "";
+            final String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + inx.getColumn() + ")";
+            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
             log.debug( "Create index: " + indexName + " SQL: " + sql );
 
@@ -236,11 +233,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void invokeAnalyticsTableSqlHooks()
+    public int invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();
         List<AnalyticsTableHook> hooks = tableHookService.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
         tableHookService.executeAnalyticsTableSqlHooks( hooks );
+        return hooks.size();
     }
 
     // -------------------------------------------------------------------------
@@ -273,30 +271,6 @@ public abstract class AbstractJdbcTableManager
     protected String getTableName()
     {
         return getAnalyticsTableType().getTableName();
-    }
-
-    /**
-     * Shortens the given table name.
-     *
-     * @param table the table name.
-     */
-    private String shortenTableName( String table )
-    {
-        table = table.replaceAll( getAnalyticsTableType().getTableName(), "ax" );
-        table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
-
-        return table;
-    }
-
-    /**
-     * Returns index name for column. Purpose of code suffix is to avoid uniqueness
-     * collision between indexes for temporary and real tables.
-     *
-     * @param inx the {@link AnalyticsIndex}.
-     */
-    protected String getIndexName( AnalyticsIndex inx )
-    {
-        return quote( PREFIX_INDEX + removeQuote( inx.getColumn() ) + "_" + shortenTableName( inx.getTable() ) + "_" + CodeGenerator.generateCode( 5 ) );
     }
 
     /**
@@ -351,10 +325,12 @@ public abstract class AbstractJdbcTableManager
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+
+            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
         }
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
+        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
@@ -384,7 +360,7 @@ public abstract class AbstractJdbcTableManager
                 sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
             }
 
-            sqlCreate += "inherits (" + table.getTempTableName() + ")";
+            sqlCreate += "inherits (" + table.getTempTableName() + ") " + getTableOptions();
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
@@ -392,6 +368,14 @@ public abstract class AbstractJdbcTableManager
 
             jdbcTemplate.execute( sqlCreate );
         }
+    }
+
+    /**
+     * Returns a table options SQL statement.
+     */
+    private String getTableOptions()
+    {
+        return "with(autovacuum_enabled = false)";
     }
 
     /**

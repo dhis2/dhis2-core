@@ -28,12 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpSession;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,42 +49,42 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
-            .andExpect( status().isNotFound() );
-    }
-
-    @Test
-    public void testTypeAnnotationDefaultV26() throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testDefaultV26";
-
-        mvc.perform( get( endpoint ).session( session ) )
-            .andExpect( status().isOk() );
-
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
-            .andExpect( status().isOk() );
-
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
     }
 
     @Test
-    public void testTypeAnnotationV26V27() throws Exception
+    public void testTypeAnnotationDefaultV31() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testV26V27";
+        String endpoint = "/type/testDefaultV31";
+
+        mvc.perform( get( endpoint ).session( session ) )
+            .andExpect( status().isOk() );
+
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
+            .andExpect( status().isOk() );
+
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
+            .andExpect( status().isNotFound() );
+    }
+
+    @Test
+    public void testTypeAnnotationV31V32() throws Exception
+    {
+        MockHttpSession session = getSession( "ALL" );
+        String endpoint = "/type/testV31V32";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 
@@ -97,26 +97,26 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 
     @Test
-    public void testTypeAnnotationAllExcludeV27() throws Exception
+    public void testTypeAnnotationAllExcludeV32() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testAllExcludeV27";
+        String endpoint = "/type/testAllExcludeV32";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
     }
 
@@ -129,10 +129,10 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 }

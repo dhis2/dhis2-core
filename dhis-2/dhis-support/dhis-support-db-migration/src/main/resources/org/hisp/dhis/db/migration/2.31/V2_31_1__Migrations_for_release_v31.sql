@@ -16,7 +16,7 @@ language plpgsql;
 
 
 -- TrackedEntityAttribute shortName not null constraint
-update trackedentityattribute SET shortname = name where shortname is null;
+update trackedentityattribute set shortname = substring(name,0,50) where shortname is null;
 alter table trackedentityattribute alter column shortname SET not null;
 
 -- FIELD MASK

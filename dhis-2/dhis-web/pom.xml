@@ -83,6 +83,18 @@
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
               <value>10000000</value>
             </systemProperty>
+            <systemProperty>
+              <name>org.apache.commons.logging.Log</name>
+              <value>org.apache.commons.logging.impl.Log4JLogger</value>
+            </systemProperty>
+            <systemProperty>
+              <name>slf4j</name>
+              <value>false</value>
+            </systemProperty>
+            <systemProperty>
+              <name>log4j.configuration</name>
+              <value>log4j-jetty.properties</value>
+            </systemProperty>
           </systemProperties>
           <webAppConfig>
             <contextPath>/</contextPath>

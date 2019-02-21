@@ -28,13 +28,16 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.amqp.AmqpService;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -48,28 +51,26 @@ import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class  DefaultPatchService implements PatchService
+@Transactional
+public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );
 
     private final SchemaService schemaService;
 
     private final QueryService queryService;
-
-    private final AmqpService amqpService;
 
     private final MetadataAuditService metadataAuditService;
 
@@ -79,12 +80,11 @@ public class  DefaultPatchService implements PatchService
 
     private final SystemService systemService;
 
-    public DefaultPatchService( SchemaService schemaService, QueryService queryService, AmqpService amqpService,
-        MetadataAuditService metadataAuditService, CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
+    public DefaultPatchService( SchemaService schemaService, QueryService queryService, MetadataAuditService metadataAuditService,
+        CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
-        this.amqpService = amqpService;
         this.metadataAuditService = metadataAuditService;
         this.currentUserService = currentUserService;
         this.renderService = renderService;
@@ -199,11 +199,13 @@ public class  DefaultPatchService implements PatchService
         {
             Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection sourceCollection = (Collection) ( (Collection) sourceValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
-            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+            Collection targetCollection =  ( Collection ) ( (Collection) targetValue ).stream()
+                .filter( Objects::nonNull )
+                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
             for ( Object o : targetCollection )
             {
@@ -584,12 +586,6 @@ public class  DefaultPatchService implements PatchService
         }
 
         audit.setType( AuditType.UPDATE );
-
-        if ( amqpService.isEnabled() )
-        {
-            audit.setValue( renderService.toJsonAsString( patch ) );
-            amqpService.publish( audit );
-        }
 
         if ( systemInfo.getMetadataAudit().isAudit() )
         {

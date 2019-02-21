@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
-import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -68,7 +67,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -118,9 +116,6 @@ public class EnrollmentController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private TrackerKafkaManager trackerKafkaManager;
 
     // -------------------------------------------------------------------------
     // READ
@@ -363,27 +358,6 @@ public class EnrollmentController
     }
 
     // -------------------------------------------------------------------------
-    // QUEUED IMPORT
-    // -------------------------------------------------------------------------
-
-    @PostMapping( value = "/queue", consumes = "application/json" )
-    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
-    {
-        if ( !trackerKafkaManager.isEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration is not enabled." ) );
-        }
-
-        importOptions.setImportStrategy( strategy );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
-
-        List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        JobConfiguration job = trackerKafkaManager.dispatchEnrollments( currentUserService.getCurrentUser(), importOptions, enrollments );
-        webMessageService.send( jobConfigurationReport( job ), response, request );
-    }
-
-    // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
 
@@ -419,7 +393,6 @@ public class EnrollmentController
 
     private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
     {
-
         String idScheme = getParamValue( params, "idScheme" );
 
         if ( idScheme != null )

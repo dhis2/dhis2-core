@@ -31,16 +31,19 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hisp.dhis.program.ProgramExpression.*;
+import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
+import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
+import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramExpression.REPORT_DATE;
+import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_ID;
+import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
 
 /**
  * @author Chau Thu Tran
@@ -105,48 +108,6 @@ public class DefaultProgramExpressionService
     public ProgramExpression getProgramExpression( int id )
     {
         return programExpressionStore.get( id );
-    }
-
-    @Override
-    public String getProgramExpressionValue( ProgramExpression programExpression,
-        ProgramStageInstance programStageInstance, Map<String, String> dataValueMap )
-    {
-        String value = "";
-        
-        if ( programExpression.getExpression().contains( ProgramExpression.DUE_DATE ) )
-        {
-            value = DateUtils.getMediumDateString( programStageInstance.getDueDate() );
-        }
-        else if ( programExpression.getExpression().contains( ProgramExpression.REPORT_DATE ) )
-        {
-            value = DateUtils.getMediumDateString( programStageInstance.getExecutionDate() );
-        }
-        else
-        {
-            StringBuffer description = new StringBuffer();
-            Pattern pattern = Pattern.compile( REGEXP );
-            Matcher matcher = pattern.matcher( programExpression.getExpression() );
-
-            while ( matcher.find() )
-            {
-                String key = matcher.group().replaceAll( "[\\[\\]]", "" ).split( SEPARATOR_OBJECT )[1];
-
-                String dataValue = dataValueMap.get( key );
-                
-                if ( dataValue == null )
-                {
-                    return null;
-                }
-
-                matcher.appendReplacement( description, dataValue );
-            }
-
-            matcher.appendTail( description );
-
-            value = description.toString();
-        }
-
-        return value;
     }
 
     @Override

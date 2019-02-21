@@ -27,6 +27,13 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,12 +62,6 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David Katuscak
@@ -94,9 +95,12 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     private Program programA;
     private ProgramStage programStageA;
 
+    private int testYear;
+
     @Override
     protected void setUpTest()
     {
+        testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         userService = _userService;
 
         createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD", "F_TRACKED_ENTITY_DATAVALUE_DELETE",
@@ -114,8 +118,9 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         organisationUnitA.addUser( currentUser );
         organisationUnitA.getUserAccesses().add( userAccess1 );
         currentUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
-        userService.updateUser( currentUser );
         manager.save( organisationUnitA, false );
+        userService.updateUser( currentUser );
+
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.getUserAccesses().add( userAccess1 );
@@ -154,6 +159,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programA.getUserAccesses().add( userAccess1 );
         manager.save( programA, false );
 
+        //Create a compulsory PSDE
         ProgramStageDataElement programStageDataElementA = new ProgramStageDataElement();
         programStageDataElementA.setDataElement( dataElementA );
         programStageDataElementA.setProgramStage( programStageA );
@@ -161,6 +167,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementA.getUserAccesses().add( userAccess1 );
         manager.save( programStageDataElementA, false );
 
+        //Create a compulsory PSDE
         ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();
         programStageDataElementB.setDataElement( dataElementB );
         programStageDataElementB.setProgramStage( programStageA );
@@ -168,6 +175,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementB.getUserAccesses().add( userAccess1 );
         manager.save( programStageDataElementB, false );
 
+        //Create a NON-compulsory PSDE
         ProgramStageDataElement programStageDataElementC = new ProgramStageDataElement();
         programStageDataElementC.setDataElement( dataElementC );
         programStageDataElementC.setProgramStage( programStageA );
@@ -175,6 +183,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementC.getUserAccesses().add( userAccess1 );
         manager.save( programStageDataElementC, false );
 
+        //Assign all 3 created PSDEs to created ProgramStage programStageA and to created Program programA
         programStageA.getProgramStageDataElements().add( programStageDataElementA );
         programStageA.getProgramStageDataElements().add( programStageDataElementB );
         programStageA.getProgramStageDataElements().add( programStageDataElementC );
@@ -194,9 +203,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         manager.save( programInstance, false );
         manager.update( maleA );
-        manager.update( programA );
 
-        Period periodA = createPeriod( "201803" );
+        Period periodA = createPeriod( testYear + "03" );
         periodA.getUserAccesses().add( userAccess1 );
         manager.save( periodA, false );
 
@@ -242,7 +250,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -256,7 +264,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -272,7 +280,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.setStatus( EventStatus.COMPLETED );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -287,7 +295,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.setStatus( EventStatus.COMPLETED );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -307,7 +315,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -321,7 +329,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -337,7 +345,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.setStatus( EventStatus.COMPLETED );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueBMissing, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -352,7 +360,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.setStatus( EventStatus.COMPLETED );
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
 
-        ImportSummary importSummary = eventService.addEvent( event, null );
+        ImportSummary importSummary = eventService.addEvent( event, null, false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -383,13 +391,23 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
+        //Single value update -> should pass -> because data values are fetched from DB and merged
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueBMissing );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        //NOT a single value update -> should fail -> because data values are NOT fetched from DB and so NOT merged
+        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        updatedEvent.getDataValues().add( dataValueBMissing );
+        updatedEvent.setEvent( "abcdefghijk" );
+
+        importSummary = eventService.updateEvent( updatedEvent, false, null , false);
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -404,13 +422,13 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueB );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -425,7 +443,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueAMissing, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         manager.update( programStageA );
@@ -434,7 +452,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         updatedEvent.getDataValues().add( dataValueB );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -449,13 +467,13 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueCMissing );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -470,14 +488,25 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
+        //Single value update -> should pass -> because data values are fetched from DB and merged
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueBMissing );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        //NOT a single value update -> should fail -> because data values are NOT fetched from DB and so NOT merged
+        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        updatedEvent.getDataValues().add( dataValueBMissing );
+        updatedEvent.setEvent( "abcdefghijk" );
+        updatedEvent.setStatus( EventStatus.COMPLETED );
+
+        importSummary = eventService.updateEvent( updatedEvent, false, null , false);
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -492,14 +521,14 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueB );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -514,14 +543,14 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueCMissing );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -542,13 +571,13 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueBMissing );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -563,13 +592,13 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueB );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -584,13 +613,13 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueCMissing );
         updatedEvent.setEvent( "abcdefghijk" );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -605,14 +634,25 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
+        //Single value update -> should pass -> because data values are fetched from DB and merged
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueBMissing );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        //NOT a single value update -> should fail -> because data values are NOT fetched from DB and so NOT merged
+        updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        updatedEvent.getDataValues().add( dataValueBMissing );
+        updatedEvent.setEvent( "abcdefghijk" );
+        updatedEvent.setStatus( EventStatus.COMPLETED );
+
+        importSummary = eventService.updateEvent( updatedEvent, false, null , false);
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -627,14 +667,14 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueB );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -649,14 +689,14 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         event.getDataValues().addAll( Arrays.asList( dataValueA, dataValueB, dataValueC ));
         event.setEvent( "abcdefghijk" );
 
-        eventService.addEvent( event, null );
+        eventService.addEvent( event, null, false );
 
         Event updatedEvent = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         updatedEvent.getDataValues().add( dataValueCMissing );
         updatedEvent.setEvent( "abcdefghijk" );
         updatedEvent.setStatus( EventStatus.COMPLETED );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null );
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true, null , false);
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }

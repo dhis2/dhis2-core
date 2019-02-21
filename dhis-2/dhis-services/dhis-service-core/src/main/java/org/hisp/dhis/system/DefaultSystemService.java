@@ -28,10 +28,18 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -41,14 +49,12 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.kafka.KafkaConfig;
 import org.hisp.dhis.logging.LogFormat;
 import org.hisp.dhis.logging.LogLevel;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -56,13 +62,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Lars Helge Overland
@@ -132,7 +132,7 @@ public class DefaultSystemService
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
         Date now = new Date();
 
@@ -148,22 +148,6 @@ public class DefaultSystemService
         info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
         setSystemMetadataVersionInfo( info );
-
-        // ---------------------------------------------------------------------
-        // Kafka
-        // ---------------------------------------------------------------------
-
-        KafkaConfig kafka = new KafkaConfig(
-            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
-            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
-        );
-
-        if ( kafka.isValid() )
-        {
-            info.setKafka( kafka );
-        }
 
         info.setLogging( new LoggingConfig(
             LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
@@ -238,11 +222,17 @@ public class DefaultSystemService
         }
 
         info.setFileStoreProvider( dhisConfig.getProperty( ConfigurationKey.FILESTORE_PROVIDER ) );
-        info.setCacheProvider( dhisConfig.getProperty( ConfigurationKey.CACHE_PROVIDER ) );
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
+        info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
+        info.setRedisEnabled( Boolean.valueOf( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+
+        if ( info.isRedisEnabled() )
+        {
+            info.setRedisHostname( dhisConfig.getProperty( ConfigurationKey.REDIS_HOST ) );
+        }
 
         // ---------------------------------------------------------------------
         // Database
@@ -259,27 +249,6 @@ public class DefaultSystemService
             Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
             Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
         ) );
-
-        // ---------------------------------------------------------------------
-        // RabbitMQ
-        // ---------------------------------------------------------------------
-
-        RabbitMQ rabbitMQ = new RabbitMQ(
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
-            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
-        );
-
-        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
-        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
-        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
-        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
-
-        if ( rabbitMQ.isValid() )
-        {
-            info.setRabbitMQ( rabbitMQ );
-        }
 
         // ---------------------------------------------------------------------
         // System env variables and properties

@@ -15,9 +15,9 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
 
     <property name="description" type="text" />
 
@@ -133,9 +133,6 @@
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
-
-    <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
-      foreign-key="fk_program_workflowid" />
 
     <!-- Dynamic attribute values -->
 

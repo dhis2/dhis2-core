@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.kafka.KafkaConfig;
 import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
@@ -87,8 +86,6 @@ public class SystemInfo
 
     private String fileStoreProvider;
 
-    private String cacheProvider;
-
     private String readOnlyMode;
 
     private String nodeId;
@@ -119,6 +116,10 @@ public class SystemInfo
 
     private boolean emailConfigured;
 
+    private boolean redisEnabled;
+
+    private String redisHostname;
+
     private String systemId;
 
     private String systemName;
@@ -129,6 +130,8 @@ public class SystemInfo
 
     private String systemMonitoringUrl;
 
+    private String clusterHostname;
+
     private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
@@ -136,10 +139,6 @@ public class SystemInfo
     private boolean isMetadataSyncEnabled;
 
     private MetadataAudit metadataAudit;
-
-    private RabbitMQ rabbitMQ;
-
-    private KafkaConfig kafka;
 
     private LoggingConfig logging;
 
@@ -364,18 +363,6 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCacheProvider()
-    {
-        return cacheProvider;
-    }
-
-    public void setCacheProvider( String cacheProvider )
-    {
-        this.cacheProvider = cacheProvider;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getReadOnlyMode()
     {
         return readOnlyMode;
@@ -556,6 +543,30 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRedisEnabled()
+    {
+        return redisEnabled;
+    }
+
+    public void setRedisEnabled( boolean redisEnabled )
+    {
+        this.redisEnabled = redisEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRedisHostname()
+    {
+        return redisHostname;
+    }
+
+    public void setRedisHostname( String redisHostname )
+    {
+        this.redisHostname = redisHostname;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemId()
     {
         return systemId;
@@ -616,6 +627,18 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getClusterHostname()
+    {
+        return clusterHostname;
+    }
+
+    public void setClusterHostname( String clusterHostname )
+    {
+        this.clusterHostname = clusterHostname;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getIsMetadataVersionEnabled()
     {
         return isMetadataVersionEnabled;
@@ -660,35 +683,6 @@ public class SystemInfo
     public void setMetadataAudit( MetadataAudit metadataAudit )
     {
         this.metadataAudit = metadataAudit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RabbitMQ getRabbitMQ()
-    {
-        return rabbitMQ;
-    }
-
-    public void setRabbitMQ( RabbitMQ rabbitMQ )
-    {
-        this.rabbitMQ = rabbitMQ;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public KafkaConfig getKafka()
-    {
-        return kafka;
-    }
-
-    public void setKafka( KafkaConfig kafka )
-    {
-        this.kafka = kafka;
-    }
-
-    public boolean isKafka()
-    {
-        return kafka != null && kafka.isValid();
     }
 
     @JsonProperty

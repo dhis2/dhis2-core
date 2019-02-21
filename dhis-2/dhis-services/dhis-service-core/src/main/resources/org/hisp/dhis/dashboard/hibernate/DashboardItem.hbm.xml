@@ -30,18 +30,21 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="users" table="dashboarditem_users">
+      <cache usage="read-write" />
       <key column="dashboarditemid" foreign-key="fk_dashboarditem_users_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_dashboarditem_users_userinfoid" />
     </list>
     
     <list name="reports" table="dashboarditem_reports">
+      <cache usage="read-write" />
       <key column="dashboarditemid" foreign-key="fk_dashboarditem_reports_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="reportid" class="org.hisp.dhis.report.Report" foreign-key="fk_dashboarditem_reports_reportid" />
     </list>
  	
     <list name="resources" table="dashboarditem_resources">
+      <cache usage="read-write" />
       <key column="dashboarditemid" foreign-key="fk_dashboarditem_resources_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="resourceid" class="org.hisp.dhis.document.Document" foreign-key="fk_dashboarditem_resources_resourceid" />

@@ -264,15 +264,23 @@ public class HibernateOrganisationUnitStore
     @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getWithinCoordinateArea( double[] box )
     {
-        final String sql = "from OrganisationUnit o " +
-            "where o.featureType='Point' " +
-            "and o.coordinates is not null " +
-            "and cast( substring(o.coordinates, 2, locate(',', o.coordinates) - 2) AS big_decimal ) >= " + box[3] + " " +
-            "and cast( substring(o.coordinates, 2, locate(',', o.coordinates) - 2) AS big_decimal ) <= " + box[1] + " " +
-            "and cast( substring(coordinates, locate(',', o.coordinates) + 1, locate(']', o.coordinates) - locate(',', o.coordinates) - 1 ) AS big_decimal ) >= " + box[2] + " " +
-            "and cast( substring(coordinates, locate(',', o.coordinates) + 1, locate(']', o.coordinates) - locate(',', o.coordinates) - 1 ) AS big_decimal ) <= " + box[0];
+        // can't use hibernate-spatial 'makeenvelope' function, because not available in
+        // current hibernate version
+        // see: https://hibernate.atlassian.net/browse/HHH-13083
 
-        return getQuery( sql ).list();
+        if ( box != null && box.length == 4 )
+        {
+            return getSession().createQuery(
+                    "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
+                    OrganisationUnit.class ).getResultList();
+        }
+        return new ArrayList<>();
+    }
+
+    private String doMakeEnvelopeSql( double[] box )
+    {
+        // equivalent to: postgis 'ST_MakeEnvelope' (https://postgis.net/docs/ST_MakeEnvelope.html)
+        return "ST_MakeEnvelope(" + box[1] + "," + box[0] + "," + box[3] + "," + box[2] + ", 4326)";
     }
 
     // -------------------------------------------------------------------------

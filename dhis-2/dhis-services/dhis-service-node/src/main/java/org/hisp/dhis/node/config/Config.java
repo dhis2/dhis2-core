@@ -28,9 +28,11 @@ package org.hisp.dhis.node.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
-
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,7 +40,8 @@ import java.util.Map;
 public class Config
 {
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in the
+     * Inclusions enum.
      *
      * @see org.hisp.dhis.node.config.InclusionStrategy.Include
      */
@@ -67,5 +70,30 @@ public class Config
     public Map<String, Object> getProperties()
     {
         return properties;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        Config config = (Config) o;
+
+        final boolean propertiesAreEqual = Arrays.deepEquals( properties.entrySet().toArray(), ((Config) o).getProperties().entrySet().toArray() );
+
+        return Objects.equals( inclusionStrategy, config.inclusionStrategy )
+            && propertiesAreEqual;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( inclusionStrategy, properties );
     }
 }

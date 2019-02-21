@@ -28,10 +28,28 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.api.util.DateUtils.parseDate;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -95,7 +113,6 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -105,23 +122,7 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
-import static org.hisp.dhis.system.util.DateUtils.parseDate;
+import com.csvreader.CsvReader;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -581,7 +582,14 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            DataValueSet dataValueSet = new StreamingCsvDataValueSet( new CsvReader( in, Charset.forName( "UTF-8" ) ) );
+            CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
+
+            if ( importOptions == null || importOptions.isFirstRowIsHeader() )
+            {
+                csvReader.readRecord(); // Ignore the first row
+            }
+
+            DataValueSet dataValueSet = new StreamingCsvDataValueSet( csvReader );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }
         catch ( Exception ex )
@@ -808,7 +816,7 @@ public class DefaultDataValueSetService
         if ( dataSet != null && completeDate != null )
         {
             notifier.notify( id, notificationLevel, "Completing data set" );
-            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, summary ); //TODO
+            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, currentUserName, summary ); //TODO
         }
         else
         {
@@ -1044,12 +1052,11 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            boolean zeroInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
 
-            if ( zeroInsignificant )
+            if ( zeroAndInsignificant )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getValue(), "Value is zero and not significant, must match data element: " + dataElement.getUid() ) );
-                continue;
+                continue; // Ignore value
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
@@ -1317,7 +1324,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     private void handleComplete( DataSet dataSet, Date completeDate, Period period, OrganisationUnit orgUnit,
-        CategoryOptionCombo attributeOptionCombo, ImportSummary summary )
+        CategoryOptionCombo attributeOptionCombo, String currentUserName, ImportSummary summary )
     {
         if ( orgUnit == null )
         {
@@ -1336,19 +1343,21 @@ public class DefaultDataValueSetService
         CompleteDataSetRegistration completeAlready = registrationService
             .getCompleteDataSetRegistration( dataSet, period, orgUnit, attributeOptionCombo );
 
-        String username = currentUserService.getCurrentUsername();
-
         if ( completeAlready != null )
         {
-            completeAlready.setStoredBy( username );
+            // At this point, DataSet is completed. Override, eventual non-completeness
             completeAlready.setDate( completeDate );
+            completeAlready.setStoredBy( currentUserName );
+            completeAlready.setLastUpdated( new Date() );
+            completeAlready.setLastUpdatedBy( currentUserName );
+            completeAlready.setCompleted( true );
 
             registrationService.updateCompleteDataSetRegistration( completeAlready );
         }
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username, completeAlready.getLastUpdatedBy(), completeDate, completeAlready.getCompleted() );
+                attributeOptionCombo, completeDate, currentUserName, new Date(), currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }

@@ -28,11 +28,10 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import static java.util.stream.Collectors.toSet;
+
+import java.util.*;
+
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -47,13 +46,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
@@ -167,6 +165,8 @@ public class DefaultSchemaService
         add( new OrganisationUnitGroupSetDimensionSchemaDescriptor() ).
         add( new RelationshipSchemaDescriptor() ).
         add( new KeyJsonValueSchemaDescriptor() ).
+        add( new ProgramStageInstanceSchemaDescriptor() ).
+        add( new ProgramInstanceSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -177,11 +177,21 @@ public class DefaultSchemaService
 
     private Map<Class<?>, Schema> dynamicClassSchemaMap = new HashMap<>();
 
-    @Autowired
     private PropertyIntrospectorService propertyIntrospectorService;
 
-    @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    public DefaultSchemaService( PropertyIntrospectorService propertyIntrospectorService,
+        SessionFactory sessionFactory )
+    {
+
+        Preconditions.checkNotNull( propertyIntrospectorService );
+        Preconditions.checkNotNull( sessionFactory );
+
+        this.propertyIntrospectorService = propertyIntrospectorService;
+        this.sessionFactory = sessionFactory;
+    }
 
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )

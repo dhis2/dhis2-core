@@ -28,7 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Class representing an analytics database table column.
@@ -37,17 +39,45 @@ import java.util.Date;
  */
 public class AnalyticsTableColumn
 {
+    /**
+     * The column name.
+     */
     private String name;
 
-    private String dataType;
+    /**
+     * The column data type.
+     */
+    private ColumnDataType dataType;
 
+    /**
+     * Column not null constraint, default is to allow null values.
+     */
+    private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
+
+    /**
+     * The column SQL alias.
+     */
     private String alias;
 
+    /**
+     * Date of creation of the underlying data dimension.
+     */
     private Date created;
 
+    /**
+     * Whether to skip building an index for this column.
+     */
     private boolean skipIndex = false;
 
+    /**
+     * Explicit index type, defaults to database default type.
+     */
     private String indexType;
+
+    /**
+     * Explicit index column names, defaults to column name.
+     */
+    private List<String> indexColumns = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -58,55 +88,87 @@ public class AnalyticsTableColumn
      * @param dataType analytics table column data type.
      * @param alias source table column alias and name.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias )
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, String alias )
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = ColumnNotNullConstraint.NULL;
         this.alias = alias;
     }
 
     /**
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
+     * @param notNull analytics table column not null constraint.
      * @param alias source table column alias and name.
-     * @param created date when column data was created.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias )
     {
         this.name = name;
         this.dataType = dataType;
+        this.notNull = notNull;
         this.alias = alias;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Indicates whether explicit index columns have been specified,
+     * defaults to this column name.
+     */
+    public boolean hasIndexColumns()
+    {
+        return !indexColumns.isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // Builder methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Sets the created date.
+     *
+     * @param created the created date of the underlying dimension.
+     */
+    public AnalyticsTableColumn withCreated( Date created )
+    {
         this.created = created;
+        return this;
     }
 
     /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
-     * @param skipIndex indicates whether to skip indexing this column.
+     * Sets the index columns.
+     *
+     * @param indexColumns columns to index, defaults to this column name.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex )
+    public AnalyticsTableColumn withIndexColumns( List<String> indexColumns )
     {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
-        this.skipIndex = skipIndex;
+        this.indexColumns = indexColumns;
+        return this;
     }
 
     /**
-     * @param name analytics table column name.
-     * @param dataType analytics table column data type.
-     * @param alias source table column alias and name.
+     * Sets whether to skip indexes.
+     *
      * @param skipIndex indicates whether to skip indexing this column.
-     * @param indexType index type.
      */
-    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex, String indexType )
+    public AnalyticsTableColumn withSkipIndex( boolean skipIndex )
     {
-        this.name = name;
-        this.dataType = dataType;
-        this.alias = alias;
         this.skipIndex = skipIndex;
+        return this;
+    }
+
+    /**
+     * Sets the index type.
+     *
+     * @param indexType the index type.
+     */
+    public AnalyticsTableColumn withIndexType( String indexType )
+    {
         this.indexType = indexType;
+        return this;
     }
 
     // -------------------------------------------------------------------------
@@ -118,7 +180,7 @@ public class AnalyticsTableColumn
         return name;
     }
 
-    public String getDataType()
+    public ColumnDataType getDataType()
     {
         return dataType;
     }
@@ -126,6 +188,11 @@ public class AnalyticsTableColumn
     public String getAlias()
     {
         return alias;
+    }
+
+    public ColumnNotNullConstraint getNotNull()
+    {
+        return notNull;
     }
 
     public Date getCreated()
@@ -141,5 +208,10 @@ public class AnalyticsTableColumn
     public String getIndexType()
     {
         return indexType;
+    }
+
+    public List<String> getIndexColumns()
+    {
+        return indexColumns;
     }
 }

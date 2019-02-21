@@ -28,7 +28,16 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,22 +45,24 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.LN;
+import com.google.api.client.util.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -121,6 +132,14 @@ public class DefaultMessageService
         this.messageSenders = messageSenders;
 
         log.info( "Found the following message senders: " + messageSenders );
+    }
+
+    private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +237,7 @@ public class DefaultMessageService
     public int sendSystemErrorNotification( String subject, Throwable t )
     {
         String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String baseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         String text = new StringBuilder()
             .append( subject + LN + LN )
@@ -457,7 +476,7 @@ public class DefaultMessageService
     {
         HashMap<String, Object> values = new HashMap<>( 2 );
 
-        String baseUrl = systemSettingManager.getInstanceBaseUrl();
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         if ( baseUrl == null )
         {

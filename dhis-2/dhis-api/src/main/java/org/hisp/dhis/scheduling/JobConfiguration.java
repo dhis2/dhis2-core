@@ -61,8 +61,7 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String cronExpression;
 

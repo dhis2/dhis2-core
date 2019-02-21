@@ -141,7 +141,7 @@ public class TrackedEntityInstanceServiceTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         // person.setName( "UPDATED_NAME" );
 
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, true );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance( maleA.getUid() ).getName() );

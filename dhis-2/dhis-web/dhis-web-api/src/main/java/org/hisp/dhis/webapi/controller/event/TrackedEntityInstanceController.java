@@ -28,9 +28,25 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -48,7 +64,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -80,7 +95,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -95,29 +110,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteSource;
 
 /**
  * The following statements are added not to cause api break.
@@ -138,7 +138,7 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
-    
+
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -164,11 +164,8 @@ public class TrackedEntityInstanceController
     private TrackerAccessManager trackerAccessManager;
 
     @Autowired
-    private TrackerKafkaManager trackerKafkaManager;
-
-    @Autowired
     private SchedulingManager schedulingManager;
-    
+
     @Autowired
     private ProgramService programService;
 
@@ -283,7 +280,7 @@ public class TrackedEntityInstanceController
         {
             params.setIncludeEvents( true );
         }
-        
+
         if ( joined.contains( "programOwners" ) )
         {
             params.setIncludeProgramOwners( true );
@@ -629,9 +626,9 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody RootNode getTrackedEntityInstanceById( 
-    		@PathVariable( "id" ) String pvId,
-    		@RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
+    public @ResponseBody RootNode getTrackedEntityInstanceById(
+        @PathVariable( "id" ) String pvId,
+        @RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -745,22 +742,28 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    public void updateTrackedEntityInstanceXml( 
+        @PathVariable String id, 
+        @RequestParam( required = false ) String program,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, program, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    public void updateTrackedEntityInstanceJson( 
+        @PathVariable String id, 
+        @RequestParam( required = false ) String program,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, program, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
@@ -775,27 +778,6 @@ public class TrackedEntityInstanceController
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-    }
-
-    // -------------------------------------------------------------------------
-    // QUEUED IMPORT
-    // -------------------------------------------------------------------------
-
-    @PostMapping( value = "/queue", consumes = "application/json" )
-    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws WebMessageException, IOException
-    {
-        if ( !trackerKafkaManager.isEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration not enabled." ) );
-        }
-
-        importOptions.setImportStrategy( strategy );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
-
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        JobConfiguration job = trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
-        webMessageService.send( jobConfigurationReport( job ), response, request );
     }
 
     // -------------------------------------------------------------------------
@@ -823,7 +805,7 @@ public class TrackedEntityInstanceController
     private TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
         throws NotFoundException, WebMessageException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams =  getTrackedEntityInstanceParams( fields ) ;
+        TrackedEntityInstanceParams trackedEntityInstanceParams = getTrackedEntityInstanceParams( fields );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
             trackedEntityInstanceParams );
 
@@ -831,9 +813,9 @@ public class TrackedEntityInstanceController
         {
             throw new NotFoundException( "TrackedEntityInstance", id );
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( pr != null )
         {
             Program program = programService.getProgram( pr );
@@ -850,16 +832,16 @@ public class TrackedEntityInstanceController
             {
                 if ( program.getAccessLevel() == AccessLevel.CLOSED )
                 {
-                   throw new WebMessageException(
-                        WebMessageUtils.unathorized( TrackerOwnershipAccessManager.PROGRAM_ACCESS_CLOSED ) );
+                    throw new WebMessageException(
+                        WebMessageUtils.unathorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
                 }
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED ) );
+                    WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
-            
-            if (trackedEntityInstanceParams.isIncludeProgramOwners())
+
+            if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
             {
-                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream().filter( tei-> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
+                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream().filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
                 trackedEntityInstance.setProgramOwners( filteredProgramOwners );
             }
         }

@@ -28,18 +28,60 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import static org.hisp.dhis.common.DimensionType.CATEGORY;
+import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
+import static org.hisp.dhis.common.DimensionType.DATA_X;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP_SET;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import com.google.common.collect.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -56,14 +98,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.DimensionType.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -89,6 +127,8 @@ public class DataQueryParams
     public static final String PERIOD_START_DATE_ID = "pestartdate";
     public static final String PERIOD_END_DATE_ID = "peenddate";
     public static final String FACTOR_ID = "factor";
+    public static final String MULTIPLIER_ID = "multiplier";
+    public static final String DIVISOR_ID = "divisor";
     public static final String LEVEL_PREFIX = "uidlevel";
     public static final String KEY_DE_GROUP = "DE_GROUP-";
     public static final String KEY_IN_GROUP = "IN_GROUP-";
@@ -99,6 +139,8 @@ public class DataQueryParams
     public static final String PERIOD_START_DATE_NAME = "Period start date";
     public static final String PERIOD_END_DATE_NAME = "Period end date";
     public static final String FACTOR_HEADER_NAME = "Factor";
+    public static final String MULTIPLIER_HEADER_NAME = "Multiplier";
+    public static final String DIVISOR_HEADER_NAME = "Divisor";
 
     public static final String DISPLAY_NAME_DATA_X = "Data";
     public static final String DISPLAY_NAME_CATEGORYOPTIONCOMBO = "Category option combo";
@@ -473,6 +515,47 @@ public class DataQueryParams
         return params;
     }
 
+    /**
+     * Returns a unique key representing this query. The key is suitable for caching.
+     */
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+
+        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+
+        return key
+            .add( aggregationType )
+            .add( skipMeta )
+            .add( skipData )
+            .add( skipHeaders )
+            .add( skipRounding )
+            .add( completedOnly )
+            .add( hierarchyMeta )
+            .add( ignoreLimit )
+            .add( hideEmptyRows )
+            .add( hideEmptyColumns )
+            .add( showHierarchy )
+            .add( includeNumDen )
+            .add( includePeriodStartEndDates )
+            .add( includeMetadataDetails )
+            .add( displayProperty )
+            .add( outputIdScheme )
+            .add( outputFormat )
+            .add( duplicatesOnly )
+            .add( approvalLevel )
+            .add( startDate )
+            .add( endDate )
+            .add( order )
+            .add( timeField )
+            .add( orgUnitField )
+            .addIgnoreNull( apiVersion ).build();
+    }
+
     // -------------------------------------------------------------------------
     // Logic read methods
     // -------------------------------------------------------------------------
@@ -530,10 +613,7 @@ public class DataQueryParams
      */
     public boolean hasPeriods()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( PERIOD_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( PERIOD_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( PERIOD_DIM_ID ).isEmpty();
     }
 
     /**
@@ -598,10 +678,7 @@ public class DataQueryParams
      */
     public boolean hasOrganisationUnits()
     {
-        List<DimensionalItemObject> dimOpts = getDimensionOptions( ORGUNIT_DIM_ID );
-        List<DimensionalItemObject> filterOpts = getFilterOptions( ORGUNIT_DIM_ID );
-
-        return !dimOpts.isEmpty() || !filterOpts.isEmpty();
+        return !getDimensionOrFilterItems( ORGUNIT_DIM_ID ).isEmpty();
     }
 
     /**
@@ -692,7 +769,7 @@ public class DataQueryParams
      */
     public boolean isDataType( DataType dataType )
     {
-        return this.dataType != null && this.dataType.equals( dataType );
+        return this.dataType != null && this.dataType == dataType;
     }
 
     /**
@@ -885,20 +962,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( DimensionType dimensionType )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        if ( dimensionType != null )
-        {
-            for ( DimensionalObject dimension : getDimensionsAndFilters() )
-            {
-                if ( dimension.getDimensionType().equals( dimensionType ) )
-                {
-                    list.add( dimension );
-                }
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionType == d.getDimensionType() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -906,17 +972,9 @@ public class DataQueryParams
      */
     public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
     {
-        List<DimensionalObject> list = new ArrayList<>();
-
-        for ( DimensionalObject dimension : getDimensionsAndFilters() )
-        {
-            if ( dimensionTypes.contains( dimension.getDimensionType() ) )
-            {
-                list.add( dimension );
-            }
-        }
-
-        return list;
+        return getDimensionsAndFilters().stream()
+            .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -947,41 +1005,46 @@ public class DataQueryParams
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
     }
 
-    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
+    /**
+     * Returns all dimension items part of dimensions of the given dimension type.
+     */
+    public List<DimensionalItemObject> getDimensionalItemObjects( DimensionType dimensionType )
     {
-        List<DimensionalItemObject> items = new ArrayList<>();
-
-        if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
-        {
-            List<DimensionalItemObject> des = getDataElements();
-
-            if ( !des.isEmpty() )
-            {
-                Set<CategoryCombo> categoryCombos = Sets.newHashSet();
-
-                for ( DimensionalItemObject de : des )
-                {
-                    categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
-                }
-
-                for ( CategoryCombo cc : categoryCombos )
-                {
-                    items.addAll( cc.getSortedOptionCombos() );
-                }
-            }
-        }
-        else
-        {
-            items.addAll( getDimensionOptions( dimension ) );
-        }
-
-        return items;
+        return getDimensionsAndFilters( dimensionType ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toList() );
     }
 
     /**
-     * Retrieves the options for the given dimension identifier. If the "co"
-     * dimension is specified, all category option combinations for the first data
-     * element is returned. Returns an empty array if the dimension is not present.
+     * Retrieves the dimension items for the given dimension. If the given dimension
+     * is {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID}, the category option
+     * combinations associated with all data elements in this query through their
+     * category combinations are retrieved.
+     */
+    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
+    {
+        if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
+        {
+            return getDataElements().stream()
+                .map( de -> ((DataElement) de).getCategoryCombos() )
+                .flatMap( cc -> cc.stream() )
+                .distinct() // Get unique category combinations
+                .map( cc -> cc.getSortedOptionCombos() )
+                .flatMap( coc -> coc.stream() )
+                .collect( Collectors.toList() );
+        }
+        else
+        {
+            return getDimensionOptions( dimension );
+        }
+    }
+
+    /**
+     * Retrieves the options for the given dimension identifier. If the
+     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all
+     * category option combinations for the first data element is returned. Returns an
+     * empty array if the dimension is not present.
      */
     public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {
@@ -1477,7 +1540,7 @@ public class DataQueryParams
 
         while ( dimensionIter.hasNext() )
         {
-            if ( !dimensionIter.next().getDimensionType().equals( type ) )
+            if ( dimensionIter.next().getDimensionType() != type )
             {
                 dimensionIter.remove();
             }
@@ -1487,7 +1550,7 @@ public class DataQueryParams
 
         while ( filterIter.hasNext() )
         {
-            if ( !filterIter.next().getDimensionType().equals( type ) )
+            if ( filterIter.next().getDimensionType() != type )
             {
                 filterIter.remove();
             }
@@ -2059,7 +2122,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicatfors()
+    public List<DimensionalItemObject> getAllIndicators()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -2137,7 +2200,16 @@ public class DataQueryParams
     public List<DimensionalObject> getDataElementGroupSets()
     {
         return ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
+            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET == d.getDimensionType() ).collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns all data element groups part of dimensions and filters of type
+     * data element group set.
+     */
+    public List<DimensionalItemObject> getAllDataElementGroups()
+    {
+        return getDimensionalItemObjects( DimensionType.DATA_ELEMENT_GROUP_SET );
     }
 
     /**
@@ -2146,13 +2218,10 @@ public class DataQueryParams
      */
     public Set<DimensionalItemObject> getCategoryOptions()
     {
-        final Set<DimensionalItemObject> categoryOptions = new HashSet<>();
-
-        ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.CATEGORY.equals( d.getDimensionType() ) )
-            .forEach( d -> categoryOptions.addAll( d.getItems() ) );
-
-        return categoryOptions;
+        return getDimensionsAndFilters( DimensionType.CATEGORY ).stream()
+            .map( d -> d.getItems() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**

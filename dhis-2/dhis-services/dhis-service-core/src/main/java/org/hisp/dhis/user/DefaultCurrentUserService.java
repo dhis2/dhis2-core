@@ -34,10 +34,12 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -59,11 +61,7 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 4000 )
-        .build();
+    private static Cache<String, Integer> USERNAME_ID_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -72,9 +70,22 @@ public class DefaultCurrentUserService
     @Autowired
     private CurrentUserStore currentUserStore;
 
+    @Autowired
+    private Environment env;
+
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
     // -------------------------------------------------------------------------
+
+    @PostConstruct
+    public void init()
+    {
+        USERNAME_ID_CACHE = Caffeine.newBuilder()
+                .expireAfterAccess( 1, TimeUnit.HOURS )
+                .initialCapacity( 200 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
+                .build();
+    }
 
     @Override
     @Transactional

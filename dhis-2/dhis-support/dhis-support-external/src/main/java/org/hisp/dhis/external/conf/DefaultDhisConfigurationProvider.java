@@ -28,9 +28,21 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.crypto.Cipher;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,15 +53,9 @@ import org.hisp.dhis.external.location.LocationManagerException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import javax.crypto.Cipher;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * @author Lars Helge Overland
@@ -226,9 +232,27 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public long getAnalyticsCacheExpiration()
+    {
+        return Long.parseLong( getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
+    }
+
+    @Override
+    public boolean isAnalyticsCacheEnabled()
+    {
+        return getAnalyticsCacheExpiration() > 0;
+    }
+
+    @Override
     public boolean isClusterEnabled()
     {
         return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
+    }
+
+    @Override
+    public String getServerBaseUrl()
+    {
+        return StringUtils.trimToNull( properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey() ) );
     }
 
     @Override

@@ -28,8 +28,6 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
@@ -74,55 +72,5 @@ public class DefaultSmsConfigurationManager
         }
 
         return null;
-    }
-
-    @Override
-    public boolean setDefaultSMSGateway( String gatewayId )
-    {
-        boolean result = false;
-
-        SmsConfiguration config = getSmsConfiguration();
-
-        if ( config == null )
-        {
-            return result;
-        }
-
-        List<SmsGatewayConfig> smsGatewayList = config.getGateways();
-
-        for ( SmsGatewayConfig gw : smsGatewayList )
-        {
-            if ( gw.getName().equals( gatewayId ) )
-            {
-                gw.setDefault( true );
-                
-                result = true;
-            }
-            else
-            {
-                gw.setDefault( false );
-            }
-        }
-
-        updateSmsConfiguration( config );
-
-        return result;
-    }
-
-    @Override
-    public boolean gatewayExists( String gatewayId )
-    {
-        SmsConfiguration config = getSmsConfiguration();
-        List<SmsGatewayConfig> gatewayList = config.getGateways();
-
-        for ( SmsGatewayConfig gw : gatewayList )
-        {
-            if ( gw.getName().equals( gatewayId ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
