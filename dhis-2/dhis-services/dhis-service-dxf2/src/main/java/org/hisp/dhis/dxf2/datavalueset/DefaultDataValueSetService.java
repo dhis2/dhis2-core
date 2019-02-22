@@ -365,15 +365,15 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
+    public void writeDataValueSetJson( Date lastUpdated, Date lastChanged, OutputStream outputStream, IdSchemes idSchemes )
     {
-        dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
+        dataValueSetStore.writeDataValueSetJson( lastUpdated, lastChanged, outputStream, idSchemes );
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    public void writeDataValueSetJson( Date lastUpdated, Date lastChanged, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
     {
-        dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes, pageSize, page );
+        dataValueSetStore.writeDataValueSetJson( lastUpdated, lastChanged, outputStream, idSchemes, pageSize, page );
     }
 
     @Override

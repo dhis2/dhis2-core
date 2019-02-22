@@ -221,10 +221,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
-                                                       IdSchemes idSchemes )
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
+        IdSchemes idSchemes )
     {
-        cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, outputStream, idSchemes );
+        cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, lastChanged, outputStream, idSchemes );
     }
 
     @Override

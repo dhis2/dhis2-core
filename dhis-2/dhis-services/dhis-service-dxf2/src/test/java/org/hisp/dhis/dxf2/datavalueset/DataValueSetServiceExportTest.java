@@ -90,10 +90,10 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private DataValueService dataValueService;
-    
+
     @Autowired
     private AttributeService attributeService;
-    
+
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -110,12 +110,12 @@ public class DataValueSetServiceExportTest
     private CategoryOptionCombo cocB;
 
     private Attribute atA;
-    
+
     private AttributeValue avA;
     private AttributeValue avB;
     private AttributeValue avC;
     private AttributeValue avD;
-    
+
     private DataSet dsA;
     private DataSet dsB;
 
@@ -151,14 +151,14 @@ public class DataValueSetServiceExportTest
 
         categoryService.addCategoryOptionCombo( cocA );
         categoryService.addCategoryOptionCombo( cocB );
-        
+
         atA = createAttribute( 'A' );
         atA.setDataElementAttribute( true );
         atA.setOrganisationUnitAttribute( true );
         atA.setCategoryOptionComboAttribute( true );
-        
+
         idObjectManager.save( atA );
-        
+
         dsA = createDataSet( 'A' );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
@@ -182,7 +182,7 @@ public class DataValueSetServiceExportTest
         avB = new AttributeValue( "AttributeValueB", atA );
         avC = new AttributeValue( "AttributeValueC", atA );
         avD = new AttributeValue( "AttributeValueD", atA );
-        
+
         attributeService.addAttributeValue( deA, avA );
         attributeService.addAttributeValue( ouA, avB );
         attributeService.addAttributeValue( cocA, avC );
@@ -204,9 +204,9 @@ public class DataValueSetServiceExportTest
         dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocB, "1" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
-        
+
         // Flush session to make data values visible to JDBC query
-        
+
         dbmsManager.flushSession();
 
         // Service mocks
@@ -255,7 +255,7 @@ public class DataValueSetServiceExportTest
             assertEquals( peA.getUid(), dv.getPeriod() );
         }
     }
-    
+
     @Test
     public void testExportAttributeOptionCombo()
     {
@@ -280,7 +280,7 @@ public class DataValueSetServiceExportTest
             assertNotNull( dv );
             assertEquals( ouB.getUid(), dv.getOrgUnit() );
             assertEquals( peA.getUid(), dv.getPeriod() );
-        }        
+        }
     }
 
     @Test
@@ -346,14 +346,14 @@ public class DataValueSetServiceExportTest
             assertEquals( ouA.getCode(), dv.getOrgUnit() );
         }
     }
-    
+
     @Test
     public void testExportOutputIdSchemeAttribute()
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
-        
+
         IdSchemes idSchemes = new IdSchemes()
             .setDataElementIdScheme( attributeIdScheme )
             .setOrgUnitIdScheme( attributeIdScheme )
@@ -368,7 +368,7 @@ public class DataValueSetServiceExportTest
         dataValueSetService.writeDataValueSetJson( params, out );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
-        
+
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
         assertEquals( dsB.getUid(), dvs.getDataSet() );
@@ -387,11 +387,11 @@ public class DataValueSetServiceExportTest
     {
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
-        
+
         assertNotNull( dvs );
         assertEquals( 12, dvs.getDataValues().size() );
 
@@ -406,34 +406,34 @@ public class DataValueSetServiceExportTest
     {
         DataValue dvA = new DataValue( deC, peA, ouA, cocA, cocA, "1" );
         DataValue dvB = new DataValue( deC, peB, ouA, cocA, cocA, "2" );
-        
+
         dataValueService.addDataValue( dvA );
         dataValueService.addDataValue( dvB );
-        
+
         dbmsManager.flushSession();
-        
+
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
-        
+
         assertNotNull( dvs );
         assertEquals( 14, dvs.getDataValues().size() );
-        
+
         dataValueService.deleteDataValue( dvA );
         dataValueService.deleteDataValue( dvB );
 
         dbmsManager.flushSession();
-        
+
         out = new ByteArrayOutputStream();
-        
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
 
         dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
-        
+
         assertNotNull( dvs );
-        assertEquals( 14, dvs.getDataValues().size() );        
+        assertEquals( 14, dvs.getDataValues().size() );
     }
 }

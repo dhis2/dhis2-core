@@ -119,8 +119,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes
-            idSchemes )
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
+        IdSchemes idSchemes )
     {
         String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
@@ -129,15 +129,17 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingJsonCompleteDataSetRegistrations( outputStream );
 
         final String completenessSql =
-                "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
-                        "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.completed as iscompleted " +
-                        "from completedatasetregistration cdr " +
-                        "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
-                        "join period pe on ( cdr.periodid=pe.periodid ) " +
-                        "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
-                        "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
-                        "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
-                        "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
+            "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
+                "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.completed as iscompleted " +
+                "from completedatasetregistration cdr " +
+                "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
+                "join period pe on ( cdr.periodid=pe.periodid ) " +
+                "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
+                "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
+                "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
+                "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
+                "and (cdr.lastupdated >= '" + DateUtils.getLongDateString( lastChanged ) + "' or " +
+                "cdr.date >= '" + DateUtils.getLongDateString( lastChanged ) + "') ";
 
         writeCompleteness( completenessSql, completeDataSetRegistrations );
     }

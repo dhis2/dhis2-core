@@ -77,7 +77,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
-        
+
         getSession().save( registration );
     }
 
@@ -85,7 +85,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
-        
+
         getSession().update( registration );
     }
 
@@ -161,7 +161,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
         getSession().createQuery( hql ).
             setParameter( "dataSet", dataSet ).executeUpdate();
     }
-    
+
     @Override
     public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
     {
@@ -172,22 +172,23 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedBetween( Date date )
+    public int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged )
     {
-
-        if ( date == null )
+        if ( lastUpdated == null || lastChanged == null )
         {
-            throw new IllegalArgumentException( "date must be specified" );
+            throw new IllegalArgumentException( "Both lastUpdated and lastChanged parameters must be specified" );
         }
 
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( CompleteDataSetRegistration.class )
             .setProjection( Projections.rowCount() );
 
-        if ( date != null )
-        {
-            criteria.add( Restrictions.ge( "lastUpdated", date ) );
-        }
+        criteria.add( Restrictions.ge( "lastUpdated", lastUpdated ) );
+
+        criteria.add( Restrictions.or(
+            Restrictions.ge( "lastUpdated", lastChanged ),
+            Restrictions.ge( "date", lastChanged )
+        ));
 
         Number rs = ( Number ) criteria.uniqueResult();
 

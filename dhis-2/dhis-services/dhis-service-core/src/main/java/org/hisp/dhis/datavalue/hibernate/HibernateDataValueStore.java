@@ -91,7 +91,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
     private StatementBuilder statementBuilder;
 
     public void setStatementBuilder( StatementBuilder statementBuilder )
@@ -177,7 +177,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             .addPredicate( root -> builder.equal( root, dataValue ) )
             .addPredicate( root -> builder.equal( root.get( "deleted" ), true ) ) );
     }
-        
+
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
@@ -192,7 +192,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         // HQL parameters
         // ---------------------------------------------------------------------
 
-        String hql = 
+        String hql =
             "select dv from DataValue dv " +
             "inner join dv.dataElement de " +
             "inner join dv.period pe " +
@@ -209,30 +209,30 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
         }
-        
+
         if ( params.isIncludeChildrenForOrganisationUnits() )
         {
             hql += "and (";
-            
+
             for ( OrganisationUnit unit : params.getOrganisationUnits() )
             {
                 hql += "ou.path like '" + unit.getPath() + "%' or ";
             }
-            
+
             hql = removeLastOr( hql );
-            
+
             hql += ") ";
         }
         else if ( !organisationUnits.isEmpty() )
         {
             hql += "and ou.id in (:orgUnits) ";
         }
-        
+
         if ( params.hasAttributeOptionCombos() )
         {
             hql += "and ao.id in (:attributeOptionCombos) ";
         }
-        
+
         if ( params.hasLastUpdated() )
         {
             hql += "and dv.lastUpdated >= :lastUpdated ";
@@ -256,7 +256,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             Set<Period> periods = params.getPeriods().stream()
                 .map( p -> periodStore.reloadPeriod( p ) )
                 .collect( Collectors.toSet() );
-            
+
             query.setParameterList( "periods", getIdentifiers( periods ) );
         }
         else if ( params.hasStartEndDate() )
@@ -268,27 +268,27 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
         }
-        
+
         if ( params.hasAttributeOptionCombos() )
         {
             query.setParameterList( "attributeOptionCombos", getIdentifiers( params.getAttributeOptionCombos() ) );
         }
-        
+
         if ( params.hasLastUpdated() )
         {
             query.setParameter( "lastUpdated", params.getLastUpdated() );
         }
-        
+
         if ( params.hasLimit() )
         {
             query.setMaxResults( params.getLimit() );
         }
-        
+
         // TODO last updated duration support
 
         return query.list();
     }
-    
+
     @Override
     public List<DataValue> getAllDataValues()
     {
@@ -487,14 +487,45 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     @Override
+    public int getDataValueCountLastUpdatedBetweenAndLastChangedAfter( Date lastUpdatedFrom, Date lastUpdatedTo,
+        Date lastChanged, boolean includeDeleted )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<DataValue>, Predicate>> predicateList =
+            preparePredicatesForLastUpdatedBetween( builder, lastUpdatedFrom, lastUpdatedTo, includeDeleted );
+
+        predicateList.add( root -> builder.or(
+            builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastChanged ),
+            builder.greaterThanOrEqualTo( root.get( "created" ), lastChanged )));
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( predicateList )
+            .count( root -> builder.countDistinct( root ) ) )
+            .intValue();
+    }
+
+    @Override
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<DataValue>, Predicate>> predicateList =
+            preparePredicatesForLastUpdatedBetween( builder, startDate, endDate, includeDeleted );
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( predicateList )
+            .count( root -> builder.countDistinct( root ) ) )
+            .intValue();
+    }
+
+    private List<Function<Root<DataValue>, Predicate>> preparePredicatesForLastUpdatedBetween( CriteriaBuilder builder,
+        Date startDate, Date endDate, boolean includeDeleted )
     {
         if ( startDate == null && endDate == null )
         {
             throw new IllegalArgumentException( "Start date or end date must be specified" );
         }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
 
         List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
 
@@ -502,21 +533,18 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             predicateList.add( root -> builder.equal( root.get( "deleted" ), false ) );
         }
-        
+
         if ( startDate != null )
         {
             predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), startDate ) );
         }
-        
+
         if ( endDate != null )
         {
             predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
         }
 
-        return getCount( builder, newJpaParameters()
-            .addPredicates( predicateList )
-            .count( root -> builder.countDistinct( root ) ) )
-            .intValue();
+        return predicateList;
     }
 
     // -------------------------------------------------------------------------

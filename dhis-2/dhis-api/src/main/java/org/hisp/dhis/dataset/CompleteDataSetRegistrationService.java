@@ -105,26 +105,27 @@ public interface CompleteDataSetRegistrationService
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
-    
+
     /**
-    * Checks for missing compulsory fields of the data set to be completed
-    *    
-    * @param dataSet              the DataSet.
-    * @param period               the Period.
-    * @param source               the Source.
-    * @param attributeOptionCombo the attribute option combo.    
-    * @return list of missing compulsory fields, null if all are filled.
-    */
-    
+     * Checks for missing compulsory fields of the data set to be completed
+     *
+     * @param dataSet              the DataSet.
+     * @param period               the Period.
+     * @param source               the Source.
+     * @param attributeOptionCombo the attribute option combo.
+     * @return list of missing compulsory fields, null if all are filled.
+     */
+
     List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Gets the number of Complete Datasets count which have been updated after the given
-     * date time.
+     * Returns the number of Complete DataSets which have been updated at or after
+     * the given date time and, at the same time, last changed at or after the given date time.
      *
-     * @param date the date time.
-     * @return the number of completedatasets.
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastChanged specifies the date to filter complete data sets last changes after (created and last updated).
+     * @return the number of completed DataSets.
      */
-    int getCompleteDataSetCountLastUpdatedAfter( Date date );
+    int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged );
 }

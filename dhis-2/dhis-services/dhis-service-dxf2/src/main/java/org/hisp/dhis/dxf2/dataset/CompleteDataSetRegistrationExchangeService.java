@@ -48,27 +48,29 @@ public interface CompleteDataSetRegistrationExchangeService
     /**
      * Transform query parameters into an {@link ExportParams} instance.
      *
-     * @param dataSets list of {@link org.hisp.dhis.dataset.DataSet} UIDs.
-     * @param orgUnits list of {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs.
-     * @param orgUnitGroups list of {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} UIDs.
-     * @param periods list of {@link org.hisp.dhis.period.Period} names.
-     * @param startDate start of limiting date interval.
-     * @param endDate end of interval (inclusive).
+     * @param dataSets        list of {@link org.hisp.dhis.dataset.DataSet} UIDs.
+     * @param orgUnits        list of {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs.
+     * @param orgUnitGroups   list of {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} UIDs.
+     * @param periods         list of {@link org.hisp.dhis.period.Period} names.
+     * @param startDate       start of limiting date interval.
+     * @param endDate         end of interval (inclusive).
      * @param includeChildren whether to recursively include descendant organisation units.
-     * @param created base created date for query.
+     * @param created         base created date for query.
      * @param createdDuration duration (relative to {@code created}).
-     * @param limit record number limit (minimum 0).
-     * @param idSchemes identifier schemes applying to this query.
+     * @param limit           record number limit (minimum 0).
+     * @param idSchemes       identifier schemes applying to this query.
      * @return an instance of {@link ExportParams} corresponding to the given query parameters.
      */
-    ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
-        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes );
+    ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups,
+        Set<String> periods,
+        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit,
+        IdSchemes idSchemes );
 
     /**
      * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as XML.
      *
      * @param params the export query.
-     * @param out the stream to write to.
+     * @param out    the stream to write to.
      */
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream out );
 
@@ -76,16 +78,25 @@ public interface CompleteDataSetRegistrationExchangeService
      * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
      *
      * @param params the export query.
-     * @param out the stream to write to.
+     * @param out    the stream to write to.
      */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
 
-    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,IdSchemes idSchemes );
+    /**
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
+     *
+     * @param lastUpdated  specifies the date to filter complete data sets last updated after
+     * @param lastChanged  specifies the date to filter complete data sets last changes after (created and last updated).
+     * @param outputStream the stream to write to.
+     * @param idSchemes    idSchemes
+     */
+    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
+        IdSchemes idSchemes );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from an XML payload.
      *
-     * @param in the stream providing the XML payload.
+     * @param in            the stream providing the XML payload.
      * @param importOptions the options for the import.
      * @return a summary of the import process.
      */
@@ -94,18 +105,18 @@ public interface CompleteDataSetRegistrationExchangeService
     /**
      * Imports {@link CompleteDataSetRegistrations} from an XML payload.
      *
-     * @param in the stream providing the XML payload.
+     * @param in            the stream providing the XML payload.
      * @param importOptions the options for the import.
-     * @param jobId the task (optional).
+     * @param jobId         the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
-
+    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
      *
-     * @param in the stream providing the XML payload.
+     * @param in            the stream providing the XML payload.
      * @param importOptions the options for the import.
      * @return a summary of the import process.
      */
@@ -114,10 +125,11 @@ public interface CompleteDataSetRegistrationExchangeService
     /**
      * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
      *
-     * @param in the stream providing the XML payload.
+     * @param in            the stream providing the XML payload.
      * @param importOptions the options for the import.
-     * @param jobId the task (optional).
+     * @param jobId         the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId );
 }
