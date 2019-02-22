@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        >
+<hibernate-mapping>
+    <class name="org.hisp.dhis.programrule.ProgramRuleAudit" table="programruleaudit">
+
+        <cache usage="read-write" />
+
+        <id name="id" column="programruleauditid">
+            <generator class="native" />
+        </id>
+
+        <one-to-one name="programRule" class="org.hisp.dhis.programrule.ProgramRule" foreign-key="fk_ruleaudit_programruleid" />
+
+        <set name="dataElements" table="ruleauditdataelements">
+            <key column="programruleauditid" foreign-key="fk_ruleauditdataelements_programruleauditid" />
+            <many-to-many column="dataelementid" class="org.hisp.dhis.dataelement.DataElement" foreign-key="fk_ruleauditdataelements_dataelementid" />
+        </set>
+
+        <set name="attributes" table="ruleauditattributes">
+            <key column="programruleauditid" foreign-key="fk_ruleauditattributes_programruleauditid" />
+            <many-to-many column="attributeid" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" foreign-key="fk_ruleauditattributes_attributeid" />
+        </set>
+
+        <set name="programRuleVariables" table="ruleauditrulevariables">
+            <key column="programruleauditid" foreign-key="fk_programrulevariables_programruleauditid" />
+            <many-to-many column="programrulevariableid" class="org.hisp.dhis.programrule.ProgramRuleVariable" foreign-key="fk_ruleauditrulevariables_programrulevariableid" />
+        </set>
+    </class>
+</hibernate-mapping>
