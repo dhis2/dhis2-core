@@ -61,7 +61,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 @SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static
     {
