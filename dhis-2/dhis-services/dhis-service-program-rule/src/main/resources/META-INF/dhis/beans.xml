@@ -26,6 +26,13 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.programrule.ProgramRuleAuditStore"
+        class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleAuditStore">
+    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRuleAudit" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+
   <!-- Services -->
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
@@ -39,7 +46,9 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleActionService" class="org.hisp.dhis.programrule.DefaultProgramRuleActionService">
     <property name="programRuleActionStore" ref="org.hisp.dhis.programrule.ProgramRuleActionStore" />
   </bean>
-    
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleAuditService" class="org.hisp.dhis.programrule.DefaultProgramRuleAuditService" />
+
   <!-- ProgramRule Engine -->
 
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngine" class="org.hisp.dhis.programrule.engine.ProgramRuleEngine" />
