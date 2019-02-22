@@ -65,11 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
@@ -330,8 +326,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             Constant constantA = createConstant( uniqueName, 7.0 );
             manager.save( constantA );
 
-            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - " + KEY_PROGRAM_VARIABLE + "{"
-                + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicatorVariable.VAR_ENROLLMENT_DATE.getVar() + "} - " + KEY_PROGRAM_VARIABLE + "{"
+                + ProgramIndicatorVariable.VAR_INCIDENT_DATE.getVar() + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
 
             return (T) createProgramIndicator( uniqueName, program, expressionA, null );
         }
