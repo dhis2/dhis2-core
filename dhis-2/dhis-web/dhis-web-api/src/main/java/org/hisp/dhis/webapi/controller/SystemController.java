@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -194,6 +195,7 @@ public class SystemController
         throws IOException
     {
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
@@ -211,6 +213,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -227,6 +230,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -244,6 +248,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -266,6 +271,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
@@ -282,6 +288,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
@@ -297,6 +304,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
     private void handleSummary( HttpServletResponse response, Object summary )
