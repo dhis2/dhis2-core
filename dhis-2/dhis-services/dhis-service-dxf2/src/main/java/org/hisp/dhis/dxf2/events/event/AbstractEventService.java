@@ -349,6 +349,11 @@ public abstract class AbstractEventService
             importOptions = new ImportOptions();
         }
 
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+        }
+
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
         ProgramStage programStage = getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
             event.getProgramStage() );
