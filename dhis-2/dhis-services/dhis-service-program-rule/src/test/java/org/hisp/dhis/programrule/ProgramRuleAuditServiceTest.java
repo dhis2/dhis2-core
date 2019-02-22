@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -41,7 +42,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -56,6 +56,7 @@ public class ProgramRuleAuditServiceTest extends DhisSpringTest
 
     private static final String PROGRAM_RULE_EXPRESSION_A = "A{"+ RULE_VARIABLE_NAME_A +"} == 1 && #{"+ RULE_VARIABLE_NAME_B +"} > 0";
     private static final String PROGRAM_RULE_EXPRESSION_B = "#{"+ RULE_VARIABLE_NAME_B +"} > 0 && V{event_status} == 1";
+    private static final String PROGRAM_RULE_EXPRESSION_C = "A{"+ RULE_VARIABLE_NAME_A +"} == 1 && A{"+ RULE_VARIABLE_NAME_A +"} > 0";
 
     private Program programA;
 
@@ -65,9 +66,11 @@ public class ProgramRuleAuditServiceTest extends DhisSpringTest
     private ProgramRuleAction programRuleActionB;
     private ProgramRuleVariable programRuleVariableA;
     private ProgramRuleVariable programRuleVariableB;
+    private ProgramRuleVariable programRuleVariableA_A;
 
     private DataElement dataElement;
     private TrackedEntityAttribute attribute;
+    private TrackedEntityAttribute attributeB;
 
     @Autowired
     private ProgramService programService;
@@ -98,9 +101,11 @@ public class ProgramRuleAuditServiceTest extends DhisSpringTest
     {
         dataElement = createDataElement( 'D' );
         attribute = createTrackedEntityAttribute( 'A' );
+        attributeB = createTrackedEntityAttribute( 'B' );
 
         dataElementService.addDataElement( dataElement );
         attributeService.addTrackedEntityAttribute( attribute );
+        attributeService.addTrackedEntityAttribute( attributeB );
 
         programA = createProgram( 'A', null, null );
 
@@ -133,21 +138,74 @@ public class ProgramRuleAuditServiceTest extends DhisSpringTest
         programRuleVariableB.setName( RULE_VARIABLE_NAME_B );
         programRuleVariableB.setDataElement( dataElement );
 
+        programRuleVariableA_A = createProgramRuleVariable( 'C', programA );
+        programRuleVariableA_A.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableA_A.setAttribute( attributeB );
+        programRuleVariableA_A.setName( RULE_VARIABLE_NAME_A );
+
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableA_A );
     }
 
     @Test
     public void testSaveProgramRuleAudit()
     {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, PROGRAM_RULE_EXPRESSION_A, null );
-        ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, PROGRAM_RULE_EXPRESSION_B, 1 );
+        ProgramRuleAudit audit = new ProgramRuleAudit();
+        audit.setProgramRule( programRuleA );
+        audit.setEnvironmentVariables( null );
+        audit.setProgramRuleVariables( Sets.newHashSet( programRuleVariableA ) );
 
-        int idA = programRuleService.addProgramRule( ruleA );
-        int idB = programRuleService.addProgramRule( ruleB );
+        programRuleAuditService.addProgramRuleAudit( audit );
+    }
 
-        ProgramRuleAudit auditA = programRuleAuditService.getProgramRuleAudit( ruleA );
+    @Test
+    public void testAddProgramRuleAuditWithProgramRuleVariables()
+    {
+        ProgramRule ruleI = new ProgramRule( "RuleI", "descriptionI", programA, null, null, PROGRAM_RULE_EXPRESSION_A, null );
 
-        assertNotNull( auditA );
+        int idI = programRuleService.addProgramRule( ruleI );
+
+        ProgramRuleAudit audit = programRuleAuditService.createOrUpdateProgramRuleAudit( null, ruleI );
+
+        assertNotNull( audit );
+        assertEquals( 3, audit.getProgramRuleVariables().size() );
+        assertTrue( audit.getProgramRuleVariables().contains( programRuleVariableA ) );
+        assertTrue( audit.getProgramRuleVariables().contains( programRuleVariableB ) );
+
+        assertEquals( 1, audit.getDataElements().size() );
+        assertEquals( 2, audit.getAttributes().size() );
+    }
+
+    @Test
+    public void testAddProgramRuleAuditWithEnvironmentVariable()
+    {
+        ProgramRule ruleI = new ProgramRule( "RuleI", "descriptionI", programA, null, null, PROGRAM_RULE_EXPRESSION_B, null );
+
+        int idI = programRuleService.addProgramRule( ruleI );
+
+        ProgramRuleAudit audit = programRuleAuditService.createOrUpdateProgramRuleAudit( null, ruleI );
+
+        assertNotNull( audit );
+        assertEquals( 1, audit.getProgramRuleVariables().size() );
+        assertTrue( audit.getProgramRuleVariables().contains( programRuleVariableB ) );
+
+        assertEquals( 1, audit.getEnvironmentVariables().size() );
+        assertTrue( audit.getEnvironmentVariables().contains( "event_status" ) );
+    }
+
+    @Test
+    public void testAddProgramRuleAuditForDuplicateRuleVariables()
+    {
+        ProgramRule ruleI = new ProgramRule( "RuleI", "descriptionI", programA, null, null, PROGRAM_RULE_EXPRESSION_C, null );
+
+        int idI = programRuleService.addProgramRule( ruleI );
+
+        ProgramRuleAudit audit = programRuleAuditService.createOrUpdateProgramRuleAudit( null, ruleI );
+
+        assertNotNull( audit );
+        assertEquals( 2, audit.getProgramRuleVariables().size() );
+        assertTrue( audit.getProgramRuleVariables().contains( programRuleVariableA ) );
+        assertEquals( 2, audit.getAttributes().size() );
     }
 }

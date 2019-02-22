@@ -31,8 +31,8 @@ package org.hisp.dhis.programrule;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -103,10 +103,10 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
     @Override
     public ProgramRuleAudit createOrUpdateProgramRuleAudit( ProgramRuleAudit audit, ProgramRule programRule )
     {
-        Map<String, List<String>> variableCollection = extractVariableCollection( programRule );
+        Map<String, Set<String>> variableCollection = extractVariableCollection( programRule );
 
-        List<ProgramRuleVariable> ruleVariables = getProgramRuleVariables( variableCollection.getOrDefault( ProgramRule.KEY_RULE_VARIABLES, new ArrayList<>() ), programRule );
-        List<String> environmentVariables = variableCollection.getOrDefault( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new ArrayList<>() );
+        Set<ProgramRuleVariable> ruleVariables = getProgramRuleVariables( variableCollection.getOrDefault( ProgramRule.KEY_RULE_VARIABLES, new HashSet<>() ), programRule );
+        Set<String> environmentVariables = variableCollection.getOrDefault( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new HashSet<>() );
 
         if ( audit == null )
         {
@@ -114,15 +114,15 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
         }
 
         audit.setProgramRuleVariables( ruleVariables );
-        audit.setEnvironmentVariables( environmentVariables );
+        audit.setEnvironmentVariables( new HashSet<>( environmentVariables ) );
         audit.setAuditFields();
 
         return audit;
     }
 
-    private Map<String, List<String>> extractVariableCollection( ProgramRule programRule )
+    private Map<String, Set<String>> extractVariableCollection( ProgramRule programRule )
     {
-        Map<String, List<String>> variableCollection = new HashMap<>();
+        Map<String, Set<String>> variableCollection = new HashMap<>();
 
         if ( programRule.getCondition().isEmpty() )
         {
@@ -140,7 +140,7 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
             {
                 if ( !variableCollection.containsKey( ProgramRule.KEY_RULE_VARIABLES ) )
                 {
-                    variableCollection.put( ProgramRule.KEY_RULE_VARIABLES, new ArrayList<>() );
+                    variableCollection.put( ProgramRule.KEY_RULE_VARIABLES, new HashSet<>() );
                 }
 
                 variableCollection.get( ProgramRule.KEY_RULE_VARIABLES ).add( name );
@@ -150,7 +150,7 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
             {
                 if ( !variableCollection.containsKey( ProgramRule.KEY_ENVIRONMENT_VARIABLES ) )
                 {
-                    variableCollection.put( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new ArrayList<>() );
+                    variableCollection.put( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new HashSet<>() );
                 }
 
                 variableCollection.get( ProgramRule.KEY_ENVIRONMENT_VARIABLES ).add( name );
@@ -160,11 +160,11 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
         return variableCollection;
     }
 
-    private List<ProgramRuleVariable> getProgramRuleVariables(  List<String> ruleVariableNames, ProgramRule programRule )
+    private Set<ProgramRuleVariable> getProgramRuleVariables(  Set<String> ruleVariableNames, ProgramRule programRule )
     {
         return ruleVariableNames.stream()
             .filter( Objects::nonNull )
             .flatMap( name -> programRuleVariableService.getProgramRuleVariable( programRule.getProgram(), name ).stream() )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toSet() );
     }
 }

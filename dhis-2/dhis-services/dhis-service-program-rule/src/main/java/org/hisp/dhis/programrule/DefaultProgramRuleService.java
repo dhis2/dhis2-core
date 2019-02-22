@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import org.hisp.dhis.program.Program;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -60,6 +61,7 @@ public class DefaultProgramRuleService
     public int addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
+
         return programRule.getId();
     }
 

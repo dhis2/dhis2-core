@@ -6,8 +6,6 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.programrule.ProgramRuleAudit" table="programruleaudit">
 
-        <cache usage="read-write" />
-
         <id name="id" column="programruleauditid">
             <generator class="foreign">
                 <param name="property">programRule</param>

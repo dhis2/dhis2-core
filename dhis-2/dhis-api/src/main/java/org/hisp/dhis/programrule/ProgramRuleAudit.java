@@ -30,13 +30,14 @@ package org.hisp.dhis.programrule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,19 +49,24 @@ public class ProgramRuleAudit
 
     private ProgramRule programRule;
 
-    private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
+    private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
-    private List<DataElement> dataElements = new ArrayList<>();
+    private Set<DataElement> dataElements = new HashSet<>();
 
-    private List<TrackedEntityAttribute> attributes = new ArrayList<>();
+    private Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
-    private List<String> environmentVariables = new ArrayList<>();
+    private Set<String> environmentVariables = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramRuleAudit( ProgramRule programRule )
+
+    public ProgramRuleAudit()
+    {
+    }
+
+    public ProgramRuleAudit(ProgramRule programRule )
     {
         this.programRule = programRule;
     }
@@ -89,48 +95,48 @@ public class ProgramRuleAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramRuleVariable> getProgramRuleVariables()
+    public Set<ProgramRuleVariable> getProgramRuleVariables()
     {
         return programRuleVariables;
     }
 
-    public void setProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
+    public void setProgramRuleVariables( Set<ProgramRuleVariable> programRuleVariables )
     {
         this.programRuleVariables = programRuleVariables;
     }
 
-    public void setDataElements( List<DataElement> dataElements )
+    public void setDataElements( Set<DataElement> dataElements )
     {
         this.dataElements = dataElements;
     }
 
-    public void setAttributes( List<TrackedEntityAttribute> attributes )
+    public void setAttributes( Set<TrackedEntityAttribute> attributes )
     {
         this.attributes = attributes;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElement> getDataElements()
+    public Set<DataElement> getDataElements()
     {
         return dataElements;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityAttribute> getAttributes()
+    public Set<TrackedEntityAttribute> getAttributes()
     {
         return attributes;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getEnvironmentVariables()
+    public Set<String> getEnvironmentVariables()
     {
         return environmentVariables;
     }
 
-    public void setEnvironmentVariables( List<String> environmentVariables )
+    public void setEnvironmentVariables( Set<String> environmentVariables )
     {
         this.environmentVariables = environmentVariables;
     }
@@ -141,12 +147,22 @@ public class ProgramRuleAudit
             .filter( Objects::nonNull )
             .filter( v -> ProgramRuleVariableSourceType.getDataTypes().contains( v.getSourceType() ) )
             .map( ProgramRuleVariable::getDataElement )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toSet() );
 
         this.attributes = programRuleVariables.stream()
             .filter( Objects::nonNull )
             .filter( v -> ProgramRuleVariableSourceType.getAttributeTypes().contains( v.getSourceType() ) )
             .map( ProgramRuleVariable::getAttribute )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "programRule", programRule )
+            .add( "programRuleVariables", programRuleVariables )
+            .add( "environmentVariables", environmentVariables )
+            .toString();
     }
 }

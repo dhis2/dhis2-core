@@ -38,7 +38,8 @@ import java.util.List;
 /**
  * @Author Zubair Asghar.
  */
-public class HibernateProgramRuleAuditStore  extends HibernateGenericStore<ProgramRuleAudit> implements ProgramRuleAuditStore
+public class HibernateProgramRuleAuditStore  extends HibernateGenericStore<ProgramRuleAudit>
+    implements ProgramRuleAuditStore
 {
     @Override
     public void addProgramRuleAudit( ProgramRuleAudit ruleAudit )
