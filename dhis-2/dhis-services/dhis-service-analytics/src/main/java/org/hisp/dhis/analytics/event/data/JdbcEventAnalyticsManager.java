@@ -99,9 +99,12 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String teiColumn = params.getProgram().getProgramType() == ProgramType.WITH_REGISTRATION 
-            ? "tei" : "'N/A'";
-        List<String> fixedCols = Lists.newArrayList( "psi", teiColumn, "pi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
+        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
+        if ( params.getProgram().isRegistration() )
+        {
+            fixedCols.add( "tei" );
+            fixedCols.add( "pi" );
+        }
 
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
 
