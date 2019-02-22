@@ -73,6 +73,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -98,7 +99,9 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "tei", "pi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
+        String teiColumn = params.getProgram().getProgramType() == ProgramType.WITH_REGISTRATION 
+            ? "tei" : "'N/A'";
+        List<String> fixedCols = Lists.newArrayList( "psi", teiColumn, "pi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
 
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
 
