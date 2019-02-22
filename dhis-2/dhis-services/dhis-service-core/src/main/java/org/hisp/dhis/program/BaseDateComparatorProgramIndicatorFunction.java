@@ -59,7 +59,7 @@ public abstract class BaseDateComparatorProgramIndicatorFunction
             if ( matcher.find() ) 
             {
                 String programStageUid = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
-                args[i] =  statementBuilder.getProgramIndicatorColumnSelectSql( programStageUid, "executiondate", reportingStartDate, reportingEndDate, programIndicator );
+                args[i] =  statementBuilder.getProgramIndicatorEventColumnSql( programStageUid, "executiondate", reportingStartDate, reportingEndDate, programIndicator );
             }
         }
         

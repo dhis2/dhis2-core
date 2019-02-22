@@ -304,27 +304,48 @@ public abstract class AbstractStatementBuilder
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String columnName = this.columnQuote( dataElementUid );
-        return getProgramIndicatorColumnSelectSql( programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator );
-    }
-    
-    public String getProgramIndicatorColumnSelectSql( String programStageUid, String columnName, Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
-    {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-                ( programIndicator.getEndEventBoundary() != null ? ("and " + 
-                    getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
-                " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
-                    getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-                " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            return getProgramIndicatorEventColumnSql( programStageUid, columnName, 
+                reportingStartDate, reportingEndDate, programIndicator );
         }
         else
         {
             return columnName;
         }
+    }
+
+    public String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
+    Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
+        {
+            return getProgramIndicatorEventInEnrollmentSelectSql( columnName, programStageUid, 
+                reportingStartDate, reportingEndDate, programIndicator );
+        }
+        else
+        {
+            return columnName;
+        }
+    }
+
+    private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid, Date reportingStartDate,
+    Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        String programStageCondition = "";
+        if ( programStageUid != null && programStageUid.length() == 11 )
+        {
+            programStageCondition = "and ps = '" + programStageUid + "' ";
+        }
+
+        String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+        return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+            ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
+            ( programIndicator.getEndEventBoundary() != null ? ("and " + 
+                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
+            " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
+                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
+            " ") : "" ) + programStageCondition + "order by executiondate " + "desc limit 1 )";
     }
     
     private String getProgramIndicatorEventInProgramStageSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )

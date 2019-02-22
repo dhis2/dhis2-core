@@ -294,10 +294,10 @@ public class DefaultProgramIndicatorService
         }
 
         String sqlExpression = TextUtils.removeNewlines( expression );
-
-        sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
-
+        
         sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
+
+        sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate, expression );
 
         sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
             endDate );
@@ -363,7 +363,7 @@ public class DefaultProgramIndicatorService
     }
 
     private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicator programIndicator,
-        Date startDate, Date endDate )
+        Date startDate, Date endDate, String originalExpression )
     {
         if ( expression == null )
         {
@@ -378,7 +378,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate );
+            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate, programIndicator, originalExpression );
 
             if ( sql != null )
             {
@@ -637,7 +637,7 @@ public class DefaultProgramIndicatorService
      * @return a SQL select clause.
      */
     private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate,
-        Date endDate )
+        Date endDate, ProgramIndicator indicator, String originalExpression )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -647,11 +647,15 @@ public class DefaultProgramIndicatorService
         {
             return "'" + DateUtils.getLongDateString() + "'";
         }
+        else if ( ProgramIndicator.VAR_EVENT_DATE.equals( var ) )
+        {
+            return statementBuilder.getProgramIndicatorEventColumnSql( null, variableColumnName, startDate, endDate, indicator );
+        }
         else if ( ProgramIndicator.VAR_VALUE_COUNT.equals( var ) )
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( originalExpression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " is not null then 1 else 0 end + ";
             }
@@ -662,7 +666,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( originalExpression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
             }
