@@ -35,6 +35,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -244,6 +245,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programInstance.getProgram();
+        
+        OrganisationUnit ou = programInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, isOpenTrackerProgram( program ) ? user.getTeiSearchOrganisationUnitsWithFallback() : user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -262,19 +273,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
-        else
-        {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
-                {
-                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
 
         return errors;
+    }
+
+    private boolean isOpenTrackerProgram( Program program )
+    {
+        return program != null && !program.isWithoutRegistration() && ( program.isOpen() || program.isAudited() );
     }
 
     @Override
@@ -355,17 +360,21 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programStage.getProgram();
+        
+        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou,
+                isWritableInSearchScopeOrgUnit( programStageInstance ) || isOpenTrackerProgram( program ) ? user.getTeiSearchOrganisationUnitsWithFallback()
+                    : user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
 
         if ( program.isWithoutRegistration() )
         {
-            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
-                {
-                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
             if ( !aclService.canDataWrite( user, program ) )
             {
                 errors.add( "User has no data write access to program: " + program.getUid() );
@@ -559,5 +568,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isNull( ProgramStage programStage )
     {
         return programStage == null || programStage.getProgram() == null;
+    }
+    
+    private boolean isWritableInSearchScopeOrgUnit( ProgramStageInstance programStageInstance )
+    {
+        return programStageInstance.getStatus() == EventStatus.SCHEDULE && programStageInstance.getEventDataValues().isEmpty()
+            && programStageInstance.getExecutionDate() == null;
     }
 }
