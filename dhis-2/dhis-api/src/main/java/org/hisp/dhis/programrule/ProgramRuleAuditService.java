@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
  * @Author Zubair Asghar.
  */
@@ -40,4 +42,8 @@ public interface ProgramRuleAuditService
     void deleteProgramRuleAudit( ProgramRuleAudit ruleAudit );
 
     ProgramRuleAudit getProgramRuleAudit( ProgramRule programRule );
+
+    List<ProgramRuleAudit> getAllProgramRuleAudits();
+
+    ProgramRuleAudit createOrUpdateProgramRuleAudit( ProgramRuleAudit audit, ProgramRule programRule );
 }

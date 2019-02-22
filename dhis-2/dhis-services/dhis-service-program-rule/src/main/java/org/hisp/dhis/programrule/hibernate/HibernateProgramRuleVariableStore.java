@@ -56,6 +56,15 @@ public class HibernateProgramRuleVariableStore
     }
 
     @Override
+    public List<ProgramRuleVariable> get( Program program, String name )
+    {
+        return getQuery( "FROM ProgramRuleVariable prv WHERE prv.program=:programId AND prv.name=:name" )
+            .setParameter( "programId", program )
+            .setParameter( "name", name )
+            .getResultList();
+    }
+
+    @Override
     public List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

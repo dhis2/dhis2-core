@@ -48,6 +48,7 @@ public interface ProgramRuleVariableStore
      */
     List<ProgramRuleVariable> get( Program program );
 
+    List<ProgramRuleVariable> get( Program program, String name );
 
     /**
      * @param program program

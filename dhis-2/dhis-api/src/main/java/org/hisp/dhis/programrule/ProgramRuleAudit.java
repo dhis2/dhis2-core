@@ -34,7 +34,10 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @Author Zubair Asghar.
@@ -45,33 +48,21 @@ public class ProgramRuleAudit
 
     private ProgramRule programRule;
 
-    private List<ProgramRuleVariable> programRuleVariables;
+    private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
 
-    private List<DataElement> dataElements;
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    private List<TrackedEntityAttribute> attributes;
+    private List<TrackedEntityAttribute> attributes = new ArrayList<>();
+
+    private List<String> environmentVariables = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-
-    public ProgramRuleAudit()
-    {
-    }
-
-    public ProgramRuleAudit( ProgramRule programRule, List<ProgramRuleVariable> programRuleVariables )
+    public ProgramRuleAudit( ProgramRule programRule )
     {
         this.programRule = programRule;
-        this.programRuleVariables = programRuleVariables;
-    }
-
-    public ProgramRuleAudit(ProgramRule programRule, List<ProgramRuleVariable> programRuleVariables, List<DataElement> dataElements, List<TrackedEntityAttribute> attributes )
-    {
-        this.programRule = programRule;
-        this.programRuleVariables = programRuleVariables;
-        this.dataElements = dataElements;
-        this.attributes = attributes;
     }
 
     public int getId()
@@ -108,16 +99,21 @@ public class ProgramRuleAudit
         this.programRuleVariables = programRuleVariables;
     }
 
+    public void setDataElements( List<DataElement> dataElements )
+    {
+        this.dataElements = dataElements;
+    }
+
+    public void setAttributes( List<TrackedEntityAttribute> attributes )
+    {
+        this.attributes = attributes;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElement> getDataElements()
     {
         return dataElements;
-    }
-
-    public void setDataElements( List<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
     }
 
     @JsonProperty
@@ -127,8 +123,30 @@ public class ProgramRuleAudit
         return attributes;
     }
 
-    public void setAttributes( List<TrackedEntityAttribute> attributes )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getEnvironmentVariables()
     {
-        this.attributes = attributes;
+        return environmentVariables;
+    }
+
+    public void setEnvironmentVariables( List<String> environmentVariables )
+    {
+        this.environmentVariables = environmentVariables;
+    }
+
+    public void setAuditFields()
+    {
+        this.dataElements = programRuleVariables.stream()
+            .filter( Objects::nonNull )
+            .filter( v -> ProgramRuleVariableSourceType.getDataTypes().contains( v.getSourceType() ) )
+            .map( ProgramRuleVariable::getDataElement )
+            .collect( Collectors.toList() );
+
+        this.attributes = programRuleVariables.stream()
+            .filter( Objects::nonNull )
+            .filter( v -> ProgramRuleVariableSourceType.getAttributeTypes().contains( v.getSourceType() ) )
+            .map( ProgramRuleVariable::getAttribute )
+            .collect( Collectors.toList() );
     }
 }

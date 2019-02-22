@@ -94,6 +94,12 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
+    public List<ProgramRuleVariable> getProgramRuleVariable( Program program, String name )
+    {
+        return programRuleVariableStore.get( program, name );
+    }
+
+    @Override
     public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
     {
         List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );

@@ -28,7 +28,18 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,14 +48,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
 {
+    private static final String SEPARATOR_ID = "\\.";
+    private static final String ENVIRONMENT_VARIABLE = "V";
+    private static final String EXPRESSION_PREFIX_REGEXP = "#" + "|" + "A" + "|" + ENVIRONMENT_VARIABLE;
+    private static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
+    private static final Set<String> KEYS = Sets.newHashSet( "A", "#" );
+
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
+
     private ProgramRuleAuditStore programRuleAuditStore;
 
+    private ProgramRuleVariableService programRuleVariableService;
+
     @Autowired
-    public DefaultProgramRuleAuditService( ProgramRuleAuditStore programRuleAuditStore )
+    public DefaultProgramRuleAuditService( ProgramRuleAuditStore programRuleAuditStore, ProgramRuleVariableService ruleVariableService )
     {
         checkNotNull( programRuleAuditStore );
+        checkNotNull( ruleVariableService );
 
         this.programRuleAuditStore = programRuleAuditStore;
+        this.programRuleVariableService = ruleVariableService;
     }
 
     @Override
@@ -69,5 +92,79 @@ public class DefaultProgramRuleAuditService implements ProgramRuleAuditService
     public ProgramRuleAudit getProgramRuleAudit( ProgramRule programRule )
     {
         return programRuleAuditStore.getProgramRuleAudit( programRule );
+    }
+
+    @Override
+    public List<ProgramRuleAudit> getAllProgramRuleAudits()
+    {
+        return programRuleAuditStore.getAllProgramRuleAudits();
+    }
+
+    @Override
+    public ProgramRuleAudit createOrUpdateProgramRuleAudit( ProgramRuleAudit audit, ProgramRule programRule )
+    {
+        Map<String, List<String>> variableCollection = extractVariableCollection( programRule );
+
+        List<ProgramRuleVariable> ruleVariables = getProgramRuleVariables( variableCollection.getOrDefault( ProgramRule.KEY_RULE_VARIABLES, new ArrayList<>() ), programRule );
+        List<String> environmentVariables = variableCollection.getOrDefault( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new ArrayList<>() );
+
+        if ( audit == null )
+        {
+            audit = new ProgramRuleAudit( programRule );
+        }
+
+        audit.setProgramRuleVariables( ruleVariables );
+        audit.setEnvironmentVariables( environmentVariables );
+        audit.setAuditFields();
+
+        return audit;
+    }
+
+    private Map<String, List<String>> extractVariableCollection( ProgramRule programRule )
+    {
+        Map<String, List<String>> variableCollection = new HashMap<>();
+
+        if ( programRule.getCondition().isEmpty() )
+        {
+            return variableCollection;
+        }
+
+        Matcher matcher = EXPRESSION_PATTERN.matcher( programRule.getCondition() );
+
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 );
+            String name = matcher.group( 2 );
+
+            if ( KEYS.contains( key ) )
+            {
+                if ( !variableCollection.containsKey( ProgramRule.KEY_RULE_VARIABLES ) )
+                {
+                    variableCollection.put( ProgramRule.KEY_RULE_VARIABLES, new ArrayList<>() );
+                }
+
+                variableCollection.get( ProgramRule.KEY_RULE_VARIABLES ).add( name );
+            }
+
+            if ( ENVIRONMENT_VARIABLE.equals( key ) )
+            {
+                if ( !variableCollection.containsKey( ProgramRule.KEY_ENVIRONMENT_VARIABLES ) )
+                {
+                    variableCollection.put( ProgramRule.KEY_ENVIRONMENT_VARIABLES, new ArrayList<>() );
+                }
+
+                variableCollection.get( ProgramRule.KEY_ENVIRONMENT_VARIABLES ).add( name );
+            }
+        }
+
+        return variableCollection;
+    }
+
+    private List<ProgramRuleVariable> getProgramRuleVariables(  List<String> ruleVariableNames, ProgramRule programRule )
+    {
+        return ruleVariableNames.stream()
+            .filter( Objects::nonNull )
+            .flatMap( name -> programRuleVariableService.getProgramRuleVariable( programRule.getProgram(), name ).stream() )
+            .collect( Collectors.toList() );
     }
 }

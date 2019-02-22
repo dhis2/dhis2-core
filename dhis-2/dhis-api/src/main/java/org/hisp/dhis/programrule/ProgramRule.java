@@ -49,6 +49,9 @@ import java.util.Set;
 public class ProgramRule
     extends BaseIdentifiableObject implements MetadataObject
 {
+    public static final String KEY_RULE_VARIABLES = "RULE_VARIABLE";
+    public static final String KEY_ENVIRONMENT_VARIABLES = "ENVIRONMENT_VARIABLES";
+
     /**
      * The description of the program rule
      */

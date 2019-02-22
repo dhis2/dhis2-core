@@ -38,6 +38,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramRuleVariableObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramRuleObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DocumentObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramObjectBundleHook" />

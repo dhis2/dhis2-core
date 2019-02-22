@@ -85,6 +85,8 @@ public interface ProgramRuleVariableService
      */
     List<ProgramRuleVariable> getProgramRuleVariable( Program program );
 
+    List<ProgramRuleVariable> getProgramRuleVariable( Program program, String name );
+
     /**
      *
      * @param program program.

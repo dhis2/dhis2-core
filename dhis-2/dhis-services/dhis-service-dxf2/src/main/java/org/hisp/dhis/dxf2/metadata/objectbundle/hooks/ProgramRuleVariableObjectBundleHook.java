@@ -61,7 +61,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {} ).accept( variable );
     }
 
-    private void processCalculatedValue( ProgramRuleVariable variable )
+    private void processCalculatedValue(ProgramRuleVariable variable )
     {
         variable.setAttribute( null );
         variable.setDataElement( null );

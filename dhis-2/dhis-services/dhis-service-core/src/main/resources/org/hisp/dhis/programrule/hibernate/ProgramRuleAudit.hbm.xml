@@ -9,10 +9,12 @@
         <cache usage="read-write" />
 
         <id name="id" column="programruleauditid">
-            <generator class="native" />
+            <generator class="foreign">
+                <param name="property">programRule</param>
+            </generator>
         </id>
 
-        <one-to-one name="programRule" class="org.hisp.dhis.programrule.ProgramRule" foreign-key="fk_ruleaudit_programruleid" />
+        <one-to-one name="programRule" class="org.hisp.dhis.programrule.ProgramRule" constrained="true" foreign-key="fk_ruleaudit_programruleid" />
 
         <set name="dataElements" table="ruleauditdataelements">
             <key column="programruleauditid" foreign-key="fk_ruleauditdataelements_programruleauditid" />
@@ -28,5 +30,11 @@
             <key column="programruleauditid" foreign-key="fk_programrulevariables_programruleauditid" />
             <many-to-many column="programrulevariableid" class="org.hisp.dhis.programrule.ProgramRuleVariable" foreign-key="fk_ruleauditrulevariables_programrulevariableid" />
         </set>
+
+        <set name="environmentVariables" table="programruleaudit_environmentvariables" fetch="join">
+            <key column="environmentvariableid" />
+            <element type="text"  column="environmentvariable" />
+        </set>
+
     </class>
 </hibernate-mapping>
