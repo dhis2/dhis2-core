@@ -62,9 +62,8 @@ public interface CompleteDataSetRegistrationExchangeService
      * @return an instance of {@link ExportParams} corresponding to the given query parameters.
      */
     ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups,
-        Set<String> periods,
-        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit,
-        IdSchemes idSchemes );
+        Set<String> periods, Date startDate, Date endDate, boolean includeChildren, Date created,
+        String createdDuration, Integer limit, IdSchemes idSchemes );
 
     /**
      * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as XML.
