@@ -67,7 +67,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
     public RelationshipConstraint getFromConstraint()
     {
         return fromConstraint;
@@ -80,7 +80,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
+    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
     public RelationshipConstraint getToConstraint()
     {
         return toConstraint;

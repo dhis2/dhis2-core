@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.*;
 import java.util.function.Function;
@@ -167,7 +166,6 @@ public class DataIntegrityServiceTest
     private OrganisationUnitGroup unitGroupA;
     private OrganisationUnitGroup unitGroupB;
     private OrganisationUnitGroup unitGroupC;
-    private OrganisationUnitGroup unitGroupD;
 
     private Program programA;
     private Program programB;
