@@ -444,6 +444,11 @@ public abstract class AbstractEventService
         
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+        }
+
         if (  programStageInstance != null && programStageInstance.isDeleted() )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and deleted. This event can not be modified." )
