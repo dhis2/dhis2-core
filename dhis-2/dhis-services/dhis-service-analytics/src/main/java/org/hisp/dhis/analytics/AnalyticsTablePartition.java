@@ -39,13 +39,16 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
  */
 public class AnalyticsTablePartition
 {
+    public static final Integer LATEST_PARTITION = 0;
+
     /**
      * The master analytics table for this partition.
      */
     private AnalyticsTable masterTable;
 
     /**
-     * The year for which this partition may contain data.
+     * The year for which this partition may contain data. A zero value indicates
+     * the "latest" data stored since last full analytics table generation.
      */
     private Integer year;
 
@@ -109,6 +112,11 @@ public class AnalyticsTablePartition
         }
 
         return name;
+    }
+
+    public boolean isLatestPartition()
+    {
+        return year == LATEST_PARTITION;
     }
 
     public AnalyticsTable getMasterTable()

@@ -42,7 +42,8 @@ import java.util.Set;
 public class AnalyticsTableUpdateParams
 {
     /**
-     * Number of last years for which to update tables.
+     * Number of last years for which to update tables. A zero value indicates
+     * the "latest" data stored since last full analytics table generation.
      */
     private Integer lastYears;
 
@@ -103,11 +104,11 @@ public class AnalyticsTableUpdateParams
     /**
      * Indicates whether this is a partial update of analytics tables, i.e.
      * if only certain partitions are to be updated and not all partitions
-     * and the main analytics tables.
+     * including the main analytics tables.
      */
     public boolean isPartialUpdate()
     {
-        return lastYears != null;
+        return lastYears != null || lastYears == AnalyticsTablePartition.LATEST_PARTITION;
     }
 
     // -------------------------------------------------------------------------
