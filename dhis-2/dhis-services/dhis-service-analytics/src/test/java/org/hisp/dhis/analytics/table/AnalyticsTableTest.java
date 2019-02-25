@@ -81,11 +81,11 @@ public class AnalyticsTableTest
         assertNotNull( partitionA );
         assertNotNull( partitionB );
 
-        assertEquals( "analytics_event_2014_uida", partitionA.getTableName() );
-        assertEquals( "analytics_event_2015_uida", partitionB.getTableName() );
+        assertEquals( "analytics_event_uida_2014", partitionA.getTableName() );
+        assertEquals( "analytics_event_uida_2015", partitionB.getTableName() );
 
-        assertEquals( "analytics_event_temp_2014_uida", partitionA.getTempTableName() );
-        assertEquals( "analytics_event_temp_2015_uida", partitionB.getTempTableName() );
+        assertEquals( "analytics_event_temp_uida_2014", partitionA.getTempTableName() );
+        assertEquals( "analytics_event_temp_uida_2015", partitionB.getTempTableName() );
     }
 
     @Test
