@@ -29,21 +29,38 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.events.event.AbstractEventService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService )
+    {
+        this.programInstanceService = programInstanceService;
+    }
+
     @Override
     public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !(object instanceof Program) )
         {
             return;
         }
@@ -54,7 +71,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !(object instanceof Program) )
         {
             return;
         }
@@ -62,10 +79,51 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         syncSharingForEventProgram( (Program) object );
     }
 
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !(object instanceof Program) )
+        {
+            return errors;
+        }
+
+        Program program = (Program) object;
+
+        if ( getProgramInstancesCount( program ) > 1 )
+        {
+            errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
+        }
+        return errors;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    {
+        if ( !(object instanceof Program) )
+        {
+            return;
+        }
+        
+        Program program = (Program) object;
+
+        if ( getProgramInstancesCount(program) == 0 ) {
+
+            ProgramInstance pi = new ProgramInstance();
+            pi.setEnrollmentDate(new Date());
+            pi.setIncidentDate(new Date());
+            pi.setProgram(program);
+            pi.setStatus(ProgramStatus.ACTIVE);
+            pi.setStoredBy("system-process");
+
+            this.programInstanceService.addProgramInstance(pi);
+        }
+    }
+
     private void syncSharingForEventProgram( Program program )
     {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
-            || program.getProgramStages().isEmpty() )
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() || program.getProgramStages().isEmpty() )
         {
             return;
         }
@@ -75,5 +133,10 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
         programStage.setUser( program.getUser() );
         sessionFactory.getCurrentSession().update( programStage );
+    }
+    
+    private int getProgramInstancesCount( Program program )
+    {
+        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
     }
 }
