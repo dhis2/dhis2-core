@@ -98,7 +98,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return new HashSet<>(); //TODO this must be implemented properly
+        return partitionManager.getEnrollmentAnalyticsPartitions();
     }
 
     @Override

@@ -45,6 +45,11 @@ public interface PartitionManager
     Set<String> getDataValueAnalyticsPartitions();
 
     /**
+     * Returns a set of names of current enrollment analytics partitions.
+     */
+    Set<String> getEnrollmentAnalyticsPartitions();
+
+    /**
      * Returns a set of names of current event analytics partitions.
      */
     Set<String> getEventAnalyticsPartitions();

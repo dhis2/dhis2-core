@@ -79,6 +79,17 @@ public class JdbcPartitionManager
     @Override
     public Set<String> getEventAnalyticsPartitions()
     {
+        return getTablesWithNameLikeness( AnalyticsTableType.EVENT.getTableName() );
+    }
+
+    @Override
+    public Set<String> getEnrollmentAnalyticsPartitions()
+    {
+        return getTablesWithNameLikeness( AnalyticsTableType.ENROLLMENT.getTableName() );
+    }
+
+    private Set<String> getTablesWithNameLikeness( String nameLikeness )
+    {
         if ( analyticsEventPartitions != null )
         {
             return analyticsEventPartitions;
@@ -86,11 +97,10 @@ public class JdbcPartitionManager
 
         final String sql =
             "select table_name from information_schema.tables " +
-            "where table_name like '" + AnalyticsTableType.EVENT.getTableName() + "%' " +
-            "or table_name like '" + AnalyticsTableType.ENROLLMENT.getTableName() + "%' " +
+            "where table_name like '" + nameLikeness + "%' " +
             "and table_type = 'BASE TABLE'";
 
-        log.info( "Information schema event analytics SQL: " + sql );
+        log.info( "Name likeness query analytics SQL: " + sql );
 
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
         analyticsEventPartitions = partitions;
