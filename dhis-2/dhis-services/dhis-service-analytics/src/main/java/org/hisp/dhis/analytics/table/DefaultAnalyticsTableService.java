@@ -48,7 +48,6 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -100,8 +99,6 @@ public class DefaultAnalyticsTableService
         JobConfiguration jobId = params.getJobId();
 
         final int processNo = getProcessNo();
-        final int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
-        final Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
 
         int tableUpdates = 0;
 
@@ -111,7 +108,7 @@ public class DefaultAnalyticsTableService
 
         Clock clock = new Clock( log )
             .startClock()
-            .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableType.getTableName(), processNo, orgUnitLevelNo ) );
+            .logTime( String.format( "Starting update: %s, processes: %d", tableType.getTableName(), processNo ) );
 
         String validState = tableManager.validState();
 
@@ -121,7 +118,7 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
+        final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
 
         if ( tables.isEmpty() )
         {
@@ -130,8 +127,8 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + earliest + ", parameters: " + params.toString() );
-        notifier.notify( jobId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
+        clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + params.getStartDate() + ", parameters: " + params.toString() );
+        notifier.notify( jobId, "Performing pre-create table work" );
 
         tableManager.preCreateTables();
 
