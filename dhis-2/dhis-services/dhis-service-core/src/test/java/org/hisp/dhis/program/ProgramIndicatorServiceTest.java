@@ -441,8 +441,10 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsZingA()
     {
         String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
+        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+
         String expected = "coalesce(case when " + col + " < 0 then 0 else " + col + " end, 0)";
-        String expression = "d2:zing(" + col + ")";
+        String expression = "d2:zing(" + expressionElement + ")";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -467,8 +469,10 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsOizp()
     {
         String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
+        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+
         String expected = "coalesce(case when " + col + " >= 0 then 1 else 0 end, 0)";
-        String expression = "d2:oizp(" + col + ")";
+        String expression = "d2:oizp(" + expressionElement + ")";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -492,18 +496,24 @@ public class ProgramIndicatorServiceTest
     {
         String col1 = COL_QUOTE + deA.getUid() + COL_QUOTE;
         String col2 = COL_QUOTE + deB.getUid() + COL_QUOTE;
-        String expected = "(cast(" + col2 + " as date) - cast(" + col1 + " as date))";
-        String expression = "d2:daysBetween(" + col1 + "," + col2 + ")";
+        String expressionElement1 = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+        String expressionElement2 = "#{" + psB.getUid() + "." + deB.getUid() + "}";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
+
+        String expected = "(cast(" + col2 + " as date) - cast(" + col1 + " as date))";
+        String expression = "d2:daysBetween(" + expressionElement1 + "," + expressionElement2 + ")";
+
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), false, new Date(), new Date() ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsCondition()
     {
         String col1 = COL_QUOTE + deA.getUid() + COL_QUOTE;
+        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+
         String expected = "case when (" + col1 + " > 3) then 10 else 5 end";
-        String expression = "d2:condition('" + col1 + " > 3',10,5)";
+        String expression = "d2:condition('" + expressionElement + " > 3',10,5)";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -530,8 +540,10 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsInvalid()
     {
         String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
+        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+
         String expected = "case when " + col + " >= 0 then 1 else " + col + " end";
-        String expression = "d2:xyza(" + col + ")";
+        String expression = "d2:xyza(" + expressionElement + ")";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
