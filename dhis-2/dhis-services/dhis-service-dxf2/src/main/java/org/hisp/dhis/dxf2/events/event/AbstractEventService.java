@@ -274,13 +274,13 @@ public abstract class AbstractEventService
     public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
         }
-        
-        ImportSummaries importSummaries = new ImportSummaries();        
+
+        ImportSummaries importSummaries = new ImportSummaries();
 
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
@@ -289,7 +289,7 @@ public abstract class AbstractEventService
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
-        {            
+        {
             prepareCaches( user, _events );
             
             List<Event> create = new ArrayList<>();
@@ -435,7 +435,12 @@ public abstract class AbstractEventService
         }
         
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
-        
+
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+        }
+
         if ( programStageInstance == null && !StringUtils.isEmpty( event.getEvent() ) && !CodeGenerator.isValidUid( event.getEvent() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
@@ -1127,7 +1132,7 @@ public abstract class AbstractEventService
                 completedDate = DateUtils.parseDate( event.getCompletedDate() );
             }
             programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setStatus( EventStatus.COMPLETED );            
+            programStageInstance.setStatus( EventStatus.COMPLETED );
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
         {
@@ -1157,7 +1162,7 @@ public abstract class AbstractEventService
                     programStageInstance.setLongitude( null );
                 }
             }
-        }        
+        }
 
         validateExpiryDays( event, program, programStageInstance );
 
@@ -1187,7 +1192,7 @@ public abstract class AbstractEventService
             importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
             return importSummary.incrementIgnored();
         }
-        
+
         if ( aoc != null )
         {
             programStageInstance.setAttributeOptionCombo( aoc );
@@ -1257,7 +1262,7 @@ public abstract class AbstractEventService
     public void updateEventForNote( Event event )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
@@ -1286,7 +1291,7 @@ public abstract class AbstractEventService
         {
             return;
         }
-        
+
         Date executionDate = new Date();
 
         if ( event.getEventDate() != null )
@@ -1334,7 +1339,7 @@ public abstract class AbstractEventService
             {
                 return new ImportSummary( ImportStatus.ERROR, errors.toString() );
             }
-            
+
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
                 .incrementDeleted();
@@ -1775,7 +1780,7 @@ public abstract class AbstractEventService
         }
     }
 
-    private String getValidUsername( String userName, ImportSummary importSummary, User fallbackUser )    
+    private String getValidUsername( String userName, ImportSummary importSummary, User fallbackUser )
 
     {
         String validUsername = userName;
