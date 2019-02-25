@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -80,32 +79,6 @@ public class PartitionUtils
     {
         Integer nextYear = year + 1;
         return getStartDate( calendar, nextYear );
-    }
-
-    /**
-     * Returns the start date of the year which occurred
-     * {@code lastYears} ago.
-     *
-     * @param lastYears the number of years ago to base the
-     *         returned date.
-     * @return the start date of the given year.
-     */
-    public static Date getStartDate( Integer lastYears )
-    {
-        Date earliest = null;
-
-        if ( lastYears != null )
-        {
-            Calendar calendar = PeriodType.getCalendar();
-            DateTimeUnit dateTimeUnit = calendar.today();
-            dateTimeUnit = calendar.minusYears( dateTimeUnit, lastYears - 1 );
-            dateTimeUnit.setMonth( 1 );
-            dateTimeUnit.setDay( 1 );
-
-            earliest = dateTimeUnit.toJdkDate();
-        }
-
-        return earliest;
     }
 
     /**

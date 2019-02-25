@@ -141,7 +141,9 @@ public class JdbcEventStore
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private static final ObjectReader eventDataValueJsonReader = DefaultRenderService.getJsonMapper().readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+    //Cannot use DefaultRenderService mapper. Does not work properly - DHIS2-6102
+    private static final ObjectReader eventDataValueJsonReader =
+        JsonEventDataValueSetBinaryType.MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
 
     // -------------------------------------------------------------------------
     // EventStore implementation

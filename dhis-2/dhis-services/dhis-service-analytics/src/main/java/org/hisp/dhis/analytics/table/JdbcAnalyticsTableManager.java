@@ -118,9 +118,9 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getStartDate() ), getDimensionColumns( null ), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }

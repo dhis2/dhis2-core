@@ -29,6 +29,10 @@ package org.hisp.dhis.analytics;
  */
 
 import com.google.common.base.MoreObjects;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.util.Date;
@@ -124,6 +128,30 @@ public class AnalyticsTableUpdateParams
             .add( "skip table types", skipTableTypes )
             .add( "start time", startTime )
             .toString();
+    }
+
+    /**
+     * Returns the start date based on the last years property, i.e. the first
+     * day of year relative to the last years property.
+     *
+     * @return the start date based on the last years property.
+     */
+    public Date getStartDate()
+    {
+        Date earliest = null;
+
+        if ( lastYears != null )
+        {
+            Calendar calendar = PeriodType.getCalendar();
+            DateTimeUnit dateTimeUnit = calendar.today();
+            dateTimeUnit = calendar.minusYears( dateTimeUnit, lastYears - 1 );
+            dateTimeUnit.setMonth( 1 );
+            dateTimeUnit.setDay( 1 );
+
+            earliest = dateTimeUnit.toJdkDate();
+        }
+
+        return earliest;
     }
 
     // -------------------------------------------------------------------------
