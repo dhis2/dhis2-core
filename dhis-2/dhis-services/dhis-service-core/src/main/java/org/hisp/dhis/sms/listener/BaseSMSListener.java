@@ -120,7 +120,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     @Override
     public boolean accept( IncomingSms sms )
     {
-        if ( sms == null )
+        if ( sms == null || SmsUtils.isBase64(sms) )
         {
             return false;
         }
