@@ -76,7 +76,7 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
+        return Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override

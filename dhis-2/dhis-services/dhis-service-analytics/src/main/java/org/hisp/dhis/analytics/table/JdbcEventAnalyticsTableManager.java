@@ -93,8 +93,6 @@ public class JdbcEventAnalyticsTableManager
 
         Calendar calendar = PeriodType.getCalendar();
 
-        String baseName = getTableName();
-
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
         for ( Program program : programs )
@@ -103,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
 
             Collections.sort( dataYears );
 
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ), Lists.newArrayList(), program );
 
             for ( Integer year : dataYears )
             {
