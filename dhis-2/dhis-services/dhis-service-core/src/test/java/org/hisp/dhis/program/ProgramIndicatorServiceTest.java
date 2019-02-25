@@ -140,7 +140,8 @@ public class ProgramIndicatorServiceTest
 
     private ProgramIndicator indicatorF;
 
-
+    private ProgramIndicator indicatorG;
+    
     @Override
     public void setUpTest()
     {
@@ -283,6 +284,12 @@ public class ProgramIndicatorServiceTest
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
             AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
+
+        String expressionG = KEY_DATAELEMENT + "V{tei_count}";
+        String filterG = "d2:daysBetween(V{enrollment_date},V{event_date}) > 90";
+        indicatorG = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionG, filterG );
+        indicatorG.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "monthly" ), -6) );
     }
 
     // -------------------------------------------------------------------------
@@ -683,7 +690,6 @@ public class ProgramIndicatorServiceTest
         assertEquals( ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, programIndicatorService.filterIsValid( filterD ) );
     }
 
-
     @Test
     public void testd2relationshipCountFilter()
     {
@@ -705,5 +711,21 @@ public class ProgramIndicatorServiceTest
         String filter = "d2:relationshipCount('Zx7OEwPBUwD')";
         String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
         assertEquals( expected, actual );
+    }
+
+    @Test
+    public void testEventDateEnrollment()
+    {
+        Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
+        Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
+        
+        String expectedFilter = "(cast((select executiondate from analytics_event_" 
+            + indicatorG.getProgram().getUid() + " where analytics_event_" 
+            + indicatorG.getProgram().getUid() + ".pi = ax.pi and executiondate" 
+            + " is not null and executiondate < cast( '2017-09-01' as date ) " 
+            + "order by executiondate desc limit 1 ) as date) - cast(enrollmentdate as date)) > 90";
+        
+        String actualFilter = programIndicatorService.getAnalyticsSQl( indicatorG.getFilter(), indicatorG, false, reportingStartDate, reportingEndDate );
+        assertEquals( expectedFilter, actualFilter );
     }
 }
