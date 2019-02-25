@@ -85,11 +85,9 @@ public class JdbcEnrollmentAnalyticsTableManager
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
-        String baseName = getTableName();
-
         for ( Program program : programs )
         {
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ), Lists.newArrayList(), program );
 
             tables.add( table );
         }
@@ -100,7 +98,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return new HashSet<>();
+        return new HashSet<>(); //TODO this must be implemented properly
     }
 
     @Override
