@@ -476,7 +476,7 @@ public abstract class AbstractJdbcTableManager
     private void swapTable( String tempTableName, String realTableName )
     {
         final String sql =
-            "drop table if exists " + realTableName + ";" +
+            "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );
