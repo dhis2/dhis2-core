@@ -115,6 +115,16 @@ public class AnalyticsTable
         return tableType.getTableName();
     }
 
+    public boolean hasPeriodDimension()
+    {
+        return tableType.hasPeriodDimension();
+    }
+
+    public boolean hasLatestPartition()
+    {
+        return tableType.isLatestPartition();
+    }
+
     public String getTableName()
     {
         String name = getBaseName();

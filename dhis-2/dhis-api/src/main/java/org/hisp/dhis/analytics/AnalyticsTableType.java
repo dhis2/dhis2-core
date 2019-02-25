@@ -33,22 +33,25 @@ package org.hisp.dhis.analytics;
 */
 public enum AnalyticsTableType
 {
-    DATA_VALUE( "analytics", true ),
-    COMPLETENESS( "analytics_completeness", true ),
-    COMPLETENESS_TARGET( "analytics_completenesstarget", false ),
-    ORG_UNIT_TARGET( "analytics_orgunittarget", false ),
-    EVENT( "analytics_event", false ),
-    ENROLLMENT( "analytics_enrollment", false ),
-    VALIDATION_RESULT( "analytics_validationresult", true );
+    DATA_VALUE( "analytics", true, true ),
+    COMPLETENESS( "analytics_completeness", true, false ), //TODO implement latest partition
+    COMPLETENESS_TARGET( "analytics_completenesstarget", false, false ),
+    ORG_UNIT_TARGET( "analytics_orgunittarget", false, false ),
+    EVENT( "analytics_event", false, false ),
+    ENROLLMENT( "analytics_enrollment", false, false ),
+    VALIDATION_RESULT( "analytics_validationresult", true, false );
 
     private String tableName;
 
     private boolean periodDimension;
 
-    AnalyticsTableType( String tableName, boolean periodDimension )
+    private boolean latestPartition;
+
+    AnalyticsTableType( String tableName, boolean periodDimension, boolean latestPartition )
     {
         this.tableName = tableName;
         this.periodDimension = periodDimension;
+        this.latestPartition = latestPartition;
     }
 
     public String getTableName()
@@ -59,5 +62,10 @@ public enum AnalyticsTableType
     public boolean hasPeriodDimension()
     {
         return periodDimension;
+    }
+
+    public boolean isLatestPartition()
+    {
+        return latestPartition;
     }
 }
