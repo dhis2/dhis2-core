@@ -190,7 +190,8 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( programStageInstance.getProgramStage().equals( programStage ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().equals( programStage )
+                && programStageInstance.getStatus() == EventStatus.ACTIVE )
             {
                 return true;
             }
