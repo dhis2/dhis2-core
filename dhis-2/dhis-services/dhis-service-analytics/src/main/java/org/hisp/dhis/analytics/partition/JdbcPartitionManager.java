@@ -111,6 +111,6 @@ public class JdbcPartitionManager
     @Override
     public void clearCaches()
     {
-        analyticsPartitions = new HashMap<AnalyticsTableType, Set<String>>();
+        analyticsPartitions = new HashMap<>();
     }
 }
