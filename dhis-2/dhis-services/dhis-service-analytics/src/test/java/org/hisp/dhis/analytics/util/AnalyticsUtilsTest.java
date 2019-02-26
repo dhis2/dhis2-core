@@ -527,7 +527,7 @@ public class AnalyticsUtilsTest
         de.setDimensionItemType( DimensionItemType.DATA_ELEMENT );
         de.setValueType( ValueType.TEXT );
 
-        assertEquals(5, AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
+        assertEquals( 5, AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
         assertEquals( "Male", AnalyticsUtils.getIntegerOrValue( "Male", de ) );
     }
 
