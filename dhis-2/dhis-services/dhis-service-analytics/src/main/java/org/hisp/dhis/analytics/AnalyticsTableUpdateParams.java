@@ -130,10 +130,10 @@ public class AnalyticsTableUpdateParams
     }
 
     /**
-     * Returns the start date based on the last years property, i.e. the first
+     * Returns the from date based on the last years property, i.e. the first
      * day of year relative to the last years property.
      *
-     * @return the start date based on the last years property.
+     * @return the from date based on the last years property.
      */
     public Date getFromDate()
     {
