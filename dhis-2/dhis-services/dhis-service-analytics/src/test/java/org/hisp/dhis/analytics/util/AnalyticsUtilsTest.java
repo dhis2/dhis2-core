@@ -532,8 +532,8 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testCalculateYearlyWeightedAverage() {
-
+    public void testCalculateYearlyWeightedAverage() 
+    {
         double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
         assertEquals( 17.5, avg, 0 );
 
@@ -542,13 +542,12 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testBaseMonth() {
-
-        assertEquals(3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0);
-        assertEquals(6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0);
-        assertEquals(9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType()), 0);
-        assertEquals(10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType()), 0);
-        assertEquals(0, AnalyticsUtils.getBaseMonth( new DailyPeriodType()), 0);
-
+    public void testBaseMonth() 
+    {
+        assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
+        assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );
+        assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType()), 0 );
+        assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType()), 0) ;
+        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType()), 0 );
     }
 }
