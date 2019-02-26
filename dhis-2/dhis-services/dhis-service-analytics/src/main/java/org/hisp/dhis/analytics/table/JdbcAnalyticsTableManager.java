@@ -120,7 +120,7 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getStartDate() ), getDimensionColumns( null ), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
@@ -300,6 +300,11 @@ public class JdbcAnalyticsTableManager
         }
 
         return StringUtils.EMPTY;
+    }
+
+    private List<AnalyticsTableColumn> getDimensionColumns()
+    {
+        return getDimensionColumns( null );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )

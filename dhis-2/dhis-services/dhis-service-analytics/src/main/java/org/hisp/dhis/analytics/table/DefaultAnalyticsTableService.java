@@ -127,7 +127,7 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + params.getStartDate() + ", parameters: " + params.toString() );
+        clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + params.getFromDate() + ", parameters: " + params.toString() );
         notifier.notify( jobId, "Performing pre-create table work" );
 
         tableManager.preCreateTables();
