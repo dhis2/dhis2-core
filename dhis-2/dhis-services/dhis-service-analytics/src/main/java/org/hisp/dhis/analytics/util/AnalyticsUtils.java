@@ -100,7 +100,7 @@ import com.google.common.collect.Sets;
  */
 public class AnalyticsUtils
 {
-    public static final int DECIMALS_NO_ROUNDING = 10;
+    private static final int DECIMALS_NO_ROUNDING = 10;
     private static final String KEY_AGG_VALUE = "[aggregated]";
     private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
 
@@ -803,7 +803,7 @@ public class AnalyticsUtils
     public static Double calculateYearlyWeightedAverage( Double year1Value, Double year2Value, Double factor )
     {
         return Precision.round( (year1Value * ((12 - factor) / 12)) + (year2Value * (factor / 12)),
-            AnalyticsUtils.DECIMALS_NO_ROUNDING );
+            DECIMALS_NO_ROUNDING );
     }
 
     public static Double getBaseMonth( PeriodType periodType )
