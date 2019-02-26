@@ -118,12 +118,6 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.EVENT );
-    }
-
-    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(

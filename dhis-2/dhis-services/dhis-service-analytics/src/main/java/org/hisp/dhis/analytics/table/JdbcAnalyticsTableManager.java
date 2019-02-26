@@ -126,12 +126,6 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.DATA_VALUE );
-    }
-
-    @Override
     public String validState()
     {
         boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from datavalue dv where dv.deleted is false limit 1" ).next();

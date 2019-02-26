@@ -96,12 +96,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.ENROLLMENT );
-    }
-
-    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList();
