@@ -123,6 +123,12 @@ public abstract class AbstractJdbcTableManager
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions( getAnalyticsTableType() );
+    }
+    
     /**
      * Override in order to perform work before tables are being generated.
      */

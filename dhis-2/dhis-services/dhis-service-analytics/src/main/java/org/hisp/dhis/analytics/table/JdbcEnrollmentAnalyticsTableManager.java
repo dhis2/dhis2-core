@@ -95,12 +95,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return new HashSet<>(); //TODO this must be implemented properly
-    }
-
-    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList();
