@@ -710,7 +710,7 @@ public abstract class PeriodType
     protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
     
     /**
-    * Offsets the input date with the provided number of periods within the current period type.
+     * Offsets the input date with the provided number of periods within the current period type.
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
      * @param date for where to start the offset.
@@ -726,8 +726,8 @@ public abstract class PeriodType
     }
 
     /**
-     * Returns true if the period spans more than one year (e.g. a Calendar year)
-     * @return boolean
+     * Returns true if the period spans more than one calendar year.
+     * @return true if the period spans more than one calendar year. 
      */
     public boolean spansMultipleCalendarYears()
     {
