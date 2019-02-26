@@ -236,11 +236,11 @@ public class JdbcAnalyticsManager
                     if ( dataValueMap.containsKey( replacementKey )
                         && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
                     {
-                        value = AnalyticsUtils.calculateYearlyWeightedAverage(
+                        Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
                             (Double) dataValueMap.get( replacementKey ), (Double) value,
-                            getBaseMonth( ((Period) period).getPeriodType() ) );
+                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
 
-                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
                     }
                     else
                     {
@@ -251,15 +251,6 @@ public class JdbcAnalyticsManager
                 dataValueMap.remove( key );
             }
         }
-    }
-
-    private Double getBaseMonth( PeriodType periodType )
-    {
-        if ( periodType instanceof FinancialPeriodType)
-        {
-            return (double) ((FinancialPeriodType) periodType).getBaseMonth();
-        }
-        return 0D;
     }
     
     // -------------------------------------------------------------------------

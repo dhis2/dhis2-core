@@ -805,4 +805,13 @@ public class AnalyticsUtils
         return Precision.round( (year1Value * ((12 - factor) / 12)) + (year2Value * (factor / 12)),
             AnalyticsUtils.DECIMALS_NO_ROUNDING );
     }
+
+    public static Double getBaseMonth( PeriodType periodType )
+    {
+        if ( periodType instanceof FinancialPeriodType)
+        {
+            return (double) ((FinancialPeriodType) periodType).getBaseMonth();
+        }
+        return 0D;
+    }
 }

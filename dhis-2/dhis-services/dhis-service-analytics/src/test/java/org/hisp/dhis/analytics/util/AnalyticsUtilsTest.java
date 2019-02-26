@@ -540,4 +540,15 @@ public class AnalyticsUtilsTest
         avg = AnalyticsUtils.calculateYearlyWeightedAverage(10D, -20D, 9D);
         assertEquals( -12.5, avg, 0);
     }
+
+    @Test
+    public void testBaseMonth() {
+
+        assertEquals(3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0);
+        assertEquals(6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0);
+        assertEquals(9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType()), 0);
+        assertEquals(10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType()), 0);
+        assertEquals(0, AnalyticsUtils.getBaseMonth( new DailyPeriodType()), 0);
+
+    }
 }
