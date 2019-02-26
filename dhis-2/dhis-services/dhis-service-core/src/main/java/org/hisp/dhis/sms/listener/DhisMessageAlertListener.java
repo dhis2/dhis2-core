@@ -50,7 +50,7 @@ import java.util.*;
 
 @Transactional
 public class DhisMessageAlertListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
     @Autowired
     private SMSCommandService smsCommandService;

@@ -50,7 +50,7 @@ import java.util.Set;
  */
 @Transactional
 public class SingleEventListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
     // -------------------------------------------------------------------------
     // Dependencies

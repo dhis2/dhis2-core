@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  */
 @Transactional
 public class ProgramStageDataEntrySMSListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
     private static final String MORE_THAN_ONE_TEI = "More than one tracked entity found for given phone number";
     private static final String NO_OU_FOUND = "No organisation unit found";

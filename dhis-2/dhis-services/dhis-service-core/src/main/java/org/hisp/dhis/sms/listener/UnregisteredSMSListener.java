@@ -48,7 +48,7 @@ import java.util.Map;
 
 @Transactional
 public class UnregisteredSMSListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
 
     private static final String USER_NAME = "anonymous";

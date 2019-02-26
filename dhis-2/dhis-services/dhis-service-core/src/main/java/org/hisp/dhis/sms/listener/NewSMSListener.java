@@ -4,13 +4,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.smscompression.Consts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.Metadata;
@@ -24,9 +26,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-public abstract class NewSMSListener implements IncomingSmsListener {
-
+@Transactional
+public abstract class NewSMSListener extends BaseSMSListener {
+	
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
+    
     @Autowired
     private UserService userService;
 
@@ -41,7 +48,7 @@ public abstract class NewSMSListener implements IncomingSmsListener {
 	
     @Autowired
     private OrganisationUnitService organisationUnitService;
-	
+    
 	@Override
 	public boolean accept( IncomingSms sms ) {
         if ( sms == null || !SmsUtils.isBase64(sms) )
@@ -65,7 +72,7 @@ public abstract class NewSMSListener implements IncomingSmsListener {
 			//TODO: Handle exception
 		}
 	}
-
+    
 	private SMSSubmissionHeader getHeader( IncomingSms sms ) {
 		byte[] smsBytes = SmsUtils.getBytes(sms);
 		SMSSubmissionReader reader = new SMSSubmissionReader();
