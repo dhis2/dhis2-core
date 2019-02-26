@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
@@ -102,9 +101,6 @@ public class JdbcAnalyticsTableManager
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private PartitionManager partitionManager;
 
     // -------------------------------------------------------------------------
     // Implementation
