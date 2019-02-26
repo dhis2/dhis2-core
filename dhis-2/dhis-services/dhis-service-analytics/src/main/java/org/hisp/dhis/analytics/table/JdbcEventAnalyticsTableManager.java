@@ -87,7 +87,7 @@ public class JdbcEventAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        Date earliest = params.getStartDate();
+        Date earliest = params.getFromDate();
 
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 

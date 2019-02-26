@@ -135,7 +135,7 @@ public class AnalyticsTableUpdateParams
      *
      * @return the start date based on the last years property.
      */
-    public Date getStartDate()
+    public Date getFromDate()
     {
         Date earliest = null;
 
