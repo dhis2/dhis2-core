@@ -108,10 +108,10 @@ public class DefaultIdentifiableObjectManager
     public void init()
     {
         DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
-                .expireAfterAccess( 2, TimeUnit.HOURS )
-                .initialCapacity( 4 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
-                .build();
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .initialCapacity( 4 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
+            .build();
     }
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;

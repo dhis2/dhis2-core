@@ -63,6 +63,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -84,6 +85,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +168,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map = null;
+            Map<String, Object> map;
 
             try
             {
@@ -226,15 +228,31 @@ public class JdbcAnalyticsManager
                 for ( DimensionalItemObject period : periods )
                 {
                     String[] keyCopy = keyArray.clone();
+
                     keyCopy[periodIndex] = ((Period) period).getIsoDate();
-                    dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+
+                    String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
+
+                    if ( dataValueMap.containsKey( replacementKey )
+                        && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
+                    {
+                        Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
+                            (Double) dataValueMap.get( replacementKey ), (Double) value,
+                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
+
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
+                    }
+                    else
+                    {
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    }
                 }
 
                 dataValueMap.remove( key );
             }
         }
     }
-
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
