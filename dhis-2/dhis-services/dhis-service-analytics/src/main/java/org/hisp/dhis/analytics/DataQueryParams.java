@@ -829,7 +829,7 @@ public class DataQueryParams
 
                 map.putValue( dataPeriod, aggregatePeriod );
 
-                if ( ((Period) aggregatePeriod).getPeriodType().isFinancialYear() )
+                if ( ((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears() )
                 {
                     // when dealing with a Financial Year (a period that spans two consecutive years)
                     // add a second aggregated year corresponding to the second part of the financial year

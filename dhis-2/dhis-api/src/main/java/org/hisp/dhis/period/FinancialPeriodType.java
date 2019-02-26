@@ -179,7 +179,7 @@ public abstract class FinancialPeriodType
     }
 
     @Override
-    public boolean isFinancialYear()
+    public boolean spansMultipleCalendarYears()
     {
         return true;
     }

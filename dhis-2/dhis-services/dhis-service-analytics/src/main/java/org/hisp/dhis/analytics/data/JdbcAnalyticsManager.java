@@ -233,15 +233,14 @@ public class JdbcAnalyticsManager
 
                     String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
 
-                    if ( dataValueMap.containsKey( replacementKey ) )
+                    if ( dataValueMap.containsKey( replacementKey )
+                        && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
                     {
-                        if ( requiresWeightedAvg( (Period) period ) )
-                        {
-                            value = calculateWeightedAvg( (Double) dataValueMap.get( replacementKey ), (Double) value,
-                                ((Period) period).getPeriodType() );
+                        value = AnalyticsUtils.calculateYearlyWeightedAverage(
+                            (Double) dataValueMap.get( replacementKey ), (Double) value,
+                            getBaseMonth( ((Period) period).getPeriodType() ) );
 
-                            dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
-                        }
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
                     }
                     else
                     {
@@ -254,32 +253,13 @@ public class JdbcAnalyticsManager
         }
     }
 
-    private boolean requiresWeightedAvg( Period period  )
+    private Double getBaseMonth( PeriodType periodType )
     {
-        return period.getPeriodType().isFinancialYear();
-    }
-
-    private Double calculateWeightedAvg( Double year1Value, Double year2Value, PeriodType periodType )
-    {
-        int weight = calculateWeightFactor( periodType );
-
-        return Precision.round( (year1Value * ((double) (12 - weight) / 12)) + (year2Value * ((double) weight / 12)),
-                AnalyticsUtils.DECIMALS_NO_ROUNDING );
-    }
-
-    /**
-     * Calculates the factor for the weighted average
-     *
-     * @param periodType a {@link PeriodType}
-     * @return a value based on the passed period type
-     */
-    private int calculateWeightFactor( PeriodType periodType )
-    {
-        if ( periodType.isFinancialYear() )
+        if ( periodType instanceof FinancialPeriodType)
         {
-            return ((FinancialPeriodType) periodType).getBaseMonth();
+            return (double) ((FinancialPeriodType) periodType).getBaseMonth();
         }
-        return 0;
+        return 0D;
     }
     
     // -------------------------------------------------------------------------

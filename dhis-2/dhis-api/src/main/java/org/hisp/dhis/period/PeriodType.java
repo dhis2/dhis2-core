@@ -725,6 +725,15 @@ public abstract class PeriodType
         return getDateWithOffset( dateTimeUnit, offset, calendar ).toJdkDate();
     }
 
+    /**
+     * Returns true if the period spans more than one year (e.g. a Calendar year)
+     * @return boolean
+     */
+    public boolean spansMultipleCalendarYears()
+    {
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -762,10 +771,5 @@ public abstract class PeriodType
     public String toString()
     {
         return "[" + getName() + "]";
-    }
-
-    public boolean isFinancialYear()
-    {
-        return false;
     }
 }
