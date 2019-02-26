@@ -50,8 +50,7 @@ public class JdbcPartitionManager
 {
     private static final Log log = LogFactory.getLog( JdbcPartitionManager.class );
 
-    private Map<AnalyticsTableType, Set<String>> analyticsPartitions = 
-        new HashMap<AnalyticsTableType, Set<String>>();
+    private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
