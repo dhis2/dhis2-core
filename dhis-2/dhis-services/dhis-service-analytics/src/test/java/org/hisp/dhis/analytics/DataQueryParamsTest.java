@@ -626,24 +626,24 @@ public class DataQueryParamsTest
     public void testFinancialYearPeriodResultsInTwoAggregationYears() {
 
         DataQueryParams params = DataQueryParams.newBuilder()
-                .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peC ) ) )
-                .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) )
-                .build();
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peC ) ) )
+            .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) )
+            .build();
 
         ListMap<DimensionalItemObject, DimensionalItemObject> periodMap = params.getDataPeriodAggregationPeriodMap();
         
         assertThat( periodMap.entrySet(), hasSize( 2 ) );
 
         assertThat( periodMap.keySet(), IsIterableContainingInAnyOrder.containsInAnyOrder(
-                hasProperty( "isoDate", Matchers.is( "2017" ) ),
-                hasProperty( "isoDate", Matchers.is( "2018" ) ) )
+            hasProperty( "isoDate", Matchers.is( "2017" ) ),
+            hasProperty( "isoDate", Matchers.is( "2018" ) ) )
         );
 
         assertThat( periodMap.allValues(), hasSize( 2 ));
 
         assertThat( periodMap.allValues(), IsIterableContainingInAnyOrder.containsInAnyOrder(
-                hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ),
-                hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ) )
+            hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ),
+            hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ) )
         );
     }
 }
