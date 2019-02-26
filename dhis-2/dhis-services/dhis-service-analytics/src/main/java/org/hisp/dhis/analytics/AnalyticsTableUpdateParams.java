@@ -189,6 +189,12 @@ public class AnalyticsTableUpdateParams
             return this;
         }
 
+        public Builder withLatestPartition()
+        {
+            this.params.lastYears = AnalyticsTablePartition.LATEST_PARTITION;
+            return this;
+        }
+
         public Builder withSkipResourceTables( boolean skipResourceTables )
         {
             this.params.skipResourceTables = skipResourceTables;
