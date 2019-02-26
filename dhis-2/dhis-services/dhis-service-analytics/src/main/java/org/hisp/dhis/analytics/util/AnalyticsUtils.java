@@ -812,6 +812,7 @@ public class AnalyticsUtils
         {
             return (double) ((FinancialPeriodType) periodType).getBaseMonth();
         }
+        
         return 0D;
     }
 }
