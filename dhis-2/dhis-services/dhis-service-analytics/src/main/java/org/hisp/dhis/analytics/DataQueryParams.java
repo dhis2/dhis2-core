@@ -828,6 +828,16 @@ public class DataQueryParams
                 Period dataPeriod = dataPeriodType.createPeriod( ((Period) aggregatePeriod ).getStartDate() );
 
                 map.putValue( dataPeriod, aggregatePeriod );
+
+                if ( ((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears() )
+                {
+                    // When dealing with a period that spans multiple years, add a second aggregated year 
+                    // corresponding to the second part of the financial year so that the query will count both years.
+
+                    Period endYear = dataPeriodType.createPeriod( ((Period) aggregatePeriod).getEndDate() );
+                    map.putValue( endYear, aggregatePeriod );
+                }
+
             }
         }
 
