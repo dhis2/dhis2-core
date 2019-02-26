@@ -68,7 +68,7 @@ public class JdbcPartitionManager
             "where table_name like '" + tableType.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
 
-        log.info( "Name likeness query analytics SQL: " + sql );
+        log.info( "Information schema analytics table SQL: " + sql );
 
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
 
