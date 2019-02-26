@@ -120,7 +120,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return partitionManager.getEventAnalyticsPartitions();
+        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.EVENT );
     }
 
     @Override

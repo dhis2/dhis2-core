@@ -98,7 +98,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return partitionManager.getEnrollmentAnalyticsPartitions();
+        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.ENROLLMENT );
     }
 
     @Override

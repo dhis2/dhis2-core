@@ -128,7 +128,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return partitionManager.getDataValueAnalyticsPartitions();
+        return partitionManager.getAnalyticsPartitions( AnalyticsTableType.DATA_VALUE );
     }
 
     @Override
