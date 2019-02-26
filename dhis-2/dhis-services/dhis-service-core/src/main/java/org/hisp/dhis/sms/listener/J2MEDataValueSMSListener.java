@@ -101,6 +101,11 @@ public class J2MEDataValueSMSListener
     @Override
     public boolean accept( IncomingSms sms )
     {
+        if ( sms == null || SmsUtils.isBase64(sms) )
+        {
+            return false;
+        }
+        
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.J2ME_PARSER ) != null;
     }
 
