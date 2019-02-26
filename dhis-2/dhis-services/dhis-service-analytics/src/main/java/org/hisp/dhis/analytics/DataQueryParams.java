@@ -831,9 +831,8 @@ public class DataQueryParams
 
                 if ( ((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears() )
                 {
-                    // when dealing with a Financial Year (a period that spans two consecutive years)
-                    // add a second aggregated year corresponding to the second part of the financial year
-                    // so that the resulting SQL query will count both years
+                    // When dealing with a period that spans multiple years, add a second aggregated year 
+                    // corresponding to the second part of the financial year so that the query will count both years.
 
                     Period endYear = dataPeriodType.createPeriod( ((Period) aggregatePeriod).getEndDate() );
                     map.putValue( endYear, aggregatePeriod );
