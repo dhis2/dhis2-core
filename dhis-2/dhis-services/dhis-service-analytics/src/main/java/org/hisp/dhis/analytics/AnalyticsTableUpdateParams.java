@@ -112,7 +112,15 @@ public class AnalyticsTableUpdateParams
      */
     public boolean isPartialUpdate()
     {
-        return lastYears != null || lastYears == AnalyticsTablePartition.LATEST_PARTITION;
+        return lastYears != null || isLatestUpdate();
+    }
+
+    /**
+     * Indicates whether this is an update of the "latest" partition.
+     */
+    public boolean isLatestUpdate()
+    {
+        return lastYears == AnalyticsTablePartition.LATEST_PARTITION;
     }
 
     // -------------------------------------------------------------------------

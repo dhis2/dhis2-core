@@ -67,6 +67,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -379,13 +380,14 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
      *
+     * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
      * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    protected AnalyticsTable getAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -397,6 +399,28 @@ public abstract class AbstractJdbcTableManager
         {
             table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
         }
+
+        return table;
+    }
+
+    /**
+     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date
+     * of the partition is the time of the last successful full analytics table update. The
+     * end date of the partition is the start time of this analytics table update process.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
+     * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+     */
+    protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    {
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
+        Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
+        Date startDate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, defaultDate );
+        Date endDate = params.getStartTime();
+        table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
+
+        log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", startDate, endDate ) );
 
         return table;
     }
