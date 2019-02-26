@@ -793,12 +793,12 @@ public class AnalyticsUtils
     }
 
     /**
-     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month
+     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month.
      *
-     * @param year1Value the value for the first year
-     * @param year2Value the value for the second year
-     * @param factor a month value (0 January, 1 February, etc)
-     * @return the weighted average of the two values
+     * @param year1Value the value for the first year.
+     * @param year2Value the value for the second year.
+     * @param factor a month value, zero represents January.
+     * @return the weighted average of the two values.
      */
     public static Double calculateYearlyWeightedAverage( Double year1Value, Double year2Value, Double factor )
     {
