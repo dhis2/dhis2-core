@@ -178,19 +178,18 @@ public class JdbcAnalyticsTableManager
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
         final boolean skipZeroValues = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_ZERO_VALUES_IN_ANALYTICS_TABLE_EXPORT );
 
-        final String approvalClause = getApprovalJoinClause( partition.getYear() );
         final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
         final String zeroValueCondition = skipZeroValues ? "" : " or de.zeroissignificant = true";
         final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
         final String intClause = zeroValueClause + numericClause;
 
-        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause );
 
-        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'" );
 
-        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'" );
 
-        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null );
     }
 
     /**
@@ -203,11 +202,12 @@ public class JdbcAnalyticsTableManager
      * @param whereClause where clause to constrain data query.
      */
     private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
-        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause )
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
+        final String approvalClause = getApprovalJoinClause( partition.getYear() );
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
