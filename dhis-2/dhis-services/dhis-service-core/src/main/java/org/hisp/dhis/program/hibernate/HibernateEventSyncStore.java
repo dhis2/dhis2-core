@@ -40,25 +40,24 @@ import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 public class HibernateEventSyncStore implements EventSyncStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private SessionFactory sessionFactory;
 
     public void setSessionFactory( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<ProgramStageInstance> getEvents( List<String> uids )
@@ -67,11 +66,11 @@ public class HibernateEventSyncStore implements EventSyncStore
         {
             return new ArrayList<>();
         }
-        
+
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramStageInstance.class );
-        
+
         criteria.add( Restrictions.in( "uid", uids ) );
-        
+
         return criteria.list();
     }
 
