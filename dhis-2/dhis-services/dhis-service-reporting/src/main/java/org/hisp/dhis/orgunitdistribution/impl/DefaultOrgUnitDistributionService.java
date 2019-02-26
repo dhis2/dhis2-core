@@ -63,20 +63,20 @@ public class DefaultOrgUnitDistributionService
     private static final String TITLE_SEP = " - ";
     private static final String FIRST_COLUMN_TEXT = "Organisation unit";
     private static final String HEADER_TOTAL = "Total";
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private OrganisationUnitService organisationUnitService;
-    
+
     public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
     {
         this.organisationUnitService = organisationUnitService;
     }
-    
+
     private ChartService chartService;
-    
+
     public void setChartService( ChartService chartService )
     {
         this.chartService = chartService;
@@ -90,76 +90,76 @@ public class DefaultOrgUnitDistributionService
     public JFreeChart getOrganisationUnitDistributionChart( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit )
     {
         Map<String, Double> categoryValues = new HashMap<>();
-        
+
         Grid grid = getOrganisationUnitDistribution( groupSet, organisationUnit, true );
-        
+
         if ( grid == null || grid.getHeight() != 1 )
         {
             return null;
         }
-        
+
         for ( int i = 1; i < grid.getWidth() - 2; i++ ) // Skip name, none and total column
         {
             categoryValues.put( grid.getHeaders().get( i ).getName(), Double.valueOf( String.valueOf( grid.getRow( 0 ).get( i ) ) ) );
         }
-        
+
         String title = groupSet.getName() + TITLE_SEP + organisationUnit.getName();
-        
+
         JFreeChart chart = chartService.getJFreeChart( title, PlotOrientation.VERTICAL, CategoryLabelPositions.DOWN_45, categoryValues );
-        
+
         return chart;
     }
-    
+
     @Override
     @Transactional
     public Grid getOrganisationUnitDistribution( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit, boolean organisationUnitOnly  )
     {
         Grid grid = new ListGrid();
         grid.setTitle( groupSet.getName() + TITLE_SEP + organisationUnit.getName() );
-        
+
         List<OrganisationUnit> units = organisationUnitOnly ? Arrays.asList( organisationUnit ) : new ArrayList<>( organisationUnit.getChildren() );
         List<OrganisationUnitGroup> groups = new ArrayList<>( groupSet.getOrganisationUnitGroups() );
-        
+
         Collections.sort( units );
         Collections.sort( groups );
-        
+
         if ( !organisationUnitOnly )
         {
             units.add( organisationUnit ); // Add parent itself to the end to get the total
         }
-        
+
         grid.addHeader( new GridHeader( FIRST_COLUMN_TEXT, FIRST_COLUMN_TEXT, ValueType.TEXT, String.class.getName(), false, true ) );
-        
+
         for ( OrganisationUnitGroup group : groups )
         {
             grid.addHeader( new GridHeader( group.getName(), false, false )  );
         }
 
         grid.addHeader( new GridHeader( HEADER_TOTAL, false, false ) );
-        
+
         for ( OrganisationUnit unit : units )
-        {            
+        {
             grid.addRow();
             grid.addValue( unit.getName() );
-            
+
             int totalGroup = 0;
-            
-            Set<OrganisationUnit> subTree = new HashSet<>( organisationUnitService.getOrganisationUnitWithChildren( unit.getId() ) ); 
-            
+
+            Set<OrganisationUnit> subTree = new HashSet<>( organisationUnitService.getOrganisationUnitWithChildren( unit.getId() ) );
+
             for ( OrganisationUnitGroup group : groups )
             {
                 Set<OrganisationUnit> result = Sets.intersection( subTree, group.getMembers() );
-                
+
                 int count = result != null ? result.size() : 0;
-                
+
                 grid.addValue( count );
-                
+
                 totalGroup += count;
             }
 
-            grid.addValue( totalGroup );            
+            grid.addValue( totalGroup );
         }
-        
+
         return grid;
     }
 }

@@ -28,12 +28,18 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -42,12 +48,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * Simplistic http gateway sending smses through a get to a url constructed from
  * the provided urlTemplate and map of static parameters.
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * This gateway is simplistic in that it can't evaluate the response from the
  * provider, being most suitable as an example gateway. For production use a
  * more robust gateway should be used implemented for the specific provider.
- * 
+ *
  * <p>
  * The gateway adds the following keys to the parameters:
  * <ul>
@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
  * <li>message</li>
  * <li>sender - if available in the message</li>
  * </ul>
- * 
+ *
  * An example usage with bulksms.com would be this template:<br/>
  * http://bulksms.vsms.net:5567/eapi/submission/send_sms/2/2.0?username={
  * username
@@ -146,7 +146,7 @@ public class SimplisticHttpGetGateWay
     {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
-        for ( Map.Entry entry : getUrlParameters( config.getParameters() ).entrySet() )
+        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
         {
             uriBuilder.queryParam( entry.getKey().toString(), entry.getValue().toString() );
         }

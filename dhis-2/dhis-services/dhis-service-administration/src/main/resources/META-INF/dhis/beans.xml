@@ -28,17 +28,18 @@
   <!-- Data integrity -->
 
   <bean id="org.hisp.dhis.dataintegrity.DataIntegrityService" class="org.hisp.dhis.dataintegrity.DefaultDataIntegrityService">
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-	<property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
-	<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
-	<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="programIndicatorService" ref="org.hisp.dhis.program.ProgramIndicatorService" />
+    <constructor-arg index="0" ref="org.hisp.dhis.i18n.I18nManager"/>
+    <constructor-arg index="1" ref="org.hisp.dhis.dataelement.DataElementService"/>
+    <constructor-arg index="2" ref="org.hisp.dhis.indicator.IndicatorService"/>
+    <constructor-arg index="3" ref="org.hisp.dhis.dataset.DataSetService"/>
+    <constructor-arg index="4" ref="org.hisp.dhis.organisationunit.OrganisationUnitService"/>
+    <constructor-arg index="5" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"/>
+    <constructor-arg index="6" ref="org.hisp.dhis.validation.ValidationRuleService"/>
+    <constructor-arg index="7" ref="org.hisp.dhis.expression.ExpressionService"/>
+    <constructor-arg index="8" ref="org.hisp.dhis.dataentryform.DataEntryFormService"/>
+    <constructor-arg index="9" ref="org.hisp.dhis.category.CategoryService"/>
+    <constructor-arg index="10" ref="org.hisp.dhis.period.PeriodService"/>
+    <constructor-arg index="11" ref="org.hisp.dhis.program.ProgramIndicatorService"/>
   </bean>
   
   <!-- Maintenance -->

@@ -37,7 +37,6 @@ import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,9 +79,6 @@ public class SchedulerStart extends AbstractStartupRoutine
     private String leaderElectionTime;
 
     private JobConfigurationService jobConfigurationService;
-
-    @Autowired
-    private SystemService systemService;
 
     public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
     {

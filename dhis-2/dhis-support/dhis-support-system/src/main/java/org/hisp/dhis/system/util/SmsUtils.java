@@ -73,6 +73,24 @@ public class SmsUtils
 
         return commandString;
     }
+    
+    public static boolean isBase64( IncomingSms sms ) {
+    	try {
+    		Base64.getDecoder().decode(sms.getText());
+    		return true;
+    	} catch(IllegalArgumentException e) {
+    		return false;
+    	}
+    }  
+    
+    public static byte[] getBytes( IncomingSms sms ) {
+    	try {
+    		byte[] bytes = Base64.getDecoder().decode(sms.getText());
+    		return bytes;
+    	} catch(IllegalArgumentException e) {    		
+    		return null;
+    	}    	
+    }
 
     public static Map<String, Set<OrganisationUnit>> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )

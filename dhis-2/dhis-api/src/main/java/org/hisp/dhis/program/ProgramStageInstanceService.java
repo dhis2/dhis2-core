@@ -28,11 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Abyot Asalefew
@@ -154,4 +158,27 @@ public interface ProgramStageInstanceService
      */
     ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
+
+    /**
+     * Handles files for File EventDataValues and creates audit logs for the upcoming changes. DOES NOT PERSIST the changes to the PSI object
+     *
+     * @param newDataValues EventDataValues to add
+     * @param updatedDataValues EventDataValues to update
+     * @param removedDataValues EventDataValues to remove
+     * @param dataElementsCache DataElements cache map with DataElements required for creating audit logs for changed EventDataValues
+     * @param programStageInstance programStageInstance to which the EventDataValues belongs to
+     * @param singleValue specifies whether the update is a single value update
+     */
+    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+
+    /**
+     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.
+     * DOES PERSIST the changes to the PSI object.
+     *
+     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
+     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
+     */
+    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap );
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,11 +40,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 public interface EventStore
 {
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-    
+    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
+
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-    
+
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
-    
+
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 }

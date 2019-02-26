@@ -58,11 +58,12 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -73,8 +74,6 @@ import static org.mockito.Mockito.*;
 /**
  * @Author Zubair Asghar.
  */
-
-@RunWith( MockitoJUnitRunner.class )
 public class DataValueListenerTest extends DhisConvenienceTest
 {
     private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
@@ -89,6 +88,9 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private static final String ORIGINATOR = "474000000";
     private static final String WRONG_FORMAT = "WRONG_FORMAT";
     private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private CompleteDataSetRegistrationService registrationService;
@@ -169,11 +171,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( registrationService.getCompleteDataSetRegistration( any(), any(), any(), any() ) )
             .thenReturn( fetchedCompleteDataSetRegistration );
 
-        doAnswer(invocation -> {
-            savedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
-            return savedCompleteDataSetRegistration;
-        }).when( registrationService ).saveCompleteDataSetRegistration( any() );
-
         doAnswer( invocation -> {
             deletedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
             return deletedCompleteDataSetRegistration;
@@ -183,11 +180,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( dataValueService.getDataValue( any(), any(), any(), any() ) )
             .thenReturn( fetchedDataValue );
 
-        when( dataValueService.addDataValue( any() ) )
-            .thenAnswer( invocation -> {
-                addedDataValue = (DataValue) invocation.getArguments()[0];
-                return addedDataValue;
-            });
 
         doAnswer( invocation -> {
             updatedDataValue = (DataValue) invocation.getArguments()[0];
@@ -214,14 +206,11 @@ public class DataValueListenerTest extends DhisConvenienceTest
             return updatedIncomingSms;
         }).when( incomingSmsService ).update( any() );
 
-        // Mock for dataElementService
-        when( dataElementService.getDataElement( anyInt() ) ).thenReturn( dataElement );
-
         // Mock for smsSender
         when( smsSender.isConfigured() ).thenReturn( smsConfigured );
 
-        when( smsSender.sendMessage( anyString(), anyString(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
+        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
+            message = invocation.getArgument(1);
             return response;
         });
     }

@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.table;
  */
 
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -43,8 +45,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 
 /**
  * @author Lars Helge Overland

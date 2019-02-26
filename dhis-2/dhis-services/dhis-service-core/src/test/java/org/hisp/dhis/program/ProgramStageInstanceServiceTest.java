@@ -28,10 +28,26 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,17 +57,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Chau Thu Tran
@@ -89,6 +98,12 @@ public class ProgramStageInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
 
+//    @Autowired
+//    private EventDataValueService eventDataValueService;
+
+    @Autowired
+    private TrackedEntityDataValueAuditService dataValueAuditService;
+
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
@@ -104,6 +119,11 @@ public class ProgramStageInstanceServiceTest
     private DataElement dataElementA;
 
     private DataElement dataElementB;
+
+    private DataElement dataElementC;
+
+    private DataElement dataElementD;
+
 
     private ProgramStageDataElement stageDataElementA;
 
@@ -138,6 +158,15 @@ public class ProgramStageInstanceServiceTest
     private Program programA;
 
     private MockI18nFormat mockFormat;
+
+    private EventDataValue eventDataValueA;
+    private EventDataValue eventDataValueB;
+    private EventDataValue eventDataValueC;
+    private EventDataValue eventDataValueD;
+
+    private Map<String, DataElement> dataElementMap = new HashMap<>();
+
+    private List<DataElement> dataElements;
 
     @Override
     public void setUpTest()
@@ -192,9 +221,13 @@ public class ProgramStageInstanceServiceTest
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
+        dataElementC = createDataElement( 'C' );
+        dataElementD = createDataElement( 'D' );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementC );
+        dataElementService.addDataElement( dataElementD );
 
         stageDataElementA = new ProgramStageDataElement( stageA, dataElementA, false, 1 );
         stageDataElementB = new ProgramStageDataElement( stageA, dataElementB, false, 2 );
@@ -267,6 +300,30 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceD2 = new ProgramStageInstance( programInstanceB, stageD );
         programStageInstanceD2.setDueDate( enrollmentDate );
         programStageInstanceD2.setUid( "UID-D2" );
+
+        /**
+         * Prepare data for EventDataValues manipulation tests
+         */
+
+        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+
+        //Check that there are no EventDataValues assigned to PSI
+        ProgramStageInstance tempPsiA = programStageInstanceService.getProgramStageInstance( programStageInstanceA.getUid() );
+        assertEquals( 0, tempPsiA.getEventDataValues().size() );
+
+        //Prepare EventDataValues to manipulate with
+        String storedBy = "test-user";
+        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", storedBy );
+        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", storedBy );
+        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", storedBy );
+        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", storedBy );
+
+        dataElementMap.put( dataElementA.getUid(), dataElementA );
+        dataElementMap.put( dataElementB.getUid(), dataElementB );
+        dataElementMap.put( dataElementC.getUid(), dataElementC );
+        dataElementMap.put( dataElementD.getUid(), dataElementD );
+
+        dataElements = new ArrayList<>( dataElementMap.values() );
     }
 
     @Test
@@ -357,5 +414,145 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
 
         assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
+    }
+
+    @Test
+    public void testEventDataValuesSave()
+    {
+        addInitialEventDataValues();
+
+        //Check that there are 4 EventDataValues
+        ProgramStageInstance tempPsiA = programStageInstanceService.getProgramStageInstance( programStageInstanceA.getUid() );
+        assertEquals( 4, tempPsiA.getEventDataValues().size() );
+
+        //Check that there are 4 audits of CREATE type
+        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        assertEquals( 4, auditCreateCount );
+
+        //Fetch value of the EventDataValueB and compare that it is correct
+        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "2", eventDataValueBValue );
+
+        //Fetch value of the EventDataValueC and compare that it is correct
+        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "3", eventDataValueCValue );
+    }
+
+    @Test
+    public void testEventDataValuesUpdateAndDeletion()
+    {
+        addInitialEventDataValues();
+
+        //Prepare data for update and delete. eventDataValueA has to be put into updated because I am accessing DAO layer directly, so I am skipping check from DTO layer
+        eventDataValueB.setValue( "12" );
+        eventDataValueC.setValue( "13" );
+        eventDataValueD.setValue( "14" );
+
+        Set<EventDataValue> updatedEventDataValues = new HashSet<>( Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC ) );
+
+        //Update PSI: create 0, update 3, delete 1
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), updatedEventDataValues, Collections.singleton( eventDataValueD ),
+            dataElementMap, programStageInstanceA, false );
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
+
+        //Check that there are 3 EventDataValues
+        ProgramStageInstance  tempPsiA = programStageInstanceService.getProgramStageInstance( programStageInstanceA.getUid() );
+        assertEquals( 3, tempPsiA.getEventDataValues().size() );
+
+        //Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1 of DELETE type
+        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        assertEquals( 4, auditCreateCount );
+
+        int auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        assertEquals( 3, auditUpdateCount );
+
+        int auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        assertEquals( 1, auditDeleteCount );
+
+        //Fetch value of the EventDataValueB and compare that it is correct
+        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "12", eventDataValueBValue );
+
+        //Fetch value of the EventDataValueC and compare that it is correct
+        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "13", eventDataValueCValue );
+    }
+
+    @Test
+    public void testEventDataValuesSingleValueUpdate()
+    {
+        addInitialEventDataValues();
+
+        //Update 1 EventDataVaue and run a "SingleValue" update and check that others, not mentioned, EventDataValues are not touched
+        eventDataValueB.setValue( "22" );
+
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(), Collections.singleton( eventDataValueB ), Collections.emptySet(),
+            dataElementMap, programStageInstanceA, true );
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
+
+        //Check that there are 4 EventDataValues
+        ProgramStageInstance  tempPsiA = programStageInstanceService.getProgramStageInstance( programStageInstanceA.getUid() );
+        assertEquals( 4, tempPsiA.getEventDataValues().size() );
+
+        //Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1 of DELETE type
+        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        assertEquals( 4, auditCreateCount );
+
+        int auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        assertEquals( 1, auditUpdateCount );
+
+        int auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        assertEquals( 0, auditDeleteCount );
+
+        //Fetch value of the EventDataValueB and compare that it is correct
+        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "22", eventDataValueBValue );
+
+        //Fetch value of the EventDataValueC and compare that it is correct
+        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ))
+            .findFirst()
+            .get()
+            .getValue();
+
+        assertEquals( "3", eventDataValueCValue );
+    }
+
+    private void addInitialEventDataValues()
+    {
+        //Check that there are no EventDataValues assigned to PSI
+        ProgramStageInstance tempPsiA = programStageInstanceService.getProgramStageInstance( programStageInstanceA.getUid() );
+        assertEquals( 0, tempPsiA.getEventDataValues().size() );
+
+        //Prepare EventDataValues -> save 4 of them to PSI
+        Set<EventDataValue> newEventDataValues = new HashSet<>( Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ));
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues, Collections.emptySet(), Collections.emptySet(),
+            dataElementMap, programStageInstanceA, false );
+        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }
