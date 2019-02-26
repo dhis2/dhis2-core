@@ -548,6 +548,6 @@ public class AnalyticsUtilsTest
         assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );
         assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType()), 0 );
         assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType()), 0) ;
-        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType()), 0 );
+        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
     }
 }
