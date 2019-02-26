@@ -208,6 +208,7 @@ public class JdbcAnalyticsTableManager
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
         final String approvalClause = getApprovalJoinClause( partition.getYear() );
+        //TODO String timeClause which checks data value created date between partition start and end date for latest
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
