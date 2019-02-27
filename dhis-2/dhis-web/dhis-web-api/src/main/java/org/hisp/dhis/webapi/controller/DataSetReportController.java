@@ -33,7 +33,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -99,9 +98,9 @@ public class DataSetReportController
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
 
-        if ( FormType.CUSTOM != dataSet.getFormType() )
+        if ( !dataSet.getFormType().isCustom() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set form type is not 'custom': " + dataSet.getFormType() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
