@@ -186,6 +186,7 @@ public class AnalyticsServiceMetadataTest
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsIndicatorGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
@@ -253,6 +254,7 @@ public class AnalyticsServiceMetadataTest
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsDataElementGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();

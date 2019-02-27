@@ -40,8 +40,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.datasetreport.DataSetReportService;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -106,20 +104,6 @@ public class GenerateDataSetReportAction
     public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
-    }
-
-    private I18nFormat format;
-
-    public void setFormat( I18nFormat format )
-    {
-        this.format = format;
-    }
-
-    private I18n i18n;
-
-    public void setI18n( I18n i18n )
-    {
-        this.i18n = i18n;
     }
 
     @Autowired
@@ -262,24 +246,13 @@ public class GenerateDataSetReportAction
 
         registration = registrationService.getCompleteDataSetRegistration( selectedDataSet, selectedPeriod, selectedOrgunit, attributeOptionCombo );
 
-        if ( formType.isCustom() )
+        if ( formType.isCustom() && type == null )
         {
-            if ( type != null )
-            {
-                grids = dataSetReportService.getCustomDataSetReportAsGrid( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly, format );
-            }
-            else
-            {
-                customDataEntryFormCode = dataSetReportService.getCustomDataSetReport( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly, format );
-            }
-        }
-        else if ( formType.isSection() )
-        {
-            grids = dataSetReportService.getSectionDataSetReport( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly, format, i18n );
+            customDataEntryFormCode = dataSetReportService.getCustomDataSetReport( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly );
         }
         else
         {
-            grids = dataSetReportService.getDefaultDataSetReport( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly, format, i18n );
+            grids = dataSetReportService.getDataSetReportAsGrid( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly );
         }
 
         return type != null ? type : formType.toString();

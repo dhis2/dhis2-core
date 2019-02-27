@@ -272,7 +272,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void convertAnalyticsRequestWithDataElementGroup()
     {
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
