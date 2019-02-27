@@ -99,7 +99,7 @@ public class DataSetReportController
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
 
-        if ( FormType.SECTION != dataSet.getFormType() )
+        if ( FormType.CUSTOM != dataSet.getFormType() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set form type is not 'custom': " + dataSet.getFormType() ) );
         }
