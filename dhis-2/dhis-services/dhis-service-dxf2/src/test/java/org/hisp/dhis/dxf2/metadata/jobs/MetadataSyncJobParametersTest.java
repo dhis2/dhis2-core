@@ -28,84 +28,67 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.retry.support.RetryTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author aamerm
  */
-@Category( IntegrationTest.class )
 public class MetadataSyncJobParametersTest
-    extends IntegrationTestBase
 {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    @Autowired
     @Mock
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
     @Mock
     private RetryTemplate retryTemplate;
 
-    @Autowired
     @Mock
     private MetadataRetryContext metadataRetryContext;
 
-    @Autowired
     @Mock
     private MetadataSyncPreProcessor metadataSyncPreProcessor;
 
-    @Autowired
     @Mock
     private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    @Autowired
+    @Mock
+
+    private SynchronizationManager synchronizationManager;
     @Mock
     private MetadataSyncService metadataSyncService;
 
-    @InjectMocks
-    @Autowired
     private MetadataSyncJob metadataSyncJob;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private MetadataSyncSummary metadataSyncSummary;
     private MetadataVersion metadataVersion;
     private List<MetadataVersion> metadataVersions;
 
     @Before
-    public void setUp() throws Exception
+    public void setUp()
     {
         MockitoAnnotations.initMocks( this );
 
@@ -113,6 +96,9 @@ public class MetadataSyncJobParametersTest
         metadataVersion = mock( MetadataVersion.class );
         metadataVersions = new ArrayList<>();
         metadataVersions.add( metadataVersion );
+
+        metadataSyncJob = new MetadataSyncJob( systemSettingManager, retryTemplate, synchronizationManager,
+            metadataSyncPreProcessor, metadataSyncPostProcessor, metadataSyncService, metadataRetryContext );
     }
 
     // TODO: can we write more tests. This might cover a lot more tests.
@@ -127,7 +113,7 @@ public class MetadataSyncJobParametersTest
         metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -144,10 +130,11 @@ public class MetadataSyncJobParametersTest
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         doNothing().when( metadataRetryContext ).updateRetryContext( any( String.class ), any( String.class ), eq( metadataVersion ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
+
         metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -168,7 +155,7 @@ public class MetadataSyncJobParametersTest
         metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -189,7 +176,7 @@ public class MetadataSyncJobParametersTest
         metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -198,9 +185,4 @@ public class MetadataSyncJobParametersTest
         verify( metadataSyncPostProcessor, times( 1 ) ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

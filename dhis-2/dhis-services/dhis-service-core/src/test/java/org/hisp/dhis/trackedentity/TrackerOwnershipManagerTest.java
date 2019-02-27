@@ -28,6 +28,10 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -40,10 +44,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 
 /**

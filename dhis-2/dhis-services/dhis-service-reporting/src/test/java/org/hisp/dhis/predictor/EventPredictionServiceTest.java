@@ -28,7 +28,16 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
@@ -73,22 +82,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Test the ability of predictions to access event data through analytics.
@@ -104,9 +103,6 @@ public class EventPredictionServiceTest
 
     @Autowired
     private PredictionService predictionService;
-
-    @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -328,12 +324,6 @@ public class EventPredictionServiceTest
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
-
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstanceA, dataElementX, "4" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstanceB, dataElementX, "5" );
-
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );

@@ -28,14 +28,23 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -56,17 +65,16 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair on 04.07.17.
@@ -110,34 +118,51 @@ public class DefaultDataSetNotificationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private DataSetNotificationTemplateService dsntService;
+    private final DataSetNotificationTemplateService dsntService;
+
+    private final MessageService internalMessageService;
+
+    private final ProgramMessageService externalMessageService;
+
+    private final NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
+
+    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    private final PeriodService periodService;
+
+    private final CategoryService categoryService;
+
+    private final I18nManager i18nManager;
+
+    private final OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private MessageService internalMessageService;
+    public DefaultDataSetNotificationService( DataSetNotificationTemplateService dsntService, MessageService internalMessageService, ProgramMessageService externalMessageService,
+         NotificationMessageRenderer<CompleteDataSetRegistration> renderer, CompleteDataSetRegistrationService completeDataSetRegistrationService, PeriodService periodService,
+         CategoryService categoryService, I18nManager i18nManager, OrganisationUnitService organisationUnitService )
+    {
+        checkNotNull( dsntService );
+        checkNotNull( internalMessageService );
+        checkNotNull( externalMessageService );
+        checkNotNull( renderer );
+        checkNotNull( completeDataSetRegistrationService );
+        checkNotNull( periodService );
+        checkNotNull( categoryService );
+        checkNotNull( i18nManager );
+        checkNotNull( organisationUnitService );
 
-    @Autowired
-    private ProgramMessageService externalMessageService;
+        this.dsntService = dsntService;
+        this.internalMessageService = internalMessageService;
+        this.externalMessageService = externalMessageService;
+        this.renderer = renderer;
+        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+        this.periodService = periodService;
+        this.categoryService = categoryService;
+        this.i18nManager = i18nManager;
+        this.organisationUnitService = organisationUnitService;
+    }
 
-    @Autowired
-    private NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
-
-    @Autowired
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-    @Autowired
-    private PeriodService periodService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
@@ -212,7 +237,7 @@ public class DefaultDataSetNotificationService
 
             for ( DataSet dataSet : template.getDataSets() )
             {
-                if ( isValidForSending( createRespectiveRegistrationObject( dataSet, new OrganisationUnit() ), template ) )
+                if ( isValidForSending( getDataSetPeriod( dataSet ), template ) )
                 {
                     summaryCreated = true;
 
@@ -259,6 +284,13 @@ public class DefaultDataSetNotificationService
     private String createSubjectString( DataSetNotificationTemplate template )
     {
         return template.getRelativeScheduledDays() < 0 ? PENDING + SUMMARY_SUBJECT : OVERDUE + SUMMARY_SUBJECT;
+    }
+
+    private Period getDataSetPeriod( DataSet dataSet )
+    {
+        Period period = dataSet.getPeriodType().createPeriod();
+
+        return periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
     }
 
     private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
@@ -308,7 +340,7 @@ public class DefaultDataSetNotificationService
 
     private boolean isScheduledNow( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
     {
-        return !isCompleted( registration ) && isValidForSending( registration, template );
+        return !isCompleted( registration ) && isValidForSending( registration.getPeriod(), template );
     }
 
     private boolean isCompleted( CompleteDataSetRegistration registration )
@@ -316,14 +348,14 @@ public class DefaultDataSetNotificationService
        CompleteDataSetRegistration completed = completeDataSetRegistrationService.getCompleteDataSetRegistration(
            registration.getDataSet(), registration.getPeriod(), registration.getSource(), registration.getAttributeOptionCombo() );
 
-        return completed != null;
+        return completed != null && completed.getCompleted();
     }
 
-    private boolean isValidForSending( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
+    private boolean isValidForSending( Period period, DataSetNotificationTemplate template )
     {
         int daysToCompare;
 
-        Date dueDate = registration.getPeriod().getEndDate();
+        Date dueDate = period.getEndDate();
 
         daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
 
@@ -339,7 +371,7 @@ public class DefaultDataSetNotificationService
 
     private ProgramMessageRecipients resolveEmails( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
     {
-        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ));
+        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ) );
 
         return pmr;
     }

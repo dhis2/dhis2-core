@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,12 +47,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -136,19 +135,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             return errors;
         }
-        
+
         if ( !aclService.canDataRead( user, program ) )
         {
             errors.add( "User has no data read access to program: " + program.getUid() );
         }
-        
+
         TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
 
         if ( !aclService.canDataRead( user, trackedEntityType ) )
         {
             errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
         }
-        
+
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
@@ -167,12 +166,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             return errors;
         }
-        
+
         if ( !aclService.canDataWrite( user, program ) )
         {
             errors.add( "User has no data write access to program: " + program.getUid() );
         }
-        
+
         TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
@@ -184,7 +183,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
-        
+
         return errors;
     }
 
@@ -471,18 +470,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, TrackedEntityDataValue dataValue )
+    public List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement )
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || dataValue == null )
+        if ( user == null || user.isSuper() )
         {
             return errors;
         }
 
-        errors.addAll( canRead( user, dataValue.getProgramStageInstance() ) );
-
-        DataElement dataElement = dataValue.getDataElement();
+        errors.addAll( canRead( user, programStageInstance ) );
 
         if ( !aclService.canRead( user, dataElement ) )
         {
@@ -493,18 +490,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, TrackedEntityDataValue dataValue )
+    public List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement )
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || dataValue == null )
+        if ( user == null || user.isSuper() )
         {
             return errors;
         }
 
-        errors.addAll( canWrite( user, dataValue.getProgramStageInstance() ) );
-
-        DataElement dataElement = dataValue.getDataElement();
+        errors.addAll( canWrite( user, programStageInstance ) );
 
         if ( !aclService.canRead( user, dataElement ) )
         {

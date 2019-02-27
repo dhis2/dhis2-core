@@ -29,16 +29,15 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -63,19 +62,21 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class AnalyticsServiceMetadataTest
 {
     @Mock
@@ -117,17 +118,17 @@ public class AnalyticsServiceMetadataTest
     @Mock
     private CacheProvider cacheProvider;
 
-    private AnalyticsService target;
+    @Mock
+    private Environment environment;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private AnalyticsService target;
 
     @Before
     public void setUp()
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
+            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();
         when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);
@@ -135,7 +136,7 @@ public class AnalyticsServiceMetadataTest
 
     private void initMock( DataQueryParams params )
     {
-        when( securityManager.withDataApprovalConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) ).thenReturn( params );
         when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
             DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
@@ -143,7 +144,6 @@ public class AnalyticsServiceMetadataTest
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
-
     }
 
     @Test
@@ -160,13 +160,13 @@ public class AnalyticsServiceMetadataTest
                     new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     new DimensionalKeywords(
                         Lists.newArrayList(
-                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
-                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
+                            buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
+                            buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
                     ),
                     ImmutableList.of(
                         new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                )    ) )
+                ) ) )
             )
             .build();
 
@@ -183,10 +183,10 @@ public class AnalyticsServiceMetadataTest
             hasProperty( "name", is( "Chiefdom" ) ),
             hasProperty( "uid", is( "tTUf91fCytl" ) ),
             hasProperty( "code", is( "OU_12345" ) ) ) );
-
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsIndicatorGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
@@ -198,12 +198,12 @@ public class AnalyticsServiceMetadataTest
         DataQueryParams params = DataQueryParams.newBuilder()
             // DATA ELEMENTS
             .withDimensions( Lists.newArrayList(
-                    new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                    new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                    "display name",
-                            new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
-                    Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+                new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
+                "display name",
+                    new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
+                Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                    createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
@@ -254,6 +254,7 @@ public class AnalyticsServiceMetadataTest
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void metadataContainsDataElementGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
@@ -263,21 +264,21 @@ public class AnalyticsServiceMetadataTest
         dataElementGroup.setCode( "COD_1000" );
         dataElementGroup.setUid( "wjP19dkFeIk" );
         DataQueryParams params = DataQueryParams.newBuilder()
-                // DATA ELEMENTS
-                .withDimensions( Lists.newArrayList(
-                        new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                                "display name",
-                                new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
-                                Lists.newArrayList(
-                                        createDataElement( 'A', new CategoryCombo() ),
-                                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-                .withFilters( Collections.singletonList(
-                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                                ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
-                .withIgnoreLimit( true )
-                .withSkipData( true )
-                .build();
+            // DATA ELEMENTS
+            .withDimensions( Lists.newArrayList(
+                new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
+                    "display name",
+                    new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
+                    Lists.newArrayList(
+                        createDataElement( 'A', new CategoryCombo() ),
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+            .withIgnoreLimit( true )
+            .withSkipData( true )
+            .build();
 
         initMock(params);
 

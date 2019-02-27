@@ -10,7 +10,7 @@ services:
 
   e2e-test-web:
     build:
-      dockerfile: ../../Dockerfile
+      dockerfile: Dockerfile
       context: ../..
     volumes:
       - ./config/dhis2_home:/DHIS2_home

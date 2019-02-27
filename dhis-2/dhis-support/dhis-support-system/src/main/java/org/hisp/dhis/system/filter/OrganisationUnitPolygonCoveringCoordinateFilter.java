@@ -28,6 +28,7 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,10 +49,8 @@ public class OrganisationUnitPolygonCoveringCoordinateFilter
     @Override
     public boolean retain( OrganisationUnit unit )
     {
-        FeatureType featureType = unit.getFeatureType();
-        String coordinate = unit.getCoordinates();
-
-        return featureType != null && coordinate != null && !coordinate.isEmpty() && featureType.isPolygon()
-            && GeoUtils.checkPointWithMultiPolygon( longitude, latitude, unit.getCoordinates(), featureType );
+        Geometry geometry = unit.getGeometry();
+        return geometry != null && FeatureType.getTypeFromName(geometry.getGeometryType()) == FeatureType.POLYGON
+            && GeoUtils.checkPointWithMultiPolygon( longitude, latitude, unit.getGeometry() );
     }
 }

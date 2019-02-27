@@ -98,6 +98,9 @@
 
   <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
 
+  <bean id="org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService"
+    class="org.hisp.dhis.dxf2.events.eventdatavalue.DefaultEventDataValueService" />
+
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
@@ -163,7 +166,7 @@
   </bean>
 
   <bean id="inputUtils" class="org.hisp.dhis.dxf2.utils.InputUtils" />
-  
+
   <bean id="categoryUtils" class="org.hisp.dhis.dxf2.utils.CategoryUtils" />
 
   <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
@@ -174,6 +177,8 @@
   <bean id="eventSynchronization" class="org.hisp.dhis.dxf2.sync.EventSynchronization" />
 
   <bean id="dataValuesSynchronization" class="org.hisp.dhis.dxf2.sync.DataValueSynchronization" />
+
+  <bean id="completeDataSetRegistrationSynchronization" class="org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization" />
 
   <!-- Scheduling -->
   <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob" />

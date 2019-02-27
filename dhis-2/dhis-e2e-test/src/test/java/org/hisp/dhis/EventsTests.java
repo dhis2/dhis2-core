@@ -89,6 +89,7 @@ public class EventsTests
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty( "orgUnit", orgUnitId );
         jsonObject.addProperty( "program", programId );
+        jsonObject.addProperty( "eventDate", "2013-05-07" );
 
         JsonArray dataValues = new JsonArray();
         JsonObject dataElement = new JsonObject();

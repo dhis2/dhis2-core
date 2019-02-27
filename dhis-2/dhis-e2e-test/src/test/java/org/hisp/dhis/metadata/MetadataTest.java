@@ -125,7 +125,9 @@ public class MetadataTest
     @MethodSource( "getSchemaEndpoints" )
     public void postBasedOnSchema( String endpoint, String schema )
     {
-        List blacklistedEndpoints = Arrays.asList( "jobConfigurations", "relationshipTypes" );
+        List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
+            "relationshipTypes",
+            "messageConversations" ); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
