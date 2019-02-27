@@ -37,7 +37,8 @@ import java.util.stream.Collectors;
  */
 public class DimensionalKeywords
 {
-    public class Keyword {
+    public class Keyword
+    {
 
         private String key;
 
@@ -47,7 +48,7 @@ public class DimensionalKeywords
 
         private String code;
 
-        Keyword(String key, String uid, String name, String code)
+        Keyword( String key, String uid, String name, String code )
         {
             this.key = key;
             this.uid = uid;
@@ -55,19 +56,23 @@ public class DimensionalKeywords
             this.code = code;
         }
 
-        public String getKey() {
+        public String getKey()
+        {
             return key;
         }
 
-        public String getUid() {
+        public String getUid()
+        {
             return uid;
         }
 
-        public String getName() {
+        public String getName()
+        {
             return name;
         }
 
-        public String getCode() {
+        public String getCode()
+        {
             return code;
         }
     }

@@ -327,6 +327,7 @@ public class AnalyticsServiceMetadataTest
         initMock(params);
 
         Grid grid = target.getAggregatedDataValues( params );
+
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
         assertTrue(items.containsKey(THIS_QUARTER.name()));
     }
