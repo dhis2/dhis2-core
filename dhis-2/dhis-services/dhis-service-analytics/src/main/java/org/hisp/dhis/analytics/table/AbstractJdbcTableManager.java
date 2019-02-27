@@ -28,6 +28,16 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,15 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
 
 /**
  * @author Lars Helge Overland
@@ -121,6 +122,12 @@ public abstract class AbstractJdbcTableManager
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions( getAnalyticsTableType() );
+    }
+    
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -324,11 +331,12 @@ public abstract class AbstractJdbcTableManager
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+
+            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
         }
 
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
-
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
@@ -389,9 +397,7 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
 
-        String baseName = getAnalyticsTableType().getTableName();
-
-        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         for ( Integer year : dataYears )
         {
@@ -476,7 +482,7 @@ public abstract class AbstractJdbcTableManager
     private void swapTable( String tempTableName, String realTableName )
     {
         final String sql =
-            "drop table if exists " + realTableName + ";" +
+            "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );

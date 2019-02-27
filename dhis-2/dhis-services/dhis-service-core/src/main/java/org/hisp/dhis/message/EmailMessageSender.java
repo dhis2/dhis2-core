@@ -28,8 +28,13 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,12 +46,13 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
@@ -56,12 +62,8 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -74,6 +76,7 @@ public class EmailMessageSender
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
     private static final String LB = System.getProperty( "line.separator" );
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
+    private static final String HOST = "Host: ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -91,6 +94,13 @@ public class EmailMessageSender
     public void setUserSettingService( UserSettingService userSettingService )
     {
         this.userSettingService = userSettingService;
+    }
+
+    private DhisConfigurationProvider configurationProvider;
+
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -112,8 +122,9 @@ public class EmailMessageSender
             return status;
         }
 
+        String serverBaseUrl = configurationProvider.getServerBaseUrl();
         String plainContent = renderPlainContent( text, sender );
-        String htmlContent = renderHtmlContent( text, footer, sender );
+        String htmlContent = renderHtmlContent( text, footer, serverBaseUrl != null ? HOST + serverBaseUrl : "", sender );
 
         try
         {
@@ -290,7 +301,7 @@ public class EmailMessageSender
                 + (sender.getPhoneNumber() != null ? (sender.getPhoneNumber() + LB) : StringUtils.EMPTY));
     }
 
-    private String renderHtmlContent( String text, String footer, User sender )
+    private String renderHtmlContent( String text, String footer, String serverBaseUrl, User sender )
     {
         Map<String, Object> content = new HashMap<>();
 
@@ -302,6 +313,11 @@ public class EmailMessageSender
         if ( !Strings.isNullOrEmpty( footer ) )
         {
             content.put( "footer", footer );
+        }
+
+        if ( !Strings.isNullOrEmpty( serverBaseUrl ) )
+        {
+            content.put("serverBaseUrl", serverBaseUrl );
         }
 
         if ( sender != null )

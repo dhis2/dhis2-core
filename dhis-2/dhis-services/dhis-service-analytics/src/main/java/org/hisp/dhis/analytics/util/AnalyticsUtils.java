@@ -28,25 +28,50 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.MetadataItem;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.NameableObjectUtils;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -55,12 +80,12 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.joda.time.DateTime;
@@ -765,5 +790,29 @@ public class AnalyticsUtils
     public static boolean isTableLayout( List<String> columns, List<String> rows )
     {
         return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
+    }
+
+    /**
+     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month.
+     *
+     * @param year1Value the value for the first year.
+     * @param year2Value the value for the second year.
+     * @param factor a month value, zero represents January.
+     * @return the weighted average of the two values.
+     */
+    public static Double calculateYearlyWeightedAverage( Double year1Value, Double year2Value, Double factor )
+    {
+        return Precision.round( (year1Value * ((12 - factor) / 12)) + (year2Value * (factor / 12)),
+            DECIMALS_NO_ROUNDING );
+    }
+
+    public static Double getBaseMonth( PeriodType periodType )
+    {
+        if ( periodType instanceof FinancialPeriodType)
+        {
+            return (double) ((FinancialPeriodType) periodType).getBaseMonth();
+        }
+        
+        return 0D;
     }
 }

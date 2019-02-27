@@ -28,12 +28,15 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -42,8 +45,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -89,9 +94,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.hisp.dhis.common.DimensionType.*;
@@ -107,6 +114,8 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 public class DefaultDimensionService
     implements DimensionService
 {
+    private static final Log log = LogFactory.getLog( DefaultDimensionService.class );
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -161,17 +170,8 @@ public class DefaultDimensionService
     public <T extends IdentifiableObject> List<T> getCanReadObjects( User user, List<T> objects )
     {
         List<T> list = new ArrayList<>( objects );
-        Iterator<T> iterator = list.iterator();
 
-        while ( iterator.hasNext() )
-        {
-            T object = iterator.next();
-
-            if ( !aclService.canRead( user, object ) )
-            {
-                iterator.remove();
-            }
-        }
+        list.removeIf(object -> !aclService.canRead(user, object));
 
         return list;
     }
@@ -350,10 +350,10 @@ public class DefaultDimensionService
             String id1 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1 );
             String id2 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2 );
 
-            DataElementOperand operand = null;
-            ReportingRate reportingRate = null;
-            ProgramDataElementDimensionItem programDataElement = null;
-            ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
+            DataElementOperand operand;
+            ReportingRate reportingRate;
+            ProgramDataElementDimensionItem programDataElement;
+            ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
             if ( ( operand = getDataElementOperand( idScheme, id0, id1, id2 ) ) != null )
             {
@@ -386,9 +386,204 @@ public class DefaultDimensionService
         return null;
     }
 
+    @Override
+    public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
+    {
+        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
+    }
+
+    @Override
+    public Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds )
+    {
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds = getAtomicIds( itemIds );
+
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = getAtomicObjects( atomicIds );
+
+        return getItemObjectMap( itemIds, atomicObjects );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
+
+    /**
+     * Breaks down a set of dimensional item ids into the atomic object ids
+     * stored in the database. Returns a map from each class of atomic objects
+     * to the set of ids for that object class.
+     *
+     * @param itemIds a set of dimension item object ids.
+     * @return map from atomic object classes to sets of atomic ids.
+     */
+    private SetMap<Class<? extends IdentifiableObject>, String> getAtomicIds( Set<DimensionalItemId> itemIds )
+    {
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds = new SetMap<>();
+
+        for ( DimensionalItemId id : itemIds )
+        {
+            if ( !id.hasValidIds() )
+            {
+                continue;
+            }
+
+            switch ( id.getDimensionItemType() )
+            {
+                case DATA_ELEMENT:
+                    atomicIds.putValue( DataElement.class, id.getId0() );
+                    break;
+
+                case DATA_ELEMENT_OPERAND:
+                    atomicIds.putValue( DataElement.class, id.getId0() );
+                    if ( id.getId1() != null )
+                    {
+                        atomicIds.putValue( CategoryOptionCombo.class, id.getId1() );
+                    }
+                    if ( id.getId2() != null )
+                    {
+                        atomicIds.putValue( CategoryOptionCombo.class, id.getId2() );
+                    }
+                    break;
+
+                case REPORTING_RATE:
+                    atomicIds.putValue( DataSet.class, id.getId0() );
+                    break;
+
+                case PROGRAM_DATA_ELEMENT:
+                    atomicIds.putValue( Program.class, id.getId0() );
+                    atomicIds.putValue( DataElement.class, id.getId1() );
+                    break;
+
+                case PROGRAM_ATTRIBUTE:
+                    atomicIds.putValue( Program.class, id.getId0() );
+                    atomicIds.putValue( TrackedEntityAttribute.class, id.getId1() );
+                    break;
+
+                case PROGRAM_INDICATOR:
+                    atomicIds.putValue( ProgramIndicator.class, id.getId0() );
+                    break;
+
+                default:
+                    log.warn( "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getAtomicIds" );
+                    break;
+            }
+        }
+
+        return atomicIds;
+    }
+
+    /**
+     * Finds the atomic identifiable objects from the database for each object
+     * class. This is done for all objects in each class in a single call, for
+     * performance (especially for validation rules which may need to look up
+     * hundreds if not thousands of objects from a class.
+     *
+     * @param atomicIds a map from each class of atomic objects to the set
+     *                  of ids for that identifiable object class.
+     * @return a map from each class of atomic objects to a map that associates
+     *         each id of that class with an atomic object.
+     */
+    private MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
+    {
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
+
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        {
+            atomicObjects.putEntries( e.getKey(),
+                idObjectManager.get( e.getKey(), e.getValue() ).stream()
+                    .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
+        }
+
+        return atomicObjects;
+    }
+
+    /**
+     * Gets a map from dimension item ids to their dimension item objects.
+     *
+     * @param itemIds a set of ids of the dimension item objects to get.
+     * @param atomicObjects a map from each class of atomic objects to a map that
+     *                      associates each id of that class with an atomic object.
+     * @return a map from the item ids to the dimension item objects.
+     */
+    private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap(Set<DimensionalItemId> itemIds,
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects )
+    {
+        Map<DimensionalItemId, DimensionalItemObject> itemObjectMap = new HashMap<>();
+
+        for ( DimensionalItemId id : itemIds )
+        {
+            if ( !id.hasValidIds() )
+            {
+                continue;
+            }
+
+            switch ( id.getDimensionItemType() )
+            {
+                case DATA_ELEMENT:
+                    DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+                    if ( dataElement != null )
+                    {
+                        itemObjectMap.put( id, dataElement );
+                    }
+                    break;
+
+                case DATA_ELEMENT_OPERAND:
+                    dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+                    CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
+                    CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
+                    if ( dataElement != null &&
+                        ( id.getId1() != null ) == ( categoryOptionCombo != null ) &&
+                        ( id.getId2() != null ) == ( attributeOptionCombo != null ) )
+                    {
+                        DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
+                        itemObjectMap.put( id, dataElementOperand );
+                    }
+                    break;
+
+                case REPORTING_RATE:
+                    DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
+                    if ( dataSet != null )
+                    {
+                        ReportingRate reportingRate = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
+                        itemObjectMap.put( id, reportingRate );
+                    }
+                    break;
+
+                case PROGRAM_DATA_ELEMENT:
+                    Program program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
+                    dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
+                    if ( program != null && dataElement != null )
+                    {
+                        ProgramDataElementDimensionItem programDataElementDimensionItem = new ProgramDataElementDimensionItem( program, dataElement );
+                        itemObjectMap.put( id, programDataElementDimensionItem );
+                    }
+                    break;
+
+                case PROGRAM_ATTRIBUTE:
+                    program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
+                    TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects.getValue( TrackedEntityAttribute.class, id.getId1() );
+                    if ( program != null && attribute != null )
+                    {
+                        ProgramTrackedEntityAttributeDimensionItem programTrackedEntityAttributeDimensionItem = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
+                        itemObjectMap.put( id, programTrackedEntityAttributeDimensionItem );
+                    }
+                    break;
+
+                case PROGRAM_INDICATOR:
+                    ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects.getValue( ProgramIndicator.class, id.getId0() );
+                    if ( programIndicator != null )
+                    {
+                        itemObjectMap.put( id, programIndicator );
+                    }
+                    break;
+
+                default:
+                    log.warn( "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
+                    break;
+            }
+        }
+
+        return itemObjectMap;
+    }
 
     /**
      * Returns a {@link DataElementOperand}. For identifier wild cards

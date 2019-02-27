@@ -28,19 +28,22 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -107,9 +110,12 @@ public class ProgramStageNotificationMessageRenderer
             return Maps.newHashMap();
         }
 
-        return entity.getDataValues().stream()
-            .filter( dv -> elementKeys.contains( dv.getDataElement().getUid() ) )
-            .collect( Collectors.toMap( dv -> dv.getDataElement().getUid() , ProgramStageNotificationMessageRenderer::filterValue ) );
+        Map<String, DataElement> dataElementsMap = new HashMap<>();
+        entity.getProgramStage().getAllDataElements().forEach( de -> dataElementsMap.put( de.getUid(), de ) );
+
+        return entity.getEventDataValues().stream()
+            .filter( dv -> elementKeys.contains( dv.getDataElement() ) )
+            .collect( Collectors.toMap( EventDataValue::getDataElement, dv -> filterValue( dv, dataElementsMap.get( dv.getDataElement() ) ) ));
     }
 
     @Override
@@ -146,7 +152,7 @@ public class ProgramStageNotificationMessageRenderer
         return value != null ? value : MISSING_VALUE_REPLACEMENT;
     }
 
-    private static String filterValue( TrackedEntityDataValue dv )
+    private static String filterValue( EventDataValue dv, DataElement dataElement )
     {
         String value = dv.getValue();
 
@@ -156,9 +162,9 @@ public class ProgramStageNotificationMessageRenderer
         }
 
         // If the DV has an OptionSet -> substitute value with the name of the Option
-        if ( dv.getDataElement().hasOptionSet() )
+        if ( dataElement != null && dataElement.hasOptionSet() )
         {
-            value = dv.getDataElement().getOptionSet().getOptionByCode( value ).getName();
+            value = dataElement.getOptionSet().getOptionByCode( value ).getName();
         }
 
         return value != null ? value : MISSING_VALUE_REPLACEMENT;

@@ -57,4 +57,8 @@
     <param name="clazz">org.hisp.dhis.translation.Translation</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType" name="jsbEventDataValues">
+    <param name="clazz">org.hisp.dhis.eventdatavalue.EventDataValue</param>
+  </typedef>
+
 </hibernate-mapping>

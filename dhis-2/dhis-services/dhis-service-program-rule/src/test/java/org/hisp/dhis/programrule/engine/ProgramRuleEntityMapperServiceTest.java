@@ -92,7 +92,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
         when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
-        when( programRuleVariableService.getProgramRuleVariable( any( Program.class ) ) ).thenReturn( programRuleVariables );
     }
 
     @Test

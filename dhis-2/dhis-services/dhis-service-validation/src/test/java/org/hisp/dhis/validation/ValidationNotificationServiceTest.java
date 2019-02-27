@@ -28,7 +28,16 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -52,17 +61,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Sets;
 
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
@@ -92,49 +93,12 @@ public class ValidationNotificationServiceTest
     @Mock
     private MessageService messageService;
 
+    private DefaultPeriodService periodService;
+
     @InjectMocks
     private DefaultValidationNotificationService service;
 
-    @InjectMocks
-    private DefaultPeriodService periodService;
-
     private List<MockMessage> sentMessages;
-
-    /**
-     * We mock the sending of messages to write to a local List (which we can inspect).
-     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
-     */
-    @Before
-    public void initTest()
-    {
-        sentMessages = new ArrayList<>();
-
-        // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our list
-        when(
-            messageService.sendMessage( any() )
-        ).then( invocation ->
-            {
-                sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 42;
-            }
-        );
-
-        when(
-            messageService.sendValidationMessage( anySetOf( User.class ), anyString(), anyString(), any( MessageConversationPriority.class ) )
-        ).then( invocation ->
-            {
-                sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 42;
-            }
-        );
-
-        // Stub renderer
-        when(
-            renderer.render( any(), any() )
-        ).thenReturn(
-            new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
-        );
-    }
 
     // -------------------------------------------------------------------------
     // Test fixtures
@@ -148,66 +112,7 @@ public class ValidationNotificationServiceTest
 
     private UserGroup userGroupA;
 
-    int idCounter = 0;
-
-    private void setUpEntitiesA()
-    {
-        User userA = createUser( 'A' );
-
-        orgUnitA = createOrganisationUnit( 'A' );
-        orgUnitA.addUser( userA );
-
-        userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
-        userA.setGroups( Sets.newHashSet( userGroupA ) );
-
-        valRuleA = createValidationRule(
-            'A',
-            Operator.equal_to,
-            createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ),
-            PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
-        );
-
-        ValidationNotificationTemplate templateA = createValidationNotificationTemplate( "Template A" );
-        templateA.addValidationRule( valRuleA );
-        templateA.setRecipientUserGroups( Sets.newHashSet( userGroupA ) );
-    }
-
-    private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
-    {
-        Period period = createPeriod( "2017Q1" );
-        ValidationResult vr = new ValidationResult(
-            rule,
-            period,
-            ou,
-            catOptCombo,
-            RandomUtils.nextDouble( 10, 1000 ),
-            RandomUtils.nextDouble( 10, 1000 ),
-            periodService.getDayInPeriod( period, new Date() )
-        );
-
-        vr.setId( idCounter++ );
-
-        return vr;
-    }
-
-    private ValidationResult createValidationResultA()
-    {
-        Period period = createPeriod( "2017Q1" );
-        ValidationResult vr = new ValidationResult(
-            valRuleA,
-            period,
-            orgUnitA,
-            catOptCombo,
-            RandomUtils.nextDouble( 10, 1000 ),
-            RandomUtils.nextDouble( 10, 1000 ),
-            periodService.getDayInPeriod( period, new Date() )
-        );
-
-        vr.setId( idCounter++ );
-
-        return vr;
-    }
+    private int idCounter = 0;
 
     /*
      * Configure org unit hierarchy like so:
@@ -219,14 +124,40 @@ public class ValidationNotificationServiceTest
      *  lvlTwoLeftLeft  lvlTwoLeftRight
      */
 
+    /**
+     * We mock the sending of messages to write to a local List (which we can inspect).
+     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
+     */
+    @Before
+    public void initTest()
+    {
+        this.periodService = new DefaultPeriodService();
+
+        sentMessages = new ArrayList<>();
+
+        when(
+                messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
+        ).then( invocation ->
+                {
+                    sentMessages.add( new MockMessage( invocation.getArguments() ) );
+                    return 42;
+                }
+        );
+
+        // Stub renderer
+        when(
+                renderer.render( any(), any() )
+        ).thenReturn(
+                new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
+        );
+    }
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
 
     @Test
-    public void testNoValidationResultsCausesNoNotificationsSent()
-        throws Exception
-    {
+    public void testNoValidationResultsCausesNoNotificationsSent() {
         Set<ValidationResult> emptyResultsSet = Collections.emptySet();
 
         service.sendNotifications( emptyResultsSet );
@@ -235,9 +166,7 @@ public class ValidationNotificationServiceTest
     }
 
     @Test
-    public void testValidationResultGeneratesNotification()
-        throws Exception
-    {
+    public void testValidationResultGeneratesNotification() {
         setUpEntitiesA();
         ValidationResult validationResult = createValidationResultA();
 
@@ -247,9 +176,7 @@ public class ValidationNotificationServiceTest
     }
 
     @Test
-    public void testValidationResultGeneratesSingleNotificationForMultipleUsers()
-        throws Exception
-    {
+    public void testValidationResultGeneratesSingleNotificationForMultipleUsers() {
         setUpEntitiesA();
         User userB = createUser( 'B' );
         userGroupA.addUser( userB );
@@ -263,9 +190,7 @@ public class ValidationNotificationServiceTest
     }
 
     @Test
-    public void testMultipleValidationResultsAreSummarized()
-        throws Exception
-    {
+    public void testMultipleValidationResultsAreSummarized() {
         setUpEntitiesA();
 
         Set<ValidationResult> results = IntStream.iterate( 0, i -> i + 1 ).limit( 10 )
@@ -336,9 +261,7 @@ public class ValidationNotificationServiceTest
     }
 
     @Test
-    public void testNotifyUsersInHierarchyLimitsRecipients()
-        throws Exception
-    {
+    public void testNotifyUsersInHierarchyLimitsRecipients() {
         // Complicated fixtures. Sorry to whomever has to read this...
 
         // Org units
@@ -445,6 +368,65 @@ public class ValidationNotificationServiceTest
 
         assertEquals( 4, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uA, uB, uC, uF ) ) );
+    }
+
+    private void setUpEntitiesA()
+    {
+        User userA = createUser( 'A' );
+
+        orgUnitA = createOrganisationUnit( 'A' );
+        orgUnitA.addUser( userA );
+
+        userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
+        userA.setGroups( Sets.newHashSet( userGroupA ) );
+
+        valRuleA = createValidationRule(
+                'A',
+                Operator.equal_to,
+                createExpression2( 'A', "X" ),
+                createExpression2( 'B', "Y" ),
+                PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
+        );
+
+        ValidationNotificationTemplate templateA = createValidationNotificationTemplate( "Template A" );
+        templateA.addValidationRule( valRuleA );
+        templateA.setRecipientUserGroups( Sets.newHashSet( userGroupA ) );
+    }
+
+    private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
+    {
+        Period period = createPeriod( "2017Q1" );
+        ValidationResult vr = new ValidationResult(
+                rule,
+                period,
+                ou,
+                catOptCombo,
+                RandomUtils.nextDouble( 10, 1000 ),
+                RandomUtils.nextDouble( 10, 1000 ),
+                periodService.getDayInPeriod( period, new Date() )
+        );
+
+        vr.setId( idCounter++ );
+
+        return vr;
+    }
+
+    private ValidationResult createValidationResultA()
+    {
+        Period period = createPeriod( "2017Q1" );
+        ValidationResult vr = new ValidationResult(
+                valRuleA,
+                period,
+                orgUnitA,
+                catOptCombo,
+                RandomUtils.nextDouble( 10, 1000 ),
+                RandomUtils.nextDouble( 10, 1000 ),
+                periodService.getDayInPeriod( period, new Date() )
+        );
+
+        vr.setId( idCounter++ );
+
+        return vr;
     }
 
     // -------------------------------------------------------------------------

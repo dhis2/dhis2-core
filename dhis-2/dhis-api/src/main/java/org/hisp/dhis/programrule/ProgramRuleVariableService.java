@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -83,4 +84,24 @@ public interface ProgramRuleVariableService
      * @return ProgramRuleVariable list
      */
     List<ProgramRuleVariable> getProgramRuleVariable( Program program );
+
+    /**
+     *
+     * @param program program.
+     * @param dataElement to find association with.
+     * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
+     */
+    boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link DataElement}.
+     */
+    List<ProgramRuleVariable> getVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     */
+    List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }

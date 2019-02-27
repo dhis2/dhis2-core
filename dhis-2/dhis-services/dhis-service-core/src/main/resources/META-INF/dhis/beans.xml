@@ -639,12 +639,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueStore"
-    class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore"
     class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -887,13 +881,13 @@
   </bean>
 
   <bean id="org.hisp.dhis.expression.ExpressionService" class="org.hisp.dhis.expression.DefaultExpressionService">
-    <property name="expressionStore" ref="org.hisp.dhis.expression.ExpressionStore" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
-    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="dimensionService" ref="org.hisp.dhis.dimension.DimensionService" />
-    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <constructor-arg index="0" ref="org.hisp.dhis.expression.ExpressionStore"/>
+    <constructor-arg index="1" ref="org.hisp.dhis.dataelement.DataElementService"/>
+    <constructor-arg index="2" ref="org.hisp.dhis.constant.ConstantService"/>
+    <constructor-arg index="3" ref="org.hisp.dhis.category.CategoryService"/>
+    <constructor-arg index="4" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"/>
+    <constructor-arg index="5" ref="org.hisp.dhis.dimension.DimensionService"/>
+    <constructor-arg index="6" ref="org.hisp.dhis.common.IdentifiableObjectManager"/>
   </bean>
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
@@ -919,6 +913,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+    <property name="env" ref="environment" />
   </bean>
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
@@ -932,6 +927,7 @@
     <property name="userSettingStore" ref="org.hisp.dhis.user.UserSettingStore" />
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="env" ref="environment" />
   </bean>
 
   <bean id="org.hisp.dhis.user.UserService" class="org.hisp.dhis.user.DefaultUserService">
@@ -971,6 +967,7 @@
   <bean id="emailMessageSender" class="org.hisp.dhis.message.EmailMessageSender">
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="configurationProvider" ref="dhisConfigurationProvider" />
   </bean>
 
   <bean id="org.hisp.dhis.email.EmailService" class="org.hisp.dhis.email.DefaultEmailService">
@@ -1156,13 +1153,6 @@
 
   <!-- Tracker services -->
 
-  <bean id="org.hisp.dhis.program.ProgramDataEntryService" class="org.hisp.dhis.program.DefaultProgramDataEntryService">
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
     <property name="programExpressionStore" ref="org.hisp.dhis.program.ProgramExpressionStore" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
@@ -1188,12 +1178,7 @@
     <property name="relationshipTypeStore" ref="org.hisp.dhis.relationship.RelationshipTypeStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramStageInstanceService"
-    class="org.hisp.dhis.program.DefaultProgramStageInstanceService">
-    <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
-    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-  </bean>
+  <bean id="org.hisp.dhis.program.ProgramStageInstanceService" class="org.hisp.dhis.program.DefaultProgramStageInstanceService" />
 
   <bean id="org.hisp.dhis.program.ProgramInstanceService" class="org.hisp.dhis.program.DefaultProgramInstanceService" />
 
@@ -1282,10 +1267,6 @@
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
     <property name="attributeValueStore" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService"
-    class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueService">
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementService"
@@ -1592,6 +1573,9 @@
 
   <bean id="org.hisp.dhis.predictor.PredictorDeletionHandler"
     class="org.hisp.dhis.predictor.PredictorDeletionHandler" />
+    
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler"
+    class="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler" />
 
   <bean id="org.hisp.dhis.predictor.PredictorGroupDeletionHandler"
     class="org.hisp.dhis.predictor.PredictorGroupDeletionHandler" />
@@ -1673,11 +1657,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
-    class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler"
     class="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler">
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1746,6 +1725,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.predictor.PredictorService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataapproval.DataApprovalService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
@@ -1757,8 +1737,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityTypeService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityInstanceService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )"
-        method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityAttributeService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipTypeService.delete*(..) )" method="intercept" />
@@ -1769,13 +1748,9 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )"
-        method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
-      <aop:before
-        pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )"
-        method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.fileresource.FileResourceService.deleteFileResource( org.hisp.dhis.fileresource.FileResource ) )" method="intercept" />
     </aop:aspect>
   </aop:config>
 

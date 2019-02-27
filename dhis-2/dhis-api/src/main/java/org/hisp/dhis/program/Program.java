@@ -28,19 +28,23 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.common.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,15 +52,17 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -122,11 +128,6 @@ public class Program
     private boolean skipOffline;
 
     /**
-     * The approval workflow (if any) for this program.
-     */
-    private DataApprovalWorkflow workflow;
-
-    /**
      * Property indicating whether a list of tracked entity instances should be
      * displayed, or whether a query must be made.
      */
@@ -139,8 +140,8 @@ public class Program
     private Boolean useFirstStageDuringRegistration = false;
 
     /**
-     * Property indicating type of feature - none, point, symbol, polygon or 
-     * multipolygon - to capture for program. 
+     * Property indicating type of feature - none, point, symbol, polygon or
+     * multipolygon - to capture for program.
      */
     private FeatureType featureType;
 
@@ -159,20 +160,20 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;    
-    
+    private int completeEventsExpiryDays;
+
     /**
      * Property indicating minimum number of attributes required to fill
      * before search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
-    
+
     /**
      * Property indicating maximum number of TEI to return after search
      */
     private int maxTeiCountToReturn = 0;
-    
-    
+
+
     /**
      * Property indicating level of access
      */
@@ -219,19 +220,19 @@ public class Program
         organisationUnits.clear();
         organisationUnits.addAll( updates );
     }
-    
+
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
      */
     public List<String> getSearchableAttributeIds()
-    {        
+    {
         return programAttributes.stream()
             .filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() )
             .map( ProgramTrackedEntityAttribute::getAttribute )
             .map( TrackedEntityAttribute::getUid )
             .collect( Collectors.toList() );
     }
-    
+
     /**
      * Returns display in list TrackedEntityAttributes
      */
@@ -240,7 +241,7 @@ public class Program
         return programAttributes.stream()
             .filter( pa -> pa.isDisplayInList() )
             .map( ProgramTrackedEntityAttribute::getAttribute )
-            .collect( Collectors.toList() );        
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -269,7 +270,7 @@ public class Program
             .flatMap( ps -> ps.getAllDataElements().stream() )
             .collect( Collectors.toSet() );
     }
-    
+
     /**
      * Returns data elements which are part of the stages of this program which
      * have a legend set and is of numeric value type.
@@ -662,18 +663,6 @@ public class Program
         this.categoryCombo = categoryCombo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalWorkflow getWorkflow()
-    {
-        return workflow;
-    }
-
-    public void setWorkflow( DataApprovalWorkflow workflow )
-    {
-        this.workflow = workflow;
-    }
-
     /**
      * Indicates whether this program has a category combination which is different
      * from the default category combination.
@@ -780,7 +769,7 @@ public class Program
     {
         this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMaxTeiCountToReturn()
@@ -830,7 +819,7 @@ public class Program
     {
         this.programSections = programSections;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AccessLevel getAccessLevel()
@@ -842,7 +831,7 @@ public class Program
     {
         this.accessLevel = accessLevel;
     }
-    
+
     public boolean isOpen()
     {
         return this.accessLevel == AccessLevel.OPEN;

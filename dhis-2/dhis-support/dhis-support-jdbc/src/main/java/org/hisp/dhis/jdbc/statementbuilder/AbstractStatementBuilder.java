@@ -28,6 +28,14 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -36,14 +44,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.util.Assert;
-
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +82,7 @@ public abstract class AbstractStatementBuilder
         
         column = column.replaceAll( qte, ( qte + qte ) );
         
-        return column != null ? ( qte + column + qte ) : null;
+        return qte + column + qte;
     }
 
     @Override
@@ -304,27 +304,48 @@ public abstract class AbstractStatementBuilder
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String columnName = this.columnQuote( dataElementUid );
-        return getProgramIndicatorColumnSelectSql( programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator );
-    }
-    
-    public String getProgramIndicatorColumnSelectSql( String programStageUid, String columnName, Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
-    {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
         {
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-                ( programIndicator.getEndEventBoundary() != null ? ("and " + 
-                    getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
-                " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
-                    getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-                " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            return getProgramIndicatorEventColumnSql( programStageUid, columnName, 
+                reportingStartDate, reportingEndDate, programIndicator );
         }
         else
         {
             return columnName;
         }
+    }
+
+    public String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
+    Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
+        {
+            return getProgramIndicatorEventInEnrollmentSelectSql( columnName, programStageUid, 
+                reportingStartDate, reportingEndDate, programIndicator );
+        }
+        else
+        {
+            return columnName;
+        }
+    }
+
+    private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid, Date reportingStartDate,
+    Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        String programStageCondition = "";
+        if ( programStageUid != null && programStageUid.length() == 11 )
+        {
+            programStageCondition = "and ps = '" + programStageUid + "' ";
+        }
+
+        String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+        return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+            ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
+            ( programIndicator.getEndEventBoundary() != null ? ("and " + 
+                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) + 
+            " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " + 
+                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
+            " ") : "" ) + programStageCondition + "order by executiondate " + "desc limit 1 )";
     }
     
     private String getProgramIndicatorEventInProgramStageSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )

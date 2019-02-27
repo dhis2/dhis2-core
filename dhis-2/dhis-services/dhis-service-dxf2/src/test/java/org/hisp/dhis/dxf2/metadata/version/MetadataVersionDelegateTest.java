@@ -28,9 +28,16 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.HttpResponse;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
@@ -46,68 +53,62 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.omg.CORBA.portable.InputStream;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
 
 /**
  * @author anilkumk
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( HttpUtils.class )
-@Category( IntegrationTest.class )
 public class MetadataVersionDelegateTest
-    extends DhisSpringTest
 {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    @Autowired
-    @InjectMocks
-    private MetadataVersionDelegate metadataVersionDelegate;
+    private MetadataVersionDelegate target;
 
-    @Autowired
     @Mock
     private SynchronizationManager synchronizationManager;
 
-    @Autowired
     @Mock
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Autowired
     @Mock
     private MetadataVersionService metadataVersionService;
 
-    @Autowired
     @Mock
     private RenderService renderService;
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private HttpResponse httpResponse;
+
     private MetadataVersion metadataVersion;
+
     private int VERSION_TIMEOUT = 120000;
+
     private int DOWNLOAD_TIMEOUT = 300000;
+
     private String username = "username";
+
     private String password = "password";
+
     private String versionUrl = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
+
     private String baselineUrl = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
+
     private String downloadUrl = "http://localhost:9080/api/metadata/version/testVersion/data.gz";
+
     private String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
 
     @Before
@@ -120,16 +121,14 @@ public class MetadataVersionDelegateTest
         metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
 
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+        target = new MetadataVersionDelegate( metadataSystemSettingService, synchronizationManager, renderService,
+            metadataVersionService );
+
     }
 
     @Test
-    public void testShouldThrowExceptionWhenServerNotAvailable() throws Exception
+    public void testShouldThrowExceptionWhenServerNotAvailable()
     {
-        String url = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testversion" ) ).thenReturn( url );
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( false, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
@@ -137,48 +136,57 @@ public class MetadataVersionDelegateTest
         expectedException.expect( RemoteServerUnavailableException.class );
         expectedException.expectMessage( "test_message" );
 
-        metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
-    public void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull() throws Exception
+    public void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull()
+        throws Exception
     {
-        String url = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testversion" ) ).thenReturn( url );
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( null );
-        MetadataVersion version = metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( null );
+        MetadataVersion version = target.getRemoteMetadataVersion( "testVersion" );
 
-        assertEquals( null, version );
+        assertNull( version );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenHTTPRequestFails() throws Exception
+    public void testShouldThrowExceptionWhenHTTPRequestFails()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenThrow( new Exception( "" ) );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenThrow( new Exception( "" ) );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
-    public void testShouldGetRemoteMetadataVersionWithStatusOk() throws Exception
+    public void testShouldGetRemoteMetadataVersionWithStatusOk()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
         when( renderService.fromJson( response, MetadataVersion.class ) ).thenReturn( metadataVersion );
-        MetadataVersion remoteMetadataVersion = metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        MetadataVersion remoteMetadataVersion = target.getRemoteMetadataVersion( "testVersion" );
 
         assertEquals( metadataVersion.getType(), remoteMetadataVersion.getType() );
         assertEquals( metadataVersion.getHashCode(), remoteMetadataVersion.getHashCode() );
@@ -187,8 +195,12 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldGetMetaDataDifferenceWithStatusOk() throws Exception
+    public void testShouldGetMetaDataDifferenceWithStatusOk()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -205,27 +217,34 @@ public class MetadataVersionDelegateTest
 
         PowerMockito.mockStatic( HttpUtils.class );
 
-        PowerMockito.when( HttpUtils.httpGET( url, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
+        PowerMockito.when( HttpUtils.httpGET( url, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
 
         List<MetadataVersion> metadataVersionList = new ArrayList<>();
         metadataVersionList.add( metadataVersion );
 
         when( metadataSystemSettingService.getMetaDataDifferenceURL( "testVersion" ) ).thenReturn( baselineUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromMetadataVersion( any( InputStream.class ), eq( RenderFormat.JSON ) ) ).thenReturn( metadataVersionList );
+        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
+        when( renderService.fromMetadataVersion( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
+            .thenReturn( metadataVersionList );
 
-        List<MetadataVersion> metaDataDifference = metadataVersionDelegate.getMetaDataDifference( metadataVersion );
+        List<MetadataVersion> metaDataDifference = target.getMetaDataDifference( metadataVersion );
 
-        assertTrue( metaDataDifference.size() == metadataVersionList.size() );
+        assertEquals( metaDataDifference.size(), metadataVersionList.size() );
         assertEquals( metadataVersionList.get( 0 ).getType(), metaDataDifference.get( 0 ).getType() );
         assertEquals( metadataVersionList.get( 0 ).getName(), metaDataDifference.get( 0 ).getName() );
         assertEquals( metadataVersionList.get( 0 ).getHashCode(), metaDataDifference.get( 0 ).getHashCode() );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference() throws Exception
+    public void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -240,18 +259,24 @@ public class MetadataVersionDelegateTest
 
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
-        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromMetadataVersion( any( InputStream.class ), eq( RenderFormat.JSON ) ) ).thenThrow( new IOException( "" ) );
+        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
+        when( renderService.fromMetadataVersion( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
+            .thenThrow( new IOException( "" ) );
 
         expectedException.expect( MetadataVersionServiceException.class );
         expectedException.expectMessage( "Exception occurred while trying to do JSON conversion. Caused by: " );
 
-        metadataVersionDelegate.getMetaDataDifference( metadataVersion );
+        target.getMetaDataDifference( metadataVersion );
     }
 
     @Test
-    public void testShouldReturnEmptyMetadataDifference() throws Exception
+    public void testShouldReturnEmptyMetadataDifference()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -264,27 +289,29 @@ public class MetadataVersionDelegateTest
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.BAD_REQUEST.value() );
+        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response,
+            HttpStatus.BAD_REQUEST.value() );
 
-        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromMetadataVersion( any( InputStream.class ), eq( RenderFormat.JSON ) ) ).thenThrow( new IOException( "" ) );
+        PowerMockito.when( HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Client Error. Http call failed with status code: 400 Caused by: " + dhisHttpResponse.getResponse() );
+        expectedException.expectMessage(
+            "Client Error. Http call failed with status code: 400 Caused by: " + dhisHttpResponse.getResponse() );
 
-        metadataVersionDelegate.getMetaDataDifference( metadataVersion );
+        target.getMetaDataDifference( metadataVersion );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError() throws Exception
+    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
-
-        String url = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testversion" ) ).thenReturn( url );
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
@@ -294,64 +321,77 @@ public class MetadataVersionDelegateTest
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromJson( response, MetadataVersion.class ) ).thenReturn( metadataVersion );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Client Error. Http call failed with status code: " + HttpStatus.CONFLICT.value() + " Caused by: " + response );
+        expectedException.expectMessage( "Client Error. Http call failed with status code: "
+            + HttpStatus.CONFLICT.value() + " Caused by: " + response );
 
-        metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError() throws Exception
+    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
-
-        String url = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testversion" ) ).thenReturn( url );
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
         HttpResponse httpResponse = mock( HttpResponse.class );
 
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.GATEWAY_TIMEOUT.value() );
+        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response,
+            HttpStatus.GATEWAY_TIMEOUT.value() );
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromJson( response, MetadataVersion.class ) ).thenReturn( metadataVersion );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Server Error. Http call failed with status code: " + HttpStatus.GATEWAY_TIMEOUT.value() + " Caused by: " + response );
+        expectedException.expectMessage( "Server Error. Http call failed with status code: "
+            + HttpStatus.GATEWAY_TIMEOUT.value() + " Caused by: " + response );
 
-        metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenRenderServiceThrowsException() throws Exception
+    public void testShouldThrowExceptionWhenRenderServiceThrowsException()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
         when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        when( renderService.fromJson( response, MetadataVersion.class ) ).thenThrow( new MetadataVersionServiceException( "" ) );
+        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
+        when( renderService.fromJson( response, MetadataVersion.class ) )
+            .thenThrow( new MetadataVersionServiceException( "" ) );
 
         expectedException.expect( MetadataVersionServiceException.class );
         expectedException.expectMessage( "Exception occurred while trying to do JSON conversion for metadata version" );
 
-        metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
+        target.getRemoteMetadataVersion( "testVersion" );
     }
 
     @Test
-    public void testShouldDownloadMetadataVersion() throws Exception
+    public void testShouldDownloadMetadataVersion()
+        throws Exception
     {
+        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
+        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
 
@@ -365,14 +405,16 @@ public class MetadataVersionDelegateTest
         DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
+        PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
+            .thenReturn( dhisHttpResponse );
+        String actualVersionSnapShot = target.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertEquals( response, actualVersionSnapShot );
     }
 
     @Test
-    public void testShouldNotDownloadMetadataVersion() throws Exception
+    public void testShouldNotDownloadMetadataVersion()
+        throws Exception
     {
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -384,16 +426,17 @@ public class MetadataVersionDelegateTest
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( null );
-        String actualMetadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
+        PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
+            .thenReturn( null );
+        String actualMetadataVersionSnapshot = target.downloadMetadataVersionSnapshot( metadataVersion );
 
-        assertEquals( null, actualMetadataVersionSnapshot );
+        assertNull(actualMetadataVersionSnapshot);
     }
 
     @Test
-    public void testShouldAddNewMetadataVersion() throws Exception
+    public void testShouldAddNewMetadataVersion()
     {
-        metadataVersionDelegate.addNewMetadataVersion( metadataVersion );
+        target.addNewMetadataVersion( metadataVersion );
 
         verify( metadataVersionService, times( 1 ) ).addVersion( metadataVersion );
     }

@@ -28,6 +28,11 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
@@ -44,11 +49,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
-
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author Ameen Mohamed
@@ -167,7 +167,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit, boolean skipAccessValidation,
         boolean createIfNotExists )
     {
-        if ( entityInstance == null || program == null | orgUnit == null )
+        if ( entityInstance == null || program == null || orgUnit == null )
         {
             return;
         }
