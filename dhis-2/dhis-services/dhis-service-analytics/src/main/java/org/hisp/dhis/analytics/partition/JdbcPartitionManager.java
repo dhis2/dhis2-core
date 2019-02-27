@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.partition;
  */
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,52 +50,29 @@ public class JdbcPartitionManager
 {
     private static final Log log = LogFactory.getLog( JdbcPartitionManager.class );
 
-    private Set<String> analyticsPartitions = null;
-    private Set<String> analyticsEventPartitions = null;
-
-    //TODO separate method for enrollment partitions ?
+    private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Set<String> getDataValueAnalyticsPartitions()
+    public Set<String> getAnalyticsPartitions( AnalyticsTableType tableType )
     {
-        if ( analyticsPartitions != null )
+        if ( analyticsPartitions.containsKey( tableType ) )
         {
-            return analyticsPartitions;
+            return analyticsPartitions.get( tableType );
         }
 
         final String sql =
             "select table_name from information_schema.tables " +
-            "where table_name like '" + AnalyticsTableType.DATA_VALUE.getTableName() + "%' " +
+            "where table_name like '" + tableType.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
 
-        log.info( "Information schema analytics SQL: " + sql );
+        log.info( "Information schema analytics table SQL: " + sql );
 
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
-        analyticsPartitions = partitions;
-        return partitions;
-    }
 
-    @Override
-    public Set<String> getEventAnalyticsPartitions()
-    {
-        if ( analyticsEventPartitions != null )
-        {
-            return analyticsEventPartitions;
-        }
-
-        final String sql =
-            "select table_name from information_schema.tables " +
-            "where table_name like '" + AnalyticsTableType.EVENT.getTableName() + "%' " +
-            "or table_name like '" + AnalyticsTableType.ENROLLMENT.getTableName() + "%' " +
-            "and table_type = 'BASE TABLE'";
-
-        log.info( "Information schema event analytics SQL: " + sql );
-
-        Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
-        analyticsEventPartitions = partitions;
+        analyticsPartitions.put( tableType, partitions );
 
         return partitions;
     }
@@ -132,7 +111,6 @@ public class JdbcPartitionManager
     @Override
     public void clearCaches()
     {
-        analyticsPartitions = null;
-        analyticsEventPartitions = null;
+        analyticsPartitions = new HashMap<>();
     }
 }

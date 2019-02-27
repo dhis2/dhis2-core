@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -85,15 +84,15 @@ public class JdbcEventAnalyticsTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
+        Date earliest = params.getFromDate();
+
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
         Calendar calendar = PeriodType.getCalendar();
-
-        String baseName = getTableName();
 
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -103,7 +102,7 @@ public class JdbcEventAnalyticsTableManager
 
             Collections.sort( dataYears );
 
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ), Lists.newArrayList(), program );
 
             for ( Integer year : dataYears )
             {
@@ -117,12 +116,6 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return tables;
-    }
-
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getEventAnalyticsPartitions();
     }
 
     @Override

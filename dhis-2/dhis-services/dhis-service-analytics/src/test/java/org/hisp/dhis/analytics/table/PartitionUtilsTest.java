@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.period.Period;
 import org.joda.time.DateTime;
@@ -88,11 +89,11 @@ public class PartitionUtilsTest
         List<AnalyticsTableColumn> dimensions = Lists.newArrayList( new AnalyticsTableColumn( "dx", TEXT, "dx" ) );
         List<AnalyticsTableColumn> values = Lists.newArrayList( new AnalyticsTableColumn( "value", DOUBLE, "value" ) );
 
-        AnalyticsTable tA = new AnalyticsTable( "analytics", dimensions, values );
+        AnalyticsTable tA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, dimensions, values );
         tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(), new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
         tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(), new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
 
-        AnalyticsTable tB = new AnalyticsTable( "analytics_orgunittarget", dimensions, values );
+        AnalyticsTable tB = new AnalyticsTable( AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values );
 
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( Lists.newArrayList( tA, tB ) );
 
