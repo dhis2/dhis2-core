@@ -162,7 +162,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canWrite( User user, IdentifiableObject object )
     {
-        if ( readWriteCommonCheck( user, object ) ) return true;
+        if ( readWriteCommonCheck( user, object ) )
+        {
+            return true;
+        }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
@@ -194,7 +197,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
-        if ( readWriteCommonCheck( user, object ) ) return true;
+        if ( readWriteCommonCheck( user, object ) )
+        {
+            return true;
+        }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
@@ -219,7 +225,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canUpdate( User user, IdentifiableObject object )
     {
-        if ( readWriteCommonCheck( user, object ) ) return true;
+        if ( readWriteCommonCheck( user, object ) )
+        {
+            return true;
+        }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
@@ -234,7 +243,7 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            return writeCommonCheck(schema, user, object);
+            return writeCommonCheck( schema, user, object );
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
             && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
@@ -248,7 +257,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
-        if ( readWriteCommonCheck( user, object ) ) return true;
+        if ( readWriteCommonCheck( user, object ) )
+        {
+            return true;
+        }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
