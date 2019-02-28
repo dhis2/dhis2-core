@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class TrackedEntityRegistrationSMSListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
     private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
 

@@ -70,7 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class J2MEDataValueSMSListener
-    extends BaseSMSListener
+    extends CommandSMSListener
 {
 
     // -------------------------------------------------------------------------
