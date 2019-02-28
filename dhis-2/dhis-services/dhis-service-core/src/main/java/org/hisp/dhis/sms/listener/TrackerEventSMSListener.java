@@ -33,8 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class TrackerEventSMSListener extends NewSMSListener {
 
-	private static final Log log = LogFactory.getLog( CommandSMSListener.class );
-	public static final String SUCCESS_MESSAGE = "Command has been processed successfully";
+	private static final Log log = LogFactory.getLog( TrackerEventSMSListener.class );
+	public static final String SUCCESS_MESSAGE = "Submission has been processed successfully";
 	
     @Autowired
     private UserService userService;
@@ -82,7 +82,7 @@ public class TrackerEventSMSListener extends NewSMSListener {
 			}
 		}
 		
-		if ( programInstance != null || programStage != null )
+		if ( programInstance == null || programStage == null )
 		{
 			log.error("In given TEI, cannot find Program Stage: " + subm.getProgramStage());
 			return;			
