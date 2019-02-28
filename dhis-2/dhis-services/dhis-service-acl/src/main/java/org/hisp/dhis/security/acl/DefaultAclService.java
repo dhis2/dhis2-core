@@ -689,15 +689,14 @@ public class DefaultAclService implements AclService
         return schemaService.getSchema( object.getClass() ) == null;
     }
 
-    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) {
-
+    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) 
+    {
         if ( !schema.isShareable() )
         {
             return true;
         }
 
         return checkSharingAccess(user, object) &&
-                (checkUser(user, object) || checkSharingPermission(user, object, Permission.WRITE));
-
+            ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
     }
 }
