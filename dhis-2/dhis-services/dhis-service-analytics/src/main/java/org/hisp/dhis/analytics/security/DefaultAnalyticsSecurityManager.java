@@ -149,8 +149,11 @@ public class DefaultAnalyticsSecurityManager
             boolean canNotRead = !aclService.canDataRead( user, object );
             String className = TextUtils.getPrettyClassName( object.getClass() );
 
-            if ( canNotRead ) {
-                throw new IllegalQueryException( String.format( "User: %s is not allowed to read data for %s: %s", user.getUsername(), className, object.getUid()) );
+            if ( canNotRead )
+            {
+                throw new IllegalQueryException( String.format(
+                    "User: %s is not allowed to read data for '%s': %s",
+                    user.getUsername(), className, object.getUid() ) );
             }
         }
     }
@@ -164,7 +167,9 @@ public class DefaultAnalyticsSecurityManager
 
         boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
 
-        throwExWhenTrue( notAuthorized, String.format( "User: %s is not allowed to view event analytics", user.getUsername() ) );
+        String username = user != null ? user.getUsername() : "[None]";
+
+        throwExWhenTrue( notAuthorized, String.format( "User: '%s' is not allowed to view event analytics", username ) );
     }
 
     @Override

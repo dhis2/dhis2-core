@@ -1235,7 +1235,7 @@ public class DefaultDataValueSetService
 
                     if ( !dryRun )
                     {
-                        if ( dataElement.isFileType() )
+                        if ( dataElement.isFileType() && actualDataValue != null )
                         {
                             FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 

@@ -73,9 +73,9 @@ public class HibernateUserStore
     private Query getUserQuery( UserQueryParams params, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
-        
+
         String hql = count ? "select count(distinct u) " : "select distinct u ";
-        
+
         hql +=
             "from User u " +
             "inner join u.userCredentials uc " +
@@ -120,17 +120,17 @@ public class HibernateUserStore
                 "or lower(u.surname) like :key " +
                 "or lower(uc.username) like :key) ";
         }
-        
+
         if ( params.getPhoneNumber() != null )
         {
             hql += hlp.whereAnd() + " u.phoneNumber = :phoneNumber ";
         }
-        
+
         if ( params.isCanManage() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " g.id in (:ids) ";
         }
-        
+
         if ( params.isAuthSubset() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " not exists (" +
@@ -140,9 +140,9 @@ public class HibernateUserStore
                 "where uc2.id = uc.id " +
                 "and a not in (:auths) ) ";
         }
-        
+
         // TODO handle users with no user roles
-        
+
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " not exists (" +
@@ -151,12 +151,12 @@ public class HibernateUserStore
                 "where uc3.id = uc.id " +
                 "and ag3.id in (:roles) ) ";
         }
-        
+
         if ( params.getLastLogin() != null )
         {
             hql += hlp.whereAnd() + " uc.lastLogin >= :lastLogin ";
         }
-        
+
         if ( params.getInactiveSince() != null )
         {
             hql += hlp.whereAnd() + " uc.lastLogin < :inactiveSince ";
@@ -166,17 +166,17 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " uc.passwordLastUpdated < :passwordLastUpdated ";
         }
-        
+
         if ( params.isSelfRegistered() )
         {
             hql += hlp.whereAnd() + " uc.selfRegistered = true ";
         }
-        
+
         if ( UserInvitationStatus.ALL.equals( params.getInvitationStatus() ) )
         {
             hql += hlp.whereAnd() + " uc.invitation = true ";
         }
-        
+
         if ( UserInvitationStatus.EXPIRED.equals( params.getInvitationStatus() ) )
         {
             hql += hlp.whereAnd() + " uc.invitation = true " +
@@ -184,24 +184,24 @@ public class HibernateUserStore
                 "and uc.restoreExpiry is not null " +
                 "and uc.restoreExpiry < current_timestamp() ";
         }
-        
+
         if ( !count )
         {
             hql += "order by u.surname, u.firstName";
         }
 
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
-        
+
         if ( params.getQuery() != null )
         {
             query.setParameter( "key", "%" + params.getQuery().toLowerCase() + "%" );
         }
-        
+
         if ( params.getPhoneNumber() != null )
         {
             query.setParameter( "phoneNumber", params.getPhoneNumber() );
         }
-        
+
         if ( params.isCanManage() && params.getUser() != null )
         {
             Collection<Integer> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
@@ -211,23 +211,23 @@ public class HibernateUserStore
 
         if ( params.getDisabled() != null )
         {
-            query.setParameter( "disabled", params.getDisabled().booleanValue() );
+            query.setParameter( "disabled", params.getDisabled() );
         }
-        
+
         if ( params.isAuthSubset() && params.getUser() != null )
         {
             Set<String> auths = params.getUser().getUserCredentials().getAllAuthorities();
-            
+
             query.setParameterList( "auths", auths );
         }
-        
+
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
             Collection<Integer> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
-            
+
             query.setParameterList( "roles", roles );
         }
-        
+
         if ( params.getLastLogin() != null )
         {
             query.setParameter( "lastLogin", params.getLastLogin() );
@@ -242,7 +242,7 @@ public class HibernateUserStore
         {
             query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
-        
+
         if ( !params.getOrganisationUnits().isEmpty() )
         {
             if ( params.isIncludeOrgUnitChildren() )
@@ -259,12 +259,12 @@ public class HibernateUserStore
                 query.setParameterList( "ouIds", ouIds );
             }
         }
-        
+
         if ( params.getFirst() != null )
         {
             query.setFirstResult( params.getFirst() );
         }
-        
+
         if ( params.getMax() != null )
         {
             query.setMaxResults( params.getMax() ).list();
