@@ -432,7 +432,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new ReadAccessDeniedException( object.toString() );
+            throw new ReadAccessDeniedException( String.valueOf( object ) );
         }
 
         return object;
