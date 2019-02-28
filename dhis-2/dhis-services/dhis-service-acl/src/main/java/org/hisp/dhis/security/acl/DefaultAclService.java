@@ -98,7 +98,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
-        if ( readWriteCommonCheck( user, object ) ) return true;
+        if ( readWriteCommonCheck( user, object ) )
+        {
+            return true;
+        }
 
         Schema schema = schemaService.getSchema( object.getClass() );
         
@@ -138,7 +141,7 @@ public class DefaultAclService implements AclService
             }
 
             if ( schema.isDataShareable() &&
-                (checkSharingPermission( user, object, Permission.DATA_READ )
+                ( checkSharingPermission( user, object, Permission.DATA_READ )
                     || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
             {
                 return true;
