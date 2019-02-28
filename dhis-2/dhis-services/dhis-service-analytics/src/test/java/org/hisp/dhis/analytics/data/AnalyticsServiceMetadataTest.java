@@ -300,7 +300,8 @@ public class AnalyticsServiceMetadataTest
 
     @Test
     @SuppressWarnings("unchecked")
-    public void metadataContainsRelativePeriodItem() {
+    public void metadataContainsRelativePeriodItem()
+    {
 
         List<DimensionalItemObject> periods = new ArrayList<>();
 
@@ -313,16 +314,12 @@ public class AnalyticsServiceMetadataTest
         periodDimension.setDimensionalKeywords(dimensionalKeywords);
 
         DataQueryParams params = DataQueryParams.newBuilder()
-                // DATA ELEMENTS
-                .withDimensions( Lists.newArrayList(
-                        periodDimension,
-                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                                "display name",
-                                Lists.newArrayList(
-                                        createDataElement( 'A', new CategoryCombo() ),
-                                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-                .withSkipData( true )
-                .build();
+            // DATA ELEMENTS
+            .withDimensions( Lists.newArrayList( periodDimension,
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                    Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+            .withSkipData( true ).build();
 
         initMock(params);
 

@@ -385,13 +385,15 @@ public class DefaultDataQueryServiceTest
         DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(
-                        allOf( hasProperty( "name", is( "Last year" ) ),
-                                hasProperty( "key", is( "LAST_YEAR" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ),
-                        allOf( hasProperty( "name", is( "Last 12 months" ) ),
-                                hasProperty( "key", is( "LAST_12_MONTHS" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ) ) );
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf(
+                    hasProperty( "name", is( "Last year" ) ),
+                    hasProperty( "key", is( "LAST_YEAR" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf(
+                    hasProperty( "name", is( "Last 12 months" ) ),
+                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ) ) );
     }
 
     @Test
@@ -413,13 +415,15 @@ public class DefaultDataQueryServiceTest
         DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(
-                        allOf( hasProperty( "name", is( "Last year" ) ),
-                                hasProperty( "key", is( "LAST_YEAR" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ),
-                        allOf( hasProperty( "name", is( "Last 12 months" ) ),
-                                hasProperty( "key", is( "LAST_12_MONTHS" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ) ) );
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf(
+                    hasProperty( "name", is( "Last year" ) ),
+                    hasProperty( "key", is( "LAST_YEAR" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf(
+                    hasProperty( "name", is( "Last 12 months" ) ),
+                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ) ) );
     }
 
     @SuppressWarnings("unchecked")
