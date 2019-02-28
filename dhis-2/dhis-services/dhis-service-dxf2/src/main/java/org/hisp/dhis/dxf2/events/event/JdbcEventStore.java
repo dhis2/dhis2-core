@@ -189,68 +189,82 @@ public class JdbcEventStore
                 continue;
             }
 
-            event = new Event();
-
-            event.setUid( rowSet.getString( "psi_uid" ) );
-
-            event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
-                idSchemes.getProgramStageInstanceIdScheme() ) );
-            event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
-            event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
-
-            event.setProgram( IdSchemes.getValue( rowSet.getString( "p_uid" ), rowSet.getString( "p_code" ),
-                idSchemes.getProgramIdScheme() ) );
-            event.setProgramStage( IdSchemes.getValue( rowSet.getString( "ps_uid" ), rowSet.getString( "ps_code" ),
-                idSchemes.getProgramStageIdScheme() ) );
-            event.setOrgUnit( IdSchemes.getValue( rowSet.getString( "ou_uid" ), rowSet.getString( "ou_code" ),
-                idSchemes.getOrgUnitIdScheme() ) );
-            event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
-
-            ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
-
-            if ( programType != ProgramType.WITHOUT_REGISTRATION )
+            if ( event.getUid() == null || !event.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
-                event.setEnrollment( rowSet.getString( "pi_uid" ) );
-                event.setEnrollmentStatus(
-                    EnrollmentStatus.fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
-                event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
-            }
+                event = new Event();
 
-            if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
-            {
-                event.setOptionSize( rowSet.getInt( "option_size" ) );
-            }
+                event.setUid( rowSet.getString( "psi_uid" ) );
 
-            event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
-            event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
-            event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
+                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
+                    idSchemes.getProgramStageInstanceIdScheme() ) );
+                event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
+                event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
-            event.setStoredBy( rowSet.getString( "psi_storedby" ) );
-            event.setOrgUnitName( rowSet.getString( "ou_name" ) );
-            event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
-            event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
-            event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
-            event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
+                event.setProgram( IdSchemes.getValue( rowSet.getString( "p_uid" ), rowSet.getString( "p_code" ),
+                    idSchemes.getProgramIdScheme() ) );
+                event.setProgramStage( IdSchemes.getValue( rowSet.getString( "ps_uid" ), rowSet.getString( "ps_code" ),
+                    idSchemes.getProgramStageIdScheme() ) );
+                event.setOrgUnit( IdSchemes.getValue( rowSet.getString( "ou_uid" ), rowSet.getString( "ou_code" ),
+                    idSchemes.getOrgUnitIdScheme() ) );
+                event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
 
-            event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
-            event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
+                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
-            if ( rowSet.getObject( "psi_geometry" ) != null )
-            {
-                try
+                if ( programType != ProgramType.WITHOUT_REGISTRATION )
                 {
-                    Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
-
-                    event.setGeometry( geom );
-                    event.setCoordinate( new Coordinate( geom.getCoordinate().x, geom.getCoordinate().y ) );
+                    event.setEnrollment( rowSet.getString( "pi_uid" ) );
+                    event.setEnrollmentStatus(EnrollmentStatus
+                        .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
+                    event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
-                catch ( ParseException e )
+
+                if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
                 {
-                    log.error( "Unable to read geometry for event '" + event.getUid() + "': ", e );
+                    event.setOptionSize( rowSet.getInt( "option_size" ) );
+                }
+
+                event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
+                event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
+                event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
+
+                event.setStoredBy( rowSet.getString( "psi_storedby" ) );
+                event.setOrgUnitName( rowSet.getString( "ou_name" ) );
+                event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
+                event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
+                event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
+                event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
+
+                event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
+                event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
+
+                if ( rowSet.getObject( "psi_geometry" ) != null )
+                {
+                    try
+                    {
+                        Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
+
+                        event.setGeometry( geom );
+                        event.setCoordinate( new Coordinate( geom.getCoordinate().x, geom.getCoordinate().y ) );
+                    }
+                    catch ( ParseException e )
+                    {
+                        log.error( "Unable to read geometry for event '" + event.getUid() + "': ", e );
+                    }
+                }
+
+                events.add( event );
+            }
+            else
+            {
+                String attributeCategoryCombination = event.getAttributeCategoryOptions();
+                String currentAttributeCategoryCombination = rowSet.getString( "deco_uid" );
+
+                if ( !attributeCategoryCombination.contains( currentAttributeCategoryCombination ) )
+                {
+                    event.setAttributeCategoryOptions(
+                        attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
                 }
             }
-
-            events.add( event );
 
             if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
             {
