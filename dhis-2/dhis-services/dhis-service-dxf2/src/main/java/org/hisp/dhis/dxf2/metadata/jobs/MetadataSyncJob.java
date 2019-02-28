@@ -62,15 +62,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MetadataSyncJob
     extends AbstractJob
 {
-    public static String VERSION_KEY = "version";
-    public static String DATA_PUSH_SUMMARY = "dataPushSummary";
-    public static String EVENT_PUSH_SUMMARY = "eventPushSummary";
-    public static String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
-    public static String GET_METADATAVERSION = "getMetadataVersion";
-    public static String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
-    public static String METADATA_SYNC = "metadataSync";
-    public static String METADATA_SYNC_REPORT = "metadataSyncReport";
-    public static String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
+    public static final String VERSION_KEY = "version";
+    public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
+    public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
+    public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
+    public static final String GET_METADATAVERSION = "getMetadataVersion";
+    public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
+    public static final String METADATA_SYNC = "metadataSync";
+    public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
+    public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
 
     private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
