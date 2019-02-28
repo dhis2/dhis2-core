@@ -1351,11 +1351,14 @@
   <bean id="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener"
     class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
 
-
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
     class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
 
-  <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
+  <bean id="org.hisp.dhis.sms.listener.SingleEventListener" 
+  	class="org.hisp.dhis.sms.listener.SingleEventListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.TrackerEventSMSListener" 
+  	class="org.hisp.dhis.sms.listener.TrackerEventSMSListener" />
 
   <!-- Notification renderers -->
 
