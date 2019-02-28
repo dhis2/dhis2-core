@@ -178,7 +178,7 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.WRITE );
             }
 
-            return commonWriteCheck(schema, user, object);
+            return writeCommonCheck(schema, user, object);
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
@@ -231,7 +231,7 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            return commonWriteCheck(schema, user, object);
+            return writeCommonCheck(schema, user, object);
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
             && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
@@ -687,10 +687,9 @@ public class DefaultAclService implements AclService
         }
 
         return schemaService.getSchema( object.getClass() ) == null;
-
     }
 
-    private boolean commonWriteCheck(Schema schema, User user, IdentifiableObject object ) {
+    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) {
 
         if ( !schema.isShareable() )
         {
