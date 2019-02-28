@@ -454,7 +454,7 @@ public class DefaultEventAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final EventQueryParams query = new EventQueryParams.Builder( params ).build();
-            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).get();
+            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet( () -> new ListGrid() );
         }
 
         return getAggregatedEventDataGrid( params );
