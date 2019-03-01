@@ -77,6 +77,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
+        registration.setLastUpdated( new Date() );
 
         getSession().save( registration );
     }
@@ -85,6 +86,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
+        registration.setLastUpdated( new Date() );
 
         getSession().update( registration );
     }
@@ -172,11 +174,11 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged )
+    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
-        if ( lastUpdated == null || lastChanged == null )
+        if ( lastUpdated == null )
         {
-            throw new IllegalArgumentException( "Both lastUpdated and lastChanged parameters must be specified" );
+            throw new IllegalArgumentException( "lastUpdated parameter must be specified" );
         }
 
         Criteria criteria = sessionFactory.getCurrentSession()
@@ -184,11 +186,6 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
             .setProjection( Projections.rowCount() );
 
         criteria.add( Restrictions.ge( "lastUpdated", lastUpdated ) );
-
-        criteria.add( Restrictions.or(
-            Restrictions.ge( "lastUpdated", lastChanged ),
-            Restrictions.ge( "date", lastChanged )
-        ));
 
         Number rs = ( Number ) criteria.uniqueResult();
 

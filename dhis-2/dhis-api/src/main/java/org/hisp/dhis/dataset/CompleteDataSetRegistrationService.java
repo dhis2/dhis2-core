@@ -120,12 +120,10 @@ public interface CompleteDataSetRegistrationService
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns the number of Complete DataSets which have been updated at or after
-     * the given date time and, at the same time, last changed at or after the given date time.
+     * Returns the number of Complete DataSets which have been updated at or after the given date time.
      *
      * @param lastUpdated specifies the date to filter complete data sets last updated after
-     * @param lastChanged specifies the date to filter complete data sets last changes after (created and last updated).
      * @return the number of completed DataSets.
      */
-    int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged );
+    int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );
 }

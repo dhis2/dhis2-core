@@ -487,45 +487,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     @Override
-    public int getDataValueCountLastUpdatedBetweenAndLastChangedAfter( Date lastUpdatedFrom, Date lastUpdatedTo,
-        Date lastChanged, boolean includeDeleted )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        List<Function<Root<DataValue>, Predicate>> predicateList =
-            preparePredicatesForLastUpdatedBetween( builder, lastUpdatedFrom, lastUpdatedTo, includeDeleted );
-
-        predicateList.add( root -> builder.or(
-            builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastChanged ),
-            builder.greaterThanOrEqualTo( root.get( "created" ), lastChanged )));
-
-        return getCount( builder, newJpaParameters()
-            .addPredicates( predicateList )
-            .count( root -> builder.countDistinct( root ) ) )
-            .intValue();
-    }
-
-    @Override
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        List<Function<Root<DataValue>, Predicate>> predicateList =
-            preparePredicatesForLastUpdatedBetween( builder, startDate, endDate, includeDeleted );
-
-        return getCount( builder, newJpaParameters()
-            .addPredicates( predicateList )
-            .count( root -> builder.countDistinct( root ) ) )
-            .intValue();
-    }
-
-    private List<Function<Root<DataValue>, Predicate>> preparePredicatesForLastUpdatedBetween( CriteriaBuilder builder,
-        Date startDate, Date endDate, boolean includeDeleted )
     {
         if ( startDate == null && endDate == null )
         {
             throw new IllegalArgumentException( "Start date or end date must be specified" );
         }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
 
         List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
 
@@ -544,7 +513,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
         }
 
-        return predicateList;
+        return getCount( builder, newJpaParameters()
+            .addPredicates( predicateList )
+            .count( root -> builder.countDistinct( root ) ) )
+            .intValue();
     }
 
     // -------------------------------------------------------------------------

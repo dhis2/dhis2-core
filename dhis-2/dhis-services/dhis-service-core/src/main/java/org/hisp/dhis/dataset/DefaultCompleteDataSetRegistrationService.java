@@ -216,8 +216,8 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged )
+    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
-        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAndChangedAfter( lastUpdated, lastChanged );
+        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );
     }
 }

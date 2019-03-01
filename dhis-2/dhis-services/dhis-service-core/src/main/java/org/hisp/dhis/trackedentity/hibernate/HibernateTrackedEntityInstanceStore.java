@@ -231,8 +231,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + "(tei.created >= '" + skipChangedBefore + "' or tei.lastUpdated >= '" +
-                skipChangedBefore + "')";
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
         if ( params.hasOrganisationUnits() )

@@ -339,14 +339,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
+    public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
-        return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( date, null, includeDeleted );
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged, boolean includeDeleted )
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
-        return dataValueStore.getDataValueCountLastUpdatedBetweenAndLastChangedAfter( lastUpdated, null, lastChanged, includeDeleted );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
     }
 }

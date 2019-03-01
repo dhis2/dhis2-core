@@ -200,6 +200,16 @@ public interface DataValueService
     int getDataValueCount( int days );
 
     /**
+     * Gets the number of DataValues which have been updated after the given
+     * date time.
+     *
+     * @param date           the date time.
+     * @param includeDeleted whether to include deleted data values.
+     * @return the number of DataValues.
+     */
+    int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted );
+
+    /**
      * Gets the number of DataValues which have been updated between the given
      * start and end date. The <pre>startDate</pre> and <pre>endDate</pre> parameters
      * can both be null but one must be defined.
@@ -210,17 +220,4 @@ public interface DataValueService
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
-
-    /**
-     * Gets the number of DataValues which have been updated at or after the given
-     * <pre>lastUpdated</pre> date and at the same time last changed
-     * (created or last updated) at or after the <pre>lastChanged</pre>.
-     * The <pre>lastUpdated</pre> and the <pre>lastChanged</pre> parameter cannot be null.
-     *
-     * @param lastUpdated    the start date to compare against data value last updated.
-     * @param lastChanged    the date to compare against data value last changed (created and last updated).
-     * @param includeDeleted whether to include deleted data values.
-     * @return the number of DataValues.
-     */
-    int getDataValueCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged, boolean includeDeleted );
 }

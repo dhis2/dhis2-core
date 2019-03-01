@@ -388,7 +388,7 @@ public class DataValueSetServiceExportTest
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
 
@@ -415,7 +415,7 @@ public class DataValueSetServiceExportTest
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
 
@@ -429,7 +429,7 @@ public class DataValueSetServiceExportTest
 
         out = new ByteArrayOutputStream();
 
-        dataValueSetService.writeDataValueSetJson( lastUpdated, lastUpdated, out, new IdSchemes() );
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
 
         dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
 

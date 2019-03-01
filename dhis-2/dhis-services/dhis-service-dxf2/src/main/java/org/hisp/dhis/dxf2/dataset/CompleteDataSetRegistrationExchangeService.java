@@ -85,12 +85,10 @@ public interface CompleteDataSetRegistrationExchangeService
      * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
      *
      * @param lastUpdated  specifies the date to filter complete data sets last updated after
-     * @param lastChanged  specifies the date to filter complete data sets last changes after (created and last updated).
      * @param outputStream the stream to write to.
      * @param idSchemes    idSchemes
      */
-    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
-        IdSchemes idSchemes );
+    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from an XML payload.

@@ -105,30 +105,29 @@ public class SpringDataValueSetStore
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
-        IdSchemes idSchemes )
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
 
-        final String sql = buildDataValueSql( lastUpdated, lastChanged, idSchemes );
+        final String sql = buildDataValueSql( lastUpdated, idSchemes );
 
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
-        IdSchemes idSchemes, int pageSize, int page )
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+        int page )
     {
         DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
 
         final int offset = (page - 1) * pageSize;
-        final String sql = buildDataValueSql( lastUpdated, lastChanged, idSchemes ) +
+        final String sql = buildDataValueSql( lastUpdated, idSchemes ) +
             "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
 
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
 
-    private String buildDataValueSql( Date lastUpdated, Date skipChangedBefore, IdSchemes idSchemes )
+    private String buildDataValueSql( Date lastUpdated, IdSchemes idSchemes )
     {
         String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
@@ -145,9 +144,7 @@ public class SpringDataValueSetStore
                 "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
                 "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
                 "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-                "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
-                "and (dv.created >= '" + DateUtils.getLongDateString( skipChangedBefore ) + "' or " +
-                "dv.lastupdated >= '" + DateUtils.getLongDateString( skipChangedBefore ) + "') ";
+                "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
         return sql;
     }

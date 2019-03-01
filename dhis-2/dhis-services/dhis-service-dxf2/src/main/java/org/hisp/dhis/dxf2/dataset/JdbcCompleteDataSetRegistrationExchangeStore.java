@@ -119,7 +119,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, Date lastChanged, OutputStream outputStream,
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
         IdSchemes idSchemes )
     {
         String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
@@ -137,9 +137,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
                 "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
                 "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
-                "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
-                "and (cdr.lastupdated >= '" + DateUtils.getLongDateString( lastChanged ) + "' or " +
-                "cdr.date >= '" + DateUtils.getLongDateString( lastChanged ) + "') ";
+                "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
         writeCompleteness( completenessSql, completeDataSetRegistrations );
     }

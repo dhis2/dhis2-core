@@ -155,21 +155,4 @@ public interface DataValueStore
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
-
-    /**
-     * Gets the number of DataValues which have been updated between the given
-     * <pre>lastUpdatedFrom</pre> and <pre>lastUpdatedTo</pre> date and, at the same
-     * time, last changed (created or last updated) at or after the
-     * <pre>lastChanged</pre>. The <pre>lastUpdatedFrom</pre> and
-     * <pre>lastUpdatedTo</pre> parameters can both be null but one must be defined.
-     * The <pre>lastChanged</pre> parameter cannot be null.
-     *
-     * @param lastUpdatedFrom the start date to compare against data value last updated.
-     * @param lastUpdatedTo   the end date to compare against data value last updated.
-     * @param lastChanged     the date to compare against data value last changed (created and last updated).
-     * @param includeDeleted  whether to include deleted data values.
-     * @return the number of DataValues.
-     */
-    int getDataValueCountLastUpdatedBetweenAndLastChangedAfter( Date lastUpdatedFrom, Date lastUpdatedTo,
-        Date lastChanged, boolean includeDeleted );
 }

@@ -158,8 +158,9 @@ public class DefaultSynchronizationManager
             SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
         final Date skipChangedBefore = (Date) systemSettingManager
             .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
         final int lastUpdatedCount = completeDataSetRegistrationService
-            .getCompleteDataSetCountLastUpdatedAndChangedAfter( lastSuccessTime, skipChangedBefore );
+            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
 
         log.info(
             "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -185,8 +186,7 @@ public class DefaultSynchronizationManager
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
             completeDataSetRegistrationExchangeService
-                .writeCompleteDataSetRegistrationsJson( lastSuccessTime, skipChangedBefore, request.getBody(),
-                    new IdSchemes() );
+                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
@@ -268,11 +268,10 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-
         final Date skipChangedBefore = (Date) systemSettingManager
             .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        final int objectsToSynchronize = dataValueService
-            .getDataValueCountLastUpdatedAndChangedAfter( lastSuccessTime, skipChangedBefore, true );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
 
         log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
 
@@ -296,7 +295,7 @@ public class DefaultSynchronizationManager
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
             dataValueSetService
-                .writeDataValueSetJson( lastSuccessTime, skipChangedBefore, request.getBody(), new IdSchemes() );
+                .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
@@ -356,10 +355,11 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = SyncUtils
             .getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
-
-        //TODO: skipChangedBefore should be introduced here as well. But this code will go away anyway, so not introducing it
-
-        int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int lastUpdatedEventsCount = eventService
+            .getAnonymousEventValuesCountLastUpdatedAfter( lastUpdatedAfter );
 
         if ( lastUpdatedEventsCount == 0 )
         {

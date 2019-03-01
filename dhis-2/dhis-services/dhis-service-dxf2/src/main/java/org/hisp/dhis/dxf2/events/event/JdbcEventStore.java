@@ -737,8 +737,7 @@ public class JdbcEventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sql += hlp.whereAnd() + " (psi.created >= '" + skipChangedBefore + "' or psi.lastupdated >= '" +
-                skipChangedBefore + "') ";
+            sql += hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' ";
         }
 
         if ( params.getCategoryOptionCombo() != null )
@@ -939,8 +938,7 @@ public class JdbcEventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sql += hlp.whereAnd() + " (psi.created >= '" + skipChangedBefore + "' or psi.lastupdated >= '" +
-                skipChangedBefore + "') ";
+            sql += hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' ";
         }
 
         if ( params.getDueDateStart() != null )

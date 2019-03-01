@@ -99,13 +99,12 @@ public interface CompleteDataSetRegistrationStore
 
     /**
      * Retrieves a list of CompleteDataSetRegistrations for the given DataSet,
-     * Collection of Sources, Period and Date. The Date deadline is the date that
-     * the registration must be made before in order to be defined as "on time".
+     * Collection of Sources, Period and Date.
      *
      * @param dataSet  the DataSet.
      * @param sources  the Collection of Sources.
      * @param period   the Period.
-     * @param deadline the Date.
+     * @param deadline the Date that the registration must be made before in order to be defined as "on time"
      * @return a list of CompleteDataSetRegistrations.
      */
     List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
@@ -126,12 +125,10 @@ public interface CompleteDataSetRegistrationStore
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
 
     /**
-     * Returns the number of Complete DataSets which have been updated at or after
-     * the given date time and, at the same time, last changed at or after the given date time.
+     * Returns the number of Complete DataSets which have been updated at or after the given date time.
      *
      * @param lastUpdated specifies the date to filter complete data sets last updated after
-     * @param lastChanged specifies the date to filter complete data sets last changes after (created and last updated).
      * @return the number of completed DataSets.
      */
-    int getCompleteDataSetCountLastUpdatedAndChangedAfter( Date lastUpdated, Date lastChanged );
+    int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );
 }
