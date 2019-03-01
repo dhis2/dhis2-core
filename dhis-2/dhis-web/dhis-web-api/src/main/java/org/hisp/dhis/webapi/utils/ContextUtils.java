@@ -28,22 +28,6 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.api.util.DateUtils.getSecondsUntilTomorrow;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -59,6 +43,24 @@ import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.api.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
  * @author Lars Helge Overland
@@ -93,6 +95,11 @@ public class ContextUtils
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
     public static final String HEADER_ETAG = "ETag";
     private static final String QUOTE = "\"";
+
+    /**
+     * Regular expression that extracts the attachment file name from a content disposition header value.
+     */
+    private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern.compile( "attachment;\\s*filename=\"?([^;\"]+)\"?");
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -195,7 +202,7 @@ public class ContextUtils
         response.setHeader( HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE );
         return response;
     }
-    
+
     public static void okResponse( HttpServletResponse response, String message ) //TODO remove message
     {
         setResponse( response, HttpServletResponse.SC_OK, message );
@@ -274,16 +281,16 @@ public class ContextUtils
     /**
      * Indicates whether the media type (content type) of the
      * given HTTP request is compatible with the given media type.
-     * 
+     *
      * @param request the HTTP response.
      * @param mediaType the media type.
      */
     public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
-    {                
+    {
         try
         {
             String contentType = response.getContentType();
-            
+
             return contentType != null && MediaType.parseMediaType( contentType ).isCompatibleWith( mediaType );
         }
         catch ( InvalidMediaTypeException ex )
@@ -291,7 +298,7 @@ public class ContextUtils
             return false;
         }
     }
-        
+
     /**
      * Returns a mapping of dimension identifiers and dimension option identifiers
      * based on the given set of dimension strings. Splits the strings using : as
@@ -429,5 +436,22 @@ public class ContextUtils
     {
         return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
             || (request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
+    }
+
+    /**
+     * Extracts and returns the file name from a content disposition header value.
+     *
+     * @param contentDispositionHeaderValue the content disposition header value from which the file name should be extracted.
+     * @return the extracted file name or <code>null</code> content disposition has no filename.
+     */
+    @Nullable
+    public static String getAttachmentFileName( @Nullable String contentDispositionHeaderValue )
+    {
+        if ( contentDispositionHeaderValue == null )
+        {
+            return null;
+        }
+        final Matcher matcher = CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN.matcher( contentDispositionHeaderValue );
+        return matcher.matches() ? matcher.group( 1 ) : null;
     }
 }
