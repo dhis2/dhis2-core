@@ -104,6 +104,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -657,6 +658,11 @@ public class DefaultDataValueSetService
         I18n i18n = i18nManager.getI18n();
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
+
+        boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
+        boolean skipAudit = importOptions.isSkipAudit();
+
+        log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
         // ---------------------------------------------------------------------
         // Get import options
@@ -1212,7 +1218,7 @@ public class DefaultDataValueSetService
                     {
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        if ( !importOptions.isSkipAudit() )
+                        if ( !skipAudit )
                         {
                             DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, auditType );
 
@@ -1249,7 +1255,7 @@ public class DefaultDataValueSetService
 
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        if ( !importOptions.isSkipAudit() )
+                        if ( !skipAudit )
                         {
                             DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
 

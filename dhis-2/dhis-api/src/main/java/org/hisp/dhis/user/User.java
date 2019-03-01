@@ -41,6 +41,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.security.Authorities;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class User
     private String interests;
 
     private String languages;
-    
+
     private String welcomeMessage;
 
     private Date lastCheckedInterpretations;
@@ -308,10 +309,23 @@ public class User
     /**
      * Tests whether the user has the given authority. Returns true in any case
      * if the user has the ALL authority.
+     *
+     * @param auth the authority.
      */
     public boolean isAuthorized( String auth )
     {
         return userCredentials != null && userCredentials.isAuthorized( auth );
+    }
+
+    /**
+     * Tests whether the user has the given authority. Returns true in any case
+     * if the user has the ALL authority.
+     *
+     * @param auth the {@link Authorities}.
+     */
+    public boolean isAuthorized( Authorities auth )
+    {
+        return isAuthorized( auth.getAuthority() );
     }
 
     public Set<UserGroup> getManagedGroups()
