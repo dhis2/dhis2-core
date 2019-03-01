@@ -415,6 +415,12 @@
         <value>F_VIEW_EVENT_ANALYTICS</value>
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
+        <value>F_EXPORT_DATA</value>
+        <value>F_IMPORT_DATA</value>
+        <value>F_EXPORT_EVENTS</value>
+        <value>F_IMPORT_EVENTS</value>
+        <value>F_SKIP_DATA_IMPORT_AUDIT</value>
+        <!-- Approval -->
         <value>F_APPROVE_DATA</value>
         <value>F_APPROVE_DATA_LOWER_LEVELS</value>
         <value>F_ACCEPT_DATA_LOWER_LEVELS</value>
