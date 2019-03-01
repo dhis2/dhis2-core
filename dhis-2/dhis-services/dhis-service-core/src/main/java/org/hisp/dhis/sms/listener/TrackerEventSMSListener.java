@@ -74,7 +74,7 @@ public class TrackerEventSMSListener extends NewSMSListener {
 		{
 			for ( ProgramStage ps : pi.getProgram().getProgramStages() )
 			{
-				if ( ps.getUid() == subm.getProgramStage() )
+				if ( ps.getUid().equals(subm.getProgramStage()) )
 				{
 					programInstance = pi;
 					programStage = ps;

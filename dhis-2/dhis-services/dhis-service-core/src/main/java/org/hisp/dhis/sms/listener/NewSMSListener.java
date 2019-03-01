@@ -6,7 +6,13 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -31,6 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public abstract class NewSMSListener extends BaseSMSListener {
 	
+	private static final Log log = LogFactory.getLog( NewSMSListener.class );
+	
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
     
@@ -49,6 +57,12 @@ public abstract class NewSMSListener extends BaseSMSListener {
     @Autowired
     private OrganisationUnitService organisationUnitService;
     
+    @Autowired
+    private CategoryService categoryService;
+    
+    @Autowired
+    private DataElementService dataElementService;
+    
 	@Override
 	public boolean accept( IncomingSms sms ) {
         if ( sms == null || !SmsUtils.isBase64(sms) )
@@ -61,15 +75,15 @@ public abstract class NewSMSListener extends BaseSMSListener {
 
 	@Override
 	public void receive( IncomingSms sms ) {
-		SMSSubmissionReader reader = new SMSSubmissionReader();
-		SMSSubmissionHeader header = getHeader(sms);
-		Metadata meta = getMetadata(header.getLastSyncDate());
-
 		try {
-			SMSSubmission submission = reader.readSubmission(header, meta);
+			SMSSubmissionReader reader = new SMSSubmissionReader();
+			SMSSubmissionHeader header = reader.readHeader(SmsUtils.getBytes(sms));
+			Metadata meta = getMetadata(header.getLastSyncDate());
+			SMSSubmission submission = reader.readSubmission(SmsUtils.getBytes(sms), meta);
 			postProcess(sms, submission);
 		} catch ( Exception e ) {
-			//TODO: Handle exception
+			log.error(e.getMessage());
+			e.printStackTrace();
 		}
 	}
     
@@ -80,19 +94,22 @@ public abstract class NewSMSListener extends BaseSMSListener {
 			SMSSubmissionHeader header = reader.readHeader(smsBytes);
 			return header;
 		} catch ( Exception e ) {
-			//TODO: Handle exception
+			log.error(e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}
 	
 	public Metadata getMetadata( Date lastSyncDate ) {
 		Metadata meta = new Metadata();
+		meta.dataElements = getAllDataElements(lastSyncDate);
+		meta.categoryOptionCombos = getAllCatOptionCombos(lastSyncDate);
 		meta.organisationUnits = getAllUserIds(lastSyncDate);
 		meta.trackedEntityTypes = getAllTrackedEntityTypeIds(lastSyncDate);
 		meta.trackedEntityAttributes = getAllTrackedEntityAttributeIds(lastSyncDate);
 		meta.programs = getAllProgramIds(lastSyncDate);
 		meta.organisationUnits = getAllOrgUnitIds(lastSyncDate);
-		
+				
 		return meta;
 	}
 
@@ -145,6 +162,26 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.filter(o -> o != null)
         		.collect(Collectors.toList());
     }
+    
+    public List<Metadata.ID> getAllDataElements (Date lastSyncDate) {
+        List<DataElement> dataElements = dataElementService.getAllDataElements();
+        
+        return dataElements
+        		.stream()
+        		.map(o -> getIdFromMetadata(o, lastSyncDate))
+        		.filter(o -> o != null)
+        		.collect(Collectors.toList());
+    }
+    
+    public List<Metadata.ID> getAllCatOptionCombos (Date lastSyncDate) {
+        List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
+        
+        return catOptionCombos
+        		.stream()
+        		.map(o -> getIdFromMetadata(o, lastSyncDate))
+        		.filter(o -> o != null)
+        		.collect(Collectors.toList());
+    }    
     
     public Metadata.ID getIdFromMetadata(IdentifiableObject obj, Date lastSyncDate) {
     	if ( obj.getCreated().after(lastSyncDate) ) {
