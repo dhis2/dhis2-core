@@ -100,6 +100,18 @@ public interface AclService
     boolean canRead( User user, IdentifiableObject object );
 
     /**
+     * Check if the given user has data or metadata permission over the given object
+     *
+     * Data-read permission is only considered if the given object's schema is 'DataShareable'.
+     * If not 'DataShareable', only metadata-read ACL is considered
+     *
+     * @param user User to check against
+     * @param object Object to check permission
+     * @return true, if use can access object
+     */
+    boolean canDataOrMetadataRead(User user, IdentifiableObject object);
+
+    /**
      * Can user read data this object.
      *
      * @param user   User to check against
