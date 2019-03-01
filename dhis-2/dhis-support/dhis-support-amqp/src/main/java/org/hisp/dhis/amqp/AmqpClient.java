@@ -114,6 +114,7 @@ public class AmqpClient
             String message = toJson( value );
             TextMessage textMessage = session.createTextMessage( message );
             producer.send( textMessage );
+            producer.close();
             session.close();
         }
         catch ( JMSException ex )
