@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -298,7 +299,8 @@ public class DefaultProgramStageInstanceService
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
-        programStageInstance.setEventDataValues( (Set<EventDataValue>) dataElementEventDataValueMap.values() );
+        Set<EventDataValue> eventDataValues = new HashSet<EventDataValue>(dataElementEventDataValueMap.values());
+        programStageInstance.setEventDataValues( eventDataValues );
         addProgramStageInstance( programStageInstance );
 
         for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
