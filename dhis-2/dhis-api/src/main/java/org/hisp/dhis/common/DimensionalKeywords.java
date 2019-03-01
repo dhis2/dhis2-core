@@ -108,7 +108,6 @@ public class DimensionalKeywords
 
     private Keyword toKeyword( BaseIdentifiableObject bio )
     {
-
         return new Keyword( bio.getUid(), bio.getUid(), bio.getName(), bio.getCode() );
     }
 }
