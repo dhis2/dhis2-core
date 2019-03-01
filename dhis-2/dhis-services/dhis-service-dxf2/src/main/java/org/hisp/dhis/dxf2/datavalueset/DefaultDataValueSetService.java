@@ -103,6 +103,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -651,6 +652,11 @@ public class DefaultDataValueSetService
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
 
+        boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
+        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
+
+        log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
+
         // ---------------------------------------------------------------------
         // Get import options
         // ---------------------------------------------------------------------
@@ -1050,8 +1056,8 @@ public class DefaultDataValueSetService
 
             DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), () -> aoc.getDateRange() );
 
-            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
-                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
+            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
+                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1170,13 +1176,13 @@ public class DefaultDataValueSetService
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                    AuditType auditType = AuditType.UPDATE;
 
                     if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
 
-                        auditValue.setAuditType( AuditType.DELETE );
+                        auditType = AuditType.DELETE;
 
                         deleteCount++;
                     }
@@ -1189,7 +1195,12 @@ public class DefaultDataValueSetService
                     {
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        auditBatchHandler.addObject( auditValue );
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, auditType );
+
+                            auditBatchHandler.addObject( auditValue );
+                        }
 
                         if ( dataElement.isFileType() )
                         {
@@ -1204,8 +1215,6 @@ public class DefaultDataValueSetService
                 }
                 else if ( strategy.isDelete() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-
                     internalValue.setDeleted( true );
 
                     deleteCount++;
@@ -1223,7 +1232,12 @@ public class DefaultDataValueSetService
 
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        auditBatchHandler.addObject( auditValue );
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+
+                            auditBatchHandler.addObject( auditValue );
+                        }
                     }
                 }
             }
