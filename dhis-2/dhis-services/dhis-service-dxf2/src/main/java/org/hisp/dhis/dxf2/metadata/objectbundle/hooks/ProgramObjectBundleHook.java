@@ -60,18 +60,20 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !(object instanceof Program) )
+        if ( !isProgram( object ) )
         {
             return;
         }
 
         syncSharingForEventProgram( (Program) object );
+
+        addProgramInstance( (Program) object );
     }
 
     @Override
     public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !(object instanceof Program) )
+        if ( !isProgram( object ) )
         {
             return;
         }
@@ -84,41 +86,18 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( !(object instanceof Program) )
+        if (!(object instanceof Program))
         {
             return errors;
         }
 
         Program program = (Program) object;
 
-        if ( getProgramInstancesCount( program ) > 1 )
+        if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
         {
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
         return errors;
-    }
-
-    @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
-    {
-        if ( !(object instanceof Program) )
-        {
-            return;
-        }
-        
-        Program program = (Program) object;
-
-        if ( getProgramInstancesCount(program) == 0 ) {
-
-            ProgramInstance pi = new ProgramInstance();
-            pi.setEnrollmentDate(new Date());
-            pi.setIncidentDate(new Date());
-            pi.setProgram(program);
-            pi.setStatus(ProgramStatus.ACTIVE);
-            pi.setStoredBy("system-process");
-
-            this.programInstanceService.addProgramInstance(pi);
-        }
     }
 
     private void syncSharingForEventProgram( Program program )
@@ -135,8 +114,30 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         sessionFactory.getCurrentSession().update( programStage );
     }
     
+    private void addProgramInstance( Program program )
+    {
+
+        if ( getProgramInstancesCount( program ) == 0 )
+        {
+            ProgramInstance pi = new ProgramInstance();
+            pi.setEnrollmentDate( new Date() );
+            pi.setIncidentDate( new Date() );
+            pi.setProgram( program );
+            pi.setStatus( ProgramStatus.ACTIVE );
+            pi.setStoredBy( "system-process" );
+
+            this.programInstanceService.addProgramInstance( pi );
+        }
+
+    }
+    
     private int getProgramInstancesCount( Program program )
     {
         return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
+    }
+    
+    private boolean isProgram( Object object )
+    {
+        return object instanceof Program;
     }
 }
