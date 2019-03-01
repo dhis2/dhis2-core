@@ -1080,8 +1080,8 @@ public class AclServiceTest
     }
 
     @Test
-    public void testCanDataOrMetadataRead() {
-
+    public void testCanDataOrMetadataRead() 
+    {
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
         manager.save( user1 );
 
