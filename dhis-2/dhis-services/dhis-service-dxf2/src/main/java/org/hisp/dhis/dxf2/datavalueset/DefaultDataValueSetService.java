@@ -660,7 +660,7 @@ public class DefaultDataValueSetService
         final String currentUserName = currentUser.getUsername();
 
         boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
-        boolean skipAudit = importOptions.isSkipAudit();
+        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
 
         log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
