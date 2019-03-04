@@ -61,10 +61,11 @@ import java.util.Set;
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( value = "/dataSetReport" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetReportController
 {
+    private static final String RESOURCE_PATH = "/dataSetReport";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -87,7 +88,7 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( value = "/custom", method = RequestMethod.GET, produces = "text/html" )
+    @RequestMapping( value = RESOURCE_PATH + "/custom", method = RequestMethod.GET, produces = "text/html" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -109,7 +110,7 @@ public class DataSetReportController
         return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -127,7 +128,7 @@ public class DataSetReportController
         return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
     public void getDataSetReportAsExcel( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -144,7 +145,7 @@ public class DataSetReportController
         GridUtils.toXls( grids, response.getOutputStream() );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
     public void getDataSetReportAsPdf( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -158,7 +159,7 @@ public class DataSetReportController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
         List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
-        GridUtils.toXls( grids, response.getOutputStream() );
+        GridUtils.toPdf( grids, response.getOutputStream() );
     }
 
     // -------------------------------------------------------------------------
