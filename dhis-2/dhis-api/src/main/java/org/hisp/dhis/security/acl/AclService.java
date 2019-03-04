@@ -118,7 +118,7 @@ public interface AclService
      * @param object Object to check permission
      * @return true, if use can access object
      */
-    boolean canDataOrMetadataRead(User user, IdentifiableObject object);
+    boolean canDataOrMetadataRead( User user, IdentifiableObject object );
 
     /**
      * Can user write to this object (create)
