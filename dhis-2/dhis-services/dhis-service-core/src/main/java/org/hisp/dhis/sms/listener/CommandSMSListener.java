@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,8 +43,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -59,8 +56,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -69,28 +64,13 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Created by zubair@dhis2.org on 11.08.17.
  */
 @Transactional
-public abstract class LegacyBaseSMSListener implements IncomingSmsListener
-{
-    private static final Log log = LogFactory.getLog( LegacyBaseSMSListener.class );
-
+public abstract class CommandSMSListener extends BaseSMSListener
+{	
     private static final String DEFAULT_PATTERN =  "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
-    private static final String NO_SMS_CONFIG = "No sms configuration found";
-
-    protected static final int INFO = 1;
-    protected static final int WARNING = 2;
-    protected static final int ERROR = 3;
-
-    private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
-        .put( 1, log::info )
-        .put( 2, log::warn )
-        .put( 3, log::error )
-        .build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -110,9 +90,6 @@ public abstract class LegacyBaseSMSListener implements IncomingSmsListener
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private IncomingSmsService incomingSmsService;
 
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
@@ -148,19 +125,6 @@ public abstract class LegacyBaseSMSListener implements IncomingSmsListener
     protected abstract void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage );
 
     protected abstract SMSCommand getSMSCommand( IncomingSms sms );
-
-    protected void sendFeedback( String message, String sender, int logType )
-    {
-        LOGGER.getOrDefault( logType, log::info ).accept( message );
-
-        if( smsSender.isConfigured() )
-        {
-            smsSender.sendMessage( null, message, sender );
-            return;
-        }
-
-        LOGGER.getOrDefault( WARNING, log::info ).accept(  NO_SMS_CONFIG );
-    }
 
     protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
     {
@@ -202,14 +166,6 @@ public abstract class LegacyBaseSMSListener implements IncomingSmsListener
     protected User getUser( IncomingSms sms )
     {
         return userService.getUser( sms.getUser().getUid() );
-    }
-
-    protected void update( IncomingSms sms, SmsMessageStatus status, boolean parsed )
-    {
-        sms.setStatus( status );
-        sms.setParsed( parsed );
-
-        incomingSmsService.update( sms );
     }
 
     protected boolean validateInputValues( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms )

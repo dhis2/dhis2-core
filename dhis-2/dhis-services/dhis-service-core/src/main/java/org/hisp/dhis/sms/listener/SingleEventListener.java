@@ -49,9 +49,7 @@ import java.util.Set;
  * Zubair <rajazubair.asghar@gmail.com>
  */
 @Transactional
-public class LegacySingleEventListener
-    extends LegacyBaseSMSListener
-{
+public class SingleEventListener extends CommandSMSListener {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

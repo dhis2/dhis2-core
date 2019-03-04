@@ -69,9 +69,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class LegacyJ2MEDataValueSMSListener
-    extends LegacyBaseSMSListener
-{
+public class J2MEDataValueSMSListener extends CommandSMSListener {
 
     // -------------------------------------------------------------------------
     // Dependencies

@@ -1353,11 +1353,18 @@
   <bean id="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener"
     class="org.hisp.dhis.sms.listener.LegacyTrackedEntityRegistrationSMSListener" />
 
-
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
     class="org.hisp.dhis.sms.listener.LegacyProgramStageDataEntrySMSListener" />
 
+<<<<<<< HEAD
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.LegacySingleEventListener" />
+=======
+  <bean id="org.hisp.dhis.sms.listener.SingleEventListener" 
+  	class="org.hisp.dhis.sms.listener.SingleEventListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.TrackerEventSMSListener" 
+  	class="org.hisp.dhis.sms.listener.TrackerEventSMSListener" />
+>>>>>>> eha-sms
 
   <!-- Notification renderers -->
 

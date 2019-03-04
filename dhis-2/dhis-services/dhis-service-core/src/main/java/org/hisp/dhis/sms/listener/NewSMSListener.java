@@ -4,13 +4,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.smscompression.Consts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.Metadata;
@@ -24,9 +32,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-public abstract class NewSMSListener implements IncomingSmsListener {
-
+@Transactional
+public abstract class NewSMSListener extends BaseSMSListener {
+	
+	private static final Log log = LogFactory.getLog( NewSMSListener.class );
+	
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
+    
     @Autowired
     private UserService userService;
 
@@ -41,7 +56,13 @@ public abstract class NewSMSListener implements IncomingSmsListener {
 	
     @Autowired
     private OrganisationUnitService organisationUnitService;
-	
+    
+    @Autowired
+    private CategoryService categoryService;
+    
+    @Autowired
+    private DataElementService dataElementService;
+    
 	@Override
 	public boolean accept( IncomingSms sms ) {
         if ( sms == null || !SmsUtils.isBase64(sms) )
@@ -54,18 +75,18 @@ public abstract class NewSMSListener implements IncomingSmsListener {
 
 	@Override
 	public void receive( IncomingSms sms ) {
-		SMSSubmissionReader reader = new SMSSubmissionReader();
-		SMSSubmissionHeader header = getHeader(sms);
-		Metadata meta = getMetadata(header.getLastSyncDate());
-
 		try {
-			SMSSubmission submission = reader.readSubmission(header, meta);
+			SMSSubmissionReader reader = new SMSSubmissionReader();
+			SMSSubmissionHeader header = reader.readHeader(SmsUtils.getBytes(sms));
+			Metadata meta = getMetadata(header.getLastSyncDate());
+			SMSSubmission submission = reader.readSubmission(SmsUtils.getBytes(sms), meta);
 			postProcess(sms, submission);
 		} catch ( Exception e ) {
-			//TODO: Handle exception
+			log.error(e.getMessage());
+			e.printStackTrace();
 		}
 	}
-
+    
 	private SMSSubmissionHeader getHeader( IncomingSms sms ) {
 		byte[] smsBytes = SmsUtils.getBytes(sms);
 		SMSSubmissionReader reader = new SMSSubmissionReader();
@@ -73,19 +94,22 @@ public abstract class NewSMSListener implements IncomingSmsListener {
 			SMSSubmissionHeader header = reader.readHeader(smsBytes);
 			return header;
 		} catch ( Exception e ) {
-			//TODO: Handle exception
+			log.error(e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}
 	
 	public Metadata getMetadata( Date lastSyncDate ) {
 		Metadata meta = new Metadata();
+		meta.dataElements = getAllDataElements(lastSyncDate);
+		meta.categoryOptionCombos = getAllCatOptionCombos(lastSyncDate);
 		meta.organisationUnits = getAllUserIds(lastSyncDate);
 		meta.trackedEntityTypes = getAllTrackedEntityTypeIds(lastSyncDate);
 		meta.trackedEntityAttributes = getAllTrackedEntityAttributeIds(lastSyncDate);
 		meta.programs = getAllProgramIds(lastSyncDate);
 		meta.organisationUnits = getAllOrgUnitIds(lastSyncDate);
-		
+				
 		return meta;
 	}
 
@@ -138,6 +162,26 @@ public abstract class NewSMSListener implements IncomingSmsListener {
         		.filter(o -> o != null)
         		.collect(Collectors.toList());
     }
+    
+    public List<Metadata.ID> getAllDataElements (Date lastSyncDate) {
+        List<DataElement> dataElements = dataElementService.getAllDataElements();
+        
+        return dataElements
+        		.stream()
+        		.map(o -> getIdFromMetadata(o, lastSyncDate))
+        		.filter(o -> o != null)
+        		.collect(Collectors.toList());
+    }
+    
+    public List<Metadata.ID> getAllCatOptionCombos (Date lastSyncDate) {
+        List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
+        
+        return catOptionCombos
+        		.stream()
+        		.map(o -> getIdFromMetadata(o, lastSyncDate))
+        		.filter(o -> o != null)
+        		.collect(Collectors.toList());
+    }    
     
     public Metadata.ID getIdFromMetadata(IdentifiableObject obj, Date lastSyncDate) {
     	if ( obj.getCreated().after(lastSyncDate) ) {
