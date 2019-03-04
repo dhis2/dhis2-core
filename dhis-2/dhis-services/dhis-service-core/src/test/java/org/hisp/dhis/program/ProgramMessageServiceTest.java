@@ -72,7 +72,7 @@ public class ProgramMessageServiceTest
     private ProgramInstance piA;
 
     private TrackedEntityInstance teiA;
-    
+
     private BulkSmsGatewayConfig bulkSmsConfig;
 
     private ProgramMessageStatus messageStatus = ProgramMessageStatus.OUTBOUND;
@@ -86,7 +86,7 @@ public class ProgramMessageServiceTest
     private ProgramMessage pmsgB;
 
     private ProgramMessage pmsgC;
-    
+
     private ProgramMessage pmsgD;
 
     private ProgramMessageRecipients recipientsA;
@@ -94,7 +94,7 @@ public class ProgramMessageServiceTest
     private ProgramMessageRecipients recipientsB;
 
     private ProgramMessageRecipients recipientsC;
-    
+
     private ProgramMessageRecipients recipientsD;
 
     private String uidA;
@@ -127,10 +127,10 @@ public class ProgramMessageServiceTest
 
     @Autowired
     private ProgramService programService;
-    
+
     @Autowired
     private GatewayAdministrationService gatewayAdminService;
-    
+
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;
 
@@ -143,9 +143,9 @@ public class ProgramMessageServiceTest
     {
         ouA = createOrganisationUnit( 'A' );
         ouA.setPhoneNumber( msisdn );
-        
+
         ouB = createOrganisationUnit( 'B' );
-        
+
         orgUnitService.addOrganisationUnit( ouA );
         orgUnitService.addOrganisationUnit( ouB );
 
@@ -175,7 +175,7 @@ public class ProgramMessageServiceTest
 
         // ouSet.add( ouB );
 
-        teiA = createTrackedEntityInstance( 'Z', ouA );
+        teiA = createTrackedEntityInstance( ouA );
         teiService.addTrackedEntityInstance( teiA );
 
         recipientsA = new ProgramMessageRecipients();
@@ -189,7 +189,7 @@ public class ProgramMessageServiceTest
         recipientsC = new ProgramMessageRecipients();
         recipientsC.setOrganisationUnit( ouA );
         recipientsC.setTrackedEntityInstance( teiA );
-        
+
         recipientsD = new ProgramMessageRecipients();
         recipientsD.setOrganisationUnit( ouA );
         recipientsD.setTrackedEntityInstance( null );
@@ -215,7 +215,7 @@ public class ProgramMessageServiceTest
         pmsgB = createProgramMessage( text, subject, recipientsB, messageStatus, channels );
         pmsgB.setProgramInstance( piA );
 
-        pmsgC = createProgramMessage( text, subject, recipientsC, messageStatus, channels );      
+        pmsgC = createProgramMessage( text, subject, recipientsC, messageStatus, channels );
 
         pmsgD = createProgramMessage( text, subject, recipientsD, messageStatus, channels );
         pmsgD.setProgramInstance( piA );
@@ -233,18 +233,18 @@ public class ProgramMessageServiceTest
         params.setOrganisationUnit( ouUids );
         params.setProgramInstance( piA );
         params.setMessageStatus( messageStatus );
-        
+
         bulkSmsConfig = new BulkSmsGatewayConfig();
         bulkSmsConfig.setDefault( true );
         bulkSmsConfig.setName( "bulk" );
         bulkSmsConfig.setUsername( "user_uio" );
         bulkSmsConfig.setPassword( "5cKMMQTGNMkD" );
-            
+
         SmsConfiguration smsConfig = new SmsConfiguration();
         smsConfig.getGateways().add( bulkSmsConfig);
-        
+
         smsConfigurationManager.updateSmsConfiguration( smsConfig );
-        
+
         gatewayAdminService.loadGatewayConfigurationMap( smsConfig );
     }
 
@@ -326,7 +326,7 @@ public class ProgramMessageServiceTest
         assertTrue( equals( list, pmsgA, pmsgB ) );
         assertTrue( channels.equals( list.get( 0 ).getDeliveryChannels() ) );
     }
-    
+
     @Test
     public void testSaveProgramMessage()
     {

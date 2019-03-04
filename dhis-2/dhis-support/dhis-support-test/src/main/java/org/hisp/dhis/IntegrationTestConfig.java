@@ -81,8 +81,7 @@ public class IntegrationTestConfig
 
         postgisContainer.start();
 
-
-        log.info("Postgis container initialized: " + postgisContainer.getJdbcUrl());
+        log.info( String.format( "PostGIS container initialized: %s", postgisContainer.getJdbcUrl() ) );
 
         return postgisContainer;
     }
