@@ -48,6 +48,7 @@ FROM tomcat:8.5.34-jre8-alpine as serve
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 
+COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 # Expose the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance

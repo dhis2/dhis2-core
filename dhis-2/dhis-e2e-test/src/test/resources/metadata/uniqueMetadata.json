@@ -1,0 +1,24 @@
+{
+  "organisationUnits": [
+    {
+      "created": "2019-02-05T13:55:29.017",
+      "lastUpdated": "2019-02-05T13:55:29.073",
+      "name": "%string%",
+      "id": "%id%",
+      "shortName": "%string%",
+      "path": "%id%",
+      "featureType": "NONE",
+      "openingDate": "2018-10-31T00:00:00.000"
+    },
+    {
+      "created": "2019-02-05T13:55:29.017",
+      "lastUpdated": "2019-02-05T13:55:29.073",
+      "name": "%string%",
+      "id": "%id%",
+      "shortName": "%string%",
+      "path": "%id%",
+      "featureType": "NONE",
+      "openingDate": "2018-10-31T00:00:00.000"
+    }
+  ]
+}

@@ -30,6 +30,7 @@ package org.hisp.dhis;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.cookie.CookieFilter;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.specification.RequestSpecification;
@@ -64,6 +65,7 @@ public abstract class ApiTest
     {
         RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
 
+        requestSpecification.addFilter( new CookieFilter() );
         requestSpecification.setContentType( ContentType.JSON );
 
         return requestSpecification.build();

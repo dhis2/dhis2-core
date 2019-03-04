@@ -58,4 +58,9 @@ public class SchemasActions
     {
         return post( resource, obj );
     }
+
+    public String findSchemaPropertyByKlassName( String klass, String property )
+    {
+        return get().extractString( "schemas.find{it.klass == '" + klass + "'}." + property );
+    }
 }
