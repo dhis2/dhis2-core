@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.deduplication.PotentialDuplicate" table="potentialduplicate">
+
+        <cache usage="read-write" />
+
+        <id name="id" column="potentialduplicateid">
+            <generator class="sequence">
+                <param name="sequence">potentialduplicatesequence</param>
+            </generator>
+        </id>
+
+
+        <!-- IdentifiableObject Properties -->
+
+        <property name="uid" column="uid" unique="true" length="11" not-null="true" />
+
+        <property name="created" type="timestamp" not-null="true" />
+
+        <property name="lastUpdated" type="timestamp" not-null="true" />
+
+        <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
+
+
+        <!-- Potential Duplicate Properties -->
+
+        <property name="teiA" column="teiA" length="11" not-null="true" />
+
+        <property name="teiB" column="teiB" length="11" not-null="false" />
+
+        <property name="status" column="status">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.deduplication.DeduplicationStatus</param>
+                <param name="userNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+    </class>
+</hibernate-mapping>
