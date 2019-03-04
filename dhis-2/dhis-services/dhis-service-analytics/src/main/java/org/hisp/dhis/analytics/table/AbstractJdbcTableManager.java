@@ -127,7 +127,7 @@ public abstract class AbstractJdbcTableManager
     {
         return partitionManager.getAnalyticsPartitions( getAnalyticsTableType() );
     }
-    
+
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -357,16 +357,16 @@ public abstract class AbstractJdbcTableManager
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " ";
+            String sqlCreate = "create table " + tableName + " (";
 
             if ( !checks.isEmpty() )
             {
-                StringBuilder sqlCheck = new StringBuilder( "(" );
+                StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
+                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
             }
 
-            sqlCreate += "inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
