@@ -82,11 +82,11 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if (!(object instanceof Program))
+        if ( !(object instanceof Program) )
         {
             return errors;
         }
@@ -97,6 +97,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         {
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
+        
         return errors;
     }
 
