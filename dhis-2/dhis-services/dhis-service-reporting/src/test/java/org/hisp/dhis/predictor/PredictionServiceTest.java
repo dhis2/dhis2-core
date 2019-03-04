@@ -233,7 +233,7 @@ public class PredictionServiceTest
         altCategoryCombo = createCategoryCombo( 'Y', altCategory );
         categoryService.addCategoryCombo( altCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( altCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
@@ -745,10 +745,8 @@ public class PredictionServiceTest
 
         categoryService.addCategoryCombo( categoryComboJL );
 
-        CategoryOptionCombo optionComboJL = createCategoryOptionCombo( 'A',
-            categoryComboJL, optionJ, optionK );
-        CategoryOptionCombo optionComboKL = createCategoryOptionCombo( 'A',
-            categoryComboJL, optionK, optionL );
+        CategoryOptionCombo optionComboJL = createCategoryOptionCombo( categoryComboJL, optionJ, optionK );
+        CategoryOptionCombo optionComboKL = createCategoryOptionCombo( categoryComboJL, optionK, optionL );
 
         categoryService.addCategoryOptionCombo( optionComboJL );
         categoryService.addCategoryOptionCombo( optionComboKL );

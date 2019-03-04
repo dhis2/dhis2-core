@@ -202,14 +202,14 @@ public abstract class DhisConvenienceTest
     protected RenderService renderService;
 
     @Autowired( required = false )
-    protected CategoryService _categoryService;
+    protected CategoryService internalCategoryService;
 
     protected static CategoryService categoryService;
 
     @PostConstruct
-    protected void initStaticServices()
+    protected void initServices()
     {
-        categoryService = _categoryService;
+        categoryService = internalCategoryService;
     }
 
     static
@@ -382,7 +382,7 @@ public abstract class DhisConvenienceTest
         }
         catch ( Exception ex )
         {
-            throw new RuntimeException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
+            throw new IllegalArgumentException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
         }
     }
 
@@ -523,33 +523,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier A unique character to identify the
-     *                                      category option combo.
-     * @param dataElementCategoryCombo      The associated category combination.
-     * @param categoryOptions               the category options.
-     * @return CategoryOptionCombo
-     */
-    public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
-        CategoryCombo dataElementCategoryCombo,
-        CategoryOption... categoryOptions )
-    {
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setAutoFields();
-
-        categoryOptionCombo.setCategoryCombo( dataElementCategoryCombo );
-
-        for ( CategoryOption categoryOption : categoryOptions )
-        {
-            categoryOptionCombo.getCategoryOptions().add( categoryOption );
-
-            categoryOption.getCategoryOptionCombos().add( categoryOptionCombo );
-        }
-
-        return categoryOptionCombo;
-    }
-
-    /**
-     * @param categoryCombo   the category combo.
+     * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -1028,7 +1002,7 @@ public abstract class DhisConvenienceTest
      * @param attributeOptionCombo The attribute option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
         DataValue dataValue = new DataValue();
 
@@ -1040,6 +1014,8 @@ public abstract class DhisConvenienceTest
         dataValue.setValue( value );
         dataValue.setComment( "Comment" );
         dataValue.setStoredBy( "StoredBy" );
+        dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         return dataValue;
     }
@@ -1058,7 +1034,7 @@ public abstract class DhisConvenienceTest
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, String comment, String storedBy, Date created, Date lastupdated )
+        String value, Date created, Date lastupdated )
     {
         DataValue dataValue = new DataValue();
 
@@ -1568,7 +1544,7 @@ public abstract class DhisConvenienceTest
         indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
 
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         if ( analyticsType == AnalyticsType.EVENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
@@ -1619,21 +1595,6 @@ public abstract class DhisConvenienceTest
         trackedEntityType.setDescription( "TrackedEntityType" + uniqueChar + " description" );
 
         return trackedEntityType;
-    }
-
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit )
-    {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
-
-        return entityInstance;
-    }
-
-    public static ProgramStageInstance createProgramStageInstance()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        return programStageInstance;
     }
 
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,

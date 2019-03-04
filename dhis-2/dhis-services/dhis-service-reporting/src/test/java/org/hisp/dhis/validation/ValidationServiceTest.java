@@ -190,7 +190,7 @@ public class ValidationServiceTest
         CategoryOption optionX = createCategoryOption( 'X' );
         Category categoryX = createCategory( 'X', optionX );
         categoryComboX = createCategoryCombo( 'X', categoryX );
-        optionComboX = createCategoryOptionCombo( 'X', categoryComboX, optionX );
+        optionComboX = createCategoryOptionCombo( categoryComboX, optionX );
 
         categoryComboX.getOptionCombos().add( optionComboX );
 
@@ -990,8 +990,8 @@ public class ValidationServiceTest
 
         categoryService.addCategoryCombo( categoryComboA );
 
-        CategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        CategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
+        CategoryOptionCombo optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        CategoryOptionCombo optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
 
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
@@ -1088,9 +1088,9 @@ public class ValidationServiceTest
 
         categoryService.addCategoryCombo( categoryComboAB );
 
-        CategoryOptionCombo optionComboAC = createCategoryOptionCombo( 'A', categoryComboAB, optionA,
+        CategoryOptionCombo optionComboAC = createCategoryOptionCombo( categoryComboAB, optionA,
             optionC );
-        CategoryOptionCombo optionComboBC = createCategoryOptionCombo( 'A', categoryComboAB, optionB,
+        CategoryOptionCombo optionComboBC = createCategoryOptionCombo( categoryComboAB, optionB,
             optionC );
 
         categoryService.addCategoryOptionCombo( optionComboAC );
