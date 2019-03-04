@@ -93,10 +93,10 @@ public class ClickatellGateway
     private HttpHeaders getRequestHeaderParameters( ClickatellGatewayConfig clickatellConfiguration )
     {
         HttpHeaders headers = new HttpHeaders();
-        headers.set( CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( AUTHORIZATION, clickatellConfiguration.getAuthToken() );
+        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
 
         return headers;
     }

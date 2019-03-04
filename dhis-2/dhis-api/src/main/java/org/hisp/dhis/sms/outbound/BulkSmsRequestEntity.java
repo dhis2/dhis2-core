@@ -29,37 +29,51 @@ package org.hisp.dhis.sms.outbound;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @Author Zubair Asghar.
  */
 public class BulkSmsRequestEntity
 {
-    private Set<String> to = new HashSet<>();
+    private Set<To> to = new HashSet<>();
 
     private String body;
 
-    public BulkSmsRequestEntity( Set<String> to, String body )
+    public BulkSmsRequestEntity( String body, Set<String> recipients )
     {
-        this.to = to;
+        this.to = recipients.stream().map( r ->
+        {
+             To to = new To();
+             to.setAddress( r );
+             return to;
+        } ).collect( Collectors.toSet() );
+
         this.body = body;
     }
 
+    public BulkSmsRequestEntity()
+    {
+    }
+
     @JsonProperty
-    public Set<String> getTo()
+    @JacksonXmlProperty
+    public Set<To> getTo()
     {
         return to;
     }
 
-    public void setTo (Set<String> to )
+    public void setTo ( Set<To> to )
     {
         this.to = to;
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getBody()
     {
         return body;
@@ -68,5 +82,35 @@ public class BulkSmsRequestEntity
     public void setBody( String body )
     {
         this.body = body;
+    }
+
+    private class To
+    {
+        private String type = "INTERNATIONAL";
+        private String address;
+
+        @JsonProperty
+        @JacksonXmlProperty
+        public String getType()
+        {
+            return type;
+        }
+
+        public void setType( String type )
+        {
+            this.type = type;
+        }
+
+        @JsonProperty
+        @JacksonXmlProperty
+        public String getAddress()
+        {
+            return address;
+        }
+
+        public void setAddress( String address )
+        {
+            this.address = address;
+        }
     }
 }

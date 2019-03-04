@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.outbound;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @Author Zubair Asghar.
@@ -40,9 +41,11 @@ public class BulkSmsResponseEntity
     private String from;
     private String to;
     private String body;
+
     private Status status;
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getId()
     {
         return id;
@@ -54,6 +57,7 @@ public class BulkSmsResponseEntity
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getType()
     {
         return type;
@@ -65,6 +69,7 @@ public class BulkSmsResponseEntity
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getFrom()
     {
         return from;
@@ -76,6 +81,7 @@ public class BulkSmsResponseEntity
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getTo()
     {
         return to;
@@ -87,6 +93,7 @@ public class BulkSmsResponseEntity
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getBody()
     {
         return body;
@@ -98,6 +105,7 @@ public class BulkSmsResponseEntity
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public Status getStatus()
     {
         return status;
@@ -112,9 +120,10 @@ public class BulkSmsResponseEntity
     {
         private String id;
         private String type;
-        private String subType;
+        private String subtype;
 
         @JsonProperty
+        @JacksonXmlProperty
         public String getId()
         {
             return id;
@@ -126,6 +135,7 @@ public class BulkSmsResponseEntity
         }
 
         @JsonProperty
+        @JacksonXmlProperty
         public String getType()
         {
             return type;
@@ -136,15 +146,16 @@ public class BulkSmsResponseEntity
             this.type = type;
         }
 
-        @JsonProperty( value = "subtype" )
-        public String getSubType()
+        @JsonProperty
+        @JacksonXmlProperty
+        public String getSubtype()
         {
-            return subType;
+            return subtype;
         }
 
-        public void setSubType( String subType )
+        public void setSubtype(String subtype)
         {
-            this.subType = subType;
+            this.subtype = subtype;
         }
     }
 }

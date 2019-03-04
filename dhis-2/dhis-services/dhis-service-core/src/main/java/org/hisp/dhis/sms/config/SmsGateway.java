@@ -43,6 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.ImmutableMap;
@@ -55,9 +56,6 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( SmsGateway.class );
 
-    protected static final String CONTENT_TYPE = "Content-Type";
-    protected static final String ACCEPT = "Accept";
-    protected static final String AUTHORIZATION = "Authorization";
     protected static final String PROTOCOL_VERSION = "X-Version";
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
     protected static final String BASIC = " Basic ";
@@ -114,6 +112,12 @@ public abstract class SmsGateway
             log.error( "Server error", ex );
 
             statusCode = ex.getStatusCode();
+        }
+        catch ( RestClientException ex )
+        {
+            log.error( "Client Error", ex );
+
+            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         catch ( Exception ex )
         {

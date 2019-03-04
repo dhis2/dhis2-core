@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
+import org.hisp.dhis.sms.outbound.BulkSmsResponseEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -107,9 +108,9 @@ public class BulkSmsGateway
         BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
 
         HttpEntity<BulkSmsRequestEntity> request =
-            new HttpEntity<>( new BulkSmsRequestEntity( recipients, text), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
+            new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
 
-        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, BulkSmsRequestEntity.class );
+        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, BulkSmsResponseEntity [].class );
 
         return wrapHttpStatus( httpStatus );
 
@@ -237,9 +238,9 @@ public class BulkSmsGateway
         String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set( CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( AUTHORIZATION + BASIC, encodedCredentials );
+        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.AUTHORIZATION + BASIC, encodedCredentials );
 
         return headers;
     }
