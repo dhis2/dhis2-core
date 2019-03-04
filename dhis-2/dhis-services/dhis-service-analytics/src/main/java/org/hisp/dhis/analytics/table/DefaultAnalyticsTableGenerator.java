@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 import java.util.List;
@@ -93,7 +94,7 @@ public class DefaultAnalyticsTableGenerator
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
         log.info( String.format( "Last successful analytics table update: '%s'",
-            systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ) );
+            getLongDateString( (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ) ) );
 
         try
         {

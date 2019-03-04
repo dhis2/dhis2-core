@@ -73,6 +73,8 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+
 /**
  * @author Lars Helge Overland
  */
@@ -426,7 +428,7 @@ public abstract class AbstractJdbcTableManager
         Date endDate = params.getStartTime();
         table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
 
-        log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", startDate, endDate ) );
+        log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
 
         return table;
     }
