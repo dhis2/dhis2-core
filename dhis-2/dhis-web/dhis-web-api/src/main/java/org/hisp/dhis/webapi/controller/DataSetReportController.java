@@ -90,7 +90,7 @@ public class DataSetReportController
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
         throws Exception
     {
@@ -105,7 +105,7 @@ public class DataSetReportController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, dimension, selectedUnitOnly );
+        return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
@@ -113,7 +113,7 @@ public class DataSetReportController
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
         throws Exception
     {
@@ -123,7 +123,7 @@ public class DataSetReportController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, dimension, selectedUnitOnly );
+        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
     // -------------------------------------------------------------------------
