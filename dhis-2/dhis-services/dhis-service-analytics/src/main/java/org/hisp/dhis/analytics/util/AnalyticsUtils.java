@@ -625,17 +625,16 @@ public class AnalyticsUtils
                         map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
-
-
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
-            // Add additional items from the aggregation data
+
             if ( dimension.getDimensionalKeywords() != null )
             {
                 dimension.getDimensionalKeywords().getGroupBy()
-                    .forEach( b -> map.put( b.getUid(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
+                    .forEach( b -> map.put( b.getKey(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
             }
+
         }
 
         Program program = params.getProgram();
