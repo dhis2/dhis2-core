@@ -53,6 +53,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+
 /**
  * @author Lars Helge Overland
  */
@@ -127,7 +129,8 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s", tableType.getTableName(), params.getFromDate(), params.toString() ) );
+        clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s",
+            tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
         notifier.notify( jobId, "Performing pre-create table work" );
 
         tableManager.preCreateTables();

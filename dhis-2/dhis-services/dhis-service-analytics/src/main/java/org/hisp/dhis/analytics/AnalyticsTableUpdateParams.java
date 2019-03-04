@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import com.google.common.base.MoreObjects;
 
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -134,7 +135,7 @@ public class AnalyticsTableUpdateParams
             .add( "last years", lastYears )
             .add( "skip resource tables", skipResourceTables )
             .add( "skip table types", skipTableTypes )
-            .add( "start time", startTime )
+            .add( "start time", DateUtils.getLongDateString( startTime ) )
             .toString();
     }
 
