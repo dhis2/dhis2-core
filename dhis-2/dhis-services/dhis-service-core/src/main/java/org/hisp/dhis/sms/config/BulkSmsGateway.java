@@ -240,7 +240,7 @@ public class BulkSmsGateway
         HttpHeaders headers = new HttpHeaders();
         headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( HttpHeaders.AUTHORIZATION + BASIC, encodedCredentials );
+        headers.set( HttpHeaders.AUTHORIZATION, BASIC + encodedCredentials );
 
         return headers;
     }

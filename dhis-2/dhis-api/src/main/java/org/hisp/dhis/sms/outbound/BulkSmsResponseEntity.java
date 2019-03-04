@@ -42,7 +42,16 @@ public class BulkSmsResponseEntity
     private String to;
     private String body;
 
+    private String encoding;
+    private String protocolId;
+    private String messageClass;
+    private String relatedSentMessageId;
+    private String userSuppliedId;
+    private String numberOfParts;
+    private String creditCost;
+
     private Status status;
+    private Submission submission;
 
     @JsonProperty
     @JacksonXmlProperty
@@ -106,6 +115,90 @@ public class BulkSmsResponseEntity
 
     @JsonProperty
     @JacksonXmlProperty
+    public String getEncoding()
+    {
+        return encoding;
+    }
+
+    public void setEncoding( String encoding )
+    {
+        this.encoding = encoding;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getProtocolId()
+    {
+        return protocolId;
+    }
+
+    public void setProtocolId( String protocolId )
+    {
+        this.protocolId = protocolId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getMessageClass()
+    {
+        return messageClass;
+    }
+
+    public void setMessageClass( String messageClass )
+    {
+        this.messageClass = messageClass;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getRelatedSentMessageId()
+    {
+        return relatedSentMessageId;
+    }
+
+    public void setRelatedSentMessageId( String relatedSentMessageId )
+    {
+        this.relatedSentMessageId = relatedSentMessageId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getUserSuppliedId()
+    {
+        return userSuppliedId;
+    }
+
+    public void setUserSuppliedId( String userSuppliedId )
+    {
+        this.userSuppliedId = userSuppliedId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getNumberOfParts()
+    {
+        return numberOfParts;
+    }
+
+    public void setNumberOfParts( String numberOfParts )
+    {
+        this.numberOfParts = numberOfParts;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getCreditCost()
+    {
+        return creditCost;
+    }
+
+    public void setCreditCost( String creditCost )
+    {
+        this.creditCost = creditCost;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
     public Status getStatus()
     {
         return status;
@@ -116,7 +209,53 @@ public class BulkSmsResponseEntity
         this.status = status;
     }
 
-    private class Status
+    @JsonProperty
+    @JacksonXmlProperty
+    public Submission getSubmission()
+    {
+        return submission;
+    }
+
+    public void setSubmission( Submission submission )
+    {
+        this.submission = submission;
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal classes
+    // -------------------------------------------------------------------------
+
+    private static class Submission
+    {
+        private String id;
+        private String date;
+
+        @JsonProperty
+        @JacksonXmlProperty
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId( String id )
+        {
+            this.id = id;
+        }
+
+        @JsonProperty
+        @JacksonXmlProperty
+        public String getDate()
+        {
+            return date;
+        }
+
+        public void setDate( String date )
+        {
+            this.date = date;
+        }
+    }
+
+    private static class Status
     {
         private String id;
         private String type;

@@ -43,7 +43,7 @@ public class BulkSmsGatewayConfig
 
     private final String URL_TEMPLATE = "https://bulksms.vsms.net/eapi/submission/send_sms/2/2.0";
 
-    private final String JSON_API_URL = "https://api.bulksms.com/v1";
+    private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
 
     @JsonProperty( value = "urlTemplateForBatchSms" )
     public String getUrlTemplateForBatchSms()

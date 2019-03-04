@@ -61,11 +61,12 @@ public abstract class SmsGateway
     protected static final String BASIC = " Basic ";
 
     protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
-            HttpStatus.ACCEPTED, HttpStatus.CREATED );
+        HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
         .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
         .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
+        .put( HttpStatus.CREATED, GatewayResponse.RESULT_CODE_202 )
         .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
         .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
         .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
