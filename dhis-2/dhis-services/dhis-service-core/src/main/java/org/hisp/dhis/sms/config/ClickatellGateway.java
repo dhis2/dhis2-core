@@ -47,16 +47,6 @@ import java.util.stream.Collectors;
 public class ClickatellGateway
     extends SmsGateway
 {
-    private static final String CONTENT_TYPE = "Content-Type";
-
-    private static final String ACCEPT = "Accept";
-
-    private static final String AUTHORIZATION = "Authorization";
-
-    private static final String PROTOCOL_VERSION = "X-Version";
-
-    private static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
-
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------

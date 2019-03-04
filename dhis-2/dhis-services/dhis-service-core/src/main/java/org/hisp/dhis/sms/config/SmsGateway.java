@@ -55,6 +55,13 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( SmsGateway.class );
 
+    protected static final String CONTENT_TYPE = "Content-Type";
+    protected static final String ACCEPT = "Accept";
+    protected static final String AUTHORIZATION = "Authorization";
+    protected static final String PROTOCOL_VERSION = "X-Version";
+    protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+    protected static final String BASIC = " Basic ";
+
     protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
             HttpStatus.ACCEPTED, HttpStatus.CREATED );
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.sms.outbound;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,31 +30,43 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @Author Zubair Asghar.
  */
-
-public class BulkSmsGatewayConfig
-    extends SmsGatewayConfig
+public class BulkSmsRequestEntity
 {
-    private static final long serialVersionUID = 5249703354480948250L;
+    private Set<String> to = new HashSet<>();
 
-    private final String URL_TEMPLATE_FOR_BATCHSMS = "https://bulksms.vsms.net/eapi/submission/send_batch/1/1.0";
+    private String body;
 
-    private final String URL_TEMPLATE = "https://bulksms.vsms.net/eapi/submission/send_sms/2/2.0";
-
-    private final String JSON_API_URL = "https://api.bulksms.com/v1";
-
-    @JsonProperty( value = "urlTemplateForBatchSms" )
-    public String getUrlTemplateForBatchSms()
+    public BulkSmsRequestEntity( Set<String> to, String body )
     {
-        return this.URL_TEMPLATE_FOR_BATCHSMS;
+        this.to = to;
+        this.body = body;
     }
 
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    public String getUrlTemplate()
+    @JsonProperty
+    public Set<String> getTo()
     {
-        return this.JSON_API_URL;
+        return to;
+    }
+
+    public void setTo (Set<String> to )
+    {
+        this.to = to;
+    }
+
+    @JsonProperty
+    public String getBody()
+    {
+        return body;
+    }
+
+    public void setBody( String body )
+    {
+        this.body = body;
     }
 }

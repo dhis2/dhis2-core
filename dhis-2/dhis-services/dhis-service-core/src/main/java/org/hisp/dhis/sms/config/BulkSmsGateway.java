@@ -33,11 +33,17 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
+import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -45,6 +51,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -97,10 +104,20 @@ public class BulkSmsGateway
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
+        BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
+
+        HttpEntity<BulkSmsRequestEntity> request =
+            new HttpEntity<>( new BulkSmsRequestEntity( recipients, text), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
+
+        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, BulkSmsRequestEntity.class );
+
+        return wrapHttpStatus( httpStatus );
+
+/*
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
         uriBuilder.queryParam( "message", stringToHex( text ) );
 
-        return send( uriBuilder );
+        return send( uriBuilder );*/
     }
 
     // -------------------------------------------------------------------------
@@ -212,5 +229,18 @@ public class BulkSmsGateway
             output.append( next );
         }
         return output.toString();
+    }
+
+    private HttpHeaders getRequestHeaderParameters( BulkSmsGatewayConfig bulkSmsGatewayConfig )
+    {
+        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getPassword().trim();
+        String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set( CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( AUTHORIZATION + BASIC, encodedCredentials );
+
+        return headers;
     }
 }
