@@ -1107,7 +1107,7 @@ public class AclServiceTest
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
         manager.save( user1 );
 
-        // non data shareable object //
+        // Non-data shareable object
 
         CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
         categoryOptionGroupSet.setAutoFields();
