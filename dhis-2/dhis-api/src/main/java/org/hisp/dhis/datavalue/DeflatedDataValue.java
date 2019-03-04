@@ -47,15 +47,15 @@ import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 @JacksonXmlRootElement
 public class DeflatedDataValue
 {
-    private int dataElementId;
+    private long dataElementId;
 
-    private int periodId;
+    private long periodId;
 
-    private int sourceId;
+    private long sourceId;
 
-    private int categoryOptionComboId;
+    private long categoryOptionComboId;
 
-    private int attributeOptionComboId;
+    private long attributeOptionComboId;
 
     private String value;
 
@@ -142,56 +142,56 @@ public class DeflatedDataValue
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    public int getDataElementId()
+    public long getDataElementId()
     {
         return dataElementId;
     }
 
-    public void setDataElementId( int dataElementId )
+    public void setDataElementId( long dataElementId )
     {
         this.dataElementId = dataElementId;
     }
 
     @JsonProperty
-    public int getPeriodId()
+    public long getPeriodId()
     {
         return periodId;
     }
 
-    public void setPeriodId( int periodId )
+    public void setPeriodId( long periodId )
     {
         this.periodId = periodId;
     }
 
     @JsonProperty
-    public int getSourceId()
+    public long getSourceId()
     {
         return sourceId;
     }
 
-    public void setSourceId( int sourceId )
+    public void setSourceId( long sourceId )
     {
         this.sourceId = sourceId;
     }
 
     @JsonProperty
-    public int getCategoryOptionComboId()
+    public long getCategoryOptionComboId()
     {
         return categoryOptionComboId;
     }
 
-    public void setCategoryOptionComboId( int categoryOptionComboId )
+    public void setCategoryOptionComboId( long categoryOptionComboId )
     {
         this.categoryOptionComboId = categoryOptionComboId;
     }
 
     @JsonProperty
-    public int getAttributeOptionComboId()
+    public long getAttributeOptionComboId()
     {
         return attributeOptionComboId;
     }
 
-    public void setAttributeOptionComboId( int attributeOptionComboId )
+    public void setAttributeOptionComboId( long attributeOptionComboId )
     {
         this.attributeOptionComboId = attributeOptionComboId;
     }
@@ -353,10 +353,10 @@ public class DeflatedDataValue
         final int prime = 31;
         int result = 1;
 
-        result = prime * result + dataElementId;
-        result = prime * result + periodId;
-        result = prime * result + sourceId;
-        result = prime * result + categoryOptionComboId;
+        result = prime * result + (int) dataElementId;
+        result = prime * result + (int) periodId;
+        result = prime * result + (int) sourceId;
+        result = prime * result + (int) categoryOptionComboId;
 
         return result;
     }

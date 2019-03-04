@@ -86,8 +86,8 @@ public class ProgramServiceTest
     @Test
     public void testAddProgram()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertNotNull( programService.getProgram( idA ) );
         assertNotNull( programService.getProgram( idB ) );
@@ -96,7 +96,7 @@ public class ProgramServiceTest
     @Test
     public void testUpdateProgram()
     {
-        int idA = programService.addProgram( programA );
+        long idA = programService.addProgram( programA );
 
         assertNotNull( programService.getProgram( idA ) );
 
@@ -109,8 +109,8 @@ public class ProgramServiceTest
     @Test
     public void testDeleteProgram()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertNotNull( programService.getProgram( idA ) );
         assertNotNull( programService.getProgram( idB ) );
@@ -129,8 +129,8 @@ public class ProgramServiceTest
     @Test
     public void testGetProgramById()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertEquals( programA, programService.getProgram( idA ) );
         assertEquals( programB, programService.getProgram( idB ) );

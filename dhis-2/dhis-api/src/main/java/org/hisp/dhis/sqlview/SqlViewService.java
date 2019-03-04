@@ -50,7 +50,7 @@ public interface SqlViewService
     // CRUD
     // -------------------------------------------------------------------------
 
-    int saveSqlView( SqlView sqlView );
+    long saveSqlView( SqlView sqlView );
 
     void deleteSqlView( SqlView sqlView );
 
@@ -58,7 +58,7 @@ public interface SqlViewService
 
     int getSqlViewCount();
 
-    SqlView getSqlView( int viewId );
+    SqlView getSqlView( long viewId );
 
     SqlView getSqlViewByUid( String uid );
 

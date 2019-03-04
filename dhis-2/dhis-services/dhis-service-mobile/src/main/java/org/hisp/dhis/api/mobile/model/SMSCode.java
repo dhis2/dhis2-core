@@ -37,9 +37,9 @@ public class SMSCode
 {
     private String code;
 
-    private int dataElementId;
+    private long dataElementId;
 
-    private int optionId;
+    private long optionId;
     
     private String clientVersion;
 
@@ -55,8 +55,8 @@ public class SMSCode
         throws IOException
     {
         this.setCode( dataInputStream.readUTF() );
-        this.setDataElementId( dataInputStream.readInt() );
-        this.setOptionId( dataInputStream.readInt() );
+        this.setDataElementId( dataInputStream.readLong() );
+        this.setOptionId( dataInputStream.readLong() );
 
     }
 
@@ -85,22 +85,22 @@ public class SMSCode
         this.code = code;
     }
 
-    public int getDataElementId()
+    public long getDataElementId()
     {
         return dataElementId;
     }
 
-    public void setDataElementId( int dataElementId )
+    public void setDataElementId( long dataElementId )
     {
         this.dataElementId = dataElementId;
     }
 
-    public int getOptionId()
+    public long getOptionId()
     {
         return optionId;
     }
 
-    public void setOptionId( int optionId )
+    public void setOptionId( long optionId )
     {
         this.optionId = optionId;
     }
@@ -120,8 +120,8 @@ public class SMSCode
         throws IOException
     {
         dataOutputStream.writeUTF( this.code );
-        dataOutputStream.writeInt( this.dataElementId );
-        dataOutputStream.writeInt( this.optionId );
+        dataOutputStream.writeLong( this.dataElementId );
+        dataOutputStream.writeLong( this.optionId );
     }
 
 }

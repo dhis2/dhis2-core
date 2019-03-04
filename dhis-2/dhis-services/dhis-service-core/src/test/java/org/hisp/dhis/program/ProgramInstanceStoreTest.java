@@ -106,16 +106,16 @@ public class ProgramInstanceStoreTest
 
     private TrackedEntityInstance entityInstanceA;
 
-    private Collection<Integer> orgunitIds;
+    private Collection<Long> orgunitIds;
 
     @Override
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        int idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         organisationUnitB = createOrganisationUnit( 'B' );
-        int idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
 
         orgunitIds = new HashSet<>();
         orgunitIds.add( idA );

@@ -58,7 +58,7 @@ public interface OrganisationUnitService
      * @param organisationUnit the OrganisationUnit to add.
      * @return a generated unique id of the added OrganisationUnit.
      */
-    int addOrganisationUnit( OrganisationUnit organisationUnit );
+    long addOrganisationUnit( OrganisationUnit organisationUnit );
 
     /**
      * Updates an OrganisationUnit.
@@ -97,7 +97,7 @@ public interface OrganisationUnitService
      * @param id the id of the OrganisationUnit to return.
      * @return the OrganisationUnit with the given id, or null if no match.
      */
-    OrganisationUnit getOrganisationUnit( int id );
+    OrganisationUnit getOrganisationUnit( long id );
 
     /**
      * Returns the OrganisationUnit with the given UID.
@@ -138,7 +138,7 @@ public interface OrganisationUnitService
      * @param identifiers the collection of identifiers.
      * @return a list of OrganisationUnits.
      */
-    List<OrganisationUnit> getOrganisationUnits( Collection<Integer> identifiers );
+    List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers );
 
     /**
      * Returns all OrganisationUnits with corresponding identifiers.
@@ -215,7 +215,7 @@ public interface OrganisationUnitService
      * and all its children, or an empty list if no
      * OrganisationUnits match.
      */
-    List<OrganisationUnit> getOrganisationUnitWithChildren( int id );
+    List<OrganisationUnit> getOrganisationUnitWithChildren( long id );
 
     /**
      * Returns an OrganisationUnit and all its children.
@@ -227,7 +227,7 @@ public interface OrganisationUnitService
      * and all its children, or an empty list if no
      * OrganisationUnits match.
      */
-    List<OrganisationUnit> getOrganisationUnitWithChildren( int id, Integer maxLevels );
+    List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels );
 
     /**
      * Returns the OrganisationUnits and all their children.
@@ -411,13 +411,13 @@ public interface OrganisationUnitService
      * @param organisationUnitId the child organisation unit identifier.
      * @param parentId           the parent organisation unit identifier.
      */
-    void updateOrganisationUnitParent( int organisationUnitId, int parentId );
+    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------
 
-    int addOrganisationUnitLevel( OrganisationUnitLevel level );
+    long addOrganisationUnitLevel( OrganisationUnitLevel level );
 
     void updateOrganisationUnitLevel( OrganisationUnitLevel level );
 
@@ -425,7 +425,7 @@ public interface OrganisationUnitService
 
     void pruneOrganisationUnitLevels( Set<Integer> currentLevels );
 
-    OrganisationUnitLevel getOrganisationUnitLevel( int id );
+    OrganisationUnitLevel getOrganisationUnitLevel( long id );
 
     OrganisationUnitLevel getOrganisationUnitLevel( String uid );
 

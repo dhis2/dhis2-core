@@ -67,9 +67,9 @@ public class PeriodServiceTest
         Period periodA = new Period( periodTypeA, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
-        int idA = periodService.addPeriod( periodA );
-        int idB = periodService.addPeriod( periodB );
-        int idC = periodService.addPeriod( periodC );
+        long idA = periodService.addPeriod( periodA );
+        long idB = periodService.addPeriod( periodB );
+        long idC = periodService.addPeriod( periodC );
 
         periodA = periodService.getPeriod( idA );
         assertNotNull( periodA );
@@ -105,10 +105,10 @@ public class PeriodServiceTest
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
-        int idA = periodService.addPeriod( periodA );
-        int idB = periodService.addPeriod( periodB );
-        int idC = periodService.addPeriod( periodC );
-        int idD = periodService.addPeriod( periodD );
+        long idA = periodService.addPeriod( periodA );
+        long idB = periodService.addPeriod( periodB );
+        long idC = periodService.addPeriod( periodC );
+        long idD = periodService.addPeriod( periodD );
 
         assertNotNull( periodService.getPeriod( idA ) );
         assertNotNull( periodService.getPeriod( idB ) );
@@ -153,11 +153,11 @@ public class PeriodServiceTest
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
         Period periodE = new Period( periodTypeA, getDay( 3 ), getDay( 4 ) );
-        int idA = periodService.addPeriod( periodA );
-        int idB = periodService.addPeriod( periodB );
-        int idC = periodService.addPeriod( periodC );
-        int idD = periodService.addPeriod( periodD );
-        int idE = periodService.addPeriod( periodE );
+        long idA = periodService.addPeriod( periodA );
+        long idB = periodService.addPeriod( periodB );
+        long idC = periodService.addPeriod( periodC );
+        long idD = periodService.addPeriod( periodD );
+        long idE = periodService.addPeriod( periodE );
     
         periodA = periodService.getPeriod( getDay( 1 ), getDay( 2 ), periodTypeA );
         assertNotNull( periodA );

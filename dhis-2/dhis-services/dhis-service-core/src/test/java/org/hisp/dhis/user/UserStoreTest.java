@@ -80,9 +80,9 @@ public class UserStoreTest
         userB.setOrganisationUnits( units );
 
         userStore.save( userA );
-        int idA = userA.getId();
+        long idA = userA.getId();
         userStore.save( userB );
-        int idB = userB.getId();
+        long idB = userB.getId();
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
@@ -98,9 +98,9 @@ public class UserStoreTest
         User userB = createUser( 'B' );
 
         userStore.save( userA );
-        int idA = userA.getId();
+        long idA = userA.getId();
         userStore.save( userB );
-        int idB = userB.getId();
+        long idB = userB.getId();
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
@@ -119,9 +119,9 @@ public class UserStoreTest
         User userB = createUser( 'B' );
 
         userStore.save( userA );
-        int idA = userA.getId();
+        long idA = userA.getId();
         userStore.save( userB );
-        int idB = userB.getId();
+        long idB = userB.getId();
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );

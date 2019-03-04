@@ -52,7 +52,7 @@ public interface ReportTableService
      * @param reportTable the ReportTable to save.
      * @return the generated identifier.
      */
-    int saveReportTable( ReportTable reportTable );
+    long saveReportTable( ReportTable reportTable );
 
     /**
      * Updates a ReportTable.
@@ -74,7 +74,7 @@ public interface ReportTableService
      * @param id the identifier of the ReportTable to retrieve.
      * @return the ReportTable.
      */
-    ReportTable getReportTable( int id );
+    ReportTable getReportTable( long id );
 
     /**
      * Retrieves the ReportTable with the given uid.

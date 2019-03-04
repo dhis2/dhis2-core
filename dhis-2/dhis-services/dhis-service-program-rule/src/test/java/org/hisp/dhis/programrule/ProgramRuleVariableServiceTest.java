@@ -98,9 +98,9 @@ public class ProgramRuleVariableServiceTest
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, true, null );
         ProgramRuleVariable variableC = new ProgramRuleVariable( "RuleVariableC", programA, ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementA, false, null );
 
-        int idA = variableService.addProgramRuleVariable( variableA );
-        int idB = variableService.addProgramRuleVariable( variableB );
-        int idC = variableService.addProgramRuleVariable( variableC );
+        long idA = variableService.addProgramRuleVariable( variableA );
+        long idB = variableService.addProgramRuleVariable( variableB );
+        long idC = variableService.addProgramRuleVariable( variableC );
         assertEquals( variableA, variableService.getProgramRuleVariable( idA ) );
         assertEquals( variableB, variableService.getProgramRuleVariable( idB ) );
         assertEquals( variableC, variableService.getProgramRuleVariable( idC ) );
@@ -136,7 +136,7 @@ public class ProgramRuleVariableServiceTest
     {
         ProgramRuleVariable variableH = new ProgramRuleVariable( "RuleVariableH", programA, ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, null, dataElementA, false, null );
 
-        int idH = variableService.addProgramRuleVariable( variableH );
+        long idH = variableService.addProgramRuleVariable( variableH );
 
         variableH.setAttribute( attributeA );
         variableH.setDataElement( dataElementA );
@@ -155,8 +155,8 @@ public class ProgramRuleVariableServiceTest
         ProgramRuleVariable ruleVariableI = new ProgramRuleVariable( "RuleVariableI", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
         ProgramRuleVariable ruleVariableJ = new ProgramRuleVariable( "RuleVariableJ", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
 
-        int idI = variableService.addProgramRuleVariable( ruleVariableI );
-        int idJ = variableService.addProgramRuleVariable( ruleVariableJ );
+        long idI = variableService.addProgramRuleVariable( ruleVariableI );
+        long idJ = variableService.addProgramRuleVariable( ruleVariableJ );
 
         assertNotNull( variableService.getProgramRuleVariable( idI ) );
         assertNotNull( variableService.getProgramRuleVariable( idJ ) );
@@ -200,7 +200,7 @@ public class ProgramRuleVariableServiceTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, null, false, null );
 
-        int idA = variableService.addProgramRuleVariable( variableA );
+        long idA = variableService.addProgramRuleVariable( variableA );
 
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoDataElement();
 
@@ -213,7 +213,7 @@ public class ProgramRuleVariableServiceTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, null, null, false, null );
 
-        int idA = variableService.addProgramRuleVariable( variableA );
+        long idA = variableService.addProgramRuleVariable( variableA );
 
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoAttribute();
 
@@ -227,8 +227,8 @@ public class ProgramRuleVariableServiceTest
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
 
-        int idA = variableService.addProgramRuleVariable( variableA );
-        int idB = variableService.addProgramRuleVariable( variableB );
+        long idA = variableService.addProgramRuleVariable( variableA );
+        long idB = variableService.addProgramRuleVariable( variableB );
 
         List<ProgramRuleVariable> variablesD = variableService.getVariablesWithNoDataElement();
         List<ProgramRuleVariable> variablesA = variableService.getVariablesWithNoAttribute();

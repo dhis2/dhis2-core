@@ -38,7 +38,7 @@ import java.util.List;
  */
 public interface DataSetNotificationTemplateService
 {
-    DataSetNotificationTemplate get( int id );
+    DataSetNotificationTemplate get( long id );
 
     DataSetNotificationTemplate get( String uid );
 

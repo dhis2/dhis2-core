@@ -50,7 +50,7 @@ public class DefaultTrackedEntityCommentService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntityComment( TrackedEntityComment comment )
+    public long addTrackedEntityComment( TrackedEntityComment comment )
     {
         commentStore.save( comment );
 
@@ -75,7 +75,7 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
-    public TrackedEntityComment getTrackedEntityComment( int id )
+    public TrackedEntityComment getTrackedEntityComment( long id )
     {
         return commentStore.get( id );
     }

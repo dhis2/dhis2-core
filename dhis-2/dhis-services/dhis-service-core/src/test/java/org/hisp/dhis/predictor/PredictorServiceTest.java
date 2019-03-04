@@ -103,8 +103,8 @@ public class PredictorServiceTest
     private PredictorGroup predictorGroupA;
     private PredictorGroup predictorGroupB;
 
-    private int predictorGroupIdA;
-    private int predictorGroupIdB;
+    private long predictorGroupIdA;
+    private long predictorGroupIdB;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -211,7 +211,7 @@ public class PredictorServiceTest
         Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
         levels.add( orgUnitLevel1 );
 
-        int id = predictorService.addPredictor( predictor );
+        long id = predictorService.addPredictor( predictor );
 
         predictor = predictorService.getPredictor( id );
 
@@ -235,7 +235,7 @@ public class PredictorServiceTest
         Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
         levels.add( orgUnitLevel1 );
 
-        int id = predictorService.addPredictor( predictor );
+        long id = predictorService.addPredictor( predictor );
 
         predictor = predictorService.getPredictor( id );
 
@@ -256,7 +256,7 @@ public class PredictorServiceTest
     {
         Predictor predictor = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
-        int id = predictorService.addPredictor( predictor );
+        long id = predictorService.addPredictor( predictor );
 
         predictor = predictorService.getPredictor( id );
 
@@ -286,8 +286,8 @@ public class PredictorServiceTest
         predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
-        int idA = predictorService.addPredictor( predictorA );
-        int idB = predictorService.addPredictor( predictorB );
+        long idA = predictorService.addPredictor( predictorA );
+        long idB = predictorService.addPredictor( predictorB );
 
         assertNotNull( predictorService.getPredictor( idA ) );
         assertNotNull( predictorService.getPredictor( idB ) );

@@ -299,9 +299,9 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testAddProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorA );
-        int idB = programIndicatorService.addProgramIndicator( indicatorB );
-        int idC = programIndicatorService.addProgramIndicator( indicatorC );
+        long idA = programIndicatorService.addProgramIndicator( indicatorA );
+        long idB = programIndicatorService.addProgramIndicator( indicatorB );
+        long idC = programIndicatorService.addProgramIndicator( indicatorC );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
         assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
@@ -311,8 +311,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testDeleteProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
-        int idB = programIndicatorService.addProgramIndicator( indicatorA );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
         assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
@@ -331,7 +331,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testUpdateProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
 
@@ -344,8 +344,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetProgramIndicatorById()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
-        int idB = programIndicatorService.addProgramIndicator( indicatorA );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
         assertEquals( indicatorB, programIndicatorService.getProgramIndicator( idA ) );
         assertEquals( indicatorA, programIndicatorService.getProgramIndicator( idB ) );

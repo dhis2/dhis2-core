@@ -140,7 +140,7 @@ public class PredictorStoreTest
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
-        int idA = predictorA.getId();
+        long idA = predictorA.getId();
         Set<OrganisationUnitLevel> levelsA = predictorA.getOrganisationUnitLevels();
         Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<OrganisationUnitLevel>();
         expectedLevelsA.add( orgUnitLevel1 );
@@ -162,7 +162,7 @@ public class PredictorStoreTest
         assertEquals( levelsA, expectedLevelsA );
 
         predictorStore.save( predictorB );
-        int idB = predictorB.getId();
+        long idB = predictorB.getId();
         Set<OrganisationUnitLevel> levelsB = predictorB.getOrganisationUnitLevels();
         Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<OrganisationUnitLevel>();
         expectedLevelsB.add( orgUnitLevel1 );
@@ -191,7 +191,7 @@ public class PredictorStoreTest
             6, 1, 0 );
 
         predictorStore.save( predictor );
-        int id = predictor.getId();
+        long id = predictor.getId();
 
         predictor = predictorStore.get( id );
 
@@ -220,9 +220,9 @@ public class PredictorStoreTest
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
-        int idA = predictorA.getId();
+        long idA = predictorA.getId();
         predictorStore.save( predictorB );
-        int idB = predictorB.getId();
+        long idB = predictorB.getId();
 
         assertNotNull( predictorStore.get( idA ) );
         assertNotNull( predictorStore.get( idB ) );
@@ -265,7 +265,7 @@ public class PredictorStoreTest
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
-        int id = predictorA.getId();
+        long id = predictorA.getId();
         predictorStore.save( predictorB );
 
         Predictor rule = predictorStore.getByName( "PredictorA" );

@@ -113,9 +113,9 @@ public class ProgramRuleServiceTest
         ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
         ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
         
-        int idA = programRuleService.addProgramRule( ruleA );
-        int idB = programRuleService.addProgramRule( ruleB );
-        int idC = programRuleService.addProgramRule( ruleC );
+        long idA = programRuleService.addProgramRule( ruleA );
+        long idB = programRuleService.addProgramRule( ruleB );
+        long idC = programRuleService.addProgramRule( ruleC );
         
         assertEquals( ruleA, programRuleService.getProgramRule( idA ) );
         assertEquals( ruleB, programRuleService.getProgramRule( idB ) );
@@ -184,7 +184,7 @@ public class ProgramRuleServiceTest
     {
         ProgramRule ruleH = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
         
-        int idH = programRuleService.addProgramRule( ruleH );
+        long idH = programRuleService.addProgramRule( ruleH );
         
         ruleH.setCondition( "$newcondition == true" );
         ruleH.setName( "new name" );
@@ -205,8 +205,8 @@ public class ProgramRuleServiceTest
         ProgramRule ruleI = new ProgramRule( "RuleI", "descriptionI", programB, null, null, "true", null );
         ProgramRule ruleJ = new ProgramRule( "RuleJ", "descriptionJ", programB, null, null, "$a < 1", 1 );
 
-        int idI = programRuleService.addProgramRule( ruleI );
-        int idJ = programRuleService.addProgramRule( ruleJ );
+        long idI = programRuleService.addProgramRule( ruleI );
+        long idJ = programRuleService.addProgramRule( ruleJ );
         
         assertNotNull( programRuleService.getProgramRule( idI ) );
         assertNotNull( programRuleService.getProgramRule( idJ ) );

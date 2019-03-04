@@ -51,7 +51,7 @@ public class AttributeValue
      */
     private static final long serialVersionUID = -6625127769248931066L;
 
-    private int id;
+    private long id;
 
     /**
      * The date this object was created.
@@ -112,7 +112,7 @@ public class AttributeValue
     @Override
     public int hashCode()
     {
-        int result = id;
+        int result = (int) id;
         result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
@@ -132,12 +132,12 @@ public class AttributeValue
 
 
     @JsonIgnore
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

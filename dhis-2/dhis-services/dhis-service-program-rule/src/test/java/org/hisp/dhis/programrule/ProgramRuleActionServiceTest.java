@@ -112,11 +112,11 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleA, ProgramRuleActionType.HIDEFIELD, null, attributeA, null, null, null, null, null, null, null, null);
         ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleA, ProgramRuleActionType.CREATEEVENT, null, null, null, programStageA, null, null, null, "{wqpUVEeJR3D:30,mrVkW9h2Rdp:'live'}", null, null);
         
-        int idA = actionService.addProgramRuleAction( actionA );
-        int idB = actionService.addProgramRuleAction( actionB );
-        int idC = actionService.addProgramRuleAction( actionC );
-        int idD = actionService.addProgramRuleAction( actionD );
-        int idE = actionService.addProgramRuleAction( actionE );
+        long idA = actionService.addProgramRuleAction( actionA );
+        long idB = actionService.addProgramRuleAction( actionB );
+        long idC = actionService.addProgramRuleAction( actionC );
+        long idD = actionService.addProgramRuleAction( actionD );
+        long idE = actionService.addProgramRuleAction( actionE );
         
         assertEquals( actionA, actionService.getProgramRuleAction( idA ) );
         assertEquals( actionB, actionService.getProgramRuleAction( idB ) );
@@ -155,7 +155,7 @@ public class ProgramRuleActionServiceTest
     {
         ProgramRuleAction actionH = new ProgramRuleAction( "ActionH", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
         
-        int idH = actionService.addProgramRuleAction( actionH );
+        long idH = actionService.addProgramRuleAction( actionH );
         
         actionH.setName( "new name" );
         actionH.setData( "$newdata" );
@@ -175,8 +175,8 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
         ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
         
-        int idI = actionService.addProgramRuleAction( actionI );
-        int idJ = actionService.addProgramRuleAction( actionJ );
+        long idI = actionService.addProgramRuleAction( actionI );
+        long idJ = actionService.addProgramRuleAction( actionJ );
         
         assertNotNull( actionService.getProgramRuleAction( idI ) );
         assertNotNull( actionService.getProgramRuleAction( idJ ) );
@@ -198,8 +198,8 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
         ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
-        int idI = actionService.addProgramRuleAction( actionI );
-        int idJ = actionService.addProgramRuleAction( actionJ );
+        long idI = actionService.addProgramRuleAction( actionI );
+        long idJ = actionService.addProgramRuleAction( actionJ );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -218,8 +218,8 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
         actionI.setTemplateUid( "tempUId" );
-        int idI = actionService.addProgramRuleAction( actionI );
-        int idJ = actionService.addProgramRuleAction( actionJ );
+        long idI = actionService.addProgramRuleAction( actionI );
+        long idJ = actionService.addProgramRuleAction( actionJ );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -236,7 +236,7 @@ public class ProgramRuleActionServiceTest
     {
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null );
 
-        int idI = actionService.addProgramRuleAction( actionI );
+        long idI = actionService.addProgramRuleAction( actionI );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -253,7 +253,7 @@ public class ProgramRuleActionServiceTest
     {
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
 
-        int idI = actionService.addProgramRuleAction( actionI );
+        long idI = actionService.addProgramRuleAction( actionI );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
         programRuleService.updateProgramRule( programRuleA );

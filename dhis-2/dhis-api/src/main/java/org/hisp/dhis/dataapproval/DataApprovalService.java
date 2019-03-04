@@ -53,7 +53,7 @@ public interface DataApprovalService
      * @param workflow the DataApprovalWorkflow to add.
      * @return a generated unique id of the added Workflow.
      */
-    int addWorkflow( DataApprovalWorkflow workflow );
+    long addWorkflow( DataApprovalWorkflow workflow );
 
     /**
      * Updates a DataApprovalWorkflow.
@@ -75,7 +75,7 @@ public interface DataApprovalService
      * @param id the id of the DataApprovalWorkflow to return.
      * @return the DataApprovalWorkflow with the given id, or null if no match.
      */
-    DataApprovalWorkflow getWorkflow( int id );
+    DataApprovalWorkflow getWorkflow( long id );
 
     /**
      * Returns a DataApprovalWorkflow.

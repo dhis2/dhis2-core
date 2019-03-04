@@ -56,7 +56,7 @@ public class DefaultTrackedEntityTypeService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntityType( TrackedEntityType trackedEntityType )
+    public long addTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.save( trackedEntityType );
 
@@ -76,7 +76,7 @@ public class DefaultTrackedEntityTypeService
     }
 
     @Override
-    public TrackedEntityType getTrackedEntityType( int id )
+    public TrackedEntityType getTrackedEntityType( long id )
     {
         return trackedEntityTypeStore.get( id );
     }

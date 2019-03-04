@@ -181,7 +181,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 40;
+                return 40l;
             } );
 
         when( programInstanceStore.getWithScheduledNotifications( any(), any()) )

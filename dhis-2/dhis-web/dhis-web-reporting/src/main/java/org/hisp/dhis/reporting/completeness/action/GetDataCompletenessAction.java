@@ -126,9 +126,9 @@ public class GetDataCompletenessAction
         this.periodId = periodId;
     }
 
-    private Integer dataSetId;
+    private Long dataSetId;
 
-    public void setDataSetId( Integer dataSetId )
+    public void setDataSetId( Long dataSetId )
     {
         this.dataSetId = dataSetId;
     }
@@ -147,9 +147,9 @@ public class GetDataCompletenessAction
         this.type = type;
     }
     
-    private Set<Integer> groupId = new HashSet<>();
+    private Set<Long> groupId = new HashSet<>();
 
-    public void setGroupId( Set<Integer> groupId )
+    public void setGroupId( Set<Long> groupId )
     {
         this.groupId = groupId;
     }
@@ -194,7 +194,7 @@ public class GetDataCompletenessAction
             else
             {
                 Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
-                Integer _periodId = period.getId();
+                Long _periodId = period.getId();
 
                 DataSet dataSet = null;
                 List<DataSetCompletenessResult> mainResults = new ArrayList<>();

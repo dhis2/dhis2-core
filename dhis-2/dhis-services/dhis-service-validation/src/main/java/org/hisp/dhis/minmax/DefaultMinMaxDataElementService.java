@@ -60,7 +60,7 @@ public class DefaultMinMaxDataElementService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addMinMaxDataElement( MinMaxDataElement minMaxDataElement )
+    public long addMinMaxDataElement( MinMaxDataElement minMaxDataElement )
     {
         minMaxDataElementStore.save( minMaxDataElement );
 
@@ -80,7 +80,7 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public MinMaxDataElement getMinMaxDataElement( int id )
+    public MinMaxDataElement getMinMaxDataElement( long id )
     {
         return minMaxDataElementStore.get( id );
     }

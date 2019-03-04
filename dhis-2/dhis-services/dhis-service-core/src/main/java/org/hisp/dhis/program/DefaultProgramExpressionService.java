@@ -86,7 +86,7 @@ public class DefaultProgramExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramExpression( ProgramExpression programExpression )
+    public long addProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.save( programExpression );
         return programExpression.getId();
@@ -105,7 +105,7 @@ public class DefaultProgramExpressionService
     }
 
     @Override
-    public ProgramExpression getProgramExpression( int id )
+    public ProgramExpression getProgramExpression( long id )
     {
         return programExpressionStore.get( id );
     }

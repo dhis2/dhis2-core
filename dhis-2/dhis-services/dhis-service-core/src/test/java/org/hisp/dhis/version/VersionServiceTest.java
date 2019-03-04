@@ -68,8 +68,8 @@ public class VersionServiceTest
     @Test
     public void testAddVersion()
     {
-        int idA = versionService.addVersion( versionA );
-        int idB = versionService.addVersion( versionB );
+        long idA = versionService.addVersion( versionA );
+        long idB = versionService.addVersion( versionB );
 
         assertTrue( idA >= 0 );
         assertTrue( idB >= 0 );
@@ -87,7 +87,7 @@ public class VersionServiceTest
     @Test
     public void testUpdateVersion()
     {
-        int id = versionService.addVersion( versionA );
+        long id = versionService.addVersion( versionA );
         versionService.updateVersion( "keyA", "changedValueA" );
         versionA = versionService.getVersion( id );
 
@@ -98,7 +98,7 @@ public class VersionServiceTest
     @Test
     public void testDeleteVersion()
     {
-        int id = versionService.addVersion( versionA );
+        long id = versionService.addVersion( versionA );
         versionService.deleteVersion( versionA );
         assertNull( versionService.getVersion( id ) );
     }
@@ -106,7 +106,7 @@ public class VersionServiceTest
     @Test
     public void testGetVersion()
     {
-        int id = versionService.addVersion( versionA );
+        long id = versionService.addVersion( versionA );
         versionA = versionService.getVersion( id );
 
         assertNotNull( versionA );

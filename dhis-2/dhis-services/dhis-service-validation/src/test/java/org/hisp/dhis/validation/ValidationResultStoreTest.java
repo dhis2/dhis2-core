@@ -350,7 +350,7 @@ public class ValidationResultStoreTest
         validationResultStore.save( validationResultAA );
         Date afterSave = new Date();
 
-        int id = validationResultAA.getId();
+        long id = validationResultAA.getId();
         ValidationResult validationResult = validationResultStore.get( id );
 
         assertNotNull( validationResult );
@@ -369,7 +369,7 @@ public class ValidationResultStoreTest
     public void testDeleteValidationResult() throws Exception
     {
         validationResultStore.save( validationResultAA );
-        int id = validationResultAA.getId();
+        long id = validationResultAA.getId();
 
         validationResultStore.delete( validationResultAA );
 
