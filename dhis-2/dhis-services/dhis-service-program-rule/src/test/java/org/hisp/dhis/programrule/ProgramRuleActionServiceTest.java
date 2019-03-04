@@ -61,29 +61,29 @@ public class ProgramRuleActionServiceTest
     private DataElement dataElementA;
     private Program programA;
     private ProgramStage programStageA;
-    
+
     @Autowired
     private ProgramRuleService programRuleService;
-    
+
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private TrackedEntityAttributeService attributeService;
-    
+
     @Autowired
     private ProgramRuleActionService actionService;
 
     @Autowired
     private ProgramService programService;
-    
+
     @Autowired
     private ProgramStageService programStageService;
-    
+
     @Override
     public void setUpTest()
     {
-        
+
         programStageA = createProgramStage( 'A', 0 );
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( programStageA );
@@ -93,7 +93,7 @@ public class ProgramRuleActionServiceTest
         programRuleC = createProgramRule( 'C', programA );
         dataElementA = createDataElement( 'A' );
         attributeA = createTrackedEntityAttribute('a');
-        
+
         programService.addProgram( programA );
         programStageService.saveProgramStage(programStageA);
         programRuleService.addProgramRule( programRuleA );
@@ -102,7 +102,7 @@ public class ProgramRuleActionServiceTest
         dataElementService.addDataElement( dataElementA );
         attributeService.addTrackedEntityAttribute(attributeA);
     }
-    
+
     @Test
     public void testAddGet()
     {
@@ -124,7 +124,7 @@ public class ProgramRuleActionServiceTest
         assertEquals( actionD, actionService.getProgramRuleAction( idD ) );
         assertEquals( actionE, actionService.getProgramRuleAction( idE ) );
     }
-    
+
     @Test
     public void testGetByProgram()
     {
@@ -133,12 +133,12 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionF = new ProgramRuleAction( "ActionF", programRuleB, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
         //Add an action that is not part of programRuleB....
         ProgramRuleAction actionG = new ProgramRuleAction( "ActionG", programRuleC, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
-        
+
         actionService.addProgramRuleAction( actionD );
         actionService.addProgramRuleAction( actionE );
         actionService.addProgramRuleAction( actionF );
         actionService.addProgramRuleAction( actionG );
-        
+
         //Get all the 3 rules for programB
         List<ProgramRuleAction> rules = actionService.getProgramRuleAction( programRuleB );
         assertEquals( 3, rules.size() );
@@ -147,9 +147,9 @@ public class ProgramRuleActionServiceTest
         assertTrue( rules.contains( actionF ) );
         //Make sure that the action connected to rule A is not returned as part of list of actions in rule B.
         assertFalse( rules.contains( actionG ) );
-        
+
     }
-    
+
     @Test
     public void testUpdate()
     {
@@ -163,12 +163,12 @@ public class ProgramRuleActionServiceTest
         actionH.setDataElement( dataElementA );
         actionH.setProgramRule( programRuleC );
         actionH.setProgramRuleActionType( ProgramRuleActionType.HIDEFIELD );
-        
+
         actionService.updateProgramRuleAction( actionH );
-        
+
         assertEquals( actionH, actionService.getProgramRuleAction( idH ) );
     }
-    
+
     @Test
     public void testDeleteProgramRuleVariable()
     {
@@ -198,8 +198,8 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
         ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
-        long idI = actionService.addProgramRuleAction( actionI );
-        long idJ = actionService.addProgramRuleAction( actionJ );
+        actionService.addProgramRuleAction( actionI );
+        actionService.addProgramRuleAction( actionJ );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -218,8 +218,9 @@ public class ProgramRuleActionServiceTest
         ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
 
         actionI.setTemplateUid( "tempUId" );
-        long idI = actionService.addProgramRuleAction( actionI );
-        long idJ = actionService.addProgramRuleAction( actionJ );
+
+        actionService.addProgramRuleAction( actionI );
+        actionService.addProgramRuleAction( actionJ );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI, actionJ ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -236,7 +237,7 @@ public class ProgramRuleActionServiceTest
     {
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null );
 
-        long idI = actionService.addProgramRuleAction( actionI );
+        actionService.addProgramRuleAction( actionI );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
         programRuleService.updateProgramRule( programRuleA );
@@ -253,7 +254,7 @@ public class ProgramRuleActionServiceTest
     {
         ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
 
-        long idI = actionService.addProgramRuleAction( actionI );
+        actionService.addProgramRuleAction( actionI );
 
         programRuleA.setProgramRuleActions( Sets.newHashSet( actionI ) );
         programRuleService.updateProgramRule( programRuleA );

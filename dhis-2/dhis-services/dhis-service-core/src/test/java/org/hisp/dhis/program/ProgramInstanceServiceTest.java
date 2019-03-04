@@ -135,10 +135,10 @@ public class ProgramInstanceServiceTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -281,7 +281,7 @@ public class ProgramInstanceServiceTest
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceC );
         programInstanceService.addProgramInstance( programInstanceD );
-        
+
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
@@ -322,10 +322,10 @@ public class ProgramInstanceServiceTest
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idD ).getStatus() );
     }
-    
+
     @Test
     public void testIncompleteProgramInstanceStatus()
-    {   
+    {
         programInstanceA.setStatus( ProgramStatus.COMPLETED );
         programInstanceD.setStatus( ProgramStatus.COMPLETED );
         
@@ -334,7 +334,7 @@ public class ProgramInstanceServiceTest
         
         programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
         programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
-        
+
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idD ).getStatus() );
     }

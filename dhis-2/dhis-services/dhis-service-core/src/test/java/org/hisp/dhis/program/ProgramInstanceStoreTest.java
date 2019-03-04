@@ -145,10 +145,10 @@ public class ProgramInstanceStoreTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -235,8 +235,8 @@ public class ProgramInstanceStoreTest
 
         // TEI
 
-        TrackedEntityInstance teiX = createTrackedEntityInstance( 'X', organisationUnitA );
-        TrackedEntityInstance teiY = createTrackedEntityInstance( 'Y', organisationUnitA );
+        TrackedEntityInstance teiX = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntityInstance teiY = createTrackedEntityInstance( organisationUnitA );
 
         entityInstanceService.addTrackedEntityInstance( teiX );
         entityInstanceService.addTrackedEntityInstance( teiY );

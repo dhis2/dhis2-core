@@ -68,7 +68,7 @@ public class SmsUtils
         if ( matcher.find() )
         {
             commandString = matcher.group();
-            commandString.trim();
+            commandString = commandString.trim();
         }
 
         return commandString;

@@ -54,11 +54,13 @@ import javax.jms.Topic;
  */
 public class AmqpClient
 {
+    private final static ObjectMapper objectMapper = new ObjectMapper();
+
     private final Connection connection;
 
     public AmqpClient( Connection connection )
     {
-        Assert.notNull( connection, "connection is a required dependency of AmqpClient." );
+        Assert.notNull( connection, "Connection is a required dependency of AmqpClient" );
         this.connection = connection;
     }
 
@@ -105,7 +107,7 @@ public class AmqpClient
         send( new JmsTopic( topic ), value );
     }
 
-    public <T> void send( Destination destination, Object value )
+    public void send( Destination destination, Object value )
     {
         try
         {
@@ -139,8 +141,6 @@ public class AmqpClient
             ex.printStackTrace();
         }
     }
-
-    private final static ObjectMapper objectMapper = new ObjectMapper();
 
     public static String toJson( Object value )
     {

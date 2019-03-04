@@ -179,10 +179,10 @@ public class ProgramStageInstanceServiceTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );

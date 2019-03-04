@@ -110,7 +110,7 @@ public class ProgramExpressionServiceTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
 
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT

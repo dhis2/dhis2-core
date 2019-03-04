@@ -125,7 +125,7 @@ public class TrackedEntityDataValueAuditStoreTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,

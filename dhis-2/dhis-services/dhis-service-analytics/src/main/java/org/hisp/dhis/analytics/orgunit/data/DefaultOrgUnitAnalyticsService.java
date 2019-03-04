@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution.impl;
+package org.hisp.dhis.analytics.orgunit.data;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,37 +45,34 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class DefaultOrgUnitDistributionServiceV2
-    implements OrgUnitDistributionServiceV2
+public class DefaultOrgUnitAnalyticsService
+    implements OrgUnitAnalyticsService
 {
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
-    private OrgUnitDistributionManager distributionManager;
+    private OrgUnitAnalyticsManager distributionManager;
 
     @Override
-    public OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets )
+    public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets )
     {
         List<String> ous = TextUtils.getOptions( orgUnits );
         List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
 
-        return new OrgUnitDistributionParams()
+        return new OrgUnitQueryParams()
             .setOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
             .setOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) );
     }
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params )
+    public Grid getOrgUnitDistribution( OrgUnitQueryParams params )
     {
         validate( params );
 
@@ -87,7 +87,7 @@ public class DefaultOrgUnitDistributionServiceV2
     }
 
     @Override
-    public void validate( OrgUnitDistributionParams params )
+    public void validate( OrgUnitQueryParams params )
     {
         if ( params == null )
         {
@@ -105,7 +105,7 @@ public class DefaultOrgUnitDistributionServiceV2
         }
     }
 
-    private void addHeaders( OrgUnitDistributionParams params, Grid grid )
+    private void addHeaders( OrgUnitQueryParams params, Grid grid )
     {
         grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
         params.getOrgUnitGroupSets().forEach( ougs ->
@@ -113,7 +113,7 @@ public class DefaultOrgUnitDistributionServiceV2
         grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
     }
 
-    private void addMetadata( OrgUnitDistributionParams params, Grid grid )
+    private void addMetadata( OrgUnitQueryParams params, Grid grid )
     {
         Map<String, Object> metadata = new HashMap<>();
         Map<String, Object> items = new HashMap<>();

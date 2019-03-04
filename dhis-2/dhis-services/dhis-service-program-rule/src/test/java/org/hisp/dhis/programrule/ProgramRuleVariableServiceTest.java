@@ -200,7 +200,7 @@ public class ProgramRuleVariableServiceTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, null, false, null );
 
-        long idA = variableService.addProgramRuleVariable( variableA );
+        variableService.addProgramRuleVariable( variableA );
 
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoDataElement();
 
@@ -213,7 +213,7 @@ public class ProgramRuleVariableServiceTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, null, null, false, null );
 
-        long idA = variableService.addProgramRuleVariable( variableA );
+        variableService.addProgramRuleVariable( variableA );
 
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoAttribute();
 
@@ -227,8 +227,8 @@ public class ProgramRuleVariableServiceTest
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
 
-        long idA = variableService.addProgramRuleVariable( variableA );
-        long idB = variableService.addProgramRuleVariable( variableB );
+        variableService.addProgramRuleVariable( variableA );
+        variableService.addProgramRuleVariable( variableB );
 
         List<ProgramRuleVariable> variablesD = variableService.getVariablesWithNoDataElement();
         List<ProgramRuleVariable> variablesA = variableService.getVariablesWithNoAttribute();

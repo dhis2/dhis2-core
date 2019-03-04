@@ -454,22 +454,22 @@ public class DataApprovalServiceTest
 
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboAE = createCategoryOptionCombo( 'A', categoryComboA, optionA, optionE );
-        optionComboAF = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionF );
-        optionComboAG = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionG );
-        optionComboAH = createCategoryOptionCombo( 'D', categoryComboA, optionA, optionH );
-        optionComboBE = createCategoryOptionCombo( 'E', categoryComboA, optionB, optionE );
-        optionComboBF = createCategoryOptionCombo( 'F', categoryComboA, optionB, optionF );
-        optionComboBG = createCategoryOptionCombo( 'G', categoryComboA, optionB, optionG );
-        optionComboBH = createCategoryOptionCombo( 'H', categoryComboA, optionB, optionH );
-        optionComboCE = createCategoryOptionCombo( 'I', categoryComboA, optionC, optionE );
-        optionComboCF = createCategoryOptionCombo( 'J', categoryComboA, optionC, optionF );
-        optionComboCG = createCategoryOptionCombo( 'K', categoryComboA, optionC, optionG );
-        optionComboCH = createCategoryOptionCombo( 'L', categoryComboA, optionC, optionH );
-        optionComboDE = createCategoryOptionCombo( 'M', categoryComboA, optionD, optionE );
-        optionComboDF = createCategoryOptionCombo( 'N', categoryComboA, optionD, optionF );
-        optionComboDG = createCategoryOptionCombo( 'O', categoryComboA, optionD, optionG );
-        optionComboDH = createCategoryOptionCombo( 'P', categoryComboA, optionD, optionH );
+        optionComboAE = createCategoryOptionCombo( categoryComboA, optionA, optionE );
+        optionComboAF = createCategoryOptionCombo( categoryComboA, optionA, optionF );
+        optionComboAG = createCategoryOptionCombo( categoryComboA, optionA, optionG );
+        optionComboAH = createCategoryOptionCombo( categoryComboA, optionA, optionH );
+        optionComboBE = createCategoryOptionCombo( categoryComboA, optionB, optionE );
+        optionComboBF = createCategoryOptionCombo( categoryComboA, optionB, optionF );
+        optionComboBG = createCategoryOptionCombo( categoryComboA, optionB, optionG );
+        optionComboBH = createCategoryOptionCombo( categoryComboA, optionB, optionH );
+        optionComboCE = createCategoryOptionCombo( categoryComboA, optionC, optionE );
+        optionComboCF = createCategoryOptionCombo( categoryComboA, optionC, optionF );
+        optionComboCG = createCategoryOptionCombo( categoryComboA, optionC, optionG );
+        optionComboCH = createCategoryOptionCombo( categoryComboA, optionC, optionH );
+        optionComboDE = createCategoryOptionCombo( categoryComboA, optionD, optionE );
+        optionComboDF = createCategoryOptionCombo( categoryComboA, optionD, optionF );
+        optionComboDG = createCategoryOptionCombo( categoryComboA, optionD, optionG );
+        optionComboDH = createCategoryOptionCombo( categoryComboA, optionD, optionH );
 
         optionComboAE.setUid( "optionComAE" );
         optionComboAF.setUid( "optionComAF" );

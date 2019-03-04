@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -219,10 +220,10 @@ public class JCloudsAppStorageService
 
                 appList.add( app );
             }
-            catch ( IOException e )
+            catch ( IOException ex )
             {
-                log.warn( "Could not read manifest file of " + resource.getName() + ".", e );
-                e.printStackTrace();
+                log.error( "Could not read manifest file of " + resource.getName(), ex );
+                log.error( DebugUtils.getStackTrace( ex ) );
             }
         }
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.analytics.orgunit;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -37,7 +37,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitDistributionParams
+public class OrgUnitQueryParams
 {
     private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
@@ -53,7 +53,7 @@ public class OrgUnitDistributionParams
         return orgUnits;
     }
 
-    public OrgUnitDistributionParams setOrgUnits( List<OrganisationUnit> orgUnits )
+    public OrgUnitQueryParams setOrgUnits( List<OrganisationUnit> orgUnits )
     {
         this.orgUnits = orgUnits;
         return this;
@@ -64,7 +64,7 @@ public class OrgUnitDistributionParams
         return orgUnitGroupSets;
     }
 
-    public OrgUnitDistributionParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
+    public OrgUnitQueryParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
     {
         this.orgUnitGroupSets = orgUnitGroupSets;
         return this;
