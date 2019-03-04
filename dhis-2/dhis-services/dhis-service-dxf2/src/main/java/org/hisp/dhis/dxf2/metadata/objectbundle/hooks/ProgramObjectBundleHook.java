@@ -117,7 +117,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     
     private void addProgramInstance( Program program )
     {
-
         if ( getProgramInstancesCount( program ) == 0 )
         {
             ProgramInstance pi = new ProgramInstance();
@@ -129,7 +128,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
             this.programInstanceService.addProgramInstance( pi );
         }
-
     }
     
     private int getProgramInstancesCount( Program program )
