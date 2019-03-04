@@ -92,6 +92,8 @@ public class DefaultAnalyticsTableGenerator
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
+        log.info( String.format( "Last successful analytics table update: '%s'",
+            systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ) );
 
         try
         {

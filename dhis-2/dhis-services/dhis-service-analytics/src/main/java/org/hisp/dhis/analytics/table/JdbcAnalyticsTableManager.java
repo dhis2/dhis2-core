@@ -120,6 +120,8 @@ public class JdbcAnalyticsTableManager
             getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
             getAnalyticsTable( params, getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
 
+        //TODO check if there is any data for latest partition and abort if not
+
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
 
