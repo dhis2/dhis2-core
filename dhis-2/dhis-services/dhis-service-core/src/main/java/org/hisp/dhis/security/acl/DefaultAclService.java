@@ -201,6 +201,14 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean canDataOrMetadataRead( User user, IdentifiableObject object )
+    {
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        return schema.isDataShareable() ? canDataRead( user, object ) : canRead( user, object );
+    }
+
+    @Override
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )

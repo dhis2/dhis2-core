@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
@@ -1098,5 +1099,22 @@ public class AclServiceTest
         manager.update( reportTable );
 
         assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testCanDataOrMetadataRead()
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        // Non-data shareable object
+
+        CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+        categoryOptionGroupSet.setAutoFields();
+        categoryOptionGroupSet.setName( "cogA" );
+
+        manager.save( categoryOptionGroupSet );
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOptionGroupSet ) );
     }
 }
