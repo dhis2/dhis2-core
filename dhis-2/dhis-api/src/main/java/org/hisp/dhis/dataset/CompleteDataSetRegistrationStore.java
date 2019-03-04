@@ -62,9 +62,9 @@ public interface CompleteDataSetRegistrationStore
      * Retrieves the CompleteDataSetRegistration for the given DataSet, Period
      * and Source.
      *
-     * @param dataSet              the DataSet.
-     * @param period               the Period.
-     * @param source               the Source.
+     * @param dataSet the DataSet.
+     * @param period the Period.
+     * @param source the Source.
      * @param attributeOptionCombo the attribute option combo.
      * @return the CompleteDataSetRegistration.
      */
@@ -90,8 +90,8 @@ public interface CompleteDataSetRegistrationStore
      * of DataSets, Sources and Periods.
      *
      * @param dataSets the Collection of DataSets.
-     * @param sources  the Collection of Sources.
-     * @param periods  the Collection of Periods.
+     * @param sources the Collection of Sources.
+     * @param periods the Collection of Periods.
      * @return a list of CompleteDataSetRegistrations.
      */
     List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
@@ -101,9 +101,9 @@ public interface CompleteDataSetRegistrationStore
      * Retrieves a list of CompleteDataSetRegistrations for the given DataSet,
      * Collection of Sources, Period and Date.
      *
-     * @param dataSet  the DataSet.
-     * @param sources  the Collection of Sources.
-     * @param period   the Period.
+     * @param dataSet the DataSet.
+     * @param sources the Collection of Sources.
+     * @param period the Period.
      * @param deadline the Date that the registration must be made before in order to be defined as "on time"
      * @return a list of CompleteDataSetRegistrations.
      */

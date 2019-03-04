@@ -95,8 +95,8 @@ public interface EventService
     /**
      * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      *
-     * @param pageSize              Specifies the max number for the events returned.
-     * @param skipChangedBefore     the point in time specifying which events will be synchronized and which not
+     * @param pageSize Specifies the max number for the events returned.
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
      * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be synchronized
      * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      */
@@ -141,7 +141,7 @@ public interface EventService
     /**
      * Updates a last sync timestamp on specified Events
      *
-     * @param eventsUIDs       UIDs of Events where the lastSynchronized flag should be updated
+     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );

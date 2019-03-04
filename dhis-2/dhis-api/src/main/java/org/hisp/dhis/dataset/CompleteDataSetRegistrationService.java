@@ -62,9 +62,9 @@ public interface CompleteDataSetRegistrationService
      * Retrieves the CompleteDataSetRegistration for the given DataSet, Period
      * and Source.
      *
-     * @param dataSet              the DataSet.
-     * @param period               the Period.
-     * @param source               the Source.
+     * @param dataSet the DataSet.
+     * @param period the Period.
+     * @param source the Source.
      * @param attributeOptionCombo the attribute option combo.
      * @return the CompleteDataSetRegistration.
      */
@@ -109,9 +109,9 @@ public interface CompleteDataSetRegistrationService
     /**
      * Checks for missing compulsory fields of the data set to be completed
      *
-     * @param dataSet              the DataSet.
-     * @param period               the Period.
-     * @param source               the Source.
+     * @param dataSet the DataSet.
+     * @param period the Period.
+     * @param source the Source.
      * @param attributeOptionCombo the attribute option combo.
      * @return list of missing compulsory fields, null if all are filled.
      */

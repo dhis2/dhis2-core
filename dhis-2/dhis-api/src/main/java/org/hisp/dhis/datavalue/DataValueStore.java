@@ -82,10 +82,10 @@ public interface DataValueStore
     /**
      * Returns a DataValue.
      *
-     * @param dataElement          the DataElement of the DataValue.
-     * @param period               the Period of the DataValue.
-     * @param source               the Source of the DataValue.
-     * @param categoryOptionCombo  the category option combo.
+     * @param dataElement the DataElement of the DataValue.
+     * @param period the Period of the DataValue.
+     * @param source the Source of the DataValue.
+     * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
      * @return the DataValue which corresponds to the given parameters, or null
      * if no match.
@@ -125,9 +125,9 @@ public interface DataValueStore
      * Returns all DataValues for a given Source, Period, collection of
      * DataElements and CategoryOptionCombo.
      *
-     * @param source               the Source of the DataValues.
-     * @param period               the Period of the DataValues.
-     * @param dataElements         the DataElements of the DataValues.
+     * @param source the Source of the DataValues.
+     * @param period the Period of the DataValues.
+     * @param dataElements the DataElements of the DataValues.
      * @param attributeOptionCombo the CategoryCombo.
      * @return a list of all DataValues which match the given Source,
      * Period, and any of the DataElements, or an empty collection if no
@@ -149,8 +149,8 @@ public interface DataValueStore
      * start and end date. The <pre>startDate</pre> and <pre>endDate</pre> parameters
      * can both be null but one must be defined.
      *
-     * @param startDate      the start date to compare against data value last updated.
-     * @param endDate        the end date to compare against data value last updated.
+     * @param startDate the start date to compare against data value last updated.
+     * @param endDate the end date to compare against data value last updated.
      * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */

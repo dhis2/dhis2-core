@@ -49,20 +49,20 @@ public interface DataValueSetStore
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated  specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
-     * @param idSchemes    idSchemes
+     * @param idSchemes idSchemes
      */
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated  specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
-     * @param idSchemes    idSchemes
-     * @param pageSize     pageSize
-     * @param page         page
+     * @param idSchemes idSchemes
+     * @param pageSize pageSize
+     * @param page page
      */
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
         int page );
