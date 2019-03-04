@@ -34,24 +34,24 @@ package org.hisp.dhis.sms.outbound;
 
 public enum GatewayResponse
 {
-    SUCCESS( "success", "" ), 
-    SENT( "success", "" ), 
-    FAILED( "failed", "" ), 
-    PENDING( "pending", "" ), 
-    SERVICE_NOT_AVAILABLE( "service not available", "" ), 
-    ENCODING_FAILURE( "encoding failed", "" ), 
-    PROCESSING( "processing", "" ), 
-    QUEUED( "queued" ,"" ), 
+    SUCCESS( "success", "" ),
+    SENT( "success", "" ),
+    FAILED( "failed", "" ),
+    PENDING( "pending", "" ),
+    SERVICE_NOT_AVAILABLE( "service not available", "" ),
+    ENCODING_FAILURE( "encoding failed", "" ),
+    PROCESSING( "processing", "" ),
+    QUEUED( "queued" ,"" ),
     NO_GATEWAY_CONFIGURATION( "no gateway configuration found", "" ),
     NO_DEFAULT_GATEWAY( "no gateway is set to default", "" ),
     AUTHENTICATION_FAILED( "authentication failed", "" ),
     NO_RECIPIENT( "no recipient", "No recipient found" ),
     SMS_DISABLED( "sms notifications are disabled", "sms notifications are disabled" ),
-    
+
     // -------------------------------------------------------------------------
     // BulkSms response codes
     // -------------------------------------------------------------------------
-    
+
     RESULT_CODE_0( "success", "" ),
     RESULT_CODE_1( "scheduled", "" ),
     RESULT_CODE_22( "internal fatal error", "" ),
@@ -63,11 +63,11 @@ public enum GatewayResponse
     RESULT_CODE_28( "pstream quota exceeded", "" ),
     RESULT_CODE_40( "temporarily unavailable", "" ),
     RESULT_CODE_201( "maximum batch size exceeded", "" ),
-    
+
     // -------------------------------------------------------------------------
     // Clickatell response codes
     // -------------------------------------------------------------------------
-    
+
     RESULT_CODE_200( "success", "The request was successfully completed" ),
     RESULT_CODE_202( "accepted", "The message(s) will be processed" ),
     RESULT_CODE_207( "multi-status", "More than  one message was submitted to the API; however, not all messages have the same status" ),
@@ -84,7 +84,7 @@ public enum GatewayResponse
     private final String responseMessage;
 
     private final String responseMessageDetail;
-    
+
     private String batchId;
 
     GatewayResponse( String responseMessage, String responseMessageDetail )
@@ -97,12 +97,12 @@ public enum GatewayResponse
     {
         return responseMessage;
     }
-    
+
     public String getResponseMessageDetail()
     {
         return responseMessageDetail;
     }
-    
+
     public String getBatchId()
     {
         return batchId;
