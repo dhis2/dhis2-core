@@ -90,12 +90,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String MESSAGE = "message";
     private static final String TEMPLATE_NAME = "message";
     private static final String OU_PHONE_NUMBER = "471000000";
-    private static final String DE_PHONE_NUMBER = "47200000";
     private static final String ATT_PHONE_NUMBER = "473000000";
     private static final String USERA_PHONE_NUMBER = "47400000";
     private static final String USERB_PHONE_NUMBER = "47500000";
     private static final String ATT_EMAIL = "attr@test.org";
-    private static final String DE_EMAIL = "de@test.org";
 
     @Mock
     private MessageService messageService;
@@ -589,7 +587,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setEntityInstance( tei );
 
         // ProgramStageInstance
-        ProgramStageInstance programStageInstance = createProgramStageInstance();
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setAutoFields();
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
