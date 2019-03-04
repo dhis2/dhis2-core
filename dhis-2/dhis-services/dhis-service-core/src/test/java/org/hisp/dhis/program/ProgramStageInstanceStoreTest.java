@@ -84,7 +84,7 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -144,14 +144,14 @@ public class ProgramStageInstanceStoreTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-        
+
         idObjectManager.save( organisationUnitA );
         idObjectManager.save( organisationUnitB );
-        
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );

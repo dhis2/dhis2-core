@@ -132,7 +132,7 @@ public class EventImportTest extends DhisSpringTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', organisationUnitA );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
 
         maleA.setTrackedEntityType( trackedEntityType );
 

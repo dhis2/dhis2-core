@@ -71,8 +71,8 @@ public class TrackedEntityInstanceServiceTest
         entityInstanceAttribute = createTrackedEntityAttribute( 'A' );
         attributeService.addTrackedEntityAttribute( entityInstanceAttribute );
 
-        entityInstanceA1 = createTrackedEntityInstance( 'A', organisationUnit );
-        entityInstanceB1 = createTrackedEntityInstance( 'B', organisationUnit );
+        entityInstanceA1 = createTrackedEntityInstance( organisationUnit );
+        entityInstanceB1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceB1.setUid( "UID-B1" );
     }
 

@@ -302,7 +302,7 @@ public class PredictionServiceTest
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value )
     {
-        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, value.toString(), defaultCombo, attributeOptionCombo ) );
+        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, defaultCombo, attributeOptionCombo, value.toString() ) );
     }
 
     private String getDataValue( DataElement dataElement, CategoryOptionCombo combo, OrganisationUnit source, Period period )

@@ -478,13 +478,13 @@ public class ValidationServiceTest
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, String value )
     {
-        dataValueService.addDataValue( createDataValue( e, p, s, value, optionCombo, optionCombo ) );
+        dataValueService.addDataValue( createDataValue( e, p, s, optionCombo, optionCombo, value ) );
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, String value,
         CategoryOptionCombo oc1, CategoryOptionCombo oc2 )
     {
-        dataValueService.addDataValue( createDataValue( e, p, s, value, oc1, oc2 ) );
+        dataValueService.addDataValue( createDataValue( e, p, s, oc1, oc2, value ) );
     }
 
     // -------------------------------------------------------------------------

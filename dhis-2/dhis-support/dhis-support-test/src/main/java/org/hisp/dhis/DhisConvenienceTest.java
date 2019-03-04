@@ -98,7 +98,6 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
@@ -1021,36 +1020,6 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param categoryOptionCombo  The category option combo.
-     * @param attributeOptionCombo The attribute option combo.
-     * @param value                The value.
-     * @param comment              The comment.
-     * @param storedBy             The stored by.
-     * @param created              The created date.
-     * @param lastupdated          The last updated date.
-     */
-    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, Date created, Date lastupdated )
-    {
-        DataValue dataValue = new DataValue();
-
-        dataValue.setDataElement( dataElement );
-        dataValue.setPeriod( period );
-        dataValue.setSource( source );
-        dataValue.setCategoryOptionCombo( categoryOptionCombo );
-        dataValue.setAttributeOptionCombo( attributeOptionCombo );
-        dataValue.setValue( value );
-        dataValue.setComment( "Comment" );
-        dataValue.setStoredBy( "StoredBy" );
-
-        return dataValue;
-    }
-
-    /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param operator        The operator.
      * @param leftSide        The left side expression.
@@ -1597,6 +1566,15 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
+    public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
+    {
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        entityInstance.setAutoFields();
+        entityInstance.setOrganisationUnit( organisationUnit );
+
+        return entityInstance;
+    }
+
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
@@ -1875,9 +1853,9 @@ public abstract class DhisConvenienceTest
         {
             return renderService.fromJson( new ClassPathResource( path ).getInputStream(), klass );
         }
-        catch ( IOException e )
+        catch ( IOException ex )
         {
-            e.printStackTrace();
+            log.error( ex );
         }
 
         return null;
