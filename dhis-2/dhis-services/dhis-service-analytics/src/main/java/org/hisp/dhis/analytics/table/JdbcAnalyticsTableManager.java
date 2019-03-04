@@ -156,8 +156,9 @@ public class JdbcAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return newArrayList(
-            "year = " + partition.getYear() + "",
+        return partition.isLatestPartition() ?
+            newArrayList() :
+            newArrayList( "year = " + partition.getYear() + "",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
 
