@@ -94,6 +94,8 @@
 
   <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" class="org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService" />
   
+  <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" class="org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitQueryPlanner" />
+  
   <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" class="org.hisp.dhis.analytics.orgunit.data.JdbcOrgUnitAnalyticsManager" />
 
   <!-- Scheduled jobs -->

@@ -41,5 +41,5 @@ public interface OrgUnitAnalyticsManager
      * @param params the {@link OrgUnitQueryParams}.
      * @param grid the {@link Grid}.
      */
-    Grid getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
+    void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
 }

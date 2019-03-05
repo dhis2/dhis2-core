@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.mvc.messageconverter;
+package org.hisp.dhis.analytics.orgunit;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,28 +28,12 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Component
-public class ExcelMessageConverter extends AbstractRootNodeMessageConverter
+public interface OrgUnitQueryPlanner
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "vnd.ms-excel" ) )
-        .build();
-
-    public ExcelMessageConverter( @Nonnull @Autowired NodeService nodeService )
-    {
-        super( nodeService, "application/vnd.ms-excel", "xlsx", Compression.NONE );
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-    }
+    List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params );
 }

@@ -56,7 +56,7 @@ public class JdbcOrgUnitAnalyticsManager
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid )
+    public void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid )
     {
         String sql = getDistributionSql( params );
 
@@ -73,8 +73,6 @@ public class JdbcOrgUnitAnalyticsManager
 
             grid.addValue( rowSet.getInt( "count" ) );
         }
-
-        return grid;
     }
 
     private String getDistributionSql( OrgUnitQueryParams params )
