@@ -34,6 +34,8 @@ import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Lars Helge Overland
  */
@@ -43,9 +45,10 @@ public class OrgUnitQueryParams
 
     private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
 
-    public int getOrgUnitLevel()
+    private transient int orgUnitLevel;
+
+    private OrgUnitQueryParams()
     {
-        return !orgUnits.isEmpty() ? orgUnits.get( 0 ).getLevel() : 1; //TODO implement properly
     }
 
     public List<OrganisationUnit> getOrgUnits()
@@ -53,20 +56,59 @@ public class OrgUnitQueryParams
         return orgUnits;
     }
 
-    public OrgUnitQueryParams setOrgUnits( List<OrganisationUnit> orgUnits )
-    {
-        this.orgUnits = orgUnits;
-        return this;
-    }
-
     public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
     {
         return orgUnitGroupSets;
     }
 
-    public OrgUnitQueryParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
+    public int getOrgUnitLevel()
     {
-        this.orgUnitGroupSets = orgUnitGroupSets;
-        return this;
+        return orgUnitLevel;
+    }
+
+    public OrgUnitQueryParams getInstance()
+    {
+        OrgUnitQueryParams params = new OrgUnitQueryParams();
+        params.orgUnits = Lists.newArrayList( this.orgUnits );
+        params.orgUnitGroupSets = Lists.newArrayList( this.orgUnitGroupSets );
+        return params;
+    }
+
+    public static class Builder
+    {
+        private OrgUnitQueryParams params;
+
+        public Builder()
+        {
+            this.params = new OrgUnitQueryParams();
+        }
+
+        public Builder( OrgUnitQueryParams params )
+        {
+            this.params = params.getInstance();
+        }
+
+        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
+        {
+            this.params.orgUnits = orgUnits;
+            return this;
+        }
+
+        public Builder withOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
+        {
+            this.params.orgUnitGroupSets = orgUnitGroupSets;
+            return this;
+        }
+
+        public Builder withOrgUnitLevel( int orgUnitLevel )
+        {
+            this.params.orgUnitLevel = orgUnitLevel;
+            return this;
+        }
+
+        public OrgUnitQueryParams build()
+        {
+            return this.params;
+        }
     }
 }
