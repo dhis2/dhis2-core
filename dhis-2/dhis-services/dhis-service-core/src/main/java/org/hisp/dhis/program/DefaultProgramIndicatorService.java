@@ -611,7 +611,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         Date endDate, ProgramIndicator indicator, String originalExpression )
     {
         return ProgramIndicatorVariableToSqlStrategy
-            .getStrategy( ProgramIndicatorVariable.getFromVar( var ), statementBuilder )
+            .getStrategy( ProgramIndicatorVariable.getFromVariableName( var ), statementBuilder )
             .resolve( originalExpression, analyticsType, indicator, startDate, endDate );
     }
 

@@ -121,7 +121,7 @@ public interface ProgramIndicatorVariableToSqlStrategy
     static ProgramIndicatorVariableToSqlStrategy dateStrategy( String var )
     {
         return ( originalExpression, analyticsType, indicator, startDate, endDate ) -> "'"
-            + (var.equals( VAR_ANALYTICS_PERIOD_START.getVar() ) ? getSqlDateString( startDate )
+            + (var.equals( VAR_ANALYTICS_PERIOD_START.getVariableName() ) ? getSqlDateString( startDate )
                 : getSqlDateString( endDate ))
             + "'";
     }
@@ -153,27 +153,27 @@ public interface ProgramIndicatorVariableToSqlStrategy
         case VAR_CURRENT_DATE:
             return currentDateStrategy();
         case VAR_CREATION_DATE:
-            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVar() );
+            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVariableName() );
         case VAR_EVENT_DATE:
-            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVar() );
+            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVariableName() );
         case VAR_VALUE_COUNT:
             return valueCountStrategy( statementBuilder );
         case VAR_ZERO_POS_VALUE_COUNT:
             return zeroPositionValueStrategy( statementBuilder );
         case VAR_EVENT_COUNT:
-            return distinctVarStrategy( programIndicatorVariable.getVar() );
+            return distinctVarStrategy( programIndicatorVariable.getVariableName() );
         case VAR_ENROLLMENT_COUNT:
-            return distinctVarStrategy( programIndicatorVariable.getVar() );
+            return distinctVarStrategy( programIndicatorVariable.getVariableName() );
         case VAR_TEI_COUNT:
-            return distinctVarStrategy( programIndicatorVariable.getVar() );
+            return distinctVarStrategy( programIndicatorVariable.getVariableName() );
         case VAR_PROGRAM_STAGE_NAME:
             return programStageNameStrategy();
         case VAR_PROGRAM_STAGE_ID:
-            return programStageIdStrategy( programIndicatorVariable.getVar() );
+            return programStageIdStrategy( programIndicatorVariable.getVariableName() );
         case VAR_ANALYTICS_PERIOD_START:
-            return dateStrategy( VAR_ANALYTICS_PERIOD_START.getVar() );
+            return dateStrategy( VAR_ANALYTICS_PERIOD_START.getVariableName() );
         case VAR_ANALYTICS_PERIOD_END:
-            return dateStrategy( VAR_ANALYTICS_PERIOD_END.getVar() );
+            return dateStrategy( VAR_ANALYTICS_PERIOD_END.getVariableName() );
         case VAR_UNDEFINED:
             return nullStrategy();
         default:

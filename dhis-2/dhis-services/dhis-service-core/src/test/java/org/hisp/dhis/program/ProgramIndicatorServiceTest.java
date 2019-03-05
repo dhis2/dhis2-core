@@ -200,8 +200,8 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         // ProgramIndicator
         // ---------------------------------------------------------------------
 
-        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + VAR_ENROLLMENT_DATE.getVar() + "}, " + KEY_PROGRAM_VARIABLE + "{"
-                + VAR_INCIDENT_DATE.getVar() + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + VAR_ENROLLMENT_DATE.getVariableName() + "}, " + KEY_PROGRAM_VARIABLE + "{"
+                + VAR_INCIDENT_DATE.getVariableName() + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
         indicatorA = createProgramIndicator( 'A', programA, expressionA, null );
         programA.getProgramIndicators().add( indicatorA );
 
@@ -211,7 +211,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         indicatorC = createProgramIndicator( 'C', programA, "0", null );
         programA.getProgramIndicators().add( indicatorC );
 
-        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + VAR_INCIDENT_DATE.getVar() + "}";
+        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + VAR_INCIDENT_DATE.getVariableName() + "}";
         indicatorD = createProgramIndicator( 'D', programB, expressionD, null );
 
         String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_DATAELEMENT + "{"
@@ -227,8 +227,8 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
             AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
 
-        String expressionG = KEY_DATAELEMENT + var(VAR_TEI_COUNT);
-        String filterG = "d2:daysBetween(" + var(VAR_ENROLLMENT_DATE) + "," + var(VAR_EVENT_DATE) + ") > 90";
+        String expressionG = KEY_DATAELEMENT + getVariableExpression( VAR_TEI_COUNT );
+        String filterG = "d2:daysBetween(" + getVariableExpression(VAR_ENROLLMENT_DATE) + "," + getVariableExpression(VAR_EVENT_DATE) + ") > 90";
         indicatorG = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionG, filterG );
         indicatorG.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
             AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "monthly" ), -6) );
@@ -372,7 +372,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         Date d2 = new Date();
 
         String expected = "\"" + deA.getUid() + "\" + \"" + atA.getUid() + "\" > 10";
-        String expression = "#{F3nQiJpaaSW." + deA.getUid() +"} + A{" + atA.getUid() + "} > 10";
+        String expression = "#{F3nQiJpaaSW." + deA.getUid() + "} + A{" + atA.getUid() + "} > 10";
 
         assertEquals( expected, subject.getAnalyticsSQl( expression, indicatorE, false, d1, d2 ) );
     }
@@ -381,7 +381,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     public void testGetAnalyticsWithVariables()
     {
         String expression = "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " + "#{OXXcwl6aPCQ.GCyeKSqlpdk} + "
-                + var( VAR_ZERO_POS_VALUE_COUNT );
+                + getVariableExpression( VAR_ZERO_POS_VALUE_COUNT );
 
         String expected = "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + "
                 + "coalesce(\"GCyeKSqlpdk\"::numeric,0) + "
@@ -506,8 +506,8 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     public void testGetAnalyticsSqlWithVariables()
     {
         String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (executiondate - enrollmentdate)";
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + var( VAR_EXECUTION_DATE ) + " - "
-            + var( VAR_ENROLLMENT_DATE ) + ")";
+        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression( VAR_EXECUTION_DATE ) + " - "
+            + getVariableExpression( VAR_ENROLLMENT_DATE ) + ")";
 
         assertEquals( expected, getAnalyticsSQl( expression ) );
     }
@@ -515,7 +515,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     @Test
     public void testVariableEventCreationDateIsParsed()
     {
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + var(VAR_CREATION_DATE) + ")";
+        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression( VAR_CREATION_DATE ) + ")";
         String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (created)";
 
         assertEquals( expected, getAnalyticsSQl( expression ) );
@@ -524,7 +524,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     @Test
     public void testVariableEventSyncDateIsParsed()
     {
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + var(VAR_SYNC_DATE) + ")";
+        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression(VAR_SYNC_DATE) + ")";
         String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (lastupdated)";
 
         assertEquals( expected, getAnalyticsSQl( expression ) );
@@ -741,21 +741,23 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     {
         for ( ProgramIndicatorVariable piv : ProgramIndicatorVariable.values() )
         {
-            if (!piv.equals(VAR_UNDEFINED)) {
-                assertEquals("Invalid expression: " + var(piv), ProgramIndicator.VALID,
-                        subject.expressionIsValid(var(piv)));
+            if ( !piv.equals( VAR_UNDEFINED ) )
+            {
+                assertEquals( "Invalid expression: " + getVariableExpression( piv ), ProgramIndicator.VALID,
+                    subject.expressionIsValid( getVariableExpression( piv ) ) );
             }
         }
     }
 
     private String getAnalyticsSQl( String expression )
     {
-        return subject.getAnalyticsSQl( expression,
-                createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() );
+        return subject.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ),
+            new Date(), new Date() );
     }
 
-    private String var(ProgramIndicatorVariable varName) {
+    private String getVariableExpression(ProgramIndicatorVariable varName )
+    {
 
-        return "V{" + varName.getVar() + "}";
+        return "V{" + varName.getVariableName() + "}";
     }
 }

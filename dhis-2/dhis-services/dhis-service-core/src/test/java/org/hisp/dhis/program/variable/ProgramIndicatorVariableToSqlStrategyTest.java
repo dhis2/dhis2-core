@@ -208,7 +208,7 @@ public class ProgramIndicatorVariableToSqlStrategyTest
     @Test
     public void verifyDefaultStrategy()
     {
-        String var = getStrategy( ProgramIndicatorVariable.getFromVar("missing") ).resolve( null, AnalyticsType.EVENT, null, null, null );
+        String var = getStrategy( ProgramIndicatorVariable.getFromVariableName("missing") ).resolve( null, AnalyticsType.EVENT, null, null, null );
 
         assertThat( var, is( nullValue() ) );
     }

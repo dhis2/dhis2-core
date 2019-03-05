@@ -67,7 +67,7 @@ public enum ProgramIndicatorVariable {
         this.defaultValue = defaultValue;
     }
 
-    public String getVar()
+    public String getVariableName()
     {
         return variableName;
     }
@@ -105,7 +105,7 @@ public enum ProgramIndicatorVariable {
         return null;
     }
 
-    public static ProgramIndicatorVariable getFromVar(String variableName)
+    public static ProgramIndicatorVariable getFromVariableName(String variableName)
     {
         for ( ProgramIndicatorVariable c : values() )
         {
