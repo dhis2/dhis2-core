@@ -63,22 +63,28 @@ async function checkout (name, path, hash) {
     }
 }
 
-async function clone (name, url, clone_path) {
-    console.log(`[clone] [${name}] clone started`)
+async function clone (name, url, clone_path, hash = 'master') {
+    console.log(`[clone] [${name}] clone started, using ${hash}`)
     let retries = 0
-    while (true) {
-        try {
-            await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
-            console.log(`[clone] [${name}] clone successful`)
-            return
-        } catch (err) {
-            if (retries >= 10) {
-                console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
-                process.exit(1)
+    try { // Naively try as branch first, this will fail if hash is a commit-sha
+        await exec(`git clone --depth 1 --branch ${hash} ${url} ${clone_path}`)
+        console.log(`[clone] [${name}] shallow clone successful`)
+    } catch (err) {
+        console.log(`[clone] [${name}] shallow clone failed. Starting clone with --no-single-branch. This may take some time`)
+        while (true) {
+            try { // Clone other branches as well, in case of commit sha
+                await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
+                console.log(`[clone] [${name}] clone successful`)
+                return
+            } catch (err) {
+                if (retries >= 10) {
+                    console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
+                    process.exit(1)
+                }
+                console.log(`[clone] [${name}] failed, retrying`)
+                await exec(`rm -rf ${clone_path}`)
+                retries++
             }
-            console.log(`[clone] [${name}] failed, retrying`)
-            await exec(`rm -rf ${clone_path}`)
-            retries++
         }
     }
 }
@@ -102,7 +108,7 @@ async function clone_app (repo, target, complete_callback) {
     const clone_path = path.join(target, repo_name)
 
     try {
-        await clone(repo_name, url, clone_path)
+        await clone(repo_name, url, clone_path, hash)
         const ref = await checkout(repo_name, clone_path, hash)
         const sha = await show_sha(clone_path)
 
