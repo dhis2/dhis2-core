@@ -234,7 +234,7 @@ public class DataImportTest extends DhisSpringTest
         programE.setTrackedEntityType( trackedEntityType );
         programE.setProgramAttributes( programAttributes );
 
-        teiA = createTrackedEntityInstance( 'A', organisationUnitA );
+        teiA = createTrackedEntityInstance( organisationUnitA );
         teiA.setTrackedEntityType( trackedEntityType );
         Set<TrackedEntityAttributeValue> attributeValues = createTrackedEntityAttributeValues( teiA );
         teiA.setTrackedEntityAttributeValues( attributeValues );

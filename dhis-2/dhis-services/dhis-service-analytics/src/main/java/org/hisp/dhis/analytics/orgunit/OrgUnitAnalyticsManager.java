@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.analytics.orgunit;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,13 +33,13 @@ import org.hisp.dhis.common.Grid;
 /**
  * @author Lars Helge Overland
  */
-public interface OrgUnitDistributionManager
+public interface OrgUnitAnalyticsManager
 {
     /**
      * Adds the org unit distribution for the given parameters to the given grid.
      *
-     * @param params the {@link OrgUnitDistributionParams}.
+     * @param params the {@link OrgUnitQueryParams}.
      * @param grid the {@link Grid}.
      */
-    Grid getOrgUnitDistribution( OrgUnitDistributionParams params, Grid grid );
+    Grid getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
 }

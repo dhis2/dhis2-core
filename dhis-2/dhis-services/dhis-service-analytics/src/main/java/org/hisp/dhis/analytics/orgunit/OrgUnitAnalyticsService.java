@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.analytics.orgunit;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,34 +29,34 @@ package org.hisp.dhis.orgunitdistribution;
  */
 
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.IllegalQueryException;;
 
-public interface OrgUnitDistributionServiceV2
+public interface OrgUnitAnalyticsService
 {
     /**
      * Returns parameters for the given query.
      *
      * @param orgUnits the organisation unit string.
      * @param orgUnitGroupSets the organisation unit group set string.
-     * @return a {@link OrgUnitDistributionParams}.
+     * @return a {@link OrgUnitQueryParams}.
      */
-    OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets );
+    OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets );
 
     /**
      * Returns the org unit distribution for the given parameters.
      *
-     * @param params the {@link OrgUnitDistributionParams}.
+     * @param params the {@link OrgUnitQueryParams}.
      * @return a {@link Grid}.
      */
-    Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
+    Grid getOrgUnitDistribution( OrgUnitQueryParams params );
 
     /**
      * Validates the given parameters. Throws an {@link IllegalQueryException}
      * if invalid.
      *
-     * @param params the {@link OrgUnitDistributionParams}.
+     * @param params the {@link OrgUnitQueryParams}.
      * @throws IllegalQueryException if invalid.
      */
-    void validate( OrgUnitDistributionParams params )
+    void validate( OrgUnitQueryParams params )
         throws IllegalQueryException;
 }
