@@ -1339,32 +1339,28 @@
 
   <bean id="org.hisp.dhis.sms.listener.EnrollmentSMSListener" class="org.hisp.dhis.sms.listener.EnrollmentSMSListener" />
 
-  <bean id="org.hisp.dhis.sms.listener.DataValueSMSListener" class="org.hisp.dhis.sms.listener.LegacyDataValueSMSListener" />
+  <bean id="org.hisp.dhis.sms.listener.DataValueSMSListener" class="org.hisp.dhis.sms.listener.DataValueSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.J2MEDataValueSMSListener"
-    class="org.hisp.dhis.sms.listener.LegacyJ2MEDataValueSMSListener" />
+    class="org.hisp.dhis.sms.listener.J2MEDataValueSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.UnregisteredSMSListener"
-    class="org.hisp.dhis.sms.listener.LegacyUnregisteredSMSListener" />
+    class="org.hisp.dhis.sms.listener.UnregisteredSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.DhisMessageAlertListener"
-    class="org.hisp.dhis.sms.listener.LegacyDhisMessageAlertListener" />
+    class="org.hisp.dhis.sms.listener.DhisMessageAlertListener" />
 
   <bean id="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener"
-    class="org.hisp.dhis.sms.listener.LegacyTrackedEntityRegistrationSMSListener" />
+    class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
-    class="org.hisp.dhis.sms.listener.LegacyProgramStageDataEntrySMSListener" />
+    class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
 
-<<<<<<< HEAD
-  <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.LegacySingleEventListener" />
-=======
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" 
   	class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
   <bean id="org.hisp.dhis.sms.listener.TrackerEventSMSListener" 
   	class="org.hisp.dhis.sms.listener.TrackerEventSMSListener" />
->>>>>>> eha-sms
 
   <!-- Notification renderers -->
 
