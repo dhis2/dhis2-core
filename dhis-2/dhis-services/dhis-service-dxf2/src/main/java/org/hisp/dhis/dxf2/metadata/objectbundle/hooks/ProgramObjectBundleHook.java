@@ -29,16 +29,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.events.event.AbstractEventService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,9 +50,8 @@ import java.util.List;
  */
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
 
-    @Autowired
     public ProgramObjectBundleHook( ProgramInstanceService programInstanceService )
     {
         this.programInstanceService = programInstanceService;
@@ -86,7 +86,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( !(object instanceof Program) )
+        if ( !isProgram( object ) )
         {
             return errors;
         }
@@ -103,7 +103,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
     private void syncSharingForEventProgram( Program program )
     {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() || program.getProgramStages().isEmpty() )
+        if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
         {
             return;
         }
@@ -132,7 +132,11 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     
     private int getProgramInstancesCount( Program program )
     {
-        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
+        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
+        programInstanceQueryParams.setProgram( program );
+        programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
+
+        return programInstanceService.countProgramInstances( programInstanceQueryParams );
     }
     
     private boolean isProgram( Object object )
