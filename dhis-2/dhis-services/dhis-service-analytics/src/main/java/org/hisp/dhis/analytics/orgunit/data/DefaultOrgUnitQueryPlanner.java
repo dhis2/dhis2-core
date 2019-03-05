@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.orgunit;
+package org.hisp.dhis.analytics.orgunit.data;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,18 +28,52 @@ package org.hisp.dhis.analytics.orgunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.analytics.data.QueryPlannerUtils;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Lars Helge Overland
  */
-public interface OrgUnitAnalyticsManager
+public class DefaultOrgUnitQueryPlanner
+    implements OrgUnitQueryPlanner
 {
-    /**
-     * Adds the org unit distribution for the given parameters to the given grid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
+    @Override
+    public List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params )
+    {
+        return groupByOrgUnitLevel( params );
+    }
+
+    private List<OrgUnitQueryParams> groupByOrgUnitLevel( OrgUnitQueryParams params )
+    {
+        List<OrgUnitQueryParams> queries = new ArrayList<>();
+
+        if ( !params.getOrgUnits().isEmpty() )
+        {
+            ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
+                QueryPlannerUtils.getLevelOrgUnitTypedMap( params.getOrgUnits() );
+
+            for ( Integer level : levelOrgUnitMap.keySet() )
+            {
+                OrgUnitQueryParams query = new OrgUnitQueryParams.Builder( params )
+                    .withOrgUnits( levelOrgUnitMap.get( level ) )
+                    .withOrgUnitLevel( level )
+                    .build();
+
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( new OrgUnitQueryParams.Builder( params ).build() );
+            return queries;
+        }
+
+        return queries;
+    }
 }

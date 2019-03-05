@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -48,17 +49,32 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
 public class DefaultOrgUnitAnalyticsService
     implements OrgUnitAnalyticsService
 {
-    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    private OrgUnitAnalyticsManager analyticsManager;
+
+    private OrgUnitQueryPlanner queryPlanner;
+
     @Autowired
-    private OrgUnitAnalyticsManager distributionManager;
+    public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
+        OrgUnitAnalyticsManager analyticsManager, OrgUnitQueryPlanner queryPlanner )
+    {
+        checkNotNull( idObjectManager );
+        checkNotNull( analyticsManager );
+        checkNotNull( queryPlanner );
+
+        this.idObjectManager = idObjectManager;
+        this.analyticsManager = analyticsManager;
+        this.queryPlanner = queryPlanner;
+    }
 
     @Override
     public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets )
@@ -66,9 +82,10 @@ public class DefaultOrgUnitAnalyticsService
         List<String> ous = TextUtils.getOptions( orgUnits );
         List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
 
-        return new OrgUnitQueryParams()
-            .setOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
-            .setOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) );
+        return new OrgUnitQueryParams.Builder()
+            .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
+            .withOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
+            .build();
     }
 
     @Override
@@ -76,12 +93,19 @@ public class DefaultOrgUnitAnalyticsService
     {
         validate( params );
 
+        List<OrgUnitQueryParams> queries = queryPlanner.planQuery( params );
+
+        //TODO add outputIdScheme support
+
         Grid grid = new ListGrid();
 
         addHeaders( params, grid );
         addMetadata( params, grid );
 
-        distributionManager.getOrgUnitDistribution( params, grid );
+        for ( OrgUnitQueryParams query : queries )
+        {
+            analyticsManager.getOrgUnitDistribution( query, grid );
+        }
 
         return grid;
     }

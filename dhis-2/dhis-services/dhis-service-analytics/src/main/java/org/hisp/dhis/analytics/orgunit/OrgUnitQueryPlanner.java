@@ -28,18 +28,12 @@ package org.hisp.dhis.analytics.orgunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-public interface OrgUnitAnalyticsManager
+public interface OrgUnitQueryPlanner
 {
-    /**
-     * Adds the org unit distribution for the given parameters to the given grid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
+    List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params );
 }
