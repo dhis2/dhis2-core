@@ -38,13 +38,17 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -69,6 +73,9 @@ public class SmsGatewayTest extends DhisConvenienceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Mock
     private RestTemplate restTemplate;
 
@@ -88,6 +95,8 @@ public class SmsGatewayTest extends DhisConvenienceTest
     {
         smsGatewayConfig = new BulkSmsGatewayConfig();
         smsGatewayConfig.setDefault( true );
+        smsGatewayConfig.setUsername( "username" );
+        smsGatewayConfig.setPassword( "password" );
 
         recipients.add( PHONE_NUMBER );
 
@@ -116,13 +125,13 @@ public class SmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( successResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
         assertNotNull( status );
-        assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
+        assertTrue( SmsGateway.OK_CODES.contains( successResponse.getStatusCode() ) );
     }
 
     @Test
@@ -130,7 +139,7 @@ public class SmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( successResponse );
 
         List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
@@ -144,33 +153,33 @@ public class SmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
 
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( errorResponse );
 
-        OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
+        OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
-        assertNotNull( status2 );
-        assertFalse( status2.isOk() );
-        assertEquals( GatewayResponse.RESULT_CODE_24, status2.getResponseObject() );
+        assertNotNull( status );
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.FAILED, status.getResponseObject() );
     }
 
     @Test
-    public void testFailure()
+    public void testWhenServerResponseIsNull()
     {
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( null );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
         assertNotNull( status2 );
         assertFalse( status2.isOk() );
-        assertEquals( GatewayResponse.FAILED, status2.getResponseObject() );
+        assertEquals( GatewayResponse.RESULT_CODE_504, status2.getResponseObject() );
     }
 
     @Test
     public void testException()
     {
-        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenThrow( HttpClientErrorException.class );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );

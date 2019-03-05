@@ -60,7 +60,7 @@ public abstract class SmsGateway
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
     protected static final String BASIC = " Basic ";
 
-    protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+    public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
         HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
@@ -100,7 +100,15 @@ public abstract class SmsGateway
         {
             response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
 
-            statusCode = response.getStatusCode();
+            if ( response != null )
+            {
+                statusCode = response.getStatusCode();
+            }
+            else
+            {
+                log.error( "Server response is null" );
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
         }
         catch ( HttpClientErrorException ex )
         {
