@@ -122,12 +122,6 @@ public abstract class SmsGateway
 
             statusCode = ex.getStatusCode();
         }
-        catch ( RestClientException ex )
-        {
-            log.error( "Client Error", ex );
-
-            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
         catch ( Exception ex )
         {
             log.error( "Error", ex );
