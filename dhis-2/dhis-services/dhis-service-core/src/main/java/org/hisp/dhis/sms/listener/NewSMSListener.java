@@ -2,6 +2,7 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -38,6 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class NewSMSListener extends BaseSMSListener {
 	
 	private static final Log log = LogFactory.getLog( NewSMSListener.class );
+	static final String SUCCESS_MESSAGE = "Submission has been processed successfully";
+	static final String NO_OU_FOR_PROGRAM = "Program is not assigned to organisation unit.";
+	static final String NO_OU_FOR_USER = "User is not associated with organisation unit";
+	static final String NO_TRACKED_ATTRIBUTES_FOUND = "No TrackedEntityAttributes found";
 	
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
@@ -91,8 +96,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		byte[] smsBytes = SmsUtils.getBytes(sms);
 		SMSSubmissionReader reader = new SMSSubmissionReader();
 		try {
-			SMSSubmissionHeader header = reader.readHeader(smsBytes);
-			return header;
+			return reader.readHeader(smsBytes);
 		} catch ( Exception e ) {
 			log.error(e.getMessage());
 			e.printStackTrace();
@@ -119,7 +123,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return users
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
     
@@ -129,7 +133,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return teTypes
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
     
@@ -139,7 +143,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return teiAttributes
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
         
@@ -149,7 +153,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return programs
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
     
@@ -159,7 +163,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return orgUnits
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
     
@@ -169,7 +173,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return dataElements
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }
     
@@ -179,7 +183,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         return catOptionCombos
         		.stream()
         		.map(o -> getIdFromMetadata(o, lastSyncDate))
-        		.filter(o -> o != null)
+				.filter(Objects::nonNull)
         		.collect(Collectors.toList());
     }    
     
@@ -187,8 +191,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
     	if ( obj.getCreated().after(lastSyncDate) ) {
     		return null;
     	} else {
-    		Metadata.ID id = new Metadata.ID(obj.getUid());
-    		return id;
+			return new Metadata.ID(obj.getUid());
     	}
     }
 	

@@ -164,13 +164,8 @@
     <dependency>
       <groupId>com.github.eHealthAfrica</groupId>
       <artifactId>dhis2-sms-compression</artifactId>
-<<<<<<< HEAD
-      <version>0.0.6</version>
-    </dependency>
-=======
       <version>0.0.9</version>
     </dependency>    
->>>>>>> eha-sms
 
     <!-- Security -->
     <dependency>

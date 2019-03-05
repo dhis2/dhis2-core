@@ -1,44 +1,33 @@
 package org.hisp.dhis.sms.listener;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.MessageSender;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
-import org.hisp.dhis.sms.listener.AbstractSMSListener;
-import org.hisp.dhis.smscompression.SMSSubmissionReader;
+import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.smscompression.Consts;
+import org.hisp.dhis.smscompression.models.AttributeValue;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
-import org.hisp.dhis.smscompression.models.Metadata;
-import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
-import org.hisp.dhis.smscompression.models.TrackerEventSMSSubmission;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
+import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Transactional
-public class EnrollmentSMSListener implements IncomingSmsListener {
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private TrackerEventSMSSubmission trackerEventSMSSubmission;
+public class EnrollmentSMSListener extends NewSMSListener {
+    @Autowired
+    private TrackedEntityInstanceService teiService;
 
     @Autowired
     private UserService userService;
@@ -56,8 +45,7 @@ public class EnrollmentSMSListener implements IncomingSmsListener {
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    private ProgramInstanceService programInstanceService;
 
     @Override
     public boolean accept(IncomingSms sms) {
@@ -65,121 +53,70 @@ public class EnrollmentSMSListener implements IncomingSmsListener {
     }
 
     @Override
-    public void receive(IncomingSms sms) {
-        postProcess(sms);
-    }
+    protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+        EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
-    public void postProcess (IncomingSms sms) {
-        byte[] smsBytes = sms.getBytes();
+        Date date = subm.getTimestamp();
+        String sender = StringUtils.replace(sms.getOriginator(), "+", "");
+        Program program = programService.getProgram(subm.getTrackerProgram());
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
+        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType(subm.getTrackedEntityType());
+        User user = userService.getUser(subm.getUserID());
 
-        if (smsBytes == null) {
-            smsBytes = Base64.getDecoder().decode(sms.getText());
+        if (!program.hasOrganisationUnit(ou)) {
+            sendFeedback(NO_OU_FOR_PROGRAM, sender, WARNING);
+            throw new SMSParserException(NO_OU_FOR_PROGRAM);
         }
 
-        Metadata metadata = getMetadata();
-        SMSSubmissionReader reader = new SMSSubmissionReader();
-        try {
-             SMSSubmissionHeader header = reader.readHeader(smsBytes);
-             EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) reader.readSubmission(header, metadata);
-             subm.getTimestamp();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!userHasOrgUnit(user, ou)) {
+            sendFeedback(NO_OU_FOR_USER, sender, WARNING);
+            throw new SMSParserException(NO_OU_FOR_USER);
         }
 
-    }
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        entityInstance.setOrganisationUnit(ou);
+        entityInstance.setTrackedEntityType(entityType);
 
-    public Metadata getMetadata () {
-//        List<String> userIds = getAllUserIds();
-//        List<String> typeIds = getTrackedEntityIds();
-//        List<String> attributeIds = getTrackedEntityAttributeIds();
-//        List<String> programIds = getAllProgramIds();
-//        List<String> orgUnitIds = getAllOrgUnitIds();
+        Set<TrackedEntityAttributeValue> attributeValues = subm.getValues()
+                .stream()
+                .filter(this::isValidAttribute)
+                .map(v -> createTrackedEntityValue(v, entityInstance))
+                .collect(Collectors.toSet());
 
-        Metadata metadata = new Metadata();
-
-        Metadata2 data = new Metadata2();
-
-        data.users = getAllUserIds();
-        data.trackedEntityTypes = getTrackedEntityIds();
-        data.programs = getAllProgramIds();
-        data.trackedEntityAttributes = getTrackedEntityAttributeIds();
-        data.organisationUnits = getAllOrgUnitIds();
-
-//        Type type = new TypeToken<Metadata2>() {}.getType();
-        Gson gson = new Gson();
-        String json = gson.toJson(data, Metadata2.class);
-        Metadata meta = gson.fromJson(json, Metadata.class);
-//        metadata.users[0] = ID
-//        metadata.users = userIds.toArray(new ID[userIds.size()]);
-
-        return meta;
-    }
-
-    public Metadata2.ID[] getAllUserIds () {
-        List<User> users = userService.getAllUsers();
-        Metadata2.ID[] userIds = new Metadata2.ID[users.size()];
-
-        for (int i = 0; i < users.size(); i++) {
-            Metadata2.ID id = new Metadata2.ID();
-            id.id = users.get(i).getUid();
-            userIds[i] =  id;
+        if (attributeValues.isEmpty()) {
+            sendFeedback(NO_TRACKED_ATTRIBUTES_FOUND, sender, WARNING);
+            // TODO: Should we throw an error here or continue as is?
         }
 
-        return userIds;
+        entityInstance.setTrackedEntityAttributeValues(attributeValues);
+        int teiID = teiService.addTrackedEntityInstance(entityInstance);
+
+        TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiID);
+        programInstanceService.enrollTrackedEntityInstance(tei, program, new Date(), date, ou);
+
+        update(sms, SmsMessageStatus.PROCESSED, true);
+        sendFeedback(SUCCESS_MESSAGE, sender, INFO);
     }
 
-    public Metadata2.ID[] getTrackedEntityIds () {
-        List<TrackedEntityType> types = trackedEntityTypeService.getAllTrackedEntityType();
-        Metadata2.ID[] typeIds = new Metadata2.ID[types.size()];
-
-        for (int i = 0; i < types.size(); i++) {
-            Metadata2.ID id = new Metadata2.ID();
-            id.id = types.get(i).getUid();
-            typeIds[i] =  id;
-        }
-
-        return typeIds;
+    @Override
+    protected boolean handlesType(Consts.SubmissionType type) {
+        return (type == Consts.SubmissionType.ENROLLMENT);
     }
 
-
-    public Metadata2.ID[] getTrackedEntityAttributeIds () {
-        List<TrackedEntityAttribute> attributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
-        Metadata2.ID[] ids = new Metadata2.ID[attributes.size()];
-
-        for (int i = 0; i < attributes.size(); i++) {
-            Metadata2.ID id = new Metadata2.ID();
-            id.id = attributes.get(i).getUid();
-            ids[i] =  id;
-        }
-
-
-        return ids;
+    private TrackedEntityAttributeValue createTrackedEntityValue(AttributeValue attributeValue, TrackedEntityInstance tei) {
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(attributeValue.getAttribute());
+        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+        trackedEntityAttributeValue.setAttribute(attribute);
+        trackedEntityAttributeValue.setEntityInstance(tei);
+        trackedEntityAttributeValue.setValue(attributeValue.getValue());
+        return trackedEntityAttributeValue;
     }
 
-    public Metadata2.ID[] getAllProgramIds () {
-        List<Program> programs = programService.getAllPrograms();
-        Metadata2.ID[] ids = new Metadata2.ID[programs.size()];
-
-        for (int i = 0; i < programs.size(); i++) {
-            Metadata2.ID id = new Metadata2.ID();
-            id.id = programs.get(i).getUid();
-            ids[i] =  id;
-        }
-
-
-        return ids;
+    private boolean userHasOrgUnit(User user, OrganisationUnit ou) {
+        return user.getOrganisationUnits().contains(ou);
     }
 
-    public Metadata2.ID[] getAllOrgUnitIds () {
-        List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
-        Metadata2.ID[] ids = new Metadata2.ID[orgUnits.size()];
-
-        for (int i = 0; i < orgUnits.size(); i++) {
-            Metadata2.ID id = new Metadata2.ID();
-            id.id = orgUnits.get(i).getUid();
-            ids[i] =  id;
-        }
-
-        return ids;
+    private boolean isValidAttribute(AttributeValue value) {
+        return value.getValue() != null && value.getAttribute() != null;
     }
 }
