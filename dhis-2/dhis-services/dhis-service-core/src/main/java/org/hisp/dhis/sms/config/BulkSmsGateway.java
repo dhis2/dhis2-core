@@ -28,33 +28,16 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
-import org.hisp.dhis.sms.outbound.BulkSmsResponseEntity;
-import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
-import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.sms.outbound.SubmissionType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.Base64;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,7 +73,7 @@ public class BulkSmsGateway
         HttpEntity<BulkSmsRequestEntity> request =
             new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
 
-        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, BulkSmsResponseEntity [].class );
+        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, String.class );
 
         return wrapHttpStatus( httpStatus );
     }

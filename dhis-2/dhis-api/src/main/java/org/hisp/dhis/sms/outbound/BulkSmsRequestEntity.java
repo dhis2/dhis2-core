@@ -84,7 +84,7 @@ public class BulkSmsRequestEntity
         this.body = body;
     }
 
-    private class To
+    private static class To
     {
         private String type = "INTERNATIONAL";
         private String address;
