@@ -33,6 +33,7 @@ import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,5 +140,23 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, outsideThreshold.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testGetAttachmentFileNameNull()
+    {
+        Assert.assertNull( ContextUtils.getAttachmentFileName( null ) );
+    }
+
+    @Test
+    public void testGetAttachmentFileNameInline()
+    {
+        Assert.assertNull( ContextUtils.getAttachmentFileName( "inline; filename=test.txt" ) );
+    }
+
+    @Test
+    public void testGetAttachmentFileName()
+    {
+        Assert.assertEquals( "test.txt", ContextUtils.getAttachmentFileName( "attachment; filename=test.txt" ) );
     }
 }
