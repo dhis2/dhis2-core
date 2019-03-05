@@ -217,7 +217,7 @@ public class DataSet
     @Override
     public int hashCode()
     {
-        return (int) this.getId();
+        return Long.hashCode( this.getId() );
     }
 
     @Override

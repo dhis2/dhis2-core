@@ -112,7 +112,7 @@ public class AttributeValue
     @Override
     public int hashCode()
     {
-        int result = (int) id;
+        int result = Long.hashCode( id );
         result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;

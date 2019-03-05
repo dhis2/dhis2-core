@@ -353,10 +353,10 @@ public class DeflatedDataValue
         final int prime = 31;
         int result = 1;
 
-        result = prime * result + (int) dataElementId;
-        result = prime * result + (int) periodId;
-        result = prime * result + (int) sourceId;
-        result = prime * result + (int) categoryOptionComboId;
+        result = prime * result + Long.hashCode( dataElementId );
+        result = prime * result + Long.hashCode( periodId );
+        result = prime * result + Long.hashCode( sourceId );
+        result = prime * result + Long.hashCode( categoryOptionComboId );
 
         return result;
     }
