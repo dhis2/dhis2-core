@@ -39,17 +39,7 @@ public class BulkSmsGatewayConfig
 {
     private static final long serialVersionUID = 5249703354480948250L;
 
-    private final String URL_TEMPLATE_FOR_BATCHSMS = "https://bulksms.vsms.net/eapi/submission/send_batch/1/1.0";
-
-    private final String URL_TEMPLATE = "https://bulksms.vsms.net/eapi/submission/send_sms/2/2.0";
-
     private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
-
-    @JsonProperty( value = "urlTemplateForBatchSms" )
-    public String getUrlTemplateForBatchSms()
-    {
-        return this.URL_TEMPLATE_FOR_BATCHSMS;
-    }
 
     @Override
     @JsonProperty( value = "urlTemplate" )
