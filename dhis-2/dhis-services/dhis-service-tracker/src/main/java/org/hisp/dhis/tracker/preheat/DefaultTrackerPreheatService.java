@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -133,6 +134,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
                 for ( List<String> ids : splitList )
                 {
                     List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
+                    preheat.putEnrollments( TrackerIdentifier.UID, programInstances );
                 }
             }
             else if ( klass.isAssignableFrom( Event.class ) )
@@ -140,6 +142,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
                 for ( List<String> ids : splitList )
                 {
                     List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getByUid( ids, preheat.getUser() );
+                    preheat.putEvents( TrackerIdentifier.UID, programStageInstances );
                 }
             }
             else
@@ -160,6 +163,9 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+
+        List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
+        programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdentifier.UID, pi.getProgram().getUid(), pi ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 

@@ -28,20 +28,26 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -113,15 +119,59 @@ public class EventTrackerConverterService
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
         events.forEach( e -> {
-            ProgramStageInstance programStageInstance = new ProgramStageInstance();
-            programStageInstance.setProgramStage( preheat.get( TrackerIdentifier.UID, ProgramStage.class, e.getProgramStage() ) );
-            programStageInstance.setOrganisationUnit( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, e.getOrgUnit() ) );
+            ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdentifier.UID, e.getEvent() );
+            ProgramStage programStage = preheat.get( TrackerIdentifier.UID, ProgramStage.class, e.getProgramStage() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, e.getOrgUnit() );
+
+            if ( programStageInstance == null )
+            {
+                programStageInstance = new ProgramStageInstance();
+                programStageInstance.setProgramInstance( getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
+            }
+
+            programStageInstance.setProgramStage( programStage );
+            programStageInstance.setOrganisationUnit( organisationUnit );
+            programStageInstance.setExecutionDate( DateUtils.parseDate( e.getEventDate() ) );
+            programStageInstance.setDueDate( DateUtils.parseDate( e.getDueDate() ) );
+            // programStageInstance.setAttributeOptionCombo(  ); TODO
+            programStageInstance.setGeometry( e.getGeometry() );
+            programStageInstance.setStatus( e.getStatus() );
+            programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getCreatedAtClient() ) );
+            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getLastUpdatedAtClient() ) );
+
+            if ( programStageInstance.isCompleted() )
+            {
+                Date completedDate = DateUtils.parseDate( e.getCompletedDate() );
+
+                if ( completedDate == null )
+                {
+                    completedDate = new Date();
+                }
+
+                programStageInstance.setCompletedDate( completedDate );
+                programStageInstance.setCompletedBy( e.getCompletedBy() );
+            }
 
             programStageInstances.add( programStageInstance );
         } );
 
-
         return programStageInstances;
+    }
+
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdentifier identifier, String enrollment, Program program )
+    {
+        if ( !StringUtils.isEmpty( enrollment ) )
+        {
+            return preheat.getEnrollment( identifier, enrollment );
+        }
+
+        if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
+        {
+            return preheat.getEnrollment( identifier, program.getUid() );
+        }
+
+        // no valid enrollment given and program not single event, just return null
+        return null;
     }
 
     private TrackerPreheat preheat( List<Event> events )

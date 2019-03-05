@@ -36,7 +36,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -101,19 +104,19 @@ public class TrackerPreheat
      * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
      * for object merging.
      */
-    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntityAttributes = new HashMap<>();
+    private Map<TrackerIdentifier, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
      * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
      * for object merging.
      */
-    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> enrollments = new HashMap<>();
+    private Map<TrackerIdentifier, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming existence for updates, and used
      * for object merging.
      */
-    private Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> events = new HashMap<>();
+    private Map<TrackerIdentifier, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     public TrackerPreheat()
     {
@@ -473,34 +476,84 @@ public class TrackerPreheat
         this.trackedEntities = trackedEntities;
     }
 
-    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getTrackedEntityAttributes()
+    public Map<TrackerIdentifier, Map<String, TrackedEntityAttributeValue>> getTrackedEntityAttributes()
     {
         return trackedEntityAttributes;
     }
 
-    public void setTrackedEntityAttributes( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> trackedEntityAttributes )
+    public void setTrackedEntityAttributes( Map<TrackerIdentifier, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes )
     {
         this.trackedEntityAttributes = trackedEntityAttributes;
     }
 
-    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getEnrollments()
+    public Map<TrackerIdentifier, Map<String, ProgramInstance>> getEnrollments()
     {
         return enrollments;
     }
 
-    public void setEnrollments( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> enrollments )
+    public void setEnrollments( Map<TrackerIdentifier, Map<String, ProgramInstance>> enrollments )
     {
         this.enrollments = enrollments;
     }
 
-    public Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> getEvents()
+    public ProgramInstance getEnrollment( TrackerIdentifier identifier, String enrollment )
+    {
+        if ( !enrollments.containsKey( identifier ) )
+        {
+            return null;
+        }
+
+        return enrollments.get( identifier ).get( enrollment );
+    }
+
+    public void putEnrollments( TrackerIdentifier identifier, List<ProgramInstance> programInstances )
+    {
+        programInstances.forEach( pi -> putEnrollment( identifier, pi.getUid(), pi ) );
+    }
+
+    public void putEnrollment( TrackerIdentifier identifier, String enrollment, ProgramInstance programInstance )
+    {
+        if ( !enrollments.containsKey( identifier ) )
+        {
+            enrollments.put( identifier, new HashMap<>() );
+        }
+
+        enrollments.get( identifier ).put( enrollment, programInstance );
+    }
+
+    public Map<TrackerIdentifier, Map<String, ProgramStageInstance>> getEvents()
     {
         return events;
     }
 
-    public void setEvents( Map<TrackerIdentifier, Map<String, TrackedEntityInstance>> events )
+    public void setEvents( Map<TrackerIdentifier, Map<String, ProgramStageInstance>> events )
     {
         this.events = events;
+    }
+
+    public ProgramStageInstance getEvent( TrackerIdentifier identifier, String event )
+    {
+        if ( !events.containsKey( identifier ) )
+        {
+            return null;
+        }
+
+        return events.get( identifier ).get( event );
+    }
+
+    public void putEvents( TrackerIdentifier identifier, List<ProgramStageInstance> programStageInstances )
+    {
+        programStageInstances.forEach( psi -> putEvent( identifier, psi.getUid(), psi ) );
+    }
+
+    public void putEvent( TrackerIdentifier identifier, String event, ProgramStageInstance programStageInstance )
+    {
+        if ( !events.containsKey( identifier ) )
+        {
+            events.put( identifier, new HashMap<>() );
+        }
+
+        events.get( identifier ).put( event, programStageInstance );
     }
 
     public static Class<?> getRealClass( Class<?> klass )
