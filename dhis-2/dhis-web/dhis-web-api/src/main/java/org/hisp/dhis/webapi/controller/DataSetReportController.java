@@ -40,6 +40,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -59,10 +61,11 @@ import java.util.Set;
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( value = "/dataSetReport" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetReportController
 {
+    private static final String RESOURCE_PATH = "/dataSetReport";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -85,14 +88,13 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( value = "/custom", method = RequestMethod.GET, produces = "text/html" )
+    @RequestMapping( value = RESOURCE_PATH + "/custom", method = RequestMethod.GET, produces = "text/html" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) boolean selectedUnitOnly )
-        throws Exception
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
@@ -108,22 +110,56 @@ public class DataSetReportController
         return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) boolean selectedUnitOnly )
-        throws Exception
+        @RequestParam( required = false ) Set<String> dimension, //TODO remove, deprecated in 2.31
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+    {
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
+        filter = ObjectUtils.firstNonNull( filter, dimension );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    public void getDataSetReportAsExcel( HttpServletResponse response,
+        @RequestParam String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        GridUtils.toXls( grids, response.getOutputStream() );
+    }
 
-        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
+    public void getDataSetReportAsPdf( HttpServletResponse response,
+        @RequestParam String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+    {
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        GridUtils.toPdf( grids, response.getOutputStream() );
     }
 
     // -------------------------------------------------------------------------
