@@ -730,9 +730,10 @@ public class DefaultAnalyticsService
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
-            DimensionalObject filterPeriod = params.getFilter("pe");
+            DimensionalObject filterPeriod = params.getFilter( "pe" );
             int timeUnits = 1;
-            if (filterPeriod != null) {
+            if ( filterPeriod != null ) 
+            {
                 timeUnits = filterPeriod.getItems().size();
             }
 
