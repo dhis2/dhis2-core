@@ -51,6 +51,7 @@ public enum AnalyticsTableType
     {
         this.tableName = tableName;
         this.periodDimension = periodDimension;
+        this.latestPartition = latestPartition;
     }
 
     public String getTableName()

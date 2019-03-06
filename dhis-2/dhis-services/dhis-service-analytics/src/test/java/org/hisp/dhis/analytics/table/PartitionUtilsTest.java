@@ -57,8 +57,8 @@ import com.google.common.collect.Sets;
 public class PartitionUtilsTest
 {
     private PeriodType quarterly = new QuarterlyPeriodType();
-    private Period q1 = quarterly.createPeriod( new DateTime( 2018, 6, 1, 0, 0 ).toDate() );
-    private Period q2 = quarterly.createPeriod( new DateTime( 2018, 9, 1, 0, 0 ).toDate() );
+    private Period q1 = quarterly.createPeriod( new DateTime( 2018, 7, 1, 0, 0 ).toDate() );
+    private Period q2 = quarterly.createPeriod( new DateTime( 2018, 10, 1, 0, 0 ).toDate() );
     private Period q3 = quarterly.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() );
 
     @Test
