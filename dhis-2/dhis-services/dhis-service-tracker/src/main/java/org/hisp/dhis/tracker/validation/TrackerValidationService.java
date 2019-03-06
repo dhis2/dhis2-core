@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,5 +41,5 @@ public interface TrackerValidationService
      *
      * @param bundle Bundle to validate
      */
-    void validate( TrackerBundle bundle );
+    TrackerValidationReport validate( TrackerBundle bundle );
 }

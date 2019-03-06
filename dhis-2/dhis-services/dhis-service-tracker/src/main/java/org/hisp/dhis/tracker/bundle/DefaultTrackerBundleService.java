@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -102,15 +103,19 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     }
 
     @Override
-    public void commit( TrackerBundle bundle )
+    public TrackerBundleReport commit( TrackerBundle bundle )
     {
         if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
         {
-            return;
+            return null;
         }
+
+        TrackerBundleReport bundleReport = new TrackerBundleReport();
 
         System.err.println( "BUNDLE:" );
         System.err.println( bundle );
+
+        return bundleReport;
     }
 
     //-----------------------------------------------------------------------------------

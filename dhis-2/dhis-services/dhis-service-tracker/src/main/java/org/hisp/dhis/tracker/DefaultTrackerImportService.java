@@ -39,6 +39,9 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -76,26 +79,30 @@ public class DefaultTrackerImportService implements TrackerImportService
     }
 
     @Override
-    public void importTracker( TrackerImportParams params )
+    public TrackerImportReport importTracker( TrackerImportParams params )
     {
         Timer timer = new SystemTimer().start();
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
+        TrackerImportReport importReport = new TrackerImportReport();
+
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
         trackerBundles.forEach( tb -> {
-            trackerValidationService.validate( tb );
+            TrackerValidationReport validationReport = trackerValidationService.validate( tb );
 
-            if ( TrackerBundleMode.VALIDATE != params.getImportMode() )
+            if ( TrackerBundleMode.VALIDATE != tb.getImportMode() )
             {
-                trackerBundleService.commit( tb );
+                TrackerBundleReport bundleReport = trackerBundleService.commit( tb );
             }
         } );
 
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );
+
+        return importReport;
     }
 
     @Override

@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +45,7 @@ public interface TrackerImportService
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)
      */
-    void importTracker( TrackerImportParams params );
+    TrackerImportReport importTracker( TrackerImportParams params );
 
     /**
      * Parses, and creates a TrackerImportParams instance based on given map of parameters.

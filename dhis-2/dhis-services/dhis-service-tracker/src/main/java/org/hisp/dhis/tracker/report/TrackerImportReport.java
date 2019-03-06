@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.report;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,9 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.logging.LoggingManager;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.springframework.stereotype.Service;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
-public class DefaultTrackerValidationService implements TrackerValidationService
+public class TrackerImportReport
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerValidationService.class );
-
-    @Override
-    public TrackerValidationReport validate( TrackerBundle bundle )
-    {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
-        return validationReport;
-    }
 }

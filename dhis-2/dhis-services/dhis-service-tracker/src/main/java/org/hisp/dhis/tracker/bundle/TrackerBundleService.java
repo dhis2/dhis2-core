@@ -28,6 +28,9 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+
 import java.util.List;
 
 /**
@@ -48,5 +51,5 @@ public interface TrackerBundleService
      *
      * @param bundle TrackerBundle to commit.
      */
-    void commit( TrackerBundle bundle );
+    TrackerBundleReport commit( TrackerBundle bundle );
 }
