@@ -609,6 +609,13 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
+  
+  <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore"
+    class="org.hisp.dhis.programstagefilter.hibernate.HibernateProgramStageInstanceFilterStore">
+    <property name="clazz" value="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
@@ -1259,6 +1266,11 @@
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService"
     class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
+  </bean>
+  
+   <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService"
+    class="org.hisp.dhis.programstagefilter.DefaultProgramStageInstanceFilterService">
+    <property name="programStageInstanceFilterStore" ref="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
