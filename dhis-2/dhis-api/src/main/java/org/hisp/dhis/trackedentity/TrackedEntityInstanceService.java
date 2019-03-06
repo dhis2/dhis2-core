@@ -257,13 +257,10 @@ public interface TrackedEntityInstanceService
      * Register a new entityInstance
      *
      * @param entityInstance     TrackedEntityInstance
-     * @param representativeId   The uid of entityInstance who is representative
-     * @param relationshipTypeId The id of relationship type defined
      * @param attributeValues    Set of attribute values
      * @return The error code after registering entityInstance
      */
-    int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
-        Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+    int createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

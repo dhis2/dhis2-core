@@ -75,10 +75,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -114,12 +110,6 @@ public class DefaultTrackedEntityInstanceService
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private RelationshipService relationshipService;
-
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
 
     @Autowired
     private ProgramService programService;
@@ -173,10 +163,10 @@ public class DefaultTrackedEntityInstanceService
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
-        
+
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );            
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
         }
 
         return trackedEntityInstances;
@@ -614,7 +604,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
     }
-    
+
     private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
         return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
@@ -704,8 +694,8 @@ public class DefaultTrackedEntityInstanceService
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
         {
             params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }        
-        
+        }
+
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -813,8 +803,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int createTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
-        Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues )
+    public int createTrackedEntityInstance( TrackedEntityInstance instance, Set<TrackedEntityAttributeValue> attributeValues )
     {
         int id = addTrackedEntityInstance( instance );
 
@@ -822,33 +811,6 @@ public class DefaultTrackedEntityInstanceService
         {
             attributeValueService.addTrackedEntityAttributeValue( pav );
             instance.getTrackedEntityAttributeValues().add( pav );
-        }
-
-        // ---------------------------------------------------------------------
-        // If under age, save representative information
-        // ---------------------------------------------------------------------
-
-        if ( representativeId != null )
-        {
-            TrackedEntityInstance representative = trackedEntityInstanceStore.getByUid( representativeId );
-
-            if ( representative != null )
-            {
-                instance.setRepresentative( representative );
-
-                Relationship rel = new Relationship();
-
-                if ( relationshipTypeId != null )
-                {
-                    RelationshipType relType = relationshipTypeService.getRelationshipType( relationshipTypeId );
-
-                    if ( relType != null )
-                    {
-                        rel.setRelationshipType( relType );
-                        relationshipService.addRelationship( rel );
-                    }
-                }
-            }
         }
 
         updateTrackedEntityInstance( instance ); // Update associations

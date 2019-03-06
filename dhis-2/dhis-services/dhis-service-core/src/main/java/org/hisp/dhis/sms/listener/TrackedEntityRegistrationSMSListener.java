@@ -112,8 +112,7 @@ public class TrackedEntityRegistrationSMSListener
         int trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
-            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
-                null, null, patientAttributeValues );
+            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance, patientAttributeValues );
         }
         else
         {
