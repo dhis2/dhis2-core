@@ -28,12 +28,15 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -44,10 +47,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,6 +73,16 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private final IdentifiableObjectManager manager;
     private final SessionFactory sessionFactory;
     private final HibernateCacheManager cacheManager;
+    private final DbmsManager dbmsManager;
+
+
+    private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
+
+    @Autowired( required = false )
+    public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
+    {
+        this.bundleHooks = bundleHooks;
+    }
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
@@ -77,7 +92,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         SessionFactory sessionFactory,
-        HibernateCacheManager cacheManager )
+        HibernateCacheManager cacheManager,
+        DbmsManager dbmsManager )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
@@ -87,6 +103,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         this.manager = manager;
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
+        this.dbmsManager = dbmsManager;
     }
 
     @Override
@@ -105,17 +122,90 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     @Override
     public TrackerBundleReport commit( TrackerBundle bundle )
     {
-        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
-        {
-            return null;
-        }
-
         TrackerBundleReport bundleReport = new TrackerBundleReport();
 
-        System.err.println( "BUNDLE:" );
-        System.err.println( bundle );
+        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        {
+            return bundleReport;
+        }
+
+        Session session = sessionFactory.getCurrentSession();
+
+        bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
+
+        handleTrackedEntities( session, bundle );
+        handleEnrollments( session, bundle );
+        handleEvents( session, bundle );
+
+        bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
+
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
 
         return bundleReport;
+    }
+
+    private void handleTrackedEntities( Session session, TrackerBundle bundle )
+    {
+        List<TrackedEntityInstance> trackedEntities = bundle.getTrackedEntities();
+
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preTrackedEntityCreate( o, bundle ) ) );
+        session.flush();
+
+        for ( int idx = 0; idx < trackedEntities.size(); idx++ )
+        {
+            TrackedEntityInstance trackedEntity = trackedEntities.get( idx );
+
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
+        }
+
+        session.flush();
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postTrackedEntityCreate( o, bundle ) ) );
+    }
+
+    private void handleEnrollments( Session session, TrackerBundle bundle )
+    {
+        List<Enrollment> enrollments = bundle.getEnrollments();
+
+        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preEnrollmentCreate( o, bundle ) ) );
+        session.flush();
+
+        for ( int idx = 0; idx < enrollments.size(); idx++ )
+        {
+            Enrollment enrollment = enrollments.get( idx );
+
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
+        }
+
+        session.flush();
+        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postEnrollmentCreate( o, bundle ) ) );
+    }
+
+    private void handleEvents( Session session, TrackerBundle bundle )
+    {
+        List<Event> events = bundle.getEvents();
+
+        events.forEach( o -> bundleHooks.forEach( hook -> hook.preEventCreate( o, bundle ) ) );
+        session.flush();
+
+        for ( int idx = 0; idx < events.size(); idx++ )
+        {
+            Event event = events.get( idx );
+
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
+        }
+
+        session.flush();
+        events.forEach( o -> bundleHooks.forEach( hook -> hook.postEventCreate( o, bundle ) ) );
     }
 
     //-----------------------------------------------------------------------------------
