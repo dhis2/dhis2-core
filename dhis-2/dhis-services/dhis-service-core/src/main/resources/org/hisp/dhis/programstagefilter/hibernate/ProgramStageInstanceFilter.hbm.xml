@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" table="programstageinstancefilter">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programstageinstancefilterid">
+      <generator class="native" />
+    </id>
+    
+    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
+    <property name="created" type="timestamp" not-null="true" />
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
+
+    <property name="name" column="name" not-null="true" length="230" />
+
+    <property name="description" />
+    
+    
+    <property name="style" type="jbObjectStyle" />
+    
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programstageinstancefilter_programid" lazy="false" />
+      
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_programstageinstancefilter_programstageid" lazy="false" />
+    
+    <property name="eventStatus" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="eventCreatedPeriod" type="jbFilterPeriod" />
+    
+    <property name="eventDataValueFilters" type="jlbEventDataValueFilter" />
+    
+  </class>
+
+</hibernate-mapping>

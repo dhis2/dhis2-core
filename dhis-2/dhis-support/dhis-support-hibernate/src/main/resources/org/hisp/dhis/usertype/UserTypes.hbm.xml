@@ -49,6 +49,10 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
   </typedef>
   
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventDataValueFilter">
+    <param name="clazz">org.hisp.dhis.programstagefilter.EventDataValueFilter</param>
+  </typedef>
+  
    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
     <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
   </typedef>
