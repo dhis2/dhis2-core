@@ -32,6 +32,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -39,8 +40,12 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -52,6 +57,11 @@ import com.google.common.collect.Sets;
  */
 public class PartitionUtilsTest
 {
+    private PeriodType quarterly = new QuarterlyPeriodType();
+    private Period q1 = quarterly.createPeriod( new DateTime( 2018, 6, 1, 0, 0 ).toDate() );
+    private Period q2 = quarterly.createPeriod( new DateTime( 2018, 9, 1, 0, 0 ).toDate() );
+    private Period q3 = quarterly.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() );
+
     @Test
     public void testGetPartitions()
     {
@@ -98,5 +108,29 @@ public class PartitionUtilsTest
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( Lists.newArrayList( tA, tB ) );
 
         assertEquals( 3, partitions.size() );
+    }
+
+    @Test
+    public void testGetTablePartitionsFromQuery()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( q1, q2, q3 ) )
+            .build();
+
+        Partitions partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.DATA_VALUE );
+
+        assertEquals( 3, partitions.getPartitions() );
+        assertTrue( partitions.getPartitions().contains( 2018 ) );
+        assertTrue( partitions.getPartitions().contains( 2019 ) );
+        assertTrue( partitions.getPartitions().contains( 0 ) );
+
+        params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( q1 ) )
+            .build();
+
+        partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.ORG_UNIT_TARGET );
+
+        assertEquals( 1, partitions.getPartitions() );
+        assertTrue( partitions.getPartitions().contains( 2018 ) );
     }
 }

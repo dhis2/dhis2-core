@@ -36,6 +36,8 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -136,6 +138,29 @@ public class PartitionUtils
         period.setEndDate( endDate );
 
         return getPartitions( period );
+    }
+
+    /**
+     * Returns partitions for the given {@link DataQueryParams} and
+     * {@link AnalyticsTableType}. Includes a "latest" partition depending
+     * on the given table type.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param tableType the {@link AnalyticsTableType}.
+     * @return partitions for query and planner parameters.
+     */
+    public static Partitions getPartitions( DataQueryParams params, AnalyticsTableType tableType )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            getPartitions( params.getStartDate(), params.getEndDate() ) :
+            getPartitions( params.getAllPeriods() );
+
+        if ( tableType.hasLatestPartition() )
+        {
+           partitions.add( AnalyticsTablePartition.LATEST_PARTITION );
+        }
+
+        return partitions;
     }
 
     /**
