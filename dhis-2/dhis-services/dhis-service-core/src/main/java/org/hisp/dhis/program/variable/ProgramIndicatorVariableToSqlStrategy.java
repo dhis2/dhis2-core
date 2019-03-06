@@ -60,10 +60,10 @@ public interface ProgramIndicatorVariableToSqlStrategy
             + "'";
     }
 
-    static ProgramIndicatorVariableToSqlStrategy eventDateStrategy( StatementBuilder statementBuilder, String varName )
+    static ProgramIndicatorVariableToSqlStrategy eventDateStrategy( StatementBuilder statementBuilder, ProgramIndicatorVariable programIndicatorVariable )
     {
         return ( originalExpression, analyticsType, indicator, startDate, endDate ) -> statementBuilder
-            .getProgramIndicatorEventColumnSql( null, ProgramIndicator.getVariableColumnName( varName ), startDate,
+            .getProgramIndicatorEventColumnSql( null, programIndicatorVariable.getColumn(), startDate,
                 endDate, indicator );
     }
 
@@ -153,9 +153,9 @@ public interface ProgramIndicatorVariableToSqlStrategy
         case VAR_CURRENT_DATE:
             return currentDateStrategy();
         case VAR_CREATION_DATE:
-            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVariableName() );
+            return eventDateStrategy( statementBuilder, VAR_CREATION_DATE );
         case VAR_EVENT_DATE:
-            return eventDateStrategy( statementBuilder, programIndicatorVariable.getVariableName() );
+            return eventDateStrategy( statementBuilder, VAR_EVENT_DATE );
         case VAR_VALUE_COUNT:
             return valueCountStrategy( statementBuilder );
         case VAR_ZERO_POS_VALUE_COUNT:
