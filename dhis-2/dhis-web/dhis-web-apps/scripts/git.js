@@ -64,7 +64,7 @@ async function checkout (name, path, treeish) {
 async function clone (name, url, clone_path, treeish) {
     console.log(`[clone] [${name}] clone started, using ${treeish}`)
     let retries = 0
-    try { // Naively try as branch first, this will fail if hash is a commit-sha
+    try { // Naively try as branch first, this will fail if treeish is a commit-sha
         await exec(`git clone --depth 1 --branch ${treeish} ${url} ${clone_path}`)
         console.log(`[clone] [${name}] shallow clone successful`)
     } catch (err) {
