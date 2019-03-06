@@ -28,15 +28,9 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerValidationReport
+public class TrackerErrorReport
 {
-    public void add( List<TrackerErrorReport> errorReports )
-    {
-
-    }
 }

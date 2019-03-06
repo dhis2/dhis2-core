@@ -75,7 +75,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private final HibernateCacheManager cacheManager;
     private final DbmsManager dbmsManager;
 
-
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     @Autowired( required = false )
@@ -149,7 +148,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     {
         List<TrackedEntityInstance> trackedEntities = bundle.getTrackedEntities();
 
-        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preTrackedEntityCreate( o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntityInstance.class, o, bundle ) ) );
         session.flush();
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
@@ -163,14 +162,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         }
 
         session.flush();
-        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postTrackedEntityCreate( o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntityInstance.class, o, bundle ) ) );
     }
 
     private void handleEnrollments( Session session, TrackerBundle bundle )
     {
         List<Enrollment> enrollments = bundle.getEnrollments();
 
-        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preEnrollmentCreate( o, bundle ) ) );
+        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Enrollment.class, o, bundle ) ) );
         session.flush();
 
         for ( int idx = 0; idx < enrollments.size(); idx++ )
@@ -184,14 +183,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         }
 
         session.flush();
-        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postEnrollmentCreate( o, bundle ) ) );
+        enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
     }
 
     private void handleEvents( Session session, TrackerBundle bundle )
     {
         List<Event> events = bundle.getEvents();
 
-        events.forEach( o -> bundleHooks.forEach( hook -> hook.preEventCreate( o, bundle ) ) );
+        events.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Event.class, o, bundle ) ) );
         session.flush();
 
         for ( int idx = 0; idx < events.size(); idx++ )
@@ -205,7 +204,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         }
 
         session.flush();
-        events.forEach( o -> bundleHooks.forEach( hook -> hook.postEventCreate( o, bundle ) ) );
+        events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
     }
 
     //-----------------------------------------------------------------------------------

@@ -31,7 +31,11 @@ package org.hisp.dhis.tracker.validation;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,10 +45,27 @@ public class DefaultTrackerValidationService implements TrackerValidationService
 {
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerValidationService.class );
 
+    private List<TrackerValidationHook> validationHooks = new ArrayList<>();
+
+    @Autowired( required = false )
+    public void setValidationHooks( List<TrackerValidationHook> validationHooks )
+    {
+        this.validationHooks = validationHooks;
+    }
+
     @Override
     public TrackerValidationReport validate( TrackerBundle bundle )
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
+
+        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
+        {
+            log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
+            return validationReport;
+        }
+
+        validationHooks.forEach( hook -> validationReport.add( hook.validate( bundle ) ) );
+
         return validationReport;
     }
 }

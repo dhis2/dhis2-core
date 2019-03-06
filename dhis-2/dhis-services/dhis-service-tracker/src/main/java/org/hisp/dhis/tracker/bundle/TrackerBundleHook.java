@@ -28,28 +28,32 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.springframework.core.Ordered;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerBundleHook
+public interface TrackerBundleHook extends Ordered
 {
-    void preCommit( TrackerBundle bundle );
+    default void preCommit( TrackerBundle bundle )
+    {
+    }
 
-    void postCommit( TrackerBundle bundle );
+    default void postCommit( TrackerBundle bundle )
+    {
+    }
 
-    void preTrackedEntityCreate( TrackedEntityInstance trackedEntity, TrackerBundle bundle );
+    default void preCreate( Class<?> klass, Object object, TrackerBundle bundle )
+    {
+    }
 
-    void preEnrollmentCreate( Enrollment enrollment, TrackerBundle bundle );
+    default void postCreate( Class<?> klass, Object object, TrackerBundle bundle )
+    {
+    }
 
-    void preEventCreate( Event event, TrackerBundle bundle );
-
-    void postTrackedEntityCreate( TrackedEntityInstance trackedEntity, TrackerBundle bundle );
-
-    void postEnrollmentCreate( Enrollment enrollment, TrackerBundle bundle );
-
-    void postEventCreate( Event event, TrackerBundle bundle );
+    @Override
+    default int getOrder()
+    {
+        return Ordered.LOWEST_PRECEDENCE;
+    }
 }
