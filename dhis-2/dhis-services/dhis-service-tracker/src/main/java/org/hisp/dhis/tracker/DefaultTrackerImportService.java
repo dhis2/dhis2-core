@@ -87,16 +87,15 @@ public class DefaultTrackerImportService implements TrackerImportService
 
         trackerBundles.forEach( tb -> {
             trackerValidationService.validate( tb );
-            trackerBundleService.commit( tb );
+
+            if ( TrackerBundleMode.VALIDATE != params.getImportMode() )
+            {
+                trackerBundleService.commit( tb );
+            }
         } );
 
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );
-
-        if ( TrackerBundleMode.VALIDATE == params.getImportMode() )
-        {
-            return;
-        }
     }
 
     @Override
