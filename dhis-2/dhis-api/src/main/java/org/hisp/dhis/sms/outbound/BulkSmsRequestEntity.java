@@ -28,9 +28,6 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,44 +41,24 @@ public class BulkSmsRequestEntity
 
     private String body;
 
-    public BulkSmsRequestEntity( String body, Set<String> recipients )
-    {
-        this.to = recipients.stream().map( r ->
-        {
-             To to = new To();
-             to.setAddress( r );
-             return to;
-        } ).collect( Collectors.toSet() );
-
-        this.body = body;
-    }
-
     public BulkSmsRequestEntity()
     {
     }
 
-    @JsonProperty
-    @JacksonXmlProperty
+    public BulkSmsRequestEntity( String body, Set<String> recipients )
+    {
+        this.to = recipients.stream().map( To::new ).collect( Collectors.toSet() );
+        this.body = body;
+    }
+
     public Set<To> getTo()
     {
         return to;
     }
 
-    public void setTo ( Set<To> to )
-    {
-        this.to = to;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty
     public String getBody()
     {
         return body;
-    }
-
-    public void setBody( String body )
-    {
-        this.body = body;
     }
 
     private static class To
@@ -89,28 +66,23 @@ public class BulkSmsRequestEntity
         private String type = "INTERNATIONAL";
         private String address;
 
-        @JsonProperty
-        @JacksonXmlProperty
+        public To()
+        {
+        }
+
+        public To( String address )
+        {
+            this.address = address;
+        }
+
         public String getType()
         {
             return type;
         }
 
-        public void setType( String type )
-        {
-            this.type = type;
-        }
-
-        @JsonProperty
-        @JacksonXmlProperty
         public String getAddress()
         {
             return address;
-        }
-
-        public void setAddress( String address )
-        {
-            this.address = address;
         }
     }
 }

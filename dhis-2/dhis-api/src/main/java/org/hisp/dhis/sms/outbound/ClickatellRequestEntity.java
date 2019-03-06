@@ -45,12 +45,6 @@ public class ClickatellRequestEntity
     private String content;
 
     private Set<String> to;
-    
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "content", content ).add( "to", to ).toString();
-    }
 
     @JsonProperty( value = "content" )
     @JacksonXmlProperty( localName = "content" )
@@ -74,5 +68,11 @@ public class ClickatellRequestEntity
     public void setTo( Set<String> to )
     {
         this.to = to;
+    }
+
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "content", content ).add( "to", to ).toString();
     }
 }
