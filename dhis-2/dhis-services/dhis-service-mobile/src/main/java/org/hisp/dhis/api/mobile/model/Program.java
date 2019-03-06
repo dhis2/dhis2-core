@@ -105,7 +105,7 @@ public class Program
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeInt( programStages.size() );
@@ -120,7 +120,7 @@ public class Program
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeInt( programStages.size() );
@@ -135,7 +135,7 @@ public class Program
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeInt( programStages.size() );

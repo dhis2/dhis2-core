@@ -104,7 +104,7 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public Interpretation getByChartId( int id )
+    public Interpretation getByChartId( long id )
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
 

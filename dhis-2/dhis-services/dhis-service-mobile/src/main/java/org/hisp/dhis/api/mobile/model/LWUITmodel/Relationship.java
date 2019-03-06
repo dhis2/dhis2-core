@@ -45,9 +45,9 @@ public class Relationship extends Model
     
     private String personBName;
     
-    private int personAId;
+    private long personAId;
     
-    private int personBId;
+    private long personBId;
     
     private String chosenRelationship;
     
@@ -87,22 +87,22 @@ public class Relationship extends Model
         this.personBName = personBName;
     }
     
-    public int getPersonAId()
+    public long getPersonAId()
     {
         return personAId;
     }
 
-    public void setPersonAId( int personAId )
+    public void setPersonAId( long personAId )
     {
         this.personAId = personAId;
     }
 
-    public int getPersonBId()
+    public long getPersonBId()
     {
         return personBId;
     }
 
-    public void setPersonBId( int personBId )
+    public void setPersonBId( long personBId )
     {
         this.personBId = personBId;
     }
@@ -167,7 +167,7 @@ public class Relationship extends Model
         if( this.getId() != 0 )
         {
             dout.writeBoolean( true );
-            dout.writeInt( this.getId() );
+            dout.writeLong( this.getId() );
         }
         else
         {
@@ -199,7 +199,7 @@ public class Relationship extends Model
         if( this.getPersonAId() != 0 )
         {
             dout.writeBoolean( true );
-            dout.writeInt( this.getPersonAId() );
+            dout.writeLong( this.getPersonAId() );
         }
         else
         {
@@ -209,7 +209,7 @@ public class Relationship extends Model
         if( this.getPersonBId() != 0 )
         {
             dout.writeBoolean( true );
-            dout.writeInt( this.getPersonBId() );
+            dout.writeLong( this.getPersonBId() );
         }
         else
         {
@@ -252,7 +252,7 @@ public class Relationship extends Model
         
         if ( dint.readBoolean() == true )
         {
-            this.setId( dint.readInt() );
+            this.setId( dint.readLong() );
         }
         else
         {
@@ -279,7 +279,7 @@ public class Relationship extends Model
         
         if ( dint.readBoolean() == true )
         {
-            this.setPersonAId( dint.readInt() );
+            this.setPersonAId( dint.readLong() );
         }
         else
         {
@@ -288,7 +288,7 @@ public class Relationship extends Model
         
         if ( dint.readBoolean() == true )
         {
-            this.setPersonBId( dint.readInt() );
+            this.setPersonBId( dint.readLong() );
         }
         else
         {

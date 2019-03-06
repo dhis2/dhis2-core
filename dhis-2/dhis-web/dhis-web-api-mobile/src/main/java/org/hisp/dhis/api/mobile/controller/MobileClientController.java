@@ -238,7 +238,7 @@ public class MobileClientController
         return orgUnit;
     }
 
-    private static String getUrl( HttpServletRequest request, int id, String path )
+    private static String getUrl( HttpServletRequest request, long id, String path )
     {
         String url = UrlUtils.buildFullRequestUrl( request );
         if ( url.endsWith( "/" ) )

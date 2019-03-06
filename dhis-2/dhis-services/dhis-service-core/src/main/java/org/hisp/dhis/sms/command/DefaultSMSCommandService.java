@@ -63,7 +63,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public SMSCommand getSMSCommand( int id )
+    public SMSCommand getSMSCommand( long id )
     {
         return smsCommandStore.get( id );
     }
@@ -75,7 +75,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void addSmsCodes( Set<SMSCode> codes, int commandId )
+    public void addSmsCodes( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
@@ -106,7 +106,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
+    public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
@@ -119,7 +119,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void deleteCodeSet( Set<SMSCode> codes, int commandId )
+    public void deleteCodeSet( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
@@ -135,7 +135,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
+    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 

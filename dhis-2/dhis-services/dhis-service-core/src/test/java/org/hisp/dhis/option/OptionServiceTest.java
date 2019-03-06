@@ -103,9 +103,9 @@ public class OptionServiceTest
     @Test
     public void testSaveGet()
     {
-        int idA = optionService.saveOptionSet( optionSetA );
-        int idB = optionService.saveOptionSet( optionSetB );
-        int idC = optionService.saveOptionSet( optionSetC );
+        long idA = optionService.saveOptionSet( optionSetA );
+        long idB = optionService.saveOptionSet( optionSetB );
+        long idC = optionService.saveOptionSet( optionSetC );
 
         OptionSet actualA = optionService.getOptionSet( idA );
         OptionSet actualB = optionService.getOptionSet( idB );
@@ -128,7 +128,7 @@ public class OptionServiceTest
     @Test
     public void testGetList()
     {
-        int idA = optionService.saveOptionSet( optionSetA );
+        long idA = optionService.saveOptionSet( optionSetA );
 
         List<Option> options = optionService.getOptions( idA, "OptA", 10 );
 
@@ -163,9 +163,9 @@ public class OptionServiceTest
         optionGroupA.getMembers().add( option2 );
         optionGroupB.getMembers().add( option3 );
 
-        int idA = optionService.saveOptionGroup( optionGroupA );
-        int idB = optionService.saveOptionGroup( optionGroupB );
-        int idC = optionService.saveOptionGroup( optionGroupC );
+        long idA = optionService.saveOptionGroup( optionGroupA );
+        long idB = optionService.saveOptionGroup( optionGroupB );
+        long idC = optionService.saveOptionGroup( optionGroupC );
 
         assertEquals( optionGroupA, optionService.getOptionGroup( idA ) );
         assertEquals( optionGroupB, optionService.getOptionGroup( idB ) );
@@ -196,9 +196,9 @@ public class OptionServiceTest
         optionGroupSetA.getMembers().add( optionGroupB );
         optionGroupSetB.getMembers().add( optionGroupC );
 
-        int idA = optionService.saveOptionGroupSet( optionGroupSetA );
-        int idB = optionService.saveOptionGroupSet( optionGroupSetB );
-        int idC = optionService.saveOptionGroupSet( optionGroupSetC );
+        long idA = optionService.saveOptionGroupSet( optionGroupSetA );
+        long idB = optionService.saveOptionGroupSet( optionGroupSetB );
+        long idC = optionService.saveOptionGroupSet( optionGroupSetC );
 
         assertEquals( optionGroupSetA, optionService.getOptionGroupSet( idA ) );
         assertEquals( optionGroupSetB, optionService.getOptionGroupSet( idB ) );

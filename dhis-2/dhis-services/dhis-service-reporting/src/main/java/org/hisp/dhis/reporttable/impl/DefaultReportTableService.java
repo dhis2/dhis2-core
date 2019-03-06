@@ -175,7 +175,7 @@ public class DefaultReportTableService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveReportTable( ReportTable reportTable )
+    public long saveReportTable( ReportTable reportTable )
     {
         reportTableStore.save( reportTable );
 
@@ -195,7 +195,7 @@ public class DefaultReportTableService
     }
 
     @Override
-    public ReportTable getReportTable( int id )
+    public ReportTable getReportTable( long id )
     {
         return reportTableStore.get( id );
     }

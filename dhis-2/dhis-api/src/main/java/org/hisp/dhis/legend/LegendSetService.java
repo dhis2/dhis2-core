@@ -35,11 +35,11 @@ import java.util.List;
  */
 public interface LegendSetService
 {
-    int addLegendSet( LegendSet legend );
+    long addLegendSet( LegendSet legend );
 
     void updateLegendSet( LegendSet legend );
 
-    LegendSet getLegendSet( int id );
+    LegendSet getLegendSet( long id );
 
     LegendSet getLegendSet( String uid );
 

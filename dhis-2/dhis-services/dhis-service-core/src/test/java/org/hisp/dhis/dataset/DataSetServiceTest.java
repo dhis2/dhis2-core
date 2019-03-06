@@ -227,8 +227,8 @@ public class DataSetServiceTest
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
 
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
+        long idA = dataSetService.addDataSet( dataSetA );
+        long idB = dataSetService.addDataSet( dataSetB );
 
         dataSetA = dataSetService.getDataSet( idA );
         dataSetB = dataSetService.getDataSet( idB );
@@ -248,7 +248,7 @@ public class DataSetServiceTest
         dataSet.addDataSetElement( dataElementA );
         dataSet.addDataSetElement( dataElementB );
 
-        int id = dataSetService.addDataSet( dataSet );
+        long id = dataSetService.addDataSet( dataSet );
 
         dataSet = dataSetService.getDataSet( id );
 
@@ -272,8 +272,8 @@ public class DataSetServiceTest
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
 
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
+        long idA = dataSetService.addDataSet( dataSetA );
+        long idB = dataSetService.addDataSet( dataSetB );
 
         assertNotNull( dataSetService.getDataSet( idA ) );
         assertNotNull( dataSetService.getDataSet( idB ) );
@@ -341,7 +341,7 @@ public class DataSetServiceTest
         dataSet.addDataSetElement( dataElementA );
         dataSet.addDataSetElement( dataElementB );
 
-        int ds = dataSetService.addDataSet( dataSet );
+        long ds = dataSetService.addDataSet( dataSet );
 
         dataSet = dataSetService.getDataSet( dataSet.getId() );
         assertNotNull( dataSet );
@@ -401,7 +401,7 @@ public class DataSetServiceTest
 
         LockException lockException = new LockException( period, unitA, dataSet );
 
-        int id = dataSetService.addLockException( lockException );
+        long id = dataSetService.addLockException( lockException );
 
         lockException = dataSetService.getLockException( id );
 

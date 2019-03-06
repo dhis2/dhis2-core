@@ -105,7 +105,7 @@ public class DefaultAttributeService
     }
 
     @Override
-    public Attribute getAttribute( int id )
+    public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
     }
@@ -211,7 +211,7 @@ public class DefaultAttributeService
     }
 
     @Override
-    public AttributeValue getAttributeValue( int id )
+    public AttributeValue getAttributeValue( long id )
     {
         return attributeValueStore.get( id );
     }

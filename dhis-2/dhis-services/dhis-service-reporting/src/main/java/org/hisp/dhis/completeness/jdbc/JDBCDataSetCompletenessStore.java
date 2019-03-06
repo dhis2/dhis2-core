@@ -69,7 +69,7 @@ public class JDBCDataSetCompletenessStore
     // -------------------------------------------------------------------------
 
     @Override
-    public Integer getCompleteDataSetRegistrations( DataSet dataSet, Collection<Integer> periods, Collection<Integer> relevantSources )
+    public Integer getCompleteDataSetRegistrations( DataSet dataSet, Collection<Long> periods, Collection<Long> relevantSources )
     {
         if ( relevantSources == null || relevantSources.isEmpty() || periods == null || periods.isEmpty() )
         {
@@ -87,7 +87,7 @@ public class JDBCDataSetCompletenessStore
     }
 
     @Override
-    public Integer getCompleteDataSetRegistrationsWithTimeliness( DataSet dataSet, Collection<Integer> periods, Collection<Integer> relevantSources )
+    public Integer getCompleteDataSetRegistrationsWithTimeliness( DataSet dataSet, Collection<Long> periods, Collection<Long> relevantSources )
     {
         if ( relevantSources == null || relevantSources.isEmpty() || periods == null || periods.isEmpty() )
         {
@@ -111,13 +111,13 @@ public class JDBCDataSetCompletenessStore
     // -------------------------------------------------------------------------
 
     @Override
-    public Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Integer> children, Collection<Integer> periods )
+    public Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Long> children, Collection<Long> periods )
     {
         return getCompulsoryDataElementRegistrations( dataSet, children, periods, -1 );
     }
     
     @Override
-    public Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Integer> children, Collection<Integer> periods, int completenessOffset )
+    public Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Long> children, Collection<Long> periods, int completenessOffset )
     {
         if ( children == null || children.isEmpty() || periods == null || periods.isEmpty() )
         {

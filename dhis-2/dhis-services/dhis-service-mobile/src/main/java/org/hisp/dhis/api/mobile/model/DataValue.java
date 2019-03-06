@@ -37,21 +37,21 @@ import javax.xml.bind.annotation.XmlAttribute;
 public class DataValue
     implements DataStreamSerializable
 {
-    private int id;
+    private long id;
 
     private String clientVersion;
 
-    private int categoryOptComboID;
+    private long categoryOptComboID;
 
     private String value;
 
     @XmlAttribute
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -68,12 +68,12 @@ public class DataValue
     }
 
     @XmlAttribute
-    public int getCategoryOptComboID()
+    public long getCategoryOptComboID()
     {
         return categoryOptComboID;
     }
 
-    public void setCategoryOptComboID( int categoryOptComboID )
+    public void setCategoryOptComboID( long categoryOptComboID )
     {
         this.categoryOptComboID = categoryOptComboID;
     }
@@ -100,8 +100,8 @@ public class DataValue
     public void deSerialize( DataInputStream din )
         throws IOException
     {
-        setId( din.readInt() );
-        setCategoryOptComboID( din.readInt() );
+        setId( din.readLong() );
+        setCategoryOptComboID( din.readLong() );
         setValue( din.readUTF() );
     }
 

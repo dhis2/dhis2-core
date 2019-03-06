@@ -122,8 +122,8 @@ public class ProgramExpressionServiceTest
     @Test
     public void testAddProgramExpression()
     {
-        int idA = programExpressionService.addProgramExpression( programExpressionA );
-        int idB = programExpressionService.addProgramExpression( programExpressionB );
+        long idA = programExpressionService.addProgramExpression( programExpressionA );
+        long idB = programExpressionService.addProgramExpression( programExpressionB );
 
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
         assertNotNull( programExpressionService.getProgramExpression( idB ) );
@@ -132,7 +132,7 @@ public class ProgramExpressionServiceTest
     @Test
     public void testUpdateProgramExpression()
     {
-        int idA = programExpressionService.addProgramExpression( programExpressionA );
+        long idA = programExpressionService.addProgramExpression( programExpressionA );
 
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
 
@@ -145,8 +145,8 @@ public class ProgramExpressionServiceTest
     @Test
     public void testDeleteProgramExpression()
     {
-        int idA = programExpressionService.addProgramExpression( programExpressionA );
-        int idB = programExpressionService.addProgramExpression( programExpressionB );
+        long idA = programExpressionService.addProgramExpression( programExpressionA );
+        long idB = programExpressionService.addProgramExpression( programExpressionB );
 
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
         assertNotNull( programExpressionService.getProgramExpression( idB ) );
@@ -165,8 +165,8 @@ public class ProgramExpressionServiceTest
     @Test
     public void testGetProgramExpression()
     {
-        int idA = programExpressionService.addProgramExpression( programExpressionA );
-        int idB = programExpressionService.addProgramExpression( programExpressionB );
+        long idA = programExpressionService.addProgramExpression( programExpressionA );
+        long idB = programExpressionService.addProgramExpression( programExpressionB );
 
         assertEquals( programExpressionA, programExpressionService.getProgramExpression( idA ) );
         assertEquals( programExpressionB, programExpressionService.getProgramExpression( idB ) );

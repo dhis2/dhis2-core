@@ -134,7 +134,7 @@ public class ProgramStageSectionStoreTest
         sectionA.setDataElements( dataElements );
         
         programStageSectionStore.save( sectionA );
-        int idA = sectionA.getId();
+        long idA = sectionA.getId();
 
         assertEquals( sectionA, programStageSectionStore.get( idA ) );
     }

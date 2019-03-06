@@ -76,7 +76,7 @@ public class DefaultDataElementService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElement( DataElement dataElement )
+    public long addDataElement( DataElement dataElement )
     {
         dataElementStore.save( dataElement );
 
@@ -96,7 +96,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElement getDataElement( int id )
+    public DataElement getDataElement( long id )
     {
         return dataElementStore.get( id );
     }
@@ -178,7 +178,7 @@ public class DefaultDataElementService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementGroup( DataElementGroup dataElementGroup )
+    public long addDataElementGroup( DataElementGroup dataElementGroup )
     {
         dataElementGroupStore.save( dataElementGroup );
 
@@ -198,7 +198,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElementGroup getDataElementGroup( int id )
+    public DataElementGroup getDataElementGroup( long id )
     {
         return dataElementGroupStore.get( id );
     }
@@ -234,7 +234,7 @@ public class DefaultDataElementService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementGroupSet( DataElementGroupSet groupSet )
+    public long addDataElementGroupSet( DataElementGroupSet groupSet )
     {
         dataElementGroupSetStore.save( groupSet );
 
@@ -254,7 +254,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElementGroupSet getDataElementGroupSet( int id )
+    public DataElementGroupSet getDataElementGroupSet( long id )
     {
         return dataElementGroupSetStore.get( id );
     }

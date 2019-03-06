@@ -39,25 +39,25 @@ import java.util.Set;
  */
 public class PeriodHierarchy
 {
-    private Map<Integer, Set<Integer>> intersectingPeriods = new HashMap<>();
+    private Map<Long, Set<Long>> intersectingPeriods = new HashMap<>();
     
-    private Map<Integer, Set<Integer>> periodsBetween = new HashMap<>();
+    private Map<Long, Set<Long>> periodsBetween = new HashMap<>();
     
-    public Map<Integer, Set<Integer>> getIntersectingPeriods()
+    public Map<Long, Set<Long>> getIntersectingPeriods()
     {
         return intersectingPeriods;
     }
 
-    public Set<Integer> getIntersectingPeriods( Period period )
+    public Set<Long> getIntersectingPeriods( Period period )
     {
         return new HashSet<>( intersectingPeriods.get( period.getId() ) );
     }
     
-    public Set<Integer> getIntersectingPeriods( Collection<Period> periods )
+    public Set<Long> getIntersectingPeriods( Collection<Period> periods )
     {
         periods = new HashSet<>( periods );
         
-        Set<Integer> set = new HashSet<>();
+        Set<Long> set = new HashSet<>();
         
         for ( Period period : periods )
         {
@@ -70,21 +70,21 @@ public class PeriodHierarchy
         return set;
     }
 
-    public Map<Integer, Set<Integer>> getPeriodsBetween()
+    public Map<Long, Set<Long>> getPeriodsBetween()
     {
         return periodsBetween;
     }
 
-    public Set<Integer> getPeriodsBetween( Period period )
+    public Set<Long> getPeriodsBetween( Period period )
     {
         return new HashSet<>( periodsBetween.get( period.getId() ) );
     }
     
-    public Set<Integer> getPeriodsBetween( Collection<Period> periods )
+    public Set<Long> getPeriodsBetween( Collection<Period> periods )
     {
         periods = new HashSet<>( periods );
         
-        Set<Integer> set = new HashSet<>();
+        Set<Long> set = new HashSet<>();
         
         for ( Period period : periods )
         {

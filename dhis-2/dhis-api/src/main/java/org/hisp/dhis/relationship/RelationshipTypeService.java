@@ -45,7 +45,7 @@ public interface RelationshipTypeService
      * 
      * @return A generated unique id of the added {@link RelationshipType}.
      */
-    int addRelationshipType( RelationshipType relationshipType );
+    long addRelationshipType( RelationshipType relationshipType );
 
     /**
      * Deletes a {@link RelationshipType}.
@@ -68,7 +68,7 @@ public interface RelationshipTypeService
      * 
      * @return the RelationshipType with the given id
      */
-    RelationshipType getRelationshipType( int id );
+    RelationshipType getRelationshipType( long id );
 
     /**
      * Returns a {@link RelationshipType}.
