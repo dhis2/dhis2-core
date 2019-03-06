@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.mvc.messageconverter;
+package org.hisp.dhis.analytics.orgunit.data;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,28 +28,52 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.annotation.Nonnull;
+import org.hisp.dhis.analytics.data.QueryPlannerUtils;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Component
-public class ExcelMessageConverter extends AbstractRootNodeMessageConverter
+public class DefaultOrgUnitQueryPlanner
+    implements OrgUnitQueryPlanner
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "vnd.ms-excel" ) )
-        .build();
-
-    public ExcelMessageConverter( @Nonnull @Autowired NodeService nodeService )
+    @Override
+    public List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params )
     {
-        super( nodeService, "application/vnd.ms-excel", "xlsx", Compression.NONE );
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+        return groupByOrgUnitLevel( params );
+    }
+
+    private List<OrgUnitQueryParams> groupByOrgUnitLevel( OrgUnitQueryParams params )
+    {
+        List<OrgUnitQueryParams> queries = new ArrayList<>();
+
+        if ( !params.getOrgUnits().isEmpty() )
+        {
+            ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
+                QueryPlannerUtils.getLevelOrgUnitTypedMap( params.getOrgUnits() );
+
+            for ( Integer level : levelOrgUnitMap.keySet() )
+            {
+                OrgUnitQueryParams query = new OrgUnitQueryParams.Builder( params )
+                    .withOrgUnits( levelOrgUnitMap.get( level ) )
+                    .withOrgUnitLevel( level )
+                    .build();
+
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( new OrgUnitQueryParams.Builder( params ).build() );
+            return queries;
+        }
+
+        return queries;
     }
 }
