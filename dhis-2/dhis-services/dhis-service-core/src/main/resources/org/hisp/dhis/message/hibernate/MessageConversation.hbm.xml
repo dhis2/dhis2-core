@@ -74,6 +74,6 @@
   </class>
 
   <filter-def name="userMessageUser">
-    <filter-param name="userid" type="int" />
+    <filter-param name="userid" type="long" />
   </filter-def>
 </hibernate-mapping>

@@ -805,7 +805,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int addTrackedEntityInstance( TrackedEntityInstance instance )
+    public long addTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.save( instance );
 
@@ -813,10 +813,10 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int createTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
+    public long createTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues )
     {
-        int id = addTrackedEntityInstance( instance );
+        long id = addTrackedEntityInstance( instance );
 
         for ( TrackedEntityAttributeValue pav : attributeValues )
         {
@@ -885,7 +885,7 @@ public class DefaultTrackedEntityInstanceService
 
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( int id )
+    public TrackedEntityInstance getTrackedEntityInstance( long id )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.get( id );
 

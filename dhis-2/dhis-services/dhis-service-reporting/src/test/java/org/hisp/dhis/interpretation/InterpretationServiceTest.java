@@ -133,9 +133,9 @@ public class InterpretationServiceTest
     @Test
     public void testSaveGet()
     {
-        int idA = interpretationService.saveInterpretation( interpretationA );
-        int idB = interpretationService.saveInterpretation( interpretationB );
-        int idC = interpretationService.saveInterpretation( interpretationC );
+        long idA = interpretationService.saveInterpretation( interpretationA );
+        long idB = interpretationService.saveInterpretation( interpretationB );
+        long idC = interpretationService.saveInterpretation( interpretationC );
 
         assertEquals( interpretationA, interpretationService.getInterpretation( idA ) );
         assertEquals( interpretationB, interpretationService.getInterpretation( idB ) );
@@ -145,9 +145,9 @@ public class InterpretationServiceTest
     @Test
     public void testDelete()
     {
-        int idA = interpretationService.saveInterpretation( interpretationA );
-        int idB = interpretationService.saveInterpretation( interpretationB );
-        int idC = interpretationService.saveInterpretation( interpretationC );
+        long idA = interpretationService.saveInterpretation( interpretationA );
+        long idB = interpretationService.saveInterpretation( interpretationB );
+        long idC = interpretationService.saveInterpretation( interpretationC );
 
         assertNotNull( interpretationService.getInterpretation( idA ) );
         assertNotNull( interpretationService.getInterpretation( idB ) );
@@ -346,7 +346,7 @@ public class InterpretationServiceTest
     @Test
     public void testLikeInterpretation()
     {
-        int idA = interpretationService.saveInterpretation( interpretationA );
+        long idA = interpretationService.saveInterpretation( interpretationA );
         interpretationService.saveInterpretation( interpretationB );
 
         assertEquals( 0, interpretationA.getLikes() );

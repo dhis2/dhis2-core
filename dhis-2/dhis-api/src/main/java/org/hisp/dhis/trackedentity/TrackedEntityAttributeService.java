@@ -50,7 +50,7 @@ public interface TrackedEntityAttributeService
      * @return A generated unique id of the added {@link TrackedEntityAttribute}
      * .
      */
-    int addTrackedEntityAttribute( TrackedEntityAttribute attribute );
+    long addTrackedEntityAttribute( TrackedEntityAttribute attribute );
 
     /**
      * Deletes a {@link TrackedEntityAttribute}.
@@ -72,7 +72,7 @@ public interface TrackedEntityAttributeService
      * @param id the id of the TrackedEntityAttribute to return.
      * @return the TrackedEntityAttribute with the given id
      */
-    TrackedEntityAttribute getTrackedEntityAttribute( int id );
+    TrackedEntityAttribute getTrackedEntityAttribute( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.

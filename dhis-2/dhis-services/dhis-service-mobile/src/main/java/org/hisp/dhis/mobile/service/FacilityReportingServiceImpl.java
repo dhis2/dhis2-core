@@ -217,13 +217,13 @@ public class FacilityReportingServiceImpl
     }
 
     @Override
-    public DataSet getDataSet( int id )
+    public DataSet getDataSet( long id )
     {
         return getDataSetForLocale( id, null );
     }
 
     @Override
-    public DataSet getDataSetForLocale( int dataSetId, Locale locale )
+    public DataSet getDataSetForLocale( long dataSetId, Locale locale )
     {
         org.hisp.dhis.dataset.DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
@@ -363,7 +363,7 @@ public class FacilityReportingServiceImpl
         log.info( "Recieved data value set for: " + unit.getName() + ", " + dataSet.getName() + ", "
             + period.getIsoDate() );
 
-        Map<Integer, org.hisp.dhis.dataelement.DataElement> dataElementMap = getDataElementIdMapping( dataSet );
+        Map<Long, org.hisp.dhis.dataelement.DataElement> dataElementMap = getDataElementIdMapping( dataSet );
 
         for ( DataValue dataValue : dataSetValue.getDataValues() )
         {
@@ -467,10 +467,10 @@ public class FacilityReportingServiceImpl
         return dataSetValueList;
     }
 
-    private Map<Integer, org.hisp.dhis.dataelement.DataElement> getDataElementIdMapping(
+    private Map<Long, org.hisp.dhis.dataelement.DataElement> getDataElementIdMapping(
         org.hisp.dhis.dataset.DataSet dataSet )
     {
-        Map<Integer, org.hisp.dhis.dataelement.DataElement> dataElementMap = new HashMap<>();
+        Map<Long, org.hisp.dhis.dataelement.DataElement> dataElementMap = new HashMap<>();
 
         for ( org.hisp.dhis.dataelement.DataElement dataElement : dataSet.getDataElements() )
         {
@@ -534,7 +534,7 @@ public class FacilityReportingServiceImpl
         return persistedPeriod;
     }
 
-    private boolean isGreyField( org.hisp.dhis.dataset.Section section, int id, int categoryOptionComboId )
+    private boolean isGreyField( org.hisp.dhis.dataset.Section section, long id, long categoryOptionComboId )
     {
         for ( DataElementOperand operand : section.getGreyedFields() )
         {

@@ -120,8 +120,8 @@ public class UserServiceTest
         userA.setOrganisationUnits( units );
         userB.setOrganisationUnits( units );
 
-        int idA = userService.addUser( userA );
-        int idB = userService.addUser( userB );
+        long idA = userService.addUser( userA );
+        long idB = userService.addUser( userB );
         
         assertEquals( userA, userService.getUser( idA ) );
         assertEquals( userB, userService.getUser( idB ) );
@@ -136,8 +136,8 @@ public class UserServiceTest
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        int idA = userService.addUser( userA );
-        int idB = userService.addUser( userB );
+        long idA = userService.addUser( userA );
+        long idB = userService.addUser( userB );
 
         assertEquals( userA, userService.getUser( idA ) );
         assertEquals( userB, userService.getUser( idB ) );
@@ -155,8 +155,8 @@ public class UserServiceTest
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        int idA = userService.addUser( userA );
-        int idB = userService.addUser( userB );
+        long idA = userService.addUser( userA );
+        long idB = userService.addUser( userB );
 
         assertEquals( userA, userService.getUser( idA ) );
         assertEquals( userB, userService.getUser( idB ) );
@@ -312,8 +312,8 @@ public class UserServiceTest
         userGroup1.setManagedGroups( Sets.newHashSet( userGroup2 ) );
         userGroup2.setManagedByGroups( Sets.newHashSet( userGroup1 ) );
         
-        int group1 = userGroupService.addUserGroup( userGroup1 );
-        int group2 = userGroupService.addUserGroup( userGroup2 );
+        long group1 = userGroupService.addUserGroup( userGroup1 );
+        long group2 = userGroupService.addUserGroup( userGroup2 );
 
         assertEquals( 1, userGroupService.getUserGroup( group1 ).getManagedGroups().size() );
         assertTrue( userGroupService.getUserGroup( group1 ).getManagedGroups().contains( userGroup2 ) );

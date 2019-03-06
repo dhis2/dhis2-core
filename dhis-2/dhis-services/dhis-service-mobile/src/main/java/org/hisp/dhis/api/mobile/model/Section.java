@@ -86,7 +86,7 @@ public class Section
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( getName() );
 
         if ( dataElements == null )
@@ -108,7 +108,7 @@ public class Section
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( getName() );
 
         if ( dataElements == null )
@@ -130,7 +130,7 @@ public class Section
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( getName() );
 
         if ( dataElements == null )

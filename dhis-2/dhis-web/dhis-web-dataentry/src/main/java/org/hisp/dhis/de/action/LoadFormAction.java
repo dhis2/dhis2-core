@@ -173,37 +173,37 @@ public class LoadFormAction
         return sections;
     }
 
-    private Map<Integer, Map<Integer, List<CategoryOption>>> orderedOptionsMap = new HashMap<>();
+    private Map<Long, Map<Long, List<CategoryOption>>> orderedOptionsMap = new HashMap<>();
 
-    public Map<Integer, Map<Integer, List<CategoryOption>>> getOrderedOptionsMap()
+    public Map<Long, Map<Long, List<CategoryOption>>> getOrderedOptionsMap()
     {
         return orderedOptionsMap;
     }
 
-    private Map<Integer, Collection<Category>> orderedCategories = new HashMap<>();
+    private Map<Long, Collection<Category>> orderedCategories = new HashMap<>();
 
-    public Map<Integer, Collection<Category>> getOrderedCategories()
+    public Map<Long, Collection<Category>> getOrderedCategories()
     {
         return orderedCategories;
     }
 
-    private Map<Integer, Integer> numberOfTotalColumns = new HashMap<>();
+    private Map<Long, Integer> numberOfTotalColumns = new HashMap<>();
 
-    public Map<Integer, Integer> getNumberOfTotalColumns()
+    public Map<Long, Integer> getNumberOfTotalColumns()
     {
         return numberOfTotalColumns;
     }
 
-    private Map<Integer, Map<Integer, Collection<Integer>>> catColRepeat = new HashMap<>();
+    private Map<Long, Map<Long, Collection<Integer>>> catColRepeat = new HashMap<>();
 
-    public Map<Integer, Map<Integer, Collection<Integer>>> getCatColRepeat()
+    public Map<Long, Map<Long, Collection<Integer>>> getCatColRepeat()
     {
         return catColRepeat;
     }
 
-    private Map<Integer, Collection<CategoryOptionCombo>> orderedCategoryOptionCombos = new HashMap<>();
+    private Map<Long, Collection<CategoryOptionCombo>> orderedCategoryOptionCombos = new HashMap<>();
 
-    public Map<Integer, Collection<CategoryOptionCombo>> getOrderedCategoryOptionCombos()
+    public Map<Long, Collection<CategoryOptionCombo>> getOrderedCategoryOptionCombos()
     {
         return orderedCategoryOptionCombos;
     }
@@ -215,7 +215,7 @@ public class LoadFormAction
         return orderedCategoryCombos;
     }
 
-    private Map<Integer, Collection<Integer>> sectionCombos = new HashMap<>();
+    private Map<Long, Collection<Long>> sectionCombos = new HashMap<>();
 
     private Map<String, Boolean> optionComboAccessMap = new HashMap<>();
 
@@ -224,7 +224,7 @@ public class LoadFormAction
         return optionComboAccessMap;
     }
 
-    public Map<Integer, Collection<Integer>> getSectionCombos()
+    public Map<Long, Collection<Long>> getSectionCombos()
     {
         return sectionCombos;
     }
@@ -316,7 +316,7 @@ public class LoadFormAction
 
             orderedCategories.put( categoryCombo.getId(), categoryCombo.getCategories() );
   
-            Map<Integer, List<CategoryOption>> optionsMap = new HashMap<>();
+            Map<Long, List<CategoryOption>> optionsMap = new HashMap<>();
 
             for ( Category category : categoryCombo.getCategories() )
             {
@@ -329,9 +329,9 @@ public class LoadFormAction
             // Calculating the number of times each category should be repeated
             // -----------------------------------------------------------------
 
-            Map<Integer, Integer> catRepeat = new HashMap<>();
+            Map<Long, Integer> catRepeat = new HashMap<>();
 
-            Map<Integer, Collection<Integer>> colRepeat = new HashMap<>();
+            Map<Long, Collection<Integer>> colRepeat = new HashMap<>();
 
             int catColSpan = optionCombos.size();
 
@@ -441,7 +441,7 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Integer> categoryCombos = new HashSet<>();
+            Set<Long> categoryCombos = new HashSet<>();
             
             for( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {

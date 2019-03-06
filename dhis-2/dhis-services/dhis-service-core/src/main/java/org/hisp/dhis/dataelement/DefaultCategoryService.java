@@ -145,7 +145,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategory( Category dataElementCategory )
+    public long addCategory( Category dataElementCategory )
     {
         categoryStore.save( dataElementCategory );
 
@@ -171,7 +171,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public Category getCategory( int id )
+    public Category getCategory( long id )
     {
         return categoryStore.get( id );
     }
@@ -231,7 +231,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryOption( CategoryOption dataElementCategoryOption )
+    public long addCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptionStore.save( dataElementCategoryOption );
 
@@ -251,7 +251,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOption getCategoryOption( int id )
+    public CategoryOption getCategoryOption( long id )
     {
         return categoryOptionStore.get( id );
     }
@@ -311,7 +311,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public long addCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         categoryComboStore.save( dataElementCategoryCombo );
 
@@ -337,7 +337,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryCombo getCategoryCombo( int id )
+    public CategoryCombo getCategoryCombo( long id )
     {
         return categoryComboStore.get( id );
     }
@@ -413,7 +413,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
+    public long addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.save( dataElementCategoryOptionCombo );
 
@@ -440,7 +440,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo( int id )
+    public CategoryOptionCombo getCategoryOptionCombo( long id )
     {
         return categoryOptionComboStore.get( id );
     }
@@ -709,7 +709,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveCategoryOptionGroup( CategoryOptionGroup group )
+    public long saveCategoryOptionGroup( CategoryOptionGroup group )
     {
         categoryOptionGroupStore.save( group );
 
@@ -723,7 +723,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionGroup getCategoryOptionGroup( int id )
+    public CategoryOptionGroup getCategoryOptionGroup( long id )
     {
         return categoryOptionGroupStore.get( id );
     }
@@ -777,7 +777,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
+    public long saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
     {
         categoryOptionGroupSetStore.save( group );
 
@@ -791,7 +791,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionGroupSet getCategoryOptionGroupSet( int id )
+    public CategoryOptionGroupSet getCategoryOptionGroupSet( long id )
     {
         return categoryOptionGroupSetStore.get( id );
     }

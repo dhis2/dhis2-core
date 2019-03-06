@@ -61,7 +61,7 @@ public class DefaultEventChartService
     }
     
     @Override
-    public int saveEventChart( EventChart eventChart )
+    public long saveEventChart( EventChart eventChart )
     {
         eventChartStore.save( eventChart );
 
@@ -75,7 +75,7 @@ public class DefaultEventChartService
     }
     
     @Override
-    public EventChart getEventChart( int id )
+    public EventChart getEventChart( long id )
     {
         return eventChartStore.get( id );
     }

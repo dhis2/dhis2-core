@@ -96,8 +96,8 @@ public class MessageServiceTest
         MessageConversation conversationA = new MessageConversation( "SubjectA", sender, MessageType.PRIVATE );
         MessageConversation conversationB = new MessageConversation( "SubjectB", sender, MessageType.PRIVATE );
 
-        int idA = messageService.saveMessageConversation( conversationA );
-        int idB = messageService.saveMessageConversation( conversationB );
+        long idA = messageService.saveMessageConversation( conversationA );
+        long idB = messageService.saveMessageConversation( conversationB );
 
         conversationA = messageService.getMessageConversation( idA );
         conversationB = messageService.getMessageConversation( idB );
@@ -126,7 +126,7 @@ public class MessageServiceTest
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
         
-        int id = messageService.saveMessageConversation( conversation );
+        long id = messageService.saveMessageConversation( conversation );
         
         conversation = messageService.getMessageConversation( id );
         
@@ -157,7 +157,7 @@ public class MessageServiceTest
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
         
-        int id = messageService.saveMessageConversation( conversation );
+        long id = messageService.saveMessageConversation( conversation );
         
         conversation = messageService.getMessageConversation( id );
         
@@ -171,7 +171,7 @@ public class MessageServiceTest
     @Test
     public void testSendMessage()
     {
-        int id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
+        long id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -185,7 +185,7 @@ public class MessageServiceTest
     @Test
     public void testSendFeedback()
     {
-        int id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
+        long id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -200,7 +200,7 @@ public class MessageServiceTest
     {
         MessageConversation message = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
         message.addMessage( new Message( "TextA", "MetaA", sender) );
-        int id = messageService.saveMessageConversation( message );
+        long id = messageService.saveMessageConversation( message );
         
         messageService.sendReply( message, "TextB", "MetaB", false, null );
         

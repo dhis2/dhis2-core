@@ -46,7 +46,7 @@ public interface MetadataVersionStore
      * @param id Key to lookup.
      * @return MetadataVersion Value that matched key, or null if there was no match.
      */
-    MetadataVersion getVersionByKey( int id );
+    MetadataVersion getVersionByKey( long id );
 
     /**
      * Get the version by name.

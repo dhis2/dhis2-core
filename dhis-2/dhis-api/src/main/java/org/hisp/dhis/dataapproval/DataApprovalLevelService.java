@@ -61,7 +61,7 @@ public interface DataApprovalLevelService
      * @param id the id.
      * @return a data approval level.
      */
-    DataApprovalLevel getDataApprovalLevel( int id );
+    DataApprovalLevel getDataApprovalLevel( long id );
 
     /**
      * Gets the data approval level with the given uid.
@@ -217,7 +217,7 @@ public interface DataApprovalLevelService
      * @param level the new level to add.
      * @return the identifier of the added level, or -1 if not well formed or duplicate.
      */
-    int addDataApprovalLevel( DataApprovalLevel level );
+    long addDataApprovalLevel( DataApprovalLevel level );
     
     /**
      * Adds a new data approval level. Sets the level explicitly.
@@ -226,7 +226,7 @@ public interface DataApprovalLevelService
      * @param level the level.
      * @return the identifier of the added level, or -1 if not well formed or duplicate.
      */
-    int addDataApprovalLevel( DataApprovalLevel approvalLevel, int level );
+    long addDataApprovalLevel( DataApprovalLevel approvalLevel, int level );
 
     /**
      * Removes a data approval level.

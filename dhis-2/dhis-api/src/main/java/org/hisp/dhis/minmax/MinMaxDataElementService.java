@@ -40,13 +40,13 @@ import java.util.List;
  */
 public interface MinMaxDataElementService
 {
-    int addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
+    long addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void deleteMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void updateMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
-    MinMaxDataElement getMinMaxDataElement( int id );
+    MinMaxDataElement getMinMaxDataElement( long id );
 
     MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
     

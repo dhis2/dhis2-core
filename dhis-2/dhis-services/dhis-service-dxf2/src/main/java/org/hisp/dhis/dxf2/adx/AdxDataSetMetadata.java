@@ -47,7 +47,7 @@ public class AdxDataSetMetadata
 {
     // Lookup category options per cat option combo
     
-    private final Map<Integer, Map<String, String>> categoryOptionMap;
+    private final Map<Long, Map<String, String>> categoryOptionMap;
 
     AdxDataSetMetadata( DataSet dataSet )
         throws AdxException
@@ -104,7 +104,7 @@ public class AdxDataSetMetadata
         categoryOptionMap.put( coc.getId(), categoryAttributes );
     }
 
-    public Map<String, String> getExplodedCategoryAttributes( int cocId )
+    public Map<String, String> getExplodedCategoryAttributes( long cocId )
     {
         return this.categoryOptionMap.get( cocId );
     }

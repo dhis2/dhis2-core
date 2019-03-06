@@ -139,7 +139,7 @@ public class ValidationRuleStoreTest
         ValidationRule validationRule = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( validationRule );
-        int id = validationRule.getId();
+        long id = validationRule.getId();
 
         validationRule = validationRuleStore.get( id );
 
@@ -157,7 +157,7 @@ public class ValidationRuleStoreTest
         ValidationRule validationRule = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( validationRule );
-        int id = validationRule.getId();
+        long id = validationRule.getId();
 
         validationRule = validationRuleStore.get( id );
 
@@ -185,9 +185,9 @@ public class ValidationRuleStoreTest
         ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( validationRuleA );
-        int idA = validationRuleA.getId();
+        long idA = validationRuleA.getId();
         validationRuleStore.save( validationRuleB );
-        int idB = validationRuleB.getId();
+        long idB = validationRuleB.getId();
 
         assertNotNull( validationRuleStore.get( idA ) );
         assertNotNull( validationRuleStore.get( idB ) );
@@ -245,7 +245,7 @@ public class ValidationRuleStoreTest
         ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( validationRuleA );
-        int id = validationRuleA.getId();
+        long id = validationRuleA.getId();
         validationRuleStore.save( validationRuleB );
 
         ValidationRule rule = validationRuleStore.getByName( "ValidationRuleA" );

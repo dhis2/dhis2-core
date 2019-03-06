@@ -578,7 +578,7 @@ public class JdbcEventStore
 
     private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
-        List<Integer> orgUnitIds = getIdentifiers( organisationUnits );
+        List<Long> orgUnitIds = getIdentifiers( organisationUnits );
 
         SqlHelper hlp = new SqlHelper();
 
@@ -961,7 +961,7 @@ public class JdbcEventStore
 
     private String getCategoryOptionSharingForUser( User user )
     {
-        List<Integer> userGroupIds = getIdentifiers( user.getGroups() );
+        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
 
         String sql = " left join ( ";
 

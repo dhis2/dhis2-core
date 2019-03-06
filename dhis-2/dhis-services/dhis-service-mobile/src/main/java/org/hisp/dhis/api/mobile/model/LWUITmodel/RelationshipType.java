@@ -37,20 +37,20 @@ import org.hisp.dhis.api.mobile.model.Model;
 public class RelationshipType
     extends Model
 {
-    private int id;
+    private long id;
 
     private String aIsToB;
 
     private String bIsToA;
     
     @Override
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
     @Override
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -79,7 +79,7 @@ public class RelationshipType
     public void serialize( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( this.id );
+        dataOutputStream.writeLong( this.id );
         dataOutputStream.writeUTF( this.getName() );
         dataOutputStream.writeUTF( this.aIsToB );
         dataOutputStream.writeUTF( this.bIsToA );
@@ -89,7 +89,7 @@ public class RelationshipType
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        this.id = dataInputStream.readInt();
+        this.id = dataInputStream.readLong();
         this.setName( dataInputStream.readUTF() );
         this.aIsToB = dataInputStream.readUTF();
         this.bIsToA = dataInputStream.readUTF();

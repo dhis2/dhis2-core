@@ -59,7 +59,7 @@ public class LegendSetServiceTest
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
 
-        int idA = legendSetService.addLegendSet( legendSetA );
+        long idA = legendSetService.addLegendSet( legendSetA );
 
         assertEquals( legendSetA, legendSetService.getLegendSet( idA ) );
         assertEquals( 2, legendSetService.getLegendSet( idA ).getLegends().size() );
@@ -75,7 +75,7 @@ public class LegendSetServiceTest
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
 
-        int idA = legendSetService.addLegendSet( legendSetA );
+        long idA = legendSetService.addLegendSet( legendSetA );
 
         legendSetService.deleteLegendSet( legendSetA );
 

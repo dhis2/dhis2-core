@@ -39,9 +39,9 @@ import java.util.Set;
  */
 public class AttributeUtils
 {
-    public static Map<Integer, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+    public static Map<Long, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
     {
-        Map<Integer, String> attributeValuesMap = new HashMap<>();
+        Map<Long, String> attributeValuesMap = new HashMap<>();
 
         for ( AttributeValue attributeValue : attributeValues )
         {

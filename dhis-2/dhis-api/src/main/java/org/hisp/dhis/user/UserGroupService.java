@@ -35,13 +35,13 @@ public interface UserGroupService
 {
     String ID = UserGroupService.class.getName();
 
-    int addUserGroup( UserGroup userGroup );
+    long addUserGroup( UserGroup userGroup );
 
     void updateUserGroup( UserGroup userGroup );
 
     void deleteUserGroup( UserGroup userGroup );
 
-    UserGroup getUserGroup( int userGroupId );
+    UserGroup getUserGroup( long userGroupId );
 
     UserGroup getUserGroup( String uid );
 

@@ -355,12 +355,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.hasDataElementOperands() )
         {
             List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
-            List<Integer> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
-            List<Integer> cocIdList = queryDeos.stream()
+            List<Long> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
+            List<Long> cocIdList = queryDeos.stream()
                 .map( de -> de.getCategoryOptionCombo() == null ? null : de.getCategoryOptionCombo().getId() )
                 .collect( Collectors.toList() );
 
-            sql += " join " + statementBuilder.literalIntIntTable( deIdList, cocIdList, "deo", "deid", "cocid" )
+            sql += " join " + statementBuilder.literalLongLongTable( deIdList, cocIdList, "deo", "deid", "cocid" )
                 + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid = dv.categoryoptioncomboid)";
         }
         else if ( params.hasDataElements() )
@@ -404,11 +404,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.isIncludeChildrenForOrganisationUnits() || params.isReturnParentForOrganisationUnits() )
         {
             List<OrganisationUnit> orgUnitList = new ArrayList<>( params.getOrganisationUnits() );
-            List<Integer> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
+            List<Long> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
             List<String> orgUnitPathList = orgUnitList.stream().map(  OrganisationUnit::getPath ).collect( Collectors.toList() );
 
             sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid"
-                + " join " + statementBuilder.literalIntStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
+                + " join " + statementBuilder.literalLongStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
                 + " on ou.path like " + statementBuilder.concatenate( "opath.path", "'%'");
         }
         else if ( params.hasOrganisationUnits() )
@@ -549,7 +549,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 .map( de -> new DataElementOperand( de ) ).collect( Collectors.toSet() ) );
         }
 
-        Set<Integer> wildDataElementIds = deos.stream()
+        Set<Long> wildDataElementIds = deos.stream()
             .filter( deo -> deo.getCategoryOptionCombo() == null )
             .map( deo -> deo.getDataElement().getId() ).collect( Collectors.toSet() );
 

@@ -109,7 +109,7 @@ public class TrackedEntityRegistrationSMSListener
                 patientAttributeValues.add( trackedEntityAttributeValue );
             });
 
-        int trackedEntityInstanceId = 0;
+        long trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
             trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
