@@ -716,6 +716,7 @@ public abstract class AbstractTrackedEntityInstanceService
     // HELPERS
     // -------------------------------------------------------------------------
 
+
     private ImportSummaries handleRelationships( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
@@ -735,6 +736,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 // Remove items we cant write to
                 .filter(
                     relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+                .filter(
+                    relationship -> relationship.getFrom().getTrackedEntityInstance().getUid().equals( daoEntityInstance.getUid() )
+                )
                 .map( org.hisp.dhis.relationship.Relationship::getUid )
 
                 // Remove items we are already referencing
@@ -1275,7 +1279,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
 
-                if ( daoRelationship.getFrom().equals( relationshipItem ) && trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
+                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
                 {
                     Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );

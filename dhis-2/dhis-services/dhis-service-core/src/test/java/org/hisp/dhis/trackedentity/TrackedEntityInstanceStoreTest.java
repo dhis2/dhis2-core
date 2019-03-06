@@ -111,12 +111,12 @@ public class TrackedEntityInstanceStoreTest
         idObjectManager.save( prA );
         idObjectManager.save( prB );
 
-        teiA = createTrackedEntityInstance( 'A', ouA );
-        teiB = createTrackedEntityInstance( 'B', ouB );
-        teiC = createTrackedEntityInstance( 'C', ouB );
-        teiD = createTrackedEntityInstance( 'D', ouC );
-        teiE = createTrackedEntityInstance( 'E', ouC );
-        teiF = createTrackedEntityInstance( 'F', ouC );
+        teiA = createTrackedEntityInstance( ouA );
+        teiB = createTrackedEntityInstance( ouB );
+        teiC = createTrackedEntityInstance( ouB );
+        teiD = createTrackedEntityInstance( ouC );
+        teiE = createTrackedEntityInstance( ouC );
+        teiF = createTrackedEntityInstance( ouC );
     }
 
     @Test

@@ -116,4 +116,22 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.get( program, key );
     }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoPriority()
+    {
+        return programRuleStore.getProgramRulesWithNoPriority();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoCondition()
+    {
+        return programRuleStore.getProgramRulesWithNoCondition();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoAction()
+    {
+        return programRuleStore.getProgramRulesWithNoAction();
+    }
 }

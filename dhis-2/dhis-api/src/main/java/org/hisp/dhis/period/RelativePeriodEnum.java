@@ -28,9 +28,9 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import com.google.common.collect.Lists;
 
 public enum RelativePeriodEnum
 {
@@ -73,19 +73,18 @@ public enum RelativePeriodEnum
     LAST_4_BIWEEKS,
     LAST_12_WEEKS,
     LAST_52_WEEKS;
-    
-    public static List<String> OPTIONS = new ArrayList<String>() { {
-        addAll( Arrays.asList( TODAY.toString(), YESTERDAY.toString(), LAST_3_DAYS.toString(), LAST_7_DAYS.toString(), LAST_14_DAYS.toString(),
-            THIS_MONTH.toString(), LAST_MONTH.toString(), THIS_BIMONTH.toString(), LAST_BIMONTH.toString(),
-            THIS_QUARTER.toString(), LAST_QUARTER.toString(), THIS_SIX_MONTH.toString(), LAST_SIX_MONTH.toString(),
-            WEEKS_THIS_YEAR.toString(), MONTHS_THIS_YEAR.toString(), BIMONTHS_THIS_YEAR.toString(),
-            QUARTERS_THIS_YEAR.toString(), THIS_YEAR.toString(), MONTHS_LAST_YEAR.toString(), QUARTERS_LAST_YEAR.toString(),
-            LAST_YEAR.toString(), LAST_5_YEARS.toString(), LAST_12_MONTHS.toString(), LAST_6_MONTHS.toString(), LAST_3_MONTHS.toString(), LAST_6_BIMONTHS.toString(), 
-            LAST_4_QUARTERS.toString(), LAST_2_SIXMONTHS.toString(), THIS_FINANCIAL_YEAR.toString(), LAST_FINANCIAL_YEAR.toString(), 
-            LAST_5_FINANCIAL_YEARS.toString(), THIS_WEEK.toString(), LAST_WEEK.toString(), THIS_BIWEEK.toString(), LAST_BIWEEK.toString(),
-            LAST_4_WEEKS.toString(), LAST_4_BIWEEKS.toString(), LAST_12_WEEKS.toString(), LAST_52_WEEKS.toString() ) );
-    } };
-    
+
+    public static List<String> OPTIONS = Lists.newArrayList(
+        TODAY.toString(), YESTERDAY.toString(), LAST_3_DAYS.toString(), LAST_7_DAYS.toString(), LAST_14_DAYS.toString(),
+        THIS_MONTH.toString(), LAST_MONTH.toString(), THIS_BIMONTH.toString(), LAST_BIMONTH.toString(),
+        THIS_QUARTER.toString(), LAST_QUARTER.toString(), THIS_SIX_MONTH.toString(), LAST_SIX_MONTH.toString(),
+        WEEKS_THIS_YEAR.toString(), MONTHS_THIS_YEAR.toString(), BIMONTHS_THIS_YEAR.toString(),
+        QUARTERS_THIS_YEAR.toString(), THIS_YEAR.toString(), MONTHS_LAST_YEAR.toString(), QUARTERS_LAST_YEAR.toString(),
+        LAST_YEAR.toString(), LAST_5_YEARS.toString(), LAST_12_MONTHS.toString(), LAST_6_MONTHS.toString(), LAST_3_MONTHS.toString(), LAST_6_BIMONTHS.toString(),
+        LAST_4_QUARTERS.toString(), LAST_2_SIXMONTHS.toString(), THIS_FINANCIAL_YEAR.toString(), LAST_FINANCIAL_YEAR.toString(),
+        LAST_5_FINANCIAL_YEARS.toString(), THIS_WEEK.toString(), LAST_WEEK.toString(), THIS_BIWEEK.toString(), LAST_BIWEEK.toString(),
+        LAST_4_WEEKS.toString(), LAST_4_BIWEEKS.toString(), LAST_12_WEEKS.toString(), LAST_52_WEEKS.toString() );
+
     public static boolean contains( String relativePeriod )
     {
         return OPTIONS.contains( relativePeriod );

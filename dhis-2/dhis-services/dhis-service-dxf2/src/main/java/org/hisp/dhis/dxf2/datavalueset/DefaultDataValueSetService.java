@@ -104,6 +104,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -582,7 +583,14 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            DataValueSet dataValueSet = new StreamingCsvDataValueSet( new CsvReader( in, Charset.forName( "UTF-8" ) ) );
+            CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
+
+            if ( importOptions == null || importOptions.isFirstRowIsHeader() )
+            {
+                csvReader.readRecord(); // Ignore the first row
+            }
+
+            DataValueSet dataValueSet = new StreamingCsvDataValueSet( csvReader );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }
         catch ( Exception ex )
@@ -650,6 +658,11 @@ public class DefaultDataValueSetService
         I18n i18n = i18nManager.getI18n();
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
+
+        boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
+        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
+
+        log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
         // ---------------------------------------------------------------------
         // Get import options
@@ -1066,8 +1079,8 @@ public class DefaultDataValueSetService
 
             DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), () -> aoc.getDateRange() );
 
-            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
-                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
+            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
+                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1186,13 +1199,13 @@ public class DefaultDataValueSetService
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                    AuditType auditType = AuditType.UPDATE;
 
                     if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
 
-                        auditValue.setAuditType( AuditType.DELETE );
+                        auditType = AuditType.DELETE;
 
                         deleteCount++;
                     }
@@ -1205,7 +1218,12 @@ public class DefaultDataValueSetService
                     {
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        auditBatchHandler.addObject( auditValue );
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, auditType );
+
+                            auditBatchHandler.addObject( auditValue );
+                        }
 
                         if ( dataElement.isFileType() )
                         {
@@ -1220,15 +1238,13 @@ public class DefaultDataValueSetService
                 }
                 else if ( strategy.isDelete() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-
                     internalValue.setDeleted( true );
 
                     deleteCount++;
 
                     if ( !dryRun )
                     {
-                        if ( dataElement.isFileType() )
+                        if ( dataElement.isFileType() && actualDataValue != null )
                         {
                             FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
@@ -1239,7 +1255,12 @@ public class DefaultDataValueSetService
 
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        auditBatchHandler.addObject( auditValue );
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+
+                            auditBatchHandler.addObject( auditValue );
+                        }
                     }
                 }
             }
@@ -1336,19 +1357,21 @@ public class DefaultDataValueSetService
         CompleteDataSetRegistration completeAlready = registrationService
             .getCompleteDataSetRegistration( dataSet, period, orgUnit, attributeOptionCombo );
 
-        String username = currentUserService.getCurrentUsername();
-
         if ( completeAlready != null )
         {
-            completeAlready.setStoredBy( username );
+            // At this point, DataSet is completed. Override, eventual non-completeness
             completeAlready.setDate( completeDate );
+            completeAlready.setStoredBy( currentUserName );
+            completeAlready.setLastUpdated( new Date() );
+            completeAlready.setLastUpdatedBy( currentUserName );
+            completeAlready.setCompleted( true );
 
             registrationService.updateCompleteDataSetRegistration( completeAlready );
         }
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                    attributeOptionCombo, completeDate, username, completeDate, currentUserName, true );
+                attributeOptionCombo, completeDate, currentUserName, new Date(), currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }

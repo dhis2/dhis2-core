@@ -64,6 +64,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -282,7 +283,7 @@ public class DataValueSetServiceTest
 
         dataSetService.addDataSet( dsA );
 
-        user = createUser( 'A' );
+        user = createUser( 'A', Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         injectSecurityContext( user );
@@ -547,12 +548,26 @@ public class DataValueSetServiceTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() ); // Header row
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 1, summary.getImportCount().getIgnored() ); // Header row
-        assertEquals( ImportStatus.WARNING, summary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        assertImportDataValues( summary );
+    }
+
+    @Test
+    public void testImportDataValuesCsvWithoutHeader()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetBNoHeader.csv" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, new ImportOptions().setFirstRowIsHeader( false ), null );
+
+        assertEquals( 12, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertImportDataValues( summary );
     }
@@ -564,7 +579,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 5, summary.getConflicts().size() ); // False rows
+        assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False rows
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
@@ -944,6 +959,32 @@ public class DataValueSetServiceTest
         assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
 
         assertEquals( 3, auditValues.size() );
+    }
+
+    @Test
+    public void testImportDataValuesUpdatedSkipAudit()
+        throws Exception
+    {
+        mockDataValueBatchHandler.withFindSelf( true );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setSkipAudit( true );
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 3, dataValues.size() );
+
+        assertEquals( 0, auditValues.size() );
     }
 
     @Test

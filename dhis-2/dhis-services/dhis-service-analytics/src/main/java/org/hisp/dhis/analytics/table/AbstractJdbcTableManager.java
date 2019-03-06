@@ -122,6 +122,12 @@ public abstract class AbstractJdbcTableManager
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions( getAnalyticsTableType() );
+    }
+
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -351,16 +357,16 @@ public abstract class AbstractJdbcTableManager
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " ";
+            String sqlCreate = "create table " + tableName + " (";
 
             if ( !checks.isEmpty() )
             {
-                StringBuilder sqlCheck = new StringBuilder( "(" );
+                StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
+                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
             }
 
-            sqlCreate += "inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
@@ -391,9 +397,7 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
 
-        String baseName = getAnalyticsTableType().getTableName();
-
-        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         for ( Integer year : dataYears )
         {
@@ -478,7 +482,7 @@ public abstract class AbstractJdbcTableManager
     private void swapTable( String tempTableName, String realTableName )
     {
         final String sql =
-            "drop table if exists " + realTableName + ";" +
+            "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );

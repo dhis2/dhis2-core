@@ -249,7 +249,7 @@ public class DefaultAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
-            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( () -> new ListGrid() );
         }
 
         return getAggregatedDataValueGridInternal( params );
@@ -540,12 +540,12 @@ public class DefaultAnalyticsService
     }
 
     /**
-     *  Checks whether the measure criteria in dataqueryparams is satisfied for this indicator value.
+     * Checks whether the measure criteria in query parameters is satisfied for the given indicator value.
      *
-     * @param params The dataQueryParams
-     * @param value The indicatorValue
-     * @param indicator The indicator
-     * @return True if all the measure criteria are satisfied for this indicator value. False otherwise
+     * @param params the query parameters.
+     * @param value the indicator value.
+     * @param indicator the indicator.
+     * @return true if all the measure criteria are satisfied for this indicator value, false otherwise.
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
@@ -556,10 +556,9 @@ public class DefaultAnalyticsService
 
         Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
 
-        //if any one measureFilter is invalid return false.
-        return !params.getMeasureCriteria().entrySet().stream().anyMatch( measureValue ->
-             !measureValue.getKey().measureIsValid( indicatorRoundedValue, measureValue.getValue() )
-         );
+        return !params.getMeasureCriteria().entrySet().stream()
+            .anyMatch( measureValue -> !measureValue.getKey()
+                .measureIsValid( indicatorRoundedValue, measureValue.getValue() ) );
     }
 
     /**
@@ -637,7 +636,7 @@ public class DefaultAnalyticsService
         List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
         List<DimensionalItemObject> attributeOptionCobos = Lists.newArrayList( DimensionalObjectUtils.getAttributeOptionCombos( operands ) );
 
-        //TODO check if data was dim or filter
+        //TODO Check if data was dim or filter
 
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params )
             .removeDimension( DATA_X_DIM_ID )

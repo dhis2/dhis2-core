@@ -112,4 +112,14 @@ public interface ProgramRuleService
      * @return ProgramRule list
      */
     List<ProgramRule> getProgramRules( Program program, String key );
+
+    /**
+     *
+     * @return all {@link ProgramRule} with no priority
+     */
+    List<ProgramRule> getProgramRulesWithNoPriority();
+
+    List<ProgramRule> getProgramRulesWithNoCondition();
+
+    List<ProgramRule> getProgramRulesWithNoAction();
 }

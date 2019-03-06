@@ -28,7 +28,12 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -38,28 +43,25 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Zubair Asghar.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class SmsMessageSenderTest
 {
     private static final Integer MAX_ALLOWED_RECIPIENTS = 200;
 
     private static final String NO_CONFIG = "No default gateway configured";
 
-    @InjectMocks
     private SmsMessageSender smsMessageSender;
 
     @Mock
@@ -71,7 +73,9 @@ public class SmsMessageSenderTest
     @Mock
     private BulkSmsGateway bulkSmsGateway;
 
-    @Spy
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
     private ArrayList<SmsGateway> smsGateways;
 
     private SmsGatewayConfig smsGatewayConfig;
@@ -107,9 +111,14 @@ public class SmsMessageSenderTest
     @Before
     public void initTest()
     {
+
         setUp();
 
+        smsGateways = new ArrayList<>();
+
         smsGateways.add( bulkSmsGateway );
+
+        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -157,7 +166,6 @@ public class SmsMessageSenderTest
     @Test
     public void testIsConfiguredWithOutGatewayConfig()
     {
-        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( null );
         when( gatewayAdministrationService.getGatewayConfigurationMap() ).thenReturn( new HashMap<>() );
 
         boolean isConfigured = smsMessageSender.isConfigured();

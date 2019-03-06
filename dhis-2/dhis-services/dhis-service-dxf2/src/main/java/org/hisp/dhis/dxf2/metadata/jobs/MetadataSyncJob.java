@@ -28,14 +28,13 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -51,8 +50,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.util.Date;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This is the runnable that takes care of the Metadata Synchronization.
@@ -64,42 +62,59 @@ import java.util.List;
 public class MetadataSyncJob
     extends AbstractJob
 {
-    public static String VERSION_KEY = "version";
-    public static String DATA_PUSH_SUMMARY = "dataPushSummary";
-    public static String EVENT_PUSH_SUMMARY = "eventPushSummary";
-    public static String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
-    public static String GET_METADATAVERSION = "getMetadataVersion";
-    public static String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
-    public static String METADATA_SYNC = "metadataSync";
-    public static String METADATA_SYNC_REPORT = "metadataSyncReport";
-    public static String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
+    public static final String VERSION_KEY = "version";
+    public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
+    public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
+    public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
+    public static final String GET_METADATAVERSION = "getMetadataVersion";
+    public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
+    public static final String METADATA_SYNC = "metadataSync";
+    public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
+    public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
 
     private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
     private RetryTemplate retryTemplate;
 
-    @Autowired
     private SynchronizationManager synchronizationManager;
 
-    @Autowired
     private MetadataSyncPreProcessor metadataSyncPreProcessor;
 
-    @Autowired
     private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    @Autowired
     private MetadataSyncService metadataSyncService;
 
-    @Autowired
     private MetadataRetryContext metadataRetryContext;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Autowired
+    public MetadataSyncJob( SystemSettingManager systemSettingManager, RetryTemplate retryTemplate,
+        SynchronizationManager synchronizationManager, MetadataSyncPreProcessor metadataSyncPreProcessor,
+        MetadataSyncPostProcessor metadataSyncPostProcessor, MetadataSyncService metadataSyncService,
+        MetadataRetryContext metadataRetryContext )
+    {
+
+        checkNotNull( systemSettingManager );
+        checkNotNull( retryTemplate );
+        checkNotNull( synchronizationManager );
+        checkNotNull( metadataSyncPreProcessor );
+        checkNotNull( metadataSyncPostProcessor );
+        checkNotNull( metadataSyncService );
+        checkNotNull( metadataRetryContext );
+
+        this.systemSettingManager = systemSettingManager;
+        this.retryTemplate = retryTemplate;
+        this.synchronizationManager = synchronizationManager;
+        this.metadataSyncPreProcessor = metadataSyncPreProcessor;
+        this.metadataSyncPostProcessor = metadataSyncPostProcessor;
+        this.metadataSyncService = metadataSyncService;
+        this.metadataRetryContext = metadataRetryContext;
+    }
 
     @Override
     public JobType getJobType()
@@ -153,10 +168,10 @@ public class MetadataSyncJob
     {
         metadataSyncPreProcessor.setUp( context );
 
-        metadataSyncPreProcessor.handleAggregateDataPush( context );
+        metadataSyncPreProcessor.handleDataValuePush( context );
 
         metadataSyncPreProcessor.handleEventDataPush( context );
-        metadataSyncPreProcessor.handleDataSetCompletenessPush( context );
+        metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context );
         metadataSyncPreProcessor.handleTrackerDataPush( context );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );

@@ -75,7 +75,7 @@ public class PredictorServiceTest
     private ExpressionService expressionService;
 
     private OrganisationUnitLevel orgUnitLevel1;
-    
+
     private DataElement dataElementA;
     private DataElement dataElementX;
 
@@ -117,7 +117,7 @@ public class PredictorServiceTest
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
 
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-        
+
         dataElementA = createDataElement( 'A' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
 
@@ -152,7 +152,7 @@ public class PredictorServiceTest
         altCategoryCombo = createCategoryCombo( 'Y', altCategory );
         categoryService.addCategoryCombo( altCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( altCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );

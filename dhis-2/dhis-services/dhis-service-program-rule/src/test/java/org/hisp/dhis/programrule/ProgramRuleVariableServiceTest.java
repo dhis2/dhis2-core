@@ -194,4 +194,46 @@ public class ProgramRuleVariableServiceTest
 
         assertFalse( variableService.isLinkedToProgramRuleVariable( programA, dataElementC ) );
     }
+
+    @Test
+    public void testShouldReturnVariableIfNotLinkedToDataElement()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, null, false, null );
+
+        variableService.addProgramRuleVariable( variableA );
+
+        List<ProgramRuleVariable> variables = variableService.getVariablesWithNoDataElement();
+
+        assertEquals( 1, variables.size() );
+        assertTrue( variables.contains( variableA ) );
+    }
+
+    @Test
+    public void testShouldReturnVariableIfNotLinkedToAttribute()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, null, null, false, null );
+
+        variableService.addProgramRuleVariable( variableA );
+
+        List<ProgramRuleVariable> variables = variableService.getVariablesWithNoAttribute();
+
+        assertEquals( 1, variables.size() );
+        assertTrue( variables.contains( variableA ) );
+    }
+
+    @Test
+    public void testShouldNotReturnAnyVariableIfLinkedToDataObjects()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
+        ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
+
+        variableService.addProgramRuleVariable( variableA );
+        variableService.addProgramRuleVariable( variableB );
+
+        List<ProgramRuleVariable> variablesD = variableService.getVariablesWithNoDataElement();
+        List<ProgramRuleVariable> variablesA = variableService.getVariablesWithNoAttribute();
+
+        assertTrue( variablesD.isEmpty() );
+        assertTrue( variablesA.isEmpty() );
+    }
 }

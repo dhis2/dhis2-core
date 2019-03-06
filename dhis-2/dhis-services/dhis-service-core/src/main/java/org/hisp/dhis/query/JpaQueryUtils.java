@@ -57,8 +57,10 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate a String comparision Predicate base on input parameters
+     * Generate a String comparison Predicate base on input parameters.
+     *
      * Example:  JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     *
      * @param builder CriteriaBuilder
      * @param path Property Path for query
      * @param attrValue Value to check
@@ -71,8 +73,10 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate a String comparision Predicate base on input parameters
+     * Generate a String comparison Predicate base on input parameters.
+     *
      * Example:  JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     *
      * @param builder CriteriaBuilder
      * @param path Property Path for query
      * @param attrValue Value to check
@@ -85,8 +89,10 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate a String comparision Predicate base on input parameters
+     * Generate a String comparison Predicate base on input parameters.
+     *
      * Example:  JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
+     *
      * @param builder CriteriaBuilder
      * @param path Property Path for query
      * @param attrValue Value to check
@@ -127,20 +133,12 @@ public class JpaQueryUtils
      */
     public enum StringSearchMode
     {
-        // Match exactly
-        EQUALS( "eq" ),
 
-        // Like search with '%' prefix and suffix
-        ANYWHERE( "any" ),
-
-        // Like search and add a '%' prefix before searching.
-        STARTING_LIKE( "sl" ),
-
-        // User provides the wildcard.
-        LIKE( "li" ),
-
-        // LIKE search and add a '%' suffix before searching.
-        ENDING_LIKE( "el" );
+        EQUALS( "eq" ), // Match exactly
+        ANYWHERE( "any" ), // Like search with '%' prefix and suffix
+        STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before searching
+        LIKE( "li" ), // User provides the wild card
+        ENDING_LIKE( "el" ); // LIKE search and add a '%' suffix before searching
 
         private final String code;
 
@@ -170,14 +168,8 @@ public class JpaQueryUtils
 
     /**
      * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
-     * @param builder
-     * @param property
-     * @param path
-     * @param operator
-     * @param value
-     * @return
      */
-    public static Predicate getPredicate( CriteriaBuilder builder, Property property,  Path path, String operator, String value )
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path path, String operator, String value )
     {
         switch ( operator )
         {
@@ -185,10 +177,8 @@ public class JpaQueryUtils
                 return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
             case "eq" :
                 return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
-
-            default: throw new QueryParserException( "Query operator is not supported : " + operator );
+            default:
+                throw new QueryParserException( "Query operator is not supported : " + operator );
         }
     }
-
-
 }

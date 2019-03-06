@@ -266,20 +266,17 @@ public class J2MEDataValueSMSListener
     private void registerCompleteDataSet( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         String storedBy )
     {
-        CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
-
         CategoryOptionCombo optionCombo = dataElementCategoryService
             .getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
         {
-            registration.setDataSet( dataSet );
-            registration.setPeriod( period );
-            registration.setSource( organisationUnit );
-            registration.setDate( new Date() );
-            registration.setStoredBy( storedBy );
+            Date now = new Date();
+
+            CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, organisationUnit, optionCombo, now, storedBy, now, storedBy, true);
             registration.setPeriodName( registration.getPeriod().toString() );
+
             registrationService.saveCompleteDataSetRegistration( registration );
         }
     }

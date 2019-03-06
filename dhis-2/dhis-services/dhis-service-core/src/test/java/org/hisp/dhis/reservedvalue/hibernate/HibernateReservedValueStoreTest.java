@@ -98,7 +98,7 @@ public class HibernateReservedValueStoreTest
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
 
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'X', ou );
+        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
         trackedEntityInstanceStore.save( tei );
 
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );

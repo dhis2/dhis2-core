@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -253,17 +254,17 @@ public class ListGrid
     @Override
     public List<GridHeader> getVisibleHeaders()
     {
-        List<GridHeader> tempHeaders = new ArrayList<>();
+        return headers.stream()
+            .filter( h -> !h.isHidden() )
+            .collect( Collectors.toList() );
+    }
 
-        for ( GridHeader header : headers )
-        {
-            if ( !header.isHidden() )
-            {
-                tempHeaders.add( header );
-            }
-        }
-
-        return tempHeaders;
+    @Override
+    public List<GridHeader> getMetadataHeaders()
+    {
+        return headers.stream()
+            .filter( GridHeader::isMeta )
+            .collect( Collectors.toList() );
     }
 
     @Override
