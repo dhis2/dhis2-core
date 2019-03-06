@@ -1,8 +1,5 @@
 package org.hisp.dhis.sms.listener;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,12 +27,14 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Transactional
 public class TrackerEventSMSListener extends NewSMSListener {
 
 	private static final Log log = LogFactory.getLog( TrackerEventSMSListener.class );
-	public static final String SUCCESS_MESSAGE = "Submission has been processed successfully";
-	
+
     @Autowired
     private UserService userService;
     

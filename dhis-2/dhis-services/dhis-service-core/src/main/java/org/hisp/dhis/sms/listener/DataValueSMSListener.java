@@ -68,8 +68,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 @Transactional
-public class DataValueSMSListener
-    extends CommandSMSListener
+public class DataValueSMSListener extends CommandSMSListener
 {
     private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
 

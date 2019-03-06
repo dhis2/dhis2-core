@@ -1337,6 +1337,8 @@
     <property name="smsCommandStore" ref="org.hisp.dhis.sms.command.hibernate.SMSCommandStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.sms.listener.EnrollmentSMSListener" class="org.hisp.dhis.sms.listener.EnrollmentSMSListener" />
+
   <bean id="org.hisp.dhis.sms.listener.DataValueSMSListener" class="org.hisp.dhis.sms.listener.DataValueSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.J2MEDataValueSMSListener"

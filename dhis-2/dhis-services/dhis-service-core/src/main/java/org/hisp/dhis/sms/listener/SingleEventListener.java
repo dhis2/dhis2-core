@@ -49,9 +49,7 @@ import java.util.Set;
  * Zubair <rajazubair.asghar@gmail.com>
  */
 @Transactional
-public class SingleEventListener
-    extends CommandSMSListener
-{
+public class SingleEventListener extends CommandSMSListener {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
