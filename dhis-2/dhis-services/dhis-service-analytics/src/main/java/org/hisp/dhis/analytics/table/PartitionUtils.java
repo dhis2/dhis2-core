@@ -157,7 +157,7 @@ public class PartitionUtils
 
         if ( tableType.hasLatestPartition() )
         {
-           partitions.add( AnalyticsTablePartition.LATEST_PARTITION );
+            partitions.add( AnalyticsTablePartition.LATEST_PARTITION );
         }
 
         return partitions;

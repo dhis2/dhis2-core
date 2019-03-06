@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
@@ -119,7 +118,7 @@ public class PartitionUtilsTest
 
         Partitions partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.DATA_VALUE );
 
-        assertEquals( 3, partitions.getPartitions() );
+        assertEquals( 3, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
         assertTrue( partitions.getPartitions().contains( 2019 ) );
         assertTrue( partitions.getPartitions().contains( 0 ) );
@@ -130,7 +129,7 @@ public class PartitionUtilsTest
 
         partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.ORG_UNIT_TARGET );
 
-        assertEquals( 1, partitions.getPartitions() );
+        assertEquals( 1, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
     }
 }
