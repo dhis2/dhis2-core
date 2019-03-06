@@ -48,15 +48,10 @@ public class EnrollmentSMSListener extends NewSMSListener {
     private ProgramInstanceService programInstanceService;
 
     @Override
-    public boolean accept(IncomingSms sms) {
-        return sms != null;
-    }
-
-    @Override
     protected void postProcess(IncomingSms sms, SMSSubmission submission) {
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
-        Date date = subm.getTimestamp();
+        Date submTimestamp = subm.getTimestamp();
         String sender = StringUtils.replace(sms.getOriginator(), "+", "");
         Program program = programService.getProgram(subm.getTrackerProgram());
         OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
@@ -65,6 +60,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
 
         if (!program.hasOrganisationUnit(ou)) {
             sendFeedback(NO_OU_FOR_PROGRAM, sender, WARNING);
+            //TODO: Change the exception with one better suited
             throw new SMSParserException(NO_OU_FOR_PROGRAM);
         }
 
@@ -92,7 +88,9 @@ public class EnrollmentSMSListener extends NewSMSListener {
         int teiID = teiService.addTrackedEntityInstance(entityInstance);
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiID);
-        programInstanceService.enrollTrackedEntityInstance(tei, program, new Date(), date, ou);
+
+        Date enrollmentDate = new Date();
+        programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submTimestamp, ou);
 
         update(sms, SmsMessageStatus.PROCESSED, true);
         sendFeedback(SUCCESS_MESSAGE, sender, INFO);
