@@ -131,7 +131,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         when( trackedEntityTypeService.getTrackedEntityByName( anyString() ) ).thenReturn( trackedEntityType );
 
         // Mock for trackedEntityInstanceService
-        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any(), any(), any() ) ).thenReturn( 1l );
+        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1l );
         when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
 
         // Mock for programInstanceService
