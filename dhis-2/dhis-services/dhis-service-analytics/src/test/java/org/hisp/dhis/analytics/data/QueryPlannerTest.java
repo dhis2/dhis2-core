@@ -1152,10 +1152,10 @@ public class QueryPlannerTest
 
         Partitions partitions = query.getPartitions();
 
-        Partitions expected = new Partitions( Sets.newHashSet( 2014, 2015, 2016 ) );
+        Partitions expected = new Partitions( Sets.newHashSet( 0, 2014, 2015, 2016 ) );
 
         assertNotNull( partitions );
-        assertEquals( 3, partitions.getPartitions().size() );
+        assertEquals( 4, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
         assertEquals( ANALYTICS_TABLE_TYPE.getTableName(), query.getTableName() );
     }
