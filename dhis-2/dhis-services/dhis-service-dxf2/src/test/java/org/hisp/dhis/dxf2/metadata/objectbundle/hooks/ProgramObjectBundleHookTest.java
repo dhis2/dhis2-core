@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
@@ -135,8 +136,8 @@ public class ProgramObjectBundleHookTest
         programInstanceQueryParams.setProgram( programA );
         programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
 
-        when( programInstanceService.countProgramInstances( refEq(programInstanceQueryParams) ) )
-            .thenReturn( 2 );
+        when( programInstanceService.getProgramInstances( programA, ProgramStatus.ACTIVE ) )
+            .thenReturn(Lists.newArrayList( new ProgramInstance(), new ProgramInstance()) );
 
         List<ErrorReport> errors = subject.validate( programA, null );
 
