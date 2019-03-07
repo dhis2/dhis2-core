@@ -73,6 +73,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     // -------------------------------------------------------------------------
     // Mocking Dependencies
     // -------------------------------------------------------------------------
