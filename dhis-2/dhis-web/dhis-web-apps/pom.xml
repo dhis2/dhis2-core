@@ -27,6 +27,7 @@
                         <BUILD_DIR>${project.build.directory}</BUILD_DIR>
                         <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
                         <APPS>./apps-to-bundle.json</APPS>
+                        <DEFAULT_BRANCH>v29</DEFAULT_BRANCH>
                     </environmentVariables> 
                 </configuration>
                 <executions>
