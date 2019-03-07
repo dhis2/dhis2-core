@@ -212,14 +212,8 @@ public class DefaultProgramRuleEntityMapperService
             .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
             .map( psi ->
             {
-                String orgUnit = "";
-                String orgUnitCode = "";
-
-                if ( psi.getOrganisationUnit() != null )
-                {
-                    orgUnit = psi.getOrganisationUnit().getUid();
-                    orgUnitCode = psi.getOrganisationUnit().getCode();
-                }
+                String orgUnit = getOrgUnit( psi );
+                String orgUnitCode = getOrgUnitCode( psi );
 
                 return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
                 RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
@@ -238,14 +232,8 @@ public class DefaultProgramRuleEntityMapperService
             return null;
         }
 
-        String orgUnit = "";
-        String orgUnitCode = "";
-
-        if ( psi.getOrganisationUnit() != null )
-        {
-            orgUnit = psi.getOrganisationUnit().getUid();
-            orgUnitCode = psi.getOrganisationUnit().getCode();
-        }
+        String orgUnit = getOrgUnit( psi );
+        String orgUnitCode = getOrgUnitCode( psi );
 
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
             psi.getDueDate(), orgUnit,orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
@@ -259,14 +247,8 @@ public class DefaultProgramRuleEntityMapperService
         return programStageInstances.stream().filter( Objects::nonNull )
             .map( psi ->
             {
-                String orgUnit = "";
-                String orgUnitCode = "";
-
-                if ( psi.getOrganisationUnit() != null )
-                {
-                    orgUnit = psi.getOrganisationUnit().getUid();
-                    orgUnitCode = psi.getOrganisationUnit().getCode();
-                }
+                String orgUnit = getOrgUnit( psi );
+                String orgUnitCode = getOrgUnitCode( psi );
 
                 return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
             RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit, orgUnitCode,psi.getEventDataValues().stream().filter( Objects::nonNull )
@@ -279,6 +261,26 @@ public class DefaultProgramRuleEntityMapperService
     // ---------------------------------------------------------------------
     // Supportive Methods
     // ---------------------------------------------------------------------
+
+    private String getOrgUnit( ProgramStageInstance psi )
+    {
+        if ( psi.getOrganisationUnit() != null )
+        {
+            return psi.getOrganisationUnit().getUid();
+        }
+
+        return "";
+    }
+
+    private String getOrgUnitCode( ProgramStageInstance psi )
+    {
+        if ( psi.getOrganisationUnit() != null )
+        {
+            return psi.getOrganisationUnit().getCode();
+        }
+
+        return "";
+    }
 
     private Rule toRule( ProgramRule programRule )
     {
