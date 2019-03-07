@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -196,9 +197,15 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < events.size(); idx++ )
         {
             Event event = events.get( idx );
-            System.err.println( "Importing Event " + event.getEvent() );
             ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
-            System.err.println( "Importing PSI " + programStageInstance );
+
+            Date now = new Date();
+            programStageInstance.setCreated( now );
+            programStageInstance.setLastUpdated( now );
+            programStageInstance.setCreatedAtClient( now );
+            programStageInstance.setLastUpdatedAtClient( now );
+
+            session.persist( programStageInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
