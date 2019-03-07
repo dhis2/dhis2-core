@@ -51,7 +51,8 @@ public class EnrollmentSMSListener extends NewSMSListener {
     protected void postProcess(IncomingSms sms, SMSSubmission submission) {
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
-        Date submTimestamp = subm.getTimestamp();
+        Date submissionTimestamp = subm.getTimestamp();
+        String teiUID = subm.getTrackedEntityInstance();
         String sender = StringUtils.replace(sms.getOriginator(), "+", "");
         Program program = programService.getProgram(subm.getTrackerProgram());
         OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
@@ -69,15 +70,19 @@ public class EnrollmentSMSListener extends NewSMSListener {
             throw new SMSParserException(NO_OU_FOR_USER);
         }
 
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
-        entityInstance.setOrganisationUnit(ou);
-        entityInstance.setTrackedEntityType(entityType);
+        TrackedEntityInstance entityInstance;
+        boolean existsOnServer = teiService.trackedEntityInstanceExists(teiUID);
 
-        Set<TrackedEntityAttributeValue> attributeValues = subm.getValues()
-                .stream()
-                .filter(this::isValidAttribute)
-                .map(v -> createTrackedEntityValue(v, entityInstance))
-                .collect(Collectors.toSet());
+        if (existsOnServer) {
+            entityInstance = teiService.getTrackedEntityInstance(teiUID);
+        } else {
+            entityInstance = new TrackedEntityInstance();
+            entityInstance.setUid(teiUID);
+            entityInstance.setOrganisationUnit(ou);
+            entityInstance.setTrackedEntityType(entityType);
+        }
+
+        Set<TrackedEntityAttributeValue> attributeValues = getAttributeValues(subm, entityInstance);
 
         if (attributeValues.isEmpty()) {
             sendFeedback(NO_TRACKED_ATTRIBUTES_FOUND, sender, WARNING);
@@ -85,12 +90,17 @@ public class EnrollmentSMSListener extends NewSMSListener {
         }
 
         entityInstance.setTrackedEntityAttributeValues(attributeValues);
-        int teiID = teiService.addTrackedEntityInstance(entityInstance);
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiID);
+        if (existsOnServer) {
+            teiService.updateTrackedEntityInstance(entityInstance);
+        } else {
+            teiService.addTrackedEntityInstance(entityInstance);
+        }
+
+        TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiUID);
 
         Date enrollmentDate = new Date();
-        programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submTimestamp, ou);
+        programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submissionTimestamp, ou);
 
         update(sms, SmsMessageStatus.PROCESSED, true);
         sendFeedback(SUCCESS_MESSAGE, sender, INFO);
@@ -99,6 +109,14 @@ public class EnrollmentSMSListener extends NewSMSListener {
     @Override
     protected boolean handlesType(Consts.SubmissionType type) {
         return (type == Consts.SubmissionType.ENROLLMENT);
+    }
+
+    private Set<TrackedEntityAttributeValue> getAttributeValues(EnrollmentSMSSubmission submission, TrackedEntityInstance entityInstance) {
+        return submission.getValues()
+                .stream()
+                .filter(this::isValidAttribute)
+                .map(v -> createTrackedEntityValue(v, entityInstance))
+                .collect(Collectors.toSet());
     }
 
     private TrackedEntityAttributeValue createTrackedEntityValue(AttributeValue attributeValue, TrackedEntityInstance tei) {
