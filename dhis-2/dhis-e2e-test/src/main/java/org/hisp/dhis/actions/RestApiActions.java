@@ -36,6 +36,10 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -71,15 +75,18 @@ public class RestApiActions
 
     public ApiResponse post( String resource, Object object )
     {
+        return post( resource, object, ContentType.JSON.toString() );
+    }
+
+    public ApiResponse post( String resource, Object object, String contentType )
+    {
         ApiResponse response = new ApiResponse( this.given()
             .body( object, ObjectMapperType.GSON )
+            .contentType( contentType )
             .when()
             .post( resource ) );
 
-        if ( response.isEntityCreated() )
-        {
-            TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
-        }
+        saveCreatedObjects( response );
 
         return response;
     }
@@ -186,4 +193,36 @@ public class RestApiActions
 
         return new ApiResponse( response );
     }
+
+    public ApiResponse postFile( File file, String queryParams )
+    {
+        ApiResponse response = new ApiResponse( this.given()
+            .body( file )
+            .when()
+            .post( queryParams ) );
+
+        saveCreatedObjects( response );
+
+        return response;
+
+    }
+
+    private void saveCreatedObjects( ApiResponse response )
+    {
+        if ( response.containsImportSummaries() )
+        {
+            List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
+            importSummaries.forEach( importSummary -> {
+                TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() );
+            } );
+            return;
+        }
+
+        if ( response.isEntityCreated() )
+        {
+            TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
+        }
+
+    }
 }
+

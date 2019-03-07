@@ -78,6 +78,11 @@ public class TestRunStorage
 
     public static void removeEntity( final String resource, final String id )
     {
+        if ( createdEntities == null )
+        {
+            return;
+        }
+
         createdEntities.remove( id, resource );
     }
 
