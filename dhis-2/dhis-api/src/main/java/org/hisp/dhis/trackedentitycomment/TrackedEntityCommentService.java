@@ -42,7 +42,7 @@ public interface TrackedEntityCommentService
      * @param comment The to TrackedEntityComment add.
      * @return A generated unique id of the added {@link TrackedEntityComment}.
      */
-    int addTrackedEntityComment( TrackedEntityComment comment );
+    long addTrackedEntityComment( TrackedEntityComment comment );
 
     /**
      * Deletes a {@link TrackedEntityComment}.
@@ -72,6 +72,6 @@ public interface TrackedEntityCommentService
      * @param id the id of the TrackedEntityComment to return.
      * @return the TrackedEntityComment with the given id
      */
-    TrackedEntityComment getTrackedEntityComment( int id );
+    TrackedEntityComment getTrackedEntityComment( long id );
 
 }

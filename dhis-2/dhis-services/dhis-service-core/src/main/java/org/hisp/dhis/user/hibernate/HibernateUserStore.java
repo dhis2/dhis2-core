@@ -204,7 +204,7 @@ public class HibernateUserStore
 
         if ( params.isCanManage() && params.getUser() != null )
         {
-            Collection<Integer> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
+            Collection<Long> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
         }
@@ -223,7 +223,7 @@ public class HibernateUserStore
 
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
-            Collection<Integer> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
+            Collection<Long> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
 
             query.setParameterList( "roles", roles );
         }
@@ -254,7 +254,7 @@ public class HibernateUserStore
             }
             else
             {
-                Collection<Integer> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
+                Collection<Long> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "ouIds", ouIds );
             }

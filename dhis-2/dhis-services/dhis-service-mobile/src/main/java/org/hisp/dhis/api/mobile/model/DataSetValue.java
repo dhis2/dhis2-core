@@ -99,7 +99,7 @@ public class DataSetValue
     public void serialize( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( this.getId() );
+        dataOutputStream.writeLong( this.getId() );
         dataOutputStream.writeUTF( this.getName() );
         dataOutputStream.writeUTF( this.getPeriodName() );
         dataOutputStream.writeBoolean( this.isCompleted() );
@@ -108,8 +108,8 @@ public class DataSetValue
 
         for ( DataValue datavalue : dataValues )
         {
-            dataOutputStream.writeInt( datavalue.getId() );
-            dataOutputStream.writeInt( datavalue.getCategoryOptComboID() );
+            dataOutputStream.writeLong( datavalue.getId() );
+            dataOutputStream.writeLong( datavalue.getCategoryOptComboID() );
             dataOutputStream.writeUTF( datavalue.getValue() );
         }
 
@@ -119,7 +119,7 @@ public class DataSetValue
     public void deSerialize( DataInputStream din )
         throws IOException
     {
-        this.setId( din.readInt() );
+        this.setId( din.readLong() );
         this.setName( din.readUTF() );
         this.setPeriodName( din.readUTF() );
         this.setCompleted( din.readBoolean() );
@@ -128,8 +128,8 @@ public class DataSetValue
         for ( int i = 0; i < size; i++ )
         {
             DataValue dv = new DataValue();
-            dv.setId( din.readInt() );
-            dv.setCategoryOptComboID( din.readInt() );
+            dv.setId( din.readLong() );
+            dv.setCategoryOptComboID( din.readLong() );
             dv.setValue( din.readUTF() );
             this.dataValues.add( dv );
         }

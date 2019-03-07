@@ -78,7 +78,7 @@ public class BaseNameableObject
         this.name = name;
     }
 
-    public BaseNameableObject( int id, String uid, String name, String shortName, String code, String description )
+    public BaseNameableObject( long id, String uid, String name, String shortName, String code, String description )
     {
         super( id, uid, name );
         this.shortName = shortName;

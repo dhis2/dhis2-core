@@ -64,7 +64,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T get( String uid );
 
-    <T extends IdentifiableObject> T get( Class<T> clazz, int id );
+    <T extends IdentifiableObject> T get( Class<T> clazz, long id );
 
     <T extends IdentifiableObject> T get( Class<T> clazz, String uid );
 
@@ -98,7 +98,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids );
+    <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
 
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
@@ -120,7 +120,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Integer> identifiers );
+    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers );
 
     <T extends IdentifiableObject> T getObject( Class<T> clazz, IdentifiableProperty property, String value );
 
@@ -128,7 +128,7 @@ public interface IdentifiableObjectManager
 
     IdentifiableObject getObject( String uid, String simpleClassName );
 
-    IdentifiableObject getObject( int id, String simpleClassName );
+    IdentifiableObject getObject( long id, String simpleClassName );
 
     <T extends IdentifiableObject> int getCount( Class<T> clazz );
 

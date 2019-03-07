@@ -62,7 +62,7 @@ public class HibernateOutboundSmsStore
     }
 
     @Override
-    public OutboundSms getOutboundSmsbyId( int id )
+    public OutboundSms getOutboundSmsbyId( long id )
     {
         return get( id );
     }

@@ -53,7 +53,7 @@ public class HibernateDeletedObjectStore
     private SessionFactory sessionFactory;
 
     @Override
-    public int save( DeletedObject deletedObject )
+    public long save( DeletedObject deletedObject )
     {
         getCurrentSession().save( deletedObject );
 

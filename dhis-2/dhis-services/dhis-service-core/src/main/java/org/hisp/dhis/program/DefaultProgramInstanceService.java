@@ -110,7 +110,7 @@ public class DefaultProgramInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramInstance( ProgramInstance programInstance )
+    public long addProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.save( programInstance );
         return programInstance.getId();
@@ -138,7 +138,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public ProgramInstance getProgramInstance( int id )
+    public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
 

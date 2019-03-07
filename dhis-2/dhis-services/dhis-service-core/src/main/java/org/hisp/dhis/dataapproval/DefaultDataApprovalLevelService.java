@@ -108,7 +108,7 @@ public class DefaultDataApprovalLevelService
     // -------------------------------------------------------------------------
 
     @Override
-    public DataApprovalLevel getDataApprovalLevel( int id )
+    public DataApprovalLevel getDataApprovalLevel( long id )
     {
         return dataApprovalLevelStore.get( id );
     }
@@ -381,7 +381,7 @@ public class DefaultDataApprovalLevelService
     }
     
     @Override
-    public int addDataApprovalLevel( DataApprovalLevel level )
+    public long addDataApprovalLevel( DataApprovalLevel level )
     {
         if ( !prepareAddDataApproval( level ) )
         {
@@ -394,7 +394,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public int addDataApprovalLevel( DataApprovalLevel approvalLevel, int level )
+    public long addDataApprovalLevel( DataApprovalLevel approvalLevel, int level )
     {
         approvalLevel.setLevel( level );
         

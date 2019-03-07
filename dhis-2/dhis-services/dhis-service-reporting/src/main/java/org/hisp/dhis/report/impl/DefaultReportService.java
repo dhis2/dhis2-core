@@ -315,7 +315,7 @@ public class DefaultReportService
     }
 
     @Override
-    public int saveReport( Report report )
+    public long saveReport( Report report )
     {
         reportStore.save( report );
 
@@ -335,7 +335,7 @@ public class DefaultReportService
     }
 
     @Override
-    public Report getReport( int id )
+    public Report getReport( long id )
     {
         return reportStore.get( id );
     }

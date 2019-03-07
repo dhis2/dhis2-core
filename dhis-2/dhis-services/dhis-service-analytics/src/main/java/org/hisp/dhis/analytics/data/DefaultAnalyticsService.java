@@ -1178,7 +1178,7 @@ public class DefaultAnalyticsService
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( optimalQueries )
-            .withTableName( tableType.getTableName() )
+            .withTableType( tableType )
             .withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
@@ -1283,7 +1283,7 @@ public class DefaultAnalyticsService
         if ( !params.isSkipData() )
         {
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-                .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
+                .withTableType( AnalyticsTableType.DATA_VALUE ).build();
 
             params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
 

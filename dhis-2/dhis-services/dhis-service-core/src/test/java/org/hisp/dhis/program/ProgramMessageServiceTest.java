@@ -255,7 +255,7 @@ public class ProgramMessageServiceTest
     @Test
     public void testDeleteProgramMessage()
     {
-        Integer pmsgAId = null;
+        Long pmsgAId = null;
 
         pmsgAId = programMessageService.saveProgramMessage( pmsgA );
 
@@ -295,7 +295,7 @@ public class ProgramMessageServiceTest
     @Test
     public void testGetProgramMessageById()
     {
-        int pmsgAId = programMessageService.saveProgramMessage( pmsgA );
+        long pmsgAId = programMessageService.saveProgramMessage( pmsgA );
 
         ProgramMessage programMessage = programMessageService.getProgramMessage( pmsgAId );
 
@@ -330,7 +330,7 @@ public class ProgramMessageServiceTest
     @Test
     public void testSaveProgramMessage()
     {
-        Integer pmsgAId = null;
+        Long pmsgAId = null;
 
         pmsgAId = programMessageService.saveProgramMessage( pmsgA );
 
@@ -344,7 +344,7 @@ public class ProgramMessageServiceTest
     @Test
     public void testUpdateProgramMessage()
     {
-        Integer pmsgAId = programMessageService.saveProgramMessage( pmsgA );
+        Long pmsgAId = programMessageService.saveProgramMessage( pmsgA );
 
         ProgramMessage programMessage = programMessageService.getProgramMessage( pmsgAId.intValue() );
 

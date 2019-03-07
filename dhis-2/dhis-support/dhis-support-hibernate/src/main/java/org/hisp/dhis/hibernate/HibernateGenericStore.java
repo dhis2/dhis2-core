@@ -402,7 +402,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public T get( int id )
+    public T get( long id )
     {
         T object = getSession().get( getClazz(), id );
 

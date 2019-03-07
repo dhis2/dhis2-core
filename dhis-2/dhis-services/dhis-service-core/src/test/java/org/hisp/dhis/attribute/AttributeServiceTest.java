@@ -90,7 +90,7 @@ public class AttributeServiceTest
 
         assertNotNull( attribute );
 
-        int attributeId = attribute.getId();
+        long attributeId = attribute.getId();
 
         attributeService.deleteAttribute( attribute );
         attribute = attributeService.getAttribute( attributeId );

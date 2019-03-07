@@ -106,11 +106,11 @@ public abstract class AbstractDataSetCompletenessService
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    protected abstract int getRegistrations( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods );
+    protected abstract int getRegistrations( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods );
 
-    protected abstract int getRegistrationsOnTime( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods );
+    protected abstract int getRegistrationsOnTime( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods );
 
-    protected abstract int getSources( DataSet dataSet, Collection<Integer> relevantSources, Period period );
+    protected abstract int getSources( DataSet dataSet, Collection<Long> relevantSources, Period period );
 
     // -------------------------------------------------------------------------
     // DataSetCompleteness
@@ -118,11 +118,11 @@ public abstract class AbstractDataSetCompletenessService
 
     @Override
     @Transactional
-    public List<DataSetCompletenessResult> getDataSetCompleteness( int periodId, int organisationUnitId, Set<Integer> groupIds )
+    public List<DataSetCompletenessResult> getDataSetCompleteness( long periodId, long organisationUnitId, Set<Long> groupIds )
     {
         final Period period = periodService.getPeriod( periodId );
 
-        final Set<Integer> children = organisationUnitService.getOrganisationUnitHierarchy().getChildren(
+        final Set<Long> children = organisationUnitService.getOrganisationUnitHierarchy().getChildren(
             organisationUnitId );
 
         final List<DataSet> dataSets = dataSetService.getAllDataSets();
@@ -133,10 +133,10 @@ public abstract class AbstractDataSetCompletenessService
 
         for ( final DataSet dataSet : dataSets )
         {
-            final List<Integer> periodsBetweenDates = getIdentifiers( 
+            final List<Long> periodsBetweenDates = getIdentifiers( 
                 periodService.getPeriodsBetweenDates( dataSet.getPeriodType(), period.getStartDate(), period.getEndDate() ) );
 
-            final Set<Integer> relevantSources = getRelevantSources( dataSet, children, groups );
+            final Set<Long> relevantSources = getRelevantSources( dataSet, children, groups );
 
             final DataSetCompletenessResult result = new DataSetCompletenessResult();
 
@@ -161,30 +161,30 @@ public abstract class AbstractDataSetCompletenessService
 
     @Override
     @Transactional
-    public List<DataSetCompletenessResult> getDataSetCompleteness( int periodId,
-        Collection<Integer> organisationUnitIds, int dataSetId, Set<Integer> groupIds )
+    public List<DataSetCompletenessResult> getDataSetCompleteness( long periodId,
+        Collection<Long> organisationUnitIds, long dataSetId, Set<Long> groupIds )
     {
         final DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
         final Period period = periodService.getPeriod( periodId );
 
-        final List<Integer> periodsBetweenDates = getIdentifiers( 
+        final List<Long> periodsBetweenDates = getIdentifiers( 
             periodService.getPeriodsBetweenDates( dataSet.getPeriodType(), period.getStartDate(), period.getEndDate() ) );
 
-        final Map<Integer, OrganisationUnit> orgUnits = Maps.uniqueIndex( organisationUnitService.getOrganisationUnits( organisationUnitIds ), OrganisationUnit::getId );
+        final Map<Long, OrganisationUnit> orgUnits = Maps.uniqueIndex( organisationUnitService.getOrganisationUnits( organisationUnitIds ), OrganisationUnit::getId );
         
         final Set<OrganisationUnitGroup> groups = groupIds != null ? Sets.newHashSet( idObjectManager.getObjects( OrganisationUnitGroup.class, groupIds ) ) : null;
         
         final List<DataSetCompletenessResult> results = new ArrayList<>();
         
-        for ( final Integer unitId : organisationUnitIds )
+        for ( final Long unitId : organisationUnitIds )
         {
             final OrganisationUnit unit = orgUnits.get( unitId );
 
-            final Set<Integer> children = organisationUnitService.getOrganisationUnitHierarchy().getChildren(
+            final Set<Long> children = organisationUnitService.getOrganisationUnitHierarchy().getChildren(
                 unit.getId() );
 
-            final Set<Integer> relevantSources = getRelevantSources( dataSet, children, groups );
+            final Set<Long> relevantSources = getRelevantSources( dataSet, children, groups );
 
             final DataSetCompletenessResult result = getDataSetCompleteness( period, periodsBetweenDates, unit, relevantSources, dataSet );
 
@@ -201,8 +201,8 @@ public abstract class AbstractDataSetCompletenessService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private DataSetCompletenessResult getDataSetCompleteness( Period period, Collection<Integer> periodsBetweenDates, OrganisationUnit unit,
-        Collection<Integer> relevantSources, DataSet dataSet )
+    private DataSetCompletenessResult getDataSetCompleteness( Period period, Collection<Long> periodsBetweenDates, OrganisationUnit unit,
+        Collection<Long> relevantSources, DataSet dataSet )
     {
         final DataSetCompletenessResult result = new DataSetCompletenessResult();
 
@@ -223,15 +223,15 @@ public abstract class AbstractDataSetCompletenessService
         return result;
     }
 
-    private Set<Integer> getRelevantSources( DataSet dataSet, Set<Integer> sources, Set<OrganisationUnitGroup> groups )
+    private Set<Long> getRelevantSources( DataSet dataSet, Set<Long> sources, Set<OrganisationUnitGroup> groups )
     {
-        Set<Integer> dataSetSources = new HashSet<>( getIdentifiers( dataSet.getSources() ) );
+        Set<Long> dataSetSources = new HashSet<>( getIdentifiers( dataSet.getSources() ) );
 
         if ( groups != null )
         {
             for ( OrganisationUnitGroup group : groups )
             {
-                List<Integer> ids = getIdentifiers( group.getMembers() );
+                List<Long> ids = getIdentifiers( group.getMembers() );
                 dataSetSources.retainAll( ids );
             }
         }

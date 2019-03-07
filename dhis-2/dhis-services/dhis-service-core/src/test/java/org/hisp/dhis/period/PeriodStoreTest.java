@@ -65,11 +65,11 @@ public class PeriodStoreTest
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         periodStore.addPeriod( periodA );
-        int idA = periodA.getId();
+        long idA = periodA.getId();
         periodStore.addPeriod( periodB );
-        int idB = periodB.getId();
+        long idB = periodB.getId();
         periodStore.addPeriod( periodC );
-        int idC = periodC.getId();
+        long idC = periodC.getId();
 
         periodA = periodStore.get( idA );
         assertNotNull( periodA );
@@ -106,13 +106,13 @@ public class PeriodStoreTest
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
         periodStore.addPeriod( periodA );
-        int idA = periodA.getId();
+        long idA = periodA.getId();
         periodStore.addPeriod( periodB );
-        int idB = periodB.getId();
+        long idB = periodB.getId();
         periodStore.addPeriod( periodC );
-        int idC = periodC.getId();
+        long idC = periodC.getId();
         periodStore.addPeriod( periodD );
-        int idD = periodD.getId();
+        long idD = periodD.getId();
 
         assertNotNull( periodStore.get( idA ) );
         assertNotNull( periodStore.get( idB ) );
@@ -158,15 +158,15 @@ public class PeriodStoreTest
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
         Period periodE = new Period( periodTypeA, getDay( 3 ), getDay( 4 ) );
         periodStore.addPeriod( periodA );
-        int idA = periodA.getId();
+        long idA = periodA.getId();
         periodStore.addPeriod( periodB );
-        int idB = periodB.getId();
+        long idB = periodB.getId();
         periodStore.addPeriod( periodC );
-        int idC = periodC.getId();
+        long idC = periodC.getId();
         periodStore.addPeriod( periodD );
-        int idD = periodD.getId();
+        long idD = periodD.getId();
         periodStore.addPeriod( periodE );
-        int idE = periodE.getId();
+        long idE = periodE.getId();
 
         periodA = periodStore.getPeriod( getDay( 1 ), getDay( 2 ), periodTypeA );
         assertNotNull( periodA );

@@ -70,7 +70,7 @@ public class Expression
     /**
      * The unique identifier for this Expression.
      */
-    private int id;
+    private long id;
 
     /**
      * The Expression.
@@ -246,12 +246,12 @@ public class Expression
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

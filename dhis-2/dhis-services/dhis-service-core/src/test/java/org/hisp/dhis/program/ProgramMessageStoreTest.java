@@ -258,7 +258,7 @@ public class ProgramMessageStoreTest
     public void testGetProgramMessage()
     {
         programMessageStore.save( pmsgA );
-        Integer id = pmsgA.getId();
+        Long id = pmsgA.getId();
         ProgramMessage actual = programMessageStore.get( id.intValue() );
 
         assertNotNull( id );
@@ -280,7 +280,7 @@ public class ProgramMessageStoreTest
     public void testDeleteProgramMessage()
     {
         programMessageStore.save( pmsgA );
-        int pmsgAId = pmsgA.getId();
+        long pmsgAId = pmsgA.getId();
 
         programMessageStore.delete( pmsgA );
 

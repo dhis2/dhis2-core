@@ -179,7 +179,7 @@ public class DefaultChartService
     }
 
     @Override
-    public JFreeChart getJFreeChart( int id, I18nFormat format )
+    public JFreeChart getJFreeChart( long id, I18nFormat format )
     {
         Chart chart = getChart( id );
 
@@ -897,7 +897,7 @@ public class DefaultChartService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addChart( Chart chart )
+    public long addChart( Chart chart )
     {
         chartStore.save( chart );
 
@@ -911,7 +911,7 @@ public class DefaultChartService
     }
 
     @Override
-    public Chart getChart( int id )
+    public Chart getChart( long id )
     {
         return chartStore.get( id );
     }
