@@ -196,6 +196,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < events.size(); idx++ )
         {
             Event event = events.get( idx );
+            System.err.println( "Importing Event " + event.getEvent() );
+            ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
+            System.err.println( "Importing PSI " + programStageInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {

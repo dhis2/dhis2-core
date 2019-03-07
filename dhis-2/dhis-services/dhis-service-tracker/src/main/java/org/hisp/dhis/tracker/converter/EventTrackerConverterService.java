@@ -90,6 +90,12 @@ public class EventTrackerConverterService
     }
 
     @Override
+    public Event to( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
+    {
+        return null;
+    }
+
+    @Override
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         return null;
@@ -173,6 +179,19 @@ public class EventTrackerConverterService
     public ProgramStageInstance from( Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
+
+        if ( programStageInstances.isEmpty() )
+        {
+            return null;
+        }
+
+        return programStageInstances.get( 0 );
+    }
+
+    @Override
+    public ProgramStageInstance from( TrackerPreheat preheat, Event event )
+    {
+        List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
 
         if ( programStageInstances.isEmpty() )
         {

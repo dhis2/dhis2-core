@@ -39,7 +39,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +50,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerImportServiceTest
+public class TrackerBundleServiceTest
     extends DhisSpringTest
 {
     @Autowired
@@ -70,18 +71,17 @@ public class TrackerImportServiceTest
     private UserService _userService;
 
     @Autowired
-    private TrackerImportService trackerImportService;
+    private TrackerPreheatService trackerPreheatService;
+
+    @Autowired
+    private TrackerBundleService trackerBundleService;
 
     @Override
-    protected void setUpTest()
+    protected void setUpTest() throws IOException
     {
         renderService = _renderService;
         userService = _userService;
-    }
 
-    @Test
-    public void testImportMetadata() throws IOException
-    {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -95,5 +95,21 @@ public class TrackerImportServiceTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
+    }
+
+    @Test
+    public void testImportSingleEventData() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        assertFalse( trackerBundle.getEvents().isEmpty() );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
+            .setEvents( trackerBundle.getEvents() ) );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
     }
 }

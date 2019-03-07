@@ -51,6 +51,12 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
+    public Enrollment to( TrackerPreheat preheat, ProgramInstance object )
+    {
+        return null;
+    }
+
+    @Override
     public List<Enrollment> to( List<ProgramInstance> programInstances )
     {
         return null;
@@ -64,6 +70,12 @@ public class EnrollmentTrackerConverterService
 
     @Override
     public ProgramInstance from( Enrollment enrollment )
+    {
+        return null;
+    }
+
+    @Override
+    public ProgramInstance from( TrackerPreheat preheat, Enrollment object )
     {
         return null;
     }
