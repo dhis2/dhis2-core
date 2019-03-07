@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
@@ -221,6 +222,11 @@ public class EventTrackerConverterService
             {
                 programStageInstance = new ProgramStageInstance();
                 programStageInstance.setProgramInstance( getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
+            }
+
+            if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
+            {
+                programStageInstance.setUid( CodeGenerator.generateUid() );
             }
 
             programStageInstance.setProgramStage( programStage );
