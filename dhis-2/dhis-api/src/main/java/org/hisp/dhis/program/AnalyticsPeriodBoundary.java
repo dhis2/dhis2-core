@@ -136,8 +136,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         }
         else
         {
-            DateTime reportingEndDateTime = new DateTime(reportingEndDate);
-            returnDate = reportingEndDateTime.plusDays(1).toDate();
+            DateTime reportingEndDateTime = new DateTime( reportingEndDate );
+            returnDate = reportingEndDateTime.plusDays( 1 ).toDate();
         }
         
         if ( offsetPeriods != null && offsetPeriodType != null )
