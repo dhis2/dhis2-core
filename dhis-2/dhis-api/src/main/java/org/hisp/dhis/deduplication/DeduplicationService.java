@@ -1,4 +1,4 @@
-package org.hisp.dhis.deduplication.hibernate;
+package org.hisp.dhis.deduplication;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,17 @@ package org.hisp.dhis.deduplication.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+import java.util.List;
 
-public class HibernatePotentialDuplicateStore
-    extends HibernateIdentifiableObjectStore<PotentialDuplicate>
-    implements PotentialDuplicateStore
+public interface DeduplicationService
 {
+        long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+
+        PotentialDuplicate getPotentialDuplicateById( long id );
+
+        PotentialDuplicate getPotentialDuplicateByUid( String uid );
+
+        List<PotentialDuplicate> getAllPotentialDuplicates();
+
+        void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 }

@@ -39,6 +39,7 @@ public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
 
+        private long id;
         /**
          * teiA represents the UID of a TrackedEntityInstance.
          * teiA is required.

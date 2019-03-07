@@ -11,9 +11,7 @@
         <cache usage="read-write" />
 
         <id name="id" column="potentialduplicateid">
-            <generator class="sequence">
-                <param name="sequence">potentialduplicatesequence</param>
-            </generator>
+            <generator class="native" />
         </id>
 
 

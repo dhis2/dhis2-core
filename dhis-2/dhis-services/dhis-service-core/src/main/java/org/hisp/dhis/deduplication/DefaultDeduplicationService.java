@@ -1,4 +1,4 @@
-package org.hisp.dhis.deduplication.hibernate;
+package org.hisp.dhis.deduplication;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,51 @@ package org.hisp.dhis.deduplication.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public class HibernatePotentialDuplicateStore
-    extends HibernateIdentifiableObjectStore<PotentialDuplicate>
-    implements PotentialDuplicateStore
+import java.util.List;
+
+@Transactional
+public class DefaultDeduplicationService
+    implements DeduplicationService
 {
+
+        @Autowired
+        private PotentialDuplicateStore potentialDuplicateStore;
+
+        @Override
+        public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+        {
+                potentialDuplicateStore.save( potentialDuplicate );
+
+                // return potentialDuplicate.getId();
+                return 0;
+        }
+
+        @Override
+        public PotentialDuplicate getPotentialDuplicateById( long id )
+        {
+                //return potentialDuplicateStore.get( id );
+                return null;
+        }
+
+        @Override
+        public PotentialDuplicate getPotentialDuplicateByUid( String uid )
+        {
+                return potentialDuplicateStore.getByUid( uid );
+        }
+
+        @Override
+        public List<PotentialDuplicate> getAllPotentialDuplicates()
+        {
+                return potentialDuplicateStore.getAll();
+        }
+
+        @Override
+        public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+        {
+                potentialDuplicateStore.update( potentialDuplicate );
+        }
 }

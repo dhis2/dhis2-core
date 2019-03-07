@@ -1,5 +1,3 @@
-CREATE SEQUENCE potentialduplicatesequence;
-
 CREATE TABLE potentialduplicate (
   potentialduplicateid BIGINT NOT NULL PRIMARY KEY,
   uid CHARACTER VARYING(11) NOT NULL UNIQUE,
