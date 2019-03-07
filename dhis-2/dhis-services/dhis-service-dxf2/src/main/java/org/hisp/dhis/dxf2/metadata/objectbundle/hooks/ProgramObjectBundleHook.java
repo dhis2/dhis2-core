@@ -132,11 +132,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     
     private int getProgramInstancesCount( Program program )
     {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        programInstanceQueryParams.setProgram( program );
-        programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
-
-        return programInstanceService.countProgramInstances( programInstanceQueryParams );
+        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
     }
     
     private boolean isProgram( Object object )
