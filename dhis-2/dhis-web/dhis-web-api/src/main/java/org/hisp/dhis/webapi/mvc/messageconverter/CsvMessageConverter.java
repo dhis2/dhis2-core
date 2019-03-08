@@ -33,14 +33,12 @@ import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
 public class CsvMessageConverter extends AbstractRootNodeMessageConverter
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
@@ -48,9 +46,27 @@ public class CsvMessageConverter extends AbstractRootNodeMessageConverter
         .add( new MediaType( "text", "csv" ) )
         .build();
 
-    public CsvMessageConverter( @Nonnull @Autowired NodeService nodeService )
+    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "csv+gzip" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "csv+zip" ) )
+        .build();
+
+    public CsvMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
     {
-        super( nodeService, "application/csv", "csv", Compression.NONE );
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+        super( nodeService, "application/csv", "csv", compression );
+        switch ( getCompression() )
+        {
+            case NONE:
+                setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+        }
     }
 }
