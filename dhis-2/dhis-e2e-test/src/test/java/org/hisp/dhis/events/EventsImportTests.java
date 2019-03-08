@@ -19,7 +19,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -35,38 +34,43 @@ import static org.hamcrest.core.Every.everyItem;
 public class EventsImportTests
     extends ApiTest
 {
+    List<String> createdEvents = new ArrayList<>();
+
     private EventActions eventActions = new EventActions();
+
     private SystemActions systemActions = new SystemActions();
 
-    List<String> createdEvents = new ArrayList<>(  );
+    private static Stream<Arguments> provideEventFilesTestArguments()
+    {
+        return Stream.of(
+            Arguments.arguments( "events.json", ContentType.JSON.toString() ),
+            Arguments.arguments( "events.csv", "text/csv" ),
+            Arguments.arguments( "events.xml", ContentType.XML.toString() ) );
+    }
 
     @BeforeAll
-    public void before() {
+    public void before()
+    {
         new LoginActions().loginAsDefaultUser();
 
-        ApiResponse response = new RestApiActions( "/metadata" ).postFile(new File( "src/test/resources/metadata/metadata.json" ), "" );
+        ApiResponse response = new RestApiActions( "/metadata" )
+            .postFile( new File( "src/test/resources/metadata/metadata.json" ), "" );
 
         response.validate().statusCode( 200 );
 
     }
 
-    private static Stream<Arguments> provideEventFilesTestArguments() {
-        return Stream.of(
-            Arguments.arguments( "events.json", ContentType.JSON.toString()),
-            Arguments.arguments( "events.csv", "text/csv" ));
-    }
-
     @ParameterizedTest
-    @MethodSource("provideEventFilesTestArguments")
-    public void eventsImportNewEventsFromFile(String fileName, String contentType)
-        throws IOException
+    @MethodSource( "provideEventFilesTestArguments" )
+    public void eventsImportNewEventsFromFile( String fileName, String contentType )
+        throws Exception
     {
-        Object file = new FileReaderUtils().read( new File("src/test/resources/events/" + fileName) )
+        Object file = new FileReaderUtils().read( new File( "src/test/resources/events/" + fileName ) )
             .replacePropertyValuesWithIds( "event" )
             .get();
 
-
-        ApiResponse response  = eventActions.post( "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&skipFirst=true&async=true", file, contentType );
+        ApiResponse response = eventActions
+            .post( "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&skipFirst=true&async=true", file, contentType );
 
         response
             .validate()
@@ -76,22 +80,24 @@ public class EventsImportTests
 
         systemActions.waitUntilTaskCompleted( "EVENT_IMPORT", taskId );
 
-        List<ImportSummary> importSummaries = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId);
+        List<ImportSummary> importSummaries = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId );
+
+        assertThat( importSummaries.size(), Matchers.greaterThan( 0 ) );
 
         createdEvents.addAll( importSummaries
             .stream()
             .map( p -> {
                 return p.getReference();
             } )
-            .collect( toList() ));
+            .collect( toList() ) );
 
-        assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" )) ) );
+        assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" ) ) ) );
     }
 
-
     @Test
-    public void eventsImportDeletedEventShouldFail() {
-        ApiResponse response = post( "events.json", false);
+    public void eventsImportDeletedEventShouldFail()
+    {
+        ApiResponse response = post( "events.json", false );
 
         createdEvents = response.getImportSummaries()
             .stream()
@@ -110,18 +116,22 @@ public class EventsImportTests
 
         List<ImportSummary> importSummaryList = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId );
 
-        assertThat( importSummaryList, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "ERROR" )) ) );
-        assertThat( importSummaryList, everyItem(hasProperty("description", Matchers.containsString(  "This event can not be modified." ))) );
+        assertThat( importSummaryList, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "ERROR" ) ) ) );
+        assertThat( importSummaryList,
+            everyItem( hasProperty( "description", Matchers.containsString( "This event can not be modified." ) ) ) );
     }
 
-    private ApiResponse post( String fileName, boolean async) {
-       ApiResponse response = eventActions.postFile(new File( "src/test/resources/events/" + fileName ), "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&async=" + String.valueOf( async ) );
+    private ApiResponse post( String fileName, boolean async )
+    {
+        ApiResponse response = eventActions.postFile( new File( "src/test/resources/events/" + fileName ),
+            "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&async=" + String.valueOf( async ) );
 
-       return response;
+        return response;
     }
 
     @AfterEach
-    public void after() {
+    public void after()
+    {
         createdEvents.forEach( event -> {
             TestRunStorage.addCreatedEntity( "events", event );
         } );

@@ -1,11 +1,13 @@
 package org.hisp.dhis.helpers.file;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriterBuilder;
 import org.hisp.dhis.actions.IdGenerator;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -13,18 +15,19 @@ import java.util.function.Function;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader
+public class CsvFileReader
+    implements org.hisp.dhis.helpers.file.FileReader
 {
     private List<String[]> csvTable;
+
     private CSVReader reader;
 
-    public CsvFileReader( File file)
+    public CsvFileReader( File file )
         throws IOException
     {
-       reader = new CSVReader(  new FileReader( file ) );
-       csvTable = reader.readAll();
+        reader = new CSVReader( new FileReader( file ) );
+        csvTable = reader.readAll();
     }
-
 
     @Override
     public org.hisp.dhis.helpers.file.FileReader read( File file )
@@ -36,18 +39,20 @@ public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader
     @Override
     public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWithIds( String propertyName )
     {
-        int columnIndex = Arrays.asList(csvTable.get( 0 )).indexOf( propertyName );
+        int columnIndex = Arrays.asList( csvTable.get( 0 ) ).indexOf( propertyName );
 
         String lastColumnOriginalValue = "";
         String lastColumnReplacedValue = "";
-        for ( String[] row: csvTable
+        for ( String[] row : csvTable
         )
         {
 
-            if (row[columnIndex].equals( propertyName)) {
+            if ( row[columnIndex].equals( propertyName ) )
+            {
                 continue;
             }
-            if( row[columnIndex].equals( lastColumnOriginalValue )) {
+            if ( row[columnIndex].equals( lastColumnOriginalValue ) )
+            {
                 row[columnIndex] = lastColumnReplacedValue;
                 continue;
             }
@@ -68,8 +73,11 @@ public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader
         return null;
     }
 
-    public List<String[]> get()
+    public String get()
     {
-        return csvTable;
+        StringWriter writer = new StringWriter();
+        new CSVWriterBuilder( writer ).build().writeAll( csvTable );
+
+        return writer.toString();
     }
 }

@@ -81,7 +81,7 @@ public class RestApiActions
     public ApiResponse post( String resource, Object object, String contentType )
     {
         ApiResponse response = new ApiResponse( this.given()
-            .body( object, ObjectMapperType.GSON )
+            .body( object )
             .contentType( contentType )
             .when()
             .post( resource ) );

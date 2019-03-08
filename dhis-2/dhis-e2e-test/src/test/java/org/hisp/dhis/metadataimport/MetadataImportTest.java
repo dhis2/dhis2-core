@@ -73,7 +73,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +135,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldImportUniqueMetadataAndReturnObjectReports()
-        throws IOException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
@@ -144,7 +143,6 @@ public class MetadataImportTest
 
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
-
 
         ApiResponse response = metadataActions.post( params, object );
 
@@ -169,7 +167,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
-        throws IOException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
@@ -211,7 +209,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldImportMetadataAsync()
-        throws IOException, InterruptedException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +

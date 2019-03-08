@@ -17,8 +17,9 @@ public class FileReaderUtils
     private Logger logger = Logger.getLogger( FileReaderUtils.class.getName() );
 
     public FileReader read( File file )
-        throws IOException
+        throws Exception
     {
+
         if ( file.getName().endsWith( ".csv" ) )
         {
             return new CsvFileReader( file );
@@ -29,10 +30,16 @@ public class FileReaderUtils
             return new JsonFileReader( file );
         }
 
+        if ( file.getName().endsWith( "xml" ) )
+        {
+            return new XmlFileReader( file );
+        }
+
         logger.warning( "Tried to read file " + file.getName() + ", but there is no reader implemented for this file type. " );
 
         return null;
     }
+
     /**
      * Reads json file and generates data where needed.
      * Json file should indicate what data should be generated.
@@ -43,7 +50,7 @@ public class FileReaderUtils
      * @throws IOException
      */
     public JsonObject readJsonAndGenerateData( File file )
-        throws IOException
+        throws Exception
     {
         return read( file ).replace( e -> {
             String json = e.toString();

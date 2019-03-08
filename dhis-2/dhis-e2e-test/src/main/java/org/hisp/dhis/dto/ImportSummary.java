@@ -9,8 +9,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class ImportSummary
 {
     private String status;
+
     private String description;
+
     private String reference;
+
     private ImportCount importCount;
 
     public String getStatus()
@@ -53,10 +56,14 @@ public class ImportSummary
         this.importCount = importCount;
     }
 
-    public class ImportCount {
+    public class ImportCount
+    {
         private int ignored;
+
         private int deleted;
+
         private int updated;
+
         private int imported;
 
         public int getIgnored()

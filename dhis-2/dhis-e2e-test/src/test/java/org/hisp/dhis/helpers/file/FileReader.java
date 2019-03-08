@@ -1,7 +1,6 @@
 package org.hisp.dhis.helpers.file;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -10,7 +9,7 @@ import java.util.function.Function;
 public interface FileReader
 {
     FileReader read( File file )
-        throws IOException;
+        throws Exception;
 
     FileReader replacePropertyValuesWithIds( String propertyValues );
 
