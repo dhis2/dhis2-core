@@ -47,6 +47,8 @@ import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.RuleVariableAttribute;
+import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -173,9 +175,28 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleVariableValues()
     {
+        RuleVariableAttribute ruleVariableAttribute = null;
+        RuleVariableCalculatedValue ruleVariableCalculatedValue = null;
+
         List<RuleVariable> ruleVariables = subject.toMappedProgramRuleVariables();
 
         assertEquals( ruleVariables.size(), 2 );
+
+        for ( RuleVariable variable : ruleVariables )
+        {
+            if ( variable instanceof RuleVariableAttribute )
+            {
+                ruleVariableAttribute = (RuleVariableAttribute) variable;
+                assertEquals( ruleVariableAttribute.trackedEntityAttribute(), programRuleVariableB.getAttribute().getUid() );
+                assertEquals( ruleVariableAttribute.name(), programRuleVariableB.getName() );
+            }
+
+            if ( variable instanceof RuleVariableCalculatedValue )
+            {
+                ruleVariableCalculatedValue = (RuleVariableCalculatedValue) variable;
+                assertEquals( ruleVariableCalculatedValue.name(), programRuleVariableA.getName() );
+            }
+        }
     }
 
     @Test
