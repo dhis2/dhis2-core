@@ -309,7 +309,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( 5 );
             }
         }
     }

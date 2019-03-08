@@ -31,6 +31,7 @@ package org.hisp.dhis.security.acl;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -1075,5 +1076,35 @@ public class AclServiceTest
         manager.update( reportTable );
 
         assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testCanDataOrMetadataRead()
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        // non data shareable object //
+
+        CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+        categoryOptionGroupSet.setAutoFields();
+        categoryOptionGroupSet.setName( "cogA" );
+
+        manager.save( categoryOptionGroupSet );
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOptionGroupSet ) );
+
+        // data shareable object //
+
+        CategoryOption categoryOption = new CategoryOption();
+        categoryOption.setAutoFields();
+        categoryOption.setName( "coA");
+        categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
+        categoryOption.setUser( user1 );
+        categoryOption.setPublicAccess("rwrw----");
+
+        manager.save( categoryOption , false);
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
     }
 }

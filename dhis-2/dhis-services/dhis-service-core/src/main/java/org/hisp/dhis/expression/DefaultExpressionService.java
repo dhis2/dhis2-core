@@ -28,8 +28,24 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.common.DimensionItemType.*;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.system.util.MathUtils.calculateExpression;
+import static org.hisp.dhis.system.util.MathUtils.isEqual;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -40,15 +56,15 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.indicator.Indicator;
@@ -61,20 +77,6 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.hisp.dhis.system.util.MathUtils.*;
 
 /**
  * The expression is a string describing a formula containing data element ids
@@ -231,15 +233,24 @@ public class DefaultExpressionService
 
             final double numeratorValue = calculateExpression( numeratorExpression );
 
-            final double annualizationFactor = period != null ?
-                DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
-            final int factor = indicator.getIndicatorType().getFactor();
+            int multiplier = indicator.getIndicatorType().getFactor();
+
+            int divisor = 1;
+
+            if ( indicator.isAnnualized() && period != null )
+            {
+                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+
+                multiplier *= DateUtils.DAYS_IN_YEAR;
+
+                divisor = daysInPeriod;
+            }
 
             return new IndicatorValue()
                 .setNumeratorValue( numeratorValue )
                 .setDenominatorValue( denominatorValue )
-                .setFactor( factor )
-                .setAnnualizationFactor( annualizationFactor );
+                .setMultiplier( multiplier )
+                .setDivisor( divisor );
         }
 
         return null;
@@ -417,64 +428,58 @@ public class DefaultExpressionService
     }
 
     @Override
-    public SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression )
+    public Set<DimensionalItemId> getDimensionalItemIdsInExpression( String expression )
     {
-        SetMap<Class<? extends DimensionalItemObject>, String> dimensionItemIdentifiers = new SetMap<>();
+        Set<DimensionalItemId> itemIds = new HashSet<>();
 
         if ( expression == null || expression.isEmpty() )
         {
-            return dimensionItemIdentifiers;
+            return itemIds;
         }
 
         Matcher matcher = VARIABLE_PATTERN.matcher( expression );
 
         while ( matcher.find() )
         {
-            dimensionItemIdentifiers.putValue( VARIABLE_TYPES.get( matcher.group( 1 ) ), matcher.group( 2 ) );
+            String key = matcher.group( GROUP_KEY );
+            String id1 = matcher.group( GROUP_ID1 );
+            String id2 = matcher.group( GROUP_ID2 );
+            String id3 = matcher.group( GROUP_ID3 );
+
+            DimensionItemType itemType =
+                "#".equals( key ) ? id2 == null && id3 == null ? DATA_ELEMENT : DATA_ELEMENT_OPERAND :
+                "D".equals( key ) ? PROGRAM_DATA_ELEMENT :
+                "A".equals( key ) ? PROGRAM_ATTRIBUTE :
+                "I".equals( key ) ? PROGRAM_INDICATOR :
+                "R".equals( key ) ? REPORTING_RATE : null;
+
+            if ( itemType != null )
+            {
+                itemIds.add( new DimensionalItemId( itemType, id1, id2, id3 ) );
+            }
         }
 
-        return dimensionItemIdentifiers;
+        return itemIds;
     }
 
     @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
     {
-        Set<DimensionalItemObject> dimensionItems = Sets.newHashSet();
+        Set<DimensionalItemId> itemIds = getDimensionalItemIdsInExpression( expression );
 
-        if ( expression == null || expression.isEmpty() )
-        {
-            return dimensionItems;
-        }
-
-        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String dimensionItem = matcher.group( GROUP_ID );
-            
-            DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
-
-            if ( dimensionItemObject != null )
-            {
-                dimensionItems.add( dimensionItemObject );
-            }
-        }
-
-        return dimensionItems;
+        return dimensionService.getDataDimensionalItemObjects( itemIds );
     }
 
     @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
-        Set<DimensionalItemObject> items = Sets.newHashSet();
+        Set<DimensionalItemId> itemIds = indicators.stream()
+            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
+            .map( this::getDimensionalItemIdsInExpression )
+            .flatMap( Set::stream )
+            .collect( Collectors.toSet() );
 
-        for ( Indicator indicator : indicators )
-        {
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getNumerator() ) );
-            items.addAll( getDimensionalItemObjectsInExpression( indicator.getDenominator() ) );
-        }
-
-        return items;
+        return dimensionService.getDataDimensionalItemObjects( itemIds );
     }
     
     @Override

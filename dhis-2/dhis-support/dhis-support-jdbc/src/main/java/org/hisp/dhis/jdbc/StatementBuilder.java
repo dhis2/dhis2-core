@@ -304,4 +304,16 @@ public interface StatementBuilder
      */
     String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
+
+    /**
+     * Get a SQL for selecting a single column from events in a program indicators, abiding to boundaries.
+     * @param programStageUid the program stage to get data for
+     * @param columnName the column to get data for
+     * @param reportingStartDate the reporting start date
+     * @param reportingEndDate the reporting end date
+     * @param programIndicator the program indicator context
+     * @return
+     */
+    String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
 }
