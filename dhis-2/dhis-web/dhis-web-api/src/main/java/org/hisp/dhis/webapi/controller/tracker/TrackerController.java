@@ -33,6 +33,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,7 +76,7 @@ public class TrackerController
 
         response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
 
-        trackerImportService.importTracker( params );
-        renderService.toJson( response.getOutputStream(), new HashMap<>() );
+        TrackerImportReport importReport = trackerImportService.importTracker( params );
+        renderService.toJson( response.getOutputStream(), importReport );
     }
 }
