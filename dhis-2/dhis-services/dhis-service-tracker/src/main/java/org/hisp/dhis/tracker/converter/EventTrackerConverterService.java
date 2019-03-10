@@ -220,7 +220,15 @@ public class EventTrackerConverterService
 
             if ( programStageInstance == null )
             {
+                Date now = new Date();
+
                 programStageInstance = new ProgramStageInstance();
+                programStageInstance.setUid( !StringUtils.isEmpty( e.getEvent() ) ? e.getEvent() : e.getUid() );
+                programStageInstance.setCreated( now );
+                programStageInstance.setCreatedAtClient( now );
+                programStageInstance.setLastUpdated( now );
+                programStageInstance.setLastUpdatedAtClient( now );
+
                 programStageInstance.setProgramInstance( getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
             }
 

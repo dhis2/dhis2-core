@@ -200,10 +200,15 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
 
             Date now = new Date();
-            programStageInstance.setCreated( now );
+
+            if ( bundle.getImportStrategy().isCreate() )
+            {
+                programStageInstance.setCreated( now );
+                programStageInstance.setCreatedAtClient( now );
+                programStageInstance.setLastUpdatedAtClient( now );
+            }
+
             programStageInstance.setLastUpdated( now );
-            programStageInstance.setCreatedAtClient( now );
-            programStageInstance.setLastUpdatedAtClient( now );
 
             session.persist( programStageInstance );
 

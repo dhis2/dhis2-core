@@ -59,4 +59,14 @@ public enum TrackerImportStrategy
      * Delete/import objects that matches identifiers.
      */
     DELETE;
+
+    public boolean isCreate()
+    {
+        return CREATE == this || CREATE_AND_UPDATE == this;
+    }
+
+    public boolean isUpdate()
+    {
+        return UPDATE == this || CREATE_AND_UPDATE == this;
+    }
 }

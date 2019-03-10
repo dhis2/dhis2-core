@@ -41,6 +41,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
@@ -52,7 +53,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,12 +105,12 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testImportSingleEventData() throws IOException
+    public void testCreateSingleEventData() throws IOException
     {
         TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        assertFalse( trackerBundle.getEvents().isEmpty() );
+        assertEquals( 8, trackerBundle.getEvents().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
             .setEvents( trackerBundle.getEvents() ) );
@@ -119,5 +121,25 @@ public class TrackerBundleServiceTest
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
+    }
+
+    @Test
+    public void testUpdateSingleEventData() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
+            .setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .setEvents( trackerBundle.getEvents() ) );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        assertEquals( 8, programStageInstanceStore.getAll().size() );
+
+        trackerBundles = trackerBundleService.create( new TrackerBundleParams()
+            .setEvents( trackerBundle.getEvents() ) );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+        assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }
