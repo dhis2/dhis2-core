@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -54,6 +55,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -229,7 +231,8 @@ public class EventTrackerConverterService
                 programStageInstance.setLastUpdated( now );
                 programStageInstance.setLastUpdatedAtClient( now );
 
-                programStageInstance.setProgramInstance( getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
+                programStageInstance.setProgramInstance(
+                    getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
             }
 
             if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
@@ -241,7 +244,8 @@ public class EventTrackerConverterService
             programStageInstance.setOrganisationUnit( organisationUnit );
             programStageInstance.setExecutionDate( DateUtils.parseDate( e.getEventDate() ) );
             programStageInstance.setDueDate( DateUtils.parseDate( e.getDueDate() ) );
-            // programStageInstance.setAttributeOptionCombo(  ); TODO
+            programStageInstance.setAttributeOptionCombo(
+                preheat.get( TrackerIdentifier.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );
             programStageInstance.setStatus( e.getStatus() );
             programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getCreatedAtClient() ) );
@@ -259,6 +263,22 @@ public class EventTrackerConverterService
                 programStageInstance.setCompletedDate( completedDate );
                 programStageInstance.setCompletedBy( e.getCompletedBy() );
             }
+
+            // data values
+            Set<EventDataValue> eventDataValues = new HashSet<>();
+
+            e.getDataValues().forEach( dv -> {
+                EventDataValue dataValue = new EventDataValue();
+                dataValue.setAutoFields();
+                dataValue.setDataElement( dv.getDataElement() );
+                dataValue.setValue( dv.getValue() );
+                dataValue.setProvidedElsewhere( dv.getProvidedElsewhere() );
+                dataValue.setStoredBy( dv.getStoredBy() );
+
+                eventDataValues.add( dataValue );
+            } );
+
+            programStageInstance.setEventDataValues( eventDataValues );
 
             programStageInstances.add( programStageInstance );
         } );
