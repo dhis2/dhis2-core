@@ -268,10 +268,8 @@ public class EventTrackerConverterService
             Set<EventDataValue> eventDataValues = new HashSet<>();
 
             e.getDataValues().forEach( dv -> {
-                EventDataValue dataValue = new EventDataValue();
+                EventDataValue dataValue = new EventDataValue( dv.getDataElement(), dv.getValue() );
                 dataValue.setAutoFields();
-                dataValue.setDataElement( dv.getDataElement() );
-                dataValue.setValue( dv.getValue() );
                 dataValue.setProvidedElsewhere( dv.getProvidedElsewhere() );
                 dataValue.setStoredBy( dv.getStoredBy() );
 
