@@ -60,8 +60,6 @@ public class JobConfigurationObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
-    private static final int SUCCESS = 1;
-
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -130,7 +128,7 @@ public class JobConfigurationObjectBundleHook
         JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
         if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
         {
-            if ( !Objects.equals( persitedJobConfiguration.compareTo( jobConfiguration ), SUCCESS ) )
+            if ( persitedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
                 errorReports
                     .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
@@ -173,7 +171,13 @@ public class JobConfigurationObjectBundleHook
         ErrorReport jobValidation = job.validate();
         if ( jobValidation != null )
         {
-            errorReports.add( jobValidation );
+            // If the error is caused by the environment and the job is a non configurable job
+            // that exists already, then the error can be ignored. Job has the issue with and
+            // without updating it.
+            if ( (jobValidation.getErrorCode() != ErrorCode.E7010) || (persitedJobConfiguration == null) || jobConfiguration.isConfigurable() )
+            {
+                errorReports.add( jobValidation );
+            }
         }
 
         return errorReports;
