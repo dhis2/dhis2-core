@@ -227,10 +227,10 @@ public class DataApprovalLevelServiceTest
     @Test
     public void testDeleteDataApprovalLevel()
     {
-        int id1 = dataApprovalLevelService.addDataApprovalLevel( level1A, 1 );
-        int id2 = dataApprovalLevelService.addDataApprovalLevel( level2B, 2 );
-        int id3 = dataApprovalLevelService.addDataApprovalLevel( level3C, 3 );
-        int id4 = dataApprovalLevelService.addDataApprovalLevel( level4D, 4 );
+        long id1 = dataApprovalLevelService.addDataApprovalLevel( level1A, 1 );
+        long id2 = dataApprovalLevelService.addDataApprovalLevel( level2B, 2 );
+        long id3 = dataApprovalLevelService.addDataApprovalLevel( level3C, 3 );
+        long id4 = dataApprovalLevelService.addDataApprovalLevel( level4D, 4 );
 
         assertNotNull( dataApprovalLevelService.getDataApprovalLevel( id1 ) );
         assertNotNull( dataApprovalLevelService.getDataApprovalLevel( id2 ) );
@@ -334,11 +334,11 @@ public class DataApprovalLevelServiceTest
     @Test
     public void testMoveDown()
     {
-        int id1 = dataApprovalLevelService.addDataApprovalLevel( level1, 1 );
-        int id2 = dataApprovalLevelService.addDataApprovalLevel( level1A, 2 );
-        int id3 = dataApprovalLevelService.addDataApprovalLevel( level1B, 3 );
-        int id4 = dataApprovalLevelService.addDataApprovalLevel( level1C, 4 );
-        int id5 = dataApprovalLevelService.addDataApprovalLevel( level1D, 5 );
+        long id1 = dataApprovalLevelService.addDataApprovalLevel( level1, 1 );
+        long id2 = dataApprovalLevelService.addDataApprovalLevel( level1A, 2 );
+        long id3 = dataApprovalLevelService.addDataApprovalLevel( level1B, 3 );
+        long id4 = dataApprovalLevelService.addDataApprovalLevel( level1C, 4 );
+        long id5 = dataApprovalLevelService.addDataApprovalLevel( level1D, 5 );
 
         assertEquals( 1, dataApprovalLevelService.getDataApprovalLevel( id1 ).getLevel() );
         assertEquals( 2, dataApprovalLevelService.getDataApprovalLevel( id2 ).getLevel() );
@@ -358,11 +358,11 @@ public class DataApprovalLevelServiceTest
     @Test
     public void testMoveUp()
     {
-        int id1 = dataApprovalLevelService.addDataApprovalLevel( level1, 1 );
-        int id2 = dataApprovalLevelService.addDataApprovalLevel( level1A, 2 );
-        int id3 = dataApprovalLevelService.addDataApprovalLevel( level1B, 3 );
-        int id4 = dataApprovalLevelService.addDataApprovalLevel( level1C, 4 );
-        int id5 = dataApprovalLevelService.addDataApprovalLevel( level1D, 5 );
+        long id1 = dataApprovalLevelService.addDataApprovalLevel( level1, 1 );
+        long id2 = dataApprovalLevelService.addDataApprovalLevel( level1A, 2 );
+        long id3 = dataApprovalLevelService.addDataApprovalLevel( level1B, 3 );
+        long id4 = dataApprovalLevelService.addDataApprovalLevel( level1C, 4 );
+        long id5 = dataApprovalLevelService.addDataApprovalLevel( level1D, 5 );
 
         assertEquals( 1, dataApprovalLevelService.getDataApprovalLevel( id1 ).getLevel() );
         assertEquals( 2, dataApprovalLevelService.getDataApprovalLevel( id2 ).getLevel() );

@@ -48,7 +48,7 @@ public interface TrackedEntityTypeService
      * @return A generated unique id of the added
      *         {@link TrackedEntityType}.
      */
-    int addTrackedEntityType( TrackedEntityType trackedEntityType );
+    long addTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Deletes a {@link TrackedEntityType}.
@@ -73,7 +73,7 @@ public interface TrackedEntityTypeService
      * 
      * @return the TrackedEntityType with the given id
      */
-    TrackedEntityType getTrackedEntityType( int id );
+    TrackedEntityType getTrackedEntityType( long id );
 
     /**
      * Returns a {@link TrackedEntityType}.

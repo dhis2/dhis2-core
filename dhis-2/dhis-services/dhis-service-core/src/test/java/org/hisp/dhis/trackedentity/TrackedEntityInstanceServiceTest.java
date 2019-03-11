@@ -79,8 +79,8 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testSaveTrackedEntityInstance()
     {
-        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        long idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
@@ -89,8 +89,8 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testDeleteTrackedEntityInstance()
     {
-        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        long idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
@@ -109,7 +109,7 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testUpdateTrackedEntityInstance()
     {
-        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
 
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
 
@@ -122,8 +122,8 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testGetTrackedEntityInstanceById()
     {
-        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        long idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
         assertEquals( entityInstanceA1, entityInstanceService.getTrackedEntityInstance( idA ) );
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( idB ) );

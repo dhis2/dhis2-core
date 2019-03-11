@@ -39,7 +39,7 @@ public class User
 {
     private String clientVersion;
 
-    private int id;
+    private long id;
 
     private String surname;
 
@@ -49,7 +49,7 @@ public class User
     {
     }
 
-    public User( int id, String surname, String firstName )
+    public User( long id, String surname, String firstName )
     {
         super();
         this.id = id;
@@ -68,12 +68,12 @@ public class User
     }
 
     @XmlAttribute
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -104,7 +104,7 @@ public class User
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.surname );
         dout.writeUTF( this.firstName );
 
@@ -114,7 +114,7 @@ public class User
     public void deSerialize( DataInputStream din )
         throws IOException
     {
-        id = din.readInt();
+        id = din.readLong();
         surname = din.readUTF();
         firstName = din.readUTF();
     }
@@ -123,7 +123,7 @@ public class User
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.surname );
         dout.writeUTF( this.firstName );
     }
@@ -132,7 +132,7 @@ public class User
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.surname );
         dout.writeUTF( this.firstName );
     }
@@ -141,7 +141,7 @@ public class User
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.surname );
         dout.writeUTF( this.firstName );
 

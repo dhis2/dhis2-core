@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface DeletedObjectStore
 {
-    int save( DeletedObject deletedObject );
+    long save( DeletedObject deletedObject );
 
     void delete( DeletedObject deletedObject );
 

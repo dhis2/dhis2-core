@@ -42,7 +42,7 @@ public interface ConstantService
     // Concept
     // -------------------------------------------------------------------------
 
-    int saveConstant( Constant constant );
+    long saveConstant( Constant constant );
 
     void deleteConstant( Constant constant );
 

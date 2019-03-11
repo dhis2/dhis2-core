@@ -444,7 +444,7 @@ public class SMSCommandServiceTest extends DhisSpringTest
 
         List<SMSCommand> commands = smsCommandService.getSMSCommands();
 
-        int id = commands.iterator().next().getId();
+        long id = commands.iterator().next().getId();
 
         SMSCommand fetched = smsCommandService.getSMSCommand( id );
 

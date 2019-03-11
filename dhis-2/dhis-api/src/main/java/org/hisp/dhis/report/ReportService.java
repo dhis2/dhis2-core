@@ -95,7 +95,7 @@ public interface ReportService
      * @param report the Report to save.
      * @return the generated identifier.
      */
-    int saveReport( Report report );
+    long saveReport( Report report );
 
     /**
      * Retrieves the Report with the given identifier.
@@ -103,7 +103,7 @@ public interface ReportService
      * @param id the identifier of the Report to retrieve.
      * @return the Report.
      */
-    Report getReport( int id );
+    Report getReport( long id );
 
     /**
      * Retrieves the Report with the given uid.

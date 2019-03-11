@@ -63,7 +63,7 @@ public class DefaultSectionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addSection( Section section )
+    public long addSection( Section section )
     {
         sectionStore.save( section );
 
@@ -83,7 +83,7 @@ public class DefaultSectionService
     }
 
     @Override
-    public Section getSection( int id )
+    public Section getSection( long id )
     {
         return sectionStore.get( id );
     }

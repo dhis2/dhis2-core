@@ -90,9 +90,9 @@ public class GetDocumentAction
         return attributes;
     }
 
-    private Map<Integer, String> attributeValues = new HashMap<>();
+    private Map<Long, String> attributeValues = new HashMap<>();
 
-    public Map<Integer, String> getAttributeValues()
+    public Map<Long, String> getAttributeValues()
     {
         return attributeValues;
     }

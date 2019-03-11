@@ -40,7 +40,7 @@ public interface SectionService
      * @param section the Section to add.
      * @return the generated identifier.
      */
-    int addSection( Section section );
+    long addSection( Section section );
 
     /**
      * Updates a Section.
@@ -62,7 +62,7 @@ public interface SectionService
      * @param id the identifier of the Section to retrieve.
      * @return the Section.
      */
-    Section getSection( int id );
+    Section getSection( long id );
 
     /**
      * Retrieves the Section with the given identifier (uid).

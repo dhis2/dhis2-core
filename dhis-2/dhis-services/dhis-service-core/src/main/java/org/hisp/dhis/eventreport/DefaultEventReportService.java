@@ -61,7 +61,7 @@ public class DefaultEventReportService
     }
     
     @Override
-    public int saveEventReport( EventReport report )
+    public long saveEventReport( EventReport report )
     {
         eventReportStore.save( report );
         return report.getId();
@@ -74,7 +74,7 @@ public class DefaultEventReportService
     }
     
     @Override
-    public EventReport getEventReport( int id )
+    public EventReport getEventReport( long id )
     {
         return eventReportStore.get( id );
     }

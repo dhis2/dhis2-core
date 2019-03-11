@@ -239,29 +239,29 @@ public interface StatementBuilder
      * Generates a derived table containing literals in two columns: integer
      * and string.
      *
-     * @param intValues (non-empty) Integer values for the derived table
+     * @param longValue (non-empty) Integer values for the derived table
      * @param strValues (same size) String values for the derived table
      * @param table the desired table name alias
-     * @param intColumn the desired integer column name
+     * @param longColumn the desired integer column name
      * @param strColumn the desired string column name
      * @return the derived literal table
      */
-    String literalIntStringTable( List<Integer> intValues,
-        List<String> strValues, String table, String intColumn, String strColumn );
+    String literalLongStringTable( List<Long> longValue,
+        List<String> strValues, String table, String longColumn, String strColumn );
 
     /**
      * Generates a derived table containing literals in two columns: integer
      * and integer.
      *
-     * @param int1Values (non-empty) 1st integer column values for the table
-     * @param int2Values (same size) 2nd integer column values for the table
+     * @param long1Values (non-empty) 1st integer column values for the table
+     * @param long2Values (same size) 2nd integer column values for the table
      * @param table the desired table name alias
-     * @param int1Column the desired 1st integer column name
-     * @param int2Column the desired 2nd integer column name
+     * @param long1Column the desired 1st integer column name
+     * @param long2Column the desired 2nd integer column name
      * @return the derived literal table
      */
-    String literalIntIntTable( List<Integer> int1Values,
-        List<Integer> int2Values, String table, String int1Column, String int2Column );
+    String literalLongLongTable( List<Long> long1Values,
+        List<Long> long2Values, String table, String long1Column, String long2Column );
 
     /**
      * Indicates whether the DBMS supports partial indexes (index statements with

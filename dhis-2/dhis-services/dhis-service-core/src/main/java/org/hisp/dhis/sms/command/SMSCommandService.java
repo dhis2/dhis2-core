@@ -39,7 +39,7 @@ public interface SMSCommandService
 {
     List<SMSCommand> getSMSCommands();
 
-    SMSCommand getSMSCommand( int id );
+    SMSCommand getSMSCommand( long id );
 
     void save( SMSCommand cmd );
 
@@ -49,13 +49,13 @@ public interface SMSCommandService
 
     SMSCommand getSMSCommand( String commandName, ParserType parserType );
 
-    void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
+    void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId );
 
-    void addSmsCodes( Set<SMSCode> codes, int commandId );
+    void addSmsCodes( Set<SMSCode> codes, long commandId );
 
-    void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
+    void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId );
 
-    void deleteCodeSet( Set<SMSCode> codes, int commandId );
+    void deleteCodeSet( Set<SMSCode> codes, long commandId );
 
     int countDataSetSmsCommands( DataSet dataSet );
 

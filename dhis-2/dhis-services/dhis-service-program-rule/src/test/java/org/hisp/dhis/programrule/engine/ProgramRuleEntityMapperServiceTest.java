@@ -40,10 +40,10 @@ import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import static org.junit.Assert.*;
 
@@ -55,8 +55,6 @@ import java.util.List;
 /**
  * @Author Zubair Asghar.
  */
-
-@RunWith( MockitoJUnitRunner.class )
 public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
     private List<ProgramRule> programRules = new ArrayList<>();
@@ -74,7 +72,9 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private ProgramRuleVariable programRuleVariableA = null;
     private ProgramRuleVariable programRuleVariableB = null;
-    private ProgramRuleVariable programRuleVariableD = null;
+
+    @org.junit.Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramRuleService programRuleService;
@@ -145,7 +145,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         programRuleVariables.add( programRuleVariableA );
         programRuleVariables.add( programRuleVariableB );
-        programRuleVariables.add( programRuleVariableD );
 
         programRuleA = createProgramRule( 'A', program );
         programRuleB = createProgramRule( 'B', program );

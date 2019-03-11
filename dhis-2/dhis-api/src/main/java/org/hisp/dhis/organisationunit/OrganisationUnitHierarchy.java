@@ -49,19 +49,19 @@ public class OrganisationUnitHierarchy
     /**
      * Contains mappings between parent and immediate children.
      */
-    private Map<Integer, Set<Integer>> relationships = new HashMap<>();
+    private Map<Long, Set<Long>> relationships = new HashMap<>();
 
-    private Map<Integer, Set<Integer>> subTrees = new HashMap<>();
+    private Map<Long, Set<Long>> subTrees = new HashMap<>();
     
     // Key is on format "parent id:group id"
     
-    private Map<String, Set<Integer>> groupSubTrees = new HashMap<>();
+    private Map<String, Set<Long>> groupSubTrees = new HashMap<>();
     
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public OrganisationUnitHierarchy( Map<Integer, Set<Integer>> relationships )
+    public OrganisationUnitHierarchy( Map<Long, Set<Long>> relationships )
     {
         this.relationships = relationships;
     }
@@ -75,7 +75,7 @@ public class OrganisationUnitHierarchy
                 continue; // Parent cannot be same as child
             }
             
-            Set<Integer> children = relationships.get( relation.getParentId() );
+            Set<Long> children = relationships.get( relation.getParentId() );
             
             if ( children == null )
             {
@@ -146,16 +146,16 @@ public class OrganisationUnitHierarchy
     // Get children
     // -------------------------------------------------------------------------
 
-    public Set<Integer> getChildren( int parentId )
+    public Set<Long> getChildren( long parentId )
     {
-        Set<Integer> preparedChildren = subTrees.get( parentId );
+        Set<Long> preparedChildren = subTrees.get( parentId );
         
         if ( preparedChildren != null )
         {
             return new HashSet<>( preparedChildren );
         }
         
-        List<Integer> children = new ArrayList<>();
+        List<Long> children = new ArrayList<>();
         
         children.add( 0, parentId ); // Adds parent id to beginning of list
 
@@ -163,7 +163,7 @@ public class OrganisationUnitHierarchy
         
         for ( int i = 0; i < childCounter; i++ )
         {
-            Set<Integer> currentChildren = relationships.get( children.get( i ) );
+            Set<Long> currentChildren = relationships.get( children.get( i ) );
             
             if ( currentChildren != null )
             {
@@ -176,13 +176,13 @@ public class OrganisationUnitHierarchy
         return new HashSet<>( children );
     }
 
-    public Set<Integer> getChildren( Collection<Integer> parentIds )
+    public Set<Long> getChildren( Collection<Long> parentIds )
     {
         int capacity = parentIds.size() + 5;
         
-        Set<Integer> children = new HashSet<>( Math.max( capacity, 16 ) );
+        Set<Long> children = new HashSet<>( Math.max( capacity, 16 ) );
 
-        for ( Integer id : parentIds )
+        for ( Long id : parentIds )
         {
             children.addAll( getChildren( id ) );
         }
@@ -194,14 +194,14 @@ public class OrganisationUnitHierarchy
     // Get children for group
     // -------------------------------------------------------------------------
 
-    public Set<Integer> getChildren( int parentId, OrganisationUnitGroup group )
+    public Set<Long> getChildren( long parentId, OrganisationUnitGroup group )
     {
         if ( group == null )
         {
             return getChildren( parentId );
         }
         
-        Set<Integer> children = groupSubTrees.get( getKey( parentId, group ) );
+        Set<Long> children = groupSubTrees.get( getKey( parentId, group ) );
         
         if ( children != null )
         {
@@ -210,7 +210,7 @@ public class OrganisationUnitHierarchy
         
         children = getChildren( parentId );
         
-        Set<Integer> groupMembers = new HashSet<>();
+        Set<Long> groupMembers = new HashSet<>();
         
         for ( OrganisationUnit unit : group.getMembers() )
         {
@@ -222,7 +222,7 @@ public class OrganisationUnitHierarchy
         return children;
     }
     
-    public Set<Integer> getChildren( Collection<Integer> parentIds, Collection<OrganisationUnitGroup> groups )
+    public Set<Long> getChildren( Collection<Long> parentIds, Collection<OrganisationUnitGroup> groups )
     {
         if ( groups == null )
         {
@@ -231,9 +231,9 @@ public class OrganisationUnitHierarchy
         
         int capacity = ( parentIds.size() * groups.size() ) + 5;
         
-        Set<Integer> children = new HashSet<>( Math.max( capacity, 16 ) );
+        Set<Long> children = new HashSet<>( Math.max( capacity, 16 ) );
         
-        for ( Integer id : parentIds )
+        for ( Long id : parentIds )
         {
             for ( OrganisationUnitGroup group : groups )
             {
@@ -248,7 +248,7 @@ public class OrganisationUnitHierarchy
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private String getKey( int parentId, OrganisationUnitGroup group )
+    private String getKey( long parentId, OrganisationUnitGroup group )
     {
         return parentId + ":" + group.getId();
     }

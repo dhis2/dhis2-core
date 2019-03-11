@@ -60,7 +60,7 @@ public interface ProgramService
      * @param program The to Program add.
      * @return A generated unique id of the added {@link Program}.
      */
-    int addProgram( Program program );
+    long addProgram( Program program );
 
     /**
      * Updates an {@link Program}.
@@ -84,7 +84,7 @@ public interface ProgramService
      * @param id the id of the Program to return.
      * @return the Program with the given id
      */
-    Program getProgram( int id );
+    Program getProgram( long id );
 
     /**
      * Returns all {@link Program}.

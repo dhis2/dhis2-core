@@ -1,3 +1,4 @@
+
 package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -80,7 +81,7 @@ public interface ValidationResultService
      * @param id the validation result identifier.
      * @return a validation result.
      */
-    ValidationResult getById( int id );
+    ValidationResult getById( long id );
 
     List<ValidationResult> getValidationResults( ValidationResultQuery query );
 
