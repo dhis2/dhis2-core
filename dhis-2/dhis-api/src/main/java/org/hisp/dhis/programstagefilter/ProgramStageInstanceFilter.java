@@ -138,7 +138,7 @@ public class ProgramStageInstanceFilter
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrgansiationUnit()
+    public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
     }
