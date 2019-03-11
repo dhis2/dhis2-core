@@ -43,19 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "responseEntity" )
 public class ClickatellResponseEntity
 {
-
     private Map<Object, List<Map<Object, Object>>> data;
-
-    public ClickatellResponseEntity( Map<Object, List<Map<Object, Object>>> data )
-    {
-        super();
-        this.data = data;
-    }
-
-    public ClickatellResponseEntity()
-    {
-        super();
-    }
 
     @JsonProperty( value = "data" )
     @JacksonXmlProperty( localName = "data" )

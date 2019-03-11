@@ -47,7 +47,7 @@ public interface PredictorService
      * @param predictor the Predictor to add.
      * @return the generated unique identifier for the predictor.
      */
-    int addPredictor( Predictor predictor );
+    long addPredictor( Predictor predictor );
 
     /**
      * Update a predictor in the database.
@@ -69,7 +69,7 @@ public interface PredictorService
      * @param id the unique identifier of the predictor.
      * @return the predictor or null if it doesn't exist.
      */
-    Predictor getPredictor( int id );
+    Predictor getPredictor( long id );
 
     /**
      * Get predictor with the given uid.
@@ -96,7 +96,7 @@ public interface PredictorService
      * @param predictorGroup the predictor group to add.
      * @return the generated unique identifier for the predictor group.
      */
-    int addPredictorGroup( PredictorGroup predictorGroup );
+    long addPredictorGroup( PredictorGroup predictorGroup );
 
     /**
      * Delete a predictor group from the database.
@@ -118,7 +118,7 @@ public interface PredictorService
      * @param id the unique identifier of the predictor group.
      * @return the predictor group or null if it doesn't exist.
      */
-    PredictorGroup getPredictorGroup( int id );
+    PredictorGroup getPredictorGroup( long id );
 
     /**
      * Get predictor group with the given uid.

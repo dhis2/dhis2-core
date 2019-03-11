@@ -75,7 +75,7 @@ private String clientVersion;
         throws IOException
     {
 
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.options.size() );
 
@@ -90,7 +90,7 @@ private String clientVersion;
     public void deSerialize( DataInputStream dint )
         throws IOException
     {
-        int id = dint.readInt();
+        long id = dint.readLong();
         if ( id != 0 )
         {
             this.setId( id );

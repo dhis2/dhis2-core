@@ -681,7 +681,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        List<Integer> accessibleOptions = new ArrayList<>();
+        List<Long> accessibleOptions = new ArrayList<>();
 
         for ( CategoryOption option : optionCombo.getCategoryOptions() )
         {

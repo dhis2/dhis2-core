@@ -55,7 +55,7 @@ public class DefaultPredictorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addPredictor( Predictor predictor )
+    public long addPredictor( Predictor predictor )
     {
         predictorStore.save( predictor );
         return predictor.getId();
@@ -74,7 +74,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Predictor getPredictor( int id )
+    public Predictor getPredictor( long id )
     {
         return predictorStore.get( id );
     }
@@ -95,7 +95,7 @@ public class DefaultPredictorService
     // Predictor group
     // -------------------------------------------------------------------------
 
-    public int addPredictorGroup( PredictorGroup predictorGroup )
+    public long addPredictorGroup( PredictorGroup predictorGroup )
     {
         predictorGroupStore.save( predictorGroup );
 
@@ -115,7 +115,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public PredictorGroup getPredictorGroup( int id )
+    public PredictorGroup getPredictorGroup( long id )
     {
         return predictorGroupStore.get( id );
     }

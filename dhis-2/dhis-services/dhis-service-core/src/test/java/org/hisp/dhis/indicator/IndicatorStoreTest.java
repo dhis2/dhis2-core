@@ -78,9 +78,9 @@ public class IndicatorStoreTest
         IndicatorType typeB = new IndicatorType( "IndicatorTypeB", 1, false );
 
         indicatorTypeStore.save( typeA );
-        int idA = typeA.getId();
+        long idA = typeA.getId();
         indicatorTypeStore.save( typeB );
-        int idB = typeB.getId();
+        long idB = typeB.getId();
 
         typeA = indicatorTypeStore.get( idA );
         assertNotNull( typeA );
@@ -96,7 +96,7 @@ public class IndicatorStoreTest
     {
         IndicatorType typeA = new IndicatorType( "IndicatorTypeA", 100, false );
         indicatorTypeStore.save( typeA );
-        int idA = typeA.getId();
+        long idA = typeA.getId();
         typeA = indicatorTypeStore.get( idA );
         assertEquals( typeA.getName(), "IndicatorTypeA" );
 
@@ -114,9 +114,9 @@ public class IndicatorStoreTest
         IndicatorType typeB = new IndicatorType( "IndicatorTypeB", 1, false );
 
         indicatorTypeStore.save( typeA );
-        int idA = typeA.getId();
+        long idA = typeA.getId();
         indicatorTypeStore.save( typeB );
-        int idB = typeB.getId();
+        long idB = typeB.getId();
 
         assertNotNull( indicatorTypeStore.get( idA ) );
         assertNotNull( indicatorTypeStore.get( idB ) );
@@ -155,9 +155,9 @@ public class IndicatorStoreTest
         IndicatorType typeB = new IndicatorType( "IndicatorTypeB", 1, false );
 
         indicatorTypeStore.save( typeA );
-        int idA = typeA.getId();
+        long idA = typeA.getId();
         indicatorTypeStore.save( typeB );
-        int idB = typeB.getId();
+        long idB = typeB.getId();
 
         assertNotNull( indicatorTypeStore.get( idA ) );
         assertNotNull( indicatorTypeStore.get( idB ) );
@@ -186,9 +186,9 @@ public class IndicatorStoreTest
         Indicator indicatorB = createIndicator( 'B', type );
 
         indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
+        long idA = indicatorA.getId();
         indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
+        long idB = indicatorB.getId();
 
         indicatorA = indicatorStore.get( idA );
         assertNotNull( indicatorA );
@@ -208,7 +208,7 @@ public class IndicatorStoreTest
 
         Indicator indicatorA = createIndicator( 'A', type );
         indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
+        long idA = indicatorA.getId();
         indicatorA = indicatorStore.get( idA );
         assertEq( 'A', indicatorA );
 
@@ -231,11 +231,11 @@ public class IndicatorStoreTest
         Indicator indicatorC = createIndicator( 'C', type );
 
         indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
+        long idA = indicatorA.getId();
         indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
+        long idB = indicatorB.getId();
         indicatorStore.save( indicatorC );
-        int idC = indicatorC.getId();
+        long idC = indicatorC.getId();
 
         assertNotNull( indicatorStore.get( idA ) );
         assertNotNull( indicatorStore.get( idB ) );
@@ -280,9 +280,9 @@ public class IndicatorStoreTest
         Indicator indicatorB = createIndicator( 'B', type );
 
         indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
+        long idA = indicatorA.getId();
         indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
+        long idB = indicatorB.getId();
 
         assertNotNull( indicatorStore.get( idA ) );
         assertNotNull( indicatorStore.get( idB ) );

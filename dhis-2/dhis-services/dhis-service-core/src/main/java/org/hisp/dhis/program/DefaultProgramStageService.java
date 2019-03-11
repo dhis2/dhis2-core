@@ -56,7 +56,7 @@ public class DefaultProgramStageService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveProgramStage( ProgramStage programStage )
+    public long saveProgramStage( ProgramStage programStage )
     {
         programStageStore.save( programStage );
         return programStage.getId();
@@ -69,7 +69,7 @@ public class DefaultProgramStageService
     }
 
     @Override
-    public ProgramStage getProgramStage( int id )
+    public ProgramStage getProgramStage( long id )
     {
         return programStageStore.get( id );
     }

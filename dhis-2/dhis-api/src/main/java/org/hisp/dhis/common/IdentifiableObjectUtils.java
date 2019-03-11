@@ -117,7 +117,7 @@ public class IdentifiableObjectUtils
      * @param objects the list of IdentifiableObjects.
      * @return a list of identifiers.
      */
-    public static <T extends IdentifiableObject> List<Integer> getIdentifiers( Collection<T> objects )
+    public static <T extends IdentifiableObject> List<Long> getIdentifiers( Collection<T> objects )
     {
         return objects != null ? objects.stream().map( o -> o.getId() ).collect( Collectors.toList() ) : null;
     }
@@ -129,9 +129,9 @@ public class IdentifiableObjectUtils
      * @param objects the collection of IdentifiableObjects
      * @return a map from the object internal identifiers to the objects
      */
-    public static <T extends IdentifiableObject> Map<Integer, T> getIdentifierMap( Collection<T> objects )
+    public static <T extends IdentifiableObject> Map<Long, T> getIdentifierMap( Collection<T> objects )
     {
-        Map<Integer, T> map = new HashMap<>();
+        Map<Long, T> map = new HashMap<>();
 
         for ( T object : objects )
         {

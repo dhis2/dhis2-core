@@ -130,9 +130,9 @@ public class CategoryComboServiceTest
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        int idA = categoryService.addCategoryCombo( categoryComboA );
-        int idB = categoryService.addCategoryCombo( categoryComboB );
-        int idC = categoryService.addCategoryCombo( categoryComboC );
+        long idA = categoryService.addCategoryCombo( categoryComboA );
+        long idB = categoryService.addCategoryCombo( categoryComboB );
+        long idC = categoryService.addCategoryCombo( categoryComboC );
         
         assertEquals( categoryComboA, categoryService.getCategoryCombo( idA ) );
         assertEquals( categoryComboB, categoryService.getCategoryCombo( idB ) );
@@ -150,9 +150,9 @@ public class CategoryComboServiceTest
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        int idA = categoryService.addCategoryCombo( categoryComboA );
-        int idB = categoryService.addCategoryCombo( categoryComboB );
-        int idC = categoryService.addCategoryCombo( categoryComboC );
+        long idA = categoryService.addCategoryCombo( categoryComboA );
+        long idB = categoryService.addCategoryCombo( categoryComboB );
+        long idC = categoryService.addCategoryCombo( categoryComboC );
         
         assertNotNull( categoryService.getCategoryCombo( idA ) );
         assertNotNull( categoryService.getCategoryCombo( idB ) );

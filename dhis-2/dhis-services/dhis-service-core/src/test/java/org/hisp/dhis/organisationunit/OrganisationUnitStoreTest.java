@@ -326,9 +326,9 @@ public class OrganisationUnitStoreTest
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
         orgUnitLevelStore.save( levelA );
-        int idA = levelA.getId();
+        long idA = levelA.getId();
         orgUnitLevelStore.save( levelB );
-        int idB = levelB.getId();
+        long idB = levelB.getId();
 
         assertEquals( levelA, orgUnitLevelStore.get( idA ) );
         assertEquals( levelB, orgUnitLevelStore.get( idB ) );
@@ -358,9 +358,9 @@ public class OrganisationUnitStoreTest
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
         orgUnitLevelStore.save( levelA );
-        int idA = levelA.getId();
+        long idA = levelA.getId();
         orgUnitLevelStore.save( levelB );
-        int idB = levelB.getId();
+        long idB = levelB.getId();
 
         assertNotNull( orgUnitLevelStore.get( idA ) );
         assertNotNull( orgUnitLevelStore.get( idB ) );

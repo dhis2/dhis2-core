@@ -767,7 +767,7 @@ public class ExpressionService2Test {
     {
 
         Expression expression = rnd.randomObject( Expression.class );
-        int id = target.addExpression( expression );
+        long id = target.addExpression( expression );
         assertThat( id, is( expression.getId() ) );
         verify( hibernateGenericStore ).save( expression );
 

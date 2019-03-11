@@ -93,7 +93,7 @@ DefaultMetadataVersionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addVersion( MetadataVersion version )
+    public long addVersion( MetadataVersion version )
     {
         versionStore.save( version );
 
@@ -107,7 +107,7 @@ DefaultMetadataVersionService
     }
 
     @Override
-    public void updateVersionName( int id, String name )
+    public void updateVersionName( long id, String name )
     {
         MetadataVersion version = getVersionById( id );
 
@@ -125,7 +125,7 @@ DefaultMetadataVersionService
     }
 
     @Override
-    public MetadataVersion getVersionById( int id )
+    public MetadataVersion getVersionById( long id )
     {
         return versionStore.getVersionByKey( id );
     }

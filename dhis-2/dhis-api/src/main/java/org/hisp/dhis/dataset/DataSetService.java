@@ -58,7 +58,7 @@ public interface DataSetService
      * @param dataSet The DataSet to add.
      * @return The generated unique identifier for this DataSet.
      */
-    int addDataSet( DataSet dataSet );
+    long addDataSet( DataSet dataSet );
 
     /**
      * Updates a DataSet.
@@ -80,7 +80,7 @@ public interface DataSetService
      * @param id The unique identifier for the DataSet to get.
      * @return The DataSet with the given id or null if it does not exist.
      */
-    DataSet getDataSet( int id );
+    DataSet getDataSet( long id );
 
     /**
      * Returns the DataSet with the given UID.
@@ -173,7 +173,7 @@ public interface DataSetService
      * @param lockException LockException instance to add
      * @return Database ID of LockException
      */
-    int addLockException( LockException lockException );
+    long addLockException( LockException lockException );
 
     /**
      * Update lock exception
@@ -195,7 +195,7 @@ public interface DataSetService
      * @param id ID of LockException to get
      * @return LockException with given ID, or null if not found
      */
-    LockException getLockException( int id );
+    LockException getLockException( long id );
 
     /**
      * Get number of LockExceptions in total

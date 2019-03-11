@@ -140,7 +140,7 @@ public class ValidationNotificationServiceTest
         ).then( invocation ->
                 {
                     sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                    return 42;
+                    return 42l;
                 }
         );
 

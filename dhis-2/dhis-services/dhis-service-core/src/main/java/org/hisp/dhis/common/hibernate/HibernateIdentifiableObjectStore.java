@@ -340,7 +340,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final T get( int id )
+    public final T get( long id )
     {
         T object = getSession().get( getClazz(), id );
 
@@ -708,7 +708,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public List<T> getById( Collection<Integer> ids )
+    public List<T> getById( Collection<Long> ids )
     {
         if ( ids == null || ids.isEmpty() )
         {

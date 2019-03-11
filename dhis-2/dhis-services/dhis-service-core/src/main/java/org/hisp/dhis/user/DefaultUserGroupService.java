@@ -81,7 +81,7 @@ public class DefaultUserGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserGroup( UserGroup userGroup )
+    public long addUserGroup( UserGroup userGroup )
     {
         userGroupStore.save( userGroup );
         return userGroup.getId();
@@ -110,7 +110,7 @@ public class DefaultUserGroupService
     }
 
     @Override
-    public UserGroup getUserGroup( int userGroupId )
+    public UserGroup getUserGroup( long userGroupId )
     {
         return userGroupStore.get( userGroupId );
     }

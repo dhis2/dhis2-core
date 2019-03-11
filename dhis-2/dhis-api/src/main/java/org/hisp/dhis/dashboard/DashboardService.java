@@ -61,13 +61,13 @@ public interface DashboardService
 
     void mergeDashboardItem( DashboardItem item );
 
-    int saveDashboard( Dashboard dashboard );
+    long saveDashboard( Dashboard dashboard );
 
     void updateDashboard( Dashboard dashboard );
 
     void deleteDashboard( Dashboard dashboard );
 
-    Dashboard getDashboard( int id );
+    Dashboard getDashboard( long id );
 
     Dashboard getDashboard( String uid );
 

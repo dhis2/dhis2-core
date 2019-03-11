@@ -53,7 +53,7 @@ public interface UserService
      * @param user the User to add.
      * @return the generated identifier.
      */
-    int addUser( User user );
+    long addUser( User user );
 
     /**
      * Updates a User.
@@ -68,7 +68,7 @@ public interface UserService
      * @param id the identifier of the User to retrieve.
      * @return the User.
      */
-    User getUser( int id );
+    User getUser( long id );
 
     /**
      * Retrieves the User with the given unique identifier.
@@ -176,7 +176,7 @@ public interface UserService
      * @param userCredentials the UserCredentials to add.
      * @return the User which the UserCredentials is associated with.
      */
-    int addUserCredentials( UserCredentials userCredentials );
+    long addUserCredentials( UserCredentials userCredentials );
 
     /**
      * Updates a UserCredentials.
@@ -270,7 +270,7 @@ public interface UserService
      * @param userAuthorityGroup the UserAuthorityGroup.
      * @return the generated identifier.
      */
-    int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
 
     /**
      * Updates a UserAuthorityGroup.
@@ -285,7 +285,7 @@ public interface UserService
      * @param id the identifier of the UserAuthorityGroup to retrieve.
      * @return the UserAuthorityGroup.
      */
-    UserAuthorityGroup getUserAuthorityGroup( int id );
+    UserAuthorityGroup getUserAuthorityGroup( long id );
 
     /**
      * Retrieves the UserAuthorityGroup with the given identifier.

@@ -72,7 +72,7 @@ public class DefaultJobConfigurationService
     private SessionFactory sessionFactory;
 
     @Override
-    public int addJobConfiguration( JobConfiguration jobConfiguration )
+    public long addJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
@@ -101,7 +101,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    public int updateJobConfiguration( JobConfiguration jobConfiguration )
+    public long updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
@@ -132,7 +132,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    public JobConfiguration getJobConfiguration( int jobId )
+    public JobConfiguration getJobConfiguration( long jobId )
     {
         return jobConfigurationStore.get( jobId );
     }

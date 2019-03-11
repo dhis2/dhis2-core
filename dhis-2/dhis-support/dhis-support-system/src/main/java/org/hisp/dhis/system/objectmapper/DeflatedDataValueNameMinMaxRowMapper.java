@@ -64,14 +64,14 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 public class DeflatedDataValueNameMinMaxRowMapper
     implements RowMapper<DeflatedDataValue>, org.springframework.jdbc.core.RowMapper<DeflatedDataValue>
 {
-    private Map<Integer, Integer> minMap;
-    private Map<Integer, Integer> maxMap;
+    private Map<Long, Integer> minMap;
+    private Map<Long, Integer> maxMap;
     
     public DeflatedDataValueNameMinMaxRowMapper()
     {
     }
     
-    public DeflatedDataValueNameMinMaxRowMapper( Map<Integer, Integer> minMap, Map<Integer, Integer> maxMap )
+    public DeflatedDataValueNameMinMaxRowMapper( Map<Long, Integer> minMap, Map<Long, Integer> maxMap )
     {
         this.minMap = minMap;
         this.maxMap = maxMap;

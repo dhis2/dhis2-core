@@ -429,7 +429,7 @@ public class OrganisationUnit
         return null;
     }
 
-    public Integer getGroupIdInGroupSet( OrganisationUnitGroupSet groupSet )
+    public Long getGroupIdInGroupSet( OrganisationUnitGroupSet groupSet )
     {
         final OrganisationUnitGroup group = getGroupInGroupSet( groupSet );
 

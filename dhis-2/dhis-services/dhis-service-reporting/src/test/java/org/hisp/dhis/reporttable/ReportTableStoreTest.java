@@ -199,11 +199,11 @@ public class ReportTableStoreTest
             false, false, true, relativesC, null, "january_2000" );
         
         reportTableStore.save( reportTableA );
-        int idA = reportTableA.getId();
+        long idA = reportTableA.getId();
         reportTableStore.save( reportTableB );
-        int idB = reportTableB.getId();
+        long idB = reportTableB.getId();
         reportTableStore.save( reportTableC );
-        int idC = reportTableC.getId();
+        long idC = reportTableC.getId();
 
         reportTableA = reportTableStore.get( idA );
         reportTableB = reportTableStore.get( idB );
@@ -238,9 +238,9 @@ public class ReportTableStoreTest
             false, false, true, relativesB, null, "january_2000" );
         
         reportTableStore.save( reportTableA );
-        int idA = reportTableA.getId();
+        long idA = reportTableA.getId();
         reportTableStore.save( reportTableB );
-        int idB = reportTableB.getId();
+        long idB = reportTableB.getId();
 
         assertNotNull( reportTableStore.get( idA ) );
         assertNotNull( reportTableStore.get( idB ) );

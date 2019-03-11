@@ -77,7 +77,7 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicator( Indicator indicator )
+    public long addIndicator( Indicator indicator )
     {
         indicatorStore.save( indicator );
 
@@ -97,7 +97,7 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public Indicator getIndicator( int id )
+    public Indicator getIndicator( long id )
     {
         return indicatorStore.get( id );
     }
@@ -137,7 +137,7 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorType( IndicatorType indicatorType )
+    public long addIndicatorType( IndicatorType indicatorType )
     {
         indicatorTypeStore.save( indicatorType );
 
@@ -157,7 +157,7 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public IndicatorType getIndicatorType( int id )
+    public IndicatorType getIndicatorType( long id )
     {
         return indicatorTypeStore.get( id );
     }
@@ -179,7 +179,7 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorGroup( IndicatorGroup indicatorGroup )
+    public long addIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         indicatorGroupStore.save( indicatorGroup );
 
@@ -199,7 +199,7 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public IndicatorGroup getIndicatorGroup( int id )
+    public IndicatorGroup getIndicatorGroup( long id )
     {
         return indicatorGroupStore.get( id );
     }
@@ -221,7 +221,7 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorGroupSet( IndicatorGroupSet groupSet )
+    public long addIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
         indicatorGroupSetStore.save( groupSet );
 
@@ -241,7 +241,7 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public IndicatorGroupSet getIndicatorGroupSet( int id )
+    public IndicatorGroupSet getIndicatorGroupSet( long id )
     {
         return indicatorGroupSetStore.get( id );
     }

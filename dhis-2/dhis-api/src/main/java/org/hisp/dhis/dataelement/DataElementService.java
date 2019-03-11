@@ -56,7 +56,7 @@ public interface DataElementService
      * @param dataElement the DataElement to add.
      * @return a generated unique id of the added DataElement.
      */
-    int addDataElement( DataElement dataElement );
+    long addDataElement( DataElement dataElement );
 
     /**
      * Updates a DataElement.
@@ -81,7 +81,7 @@ public interface DataElementService
      * @param id the id of the DataElement to return.
      * @return the DataElement with the given id, or null if no match.
      */
-    DataElement getDataElement( int id );
+    DataElement getDataElement( long id );
 
     /**
      * Returns the DataElement with the given UID.
@@ -179,7 +179,7 @@ public interface DataElementService
      * @param dataElementGroup the DataElementGroup to add.
      * @return a generated unique id of the added DataElementGroup.
      */
-    int addDataElementGroup( DataElementGroup dataElementGroup );
+    long addDataElementGroup( DataElementGroup dataElementGroup );
 
     /**
      * Updates a DataElementGroup.
@@ -201,7 +201,7 @@ public interface DataElementService
      * @param id the id of the DataElementGroup to return.
      * @return the DataElementGroup with the given id, or null if no match.
      */
-    DataElementGroup getDataElementGroup( int id );
+    DataElementGroup getDataElementGroup( long id );
 
     /**
      * Returns the data element groups with the given uids.
@@ -247,13 +247,13 @@ public interface DataElementService
     // DataElementGroupSet
     // -------------------------------------------------------------------------
 
-    int addDataElementGroupSet( DataElementGroupSet groupSet );
+    long addDataElementGroupSet( DataElementGroupSet groupSet );
 
     void updateDataElementGroupSet( DataElementGroupSet groupSet );
 
     void deleteDataElementGroupSet( DataElementGroupSet groupSet );
 
-    DataElementGroupSet getDataElementGroupSet( int id );
+    DataElementGroupSet getDataElementGroupSet( long id );
 
     DataElementGroupSet getDataElementGroupSet( String uid );
 

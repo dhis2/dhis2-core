@@ -45,7 +45,7 @@ public interface ProgramRuleVariableService
      * @param programRuleVariable The to ProgramRuleVariable add.
      * @return A generated unique id of the added {@link ProgramRuleVariable}.
      */
-    int addProgramRuleVariable( ProgramRuleVariable programRuleVariable );
+    long addProgramRuleVariable( ProgramRuleVariable programRuleVariable );
 
     /**
      * Deletes a {@link ProgramRuleVariable}
@@ -67,7 +67,7 @@ public interface ProgramRuleVariableService
      * @param id the id of the ProgramRuleVariable to return.
      * @return the ProgramRuleVariable with the given id
      */
-    ProgramRuleVariable getProgramRuleVariable( int id );
+    ProgramRuleVariable getProgramRuleVariable( long id );
 
     /**
      * Returns all {@link ProgramRuleVariable}.
