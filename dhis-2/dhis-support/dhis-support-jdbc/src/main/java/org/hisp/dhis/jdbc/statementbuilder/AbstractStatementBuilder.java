@@ -368,7 +368,7 @@ public abstract class AbstractStatementBuilder
               
             for ( AnalyticsPeriodBoundary boundary : boundaries )
             {
-                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">" : "<" ) +
+                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<" ) +
                     " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
             }
             
