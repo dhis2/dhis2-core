@@ -1,3 +1,5 @@
+set max_locks_per_transaction = 100;
+
 -- datavalueaudit table and its foreign key references
 alter table datavalueaudit alter column datavalueauditid type bigint;
 
@@ -10,13 +12,10 @@ alter table trackedentitydatavalueaudit alter column programstageinstanceid type
 alter table programmessage alter column programstageinstanceid type bigint;
 alter table programnotificationinstance alter column programstageinstanceid type bigint;
 alter table relationshipitem alter column programstageinstanceid type bigint;
-alter table programstageinstance_trackedentityinstances alter column programstageinstanceid type bigint;
-alter table programstageinstance_outboundsms alter column programstageinstanceid type bigint;
 
 -- trackedentityinstance table and its foreign key references
 alter table trackedentityinstance alter column trackedentityinstanceid type bigint;
 alter table trackedentityinstance alter column representativeid type bigint;
-alter table programstageinstance_trackedentityinstances alter column trackedentityinstanceid type bigint;
 alter table trackedentityattributevalue alter column trackedentityinstanceid type bigint;
 alter table trackedentityattributevalueaudit alter column trackedentityinstanceid type bigint;
 alter table programinstance alter column trackedentityinstanceid type bigint;
@@ -24,8 +23,6 @@ alter table programmessage alter column trackedentityinstanceid type bigint;
 alter table programownershiphistory alter column trackedentityinstanceid type bigint;
 alter table programtempownershipaudit alter column trackedentityinstanceid type bigint;
 alter table relationshipitem alter column trackedentityinstanceid type bigint;
-alter table trackedentityaudit alter column trackedentityinstanceid type bigint;
-alter table trackedentityinstanceaudit alter column trackedentityinstanceid type bigint;
 
 -- trackedentityinstanceaudit table and its foreign key references
 alter table trackedentityinstanceaudit alter column trackedentityinstanceauditid type bigint;
