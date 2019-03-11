@@ -35,8 +35,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentityfilter.FilterPeriod;
@@ -62,25 +62,24 @@ public class ProgramStageInstanceFilter
     private static final long serialVersionUID = 1L;
 
     /**
-     * Property indicating program's of programStageInstanceFilter
+     * Property for filtering events by program
      */
     private Program program;
  
     /**
-     * Property indicating program's of programStageInstanceFilter
+     * Property for filtering events by programstage
      */
     private ProgramStage programStage;
 
+    /**
+     * Property for filtering events by organisation unit
+     */
+    private OrganisationUnit organisationUnit;
 
     /**
      * Property indicating description of programStageInstanceFilter
      */
     private String description;
-
-    /**
-     * Property indicating the filter's rendering style
-     */
-    private ObjectStyle style;
 
     /**
      * Property indicating which event status types to filter
@@ -135,6 +134,19 @@ public class ProgramStageInstanceFilter
     {
         this.programStage = programStage;
     }
+    
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrgansiationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -146,18 +158,6 @@ public class ProgramStageInstanceFilter
     public void setDescription( String description )
     {
         this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
     }
 
     @JsonProperty

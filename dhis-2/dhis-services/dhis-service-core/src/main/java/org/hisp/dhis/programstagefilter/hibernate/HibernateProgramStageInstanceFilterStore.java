@@ -31,10 +31,6 @@ package org.hisp.dhis.programstagefilter.hibernate;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore;
-import org.hisp.dhis.user.User;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -43,10 +39,4 @@ import java.util.List;
 public class HibernateProgramStageInstanceFilterStore extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter> implements ProgramStageInstanceFilterStore
 {
 
-    @Override
-    public List<ProgramStageInstanceFilter> get( User user )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "user" ), user ) ) );
-    }
 }

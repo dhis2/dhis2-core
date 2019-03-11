@@ -22,14 +22,14 @@
 
     <property name="description" />
     
-    
-    <property name="style" type="jbObjectStyle" />
-    
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programstageinstancefilter_programid" lazy="false" />
       
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_programstageinstancefilter_programstageid" lazy="false" />
+      
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+      column="organisationunitid" foreign-key="fk_programstageinstancefilter_organisationunitid" lazy="false" />
     
     <property name="eventStatus" length="50">
       <type name="org.hibernate.type.EnumType">

@@ -1,7 +1,5 @@
 package org.hisp.dhis.programstagefilter;
 
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -31,7 +29,6 @@ import java.util.List;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -39,11 +36,5 @@ import org.hisp.dhis.user.User;
  */
 public interface ProgramStageInstanceFilterStore extends IdentifiableObjectStore<ProgramStageInstanceFilter>
 {
-    /**
-     * Gets programStageInstanceFilters created by the user
-     * 
-     * @param user the user who created the filters
-     * @return list of programStageInstanceFilters
-     */
-    List<ProgramStageInstanceFilter> get( User user );
+
 }

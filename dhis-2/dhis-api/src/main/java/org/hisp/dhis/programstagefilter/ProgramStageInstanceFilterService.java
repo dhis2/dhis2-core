@@ -29,7 +29,6 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.util.List;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -67,13 +66,6 @@ public interface ProgramStageInstanceFilterService
      * @return programStageInstanceFilter
      */
     ProgramStageInstanceFilter get( long id );
-    
-    /**
-     * Gets programStageInstanceFilter
-     * @param user user who created the programStageInstanceFilter to be fetched
-     * @return programStageInstanceFilter
-     */
-    List<ProgramStageInstanceFilter> get( User user );
     
     /**
      * Gets all programStageInstanceFilters

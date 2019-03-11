@@ -29,7 +29,6 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.util.List;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -84,9 +83,4 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
         return programStageInstanceFilterStore.getAll();
     }
 
-    @Override
-    public List<ProgramStageInstanceFilter> get( User user )
-    {
-        return programStageInstanceFilterStore.get( user );
-    }
 }
