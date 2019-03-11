@@ -476,6 +476,21 @@ public class TrackerPreheat
         this.trackedEntities = trackedEntities;
     }
 
+    public void putTrackedEntities( TrackerIdentifier identifier, List<TrackedEntityInstance> trackedEntityInstances )
+    {
+        trackedEntityInstances.forEach( te -> putTrackedEntity( identifier, te.getUid(), te ) );
+    }
+
+    private void putTrackedEntity( TrackerIdentifier identifier, String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+    {
+        if ( !trackedEntities.containsKey( identifier ) )
+        {
+            trackedEntities.put( identifier, new HashMap<>() );
+        }
+
+        trackedEntities.get( identifier ).put( trackedEntity, trackedEntityInstance );
+    }
+
     public Map<TrackerIdentifier, Map<String, TrackedEntityAttributeValue>> getTrackedEntityAttributes()
     {
         return trackedEntityAttributes;

@@ -127,6 +127,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
                 {
                     List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances =
                         trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
+                    preheat.putTrackedEntities( TrackerIdentifier.UID, trackedEntityInstances );
                 }
             }
             else if ( klass.isAssignableFrom( Enrollment.class ) )
