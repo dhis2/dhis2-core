@@ -730,7 +730,7 @@ public class DefaultAnalyticsService
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
-            int timeUnits = params.hasFilter( DimensionalObject.PERIOD_DIM_ID ) ? params.getPeriods().size() : 1;
+            int timeUnits = params.hasFilter( DimensionalObject.PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
 
             for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {

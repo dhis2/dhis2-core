@@ -53,7 +53,7 @@ public class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 {
 
     @Test
-    public void metadataContainsOuLevelData()
+    public void verifyReportingRatesValueWhenPeriodIsFilter()
     {
         int timeUnit = 10;
         double expectedReports = 100D;
