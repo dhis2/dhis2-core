@@ -42,11 +42,17 @@ public class GenericHttpGatewayConfig
 
     private String recipientParameter;
 
+    private String payloadTemplate;
+
     private boolean useGet;
-    
+
+    private boolean sendAsUrlParameter = true;
+
+    private ContentType contentType = ContentType.FORM_URL_ENCODED;
+
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
-    @JsonProperty( value = "parameters" )
+    @JsonProperty
     public List<GenericGatewayParameter> getParameters()
     {
         return parameters;
@@ -57,7 +63,7 @@ public class GenericHttpGatewayConfig
         this.parameters = parameters;
     }
 
-    @JsonProperty( value = "messageParameter" )
+    @JsonProperty
     public String getMessageParameter()
     {
         return messageParameter;
@@ -68,7 +74,7 @@ public class GenericHttpGatewayConfig
         this.messageParameter = messageParameter;
     }
 
-    @JsonProperty( value = "recipientParameter" )
+    @JsonProperty
     public String getRecipientParameter()
     {
         return recipientParameter;
@@ -79,7 +85,7 @@ public class GenericHttpGatewayConfig
         this.recipientParameter = recipientParameter;
     }
 
-    @JsonProperty( value = "useGet" )
+    @JsonProperty
     public boolean isUseGet()
     {
         return useGet;
@@ -88,5 +94,38 @@ public class GenericHttpGatewayConfig
     public void setUseGet( boolean useGet )
     {
         this.useGet = useGet;
+    }
+
+    @JsonProperty
+    public String getPayloadTemplate()
+    {
+        return payloadTemplate;
+    }
+
+    public void setPayloadTemplate( String payloadTemplate )
+    {
+        this.payloadTemplate = payloadTemplate;
+    }
+
+    @JsonProperty
+    public ContentType getContentType()
+    {
+        return contentType;
+    }
+
+    public void setContentType( ContentType contentType )
+    {
+        this.contentType = contentType;
+    }
+
+    @JsonProperty
+    public boolean isSendAsUrlParameter()
+    {
+        return sendAsUrlParameter;
+    }
+
+    public void setSendAsUrlParameter( boolean sendAsUrlParameter )
+    {
+        this.sendAsUrlParameter = sendAsUrlParameter;
     }
 }

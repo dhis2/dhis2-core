@@ -28,23 +28,30 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StrSubstitutor;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -79,6 +86,9 @@ public class SimplisticHttpGetGateWay
 {
     private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
 
+    private static final String APPLICATION_FORM_URL_ENCODED = "application/x-www-form-urlencoded";
+    private static final Set<String> TEMPLATE_SUPPORTED_TYPES = Sets.newHashSet( "application/json", "application/xml" );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -110,45 +120,97 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
-        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
-        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+        String contentType = genericConfig.getContentType().getValue();
+        String data = null;
 
-        ResponseEntity<String> responseEntity = null;
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
-        try
-        {
-            URI url = uriBuilder.build().encode().toUri();
+        HttpEntity<String> requestEntity = null;
+        HttpHeaders headers = new HttpHeaders();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
-        }
-        catch ( HttpClientErrorException ex )
+        if ( genericConfig.isSendAsUrlParameter() )
         {
-            log.error( "Client error " + ex.getMessage() );
+            uriBuilder = buildUrl( uriBuilder, genericConfig, text, recipients );
         }
-        catch ( HttpServerErrorException ex )
+        else
         {
-            log.error( "Server error " + ex.getMessage() );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Error " + ex.getMessage() );
+            if ( contentType.equals( APPLICATION_FORM_URL_ENCODED ) )
+            {
+                data = encodedUrlParameters( genericConfig, text, recipients );
+            }
+            else
+            {
+                if ( TEMPLATE_SUPPORTED_TYPES.contains( contentType ) )
+                {
+                    data = draftTemplate( genericConfig, text, recipients );
+                }
+            }
+
+            headers.set( HttpHeaders.CONTENT_TYPE, contentType );
+
+            requestEntity = new HttpEntity<>( data, headers );
         }
 
-        return getResponse( responseEntity );
+        URI url = uriBuilder.build().encode().toUri();
+
+        HttpStatus status = send( url.toString(), requestEntity, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, String.class );
+
+        return  wrapHttpStatus( status );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
+    private String draftTemplate( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> substitutes = parameters.stream().collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) );
+        substitutes.put( config.getMessageParameter(), text );
+        substitutes.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+
+        StrSubstitutor strSubstitutor = new StrSubstitutor( substitutes );
+
+        return strSubstitutor.replace( config.getPayloadTemplate() );
+    }
+
+    private String encodedUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        Map<String, String> requestParams = getUrlParameters( config.getParameters() );
+        requestParams.put(config.getMessageParameter(), text );
+        requestParams.put(config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+
+        return requestParams.entrySet().stream()
+            .map( v -> v.getKey() + "=" + encodeUrl( v.getValue() ) )
+            .collect( Collectors.joining( "&" ) );
+    }
+
+    private String encodeUrl( String value )
+    {
+        try
+        {
+            if ( !value.isEmpty() )
+            {
+                value = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+            }
+        }
+        catch( UnsupportedEncodingException e )
+        {
+            DebugUtils.getStackTrace( e );
+        }
+
+        return value;
+    }
+
+    private UriComponentsBuilder buildUrl(  UriComponentsBuilder uriBuilder, GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        uriBuilder.queryParam( config.getMessageParameter(), text );
+        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
         {
-            uriBuilder.queryParam( entry.getKey().toString(), entry.getValue().toString() );
+            uriBuilder.queryParam( entry.getKey(), entry.getValue() );
         }
 
         return uriBuilder;

@@ -90,14 +90,14 @@ public abstract class SmsGateway
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 
-    public HttpStatus send( String urlTemplate, HttpEntity<?> request, Class<?> klass )
+    public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {
         ResponseEntity<?> response = null;
         HttpStatus statusCode = null;
 
         try
         {
-            response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
+            response = restTemplate.exchange( urlTemplate, httpMethod, request, klass );
 
             if ( response != null )
             {

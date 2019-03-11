@@ -34,6 +34,7 @@ import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -72,7 +73,7 @@ public class ClickatellGateway
         HttpEntity<ClickatellRequestEntity> request =
             new HttpEntity<>( getRequestBody( text, recipients ), getRequestHeaderParameters( clickatellConfiguration ) );
 
-        HttpStatus httpStatus = send( clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART, request, ClickatellResponseEntity.class );
+        HttpStatus httpStatus = send( clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART, request, HttpMethod.POST ,ClickatellResponseEntity.class );
 
         return wrapHttpStatus( httpStatus );
     }
