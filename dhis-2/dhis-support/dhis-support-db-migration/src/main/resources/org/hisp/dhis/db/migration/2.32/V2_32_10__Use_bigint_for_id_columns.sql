@@ -1,5 +1,3 @@
-set max_locks_per_transaction = 100;
-
 -- datavalueaudit table and its foreign key references
 alter table datavalueaudit alter column datavalueauditid type bigint;
 
