@@ -261,11 +261,11 @@ public class JdbcEventAnalyticsTableManager
 
                 String sql =
                     "(select l.uid from maplegend l " +
-                        "inner join programstageinstance on l.startvalue <= " + select + " " +
-                        "and l.endvalue > " + select + " " +
-                        "and l.maplegendsetid=" + legendSet.getId() + " " +
-                        "and programstageinstanceid=psi.programstageinstanceid " +
-                        dataClause + ") as " + column;
+                    "inner join programstageinstance on l.startvalue <= " + select + " " +
+                    "and l.endvalue > " + select + " " +
+                    "and l.maplegendsetid=" + legendSet.getId() + " " +
+                    "and programstageinstanceid=psi.programstageinstanceid " +
+                    dataClause + ") as " + column;
 
                 columns.add( new AnalyticsTableColumn( column, CHARACTER_11, sql ) );
             }
