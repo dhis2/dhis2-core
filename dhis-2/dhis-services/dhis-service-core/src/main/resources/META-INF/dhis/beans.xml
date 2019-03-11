@@ -1166,15 +1166,7 @@
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService">
-    <property name="programIndicatorStore" ref="org.hisp.dhis.program.ProgramIndicatorStore" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="attributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="statementBuilder" ref="statementBuilder" />
-    <property name="programIndicatorGroupStore" ref="org.hisp.dhis.program.ProgramIndicatorGroupStore" />
-  </bean>
+  <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService"/>
 
   <bean id="org.hisp.dhis.relationship.RelationshipService" class="org.hisp.dhis.relationship.DefaultRelationshipService">
     <property name="relationshipStore" ref="org.hisp.dhis.relationship.RelationshipStore" />
