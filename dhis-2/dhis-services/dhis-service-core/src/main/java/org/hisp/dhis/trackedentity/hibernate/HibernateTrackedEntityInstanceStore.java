@@ -439,8 +439,19 @@ public class HibernateTrackedEntityInstanceStore
         {
             sql += "inner join ("
                 + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
-                + "from programinstance pi where pi.programid= " + params.getProgram().getId() + " ";
+                + "from programinstance pi ";
+            
+            if ( params.hasEventStatus() )
+            {
+                sql += " inner join (select programinstanceid from programstageinstance psi ";
 
+                sql += getEventStatusWhereClause( params );
+                
+                sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
+            }
+
+            sql += " where pi.programid= " + params.getProgram().getId() + " ";
+            
             if ( params.hasProgramStatus() )
             {
                 sql += "and status = '" + params.getProgramStatus() + "' ";
@@ -469,13 +480,6 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.hasProgramIncidentEndDate() )
             {
                 sql += "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' ";
-            }
-
-            if ( params.hasEventStatus() )
-            {
-                sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid and psi.deleted is false ";
-
-                sql += getEventStatusWhereClause( params );
             }
 
             if ( !params.isIncludeDeleted() )
@@ -643,35 +647,35 @@ public class HibernateTrackedEntityInstanceStore
         String start = getMediumDateString( params.getEventStartDate() );
         String end = getMediumDateString( params.getEventEndDate() );
 
-        String sql = StringUtils.EMPTY;
+        String sql = " where ";
 
         if ( params.isEventStatus( EventStatus.COMPLETED ) )
         {
-            sql = "and psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                + "and psi.status = '" + EventStatus.COMPLETED.name() + "' ";
+            sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
+                + "and psi.status = '" + EventStatus.COMPLETED.name() + "' and ";
         }
         else if ( params.isEventStatus( EventStatus.VISITED ) )
         {
-            sql = "and psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                + "and psi.status = '" + EventStatus.ACTIVE.name() + "' ";
+            sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
+                + "and psi.status = '" + EventStatus.ACTIVE.name() + "' and ";
         }
         else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
         {
-            sql = "and psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                + "and psi.status is not null and date(now()) <= date(psi.duedate) ";
+            sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
+                + "and psi.status is not null and date(now()) <= date(psi.duedate) and ";
         }
         else if ( params.isEventStatus( EventStatus.OVERDUE ) )
         {
-            sql = "and psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                + "and psi.status is not null and date(now()) > date(psi.duedate) ";
+            sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
+                + "and psi.status is not null and date(now()) > date(psi.duedate) and ";
         }
         else if ( params.isEventStatus( EventStatus.SKIPPED ) )
         {
-            sql = "and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
-                + EventStatus.SKIPPED.name() + "' ";
+            sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
+                + EventStatus.SKIPPED.name() + "' and ";
         }
-
-        sql += "and psi.deleted is false ";
+        
+        sql += " psi.deleted is false";
 
         return sql;
     }

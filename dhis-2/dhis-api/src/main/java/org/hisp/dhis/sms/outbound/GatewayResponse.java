@@ -85,8 +85,6 @@ public enum GatewayResponse
 
     private final String responseMessageDetail;
 
-    private String batchId;
-
     GatewayResponse( String responseMessage, String responseMessageDetail )
     {
         this.responseMessage = responseMessage;
@@ -101,16 +99,6 @@ public enum GatewayResponse
     public String getResponseMessageDetail()
     {
         return responseMessageDetail;
-    }
-
-    public String getBatchId()
-    {
-        return batchId;
-    }
-
-    public void setBatchId( String batchId )
-    {
-        this.batchId = batchId;
     }
 }
 

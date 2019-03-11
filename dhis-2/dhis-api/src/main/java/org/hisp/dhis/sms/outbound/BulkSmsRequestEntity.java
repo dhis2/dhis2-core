@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.sms.outbound;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,21 +30,62 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @Author Zubair Asghar.
  */
-
-public class BulkSmsGatewayConfig
-    extends SmsGatewayConfig
+public class BulkSmsRequestEntity
 {
-    private static final long serialVersionUID = 5249703354480948250L;
+    private Set<Recipient> recipients = new HashSet<>();
 
-    private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
+    private String body;
 
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    public String getUrlTemplate()
+    public BulkSmsRequestEntity()
     {
-        return this.JSON_API_URL;
+    }
+
+    public BulkSmsRequestEntity( String body, Set<String> recipients )
+    {
+        this.recipients = recipients.stream().map( Recipient::new ).collect( Collectors.toSet() );
+        this.body = body;
+    }
+
+    @JsonProperty( value = "to" )
+    public Set<Recipient> getRecipients()
+    {
+        return recipients;
+    }
+
+    public String getBody()
+    {
+        return body;
+    }
+
+    private static class Recipient
+    {
+        private String type = "INTERNATIONAL";
+        private String address;
+
+        public Recipient()
+        {
+        }
+
+        public Recipient( String address )
+        {
+            this.address = address;
+        }
+
+        public String getType()
+        {
+            return type;
+        }
+
+        public String getAddress()
+        {
+            return address;
+        }
     }
 }
