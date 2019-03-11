@@ -42,9 +42,9 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 public interface StatementBuilder
 {
-    final String QUOTE = "'";
+    String QUOTE = "'";
     
-    final String ANALYTICS_TBL_ALIAS = "ax";
+    String ANALYTICS_TBL_ALIAS = "ax";
 
     //--------------------------------------------------------------------------
     // General
@@ -288,7 +288,6 @@ public interface StatementBuilder
      * @param programIndicator the program indicator context
      * @param reportingStartDate the date of the start of the reporting period
      * @param reportingEndDate the date of the end of the reporting period
-     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
      * @return SQL to use in where clause.
      */
     String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate );
