@@ -183,12 +183,6 @@ public class JdbcEventAnalyticsTableManager
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
-        final String dataValueClausePrefix = " and eventdatavalues #>> '{";
-        final String dataValueNumericClauseSuffix = ",value}' " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
-        final String dataValueDateClauseSuffix = ",value}' " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
-
-        //TODO dateClause regular expression
-
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         if ( program.hasCategoryCombo() )
@@ -239,11 +233,7 @@ public class JdbcEventAnalyticsTableManager
         {
             ColumnDataType dataType = getColumnType( dataElement.getValueType() );
             // Assemble a regex dataClause with using jsonb #>> operator
-            String dataClause = dataElement.isNumericType()
-                ? ( dataValueClausePrefix + dataElement.getUid() + dataValueNumericClauseSuffix )
-                : dataElement.getValueType().isDate()
-                ? ( dataValueClausePrefix + dataElement.getUid() + dataValueDateClauseSuffix )
-                : "";
+            String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
 
             // Assemble a String with using jsonb #>> operator that will fetch the required value
             String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
@@ -259,7 +249,8 @@ public class JdbcEventAnalyticsTableManager
         for ( DataElement dataElement : program.getDataElementsWithLegendSet() )
         {
             // Assemble a regex dataClause with using jsonb #>> operator
-            String numericDataClause = dataValueClausePrefix + dataElement.getUid() + dataValueNumericClauseSuffix;
+            String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
+
             // Assemble a String with using jsonb #>> operator that will fetch the required value
             String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
             String select = getSelectClause( dataElement.getValueType(), columnName );
@@ -274,7 +265,7 @@ public class JdbcEventAnalyticsTableManager
                         "and l.endvalue > " + select + " " +
                         "and l.maplegendsetid=" + legendSet.getId() + " " +
                         "and programstageinstanceid=psi.programstageinstanceid " +
-                        numericDataClause + ") as " + column;
+                        dataClause + ") as " + column;
 
                 columns.add( new AnalyticsTableColumn( column, CHARACTER_11, sql ) );
             }
@@ -343,6 +334,17 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return filterDimensionColumns( columns );
+    }
+
+    private String getDataClause( String uid, ValueType valueType )
+    {
+        if ( valueType.isNumeric() || valueType.isDate() )
+        {
+            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
+            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex + "'";
+        }
+
+        return "";
     }
 
     private List<Integer> getDataYears( Program program, Date earliest )
