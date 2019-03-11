@@ -34,9 +34,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * Item part of meta data analytics response.
@@ -147,6 +149,20 @@ public class MetadataItem
         if ( dimensionalItemObject.hasLegendSet() )
         {
             this.legendSet = dimensionalItemObject.getLegendSet().getUid();
+        }
+
+        // TODO common interface
+
+        if ( dimensionalItemObject instanceof DataElement )
+        {
+            DataElement dataElement = (DataElement) dimensionalItemObject;
+            this.valueType = dataElement.getValueType();
+        }
+
+        if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        {
+            TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
+            this.valueType = attribute.getValueType();
         }
 
         // TODO introduce start/end date marker interface instead
