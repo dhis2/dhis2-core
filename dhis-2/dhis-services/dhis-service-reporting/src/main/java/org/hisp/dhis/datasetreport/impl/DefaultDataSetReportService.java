@@ -111,20 +111,20 @@ public class DefaultDataSetReportService
     // -------------------------------------------------------------------------
 
     @Override
-    public String getCustomDataSetReport( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions,
+    public String getCustomDataSetReport( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> filters,
         boolean selectedUnitOnly )
     {
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, orgUnit, dimensions );
+        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, orgUnit, filters );
 
-        valueMap.putAll( dataSetReportStore.getAggregatedTotals( dataSet, period, orgUnit, dimensions ) );
+        valueMap.putAll( dataSetReportStore.getAggregatedTotals( dataSet, period, orgUnit, filters ) );
 
-        Map<String, Object> indicatorValueMap = dataSetReportStore.getAggregatedIndicatorValues( dataSet, period, orgUnit, dimensions );
+        Map<String, Object> indicatorValueMap = dataSetReportStore.getAggregatedIndicatorValues( dataSet, period, orgUnit, filters );
 
         return prepareReportContent( dataSet.getDataEntryForm(), valueMap, indicatorValueMap );
     }
 
     @Override
-    public List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions, boolean selectedUnitOnly )
+    public List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> filters, boolean selectedUnitOnly )
     {
         List<Grid> grids = new ArrayList<>();
 
@@ -132,15 +132,15 @@ public class DefaultDataSetReportService
 
         if ( formType.isCustom() )
         {
-            grids = getCustomDataSetReportAsGrid( dataSet, period, orgUnit, dimensions, selectedUnitOnly );
+            grids = getCustomDataSetReportAsGrid( dataSet, period, orgUnit, filters, selectedUnitOnly );
         }
         else if ( formType.isSection() )
         {
-            grids = getSectionDataSetReport( dataSet, period, orgUnit, dimensions, selectedUnitOnly );
+            grids = getSectionDataSetReport( dataSet, period, orgUnit, filters, selectedUnitOnly );
         }
         else
         {
-            grids = getDefaultDataSetReport( dataSet, period, orgUnit, dimensions, selectedUnitOnly );
+            grids = getDefaultDataSetReport( dataSet, period, orgUnit, filters, selectedUnitOnly );
         }
 
         return grids;
@@ -150,9 +150,9 @@ public class DefaultDataSetReportService
     // Data set report as grid for the various form types
     // -------------------------------------------------------------------------
 
-    private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> dimensions, boolean selectedUnitOnly )
+    private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters, boolean selectedUnitOnly )
     {
-        String html = getCustomDataSetReport( dataSet, period, unit, dimensions, selectedUnitOnly );
+        String html = getCustomDataSetReport( dataSet, period, unit, filters, selectedUnitOnly );
 
         try
         {
@@ -164,7 +164,7 @@ public class DefaultDataSetReportService
         }
     }
 
-    private List<Grid> getSectionDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> dimensions, boolean selectedUnitOnly )
+    private List<Grid> getSectionDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters, boolean selectedUnitOnly )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         I18n i18n = i18nManager.getI18n();
@@ -172,9 +172,9 @@ public class DefaultDataSetReportService
         List<Section> sections = new ArrayList<>( dataSet.getSections() );
         Collections.sort( sections, new SectionOrderComparator() );
 
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, unit, dimensions );
-        Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, period, unit, dimensions );
-        Map<String, Object> totalMap = dataSetReportStore.getAggregatedTotals( dataSet, period, unit, dimensions );
+        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, unit, filters );
+        Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, period, unit, filters );
+        Map<String, Object> totalMap = dataSetReportStore.getAggregatedTotals( dataSet, period, unit, filters );
 
         List<Grid> grids = new ArrayList<>();
 
@@ -278,7 +278,7 @@ public class DefaultDataSetReportService
         return grids;
     }
 
-    private List<Grid> getDefaultDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> dimensions, boolean selectedUnitOnly )
+    private List<Grid> getDefaultDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters, boolean selectedUnitOnly )
     {
         ListMap<CategoryCombo, DataElement> map = new ListMap<>();
 
@@ -301,7 +301,7 @@ public class DefaultDataSetReportService
             tmpDataSet.getSections().add( section );
         }
 
-        return getSectionDataSetReport( tmpDataSet, period, unit, dimensions, selectedUnitOnly );
+        return getSectionDataSetReport( tmpDataSet, period, unit, filters, selectedUnitOnly );
     }
 
     // -------------------------------------------------------------------------

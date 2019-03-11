@@ -78,8 +78,8 @@ public class ProgramStageServiceTest
     @Test
     public void testSaveProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
@@ -88,8 +88,8 @@ public class ProgramStageServiceTest
     @Test
     public void testDeleteProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
@@ -108,7 +108,7 @@ public class ProgramStageServiceTest
     @Test
     public void testUpdateProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
+        long idA = programStageService.saveProgramStage( stageA );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
 
@@ -121,8 +121,8 @@ public class ProgramStageServiceTest
     @Test
     public void testGetProgramStageById()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertEquals( stageA, programStageService.getProgramStage( idA ) );
         assertEquals( stageB, programStageService.getProgramStage( idB ) );

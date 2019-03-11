@@ -76,7 +76,7 @@ public class DefaultOrganisationUnitGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
+    public long addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroupStore.save( organisationUnitGroup );
 
@@ -96,7 +96,7 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
-    public OrganisationUnitGroup getOrganisationUnitGroup( int id )
+    public OrganisationUnitGroup getOrganisationUnitGroup( long id )
     {
         return organisationUnitGroupStore.get( id );
     }
@@ -124,7 +124,7 @@ public class DefaultOrganisationUnitGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
+    public long addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
         organisationUnitGroupSetStore.save( organisationUnitGroupSet );
 
@@ -144,7 +144,7 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
-    public OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id )
+    public OrganisationUnitGroupSet getOrganisationUnitGroupSet( long id )
     {
         return organisationUnitGroupSetStore.get( id );
     }

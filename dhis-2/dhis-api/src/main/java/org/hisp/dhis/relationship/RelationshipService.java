@@ -49,7 +49,7 @@ public interface RelationshipService
      * @param relationship the relationship.
      * @return id of the added relationship.
      */
-    int addRelationship( Relationship relationship );
+    long addRelationship( Relationship relationship );
 
     /**
      * Returns a {@link Relationship}.
@@ -71,7 +71,7 @@ public interface RelationshipService
      * @param id the id of the relationship to return.
      * @return the relationship with the given identifier.
      */
-    Relationship getRelationship( int id );
+    Relationship getRelationship( long id );
 
     Relationship getRelationship( String uid );
 

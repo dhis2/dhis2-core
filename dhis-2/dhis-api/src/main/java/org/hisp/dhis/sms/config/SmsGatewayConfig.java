@@ -38,7 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Super class for gateway configurations
- * 
+ *
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
@@ -141,6 +141,12 @@ public abstract class SmsGatewayConfig
         final SmsGatewayConfig other = (SmsGatewayConfig) o;
 
         return uid.equals( other.getUid() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return uid.hashCode();
     }
 
     @Override

@@ -37,11 +37,14 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
+import static org.hisp.dhis.period.RelativePeriodEnum.THIS_QUARTER;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.cache.CacheProvider;
@@ -72,6 +75,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.core.env.Environment;
+
+import javax.validation.constraints.AssertTrue;
 
 /**
  * @author Luciano Fiandesio
@@ -291,6 +296,37 @@ public class AnalyticsServiceMetadataTest
                 hasProperty( "uid", is( dataElementGroup.getUid() ) ),
                 hasProperty( "code", is( dataElementGroup.getCode() ) )
             ) );
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void metadataContainsRelativePeriodItem()
+    {
+
+        List<DimensionalItemObject> periods = new ArrayList<>();
+
+        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
+
+        BaseDimensionalObject periodDimension = new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods );
+
+        DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+        dimensionalKeywords.addGroupBy(THIS_QUARTER.name(), "This quarter");
+        periodDimension.setDimensionalKeywords(dimensionalKeywords);
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            // DATA ELEMENTS
+            .withDimensions( Lists.newArrayList( periodDimension,
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                    Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+            .withSkipData( true ).build();
+
+        initMock(params);
+
+        Grid grid = target.getAggregatedDataValues( params );
+
+        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
+        assertTrue(items.containsKey(THIS_QUARTER.name()));
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )

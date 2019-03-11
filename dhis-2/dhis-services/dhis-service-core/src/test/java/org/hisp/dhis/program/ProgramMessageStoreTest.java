@@ -159,10 +159,10 @@ public class ProgramMessageStoreTest
         programA.setProgramStages( programStages );
         programService.updateProgram( programA );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', ouA );
+        entityInstanceA = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', ouA );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -188,7 +188,7 @@ public class ProgramMessageStoreTest
         ouUids.add( ouA.getUid() );
         // ouSet.add( ouB );
 
-        teiA = createTrackedEntityInstance( 'Z', ouA );
+        teiA = createTrackedEntityInstance( ouA );
         teiService.addTrackedEntityInstance( teiA );
 
         recipientsA = new ProgramMessageRecipients();
@@ -258,7 +258,7 @@ public class ProgramMessageStoreTest
     public void testGetProgramMessage()
     {
         programMessageStore.save( pmsgA );
-        Integer id = pmsgA.getId();
+        Long id = pmsgA.getId();
         ProgramMessage actual = programMessageStore.get( id.intValue() );
 
         assertNotNull( id );
@@ -280,7 +280,7 @@ public class ProgramMessageStoreTest
     public void testDeleteProgramMessage()
     {
         programMessageStore.save( pmsgA );
-        int pmsgAId = pmsgA.getId();
+        long pmsgAId = pmsgA.getId();
 
         programMessageStore.delete( pmsgA );
 

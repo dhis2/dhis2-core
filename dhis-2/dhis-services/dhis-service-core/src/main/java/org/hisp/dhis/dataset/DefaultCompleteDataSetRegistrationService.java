@@ -178,7 +178,7 @@ public class DefaultCompleteDataSetRegistrationService
 
             List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-            MapMapMap<Integer, Integer, Integer, Boolean> dataPresent = new MapMapMap<>();
+            MapMapMap<Long, Long, Long, Boolean> dataPresent = new MapMapMap<>();
 
             for ( DeflatedDataValue dv : deflatedDataValues )
             {
@@ -196,11 +196,11 @@ public class DefaultCompleteDataSetRegistrationService
                     continue;
                 }
 
-                MapMap<Integer, Integer, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
+                MapMap<Long, Long, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
 
                 if ( ouDataPresent != null )
                 {
-                    Map<Integer, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
+                    Map<Long, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
 
                     if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null ) )
                     {

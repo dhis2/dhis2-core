@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.analytics.orgunit.data;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,42 +31,49 @@ package org.hisp.dhis.orgunitdistribution;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.analytics.data.QueryPlannerUtils;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitDistributionParams
+public class DefaultOrgUnitQueryPlanner
+    implements OrgUnitQueryPlanner
 {
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-    private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
-
-    public int getOrgUnitLevel()
+    @Override
+    public List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params )
     {
-        return !orgUnits.isEmpty() ? orgUnits.get( 0 ).getLevel() : 1; //TODO implement properly
+        return groupByOrgUnitLevel( params );
     }
 
-    public List<OrganisationUnit> getOrgUnits()
+    private List<OrgUnitQueryParams> groupByOrgUnitLevel( OrgUnitQueryParams params )
     {
-        return orgUnits;
-    }
+        List<OrgUnitQueryParams> queries = new ArrayList<>();
 
-    public OrgUnitDistributionParams setOrgUnits( List<OrganisationUnit> orgUnits )
-    {
-        this.orgUnits = orgUnits;
-        return this;
-    }
+        if ( !params.getOrgUnits().isEmpty() )
+        {
+            ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
+                QueryPlannerUtils.getLevelOrgUnitTypedMap( params.getOrgUnits() );
 
-    public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
-    {
-        return orgUnitGroupSets;
-    }
+            for ( Integer level : levelOrgUnitMap.keySet() )
+            {
+                OrgUnitQueryParams query = new OrgUnitQueryParams.Builder( params )
+                    .withOrgUnits( levelOrgUnitMap.get( level ) )
+                    .withOrgUnitLevel( level )
+                    .build();
 
-    public OrgUnitDistributionParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
-    {
-        this.orgUnitGroupSets = orgUnitGroupSets;
-        return this;
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( new OrgUnitQueryParams.Builder( params ).build() );
+            return queries;
+        }
+
+        return queries;
     }
 }

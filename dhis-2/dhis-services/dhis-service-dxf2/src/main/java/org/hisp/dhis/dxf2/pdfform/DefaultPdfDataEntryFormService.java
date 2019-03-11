@@ -437,7 +437,7 @@ public class DefaultPdfDataEntryFormService
                 OptionSet optionSet = dataElement.getOptionSet();
 
                 String strFieldLabel = PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD
-                    + Integer.toString( dataElement.getId() )
+                    + Long.toString( dataElement.getId() )
                     // + "_" + Integer.toString(programStageId) + "_" +
                     // Integer.toString(rowNo);
                     + "_" + Integer.toString( rowNo );

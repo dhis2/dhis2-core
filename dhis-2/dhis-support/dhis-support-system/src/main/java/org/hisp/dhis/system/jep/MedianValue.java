@@ -50,6 +50,7 @@ public class MedianValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -62,11 +63,11 @@ public class MedianValue
         Collections.sort( vals );
         if ( n % 2 == 0 )
         {
-            inStack.push( new Double( ( vals.get( n / 2 - 1 ) + vals.get( n / 2 ) ) / 2 ) );
+            inStack.push( ( vals.get( n / 2 - 1 ) + vals.get( n / 2 ) ) / 2 );
         }
         else
         {
-            inStack.push( new Double( vals.get( n / 2 ) ) );
+            inStack.push( vals.get( n / 2 ) );
         }
     }
 }

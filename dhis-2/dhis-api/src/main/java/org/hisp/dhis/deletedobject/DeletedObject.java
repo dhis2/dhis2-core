@@ -68,7 +68,7 @@ public class DeletedObject
     @Id
     @Column( name = "deletedobjectid")
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private int id;
+    private long id;
 
     /**
      * Class of object that was deleted.
@@ -115,12 +115,12 @@ public class DeletedObject
         this.code = !StringUtils.isEmpty( identifiableObject.getCode() ) ? identifiableObject.getCode() : null;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

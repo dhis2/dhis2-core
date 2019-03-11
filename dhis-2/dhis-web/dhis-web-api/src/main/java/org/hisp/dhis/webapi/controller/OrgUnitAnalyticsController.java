@@ -28,15 +28,14 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +50,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class OrgUnitDistributionController
+public class OrgUnitAnalyticsController
 {
-    private static final String RESOURCE_PATH = "/orgUnitDistribution";
+    private static final String RESOURCE_PATH = "/orgUnitAnalytics";
 
     @Autowired
-    private OrgUnitDistributionServiceV2 distributionService;
+    private OrgUnitAnalyticsService analyticsService;
 
     @Autowired
     private ContextUtils contextUtils;
@@ -65,14 +64,50 @@ public class OrgUnitDistributionController
     public @ResponseBody Grid getJson(
         @RequestParam String ou,
         @RequestParam String ougs,
-        @RequestParam( required = false ) Set<String> filter,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitDistributionParams params = distributionService.getParams( ou, ougs );
-
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return analyticsService.getOrgUnitDistribution( params );
+    }
 
-        return distributionService.getOrgUnitDistribution( params );
+    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    public void getXls(
+        @RequestParam String ou,
+        @RequestParam String ougs,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response ) throws Exception
+    {
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        GridUtils.toXls( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + ".csv", method = RequestMethod.GET )
+    public void getCsv(
+        @RequestParam String ou,
+        @RequestParam String ougs,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response ) throws Exception
+    {
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
+    public void getPdf(
+        @RequestParam String ou,
+        @RequestParam String ougs,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response ) throws Exception
+    {
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        GridUtils.toPdf( grid, response.getOutputStream() );
     }
 }

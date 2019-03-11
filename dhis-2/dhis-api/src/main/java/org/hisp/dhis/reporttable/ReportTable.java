@@ -96,7 +96,7 @@ public class ReportTable
      * Indicates the criteria to apply to data measures.
      */
     private String measureCriteria;
-    
+
     /**
      * Indicates whether the ReportTable contains regression columns.
      */
@@ -151,7 +151,7 @@ public class ReportTable
      * Indicates whether to hide rows with no data values in the table.
      */
     private boolean hideEmptyRows;
-    
+
     /**
      * Indicates whether to hide columns with no data values in the table.
      */
@@ -186,7 +186,7 @@ public class ReportTable
      * The number type.
      */
     private NumberType numberType;
-    
+
     /**
      * Indicates showing organisation unit hierarchy names.
      */
@@ -456,7 +456,7 @@ public class ReportTable
 
         String column = columnEncode( buffer.toString() );
 
-        return column.length() > 0 ? column.substring( 0, column.lastIndexOf( SEPARATOR ) ) : TOTAL_COLUMN_NAME;
+        return column != null && column.length() > 0 ? column.substring( 0, column.lastIndexOf( SEPARATOR ) ) : TOTAL_COLUMN_NAME;
     }
 
     /**
@@ -638,10 +638,10 @@ public class ReportTable
             {
                 grid.removeCurrentWriteRow();
             }
-            
+
             // TODO hide empty columns
         }
-        
+
         if ( hideEmptyColumns )
         {
             grid.removeEmptyColumns();

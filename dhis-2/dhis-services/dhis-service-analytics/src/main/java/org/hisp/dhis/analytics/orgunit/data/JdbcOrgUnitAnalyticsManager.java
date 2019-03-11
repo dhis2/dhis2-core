@@ -1,4 +1,7 @@
-package org.hisp.dhis.orgunitdistribution.jdbc;
+package org.hisp.dhis.analytics.orgunit.data;
+
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,8 +35,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -48,14 +49,14 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 /**
  * @author Lars Helge Overland
  */
-public class JdbcOrgUnitDistributionManager
-    implements OrgUnitDistributionManager
+public class JdbcOrgUnitAnalyticsManager
+    implements OrgUnitAnalyticsManager
 {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params, Grid grid )
+    public void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid )
     {
         String sql = getDistributionSql( params );
 
@@ -72,11 +73,9 @@ public class JdbcOrgUnitDistributionManager
 
             grid.addValue( rowSet.getInt( "count" ) );
         }
-
-        return grid;
     }
 
-    private String getDistributionSql( OrgUnitDistributionParams params )
+    private String getDistributionSql( OrgUnitQueryParams params )
     {
         String levelCol = String.format( "ous.uidlevel%d", params.getOrgUnitLevel() );
 

@@ -60,7 +60,7 @@ public class DefaultConstantService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveConstant( Constant constant )
+    public long saveConstant( Constant constant )
     {
         constantStore.save( constant );
         return constant.getId();

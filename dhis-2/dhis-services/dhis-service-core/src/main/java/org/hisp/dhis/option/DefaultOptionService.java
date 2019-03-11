@@ -75,7 +75,7 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionSet( OptionSet optionSet )
+    public long saveOptionSet( OptionSet optionSet )
     {
         optionSetStore.save( optionSet );
 
@@ -89,7 +89,7 @@ public class DefaultOptionService
     }
 
     @Override
-    public OptionSet getOptionSet( int id )
+    public OptionSet getOptionSet( long id )
     {
         return optionSetStore.get( id );
     }
@@ -129,7 +129,7 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Option> getOptions( int optionSetId, String key, Integer max )
+    public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
         List<Option> options = null;
 
@@ -158,7 +158,7 @@ public class DefaultOptionService
     }
 
     @Override
-    public Option getOption( int id )
+    public Option getOption( long id )
     {
         return optionStore.get( id );
     }
@@ -180,7 +180,7 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionGroup( OptionGroup group )
+    public long saveOptionGroup( OptionGroup group )
     {
         optionGroupStore.save( group );
 
@@ -194,7 +194,7 @@ public class DefaultOptionService
     }
 
     @Override
-    public OptionGroup getOptionGroup( int id )
+    public OptionGroup getOptionGroup( long id )
     {
         return optionGroupStore.get( id );
     }
@@ -222,7 +222,7 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionGroupSet( OptionGroupSet group )
+    public long saveOptionGroupSet( OptionGroupSet group )
     {
         optionGroupSetStore.save( group );
 
@@ -236,7 +236,7 @@ public class DefaultOptionService
     }
 
     @Override
-    public OptionGroupSet getOptionGroupSet( int id )
+    public OptionGroupSet getOptionGroupSet( long id )
     {
         return optionGroupSetStore.get( id );
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.analytics.orgunit;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,34 +29,17 @@ package org.hisp.dhis.orgunitdistribution;
  */
 
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 
-public interface OrgUnitDistributionServiceV2
+/**
+ * @author Lars Helge Overland
+ */
+public interface OrgUnitAnalyticsManager
 {
     /**
-     * Returns parameters for the given query.
+     * Adds the org unit distribution for the given parameters to the given grid.
      *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @return a {@link OrgUnitDistributionParams}.
+     * @param params the {@link OrgUnitQueryParams}.
+     * @param grid the {@link Grid}.
      */
-    OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets );
-
-    /**
-     * Returns the org unit distribution for the given parameters.
-     *
-     * @param params the {@link OrgUnitDistributionParams}.
-     * @return a {@link Grid}.
-     */
-    Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
-
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitDistributionParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitDistributionParams params )
-        throws IllegalQueryException;
+    void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
 }

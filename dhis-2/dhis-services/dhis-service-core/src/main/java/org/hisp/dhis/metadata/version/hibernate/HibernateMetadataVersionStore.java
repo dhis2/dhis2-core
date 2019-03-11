@@ -46,7 +46,7 @@ public class HibernateMetadataVersionStore
     implements MetadataVersionStore
 {
     @Override
-    public MetadataVersion getVersionByKey( int key )
+    public MetadataVersion getVersionByKey( long key )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

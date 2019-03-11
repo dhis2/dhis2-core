@@ -69,7 +69,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValue.setUser( user );
 
         userKeyJsonValueStore.save( userKeyJsonValue );
-        int id = userKeyJsonValue.getId();
+        long id = userKeyJsonValue.getId();
 
         assertNotNull( userKeyJsonValue );
         assertEquals( userKeyJsonValue, userKeyJsonValueStore.get( id ) );

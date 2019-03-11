@@ -118,8 +118,8 @@ public class AttributeValueServiceTest
     @Test
     public void testDeleteAttributeValue()
     {
-        int attributeValueId1 = avA.getId();
-        int attributeValueId2 = avB.getId();
+        long attributeValueId1 = avA.getId();
+        long attributeValueId2 = avB.getId();
 
         attributeService.deleteAttributeValue( avA );
         attributeService.deleteAttributeValue( avB );

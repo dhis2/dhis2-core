@@ -30,36 +30,36 @@ package org.hisp.dhis.organisationunit;
 
 public class OrganisationUnitRelationship
 {
-    private int parentId;
+    private long parentId;
     
-    private int childId;
+    private long childId;
     
     public OrganisationUnitRelationship()
     {
     }
     
-    public OrganisationUnitRelationship( int parentId, int childId )
+    public OrganisationUnitRelationship( long parentId, long childId )
     {
         this.parentId = parentId;
         this.childId = childId;
     }
 
-    public int getParentId()
+    public long getParentId()
     {
         return parentId;
     }
 
-    public void setParentId( int parentId )
+    public void setParentId( long parentId )
     {
         this.parentId = parentId;
     }
 
-    public int getChildId()
+    public long getChildId()
     {
         return childId;
     }
 
-    public void setChildId( int childId )
+    public void setChildId( long childId )
     {
         this.childId = childId;
     }

@@ -67,7 +67,7 @@ public class DefaultRelationshipTypeService
     }
 
     @Override
-    public RelationshipType getRelationshipType( int id )
+    public RelationshipType getRelationshipType( long id )
     {
         return relationshipTypeStore.get( id );
     }
@@ -79,7 +79,7 @@ public class DefaultRelationshipTypeService
     }
 
     @Override
-    public int addRelationshipType( RelationshipType relationshipType )
+    public long addRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.save( relationshipType );
         return relationshipType.getId();

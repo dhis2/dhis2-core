@@ -44,7 +44,6 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.retry.RetryContext;
 
 import java.util.Date;
-import java.util.HashMap;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

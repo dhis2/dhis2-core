@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution.impl;
+package org.hisp.dhis.analytics.orgunit.data;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,6 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,52 +46,72 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionServiceV2;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
-public class DefaultOrgUnitDistributionServiceV2
-    implements OrgUnitDistributionServiceV2
+public class DefaultOrgUnitAnalyticsService
+    implements OrgUnitAnalyticsService
 {
-    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    private OrgUnitAnalyticsManager analyticsManager;
+
+    private OrgUnitQueryPlanner queryPlanner;
+
     @Autowired
-    private OrgUnitDistributionManager distributionManager;
+    public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
+        OrgUnitAnalyticsManager analyticsManager, OrgUnitQueryPlanner queryPlanner )
+    {
+        checkNotNull( idObjectManager );
+        checkNotNull( analyticsManager );
+        checkNotNull( queryPlanner );
+
+        this.idObjectManager = idObjectManager;
+        this.analyticsManager = analyticsManager;
+        this.queryPlanner = queryPlanner;
+    }
 
     @Override
-    public OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets )
+    public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets )
     {
         List<String> ous = TextUtils.getOptions( orgUnits );
         List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
 
-        return new OrgUnitDistributionParams()
-            .setOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
-            .setOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) );
+        return new OrgUnitQueryParams.Builder()
+            .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
+            .withOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
+            .build();
     }
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params )
+    public Grid getOrgUnitDistribution( OrgUnitQueryParams params )
     {
         validate( params );
+
+        List<OrgUnitQueryParams> queries = queryPlanner.planQuery( params );
+
+        //TODO add outputIdScheme support
 
         Grid grid = new ListGrid();
 
         addHeaders( params, grid );
         addMetadata( params, grid );
 
-        distributionManager.getOrgUnitDistribution( params, grid );
+        for ( OrgUnitQueryParams query : queries )
+        {
+            analyticsManager.getOrgUnitDistribution( query, grid );
+        }
 
         return grid;
     }
 
     @Override
-    public void validate( OrgUnitDistributionParams params )
+    public void validate( OrgUnitQueryParams params )
     {
         if ( params == null )
         {
@@ -105,7 +129,7 @@ public class DefaultOrgUnitDistributionServiceV2
         }
     }
 
-    private void addHeaders( OrgUnitDistributionParams params, Grid grid )
+    private void addHeaders( OrgUnitQueryParams params, Grid grid )
     {
         grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
         params.getOrgUnitGroupSets().forEach( ougs ->
@@ -113,7 +137,7 @@ public class DefaultOrgUnitDistributionServiceV2
         grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
     }
 
-    private void addMetadata( OrgUnitDistributionParams params, Grid grid )
+    private void addMetadata( OrgUnitQueryParams params, Grid grid )
     {
         Map<String, Object> metadata = new HashMap<>();
         Map<String, Object> items = new HashMap<>();

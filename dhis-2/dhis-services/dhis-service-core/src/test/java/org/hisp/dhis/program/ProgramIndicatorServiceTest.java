@@ -141,7 +141,7 @@ public class ProgramIndicatorServiceTest
     private ProgramIndicator indicatorF;
 
     private ProgramIndicator indicatorG;
-    
+
     @Override
     public void setUpTest()
     {
@@ -199,7 +199,7 @@ public class ProgramIndicatorServiceTest
         // TrackedEntityInstance & Enrollment
         // ---------------------------------------------------------------------
 
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
 
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
@@ -299,9 +299,9 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testAddProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorA );
-        int idB = programIndicatorService.addProgramIndicator( indicatorB );
-        int idC = programIndicatorService.addProgramIndicator( indicatorC );
+        long idA = programIndicatorService.addProgramIndicator( indicatorA );
+        long idB = programIndicatorService.addProgramIndicator( indicatorB );
+        long idC = programIndicatorService.addProgramIndicator( indicatorC );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
         assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
@@ -311,8 +311,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testDeleteProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
-        int idB = programIndicatorService.addProgramIndicator( indicatorA );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
         assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
@@ -331,7 +331,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testUpdateProgramIndicator()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
 
         assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
 
@@ -344,8 +344,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetProgramIndicatorById()
     {
-        int idA = programIndicatorService.addProgramIndicator( indicatorB );
-        int idB = programIndicatorService.addProgramIndicator( indicatorA );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
         assertEquals( indicatorB, programIndicatorService.getProgramIndicator( idA ) );
         assertEquals( indicatorA, programIndicatorService.getProgramIndicator( idB ) );
@@ -730,13 +730,13 @@ public class ProgramIndicatorServiceTest
     {
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
-        
-        String expectedFilter = "(cast((select executiondate from analytics_event_" 
-            + indicatorG.getProgram().getUid() + " where analytics_event_" 
-            + indicatorG.getProgram().getUid() + ".pi = ax.pi and executiondate" 
-            + " is not null and executiondate < cast( '2017-09-01' as date ) " 
+
+        String expectedFilter = "(cast((select executiondate from analytics_event_"
+            + indicatorG.getProgram().getUid() + " where analytics_event_"
+            + indicatorG.getProgram().getUid() + ".pi = ax.pi and executiondate"
+            + " is not null and executiondate < cast( '2017-09-01' as date ) "
             + "order by executiondate desc limit 1 ) as date) - cast(enrollmentdate as date)) > 90";
-        
+
         String actualFilter = programIndicatorService.getAnalyticsSQl( indicatorG.getFilter(), indicatorG, false, reportingStartDate, reportingEndDate );
         assertEquals( expectedFilter, actualFilter );
     }

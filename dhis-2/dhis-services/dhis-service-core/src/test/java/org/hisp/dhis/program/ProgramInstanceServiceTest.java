@@ -96,16 +96,16 @@ public class ProgramInstanceServiceTest
 
     private TrackedEntityInstance entityInstanceA;
 
-    private Collection<Integer> orgunitIds;
+    private Collection<Long> orgunitIds;
 
     @Override
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        int idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         organisationUnitB = createOrganisationUnit( 'B' );
-        int idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
 
         orgunitIds = new HashSet<>();
         orgunitIds.add( idA );
@@ -135,10 +135,10 @@ public class ProgramInstanceServiceTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -172,8 +172,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testAddProgramInstance()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idB = programInstanceService.addProgramInstance( programInstanceB );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idB = programInstanceService.addProgramInstance( programInstanceB );
 
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programInstanceService.getProgramInstance( idB ) );
@@ -182,8 +182,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testDeleteProgramInstance()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idB = programInstanceService.addProgramInstance( programInstanceB );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idB = programInstanceService.addProgramInstance( programInstanceB );
 
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programInstanceService.getProgramInstance( idB ) );
@@ -202,7 +202,7 @@ public class ProgramInstanceServiceTest
     @Test
     public void testUpdateProgramInstance()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
 
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
 
@@ -215,8 +215,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testGetProgramInstanceById()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idB = programInstanceService.addProgramInstance( programInstanceB );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idB = programInstanceService.addProgramInstance( programInstanceB );
 
         assertEquals( programInstanceA, programInstanceService.getProgramInstance( idA ) );
         assertEquals( programInstanceB, programInstanceService.getProgramInstance( idB ) );
@@ -281,7 +281,7 @@ public class ProgramInstanceServiceTest
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceC );
         programInstanceService.addProgramInstance( programInstanceD );
-        
+
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
@@ -313,8 +313,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testCompleteProgramInstanceStatus()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idD = programInstanceService.addProgramInstance( programInstanceD );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idD = programInstanceService.addProgramInstance( programInstanceD );
 
         programInstanceService.completeProgramInstanceStatus( programInstanceA );
         programInstanceService.completeProgramInstanceStatus( programInstanceD );
@@ -322,19 +322,19 @@ public class ProgramInstanceServiceTest
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idD ).getStatus() );
     }
-    
+
     @Test
     public void testIncompleteProgramInstanceStatus()
-    {   
+    {
         programInstanceA.setStatus( ProgramStatus.COMPLETED );
         programInstanceD.setStatus( ProgramStatus.COMPLETED );
         
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idD = programInstanceService.addProgramInstance( programInstanceD );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idD = programInstanceService.addProgramInstance( programInstanceD );
         
         programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
         programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
-        
+
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idD ).getStatus() );
     }
@@ -342,8 +342,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testCancelProgramInstanceStatus()
     {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idD = programInstanceService.addProgramInstance( programInstanceD );
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idD = programInstanceService.addProgramInstance( programInstanceD );
 
         programInstanceService.cancelProgramInstanceStatus( programInstanceA );
         programInstanceService.cancelProgramInstanceStatus( programInstanceD );

@@ -159,11 +159,11 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
-            List<Integer> groupIds = new ArrayList<>();
+            List<Long> groupIds = new ArrayList<>();
 
             while ( groupRs.next() )
             {
-                groupIds.add( groupRs.getInt( 1 ) );
+                groupIds.add( groupRs.getLong( 1 ) );
             }
 
             List<DimensionalItemObject> groups = (List<DimensionalItemObject>) idObjectManager.getById( itemClass, groupIds );

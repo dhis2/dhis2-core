@@ -106,16 +106,16 @@ public class ProgramInstanceStoreTest
 
     private TrackedEntityInstance entityInstanceA;
 
-    private Collection<Integer> orgunitIds;
+    private Collection<Long> orgunitIds;
 
     @Override
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        int idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         organisationUnitB = createOrganisationUnit( 'B' );
-        int idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
 
         orgunitIds = new HashSet<>();
         orgunitIds.add( idA );
@@ -145,10 +145,10 @@ public class ProgramInstanceStoreTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -235,8 +235,8 @@ public class ProgramInstanceStoreTest
 
         // TEI
 
-        TrackedEntityInstance teiX = createTrackedEntityInstance( 'X', organisationUnitA );
-        TrackedEntityInstance teiY = createTrackedEntityInstance( 'Y', organisationUnitA );
+        TrackedEntityInstance teiX = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntityInstance teiY = createTrackedEntityInstance( organisationUnitA );
 
         entityInstanceService.addTrackedEntityInstance( teiX );
         entityInstanceService.addTrackedEntityInstance( teiY );

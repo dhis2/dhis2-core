@@ -51,7 +51,7 @@ public interface ProgramInstanceService
      * @param programInstance The to ProgramInstance add.
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
-    int addProgramInstance( ProgramInstance programInstance );
+    long addProgramInstance( ProgramInstance programInstance );
 
     /**
      * Soft deletes a {@link ProgramInstance}.
@@ -82,7 +82,7 @@ public interface ProgramInstanceService
      * @param id the id of the ProgramInstance to return.
      * @return the ProgramInstance with the given id
      */
-    ProgramInstance getProgramInstance( int id );
+    ProgramInstance getProgramInstance( long id );
     
     /**
      * Returns the {@link ProgramInstance} with the given UID.

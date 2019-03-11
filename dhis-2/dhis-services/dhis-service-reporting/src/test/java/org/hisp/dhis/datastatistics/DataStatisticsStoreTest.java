@@ -54,8 +54,8 @@ public class DataStatisticsStoreTest
     private DataStatistics ds4;
     private DataStatistics ds5;
 
-    private int ds1Id;
-    private int ds2Id;
+    private long ds1Id;
+    private long ds2Id;
 
     private Date date;
 

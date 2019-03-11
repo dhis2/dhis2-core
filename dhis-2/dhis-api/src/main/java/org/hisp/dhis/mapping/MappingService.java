@@ -59,11 +59,11 @@ public interface MappingService
     // Map
     // -------------------------------------------------------------------------
 
-    int addMap( Map map );
+    long addMap( Map map );
 
     void updateMap( Map map );
 
-    Map getMap( int id );
+    Map getMap( long id );
 
     Map getMap( String uid );
 
@@ -77,13 +77,13 @@ public interface MappingService
     // MapView
     // -------------------------------------------------------------------------
 
-    int addMapView( MapView mapView );
+    long addMapView( MapView mapView );
 
     void updateMapView( MapView mapView );
 
     void deleteMapView( MapView view );
 
-    MapView getMapView( int id );
+    MapView getMapView( long id );
 
     MapView getMapView( String uid );
 
@@ -101,13 +101,13 @@ public interface MappingService
     // ExternalMapLayer
     // -------------------------------------------------------------------------
 
-    int addExternalMapLayer( ExternalMapLayer mapLayer );
+    long addExternalMapLayer( ExternalMapLayer mapLayer );
 
     void updateExternalMapLayer( ExternalMapLayer mapLayer );
 
     void deleteExternalMapLayer( ExternalMapLayer mapLayer );
 
-    ExternalMapLayer getExternalMapLayer( int id );
+    ExternalMapLayer getExternalMapLayer( long id );
 
     ExternalMapLayer getExternalMapLayer( String uid );
 

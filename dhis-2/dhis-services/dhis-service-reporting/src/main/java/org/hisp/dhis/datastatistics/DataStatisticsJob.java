@@ -60,7 +60,7 @@ public class DataStatisticsJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        int id = dataStatisticsService.saveDataStatisticsSnapshot();
+        long id = dataStatisticsService.saveDataStatisticsSnapshot();
 
         if ( id > 0 )
         {

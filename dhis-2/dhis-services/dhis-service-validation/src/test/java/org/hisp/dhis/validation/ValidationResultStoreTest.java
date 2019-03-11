@@ -263,9 +263,9 @@ public class ValidationResultStoreTest
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
-        optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
+        optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
+        optionComboC = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
         categoryService.addCategoryOptionCombo( optionComboC );
@@ -350,7 +350,7 @@ public class ValidationResultStoreTest
         validationResultStore.save( validationResultAA );
         Date afterSave = new Date();
 
-        int id = validationResultAA.getId();
+        long id = validationResultAA.getId();
         ValidationResult validationResult = validationResultStore.get( id );
 
         assertNotNull( validationResult );
@@ -369,7 +369,7 @@ public class ValidationResultStoreTest
     public void testDeleteValidationResult() throws Exception
     {
         validationResultStore.save( validationResultAA );
-        int id = validationResultAA.getId();
+        long id = validationResultAA.getId();
 
         validationResultStore.delete( validationResultAA );
 

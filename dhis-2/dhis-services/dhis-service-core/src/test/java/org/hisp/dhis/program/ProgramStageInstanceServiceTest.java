@@ -179,10 +179,10 @@ public class ProgramStageInstanceServiceTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
@@ -329,8 +329,8 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testAddProgramStageInstance()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        int idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idB ) );
@@ -339,8 +339,8 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testDeleteProgramStageInstance()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        int idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idB ) );
@@ -359,7 +359,7 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testUpdateProgramStageInstance()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
 
@@ -372,8 +372,8 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testGetProgramStageInstanceById()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        int idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
 
         assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( idA ) );
         assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( idB ) );
@@ -382,8 +382,8 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testGetProgramStageInstanceByUid()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        int idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
 
         assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( idA ) );
         assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( idB ) );
@@ -409,7 +409,7 @@ public class ProgramStageInstanceServiceTest
     @Test
     public void testCompleteProgramStageInstance()
     {
-        int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
         programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
 
@@ -426,7 +426,7 @@ public class ProgramStageInstanceServiceTest
         assertEquals( 4, tempPsiA.getEventDataValues().size() );
 
         //Check that there are 4 audits of CREATE type
-        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
         assertEquals( 4, auditCreateCount );
 
         //Fetch value of the EventDataValueB and compare that it is correct
@@ -470,13 +470,13 @@ public class ProgramStageInstanceServiceTest
         assertEquals( 3, tempPsiA.getEventDataValues().size() );
 
         //Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1 of DELETE type
-        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
         assertEquals( 4, auditCreateCount );
 
-        int auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
         assertEquals( 3, auditUpdateCount );
 
-        int auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
         assertEquals( 1, auditDeleteCount );
 
         //Fetch value of the EventDataValueB and compare that it is correct
@@ -515,13 +515,13 @@ public class ProgramStageInstanceServiceTest
         assertEquals( 4, tempPsiA.getEventDataValues().size() );
 
         //Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1 of DELETE type
-        int auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
         assertEquals( 4, auditCreateCount );
 
-        int auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
         assertEquals( 1, auditUpdateCount );
 
-        int auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements, Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
         assertEquals( 0, auditDeleteCount );
 
         //Fetch value of the EventDataValueB and compare that it is correct
