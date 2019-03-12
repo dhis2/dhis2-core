@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
@@ -55,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.api.util.DateUtils;
@@ -309,6 +311,9 @@ public class JdbcAnalyticsTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+        String idColAlias = "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id ";
+        columns.add( new AnalyticsTableColumn( quote( "id" ), ColumnDataType.TEXT, idColAlias ) );
+
         List<DataElementGroupSet> dataElementGroupSets =
             idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class );
 
@@ -374,7 +379,7 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
         }
 
-        String approvalCol = isApprovalEnabled( year ) ?
+        String approvalColAlias = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
@@ -387,7 +392,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
-        columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), INTEGER, approvalCol ) );
+        columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), INTEGER, approvalColAlias ) );
 
         return filterDimensionColumns( columns );
     }
