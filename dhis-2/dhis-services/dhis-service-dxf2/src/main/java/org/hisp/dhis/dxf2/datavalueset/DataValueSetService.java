@@ -68,9 +68,10 @@ public interface DataValueSetService
      * @param idSchemes the identifier schemes.
      * @return
      */
-    DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, Set<String> attributeOptionCombos,
-        boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes );
+    DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods,
+        Date startDate, Date endDate, Set<String> organisationUnits, boolean includeChildren,
+        Set<String> organisationUnitGroups, Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated,
+        String lastUpdatedDuration, Integer limit, IdSchemes idSchemes );
 
     void validate( DataExportParams params );
 
@@ -80,13 +81,31 @@ public interface DataValueSetService
 
     void writeDataValueSetJson( DataExportParams params, OutputStream out );
 
+    /**
+     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+     *
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param outputStream the stream to write to
+     * @param idSchemes idSchemes
+     */
     void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page );
+    /**
+     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+     *
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param outputStream the stream to write to
+     * @param idSchemes idSchemes
+     * @param pageSize pageSize
+     * @param page page
+     */
+    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+        int page );
 
     void writeDataValueSetCsv( DataExportParams params, Writer writer );
 
-    RootNode getDataValueSetTemplate( DataSet dataSet, Period period, List<String> orgUnits, boolean writeComments, String ouScheme, String deScheme );
+    RootNode getDataValueSetTemplate( DataSet dataSet, Period period, List<String> orgUnits, boolean writeComments,
+        String ouScheme, String deScheme );
 
     ImportSummary saveDataValueSet( InputStream in );
 
