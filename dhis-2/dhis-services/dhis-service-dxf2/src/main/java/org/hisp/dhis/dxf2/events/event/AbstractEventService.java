@@ -767,18 +767,16 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public int getAnonymousEventReadyForSynchronizationCount()
+    public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
     {
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         params.setIncludeDeleted( true );
         params.setSynchronizationQuery( true );
+        params.setSkipChangedBefore( skipChangedBefore );
 
         return eventStore.getEventCount( params, null );
     }
-
-    //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
-    //TODO: Do changes from the comment above
 
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
@@ -791,18 +789,16 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public Events getAnonymousEventsForSync( int pageSize, Map<String, Set<String>> psdesWithSkipSyncTrue )
+    public Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore, Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
-        //A page is not specified here. The reason is, that after a page is synchronized, the items that were in that page
-        // get lastSynchronized column updated. Therefore, they are not present in the results in the next query anymore.
-        // If I used paging, I would come to SQLGrammarException because I would try to fetch entries (with specific offset)
-        // that don't exist anymore.
-
+        // A page is not specified here as it would lead to SQLGrammarException after a successful sync of few pages
+        // (total count will change and offset won't be valid)
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         params.setIncludeDeleted( true );
         params.setSynchronizationQuery( true );
         params.setPageSize( pageSize );
+        params.setSkipChangedBefore( skipChangedBefore );
 
         Events anonymousEvents = new Events();
         List<Event> events = eventStore.getEvents( params, null, psdesWithSkipSyncTrue );

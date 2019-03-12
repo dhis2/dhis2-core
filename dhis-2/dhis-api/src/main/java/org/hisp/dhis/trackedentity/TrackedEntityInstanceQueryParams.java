@@ -191,7 +191,7 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
-    
+
     /**
      * Indicates whether to include all TEI attributes
      */
@@ -207,6 +207,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether the search is for synchronization purposes (for Program Data sync job).
      */
     private boolean synchronizationQuery;
+
+    /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
 
     /**
      * TEI order params
@@ -917,7 +922,7 @@ public class TrackedEntityInstanceQueryParams
         this.includeDeleted = includeDeleted;
         return this;
     }
-    
+
     public boolean isIncludeAllAttributes()
     {
         return includeAllAttributes;
@@ -927,7 +932,7 @@ public class TrackedEntityInstanceQueryParams
     {
         this.includeAllAttributes = includeAllAttributes;
         return this;
-    }    
+    }
 
     public boolean isInternalSearch()
     {
@@ -948,6 +953,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
+        return this;
+    }
+
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public TrackedEntityInstanceQueryParams setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
         return this;
     }
 
