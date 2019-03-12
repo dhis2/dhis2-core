@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
