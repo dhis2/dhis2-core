@@ -39,11 +39,11 @@ expr
     ;
 
 function // (alphabtical)
-    :   fun='if' '(' expr ',' expr ',' expr ')'
-    |   fun='isNull' '(' WS* item WS* ')'
-    |   fun='isNotNull' '(' WS* item WS* ')'
-    |   fun='firstNonNull' '(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
+    :   fun='firstNonNull' '(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
     |   fun='greatest' '(' expr (',' expr )* ')'
+    |   fun='if' '(' expr ',' expr ',' expr ')'
+    |   fun='isNotNull' '(' WS* item WS* ')'
+    |   fun='isNull' '(' WS* item WS* ')'
     |   fun='least' '(' expr (',' expr )* ')'
     ;
 
@@ -174,11 +174,11 @@ VERTICAL_BAR_2      : '||';
 
 // Functions (alphabetical)
 
-IF              : 'if';
-IS_NULL         : 'isNull';
-IS_NOT_NULL     : 'isNotNull';
 FIRST_NON_NULL  : 'firstNonNull';
 GREATEST        : 'greatest';
+IF              : 'if';
+IS_NOT_NULL     : 'isNotNull';
+IS_NULL         : 'isNull';
 LEAST           : 'least';
 
 // Items (alphabetical by symbol)

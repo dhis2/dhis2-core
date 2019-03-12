@@ -151,20 +151,20 @@ public abstract class CommonVisitor
     {
         switch ( ctx.fun.getType() )
         {
-            case IF:
-                return ifFunction( ctx );
-
-            case IS_NULL:
-                return visitAllowingNullValues( ctx.item() ) == null;
-
-            case IS_NOT_NULL:
-                return visitAllowingNullValues( ctx.item() ) != null;
-
             case FIRST_NON_NULL:
                 return firstNonNull( ctx.itemNumStringLiteral() );
 
             case GREATEST:
                 return greatestOrLeast( ctx.expr(), 1.0 );
+
+            case IF:
+                return ifFunction( ctx );
+
+            case IS_NOT_NULL:
+                return visitAllowingNullValues( ctx.item() ) != null;
+
+            case IS_NULL:
+                return visitAllowingNullValues( ctx.item() ) == null;
 
             case LEAST:
                 return greatestOrLeast( ctx.expr(), -1.0 );
