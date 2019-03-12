@@ -63,6 +63,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.timer.SystemTimer;
+import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -159,7 +161,7 @@ public class JdbcAnalyticsTableManager
     /**
      * Removes data which was updated or deleted between the last successful analytics table update
      * and the start of this analytics table update process, excluding data which was created during
-     * that timespan.
+     * that time span.
      */
     @Override
     public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
@@ -185,7 +187,11 @@ public class JdbcAnalyticsTableManager
 
         log.info( String.format( "Remove updated data SQL: '%s'", sql ) );
 
+        Timer timer = new SystemTimer().start();
+
         jdbcTemplate.execute( sql );
+
+        log.info( String.format( "Removed updated and deleted data in %s", timer.stop().toString() ) );
     }
 
     @Override
