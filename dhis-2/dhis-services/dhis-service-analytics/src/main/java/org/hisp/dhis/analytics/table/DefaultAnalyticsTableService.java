@@ -133,7 +133,7 @@ public class DefaultAnalyticsTableService
             tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
         notifier.notify( jobId, "Performing pre-create table work" );
 
-        tableManager.preCreateTables();
+        tableManager.preCreateTables( params );
 
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
@@ -179,6 +179,11 @@ public class DefaultAnalyticsTableService
         analyzeTables( tables );
 
         clock.logTime( "Analyzed tables" );
+        notifier.notify( jobId, "Removing updated and deleted data" );
+
+        tableManager.removeUpdatedData( params, tables );
+
+        clock.logTime( "Removed updated and deleted data" );
         notifier.notify( jobId, "Swapping analytics tables" );
 
         swapTables( params, tables );

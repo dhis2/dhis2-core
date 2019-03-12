@@ -135,7 +135,15 @@ public abstract class AbstractJdbcTableManager
      * Override in order to perform work before tables are being generated.
      */
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
+    {
+    }
+
+    /**
+     * Override in order to remove updated and deleted data for "latest" partition update.
+     */
+    @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
     }
 

@@ -147,13 +147,45 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )
         {
             resourceTableService.generateDataApprovalRemapLevelTable();
             resourceTableService.generateDataApprovalMinLevelTable();
         }
+    }
+
+    /**
+     * Removes data which was updated or deleted between the last successful analytics table update
+     * and the start of this analytics table update process, excluding data which was created during
+     * that timespan.
+     */
+    @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    {
+        if ( !params.isLatestUpdate() )
+        {
+            return;
+        }
+
+        String sql =
+            "delete from analytics ax " +
+            "where ax.id in (" +
+                "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
+                "from datavalue dv " +
+                "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+                "inner join _periodstructure ps on dv.periodid = ps.periodid " +
+                "inner join organisationunit ou on ou.organisationunitid = dv.sourceid " +
+                "inner join categoryoptioncombo co on dv.categoryoptioncomboid = dv.categoryoptioncomboid " +
+                "inner join categoryoptioncombo ao on dv.attributeoptioncomboid = ao.categoryoptioncomboid " +
+                "where dv.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
+                "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+                "and dv.created < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
+
+        log.info( String.format( "Remove updated data SQL: '%s'", sql ) );
+
+        jdbcTemplate.execute( sql );
     }
 
     @Override
