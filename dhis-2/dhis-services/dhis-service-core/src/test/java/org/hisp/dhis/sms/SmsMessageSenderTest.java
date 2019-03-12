@@ -130,7 +130,7 @@ public class SmsMessageSenderTest
         // stub for SmsGateways
         when ( bulkSmsGateway.accept( any() ) ).thenReturn( true );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( okStatus );
-        when ( bulkSmsGateway.sendBatch( any(), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( summaryResponses );
+        when ( bulkSmsGateway.sendBatch( any(), any( BulkSmsGatewayConfig.class ) ) ).thenReturn( summaryResponses );
     }
 
     @Test
@@ -241,7 +241,7 @@ public class SmsMessageSenderTest
     {
         Set<String> tempRecipients = Sets.newHashSet();
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ),any( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
         {
             tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
             return okStatus;
@@ -267,7 +267,7 @@ public class SmsMessageSenderTest
 
         generateRecipients( 500 );
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ),any( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
         {
             recipientList.add( (Set<String>) invocation.getArguments()[2] );
 

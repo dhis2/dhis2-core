@@ -66,6 +66,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 import static org.junit.Assert.*;
@@ -240,7 +241,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test( expected = SMSParserException.class )
-    public void testIfDataSetIsLocked() throws Exception
+    public void testIfDataSetIsLocked()
     {
         incomingSms.setUser( user );
         when( dataSetService.isLocked( any(), any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
@@ -269,7 +270,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         incomingSms.setUser( userwithMultipleOu );
 
         when( userService.getUser( anyString() ) ).thenReturn( userwithMultipleOu );
-        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( userwithMultipleOu ) );
+        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Collections.singletonList( userwithMultipleOu ) );
 
         dataValueSMSListener.receive( incomingSms );
 

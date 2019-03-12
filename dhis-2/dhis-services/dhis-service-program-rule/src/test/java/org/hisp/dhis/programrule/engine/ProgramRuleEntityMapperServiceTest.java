@@ -175,8 +175,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleVariableValues()
     {
-        RuleVariableAttribute ruleVariableAttribute = null;
-        RuleVariableCalculatedValue ruleVariableCalculatedValue = null;
+        RuleVariableAttribute ruleVariableAttribute;
+        RuleVariableCalculatedValue ruleVariableCalculatedValue;
 
         List<RuleVariable> ruleVariables = subject.toMappedProgramRuleVariables();
 
