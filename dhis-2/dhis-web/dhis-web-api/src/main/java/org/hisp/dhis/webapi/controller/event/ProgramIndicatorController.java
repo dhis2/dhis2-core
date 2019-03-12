@@ -75,7 +75,7 @@ public class ProgramIndicatorController
 
             message.setStatus( Status.OK );
 
-            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
         catch ( IllegalStateException e )
         {
@@ -83,7 +83,7 @@ public class ProgramIndicatorController
 
             message.setStatus( Status.ERROR );
 
-            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
         webMessageService.sendJson( message, response );
@@ -103,7 +103,7 @@ public class ProgramIndicatorController
 
             message.setStatus( Status.OK );
 
-            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
         catch ( IllegalStateException e )
         {
@@ -111,7 +111,7 @@ public class ProgramIndicatorController
 
             message.setStatus( Status.ERROR );
 
-            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
         webMessageService.sendJson( message, response );
