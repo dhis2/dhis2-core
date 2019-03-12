@@ -121,7 +121,7 @@ public class JobConfigurationObjectBundleHook
         return errorReports;
     }
 
-    private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
+    protected List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
