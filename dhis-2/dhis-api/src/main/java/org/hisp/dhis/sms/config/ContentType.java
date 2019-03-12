@@ -37,6 +37,8 @@ public enum ContentType
 {
     APPLICATION_JSON( "application/json" ),
     APPLICATION_XML( "application/xml" ),
+    TEXT_PLAIN( "text/plain" ),
+    TEXT_HTML( "text/html" ),
     FORM_URL_ENCODED( "application/x-www-form-urlencoded" );
 
     private String value;

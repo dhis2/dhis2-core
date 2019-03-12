@@ -112,7 +112,7 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
         HttpEntity<String> requestEntity = null;
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers;
 
         if ( genericConfig.isSendAsUrlParameter() )
         {
@@ -161,7 +161,7 @@ public class SimplisticHttpGetGateWay
             headers.put( HttpHeaders.AUTHORIZATION, SmsGateway.BASIC + headers.get( HttpHeaders.AUTHORIZATION ) );
         }
 
-        headers.entrySet().forEach( h -> httpHeaders.set( h.getKey(), h.getValue() ) );
+        headers.forEach( httpHeaders::set );
 
         return httpHeaders;
     }
