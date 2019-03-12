@@ -156,10 +156,14 @@ public class DefaultSynchronizationManager
 
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
         final int lastUpdatedCount = completeDataSetRegistrationService
-            .getCompleteDataSetCountLastUpdatedAfter( lastSuccessTime );
+            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
 
-        log.info( "Values: " + lastUpdatedCount + " since last push success: " + lastSuccessTime );
+        log.info(
+            "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( lastUpdatedCount == 0 )
         {
@@ -181,8 +185,8 @@ public class DefaultSynchronizationManager
             request.getHeaders().add( HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            completeDataSetRegistrationExchangeService.writeCompleteDataSetRegistrationsJson( lastSuccessTime,
-                request.getBody(), new IdSchemes() );
+            completeDataSetRegistrationExchangeService
+                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
@@ -264,12 +268,17 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
 
-        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {
-            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC, startTime );
+            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC,
+                startTime );
             log.debug( "Skipping data values push, no new or updated data values" );
 
             ImportCount importCount = new ImportCount( 0, 0, 0, 0 );
@@ -285,7 +294,8 @@ public class DefaultSynchronizationManager
             request.getHeaders().add( HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
+            dataValueSetService
+                .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
@@ -343,10 +353,13 @@ public class DefaultSynchronizationManager
         // ---------------------------------------------------------------------
 
         final Date startTime = new Date();
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
-            SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
-
-        int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
+        final Date lastSuccessTime = SyncUtils
+            .getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int lastUpdatedEventsCount = eventService
+            .getAnonymousEventValuesCountLastUpdatedAfter( lastUpdatedAfter );
 
         if ( lastUpdatedEventsCount == 0 )
         {
@@ -411,8 +424,8 @@ public class DefaultSynchronizationManager
 
             for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                if ( ImportStatus.ERROR.equals( summary.getStatus() )
-                    || ImportStatus.WARNING.equals( summary.getStatus() ) )
+                if ( ImportStatus.ERROR.equals( summary.getStatus() ) ||
+                    ImportStatus.WARNING.equals( summary.getStatus() ) )
                 {
                     isError = true;
                     log.debug( "Sync failed: " + summaries );

@@ -65,6 +65,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -224,6 +225,13 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.isSynchronizationQuery() )
         {
             hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
+        }
+
+        //Going for comparing milliseconds instead of always creating new Date( 0 );
+        if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
+        {
+            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
         if ( params.hasOrganisationUnits() )
