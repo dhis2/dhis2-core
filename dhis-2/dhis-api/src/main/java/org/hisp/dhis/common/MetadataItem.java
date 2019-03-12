@@ -143,6 +143,7 @@ public class MetadataItem
         this.code = dimensionalItemObject.getCode();
         this.description = dimensionalItemObject.getDescription();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
+        this.valueType = ValueType.NUMBER; // Default value
         this.aggregationType = dimensionalItemObject.getAggregationType();
         this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
 

@@ -61,8 +61,9 @@ public interface CompleteDataSetRegistrationExchangeService
      * @param idSchemes identifier schemes applying to this query.
      * @return an instance of {@link ExportParams} corresponding to the given query parameters.
      */
-    ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
-        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes );
+    ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups,
+        Set<String> periods, Date startDate, Date endDate, boolean includeChildren, Date created,
+        String createdDuration, Integer limit, IdSchemes idSchemes );
 
     /**
      * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as XML.
@@ -80,7 +81,14 @@ public interface CompleteDataSetRegistrationExchangeService
      */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
 
-    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,IdSchemes idSchemes );
+    /**
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
+     *
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param outputStream the stream to write to.
+     * @param idSchemes idSchemes
+     */
+    void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from an XML payload.
@@ -99,8 +107,8 @@ public interface CompleteDataSetRegistrationExchangeService
      * @param jobId the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
-
+    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId );
 
     /**
      * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
@@ -119,5 +127,6 @@ public interface CompleteDataSetRegistrationExchangeService
      * @param jobId the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId );
 }

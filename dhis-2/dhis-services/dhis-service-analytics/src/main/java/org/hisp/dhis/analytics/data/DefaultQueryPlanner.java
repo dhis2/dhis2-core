@@ -167,7 +167,7 @@ public class DefaultQueryPlanner
     {
         Partitions partitions = PartitionUtils.getPartitions( params, tableType );
 
-        if ( params.getTableName() != null && params.getCurrentUser() != null )
+        if ( params.getTableName() != null )
         {
             partitionManager.filterNonExistingPartitions( partitions, params.getTableName() );
         }
