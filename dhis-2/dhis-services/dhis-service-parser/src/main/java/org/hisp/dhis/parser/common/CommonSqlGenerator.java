@@ -174,17 +174,6 @@ public abstract class CommonSqlGenerator
 
         switch ( ctx.fun.getType() )
         {
-            case IF:
-                return " case when " + args.get( 0 ) +
-                    " then " + args.get( 1 ) +
-                    " else " + args.get( 2 ) + " end";
-
-            case IS_NULL:
-                return getNullTest( ctx.itemNumStringLiteral( 0 ) ) + " is null";
-
-            case IS_NOT_NULL:
-                return getNullTest( ctx.itemNumStringLiteral( 0 ) ) + " is not null";
-
             case FIRST_NON_NULL:
                 List<String> values = ctx.itemNumStringLiteral().stream()
                     .map( c -> castString( getNullTest( c ) ) )
@@ -194,6 +183,17 @@ public abstract class CommonSqlGenerator
 
             case GREATEST:
                 return "greatest(" + Joiner.on( "," ).join( args ) + ")";
+
+            case IF:
+                return " case when " + args.get( 0 ) +
+                    " then " + args.get( 1 ) +
+                    " else " + args.get( 2 ) + " end";
+
+            case IS_NOT_NULL:
+                return getNullTest( ctx.itemNumStringLiteral( 0 ) ) + " is not null";
+
+            case IS_NULL:
+                return getNullTest( ctx.itemNumStringLiteral( 0 ) ) + " is null";
 
             case LEAST:
                 return "least(" + Joiner.on( "," ).join( args ) + ")";
