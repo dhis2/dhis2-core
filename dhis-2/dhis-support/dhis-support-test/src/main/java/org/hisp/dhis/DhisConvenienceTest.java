@@ -1285,6 +1285,11 @@ public abstract class DhisConvenienceTest
 
     public static User createUser( char uniqueCharacter )
     {
+        return createUser( uniqueCharacter, Lists.newArrayList() );
+    }
+
+    public static User createUser( char uniqueCharacter, List<String> auths )
+    {
         UserCredentials credentials = new UserCredentials();
         User user = new User();
         user.setUid( BASE_USER_UID + uniqueCharacter );
@@ -1294,6 +1299,13 @@ public abstract class DhisConvenienceTest
 
         credentials.setUsername( "username" + uniqueCharacter );
         credentials.setPassword( "password" + uniqueCharacter );
+
+        if ( auths != null && !auths.isEmpty() )
+        {
+            UserAuthorityGroup role = new UserAuthorityGroup();
+            auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
+            credentials.getUserAuthorityGroups().add( role );
+        }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
