@@ -155,10 +155,10 @@ public abstract class CommonVisitor
                 return ifFunction( ctx );
 
             case IS_NULL:
-                return visitIgnoringMissingValues( ctx.item() ) == null;
+                return visitAllowingNullValues( ctx.item() ) == null;
 
             case IS_NOT_NULL:
-                return visitIgnoringMissingValues( ctx.item() ) != null;
+                return visitAllowingNullValues( ctx.item() ) != null;
 
             case FIRST_NON_NULL:
                 return firstNonNull( ctx.itemNumStringLiteral() );
@@ -262,7 +262,7 @@ public abstract class CommonVisitor
     {
         if ( ctx.item() != null )
         {
-            return visitIgnoringMissingValues( ctx.item() );
+            return visitAllowingNullValues( ctx.item() );
         }
         else if ( ctx.numStringLiteral().stringLiteral() != null )
         {
