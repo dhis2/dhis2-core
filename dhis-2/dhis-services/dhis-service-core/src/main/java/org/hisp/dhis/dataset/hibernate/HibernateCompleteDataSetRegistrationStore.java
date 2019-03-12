@@ -77,7 +77,8 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
-        
+        registration.setLastUpdated( new Date() );
+
         getSession().save( registration );
     }
 
@@ -85,7 +86,8 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
-        
+        registration.setLastUpdated( new Date() );
+
         getSession().update( registration );
     }
 
@@ -161,7 +163,7 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
         getSession().createQuery( hql ).
             setParameter( "dataSet", dataSet ).executeUpdate();
     }
-    
+
     @Override
     public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
     {
@@ -172,22 +174,18 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedBetween( Date date )
+    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
-
-        if ( date == null )
+        if ( lastUpdated == null )
         {
-            throw new IllegalArgumentException( "date must be specified" );
+            throw new IllegalArgumentException( "lastUpdated parameter must be specified" );
         }
 
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( CompleteDataSetRegistration.class )
             .setProjection( Projections.rowCount() );
 
-        if ( date != null )
-        {
-            criteria.add( Restrictions.ge( "lastUpdated", date ) );
-        }
+        criteria.add( Restrictions.ge( "lastUpdated", lastUpdated ) );
 
         Number rs = ( Number ) criteria.uniqueResult();
 

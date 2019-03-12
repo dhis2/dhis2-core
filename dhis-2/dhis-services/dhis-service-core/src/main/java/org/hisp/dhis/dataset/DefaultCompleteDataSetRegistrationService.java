@@ -111,7 +111,7 @@ public class DefaultCompleteDataSetRegistrationService
         {
             messageService.sendCompletenessMessage( registration );
         }
-        
+
         notificationEventPublisher.publishEvent( registration );
     }
 
@@ -216,8 +216,8 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedAfter( Date date )
+    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
-        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedBetween( date );
+        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );
     }
 }
