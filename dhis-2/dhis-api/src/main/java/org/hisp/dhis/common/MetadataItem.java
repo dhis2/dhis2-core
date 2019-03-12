@@ -34,9 +34,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * Item part of meta data analytics response.
@@ -46,19 +48,19 @@ import org.hisp.dhis.program.ProgramStage;
 public class MetadataItem
     implements Serializable
 {
-    private String name;
-
-    private String legendSet;
-
     private String uid;
 
     private String code;
 
+    private String name;
+
     private String description;
 
-    private DimensionItemType dimensionItemType;
+    private String legendSet;
 
     private DimensionType dimensionType;
+
+    private DimensionItemType dimensionItemType;
 
     private ValueType valueType;
 
@@ -139,14 +141,29 @@ public class MetadataItem
 
         this.uid = dimensionalItemObject.getUid();
         this.code = dimensionalItemObject.getCode();
-        this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
         this.description = dimensionalItemObject.getDescription();
+        this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
+        this.valueType = ValueType.NUMBER; // Default value
         this.aggregationType = dimensionalItemObject.getAggregationType();
         this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
 
         if ( dimensionalItemObject.hasLegendSet() )
         {
             this.legendSet = dimensionalItemObject.getLegendSet().getUid();
+        }
+
+        // TODO common interface
+
+        if ( dimensionalItemObject instanceof DataElement )
+        {
+            DataElement dataElement = (DataElement) dimensionalItemObject;
+            this.valueType = dataElement.getValueType();
+        }
+
+        if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        {
+            TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
+            this.valueType = attribute.getValueType();
         }
 
         // TODO introduce start/end date marker interface instead
@@ -200,50 +217,6 @@ public class MetadataItem
     }
 
     @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public DimensionType getDimensionType()
-    {
-        return dimensionType;
-    }
-
-    public void setDimensionType( DimensionType type )
-    {
-        this.dimensionType = type;
-    }
-
-    @JsonProperty
-    public AggregationType getAggregationType()
-    {
-        return aggregationType;
-    }
-
-    public void setAggregationType( AggregationType itemSpecificType )
-    {
-        this.aggregationType = itemSpecificType;
-    }
-
-    @JsonProperty
-    public DimensionItemType getDimensionItemType()
-    {
-        return dimensionItemType;
-    }
-
-    public void setDimensionItemType( DimensionItemType dimensionItemType )
-    {
-        this.dimensionItemType = dimensionItemType;
-    }
-
-    @JsonProperty
     public String getName()
     {
         return name;
@@ -252,6 +225,17 @@ public class MetadataItem
     public void setName( String name )
     {
         this.name = name;
+    }
+
+    @JsonProperty
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 
     @JsonProperty
@@ -266,6 +250,28 @@ public class MetadataItem
     }
 
     @JsonProperty
+    public DimensionType getDimensionType()
+    {
+        return dimensionType;
+    }
+
+    public void setDimensionType( DimensionType type )
+    {
+        this.dimensionType = type;
+    }
+
+    @JsonProperty
+    public DimensionItemType getDimensionItemType()
+    {
+        return dimensionItemType;
+    }
+
+    public void setDimensionItemType( DimensionItemType dimensionItemType )
+    {
+        this.dimensionItemType = dimensionItemType;
+    }
+
+    @JsonProperty
     public ValueType getValueType()
     {
         return valueType;
@@ -274,6 +280,17 @@ public class MetadataItem
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
+    }
+
+    @JsonProperty
+    public AggregationType getAggregationType()
+    {
+        return aggregationType;
+    }
+
+    public void setAggregationType( AggregationType itemSpecificType )
+    {
+        this.aggregationType = itemSpecificType;
     }
 
     @JsonProperty
