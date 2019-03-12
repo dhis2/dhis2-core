@@ -110,7 +110,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.expressionparser.ExpressionParserService;
+import org.hisp.dhis.parser.expression.ExpressionParserService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;

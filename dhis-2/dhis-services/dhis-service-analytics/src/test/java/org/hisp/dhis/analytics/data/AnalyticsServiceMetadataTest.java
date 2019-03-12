@@ -69,7 +69,6 @@ import static org.mockito.Mockito.when;
  */
 public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
-
     @Before
     public void setUp()
     {
