@@ -54,9 +54,9 @@ public class AbstractVisitor
     extends ExpressionBaseVisitor<Object>
 {
     /**
-     * By default, do not ignore missing values, but change to 0 or ''.
+     * By default, ignore missing values: change to 0 or ''.
      */
-    protected boolean ignoreMissingValues = false;
+    protected boolean ignoreMissingValues = true;
 
     // -------------------------------------------------------------------------
     // Visitor methods not to be overridden by subclasses
@@ -178,8 +178,8 @@ public class AbstractVisitor
     }
 
     /**
-     * Visits a context while ignoring missing values, even if we would
-     * otherwise not be ignoring them.
+     * Visits a context while ignoring missing values (replacing them with
+     * 0 or ''), even if we would otherwise not be ignoring them.
      *
      * @param ctx any context
      * @return the value while ignoring missing values
@@ -187,6 +187,19 @@ public class AbstractVisitor
     public Object visitIgnoringMissingValues( ParserRuleContext ctx )
     {
         return visitIgnoreMissingValues( ctx, true );
+    }
+
+    /**
+     * Visits a context while allowing missing values to be returned as null
+     * (not replacing them with 0 or ''), even if we would otherwise be
+     * replacing them.
+     *
+     * @param ctx any context
+     * @return the value while ignoring missing values
+     */
+    public Object visitAllowingNullValues( ParserRuleContext ctx )
+    {
+        return visitIgnoreMissingValues( ctx, false );
     }
 
     // -------------------------------------------------------------------------

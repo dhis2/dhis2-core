@@ -69,10 +69,6 @@ public class ProgramElementsAndAttributesCollecter
     @Override
     public void enterItem( ItemContext ctx )
     {
-        int type = ctx.it.getType();
-
-        Double.valueOf( (double) type);
-
         switch ( ctx.it.getType() )
         {
             case HASH_BRACE:
