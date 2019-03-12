@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-expression-parser</artifactId>
+      <artifactId>dhis-service-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

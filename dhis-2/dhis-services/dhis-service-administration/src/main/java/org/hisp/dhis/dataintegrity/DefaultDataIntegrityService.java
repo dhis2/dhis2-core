@@ -55,6 +55,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.parser.program.ProgramParserService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -119,13 +120,16 @@ public class DefaultDataIntegrityService
 
     private final ProgramIndicatorService programIndicatorService;
 
+    private final ProgramParserService programParserService;
+
     @Autowired
     public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
         IndicatorService indicatorService, DataSetService dataSetService,
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
         ValidationRuleService validationRuleService, ExpressionService expressionService,
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService, ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
+        ProgramIndicatorService programIndicatorService, ProgramParserService programParserService,
+        ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
         ProgramRuleActionService programRuleActionService )
     {
         checkNotNull( i18nManager );
@@ -139,6 +143,7 @@ public class DefaultDataIntegrityService
         checkNotNull( categoryService );
         checkNotNull( periodService );
         checkNotNull( programIndicatorService );
+        checkNotNull( programParserService );
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( programRuleActionService );
@@ -155,6 +160,7 @@ public class DefaultDataIntegrityService
         this.categoryService = categoryService;
         this.periodService = periodService;
         this.programIndicatorService = programIndicatorService;
+        this.programParserService = programParserService;
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.programRuleActionService = programRuleActionService;
@@ -661,7 +667,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidExpressions;
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .filter( pi -> ! programParserService.expressionIsValid( pi.getExpression() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
@@ -673,7 +679,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidFilters;
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .filter( pi -> ! programParserService.filterIsValid( pi.getFilter() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
 
         return invalidFilters;

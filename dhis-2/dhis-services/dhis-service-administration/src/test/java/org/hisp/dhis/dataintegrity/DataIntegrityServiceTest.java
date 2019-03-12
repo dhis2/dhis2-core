@@ -56,6 +56,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.parser.program.ProgramParserService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -123,6 +124,9 @@ public class DataIntegrityServiceTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private ProgramParserService programParserService;
+
+    @Mock
     private ProgramRuleService programRuleService;
 
     @Mock
@@ -178,7 +182,8 @@ public class DataIntegrityServiceTest
     {
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-            dataEntryFormService, categoryService, periodService, programIndicatorService, programRuleService, programRuleVariableService, programRuleActionService );
+            dataEntryFormService, categoryService, periodService, programIndicatorService, programParserService,
+            programRuleService, programRuleVariableService, programRuleActionService );
         rnd = new BeanRandomizer();
         setUpFixtures();
     }

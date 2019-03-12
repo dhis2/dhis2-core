@@ -32,8 +32,8 @@ import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.parser.program.ProgramParserService;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class ProgramIndicatorController
     extends AbstractCrudController<ProgramIndicator>
 {
     @Autowired
-    private ProgramIndicatorService programIndicatorService;
+    private ProgramParserService programParserService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -67,15 +67,23 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.expressionIsValid( expression );
-
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
 
-        if ( message.isOk() )
+        try
         {
-            message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
+            message.setDescription( programParserService.getExpressionDescription( expression ) );
+
+            message.setStatus( Status.OK );
+
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+        }
+        catch ( IllegalStateException e )
+        {
+            message.setDescription( e.getMessage() );
+
+            message.setStatus( Status.ERROR );
+
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
 
         webMessageService.sendJson( message, response );
@@ -87,15 +95,23 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.filterIsValid( expression );
-
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
 
-        if ( message.isOk() )
+        try
         {
-            message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
+            message.setDescription( programParserService.getFilterDescription( expression ) );
+
+            message.setStatus( Status.OK );
+
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+        }
+        catch ( IllegalStateException e )
+        {
+            message.setDescription( e.getMessage() );
+
+            message.setStatus( Status.ERROR );
+
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
 
         webMessageService.sendJson( message, response );

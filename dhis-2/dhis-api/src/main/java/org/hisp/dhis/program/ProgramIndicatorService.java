@@ -28,7 +28,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -90,64 +89,6 @@ public interface ProgramIndicatorService
      */
     List<ProgramIndicator> getAllProgramIndicators();
 
-    /**
-     * Get description of an indicator expression.
-     *
-     * @param expression An expression string
-     * @return The description
-     */
-    String getExpressionDescription( String expression );
-
-    /**
-     * Get the expression as an analytics SQL clause. Ignores missing numeric
-     * values for data elements and attributes.
-     * 
-     * @param expression the expression.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return the SQL string.
-     */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
-    
-    /**
-     * Get the expression as an analytics SQL clause.
-     * 
-     * @param expression the expression.
-     * @param ignoreMissingValues whether to ignore missing values for data elements and attributes.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return the SQL string.
-     */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues, Date startDate, Date endDate );
-    
-    /**
-     * Returns a SQL clause which matches any value for the data elements and
-     * attributes in the given expression.
-     * 
-     * @param expression the expression.
-     * @return the SQL string.
-     */
-    String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType );
-
-    /**
-     * Indicates whether the given program indicator expression is valid.
-     * 
-     * @param expression an expression string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#EXPRESSION_NOT_VALID},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
-     */
-    String expressionIsValid( String expression );
-
-    /**
-     * Indicates whether the given program indicator expression is valid.
-     * 
-     * @param filter a filter string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
-     */
-    String filterIsValid( String filter );
     
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
