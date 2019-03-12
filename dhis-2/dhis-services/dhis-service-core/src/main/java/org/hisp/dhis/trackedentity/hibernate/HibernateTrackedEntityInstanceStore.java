@@ -662,7 +662,7 @@ public class HibernateTrackedEntityInstanceStore
                 + EventStatus.SKIPPED.name() + "' and ";
         }
         
-        sql += " psi.deleted is false";
+        sql += " psi.deleted is false ";
 
         return sql;
     }
