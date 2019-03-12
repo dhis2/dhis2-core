@@ -42,6 +42,8 @@ public class GenericGatewayParameter
 
     private boolean header;
 
+    private boolean encode;
+
     private String key;
 
     private String value;
@@ -54,7 +56,6 @@ public class GenericGatewayParameter
 
     public GenericGatewayParameter( String key, String value, boolean classified )
     {
-        super();
         this.key = key;
         this.value = value;
         this.classified = classified;
@@ -107,5 +108,16 @@ public class GenericGatewayParameter
     public void setHeader( boolean header )
     {
         this.header = header;
+    }
+
+    @JsonProperty
+    public boolean isEncode()
+    {
+        return encode;
+    }
+
+    public void setEncode( boolean encode )
+    {
+        this.encode = encode;
     }
 }

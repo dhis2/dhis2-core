@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,20 +40,14 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StrSubstitutor;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -84,17 +79,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
-    private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
-
     private static final String APPLICATION_FORM_URL_ENCODED = "application/x-www-form-urlencoded";
     private static final Set<String> TEMPLATE_SUPPORTED_TYPES = Sets.newHashSet( "application/json", "application/xml" );
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -136,7 +122,7 @@ public class SimplisticHttpGetGateWay
         {
             if ( contentType.equals( APPLICATION_FORM_URL_ENCODED ) )
             {
-                data = encodedUrlParameters( genericConfig, text, recipients );
+                data = encodeUrlParameters( genericConfig, text, recipients );
             }
             else
             {
@@ -146,7 +132,7 @@ public class SimplisticHttpGetGateWay
                 }
             }
 
-            headers.set( HttpHeaders.CONTENT_TYPE, contentType );
+            headers = createHttpHeaders( genericConfig );
 
             requestEntity = new HttpEntity<>( data, headers );
         }
@@ -162,6 +148,24 @@ public class SimplisticHttpGetGateWay
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    private HttpHeaders createHttpHeaders( GenericHttpGatewayConfig  config )
+    {
+        HttpHeaders httpHeaders = new HttpHeaders();
+
+        Map<String, String> headers = config.getParameters().stream()
+            .filter( GenericGatewayParameter::isHeader )
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, p -> p.isEncode() ? Base64.getEncoder().encodeToString( p.getValue().getBytes() ) : p.getValue() ) );
+
+        if ( headers.containsKey( HttpHeaders.AUTHORIZATION ) )
+        {
+            headers.put( HttpHeaders.AUTHORIZATION, SmsGateway.BASIC + headers.get( HttpHeaders.AUTHORIZATION ) );
+        }
+
+        headers.entrySet().forEach( h -> httpHeaders.set( h.getKey(), h.getValue() ) );
+
+        return httpHeaders;
+    }
+
     private String draftTemplate( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         List<GenericGatewayParameter> parameters = config.getParameters();
@@ -175,18 +179,18 @@ public class SimplisticHttpGetGateWay
         return strSubstitutor.replace( config.getPayloadTemplate() );
     }
 
-    private String encodedUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    private String encodeUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         Map<String, String> requestParams = getUrlParameters( config.getParameters() );
         requestParams.put(config.getMessageParameter(), text );
         requestParams.put(config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return requestParams.entrySet().stream()
-            .map( v -> v.getKey() + "=" + encodeUrl( v.getValue() ) )
+            .map( v -> v.getKey() + "=" + encodeValue( v.getValue() ) )
             .collect( Collectors.joining( "&" ) );
     }
 
-    private String encodeUrl( String value )
+    private String encodeValue( String value )
     {
         try
         {
@@ -219,21 +223,6 @@ public class SimplisticHttpGetGateWay
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-                .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
-    }
-
-    private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
-    {
-        OutboundMessageResponse status = new OutboundMessageResponse();
-
-        if ( responseEntity == null || !OK_CODES.contains( responseEntity.getStatusCode() ) )
-        {
-            status.setResponseObject( GatewayResponse.FAILED );
-            status.setOk( false );
-
-            return status;
-        }
-
-        return wrapHttpStatus( responseEntity.getStatusCode() );
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
     }
 }
