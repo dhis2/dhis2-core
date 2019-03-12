@@ -132,7 +132,7 @@ public abstract class AbstractJdbcTableManager
      * Override in order to perform work before tables are being generated.
      */
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
     }
 

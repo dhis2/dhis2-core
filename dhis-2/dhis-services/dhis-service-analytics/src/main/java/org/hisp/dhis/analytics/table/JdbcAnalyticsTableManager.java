@@ -142,7 +142,7 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )
         {
