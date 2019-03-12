@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -319,42 +319,33 @@ public class JobConfiguration
         return userUid;
     }
 
-    @Override
-    public int compareTo( IdentifiableObject jobConfiguration )
+    /**
+     * Checks if this job has changes compared to the specified job configuration that are only
+     * allowed for configurable jobs.
+     *
+     * @param jobConfiguration the job configuration that should be checked.
+     * @return <code>true</code> if this job configuration has changes in fields that are only
+     * allowed for configurable jobs, <code>false</code> otherwise.
+     */
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
     {
-        JobConfiguration compareJobConfiguration = (JobConfiguration) jobConfiguration;
-
-        if ( jobType != compareJobConfiguration.getJobType() )
+        if ( jobType != jobConfiguration.getJobType() )
         {
-            return -1;
+            return true;
         }
-
-        if ( jobStatus != compareJobConfiguration.getJobStatus() )
+        if ( jobStatus != jobConfiguration.getJobStatus() )
         {
-            return -1;
+            return true;
         }
-
-        if ( jobParameters != compareJobConfiguration.getJobParameters() )
+        if ( jobParameters != jobConfiguration.getJobParameters() )
         {
-            return -1;
+            return true;
         }
-
-        if ( continuousExecution != compareJobConfiguration.isContinuousExecution() )
+        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
         {
-            return -1;
+            return true;
         }
-
-        if ( enabled != compareJobConfiguration.isEnabled() )
-        {
-            return -1;
-        }
-
-        if ( !cronExpression.equals( compareJobConfiguration.getCronExpression() ) )
-        {
-            return 1;
-        }
-
-        return -1;
+        return enabled != jobConfiguration.isEnabled();
     }
 
     @Override
