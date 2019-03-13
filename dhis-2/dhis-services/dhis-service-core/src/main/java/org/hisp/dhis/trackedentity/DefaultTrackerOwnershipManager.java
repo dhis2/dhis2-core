@@ -40,6 +40,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramService;
@@ -270,6 +271,29 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
 
         OrganisationUnit ou = getOwner( entityInstance, program );
+        if ( program.isOpen() || program.isAudited() )
+        {
+            return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
+        }
+        else
+        {
+            return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
+        }
+    }
+    
+    @Override
+    public boolean hasAccess( User user, ProgramInstance programInstance )
+    {
+        Program program = programInstance.getProgram();
+        TrackedEntityInstance entityInstance = programInstance.getEntityInstance();
+        
+        if ( programInstance == null || canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+
+        OrganisationUnit ou = getOwner( entityInstance, program );
+        
         if ( program.isOpen() || program.isAudited() )
         {
             return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
