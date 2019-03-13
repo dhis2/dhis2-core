@@ -74,6 +74,8 @@ public interface ProgramRuleEntityMapperService
      */
     List<RuleVariable> toMappedProgramRuleVariables();
 
+    Rule toMappedProgramRule( ProgramRule programRule );
+
     /**
      *@param programRuleVariables The list of ProgramRuleVariable to be mapped.
      * @return A list of mapped RuleVariables for list of programs.

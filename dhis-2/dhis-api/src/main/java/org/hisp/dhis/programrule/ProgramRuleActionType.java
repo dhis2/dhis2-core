@@ -75,8 +75,8 @@ public enum ProgramRuleActionType
         return null;
     }
 
-    public boolean isImplementable()
+    public static Set<ProgramRuleActionType> getImplementedActions()
     {
-        return IMPLEMENTED_ACTIONS.contains( this );
+        return IMPLEMENTED_ACTIONS;
     }
 }

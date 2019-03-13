@@ -32,6 +32,7 @@ import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author markusbekken
@@ -108,5 +109,11 @@ public class DefaultProgramRuleService
     public List<ProgramRule> getProgramRules( Program program, String key )
     {
         return programRuleStore.get( program, key );
+    }
+
+    @Override
+    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    {
+        return programRuleStore.getImplementableProgramRules( program, types );
     }
 }

@@ -71,14 +71,13 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         catch( Exception ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
         for ( RuleEffect effect : ruleEffects )
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
+                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, programInstance );
             } );
@@ -99,14 +98,13 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         catch( Exception ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
         for ( RuleEffect effect : ruleEffects )
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
+                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, programStageInstance );
             } );

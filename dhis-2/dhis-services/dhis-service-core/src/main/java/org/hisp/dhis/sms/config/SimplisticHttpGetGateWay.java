@@ -31,10 +31,12 @@ package org.hisp.dhis.sms.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -42,7 +44,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,9 +115,7 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
-        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
-        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
         ResponseEntity<String> responseEntity = null;
 
@@ -120,7 +123,11 @@ public class SimplisticHttpGetGateWay
         {
             URI url = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
+            String data = encodedUrlParameters( genericConfig, text, recipients );
+
+            HttpEntity<String> requestEntity = new HttpEntity<>( data, null );
+
+            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -142,22 +149,38 @@ public class SimplisticHttpGetGateWay
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
+    private String encodedUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        Map<String, String> requestParams = getUrlParameters( config.getParameters() );
+        requestParams.put(config.getMessageParameter(), text );
+        requestParams.put(config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
-        for ( Map.Entry entry : getUrlParameters( config.getParameters() ).entrySet() )
+        String encodedValue = requestParams.entrySet().stream()
+            .map( v -> v.getKey() + "=" + encodeUrl( v.getValue() ) )
+            .collect( Collectors.joining( "&" ) );
+
+        return encodedValue;
+    }
+
+    private String encodeUrl( String value )
+    {
+        String v = "";
+        try
         {
-            uriBuilder.queryParam( entry.getKey().toString(), entry.getValue().toString() );
+            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+        }
+        catch( UnsupportedEncodingException e )
+        {
+            DebugUtils.getStackTrace( e );
         }
 
-        return uriBuilder;
+        return v;
     }
 
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-                .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) ) ;
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) ) ;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )

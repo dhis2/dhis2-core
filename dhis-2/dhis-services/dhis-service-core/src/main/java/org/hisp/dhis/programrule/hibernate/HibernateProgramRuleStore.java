@@ -29,12 +29,14 @@ package org.hisp.dhis.programrule.hibernate;
  */
 
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleStore;
 
 /**
@@ -67,5 +69,15 @@ public class HibernateProgramRuleStore
             .add( Restrictions.like( "name", "%" + key + "%" ).ignoreCase())
             .addOrder( Order.asc( "name" ) )
             .list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    {
+        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
+            .setParameter( "programId", program )
+            .setParameter( "implementableTypes", types )
+            .getResultList();
     }
 }

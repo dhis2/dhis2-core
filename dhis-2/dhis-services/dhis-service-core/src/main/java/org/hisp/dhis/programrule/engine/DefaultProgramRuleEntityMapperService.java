@@ -137,6 +137,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
+    public Rule toMappedProgramRule( ProgramRule programRule )
+    {
+        return toRule( programRule );
+    }
+
+    @Override
     public List<RuleVariable> toMappedProgramRuleVariables( Program program )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
