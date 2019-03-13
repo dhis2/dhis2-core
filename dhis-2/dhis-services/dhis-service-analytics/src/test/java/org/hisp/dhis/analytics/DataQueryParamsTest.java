@@ -336,13 +336,11 @@ public class DataQueryParamsTest
             .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, Lists.newArrayList( deA, deB, deC ) )
             .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, Lists.newArrayList( peA, peB ) ).build();
 
-        DimensionalItemObject[] items = params.getDimensionItemArrayExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
+        List<DimensionalItemObject> items = params.getDimensionItemsExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
 
-        List<DimensionalItemObject> itemsList = Lists.newArrayList( items );
-
-        assertEquals( 2, items.length );
-        assertTrue( itemsList.contains( cocA ) );
-        assertTrue( itemsList.contains( cocB ) );
+        assertEquals( 2, items.size() );
+        assertTrue( items.contains( cocA ) );
+        assertTrue( items.contains( cocB ) );
     }
 
     @Test
@@ -631,7 +629,7 @@ public class DataQueryParamsTest
             .build();
 
         ListMap<DimensionalItemObject, DimensionalItemObject> periodMap = params.getDataPeriodAggregationPeriodMap();
-        
+
         assertThat( periodMap.entrySet(), hasSize( 2 ) );
 
         assertThat( periodMap.keySet(), IsIterableContainingInAnyOrder.containsInAnyOrder(
