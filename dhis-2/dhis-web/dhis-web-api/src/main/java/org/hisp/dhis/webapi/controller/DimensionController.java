@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
