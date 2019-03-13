@@ -36,38 +36,37 @@ import java.util.List;
  */
 public class CombinationGenerator<T>
 {
-    private T[][] objects; // Array of object arrays
+    private List<List<T>> objects; // List of object lists
     private int[] indexes; // Current index for each array
     private int no; // No of arrays
-    
-    @SafeVarargs
-    public CombinationGenerator( final T[]... objects )
+
+    public CombinationGenerator( List<List<T>> objects )
     {
         this.objects = objects;
-        this.indexes = new int[objects.length];
-        this.no = objects.length;
-        
+        this.indexes = new int[objects.size()];
+        this.no = objects.size();
+
         if ( no > 0 )
         {
             indexes[no-1]--; // Rewind last index to simplify looping
         }
     }
-    
+
     /**
      * Returns a List of Lists with combinations of objects.
      */
     public List<List<T>> getCombinations()
     {
         final List<List<T>> combinations = new ArrayList<>();
-        
+
         while ( hasNext() )
         {
             combinations.add( getNext() );
         }
-        
+
         return combinations;
     }
-    
+
     /**
      * Indicates whether there are more combinations to be returned or not.
      */
@@ -75,31 +74,31 @@ public class CombinationGenerator<T>
     {
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects[i].length - 1 ) // Not at last position in array
+            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last position in array
             {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Returns the next combination. Returns null if there are no more combinations.
      */
     public List<T> getNext()
     {
         List<T> current = null;
-        
+
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects[i].length - 1 ) // Not at last position in array, increment index and break
+            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last position in list, increment index and break
             {
                 indexes[i]++;
                 current = getCurrent();
                 break;
             }
-            else // At last position in array, reset index to 0 and continue to increment next array
+            else // At last position in list, reset index to 0 and continue to increment next list
             {
                 if ( hasNext() ) // Don't reset if at end
                 {
@@ -107,26 +106,26 @@ public class CombinationGenerator<T>
                 }
             }
         }
-        
+
         return current;
     }
-    
+
     /**
      * Returns a List with values from the current index of each List.
      */
     private List<T> getCurrent()
     {
         final List<T> current = new ArrayList<>( no );
-        
+
         for ( int i = 0; i < no; i++ )
         {
             int index = indexes[i];
-            
-            T[] object = objects[i];
-            
-            current.add( object[index] );
+
+            List<T> object = objects.get( i );
+
+            current.add( object.get( index ) );
         }
-        
+
         return current;
     }
 }

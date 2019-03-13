@@ -164,9 +164,6 @@ public class DataQueryParams
     public static final ImmutableSet<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableSet.of(
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
 
-    private static final DimensionItem[] DIM_OPT_ARR = new DimensionItem[0];
-    private static final DimensionItem[][] DIM_OPT_2D_ARR = new DimensionItem[0][];
-
     /**
      * The dimensions.
      */
@@ -831,7 +828,7 @@ public class DataQueryParams
 
                 if ( ((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears() )
                 {
-                    // When dealing with a period that spans multiple years, add a second aggregated year 
+                    // When dealing with a period that spans multiple years, add a second aggregated year
                     // corresponding to the second part of the financial year so that the query will count both years.
 
                     Period endYear = dataPeriodType.createPeriod( ((Period) aggregatePeriod).getEndDate() );
@@ -850,7 +847,7 @@ public class DataQueryParams
      */
     public List<List<DimensionItem>> getDimensionItemPermutations()
     {
-        List<DimensionItem[]> dimensionOptions = new ArrayList<>();
+        List<List<DimensionItem>> dimensionOptions = new ArrayList<>();
 
         for ( DimensionalObject dimension : dimensions )
         {
@@ -863,11 +860,11 @@ public class DataQueryParams
                     options.add( new DimensionItem( dimension.getDimension(), option ) );
                 }
 
-                dimensionOptions.add( options.toArray( DIM_OPT_ARR ) );
+                dimensionOptions.add( options );
             }
         }
 
-        CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions.toArray( DIM_OPT_2D_ARR ) );
+        CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions );
 
         return generator.getCombinations();
     }
@@ -1054,11 +1051,11 @@ public class DataQueryParams
      * Retrieves the options for the given dimension identifier. If the
      * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all
      * category option combinations for the first data element is returned. Returns an
-     * empty array if the dimension is not present.
+     * empty list if the dimension is not present.
      */
-    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+    public List<DimensionalItemObject> getDimensionItemsExplodeCoc( String dimension )
     {
-        return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
+        return getDimensionItemObjects( dimension );
     }
 
     public List<EventAnalyticsDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
