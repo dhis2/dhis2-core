@@ -40,7 +40,7 @@ public class CombinationGenerator<T>
     private int[] indexes; // Current index for each array
     private int no; // No of arrays
 
-    public CombinationGenerator( List<List<T>> objects )
+    private CombinationGenerator( List<List<T>> objects )
     {
         this.objects = objects;
         this.indexes = new int[objects.size()];
@@ -50,6 +50,16 @@ public class CombinationGenerator<T>
         {
             indexes[no-1]--; // Rewind last index to simplify looping
         }
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param objects the list of object lists.
+     */
+    public static <T> CombinationGenerator<T> newInstance( List<List<T>> objects )
+    {
+        return new CombinationGenerator<>( objects );
     }
 
     /**

@@ -166,7 +166,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsLists() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
@@ -184,7 +184,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsLists() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
