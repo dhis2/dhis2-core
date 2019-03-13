@@ -130,7 +130,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + params.getFromDate() + ", parameters: " + params.toString() );
         notifier.notify( jobId, "Performing pre-create table work" );
 
-        tableManager.preCreateTables();
+        tableManager.preCreateTables( params );
 
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
