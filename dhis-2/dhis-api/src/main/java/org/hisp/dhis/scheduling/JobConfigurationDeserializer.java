@@ -31,6 +31,7 @@ package org.hisp.dhis.scheduling;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -45,6 +46,7 @@ import java.io.IOException;
 public class JobConfigurationDeserializer
     extends JsonDeserializer<JobConfiguration>
 {
+    private final String ID = "id";
     private final String NAME = "name";
     private final String JOB_TYPE = "jobType";
     private final String ENABLED = "enabled";
@@ -82,14 +84,22 @@ public class JobConfigurationDeserializer
         boolean enabled = !root.has( ENABLED ) || root.get( ENABLED ).asBoolean();
 
         boolean continuousExecution = root.has( CONTINUOUS_EXECUTION ) && root.get( CONTINUOUS_EXECUTION ).asBoolean();
-        
+
         boolean leaderOnlyJob = root.has( LEAER_ONLY_JOB ) && root.get( LEAER_ONLY_JOB ).asBoolean();
 
         String cronExpression = root.has( CRON_EXPRESSION ) ? root.get( CRON_EXPRESSION ).textValue() : "";
 
-         JobConfiguration jobConfiguration = new JobConfiguration( root.get( NAME ).textValue(), jobType,
+
+        JobConfiguration jobConfiguration = new JobConfiguration( root.get( NAME ).textValue(), jobType,
             cronExpression, jobParameters, continuousExecution, enabled );
          jobConfiguration.setLeaderOnlyJob( leaderOnlyJob );
+
+        JsonNode idNode = root.get( ID );
+        if ( (idNode != null) && !idNode.isNull() && idNode.isValueNode() )
+        {
+            jobConfiguration.setUid( idNode.textValue() );
+        }
+
          return jobConfiguration;
     }
 }
