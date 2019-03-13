@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -68,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -85,7 +87,7 @@ public class DimensionController
 
     @Autowired
     private DimensionService dimensionService;
-    
+
     @Autowired
     private AnalyticsDimensionService analyticsDimensionService;
 
@@ -184,7 +186,7 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
-        
+
         return rootNode;
     }
 
@@ -200,16 +202,13 @@ public class DimensionController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
-        }
-
-        if ( !dataSet.hasCategoryCombo() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not have a category combination: " + uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Data set not found: " + uid ) );
         }
 
         List<DimensionalObject> dimensions = new ArrayList<>();
-        dimensions.addAll( dataSet.getCategoryCombo().getCategories() );
+        dimensions.addAll( dataSet.getCategoryCombo().getCategories().stream()
+            .filter( ca -> !ca.isDefault() )
+            .collect( Collectors.toList() ) );
         dimensions.addAll( dataSet.getCategoryOptionGroupSets() );
 
         dimensions = dimensionService.getCanReadObjects( dimensions );
