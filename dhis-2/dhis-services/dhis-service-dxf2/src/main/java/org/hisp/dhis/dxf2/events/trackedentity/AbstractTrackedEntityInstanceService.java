@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -203,20 +204,17 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 attributes = new HashSet<>( trackedEntityTypeAttributes );
 
-                // check if user can read the TEI
-                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
+                // pick only those program attributes that user is the owner
+                for ( Program program : programs )
                 {
-                    // pick only those program attributes that user is the owner
-                    for ( Program program : programs )
+                    if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
                     {
-                        if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
-                        {
-                            attributes.addAll( program.getTrackedEntityAttributes() );
-                        }
+                        attributes.addAll( program.getTrackedEntityAttributes() );
                     }
-
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
                 }
+
+                dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+                
             }
         }
         else
@@ -230,7 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
             {
-                if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance, queryParams.getProgram() ).isEmpty() )
+                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, queryParams.getProgram() ) )
                 {
                     dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
                 }

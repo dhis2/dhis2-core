@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.user.User;
 
 /**
@@ -91,6 +92,17 @@ public interface TrackerOwnershipManager
      * @return true if the user has access, false otherwise.
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
+    
+    
+    /**
+     * Check whether the user has access (as owner or has temporarily broken the
+     * glass) for the program instance.
+     * 
+     * @param user The user with which access has to be checked for.
+     * @param programInstance The program instance. 
+     * @return true if the user has access, false otherwise.
+     */
+    boolean hasAccess( User user, ProgramInstance programInstance );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the
