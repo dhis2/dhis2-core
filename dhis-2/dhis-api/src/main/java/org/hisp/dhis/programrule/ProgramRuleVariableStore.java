@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -48,4 +49,6 @@ public interface ProgramRuleVariableStore
      * @return ProgramRuleVariable list
      */
     List<ProgramRuleVariable> get( Program program );
+
+    List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement );
 }

@@ -32,9 +32,12 @@ import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author markusbekken
@@ -48,5 +51,15 @@ public class HibernateProgramRuleVariableStore
     public List<ProgramRuleVariable> get( Program program )
     {
         return getCriteria( Restrictions.eq( "program", program ) ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement )
+    {
+        return getCriteria()
+            .add( Restrictions.eq( "program", program ) )
+            .add( Restrictions.eq( "dataElement", dataElement ) )
+            .list();
     }
 }

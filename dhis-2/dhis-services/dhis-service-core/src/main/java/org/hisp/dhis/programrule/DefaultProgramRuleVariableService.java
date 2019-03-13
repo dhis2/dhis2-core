@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +73,14 @@ public class DefaultProgramRuleVariableService
     public void updateProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.update( programRuleVariable );
+    }
+
+    @Override
+    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    {
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
+
+        return !ruleVariables.isEmpty();
     }
 
     @Override

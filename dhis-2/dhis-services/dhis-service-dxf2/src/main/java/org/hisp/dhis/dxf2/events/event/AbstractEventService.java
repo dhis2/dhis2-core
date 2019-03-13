@@ -89,6 +89,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -215,6 +216,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    protected ProgramRuleVariableService ruleVariableService;
 
     @Autowired
     protected AclService aclService;
@@ -1184,7 +1188,7 @@ public abstract class AbstractEventService
                     value.getProvidedElsewhere(), existingDataValue, null );
             }
 
-            if ( !importOptions.isSkipNotifications() )
+            if ( !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
             {
                 programRuleEngineService.evaluate( programStageInstance );
             }
@@ -1491,7 +1495,15 @@ public abstract class AbstractEventService
     {
         if ( !importOptions.isSkipNotifications() )
         {
-           programRuleEngineService.evaluate( programStageInstance );
+            if ( programStageInstance.isCompleted() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
+            }
+
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
+            }
         }
     }
 
