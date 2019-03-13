@@ -31,18 +31,19 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
-import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
+import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -88,6 +89,9 @@ public class MetadataSyncImportHandler
             throw new MetadataSyncServiceException( "ClassListMap can't be null" );
         }
 
+        // Job configurations should not be imported from any source
+        // (neither by normal metadata import nor by sync).
+        classListMap.remove( JobConfiguration.class );
         importParams.setObjects( classListMap );
 
         ImportReport importReport = null;
@@ -103,7 +107,7 @@ public class MetadataSyncImportHandler
             log.error( message,e );
             throw new MetadataSyncImportException( message,e );
         }
-        
+
         boolean addNewVersion = handleImportReport( importReport, version );
 
         if ( addNewVersion )
@@ -135,7 +139,7 @@ public class MetadataSyncImportHandler
         {
             return false;
         }
-        
+
         Status importStatus = importReport.getStatus();
         return importStatus.equals( Status.OK ) || isBestEffort( version, importStatus );
     }
