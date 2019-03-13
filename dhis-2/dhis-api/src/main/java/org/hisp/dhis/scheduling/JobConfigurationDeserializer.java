@@ -95,7 +95,7 @@ public class JobConfigurationDeserializer
          jobConfiguration.setLeaderOnlyJob( leaderOnlyJob );
 
         JsonNode idNode = root.get( ID );
-        if ( (idNode != null) && !idNode.isNull() && idNode.isValueNode() )
+        if ( idNode != null && !idNode.isNull() && idNode.isValueNode() )
         {
             jobConfiguration.setUid( idNode.textValue() );
         }

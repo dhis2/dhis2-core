@@ -56,6 +56,7 @@ public class JobConfigurationTest
         jobConfiguration.setContinuousExecution( true );
         jobConfiguration.setEnabled( true );
         jobConfiguration.setLeaderOnlyJob( true );
+        jobConfiguration.setCronExpression( "0 0 6 * * ?" );
     }
 
     @Test
@@ -68,6 +69,20 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( false );
+        Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+    }
+
+    @Test
+    public void hasNonConfigurableJobChangesCron()
+    {
+        final JobConfiguration jc = new JobConfiguration();
+        jc.setJobType( JobType.ANALYTICS_TABLE );
+        jc.setJobStatus( JobStatus.COMPLETED );
+        jc.setJobParameters( jobParameters );
+        jc.setContinuousExecution( true );
+        jc.setEnabled( true );
+        jc.setLeaderOnlyJob( true );
+        jc.setCronExpression( "0 0 12 * * ?" );
         Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 

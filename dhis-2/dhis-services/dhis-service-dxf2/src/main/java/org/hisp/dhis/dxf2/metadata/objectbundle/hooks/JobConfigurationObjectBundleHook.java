@@ -174,7 +174,7 @@ public class JobConfigurationObjectBundleHook
             // If the error is caused by the environment and the job is a non configurable job
             // that exists already, then the error can be ignored. Job has the issue with and
             // without updating it.
-            if ( (jobValidation.getErrorCode() != ErrorCode.E7010) || (persitedJobConfiguration == null) || jobConfiguration.isConfigurable() )
+            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persitedJobConfiguration == null || jobConfiguration.isConfigurable() )
             {
                 errorReports.add( jobValidation );
             }
