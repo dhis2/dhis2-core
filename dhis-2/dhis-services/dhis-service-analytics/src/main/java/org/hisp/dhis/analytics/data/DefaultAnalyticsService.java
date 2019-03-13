@@ -1004,8 +1004,8 @@ public class DefaultAnalyticsService
 
         reportTable
             .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
-            .setGridColumns( new CombinationGenerator<>( tableColumns ).getCombinations() )
-            .setGridRows( new CombinationGenerator<>( tableRows ).getCombinations() );
+            .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
+            .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
 
         addListIfEmpty( reportTable.getGridColumns() );
         addListIfEmpty( reportTable.getGridRows() );

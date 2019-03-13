@@ -864,7 +864,7 @@ public class DataQueryParams
             }
         }
 
-        CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions );
+        CombinationGenerator<DimensionItem> generator = CombinationGenerator.newInstance( dimensionOptions );
 
         return generator.getCombinations();
     }

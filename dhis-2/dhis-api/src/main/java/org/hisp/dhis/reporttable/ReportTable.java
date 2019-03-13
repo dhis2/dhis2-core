@@ -377,8 +377,8 @@ public class ReportTable
             filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
-        gridColumns = new CombinationGenerator<>( tableColumns ).getCombinations();
-        gridRows = new CombinationGenerator<>( tableRows ).getCombinations();
+        gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
+        gridRows = CombinationGenerator.newInstance( tableRows ).getCombinations();
 
         addListIfEmpty( gridColumns );
         addListIfEmpty( gridRows );
