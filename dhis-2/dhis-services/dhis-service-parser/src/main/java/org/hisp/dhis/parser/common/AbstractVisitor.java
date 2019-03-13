@@ -50,7 +50,7 @@ import static org.hisp.dhis.parser.common.generated.ExpressionParser.*;
  *
  * @author Jim Grace
  */
-public class AbstractVisitor
+public abstract class AbstractVisitor
     extends ExpressionBaseVisitor<Object>
 {
     /**
