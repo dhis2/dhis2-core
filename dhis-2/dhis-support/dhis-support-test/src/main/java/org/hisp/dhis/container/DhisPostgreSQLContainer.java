@@ -44,7 +44,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>> extends PostgreSQLContainer<SELF>
 {
     private Set<String> customPostgresConfigs = new HashSet<>();
-    
+
     public DhisPostgreSQLContainer( final String dockerImageName )
     {
         super( dockerImageName );
@@ -60,7 +60,6 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         setCommand( getPostgresCommandWithCustomConfigs() );
     }
 
-    
     private String getPostgresCommandWithCustomConfigs()
     {
         StringBuilder builder = new StringBuilder();

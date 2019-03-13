@@ -45,13 +45,15 @@ public class DhisPostgisContainerProvider extends PostgisContainerProvider
     private static final String DEFAULT_IMAGE = "mdillon/postgis";
 
     @Override
-    public JdbcDatabaseContainer newInstance() {
-        return newInstance(DEFAULT_TAG);
+    public JdbcDatabaseContainer newInstance()
+    {
+        return newInstance( DEFAULT_TAG );
     }
 
     @Override
-    public JdbcDatabaseContainer newInstance(String tag) {
-        return new DhisPostgreSQLContainer(DEFAULT_IMAGE + ":" + tag);
+    public JdbcDatabaseContainer newInstance( String tag )
+    {
+        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
     }
 
 }
