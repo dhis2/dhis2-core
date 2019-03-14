@@ -358,18 +358,18 @@ public class ReportTable
     public void populateGridColumnsAndRows( Date date, User user,
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
     {
-        List<DimensionalItemObject[]> tableColumns = new ArrayList<>();
-        List<DimensionalItemObject[]> tableRows = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
         List<DimensionalItemObject> filterItems = new ArrayList<>();
 
         for ( String dimension : columnDimensions )
         {
-            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems().toArray( IRT ) );
+            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
         for ( String dimension : rowDimensions )
         {
-            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems().toArray( IRT ) );
+            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
         for ( String filter : filterDimensions )
@@ -377,8 +377,8 @@ public class ReportTable
             filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
-        gridColumns = new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations();
-        gridRows = new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations();
+        gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
+        gridRows = CombinationGenerator.newInstance( tableRows ).getCombinations();
 
         addListIfEmpty( gridColumns );
         addListIfEmpty( gridRows );

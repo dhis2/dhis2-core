@@ -42,6 +42,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -104,6 +105,9 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
+    
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -191,6 +195,15 @@ public class DefaultProgramInstanceService
         boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        
+        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+        }
 
         if ( ou != null )
         {
@@ -201,6 +214,11 @@ public class DefaultProgramInstanceService
                 if ( organisationUnit == null )
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
+                }
+                
+                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+                {
+                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
                 }
 
                 params.getOrganisationUnits().add( organisationUnit );
@@ -242,6 +260,7 @@ public class DefaultProgramInstanceService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeDeleted( includeDeleted );
+        params.setUser( user );
 
         return params;
     }
@@ -322,7 +341,25 @@ public class DefaultProgramInstanceService
     @Override
     public void decideAccess( ProgramInstanceQueryParams params )
     {
-        // TODO Check access for current user
+
+        if ( params.hasProgram() )
+        {
+            if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+            }
+
+            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
+            }
+
+        }
+
+        if ( params.hasTrackedEntityType() && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
+        {
+            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
+        }
     }
 
     @Override
@@ -335,7 +372,7 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Params cannot be null" );
         }
 
-        User user = currentUserService.getCurrentUser();
+        User user = params.getUser();
 
         if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
