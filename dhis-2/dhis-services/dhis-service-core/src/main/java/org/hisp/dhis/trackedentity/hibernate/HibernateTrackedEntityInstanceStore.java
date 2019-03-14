@@ -43,6 +43,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -220,6 +221,13 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.isSynchronizationQuery() )
         {
             hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
+        }
+
+        //Going for comparing milliseconds instead of always creating new Date( 0 );
+        if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
+        {
+            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
         if ( params.hasOrganisationUnits() )
