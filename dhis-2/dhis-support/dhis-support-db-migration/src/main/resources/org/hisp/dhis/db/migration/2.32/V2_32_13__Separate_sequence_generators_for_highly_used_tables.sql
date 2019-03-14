@@ -12,3 +12,6 @@ select setval('trackedentityinstance_sequence', max(trackedentityinstanceid)) FR
 
 create sequence if not exists trackedentityinstanceaudit_sequence;
 select setval('trackedentityinstanceaudit_sequence', max(trackedentityinstanceauditid)) FROM trackedentityinstanceaudit;
+
+create sequence if not exists programinstance_sequence;
+select setval('programinstance_sequence', max(programinstanceid)) FROM programinstance;

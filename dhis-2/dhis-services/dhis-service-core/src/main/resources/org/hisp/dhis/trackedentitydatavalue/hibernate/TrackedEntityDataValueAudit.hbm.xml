@@ -7,7 +7,7 @@
   <class name="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit" table="trackedentitydatavalueaudit">
 
     <id name="id" column="trackedentitydatavalueauditid">
-     <generator class="sequence">
+      <generator class="sequence">
         <param name="sequence_name">trackedentitydatavalueaudit_sequence</param>
       </generator>
     </id>
