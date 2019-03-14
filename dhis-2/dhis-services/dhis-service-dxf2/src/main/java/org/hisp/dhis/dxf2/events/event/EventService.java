@@ -82,9 +82,10 @@ public interface EventService
     /**
      * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      *
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
      * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      */
-    int getAnonymousEventReadyForSynchronizationCount();
+    int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
 
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
@@ -92,9 +93,10 @@ public interface EventService
      * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      *
      * @param pageSize Specifies the max number for the events returned.
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
      * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      */
-    Events getAnonymousEventsForSync( int pageSize );
+    Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore );
 
     // -------------------------------------------------------------------------
     // CREATE
