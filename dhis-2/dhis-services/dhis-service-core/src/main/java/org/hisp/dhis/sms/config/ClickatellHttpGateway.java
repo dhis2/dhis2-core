@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class ClickatellGateway
+public class ClickatellHttpGateway
     extends SmsGateway
 {
     // -------------------------------------------------------------------------

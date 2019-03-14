@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class BulkSmsGateway
+public class BulkSmsHttpGateway
     extends SmsGateway
 {
     // -------------------------------------------------------------------------
@@ -54,7 +54,7 @@ public class BulkSmsGateway
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
-        return smsBatch.getMessages().parallelStream()
+        return smsBatch.getMessages().stream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
     }

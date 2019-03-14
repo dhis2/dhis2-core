@@ -79,7 +79,7 @@ public class SmsGatewayTest extends DhisConvenienceTest
     private RestTemplate restTemplate;
 
     @InjectMocks
-    private BulkSmsGateway bulkSmsGateway;
+    private BulkSmsHttpGateway bulkSmsGateway;
 
     private SmsGatewayConfig smsGatewayConfig;
 
