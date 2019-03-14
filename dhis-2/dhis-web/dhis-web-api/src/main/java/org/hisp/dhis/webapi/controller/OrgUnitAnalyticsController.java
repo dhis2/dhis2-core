@@ -64,7 +64,7 @@ public class OrgUnitAnalyticsController
     public @ResponseBody Grid getJson(
         @RequestParam String ou,
         @RequestParam String ougs,
-        @RequestParam String columns,
+        @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -77,7 +77,7 @@ public class OrgUnitAnalyticsController
     public void getXls(
         @RequestParam String ou,
         @RequestParam String ougs,
-        @RequestParam String columns,
+        @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -91,7 +91,7 @@ public class OrgUnitAnalyticsController
     public void getCsv(
         @RequestParam String ou,
         @RequestParam String ougs,
-        @RequestParam String columns,
+        @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
@@ -105,7 +105,7 @@ public class OrgUnitAnalyticsController
     public void getPdf(
         @RequestParam String ou,
         @RequestParam String ougs,
-        @RequestParam String columns,
+        @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
