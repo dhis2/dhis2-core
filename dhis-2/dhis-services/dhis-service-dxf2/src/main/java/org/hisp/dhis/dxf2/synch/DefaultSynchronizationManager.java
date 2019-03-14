@@ -257,7 +257,7 @@ public class DefaultSynchronizationManager
             return new ImportSummaries().addImportSummary( importSummary );
         }
 
-        log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Events: " + lastUpdatedEventsCount + " since last synchronization success: " + lastSuccessTime );
 
         String url = systemSettingManager.getSystemSetting(
             SettingKey.REMOTE_INSTANCE_URL ) + "/api/events";
