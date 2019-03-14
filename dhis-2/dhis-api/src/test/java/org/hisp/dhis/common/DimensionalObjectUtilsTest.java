@@ -317,8 +317,8 @@ public class DimensionalObjectUtilsTest
         List<DimensionalItemObject> row = new ArrayList<>();
         row.add( oB );
 
-        assertEquals( "a1-b1-c1", DimensionalObjectUtils.getIdentifier( column, row ) );
-        assertEquals( "b1", DimensionalObjectUtils.getIdentifier( new ArrayList<>(), row ) );
+        assertEquals( "a1-b1-c1", DimensionalObjectUtils.getKey( column, row ) );
+        assertEquals( "b1", DimensionalObjectUtils.getKey( new ArrayList<>(), row ) );
     }
 
 }

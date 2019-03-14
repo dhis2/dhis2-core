@@ -589,14 +589,14 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
+     * Generates a key based on the given lists of {@link NameableObject}. Uses
      * the identifiers for each nameable object, sorts them and writes them out as a key.
      *
      * @param column list of dimension items representing a column, cannot be null.
      * @param row list of dimension items representing a row, cannot be null.
      * @return an identifier representing a column item and a row item.
      */
-    public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
+    public static String getKey( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
     {
         List<String> ids = new ArrayList<>();
 

@@ -625,7 +625,7 @@ public class ReportTable
 
             for ( List<DimensionalItemObject> column : gridColumns )
             {
-                String key = DimensionalObjectUtils.getIdentifier( column, row );
+                String key = DimensionalObjectUtils.getKey( column, row );
 
                 Object value = valueMap.get( key );
 
