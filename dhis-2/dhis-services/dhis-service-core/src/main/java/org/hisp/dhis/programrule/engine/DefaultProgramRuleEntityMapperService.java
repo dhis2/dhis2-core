@@ -287,7 +287,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return programRuleAction.getContent();
         }
 
-        log.warn( String.format( "No location found for ProgramRuleAction: %s", programRuleAction.getUid() ) );
+        log.warn( String.format( "No location found for ProgramRuleAction: %s and ProgramRule: %s",
+            programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
 
         return StringUtils.EMPTY;
     }
