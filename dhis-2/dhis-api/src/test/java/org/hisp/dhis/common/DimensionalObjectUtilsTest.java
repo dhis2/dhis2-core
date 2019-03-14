@@ -321,4 +321,37 @@ public class DimensionalObjectUtilsTest
         assertEquals( "b1", DimensionalObjectUtils.getKey( new ArrayList<>(), row ) );
     }
 
+    @Test
+    public void testGetKey()
+    {
+        DataElement deA = new DataElement( "DE NameA" );
+        deA.setShortName( "DE ShortNameA" );
+        DataElement deB = new DataElement( "DE NameB" );
+        deB.setShortName( "DE ShortNameB" );
+        DataElement deC = new DataElement( "DE NameC" );
+        deC.setShortName( "DE ShortNameC" );
+
+        List<DimensionalItemObject> objects = Lists.newArrayList( deA, deB, deC );
+
+        String name = DimensionalObjectUtils.getKey( objects );
+
+        assertEquals( "de_shortnamea_de_shortnameb_de_shortnamec", name );
+    }
+
+    @Test
+    public void testGetName()
+    {
+        DataElement deA = new DataElement( "DE NameA" );
+        deA.setShortName( "DE ShortNameA" );
+        DataElement deB = new DataElement( "DE NameB" );
+        deB.setShortName( "DE ShortNameB" );
+        DataElement deC = new DataElement( "DE NameC" );
+        deC.setShortName( "DE ShortNameC" );
+
+        List<DimensionalItemObject> objects = Lists.newArrayList( deA, deB, deC );
+
+        String name = DimensionalObjectUtils.getName( objects );
+
+        assertEquals( "DE ShortNameA DE ShortNameB DE ShortNameC", name );
+    }
 }

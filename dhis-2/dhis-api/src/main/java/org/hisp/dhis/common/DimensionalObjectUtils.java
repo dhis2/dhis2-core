@@ -27,11 +27,20 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,6 +63,8 @@ public class DimensionalObjectUtils
     public static final String COMPOSITE_DIM_OBJECT_PLAIN_SEP = ".";
     public static final String TITLE_ITEM_SEP = ", ";
     public static final String NULL_REPLACEMENT = "[n/a]";
+    public static final String NAME_SEP = "_";
+    public static final String COL_SEP = " ";
 
     /**
      * Matching data element operand, program data element, program attribute,
@@ -654,5 +665,33 @@ public class DimensionalObjectUtils
         }
 
         return key;
+    }
+
+    /**
+     * Returns a string suitable as key based on the given list of objects.
+     *
+     * @param objects the list of {@link DimensionalItemObject}.
+     * @return a name string.
+     */
+    public static String getKey( List<DimensionalItemObject> objects )
+    {
+        return objects.stream()
+            .map( DimensionalItemObject::getShortName )
+            .collect( Collectors.joining( NAME_SEP ) )
+            .replaceAll( " ", NAME_SEP )
+            .toLowerCase();
+    }
+
+    /**
+     * Returns a string suitable as name based on the given list of objects.
+     *
+     * @param objects the list of {@link DimensionalItemObject}.
+     * @return a column name string.
+     */
+    public static String getName( List<DimensionalItemObject> objects )
+    {
+        return objects.stream()
+            .map( DimensionalItemObject::getShortName )
+            .collect( Collectors.joining( COL_SEP ) );
     }
 }
