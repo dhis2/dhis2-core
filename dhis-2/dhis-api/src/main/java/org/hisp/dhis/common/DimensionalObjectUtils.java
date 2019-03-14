@@ -626,12 +626,13 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Sorts the keys in the given map by splitting on the '-' character and
-     * sorting the components alphabetically.
+     * Returns a map with sorted keys. Keys are sorted by splitting on the '-' character
+     * and sorting the components alphabetically.
      *
      * @param valueMap the mapping of keys and values.
+     * @param a map with sorted keys.
      */
-    public static void sortKeys( Map<String, Object> valueMap )
+    public static Map<String, Object> getSortedKeysMap( Map<String, Object> valueMap )
     {
         Map<String, Object> map = new HashMap<>();
 
@@ -645,8 +646,7 @@ public class DimensionalObjectUtils
             }
         }
 
-        valueMap.clear();
-        valueMap.putAll( map );
+        return map;
     }
 
     /**
