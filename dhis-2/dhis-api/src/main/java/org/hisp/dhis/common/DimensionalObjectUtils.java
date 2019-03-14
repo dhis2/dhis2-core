@@ -42,6 +42,7 @@ import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -585,5 +586,73 @@ public class DimensionalObjectUtils
         }
 
         return items;
+    }
+
+    /**
+     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
+     * the identifiers for each nameable object, sorts them and writes them out as a key.
+     *
+     * @param column list of dimension items representing a column, cannot be null.
+     * @param row list of dimension items representing a row, cannot be null.
+     * @return an identifier representing a column item and a row item.
+     */
+    public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
+    {
+        List<String> ids = new ArrayList<>();
+
+        List<DimensionalItemObject> dimensions = new ArrayList<>();
+        dimensions.addAll( column );
+        dimensions.addAll( row );
+
+        for ( DimensionalItemObject item : dimensions )
+        {
+            ids.add( item.getDimensionItem() );
+        }
+
+        Collections.sort( ids );
+
+        return StringUtils.join( ids, DIMENSION_SEP );
+    }
+
+    /**
+     * Sorts the keys in the given map by splitting on the '-' character and
+     * sorting the components alphabetically.
+     *
+     * @param valueMap the mapping of keys and values.
+     */
+    public static void sortKeys( Map<String, Object> valueMap )
+    {
+        Map<String, Object> map = new HashMap<>();
+
+        for ( String key : valueMap.keySet() )
+        {
+            String sortKey = sortKey( key );
+
+            if ( sortKey != null )
+            {
+                map.put( sortKey, valueMap.get( key ) );
+            }
+        }
+
+        valueMap.clear();
+        valueMap.putAll( map );
+    }
+
+    /**
+     * Sorts the given key by splitting on the '-' character and sorting the
+     * components alphabetically.
+     *
+     * @param key the mapping of keys and values.
+     */
+    public static String sortKey( String key )
+    {
+        if ( key != null )
+        {
+            List<String> ids = Lists.newArrayList( key.split( DIMENSION_SEP ) );
+            Collections.sort( ids );
+            key = StringUtils.join( ids, DIMENSION_SEP );
+        }
+
+        return key;
     }
 }

@@ -537,7 +537,7 @@ public class ReportTable
     {
         valueMap = new HashMap<>( valueMap );
 
-        sortKeys( valueMap );
+        DimensionalObjectUtils.sortKeys( valueMap );
 
         // ---------------------------------------------------------------------
         // Title
@@ -625,7 +625,7 @@ public class ReportTable
 
             for ( List<DimensionalItemObject> column : gridColumns )
             {
-                String key = getIdentifier( column, row );
+                String key = DimensionalObjectUtils.getIdentifier( column, row );
 
                 Object value = valueMap.get( key );
 
