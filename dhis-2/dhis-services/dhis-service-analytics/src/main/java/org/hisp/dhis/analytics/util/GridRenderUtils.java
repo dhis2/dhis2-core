@@ -56,7 +56,7 @@ public class GridRenderUtils
      * @param valueMap the values as a mapping between metadata key and value.
      * @return a grid.
      */
-    public Grid asGrid( List<DimensionalObject> columns, List<DimensionalObject> rows, Map<String, Object> valueMap, String title )
+    public static Grid asGrid( List<? extends DimensionalObject> columns, List<? extends DimensionalObject> rows, Map<String, Object> valueMap )
     {
         List<List<DimensionalItemObject>> columnItems = columns.stream()
             .map( DimensionalObject::getItems ).collect( Collectors.toList() );
@@ -68,9 +68,10 @@ public class GridRenderUtils
 
         sortKeys( valueMap );
 
-        Grid grid = new ListGrid();
+        System.out.println( "sorted key value map" );
+        System.out.println( valueMap );
 
-        grid.setTitle( title );
+        Grid grid = new ListGrid();
 
         // ---------------------------------------------------------------------
         // Headers
@@ -78,7 +79,7 @@ public class GridRenderUtils
 
         for ( DimensionalObject object : rows )
         {
-            grid.addHeader( new GridHeader( object.getDimension(), object.getDimensionName() ) );
+            grid.addHeader( new GridHeader( object.getDimension(), object.getDisplayName() ) );
         }
 
         for ( List<DimensionalItemObject> column : gridColumns )
@@ -102,7 +103,10 @@ public class GridRenderUtils
             for ( List<DimensionalItemObject> column : gridColumns )
             {
                 String key = getKey( column, row );
+                System.out.println( "key " + key );
                 Object value = valueMap.get( key );
+                System.out.println( "value " + value );
+                System.out.println(  );
                 grid.addValue( value );
             }
         }

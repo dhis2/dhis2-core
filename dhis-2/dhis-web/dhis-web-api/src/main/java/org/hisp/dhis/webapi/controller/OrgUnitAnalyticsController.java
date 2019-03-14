@@ -64,10 +64,11 @@ public class OrgUnitAnalyticsController
     public @ResponseBody Grid getJson(
         @RequestParam String ou,
         @RequestParam String ougs,
+        @RequestParam String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getOrgUnitData( params );
     }
@@ -76,10 +77,11 @@ public class OrgUnitAnalyticsController
     public void getXls(
         @RequestParam String ou,
         @RequestParam String ougs,
+        @RequestParam String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toXls( grid, response.getOutputStream() );
@@ -89,10 +91,11 @@ public class OrgUnitAnalyticsController
     public void getCsv(
         @RequestParam String ou,
         @RequestParam String ougs,
+        @RequestParam String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toCsv( grid, response.getWriter() );
@@ -102,10 +105,11 @@ public class OrgUnitAnalyticsController
     public void getPdf(
         @RequestParam String ou,
         @RequestParam String ougs,
+        @RequestParam String columns,
         DhisApiVersion apiVersion,
         HttpServletResponse response ) throws Exception
     {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
+        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toPdf( grid, response.getOutputStream() );
