@@ -209,6 +209,11 @@ public class TrackedEntityInstanceQueryParams
     private boolean synchronizationQuery;
 
     /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
+
+    /**
      * TEI order params
      */
     private List<String> orders;
@@ -948,6 +953,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
+        return this;
+    }
+
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public TrackedEntityInstanceQueryParams setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
         return this;
     }
 
