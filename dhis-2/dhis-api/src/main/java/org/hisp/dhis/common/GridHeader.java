@@ -30,8 +30,11 @@ package org.hisp.dhis.common;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Lars Helge Overland
@@ -60,9 +63,9 @@ public class GridHeader
 
     private boolean meta;
 
-    private String optionSet;
+    private OptionSet optionSet;
 
-    private String legendSet;
+    private LegendSet legendSet;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -136,7 +139,8 @@ public class GridHeader
      * @param optionSet option set identifier.
      * @param legendSet legend set identifier.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta,
+        OptionSet optionSet, LegendSet legendSet )
     {
         this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;
@@ -235,23 +239,26 @@ public class GridHeader
     @JsonProperty
     public String getOptionSet()
     {
-        return optionSet;
+        return optionSet != null ? optionSet.getUid() : null;
     }
 
-    public void setOptionSet( String optionSet )
-    {
-        this.optionSet = optionSet;
-    }
-
+    
     @JsonProperty
-    public String getLegendSet()
+    public LegendSet getLegendSet()
     {
         return legendSet;
     }
 
-    public void setLegendSet( String legendSet )
+    @JsonIgnore
+    public OptionSet getOptionSetObject()
     {
-        this.legendSet = legendSet;
+        return optionSet;
+    }
+
+    @JsonIgnore
+    public LegendSet getLegendSetObject()
+    {
+        return legendSet;
     }
 
     // -------------------------------------------------------------------------

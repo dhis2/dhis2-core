@@ -31,10 +31,7 @@ package org.hisp.dhis.analytics.event;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -73,10 +70,10 @@ public interface EventDataQueryService
      * @param userOrgUnit the user organisation unit to use, overrides current user.
      * @param apiVersion the API version used for the request.
      */
-    EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
+    EventQueryParams getFromUrl(String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus,
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, IdScheme dataIdScheme, EventStatus eventStatus,
         ProgramStatus programStatus, boolean collapseDataDimensions, boolean aggregateData, boolean includeMetadataDetails,
         DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion );
 
@@ -107,7 +104,7 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, boolean includeMetadataDetails, EventStatus eventStatus, ProgramStatus programStatus,
+        boolean coordinatesOnly, boolean includeMetadataDetails, IdScheme dataIdScheme, EventStatus eventStatus, ProgramStatus programStatus,
         DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, String coordinateField,
         Integer page, Integer pageSize, DhisApiVersion apiVersion );
     
