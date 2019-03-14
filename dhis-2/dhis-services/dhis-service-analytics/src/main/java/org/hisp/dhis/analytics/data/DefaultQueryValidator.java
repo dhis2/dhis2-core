@@ -71,6 +71,7 @@ public class DefaultQueryValidator
     // -------------------------------------------------------------------------
     // QueryValidator implementation
     // -------------------------------------------------------------------------
+
     @Override
     public void validate( DataQueryParams params )
         throws IllegalQueryException

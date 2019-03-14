@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Aselefew
@@ -153,19 +154,11 @@ public class CategoryCombo
         return categories != null && categories.size() > 1;
     }
 
-    public CategoryOption[][] getCategoryOptionsAsArray()
+    public List<List<CategoryOption>> getCategoryOptionsAsLists()
     {
-        CategoryOption[][] arrays = new CategoryOption[categories.size()][];
-
-        int i = 0;
-
-        for ( Category category : categories )
-        {
-            arrays[i++] = new ArrayList<>(
-                category.getCategoryOptions() ).toArray( new CategoryOption[0] );
-        }
-
-        return arrays;
+        return categories.stream()
+            .map( ca -> ca.getCategoryOptions() )
+            .collect( Collectors.toList() );
     }
 
     public List<CategoryOptionCombo> generateOptionCombosList()
@@ -173,7 +166,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsArray() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
@@ -191,7 +184,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsArray() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {

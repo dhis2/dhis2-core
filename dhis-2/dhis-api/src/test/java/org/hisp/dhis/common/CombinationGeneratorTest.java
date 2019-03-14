@@ -1,5 +1,7 @@
 package org.hisp.dhis.common;
 
+import java.util.ArrayList;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,6 +36,8 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import static org.junit.Assert.*;
 
 /**
@@ -46,15 +50,15 @@ public class CombinationGeneratorTest
     private IdentifiableObject b = new DataElementGroup( "B" );
     private IdentifiableObject c = new DataElementGroup( "C" );
     private IdentifiableObject d = new DataElementGroup( "D" );
-    
+
     @Test
     public void testGetNextA()
     {
-        IdentifiableObject[] a1 = {a,b,c,d};
-        IdentifiableObject[] a2 = {a,b,c};
-        
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2 );
-        
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b, c, d );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b, c );
+
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2 ) );
+
         assertTrue( equals( generator.getNext(), a, a ) );
         assertTrue( equals( generator.getNext(), a, b ) );
         assertTrue( equals( generator.getNext(), a, c ) );
@@ -69,16 +73,16 @@ public class CombinationGeneratorTest
         assertTrue( equals( generator.getNext(), d, c ) );
         assertNull( generator.getNext() );
     }
-    
+
     @Test
     public void testGetNextB()
     {
-        IdentifiableObject[] a1 = {a,b};
-        IdentifiableObject[] a2 = {a,b};
-        IdentifiableObject[] a3 = {a,b,c};
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a3 = Lists.newArrayList( a, b, c );
 
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2, a3 );
-        
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2, a3 ) );
+
         assertTrue( equals( generator.getNext(), a, a, a ) );
         assertTrue( equals( generator.getNext(), a, a, b ) );
         assertTrue( equals( generator.getNext(), a, a, c ) );
@@ -93,14 +97,14 @@ public class CombinationGeneratorTest
         assertTrue( equals( generator.getNext(), b, b, c ) );
         assertNull( generator.getNext() );
     }
-    
+
     @Test
     public void testGetNextC()
     {
-        IdentifiableObject[] a1 = {a,b};
-        
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1 );
-        
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b );
+
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1 ) );
+
         assertTrue( equals( generator.getNext(), a ) );
         assertTrue( equals( generator.getNext(), b ) );
         assertNull( generator.getNext() );
@@ -110,36 +114,36 @@ public class CombinationGeneratorTest
     @Test
     public void testHasNextA()
     {
-        IdentifiableObject[] a1 = {a,b,c,d};
-        IdentifiableObject[] a2 = {a,b,c};
-        
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2 );
-        
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b, c, d );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b, c );
+
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2 ) );
+
         for ( int i = 0; i < 11; i++ )
         {
             assertNotNull( generator.getNext() );
             assertTrue( generator.hasNext() );
         }
-        
+
         assertNotNull( generator.getNext() ); // Last
         assertFalse( generator.hasNext() );
-        
+
         assertNull( generator.getNext() );
         assertFalse( generator.hasNext() );
-        
+
         assertNull( generator.getNext() );
         assertFalse( generator.hasNext() );
     }
-    
+
     @Test
     public void testHasNextB()
     {
-        IdentifiableObject[] a1 = {a,b};
-        IdentifiableObject[] a2 = {a,b};
-        IdentifiableObject[] a3 = {a,b,c};
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a3 = Lists.newArrayList( a, b, c );
 
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2, a3 );
-        
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2, a3 ) );
+
         while ( generator.hasNext() )
         {
             assertNotNull( generator.getNext() );
@@ -147,7 +151,7 @@ public class CombinationGeneratorTest
 
         assertNull( generator.getNext() );
         assertFalse( generator.hasNext() );
-        
+
         assertNull( generator.getNext() );
         assertFalse( generator.hasNext() );
     }
@@ -155,13 +159,13 @@ public class CombinationGeneratorTest
     @Test
     public void testGetCombinationsA()
     {
-        IdentifiableObject[] a1 = {a,b,c,d};
-        IdentifiableObject[] a2 = {a,b,c};
-        
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2 );
-        
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b, c, d );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b, c );
+
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2 ) );
+
         List<List<IdentifiableObject>> objects = generator.getCombinations();
-        
+
         assertEquals( 12, objects.size() );
         assertTrue( equals( objects.get( 0 ), a, a ) );
         assertTrue( equals( objects.get( 1 ), a, b ) );
@@ -180,11 +184,11 @@ public class CombinationGeneratorTest
     @Test
     public void testGetCombinationsB()
     {
-        IdentifiableObject[] a1 = {a,b};
-        IdentifiableObject[] a2 = {a,b};
-        IdentifiableObject[] a3 = {a,b,c};
+        List<IdentifiableObject> a1 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a2 = Lists.newArrayList( a, b );
+        List<IdentifiableObject> a3 = Lists.newArrayList( a, b, c );
 
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1, a2, a3 );
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1, a2, a3 ) );
 
         List<List<IdentifiableObject>> objects = generator.getCombinations();
 
@@ -203,22 +207,35 @@ public class CombinationGeneratorTest
         assertTrue( equals( objects.get( 11 ), b, b, c ) );
         assertNull( generator.getNext() );
     }
-    
+
     @Test
     public void testGetCombinationsC()
     {
-        IdentifiableObject[] a1 = {};
-        
-        CombinationGenerator<IdentifiableObject> generator = new CombinationGenerator<>( a1 );
+        List<IdentifiableObject> a1 = Lists.newArrayList();
+
+        CombinationGenerator<IdentifiableObject> generator = CombinationGenerator.newInstance( asList( a1 ) );
 
         List<List<IdentifiableObject>> objects = generator.getCombinations();
 
         assertEquals( 0, objects.size() );
         assertNull( generator.getNext() );
     }
-      
+
     private static boolean equals( List<IdentifiableObject> objects, IdentifiableObject... integers )
     {
         return objects.equals( Arrays.asList( integers ) );
+    }
+
+    @SafeVarargs
+    private static <T> List<List<T>> asList( List<T>... lists )
+    {
+        List<List<T>> output = new ArrayList<>();
+
+        for ( List<T> list : lists )
+        {
+            output.add( list );
+        }
+
+        return output;
     }
 }
