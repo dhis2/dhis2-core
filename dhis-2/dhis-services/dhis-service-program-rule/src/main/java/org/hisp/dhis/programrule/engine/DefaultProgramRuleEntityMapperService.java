@@ -374,7 +374,8 @@ public class DefaultProgramRuleEntityMapperService
             return programRuleAction.getContent();
         }
 
-        log.warn( String.format( "No location found for ProgramRuleAction: %s", programRuleAction.getUid() ) );
+        log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
+            programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
 
         return StringUtils.EMPTY;
     }
