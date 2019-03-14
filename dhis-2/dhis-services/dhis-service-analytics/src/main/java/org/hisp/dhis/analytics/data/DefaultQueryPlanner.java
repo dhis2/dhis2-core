@@ -170,7 +170,7 @@ public class DefaultQueryPlanner
             PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
             PartitionUtils.getPartitions( params.getAllPeriods() );
 
-        if ( params.getTableName() != null && params.getCurrentUser() != null )
+        if ( params.getTableName() != null )
         {
             partitionManager.filterNonExistingPartitions( partitions, params.getTableName() );
         }

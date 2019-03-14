@@ -50,7 +50,6 @@ import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
 import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
 import java.util.ArrayList;
@@ -982,15 +981,15 @@ public class DefaultAnalyticsService
 
         ReportTable reportTable = new ReportTable();
 
-        List<DimensionalItemObject[]> tableColumns = new ArrayList<>();
-        List<DimensionalItemObject[]> tableRows = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
 
         if ( columns != null )
         {
             for ( String dimension : columns )
             {
                 reportTable.getColumnDimensions().add( dimension );
-                tableColumns.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
+                tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
 
@@ -999,14 +998,14 @@ public class DefaultAnalyticsService
             for ( String dimension : rows )
             {
                 reportTable.getRowDimensions().add( dimension );
-                tableRows.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
+                tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
 
         reportTable
             .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
-            .setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
-            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
+            .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
+            .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
 
         addListIfEmpty( reportTable.getGridColumns() );
         addListIfEmpty( reportTable.getGridRows() );

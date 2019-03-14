@@ -479,7 +479,7 @@
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
-        <version>1.0.2.1-SNAPSHOT</version>
+        <version>1.0.3.1-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->

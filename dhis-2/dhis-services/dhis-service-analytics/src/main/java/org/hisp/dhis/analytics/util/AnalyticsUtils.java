@@ -650,9 +650,9 @@ public class AnalyticsUtils
             }
             else
             {
-                for ( ProgramStage st : program.getProgramStages() )
+                for ( ProgramStage ps : program.getProgramStages() )
                 {
-                    map.put( st.getUid(), new MetadataItem( st.getDisplayName(), includeMetadataDetails ? st : null ) );
+                    map.put( ps.getUid(), new MetadataItem( ps.getDisplayName(), includeMetadataDetails ? ps : null ) );
                 }
             }
         }

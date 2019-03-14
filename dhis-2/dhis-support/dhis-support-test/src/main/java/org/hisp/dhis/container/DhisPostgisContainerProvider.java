@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.container;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,32 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
-
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgisContainerProvider;
 
 /**
- * @author Lars Helge Overland
+ * Custom PostgisContainerProvider to create
+ * {@link DhisPostgreSQLContainer}
+ * 
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public interface DataValueSetStore
+@SuppressWarnings( "rawtypes" )
+public class DhisPostgisContainerProvider extends PostgisContainerProvider
 {
-    void writeDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
+    private static final String DEFAULT_TAG = "10";
+    private static final String DEFAULT_IMAGE = "mdillon/postgis";
 
-    void writeDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
+    @Override
+    public JdbcDatabaseContainer newInstance()
+    {
+        return newInstance( DEFAULT_TAG );
+    }
 
-    void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+    @Override
+    public JdbcDatabaseContainer newInstance( String tag )
+    {
+        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
+    }
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
-
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
-     */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
 }
