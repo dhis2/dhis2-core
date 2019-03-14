@@ -27,11 +27,20 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,6 +51,7 @@ import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -53,6 +63,8 @@ public class DimensionalObjectUtils
     public static final String COMPOSITE_DIM_OBJECT_PLAIN_SEP = ".";
     public static final String TITLE_ITEM_SEP = ", ";
     public static final String NULL_REPLACEMENT = "[n/a]";
+    public static final String NAME_SEP = "_";
+    public static final String COL_SEP = " ";
 
     /**
      * Matching data element operand, program data element, program attribute,
@@ -585,5 +597,101 @@ public class DimensionalObjectUtils
         }
 
         return items;
+    }
+
+    /**
+     * Generates a key based on the given lists of {@link NameableObject}. Uses
+     * the identifiers for each nameable object, sorts them and writes them out as a key.
+     *
+     * @param column list of dimension items representing a column, cannot be null.
+     * @param row list of dimension items representing a row, cannot be null.
+     * @return an identifier representing a column item and a row item.
+     */
+    public static String getKey( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
+    {
+        List<String> ids = new ArrayList<>();
+
+        List<DimensionalItemObject> dimensions = new ArrayList<>();
+        dimensions.addAll( column );
+        dimensions.addAll( row );
+
+        for ( DimensionalItemObject item : dimensions )
+        {
+            ids.add( item.getDimensionItem() );
+        }
+
+        Collections.sort( ids );
+
+        return StringUtils.join( ids, DIMENSION_SEP );
+    }
+
+    /**
+     * Sorts the keys in the given map by splitting on the '-' character and
+     * sorting the components alphabetically.
+     *
+     * @param valueMap the mapping of keys and values.
+     */
+    public static void sortKeys( Map<String, Object> valueMap )
+    {
+        Map<String, Object> map = new HashMap<>();
+
+        for ( String key : valueMap.keySet() )
+        {
+            String sortKey = sortKey( key );
+
+            if ( sortKey != null )
+            {
+                map.put( sortKey, valueMap.get( key ) );
+            }
+        }
+
+        valueMap.clear();
+        valueMap.putAll( map );
+    }
+
+    /**
+     * Sorts the given key by splitting on the '-' character and sorting the
+     * components alphabetically.
+     *
+     * @param key the mapping of keys and values.
+     */
+    public static String sortKey( String key )
+    {
+        if ( key != null )
+        {
+            List<String> ids = Lists.newArrayList( key.split( DIMENSION_SEP ) );
+            Collections.sort( ids );
+            key = StringUtils.join( ids, DIMENSION_SEP );
+        }
+
+        return key;
+    }
+
+    /**
+     * Returns a string suitable as key based on the given list of objects.
+     *
+     * @param objects the list of {@link DimensionalItemObject}.
+     * @return a name string.
+     */
+    public static String getKey( List<DimensionalItemObject> objects )
+    {
+        return objects.stream()
+            .map( DimensionalItemObject::getShortName )
+            .collect( Collectors.joining( NAME_SEP ) )
+            .replaceAll( " ", NAME_SEP )
+            .toLowerCase();
+    }
+
+    /**
+     * Returns a string suitable as name based on the given list of objects.
+     *
+     * @param objects the list of {@link DimensionalItemObject}.
+     * @return a column name string.
+     */
+    public static String getName( List<DimensionalItemObject> objects )
+    {
+        return objects.stream()
+            .map( DimensionalItemObject::getShortName )
+            .collect( Collectors.joining( COL_SEP ) );
     }
 }
