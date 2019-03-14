@@ -8,7 +8,7 @@
 
     <id name="id" column="trackedentitydatavalueauditid">
      <generator class="sequence">
-        <param name="sequence">trackedentitydatavalueaudit_sequence</param>
+        <param name="sequence_name">trackedentitydatavalueaudit_sequence</param>
       </generator>
     </id>
 

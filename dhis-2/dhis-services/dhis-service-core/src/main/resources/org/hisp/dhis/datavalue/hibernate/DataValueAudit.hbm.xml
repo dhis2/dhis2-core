@@ -8,7 +8,7 @@
 
     <id name="id" column="datavalueauditid">
       <generator class="sequence">
-        <param name="sequence">datavalueaudit_sequence</param>
+        <param name="sequence_name">datavalueaudit_sequence</param>
       </generator>
     </id>
 

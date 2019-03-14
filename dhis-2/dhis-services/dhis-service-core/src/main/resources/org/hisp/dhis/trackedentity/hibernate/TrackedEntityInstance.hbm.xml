@@ -9,7 +9,7 @@
 
     <id name="id" column="trackedentityinstanceid">
       <generator class="sequence">
-        <param name="sequence">trackedentityinstance_sequence</param>
+        <param name="sequence_name">trackedentityinstance_sequence</param>
       </generator>
     </id>
     &identifiableProperties;
