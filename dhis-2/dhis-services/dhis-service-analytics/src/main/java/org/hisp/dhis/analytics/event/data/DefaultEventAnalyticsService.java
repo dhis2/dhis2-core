@@ -87,23 +87,13 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -479,9 +469,10 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
+                    LegendSet legendSet = item.hasLegendSet() ? item.getLegendSet() : null;
 
-                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), legendSet ) );
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(),
+                        item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), legendSet ) );
                 }
             }
 
@@ -595,7 +586,8 @@ public class DefaultEventAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), item.getLegendSetUid() ) );
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(),
+                item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
         }
 
         // ---------------------------------------------------------------------
@@ -629,6 +621,15 @@ public class DefaultEventAnalyticsService
         addMetadata( params, grid );
 
         // ---------------------------------------------------------------------
+        // Data ID scheme
+        // ---------------------------------------------------------------------
+
+        if ( params.hasDataIdScheme() )
+        {
+            substituteData( params, grid );
+        }
+
+        // ---------------------------------------------------------------------
         // Paging
         // ---------------------------------------------------------------------
 
@@ -640,6 +641,25 @@ public class DefaultEventAnalyticsService
         }
 
         return grid;
+    }
+
+    private void substituteData( EventQueryParams params, Grid grid )
+    {
+        for ( int i = 0; i < grid.getHeaders().size(); i++ )
+        {
+            GridHeader header = grid.getHeaders().get( i );
+
+            if ( header.hasOptionSet() )
+            {
+                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( IdScheme.NAME );
+                grid.substituteMetaData( i, i, optionMap );
+            }
+            else if ( header.hasLegendSet() )
+            {
+                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( IdScheme.NAME );
+                grid.substituteMetaData( i, i, legendMap );
+            }
+        }
     }
 
     @Override
