@@ -149,7 +149,7 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        return programRuleVariables.stream().map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
+        return programRuleVariables.stream().filter( Objects::nonNull ).map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -234,7 +234,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.debug( "Invalid rule action" );
+            log.debug( "Invalid rule action in ProgramRule: " + programRule.getUid() );
 
             return null;
         }
@@ -258,7 +258,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.debug( "Invalid rule variable" );
+            log.debug( "Invalid ProgramRuleVariable: " + programRuleVariable.getUid() );
         }
 
         return ruleVariable;
@@ -303,7 +303,8 @@ public class DefaultProgramRuleEntityMapperService
             return programRuleAction.getContent();
         }
 
-        log.warn( String.format( "No location found for ProgramRuleAction: %s", programRuleAction.getUid() ) );
+        log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
+                programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
 
         return StringUtils.EMPTY;
     }
