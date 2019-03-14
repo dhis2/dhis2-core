@@ -50,32 +50,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/**
- * Simplistic http gateway sending smses through a get to a url constructed from
- * the provided urlTemplate and map of static parameters.
- * <p>
- * This gateway is simplistic in that it can't evaluate the response from the
- * provider, being most suitable as an example gateway. For production use a
- * more robust gateway should be used implemented for the specific provider.
- *
- * <p>
- * The gateway adds the following keys to the parameters:
- * <ul>
- * <li>recipient</li>
- * <li>message</li>
- * <li>sender - if available in the message</li>
- * </ul>
- *
- * An example usage with bulksms.com would be this template:<br/>
- * http://bulksms.vsms.net:5567/eapi/submission/send_sms/2/2.0?username={
- * username
- * }&amp;password={password}&amp;message={message}&amp;msisdn={recipient}<br/>
- * With the following parameters provided:
- * <ul>
- * <li>username</li>
- * <li>password</li>
- * </ul>
- */
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
@@ -90,7 +64,7 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-            .parallelStream()
+            .stream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
             .collect( Collectors.toList() );
     }
