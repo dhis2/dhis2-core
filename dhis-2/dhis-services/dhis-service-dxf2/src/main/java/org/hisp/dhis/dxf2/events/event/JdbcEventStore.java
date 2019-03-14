@@ -703,6 +703,13 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
         }
 
+        //Comparing milliseconds instead of always creating new Date( 0 );
+        if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
+        {
+            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
+            sql += hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' ";
+        }
+
         if ( params.getCategoryOptionCombo() != null )
         {
             sql += hlp.whereAnd() + " psi.attributeoptioncomboid = " + params.getCategoryOptionCombo().getId() + " ";
@@ -876,6 +883,18 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " psi.lastupdated <= '"
                 + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+        }
+
+        if ( params.isSynchronizationQuery() )
+        {
+            sql += hlp.whereAnd() + " psi.lastupdated > psi.lastsynchronized ";
+        }
+
+        //Comparing milliseconds instead of always creating new Date( 0 );
+        if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
+        {
+            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
+            sql += hlp.whereAnd() + " psi.lastupdated >= '" + skipChangedBefore + "' ";
         }
 
         if ( params.getDueDateStart() != null )
