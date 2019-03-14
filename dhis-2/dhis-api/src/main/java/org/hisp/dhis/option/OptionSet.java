@@ -33,14 +33,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -126,6 +123,11 @@ public class OptionSet
         }
 
         return null;
+    }
+
+    public Map<String, String> getOptionCodePropertyMap(IdScheme idScheme )
+    {
+        return options.stream().collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
     }
 
     // -------------------------------------------------------------------------
