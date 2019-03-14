@@ -43,12 +43,12 @@ public interface OrgUnitAnalyticsService
     OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets );
 
     /**
-     * Returns the org unit distribution for the given parameters.
+     * Returns the org unit data for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
      * @return a {@link Grid}.
      */
-    Grid getOrgUnitDistribution( OrgUnitQueryParams params );
+    Grid getOrgUnitData( OrgUnitQueryParams params );
 
     /**
      * Validates the given parameters. Throws an {@link IllegalQueryException}

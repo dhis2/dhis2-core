@@ -69,7 +69,7 @@ public class OrgUnitAnalyticsController
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return analyticsService.getOrgUnitDistribution( params );
+        return analyticsService.getOrgUnitData( params );
     }
 
     @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
@@ -81,7 +81,7 @@ public class OrgUnitAnalyticsController
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
@@ -94,7 +94,7 @@ public class OrgUnitAnalyticsController
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
@@ -107,7 +107,7 @@ public class OrgUnitAnalyticsController
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitDistribution( params );
+        Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 }

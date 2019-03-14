@@ -50,6 +50,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Lars Helge Overland
@@ -89,7 +90,7 @@ public class DefaultOrgUnitAnalyticsService
     }
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitQueryParams params )
+    public Grid getOrgUnitData( OrgUnitQueryParams params )
     {
         validate( params );
 
@@ -104,7 +105,14 @@ public class DefaultOrgUnitAnalyticsService
 
         for ( OrgUnitQueryParams query : queries )
         {
-            analyticsManager.getOrgUnitDistribution( query, grid );
+            Map<String, Integer> dataMap = analyticsManager.getOrgUnitData( query );
+
+            dataMap.entrySet().forEach( entry -> {
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( entry.getValue() );
+                }
+            );
         }
 
         return grid;
