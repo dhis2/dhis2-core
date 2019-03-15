@@ -60,6 +60,9 @@ public enum ProgramRuleActionType
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
         new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
 
+    private static final Set<ProgramRuleActionType> PERMITTED_ACTIONS =
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Existence of these actions will trigger rule engine
+
     ProgramRuleActionType( String value )
     {
         this.value = value;
@@ -86,5 +89,10 @@ public enum ProgramRuleActionType
     public static Set<ProgramRuleActionType> getImplementedActions()
     {
         return IMPLEMENTED_ACTIONS;
+    }
+
+    public static Set<ProgramRuleActionType> getPermittedActions()
+    {
+        return PERMITTED_ACTIONS;
     }
 }
