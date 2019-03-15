@@ -54,6 +54,8 @@ public class ProgramRuleVariableServiceTest
     private Program programC;
     
     private DataElement dataElementA;
+    private DataElement dataElementB;
+    private DataElement dataElementC;
     private TrackedEntityAttribute attributeA;
     
     @Autowired
@@ -76,12 +78,16 @@ public class ProgramRuleVariableServiceTest
         programC = createProgram( 'C', null, null );
         
         dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        dataElementC = createDataElement( 'C' );
         attributeA = createTrackedEntityAttribute( 'A' );
         
         programService.addProgram( programA );
         programService.addProgram( programB );
         programService.addProgram( programC );
         dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementC );
         attributeService.addTrackedEntityAttribute( attributeA );
     }
     
@@ -164,5 +170,28 @@ public class ProgramRuleVariableServiceTest
 
         assertNull( variableService.getProgramRuleVariable( idI ) );
         assertNull( variableService.getProgramRuleVariable( idJ ) );
+    }
+
+    @Test
+    public void testShouldReturnTrueIfDataElementIsLinkedToProgramRuleVariable()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
+        ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA, ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementB, true, null );
+
+        int idA = variableService.addProgramRuleVariable( variableA );
+        int idB = variableService.addProgramRuleVariable( variableB );
+
+        assertTrue( variableService.isLinkedToProgramRuleVariable( programA, dataElementA ) );
+        assertTrue( variableService.isLinkedToProgramRuleVariable( programA, dataElementB ) );
+    }
+
+    @Test
+    public void testShouldReturnFalseIfDataElementIsNOTLinkedToProgramRuleVariable()
+    {
+        ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA, ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
+
+        int idA = variableService.addProgramRuleVariable( variableA );
+
+        assertFalse( variableService.isLinkedToProgramRuleVariable( programA, dataElementC ) );
     }
 }
