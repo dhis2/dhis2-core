@@ -70,7 +70,7 @@ public class DefaultOrgUnitAnalyticsService
 
     private OrgUnitQueryPlanner queryPlanner;
 
-    //TODO add outputIdScheme support
+    //TODO Add outputIdScheme support
 
     @Autowired
     public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
@@ -129,7 +129,6 @@ public class DefaultOrgUnitAnalyticsService
 
     private Grid getOrgUnitDataTableLayout( OrgUnitQueryParams params )
     {
-        //TODO incl org units, change to id object
         return GridRenderUtils.asGrid( params.getColumns(), params.getRows(), getOrgUnitDataMap( params ) );
     }
 

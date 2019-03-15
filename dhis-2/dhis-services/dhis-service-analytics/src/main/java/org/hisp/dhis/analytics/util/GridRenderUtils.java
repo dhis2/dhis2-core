@@ -68,9 +68,6 @@ public class GridRenderUtils
 
         Map<String, Object> internalValueMap = getSortedKeysMap( valueMap );
 
-        System.out.println( "sorted key value map" );
-        System.out.println( internalValueMap );
-
         Grid grid = new ListGrid();
 
         // ---------------------------------------------------------------------
@@ -103,10 +100,7 @@ public class GridRenderUtils
             for ( List<DimensionalItemObject> column : gridColumns )
             {
                 String key = getKey( column, row );
-                System.out.println( "key " + key );
                 Object value = internalValueMap.get( key );
-                System.out.println( "value " + value );
-                System.out.println(  );
                 grid.addValue( value );
             }
         }

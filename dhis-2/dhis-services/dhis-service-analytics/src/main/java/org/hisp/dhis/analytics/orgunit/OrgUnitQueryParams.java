@@ -86,8 +86,9 @@ public class OrgUnitQueryParams
 
     public List<DimensionalObject> getRows()
     {
-        List<DimensionalObject> rows = new ArrayList<>( orgUnitGroupSets );
+        List<DimensionalObject> rows = new ArrayList<>();
         rows.add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits ) );
+        rows.addAll( orgUnitGroupSets );
         rows.removeAll( columns );
         return rows;
     }
