@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -67,6 +68,8 @@ public interface ProgramRuleVariableService
      * @return the ProgramRuleVariable with the given id
      */
     ProgramRuleVariable getProgramRuleVariable( int id );
+
+    boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
 
     /**
      * Returns all {@link ProgramRuleVariable}.
