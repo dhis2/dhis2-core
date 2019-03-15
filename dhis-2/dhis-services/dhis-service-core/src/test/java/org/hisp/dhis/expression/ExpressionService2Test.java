@@ -156,7 +156,8 @@ public class ExpressionService2Test {
     private static final double DELTA = 0.01;
 
     @Before
-    public void setUp() {
+    public void setUp()
+    {
         target = new DefaultExpressionService(hibernateGenericStore, dataElementService, constantService,
                 categoryService, organisationUnitGroupService, dimensionService, idObjectManager);
         rnd = new BeanRandomizer();
@@ -246,7 +247,6 @@ public class ExpressionService2Test {
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() + ".REPORTING_RATE}";
-
     }
 
     private DimensionalItemId getId( DimensionalItemObject o )
@@ -296,7 +296,8 @@ public class ExpressionService2Test {
     }
 
     @Test
-    public void testGetElementsAndOptionCombosInExpression() {
+    public void testGetElementsAndOptionCombosInExpression()
+    {
         Set<String> ids = target.getElementsAndOptionCombosInExpression( expressionC );
 
         assertEquals( 2, ids.size() );
@@ -367,7 +368,7 @@ public class ExpressionService2Test {
 
         Set<Indicator> indicators = Sets.newHashSet( indicator );
 
-        Set<DimensionalItemObject> items = target.getDimensionalItemObjectsInIndicators( indicators );
+        Set<DimensionalItemObject> items = target.getIndicatorDimensionalItemObjects( indicators );
 
         assertEquals( 6, items.size() );
         assertThat(items, hasItems(opA, opB, deB, piA, pdeA, pteaA));
@@ -486,7 +487,7 @@ public class ExpressionService2Test {
     {
         Expression expression = new Expression( expressionString, "Test " + expressionString );
 
-        return target.getExpressionValue( expression, new HashMap<>(),
+        return target.getExpressionValueRegEx( expression, new HashMap<>(),
                 new HashMap<>(), new HashMap<>(), 0 );
     }
 
@@ -573,30 +574,30 @@ public class ExpressionService2Test {
         when(dimensionService.getDataDimensionalItemObject(opA.getDimensionItem())).thenReturn(opA);
         when(dimensionService.getDataDimensionalItemObject(opB.getDimensionItem())).thenReturn(opB);
 
-        String description = target.getExpressionDescription( expressionA );
+        String description = target.getExpressionDescriptionRegEx( expressionA );
         assertThat( description, is( opA.getDisplayName() + "+" + opB.getDisplayName() ) );
 
-        description = target.getExpressionDescription( expressionD );
+        description = target.getExpressionDescriptionRegEx( expressionD );
         assertThat( description, is( opA.getDisplayName() + "+" + ExpressionService.DAYS_DESCRIPTION ) );
 
         when(constantService.getConstant(constantA.getUid())).thenReturn(constantA);
-        description = target.getExpressionDescription( expressionE );
+        description = target.getExpressionDescriptionRegEx( expressionE );
         assertThat( description, is( opA.getDisplayName() + "*" + constantA.getDisplayName() ) );
 
         when(organisationUnitGroupService.getOrganisationUnitGroup(groupA.getUid())).thenReturn(groupA);
-        description = target.getExpressionDescription( expressionH );
+        description = target.getExpressionDescriptionRegEx( expressionH );
         assertThat( description, is( opA.getDisplayName() + "*" + groupA.getDisplayName() ) );
 
         when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + SYMBOL_WILDCARD ) )
                 .thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( deB.getUid() + SEPARATOR + coc.getUid() ) )
                 .thenReturn( deB );
-        description = target.getExpressionDescription( expressionM );
+        description = target.getExpressionDescriptionRegEx( expressionM );
         assertThat( description, is( deA.getDisplayName() + "-" + deB.getDisplayName() ) );
 
         when( dimensionService.getDataDimensionalItemObject( reportingRate.getUid() + ".REPORTING_RATE" ) )
                 .thenReturn( reportingRate );
-        description = target.getExpressionDescription( expressionR );
+        description = target.getExpressionDescriptionRegEx( expressionR );
         assertThat( description, is( deB.getDisplayName() + " + " + reportingRate.getDisplayName() ) );
     }
 
@@ -660,38 +661,12 @@ public class ExpressionService2Test {
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
 
-        assertEquals( 46d, target.getExpressionValue( expA, valueMap, constantMap, null, null ), DELTA );
-        assertEquals( 17d, target.getExpressionValue( expD, valueMap, constantMap, null, 5 ), DELTA );
-        assertEquals( 24d, target.getExpressionValue( expE, valueMap, constantMap, null, null ), DELTA );
-        assertEquals( 36d, target.getExpressionValue( expH, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
-        assertEquals( 10d, target.getExpressionValue( expN, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
-        assertEquals( 54d, target.getExpressionValue( expR, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
-    }
-
-    @Test
-    public void testGetIndicatorValue()
-    {
-        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
-
-        Indicator indicatorA = createIndicator( 'A', indicatorType );
-        indicatorA.setNumerator( expressionE );
-        indicatorA.setDenominator( expressionF );
-
-        Indicator indicatorB = createIndicator( 'B', indicatorType );
-        indicatorB.setNumerator( expressionN );
-        indicatorB.setDenominator( expressionF );
-
-        Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( new DataElementOperand( deA, coc ), 12d );
-        valueMap.put( new DataElementOperand( deB, coc ), 34d );
-        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
-        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
-
-        Map<String, Double> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), 2.0 );
-
-        assertEquals( 200d, target.getIndicatorValue( indicatorA, period, valueMap, constantMap, null ), DELTA );
-        assertEquals( 300d, target.getIndicatorValue( indicatorB, period, valueMap, constantMap, null ), DELTA );
+        assertEquals( 46d, target.getExpressionValueRegEx( expA, valueMap, constantMap, null, null ), DELTA );
+        assertEquals( 17d, target.getExpressionValueRegEx( expD, valueMap, constantMap, null, 5 ), DELTA );
+        assertEquals( 24d, target.getExpressionValueRegEx( expE, valueMap, constantMap, null, null ), DELTA );
+        assertEquals( 36d, target.getExpressionValueRegEx( expH, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
+        assertEquals( 10d, target.getExpressionValueRegEx( expN, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
+        assertEquals( 54d, target.getExpressionValueRegEx( expR, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
     }
 
     @Test
@@ -703,7 +678,7 @@ public class ExpressionService2Test {
         indicatorA.setNumerator( expressionE );
         indicatorA.setDenominator( expressionF );
 
-        Map<DataElementOperand, Double> valueMap = new HashMap<>();
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
 
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
@@ -796,6 +771,4 @@ public class ExpressionService2Test {
         assertNotNull( groups );
         assertThat(groups, hasSize(0));
     }
-
-
 }

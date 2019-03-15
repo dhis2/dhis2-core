@@ -335,7 +335,7 @@ public class DefaultPredictionService
 
                             Map<DimensionalItemObject, Double> nonAggregateValueMap = combine( nonAggregateSampleMap.get( aoc ), nonAggregateSampleMapNonAoc );
 
-                            Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
+                            Double value = expressionService.getExpressionValueRegEx( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
                             if ( value != null && !value.isNaN() && !value.isInfinite() &&
@@ -477,7 +477,7 @@ public class DefaultPredictionService
                     {
                         for ( String aoc : periodValues.keySet() )
                         {
-                            Double value = expressionService.getExpressionValue( expression,
+                            Double value = expressionService.getExpressionValueRegEx( expression,
                                 periodValues.get( aoc ), constantMap, null, period.getDaysInPeriod() );
 
                             result.putValue( aoc, aggregate, value );
@@ -511,7 +511,7 @@ public class DefaultPredictionService
 
                 for ( String aoc : periodData.keySet() )
                 {
-                    Double testValue = expressionService.getExpressionValue( skipTest, periodData.get( aoc ),
+                    Double testValue = expressionService.getExpressionValueRegEx( skipTest, periodData.get( aoc ),
                         constantMap, null, period.getDaysInPeriod() );
 
                     if ( testValue != null && !MathUtils.isZero( testValue ) )

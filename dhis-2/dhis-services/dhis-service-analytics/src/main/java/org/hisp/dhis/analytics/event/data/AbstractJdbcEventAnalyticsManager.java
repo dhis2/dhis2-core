@@ -59,9 +59,9 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.parser.program.ProgramParserService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -93,7 +93,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected StatementBuilder statementBuilder;
 
     @Autowired
-    protected ProgramParserService programParserService;
+    protected ProgramIndicatorService programIndicatorService;
 
     /**
      * Returns the dynamic select column names to use in a group by clause. Dimensions come
@@ -171,7 +171,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programParserService.getExpressionAnalyticsSql( in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getExpressionAnalyticsSql( in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -348,7 +348,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
 
-            String expression = programParserService.getExpressionAnalyticsSql( params.getProgramIndicator(),
+            String expression = programIndicatorService.getExpressionAnalyticsSql( params.getProgramIndicator(),
                 params.getEarliestStartDate(), params.getLatestEndDate() );
 
             return function + "(" + expression + ")";
@@ -444,7 +444,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
-            return programParserService.getExpressionAnalyticsSql( programIndicator, startDate, endDate );
+            return programIndicatorService.getExpressionAnalyticsSql( programIndicator, startDate, endDate );
         }
         else
         {
