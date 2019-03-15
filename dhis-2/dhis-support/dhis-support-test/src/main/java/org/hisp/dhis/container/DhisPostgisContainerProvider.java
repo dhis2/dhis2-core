@@ -1,7 +1,7 @@
-package org.hisp.dhis.analytics.orgunit;
+package org.hisp.dhis.container;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,32 @@ package org.hisp.dhis.analytics.orgunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgisContainerProvider;
 
 /**
- * @author Lars Helge Overland
+ * Custom PostgisContainerProvider to create
+ * {@link DhisPostgreSQLContainer}
+ * 
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public interface OrgUnitAnalyticsManager
+@SuppressWarnings( "rawtypes" )
+public class DhisPostgisContainerProvider extends PostgisContainerProvider
 {
-    /**
-     * Returns a data map with a composite metadata key and an org unit count
-     * as value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     */
-    Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params );
+    private static final String DEFAULT_TAG = "10";
+    private static final String DEFAULT_IMAGE = "mdillon/postgis";
+
+    @Override
+    public JdbcDatabaseContainer newInstance()
+    {
+        return newInstance( DEFAULT_TAG );
+    }
+
+    @Override
+    public JdbcDatabaseContainer newInstance( String tag )
+    {
+        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
+    }
+
 }

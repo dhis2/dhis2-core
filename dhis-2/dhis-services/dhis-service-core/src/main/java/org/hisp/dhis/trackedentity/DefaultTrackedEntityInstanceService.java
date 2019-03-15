@@ -202,10 +202,6 @@ public class DefaultTrackedEntityInstanceService
         validateSearchScope( params );
         handleAttributes( params );
 
-        User user = currentUserService.getCurrentUser();
-
-        params.setUser( user );
-
         // ---------------------------------------------------------------------
         // Conform parameters
         // ---------------------------------------------------------------------
@@ -260,13 +256,13 @@ public class DefaultTrackedEntityInstanceService
 
         for ( Map<String, String> entity : entities )
         {
-            if ( user != null && !user.isSuper() && params.hasProgram() &&
+            if ( params.getUser() != null && !params.getUser().isSuper() && params.hasProgram() &&
                 (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
                     params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
             {
                 TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
 
-                if ( !trackerOwnershipAccessManager.hasAccess( user, tei, params.getProgram() ) )
+                if ( !trackerOwnershipAccessManager.hasAccess( params.getUser(), tei, params.getProgram() ) )
                 {
                     continue;
                 }
@@ -375,7 +371,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
-        User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();
+        User user = params.isInternalSearch() ? null : params.getUser();
 
         if ( params.isOrganisationUnitMode( ALL ) &&
             !currentUserService.currentUserIsAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() ) &&
@@ -415,7 +411,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Params cannot be null" );
         }
 
-        User user = currentUserService.getCurrentUser();
+        User user = params.getUser();
 
         if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE ) || params.isOrganisationUnitMode( CAPTURE )) )
         {
@@ -691,10 +687,10 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Tracked entity type does not exist: " + trackedEntityType );
         }
 
-        if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
+        if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
-            params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }
+            params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
+        }        
 
         params.setQuery( queryFilter )
             .setProgram( pr )
@@ -718,8 +714,9 @@ public class DefaultTrackedEntityInstanceService
             .setSkipPaging( skipPaging )
             .setIncludeDeleted( includeDeleted )
             .setIncludeAllAttributes( includeAllAttributes )
+            .setUser( user )
             .setOrders( orders );
-
+        
         return params;
     }
 
@@ -878,9 +875,9 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
     {
-        User user = currentUserService.getCurrentUser();
+        User user = params.getUser() != null ? params.getUser() : currentUserService.getCurrentUser();
 
-        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
