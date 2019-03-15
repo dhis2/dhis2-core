@@ -61,11 +61,12 @@ public class ProgramRuleEngine
     private static final String USER = "USER";
 
     private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-            "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
     private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = Sets.newHashSet( ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE, ProgramRuleActionType.ASSIGN );
+    private static final Set<ProgramRuleActionType> PERMITTED_TYPES = Sets.newHashSet( ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE );
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -213,6 +214,15 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
+        List<ProgramRule> permittedRules = new ArrayList<>();
+
+        permittedRules = programRuleService.getImplementableProgramRules( program, PERMITTED_TYPES );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
         return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
     }
 }

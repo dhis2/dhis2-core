@@ -123,6 +123,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.ProgramRuleEnginePublisher;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
@@ -256,6 +257,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected RelationshipService relationshipService;
+
+    @Autowired
+    protected ProgramRuleVariableService ruleVariableService;
 
     @Autowired
     protected UserService userService;
@@ -1357,7 +1361,7 @@ public abstract class AbstractEventService
                     dataValue.getProvidedElsewhere(), null, null );
             }
 
-            if ( !importOptions.isSkipNotifications() )
+            if ( !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
             {
                 enginePublisher.publishProgramRuleEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
