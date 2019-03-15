@@ -66,6 +66,7 @@ item // (alphabtical)
 programVariable // (alphabtical)
     :   'V{' var='analytics_period_end' '}'
     |   'V{' var='analytics_period_start' '}'
+    |   'V{' var='creation_date' '}'
     |   'V{' var='current_date' '}'
     |   'V{' var='due_date' '}'
     |   'V{' var='enrollment_count' '}'
@@ -77,6 +78,7 @@ programVariable // (alphabtical)
     |   'V{' var='incident_date' '}'
     |   'V{' var='program_stage_id' '}'
     |   'V{' var='program_stage_name' '}'
+    |   'V{' var='sync_date' '}'
     |   'V{' var='tei_count' '}'
     |   'V{' var='value_count' '}'
     |   'V{' var='zero_pos_value_count' '}'
@@ -196,6 +198,7 @@ DAYS        : '[days]';
 
 V_ANALYTICS_PERIOD_END  : 'analytics_period_end';
 V_ANALYTICS_PERIOD_START: 'analytics_period_start';
+V_CREATION_DATE         : 'creation_date';
 V_CURRENT_DATE          : 'current_date';
 V_DUE_DATE              : 'due_date';
 V_ENROLLMENT_COUNT      : 'enrollment_count';
@@ -207,6 +210,7 @@ V_EXECUTION_DATE        : 'execution_date';
 V_INCIDENT_DATE         : 'incident_date';
 V_PROGRAM_STAGE_ID      : 'program_stage_id';
 V_PROGRAM_STAGE_NAME    : 'program_stage_name';
+V_SYNC_DATE             : 'sync_date';
 V_TEI_COUNT             : 'tei_count';
 V_VALUE_COUNT           : 'value_count';
 V_ZERO_POS_VALUE_COUNT  : 'zero_pos_value_count';

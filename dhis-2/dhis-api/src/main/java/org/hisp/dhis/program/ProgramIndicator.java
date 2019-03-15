@@ -59,8 +59,10 @@ public class ProgramIndicator
     public static final String KEY_ATTRIBUTE = "A";
     public static final String KEY_PROGRAM_VARIABLE = "V";
     public static final String KEY_CONSTANT = "C";
+
     public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
     public static final String VAR_INCIDENT_DATE = "incident_date";
+
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
 

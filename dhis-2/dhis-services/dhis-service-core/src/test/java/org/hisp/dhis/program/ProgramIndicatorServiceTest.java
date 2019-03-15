@@ -1,5 +1,4 @@
 package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,22 +27,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-<<<<<<< HEAD
-import com.google.common.collect.Sets;
-||||||| merged common ancestors
-import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
-import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-=======
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
@@ -52,37 +35,39 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.*;
 
->>>>>>> [wip] move parse tree traversal into expr & PI services
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.joda.time.DateTime;
-import org.junit.Ignore;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
  */
-public class ProgramInstanceServiceTest
+public class ProgramIndicatorServiceTest
         extends DhisSpringTest
 {
+    private static final String COL_QUOTE = "\"";
+
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private ProgramIndicatorService programIndicatorService;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -96,21 +81,42 @@ public class ProgramInstanceServiceTest
     @Autowired
     private ProgramStageService programStageService;
 
-    private Date incidenDate;
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private ProgramStageDataElementService programStageDataElementService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService attributeValueService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ConstantService constantService;
+
+    private Date incidentDate;
 
     private Date enrollmentDate;
+
+    private ProgramStage psA;
+
+    private ProgramStage psB;
 
     private Program programA;
 
     private Program programB;
 
-    private Program programC;
+    private ProgramInstance programInstance;
 
-<<<<<<< HEAD
-    private OrganisationUnit organisationUnitA;
-||||||| merged common ancestors
-    private TrackedEntityAttribute atA;
-=======
+    private DataElement deA;
+
+    private DataElement deB;
+
     private DataElement deC;
 
     private DataElement deD;
@@ -118,129 +124,55 @@ public class ProgramInstanceServiceTest
     private DataElement deE;
 
     private TrackedEntityAttribute atA;
->>>>>>> [wip] move parse tree traversal into expr & PI services
 
-    private OrganisationUnit organisationUnitB;
+    private TrackedEntityAttribute atB;
 
-    private ProgramInstance programInstanceA;
+    private ProgramIndicator indicatorA;
 
-    private ProgramInstance programInstanceB;
+    private ProgramIndicator indicatorB;
 
-    private ProgramInstance programInstanceC;
+    private ProgramIndicator indicatorC;
 
-    private ProgramInstance programInstanceD;
+    private ProgramIndicator indicatorD;
 
-    private TrackedEntityInstance entityInstanceA;
+    private ProgramIndicator indicatorE;
 
-    private Collection<Integer> orgunitIds;
+    private ProgramIndicator indicatorF;
 
     @Override
     public void setUpTest()
     {
-        organisationUnitA = createOrganisationUnit( 'A' );
-        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        organisationUnitB = createOrganisationUnit( 'B' );
-        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        // ---------------------------------------------------------------------
+        // Program
+        // ---------------------------------------------------------------------
 
-        orgunitIds = new HashSet<>();
-        orgunitIds.add( idA );
-        orgunitIds.add( idB );
-
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-
-<<<<<<< HEAD
-||||||| merged common ancestors
-        programA = createProgram( 'A', new HashSet<>(), organisationUnit );
-=======
         programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programA.setUid( "Program000A" );
->>>>>>> [wip] move parse tree traversal into expr & PI services
         programService.addProgram( programA );
 
-<<<<<<< HEAD
-        ProgramStage stageA = createProgramStage( 'A', programA );
-        stageA.setSortOrder( 1 );
-        programStageService.saveProgramStage( stageA );
-||||||| merged common ancestors
-        psA = new ProgramStage( "StageA", programA );
-        psA.setSortOrder( 1 );
-        programStageService.saveProgramStage( psA );
-=======
         psA = new ProgramStage( "StageA", programA );
         psA.setSortOrder( 1 );
         psA.setUid( "ProgrmStagA" );
         programStageService.saveProgramStage( psA );
->>>>>>> [wip] move parse tree traversal into expr & PI services
 
-<<<<<<< HEAD
-        ProgramStage stageB = createProgramStage( 'B', programA );
-        stageB.setSortOrder( 2 );
-        programStageService.saveProgramStage( stageB );
-||||||| merged common ancestors
-        psB = new ProgramStage( "StageB", programA );
-        psB.setSortOrder( 2 );
-        programStageService.saveProgramStage( psB );
-=======
         psB = new ProgramStage( "StageB", programA );
         psB.setSortOrder( 2 );
         psB.setUid( "ProgrmStagB" );
         programStageService.saveProgramStage( psB );
->>>>>>> [wip] move parse tree traversal into expr & PI services
 
         Set<ProgramStage> programStages = new HashSet<>();
-        programStages.add( stageA );
-        programStages.add( stageB );
+        programStages.add( psA );
+        programStages.add( psB );
         programA.setProgramStages( programStages );
         programService.updateProgram( programA );
 
-<<<<<<< HEAD
-        programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
-||||||| merged common ancestors
-        programB = createProgram( 'B', new HashSet<>(), organisationUnit );
-=======
         programB = createProgram( 'B', new HashSet<>(), organisationUnit );
         programB.setUid( "Program000B" );
->>>>>>> [wip] move parse tree traversal into expr & PI services
         programService.addProgram( programB );
 
-<<<<<<< HEAD
-        programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
-        programService.addProgram( programC );
-||||||| merged common ancestors
-        // ---------------------------------------------------------------------
-        // Program Stage DE
-        // ---------------------------------------------------------------------
-
-        deA = createDataElement( 'A' );
-        deA.setDomainType( DataElementDomain.TRACKER );
-
-        deB = createDataElement( 'B' );
-        deB.setDomainType( DataElementDomain.TRACKER );
-
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-
-        ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deA, false, 1 );
-        ProgramStageDataElement stageDataElementB = new ProgramStageDataElement( psA, deB, false, 2 );
-        ProgramStageDataElement stageDataElementC = new ProgramStageDataElement( psB, deA, false, 1 );
-        ProgramStageDataElement stageDataElementD = new ProgramStageDataElement( psB, deB, false, 2 );
-
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementC );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementD );
-
-        // ---------------------------------------------------------------------
-        // TrackedEntityInstance & Enrollment
-        // ---------------------------------------------------------------------
-
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
-
-        incidentDate = DateUtils.getMediumDate( "2014-10-22" );
-        enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-=======
         // ---------------------------------------------------------------------
         // Program Stage DE
         // ---------------------------------------------------------------------
@@ -292,245 +224,173 @@ public class ProgramInstanceServiceTest
         // TrackedEntityInstance & Enrollment
         // ---------------------------------------------------------------------
 
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', organisationUnit );
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
 
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
->>>>>>> [wip] move parse tree traversal into expr & PI services
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+                incidentDate, organisationUnit );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        incidentDate = DateUtils.getMediumDate( "2014-10-22" );
+        enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
 
-        DateTime testDate1 = DateTime.now();
-        testDate1.withTimeAtStartOfDay();
-        testDate1 = testDate1.minusDays( 70 );
-        incidenDate = testDate1.toDate();
+        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+                incidentDate, organisationUnit );
 
-        DateTime testDate2 = DateTime.now();
-        testDate2.withTimeAtStartOfDay();
-        enrollmentDate = testDate2.toDate();
+        // TODO enroll twice?
 
-        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-A" );
-        programInstanceA.setOrganisationUnit( organisationUnitA );
+        // ---------------------------------------------------------------------
+        // TrackedEntityAttribute
+        // ---------------------------------------------------------------------
 
-        programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
-        programInstanceB.setUid( "UID-B" );
-        programInstanceB.setStatus( ProgramStatus.CANCELLED );
-        programInstanceB.setOrganisationUnit( organisationUnitB );
+        atA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
+        atB = createTrackedEntityAttribute( 'B', ValueType.NUMBER );
 
-<<<<<<< HEAD
-        programInstanceC = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programC );
-        programInstanceC.setUid( "UID-C" );
-        programInstanceC.setStatus( ProgramStatus.COMPLETED );
-        programInstanceC.setOrganisationUnit( organisationUnitA );
-||||||| merged common ancestors
-        attributeService.addTrackedEntityAttribute( atA );
-        attributeService.addTrackedEntityAttribute( atB );
-=======
         atA.setUid( "Attribute0A" );
         atB.setUid( "Attribute0B" );
 
         attributeService.addTrackedEntityAttribute( atA );
         attributeService.addTrackedEntityAttribute( atB );
->>>>>>> [wip] move parse tree traversal into expr & PI services
 
-        programInstanceD = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programA );
-        programInstanceD.setUid( "UID-D" );
-        programInstanceD.setOrganisationUnit( organisationUnitB );
+        TrackedEntityAttributeValue attributeValueA = new TrackedEntityAttributeValue( atA, entityInstance, "1" );
+        TrackedEntityAttributeValue attributeValueB = new TrackedEntityAttributeValue( atB, entityInstance, "2" );
+
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
+
+        // ---------------------------------------------------------------------
+        // TrackedEntityDataValue
+        // ---------------------------------------------------------------------
+
+        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+                psA, enrollmentDate, incidentDate, organisationUnit );
+        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+                psB, enrollmentDate, incidentDate, organisationUnit );
+
+        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+        programStageInstances.add( stageInstanceA );
+        programStageInstances.add( stageInstanceB );
+        programInstance.setProgramStageInstances( programStageInstances );
+        programInstance.setProgram( programA );
+
+        // ---------------------------------------------------------------------
+        // Constant
+        // ---------------------------------------------------------------------
+
+        Constant constantA = createConstant( 'A', 7.0 );
+        constantService.saveConstant( constantA );
+
+        // ---------------------------------------------------------------------
+        // ProgramIndicator
+        // ---------------------------------------------------------------------
+
+        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "}, " + KEY_PROGRAM_VARIABLE + "{"
+                + ProgramIndicator.VAR_INCIDENT_DATE + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+        indicatorA = createProgramIndicator( 'A', programA, expressionA, null );
+        programA.getProgramIndicators().add( indicatorA );
+
+        indicatorB = createProgramIndicator( 'B', programA, "70", null );
+        programA.getProgramIndicators().add( indicatorB );
+
+        indicatorC = createProgramIndicator( 'C', programA, "0", null );
+        programA.getProgramIndicators().add( indicatorC );
+
+        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_INCIDENT_DATE + "}";
+        indicatorD = createProgramIndicator( 'D', programB, expressionD, null );
+
+        String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_DATAELEMENT + "{"
+                + psB.getUid() + "." + deA.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
+                + "{" + atB.getUid() + "}";
+        String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
+        indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
+
+        String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
+        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} > " +
+                KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
+        indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
+        indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
+                AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
+    }
+
+    // -------------------------------------------------------------------------
+    // CRUD tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testAddProgramIndicator()
+    {
+        long idA = programIndicatorService.addProgramIndicator( indicatorA );
+        long idB = programIndicatorService.addProgramIndicator( indicatorB );
+        long idC = programIndicatorService.addProgramIndicator( indicatorC );
+
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idC ) );
     }
 
     @Test
-    public void testAddProgramInstance()
+    public void testDeleteProgramIndicator()
     {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long idB = programInstanceService.addProgramInstance( programInstanceB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+
+        programIndicatorService.deleteProgramIndicator( indicatorB );
+
+        assertNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+
+        programIndicatorService.deleteProgramIndicator( indicatorA );
+
+        assertNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNull( programIndicatorService.getProgramIndicator( idB ) );
     }
 
     @Test
-    public void testDeleteProgramInstance()
+    public void testUpdateProgramIndicator()
     {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long idB = programInstanceService.addProgramInstance( programInstanceB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
 
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
 
-        programInstanceService.deleteProgramInstance( programInstanceA );
+        indicatorB.setName( "B" );
+        programIndicatorService.updateProgramIndicator( indicatorB );
 
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
-
-        programInstanceService.deleteProgramInstance( programInstanceB );
-
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( programInstanceService.getProgramInstance( idB ) );
+        assertEquals( "B", programIndicatorService.getProgramIndicator( idA ).getName() );
     }
 
     @Test
-    public void testUpdateProgramInstance()
+    public void testGetProgramIndicatorById()
     {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
 
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-
-        programInstanceA.setIncidentDate( enrollmentDate );
-        programInstanceService.updateProgramInstance( programInstanceA );
-
-        assertEquals( enrollmentDate, programInstanceService.getProgramInstance( idA ).getIncidentDate() );
+        assertEquals( indicatorB, programIndicatorService.getProgramIndicator( idA ) );
+        assertEquals( indicatorA, programIndicatorService.getProgramIndicator( idB ) );
     }
 
     @Test
-    public void testGetProgramInstanceById()
+    public void testGetProgramIndicatorByName()
     {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long idB = programInstanceService.addProgramInstance( programInstanceB );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
 
-        assertEquals( programInstanceA, programInstanceService.getProgramInstance( idA ) );
-        assertEquals( programInstanceB, programInstanceService.getProgramInstance( idB ) );
+        assertEquals( "IndicatorA", programIndicatorService.getProgramIndicator( "IndicatorA" ).getName() );
+        assertEquals( "IndicatorB", programIndicatorService.getProgramIndicator( "IndicatorB" ).getName() );
     }
 
     @Test
-    public void testGetProgramInstanceByUid()
+    public void testGetAllProgramIndicators()
     {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
 
-        assertEquals( "UID-A", programInstanceService.getProgramInstance( "UID-A" ).getUid() );
-        assertEquals( "UID-B", programInstanceService.getProgramInstance( "UID-B" ).getUid() );
+        assertTrue( equals( programIndicatorService.getAllProgramIndicators(), indicatorB, indicatorA ) );
     }
-
-    @Test
-    public void testGetProgramInstancesByProgram()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( programA );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-
-        programInstances = programInstanceService.getProgramInstances( programB );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceB ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByEntityInstanceProgramStatus()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-
-        ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
-                incidenDate, organisationUnitA );
-        programInstance1.setStatus( ProgramStatus.COMPLETED );
-        programInstanceService.updateProgramInstance( programInstance1 );
-
-        ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
-                incidenDate, organisationUnitA );
-        programInstance2.setStatus( ProgramStatus.COMPLETED );
-        programInstanceService.updateProgramInstance( programInstance2 );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA, ProgramStatus.COMPLETED );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstance1 ) );
-        assertTrue( programInstances.contains( programInstance2 ) );
-
-        programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
-                ProgramStatus.ACTIVE );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuProgram()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceC );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
-                .setProgram( programA )
-                .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
-                .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testEnrollTrackedEntityInstance()
-    {
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB, enrollmentDate,
-                incidenDate, organisationUnitA );
-
-        assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
-    }
-
-    @Test
-    @Ignore
-    public void testCanAutoCompleteProgramInstanceStatus()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceA ) );
-        assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceD ) );
-    }
-
-    @Test
-    public void testCompleteProgramInstanceStatus()
-    {
-        int idA = programInstanceService.addProgramInstance( programInstanceA );
-        int idD = programInstanceService.addProgramInstance( programInstanceD );
-
-        programInstanceService.completeProgramInstanceStatus( programInstanceA );
-        programInstanceService.completeProgramInstanceStatus( programInstanceD );
-
-        assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idD ).getStatus() );
-    }
-
-    @Test
-    public void testIncompleteProgramInstanceStatus()
-    {
-        programInstanceA.setStatus( ProgramStatus.COMPLETED );
-        programInstanceD.setStatus( ProgramStatus.COMPLETED );
-
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long idD = programInstanceService.addProgramInstance( programInstanceD );
-
-        programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
-        programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
-
-        assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idD ).getStatus() );
-    }
-
-    @Test
-    public void testCancelProgramInstanceStatus()
-    {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long idD = programInstanceService.addProgramInstance( programInstanceD );
-
-        programInstanceService.cancelProgramInstanceStatus( programInstanceA );
-        programInstanceService.cancelProgramInstanceStatus( programInstanceD );
-
-        assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
-    }
-<<<<<<< HEAD
-}
-||||||| merged common ancestors
-}
-=======
 
     // -------------------------------------------------------------------------
     // Logic tests
@@ -587,14 +447,14 @@ public class ProgramInstanceServiceTest
     public void testGetAnalyticsWithVariables()
     {
         String expected =
-            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                "coalesce(\"DataElmentB\"::numeric,0) + " +
-                "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double),0)";
+                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+                        "coalesce(\"DataElmentB\"::numeric,0) + " +
+                        "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double),0)";
 
         String expression =
-            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                "#{ProgrmStagB.DataElmentB} + " +
-                "V{zero_pos_value_count}";
+                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+                        "#{ProgrmStagB.DataElmentB} + " +
+                        "V{zero_pos_value_count}";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), true ) );
     }
@@ -612,14 +472,14 @@ public class ProgramInstanceServiceTest
     public void testGetAnalyticsSqlWithFunctionsZingB()
     {
         String expected =
-            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                "coalesce(case when \"DataElmentB\" < 0 then 0 else \"DataElmentB\" end, 0) + " +
-                "coalesce(case when \"DataElmentC\" < 0 then 0 else \"DataElmentC\" end, 0)";
+                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+                        "coalesce(case when \"DataElmentB\" < 0 then 0 else \"DataElmentB\" end, 0) + " +
+                        "coalesce(case when \"DataElmentC\" < 0 then 0 else \"DataElmentC\" end, 0)";
 
         String expression =
-            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                "d2:zing(#{ProgrmStagA.DataElmentB}) + " +
-                "d2:zing(#{ProgrmStagA.DataElmentC})";
+                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+                        "d2:zing(#{ProgrmStagA.DataElmentB}) + " +
+                        "d2:zing(#{ProgrmStagA.DataElmentC})";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
@@ -640,10 +500,10 @@ public class ProgramInstanceServiceTest
     public void testGetAnalyticsSqlWithFunctionsZpvc()
     {
         String expected =
-            "nullif(cast((" +
-                "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
-                "case when \"DataElmentB\" >= 0 then 1 else 0 end" +
-                ") as double precision),0)";
+                "nullif(cast((" +
+                        "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
+                        "case when \"DataElmentB\" >= 0 then 1 else 0 end" +
+                        ") as double precision),0)";
 
         String expression = "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})";
 
@@ -672,16 +532,16 @@ public class ProgramInstanceServiceTest
     public void testGetAnalyticsSqlWithFunctionsComposite()
     {
         String expected =
-            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                "(cast(\"DataElmentC\" as date) - cast(\"DataElmentB\" as date)) + " +
-                "case when (\"DataElmentD\" > 70) then 100 else 50 end + " +
-                "case when (\"DataElmentE\" < 30) then 20 else 100 end";
+                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+                        "(cast(\"DataElmentC\" as date) - cast(\"DataElmentB\" as date)) + " +
+                        "case when (\"DataElmentD\" > 70) then 100 else 50 end + " +
+                        "case when (\"DataElmentE\" < 30) then 20 else 100 end";
 
         String expression =
-            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                "d2:daysBetween(#{ProgrmStagA.DataElmentB},#{ProgrmStagA.DataElmentC}) + " +
-                "d2:condition(\"#{ProgrmStagA.DataElmentD} > 70\",100,50) + " +
-                "d2:condition('#{ProgrmStagA.DataElmentE} < 30',20,100)";
+                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+                        "d2:daysBetween(#{ProgrmStagA.DataElmentB},#{ProgrmStagA.DataElmentC}) + " +
+                        "d2:condition(\"#{ProgrmStagA.DataElmentD} > 70\",100,50) + " +
+                        "d2:condition('#{ProgrmStagA.DataElmentE} < 30',20,100)";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
@@ -726,11 +586,11 @@ public class ProgramInstanceServiceTest
     public void testIsZeroOrEmptyFilter()
     {
         String expected = "coalesce(\"DataElmentA\"::numeric,0) == 1 or " +
-            "(coalesce(\"DataElmentE\",'') == '' and " +
-            "coalesce(\"Attribute0A\"::numeric,0) == 0)";
+                "(coalesce(\"DataElmentE\",'') == '' and " +
+                "coalesce(\"Attribute0A\"::numeric,0) == 0)";
 
         String filter = "#{ProgrmStagA.DataElmentA} == 1 or " +
-            "(#{ProgrmStagA.DataElmentE}  == ''   and A{Attribute0A}== 0)";
+                "(#{ProgrmStagA.DataElmentE}  == ''   and A{Attribute0A}== 0)";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date(), true );
         assertEquals( expected, actual );
     }
@@ -739,10 +599,10 @@ public class ProgramInstanceServiceTest
     public void testEnrollmentIndicatorWithEventBoundaryExpression()
     {
         String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B " +
-            "where analytics_event_" + indicatorF.getProgram().getUid() +
-            ".pi = ax.pi and \"DataElmentA\" is not null " +
-            "and executiondate < cast( '2018-03-11' as date ) and "+
-            "ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0)";
+                "where analytics_event_" + indicatorF.getProgram().getUid() +
+                ".pi = ax.pi and \"DataElmentA\" is not null " +
+                "and executiondate < cast( '2018-03-11' as date ) and "+
+                "ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0)";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
         String actual = programIndicatorService.getAnalyticsSql( indicatorF.getExpression(), indicatorF, reportingStartDate, reportingEndDate, true );
@@ -753,9 +613,9 @@ public class ProgramInstanceServiceTest
     public void testEnrollmentIndicatorWithEventBoundaryFilter()
     {
         String expected = "(select \"DataElmentA\" from analytics_event_Program000B " +
-            "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " +
-            "= ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
-            "ps = 'ProgrmStagA' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
+                "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " +
+                "= ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
+                "ps = 'ProgrmStagA' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
         String actual = programIndicatorService.getAnalyticsSql( indicatorF.getFilter(), indicatorF, reportingStartDate, reportingEndDate, false );
@@ -766,10 +626,10 @@ public class ProgramInstanceServiceTest
     public void testDateFunctions()
     {
         String expected = "(date_part('year',age(cast('2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
-            "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
+                "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start}) < 1 " +
-            "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
+                "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, null, filter ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
@@ -778,16 +638,16 @@ public class ProgramInstanceServiceTest
     public void testDateFunctionsWithProgramStageDateArguments()
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
-            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' " +
-            "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
-            "(date_part('month',age(cast((select executiondate from analytics_event_Program000A where " +
-            "analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagB' order " +
-            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_Program000A " +
-            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' order " +
-            "by executiondate desc limit 1 ) as date)))) > 10";
+                "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' " +
+                "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
+                "(date_part('month',age(cast((select executiondate from analytics_event_Program000A where " +
+                "analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagB' order " +
+                "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_Program000A " +
+                "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' order " +
+                "by executiondate desc limit 1 ) as date)))) > 10";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA) < 1 " +
-            "and d2:monthsBetween(PS_EVENTDATE:ProgrmStagA, PS_EVENTDATE:ProgrmStagB) > 10";
+                "and d2:monthsBetween(PS_EVENTDATE:ProgrmStagA, PS_EVENTDATE:ProgrmStagB) > 10";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
@@ -795,8 +655,8 @@ public class ProgramInstanceServiceTest
     public void testDateFunctionsWithprogramStageDateArgumentsAndBoundaries()
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() + " where analytics_event_" +
-            programA.getUid() + ".pi = ax.pi and executiondate is not null and executiondate < cast( '2017-01-01' as date ) and executiondate >= " +
-            "cast( '2016-01-01' as date ) and ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1";
+                programA.getUid() + ".pi = ax.pi and executiondate is not null and executiondate < cast( '2017-01-01' as date ) and executiondate >= " +
+                "cast( '2016-01-01' as date ) and ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:" + psA.getUid() + ") < 1";
         ProgramIndicator programIndicator = createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, filter, null );
@@ -853,7 +713,7 @@ public class ProgramInstanceServiceTest
     public void testd2relationshipCountFilter()
     {
         String expected = "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join " +
-            "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+                "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount()";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
@@ -864,12 +724,11 @@ public class ProgramInstanceServiceTest
     public void testd2relationshipCountForOneRelationshipTypeFilter()
     {
         String expected = "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and " +
-            "rt.uid = 'Zx7OEwPBUwD' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+                "rt.uid = 'Zx7OEwPBUwD' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
+                "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount('Zx7OEwPBUwD')";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
 }
->>>>>>> [wip] move parse tree traversal into expr & PI services
