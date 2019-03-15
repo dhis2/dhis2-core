@@ -28,13 +28,13 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.ParserUtils.castClass;
 import static org.hisp.dhis.parser.ParserUtils.castString;
 
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -45,7 +45,7 @@ import org.hisp.dhis.parser.Parser;
 import org.hisp.dhis.parser.ParserException;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -73,14 +73,37 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
 
     private I18nManager i18nManager;
 
-
-    private IdentifiableObjectManager manager;
-
-    @Autowired
     private RelationshipTypeService relationshipTypeService;
 
-    @Autowired
-    private I18nManager i18nManager;
+
+    public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
+                                           ProgramStageService programStageService, DataElementService dataElementService,
+                                           TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
+                                           @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
+                                           I18nManager i18nManager, RelationshipTypeService relationshipTypeService )
+    {
+        checkNotNull( programIndicatorStore );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+        checkNotNull( attributeService );
+        checkNotNull( constantService );
+        checkNotNull( statementBuilder );
+        checkNotNull( programIndicatorGroupStore );
+        checkNotNull( i18nManager );
+        checkNotNull( relationshipTypeService );
+
+        this.programIndicatorStore = programIndicatorStore;
+        this.programStageService = programStageService;
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+        this.constantService = constantService;
+        this.statementBuilder = statementBuilder;
+        this.programIndicatorGroupStore = programIndicatorGroupStore;
+        this.i18nManager = i18nManager;
+        this.relationshipTypeService = relationshipTypeService;
+    }
+
+
 
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD

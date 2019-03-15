@@ -294,7 +294,7 @@ public interface StatementBuilder
     
     /**
      * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries.
-     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorColumnSelectSql(String, String, Date, Date, ProgramIndicator)} function.
+     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)} function.
      * @param programStageUid the program stage to get data for
      * @param dataElementUid the data element to get data for
      * @param reportingStartDate the reporting start date
@@ -316,4 +316,5 @@ public interface StatementBuilder
      */
     String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
+
 }

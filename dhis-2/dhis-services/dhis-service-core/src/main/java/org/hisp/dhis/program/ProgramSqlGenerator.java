@@ -202,6 +202,10 @@ public class ProgramSqlGenerator
             case V_ANALYTICS_PERIOD_START:
                 return statementBuilder.encode( DateUtils.getSqlDateString( reportingStartDate ) );
 
+            case V_CREATION_DATE:
+                return statementBuilder.getProgramIndicatorEventColumnSql( null, "created", reportingStartDate,
+                    reportingStartDate, programIndicator );
+
             case V_CURRENT_DATE:
                 return statementBuilder.encode( DateUtils.getLongDateString() );
 
@@ -233,6 +237,9 @@ public class ProgramSqlGenerator
             case V_PROGRAM_STAGE_NAME:
                 return AnalyticsType.EVENT == programIndicator.getAnalyticsType() ?
                     "(select name from programstage where uid = ps)" : "''";
+
+            case V_SYNC_DATE:
+                return "lastupdated";
 
             case V_TEI_COUNT:
                 return "distinct tei";
@@ -427,7 +434,7 @@ public class ProgramSqlGenerator
     {
         if ( ctx.uid0 != null )
         {
-            return statementBuilder.getProgramIndicatorColumnSelectSql(
+            return statementBuilder.getProgramIndicatorEventColumnSql(
                 ctx.uid0.getText(), "executiondate",
                 reportingStartDate, reportingEndDate, programIndicator );
         }
