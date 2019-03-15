@@ -69,7 +69,7 @@ public class GridRenderUtils
         Map<String, Object> internalValueMap = getSortedKeysMap( valueMap );
 
         System.out.println( "sorted key value map" );
-        System.out.println( valueMap );
+        System.out.println( internalValueMap );
 
         Grid grid = new ListGrid();
 
