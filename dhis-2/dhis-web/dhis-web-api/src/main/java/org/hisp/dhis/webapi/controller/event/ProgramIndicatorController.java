@@ -32,8 +32,8 @@ import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.parser.program.ProgramParserService;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class ProgramIndicatorController
     extends AbstractCrudController<ProgramIndicator>
 {
     @Autowired
-    private ProgramParserService programParserService;
+    private ProgramIndicatorService programIndicatorService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -71,7 +71,7 @@ public class ProgramIndicatorController
 
         try
         {
-            message.setDescription( programParserService.getExpressionDescription( expression ) );
+            message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
 
             message.setStatus( Status.OK );
 
@@ -99,7 +99,7 @@ public class ProgramIndicatorController
 
         try
         {
-            message.setDescription( programParserService.getFilterDescription( expression ) );
+            message.setDescription( programIndicatorService.getFilterDescription( expression ) );
 
             message.setStatus( Status.OK );
 

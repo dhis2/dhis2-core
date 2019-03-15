@@ -407,11 +407,6 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-parser</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-reporting</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -443,6 +438,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-hibernate</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-parser</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
