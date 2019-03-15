@@ -39,7 +39,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.sortKeys;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getKey;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getName;
 
@@ -66,7 +66,7 @@ public class GridRenderUtils
         List<List<DimensionalItemObject>> gridColumns = CombinationGenerator.newInstance( columnItems ).getCombinations();
         List<List<DimensionalItemObject>> gridRows = CombinationGenerator.newInstance( rowItems ).getCombinations();
 
-        sortKeys( valueMap );
+        Map<String, Object> internalValueMap = getSortedKeysMap( valueMap );
 
         System.out.println( "sorted key value map" );
         System.out.println( valueMap );
@@ -104,7 +104,7 @@ public class GridRenderUtils
             {
                 String key = getKey( column, row );
                 System.out.println( "key " + key );
-                Object value = valueMap.get( key );
+                Object value = internalValueMap.get( key );
                 System.out.println( "value " + value );
                 System.out.println(  );
                 grid.addValue( value );
