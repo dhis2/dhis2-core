@@ -57,9 +57,6 @@ public enum ProgramRuleActionType
 
     final String value;
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
-
     ProgramRuleActionType( String value )
     {
         this.value = value;
@@ -76,10 +73,5 @@ public enum ProgramRuleActionType
         }
 
         return null;
-    }
-
-    public boolean isImplementable()
-    {
-        return IMPLEMENTED_ACTIONS.contains( this );
     }
 }
