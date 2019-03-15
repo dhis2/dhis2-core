@@ -47,8 +47,8 @@ import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
- *
- * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
+ * Reschedule old jobs and execute jobs which were scheduled when the server was
+ * not running.
  *
  * @author Henning Håkonsen
  */
@@ -61,11 +61,17 @@ public class SchedulerStart
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
 
+    private final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
     private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+    private final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
     private final String DEFAULT_DATA_STATISTICS = "Data statistics";
+    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
     private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+    private final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
 
     @Autowired
@@ -141,6 +147,7 @@ public class SchedulerStart
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
                 FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, false, true );
+            fileResourceCleanUp.setUid( DEFAULT_FILE_RESOURCE_CLEANUP_UID );
             addAndScheduleJob( fileResourceCleanUp );
         }
 
@@ -149,7 +156,7 @@ public class SchedulerStart
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
             SchedulerUpgrade.portJob( systemSettingManager, dataStatistics,"lastSuccessfulDataStatistics" );
-
+            dataStatistics.setUid( DEFAULT_DATA_STATISTICS_UID );
             addAndScheduleJob( dataStatistics );
         }
 
@@ -157,6 +164,7 @@ public class SchedulerStart
         {
             JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
                 VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
+            validationResultNotification.setUid( DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID );
             addAndScheduleJob( validationResultNotification );
         }
 
@@ -164,6 +172,7 @@ public class SchedulerStart
         {
             JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
                 CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, false, true );
+            credentialsExpiryAlert.setUid( DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID );
             addAndScheduleJob( credentialsExpiryAlert );
         }
 
@@ -171,6 +180,7 @@ public class SchedulerStart
         {
             JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
                 DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
+            dataSetNotification.setUid( DEFAULT_DATA_SET_NOTIFICATION_UID );
             addAndScheduleJob( dataSetNotification );
         }
 
@@ -178,6 +188,7 @@ public class SchedulerStart
         {
             JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
+            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
         }
     }
