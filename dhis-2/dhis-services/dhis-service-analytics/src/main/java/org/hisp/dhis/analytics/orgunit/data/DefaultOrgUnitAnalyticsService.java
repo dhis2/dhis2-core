@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.analytics.util.GridRenderUtils;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -94,7 +95,7 @@ public class DefaultOrgUnitAnalyticsService
         return new OrgUnitQueryParams.Builder()
             .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
             .withOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
-            .withColumns( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) )
+            .withColumns( DimensionalObjectUtils.asDimensionalObjectList( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) ) )
             .build();
     }
 

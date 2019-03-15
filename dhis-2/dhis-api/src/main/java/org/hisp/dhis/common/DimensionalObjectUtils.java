@@ -414,6 +414,17 @@ public class DimensionalObjectUtils
     }
 
     /**
+     * Returns a list with erasure DimensionalObject based on the given collection.
+     *
+     * @param collection the collection.
+     * @return a list of DimensionalObjects.
+     */
+    public static List<DimensionalObject> asDimensionalObjectList( Collection<? extends DimensionalObject> collection )
+    {
+        return new ArrayList<>( collection );
+    }
+
+    /**
      * Returns a list typed with the desired erasure based on the given collection.
      * This operation implies an unchecked cast and it is the responsibility of
      * the caller to make sure the cast is valid. A copy of the given list will

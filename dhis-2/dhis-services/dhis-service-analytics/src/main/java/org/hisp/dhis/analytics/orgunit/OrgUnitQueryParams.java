@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -56,7 +58,7 @@ public class OrgUnitQueryParams
     /**
      * Organisation unit group sets to use as columns in a table layout.
      */
-    private List<OrganisationUnitGroupSet> columns = new ArrayList<>();
+    private List<DimensionalObject> columns = new ArrayList<>();
 
     /**
      * Organisation unit level to query, set internally.
@@ -77,7 +79,7 @@ public class OrgUnitQueryParams
         return orgUnitGroupSets;
     }
 
-    public List<OrganisationUnitGroupSet> getColumns()
+    public List<DimensionalObject> getColumns()
     {
         return columns;
     }
@@ -85,6 +87,7 @@ public class OrgUnitQueryParams
     public List<DimensionalObject> getRows()
     {
         List<DimensionalObject> rows = new ArrayList<>( orgUnitGroupSets );
+        rows.add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits ) );
         rows.removeAll( columns );
         return rows;
     }
@@ -144,7 +147,7 @@ public class OrgUnitQueryParams
             return this;
         }
 
-        public Builder withColumns( List<OrganisationUnitGroupSet> columns )
+        public Builder withColumns( List<DimensionalObject> columns )
         {
             this.params.columns = columns;
             return this;
