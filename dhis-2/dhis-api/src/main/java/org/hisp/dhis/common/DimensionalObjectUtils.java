@@ -27,6 +27,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -409,6 +410,17 @@ public class DimensionalObjectUtils
      * @return a list of DimensionalItemObjects.
      */
     public static List<DimensionalItemObject> asList( Collection<? extends DimensionalItemObject> collection )
+    {
+        return new ArrayList<>( collection );
+    }
+
+    /**
+     * Returns a list with erasure DimensionalObject based on the given collection.
+     *
+     * @param collection the collection.
+     * @return a list of DimensionalObjects.
+     */
+    public static List<DimensionalObject> asDimensionalObjectList( Collection<? extends DimensionalObject> collection )
     {
         return new ArrayList<>( collection );
     }

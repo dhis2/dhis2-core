@@ -28,7 +28,7 @@ package org.hisp.dhis.analytics.orgunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -36,10 +36,10 @@ import org.hisp.dhis.common.Grid;
 public interface OrgUnitAnalyticsManager
 {
     /**
-     * Adds the org unit distribution for the given parameters to the given grid.
+     * Returns a data map with a composite metadata key and an org unit count
+     * as value for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
-     * @param grid the {@link Grid}.
      */
-    void getOrgUnitDistribution( OrgUnitQueryParams params, Grid grid );
+    Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params );
 }
