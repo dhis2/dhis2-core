@@ -28,22 +28,16 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentityfilter.FilterPeriod;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -52,8 +46,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  *
  */
 @JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageInstanceFilter
-    extends BaseIdentifiableObject implements MetadataObject
+public class ProgramStageInstanceFilter extends BaseIdentifiableObject implements MetadataObject
 {
 
     /**
@@ -65,7 +58,7 @@ public class ProgramStageInstanceFilter
      * Property for filtering events by program
      */
     private Program program;
- 
+
     /**
      * Property for filtering events by programstage
      */
@@ -82,19 +75,10 @@ public class ProgramStageInstanceFilter
     private String description;
 
     /**
-     * Property indicating which event status types to filter
+     * Criteria object representing selected projections, filtering and sorting
+     * criteria in events
      */
-    private EventStatus eventStatus;
-
-    /**
-     * Property to filter events based on event dates
-     */
-    private FilterPeriod eventCreatedPeriod;
-
-    /**
-     * Property to filter events based on data values
-     */
-    private List<EventDataValueFilter> eventDataValueFilters = new ArrayList<>();
+    private EventQueryCriteria eventQueryCriteria;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -121,7 +105,7 @@ public class ProgramStageInstanceFilter
     {
         this.program = program;
     }
-    
+
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -134,9 +118,8 @@ public class ProgramStageInstanceFilter
     {
         this.programStage = programStage;
     }
-    
+
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
@@ -162,39 +145,14 @@ public class ProgramStageInstanceFilter
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventStatus getEventStatus()
+    public EventQueryCriteria getEventQueryCriteria()
     {
-        return eventStatus;
+        return eventQueryCriteria;
     }
 
-    public void setEventStatus( EventStatus eventStatus )
+    public void setEventQueryCriteria( EventQueryCriteria eventQueryCriteria )
     {
-        this.eventStatus = eventStatus;
+        this.eventQueryCriteria = eventQueryCriteria;
     }
 
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FilterPeriod getEventCreatedPeriod()
-    {
-        return eventCreatedPeriod;
-    }
-
-    public void setEventCreatedPeriod( FilterPeriod eventCreatedPeriod )
-    {
-        this.eventCreatedPeriod = eventCreatedPeriod;
-    }
-
-    @JsonProperty( "eventDataValueFilters" )
-    @JacksonXmlElementWrapper( localName = "eventDataValueFilters", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "eventDataValueFilters", namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventDataValueFilter> getEventDataValueFilters()
-    {
-        return eventDataValueFilters;
-    }
-
-    public void setEventDataValueFilters( List<EventDataValueFilter> eventDataValueFilters )
-    {
-        this.eventDataValueFilters = eventDataValueFilters;
-    }
 }

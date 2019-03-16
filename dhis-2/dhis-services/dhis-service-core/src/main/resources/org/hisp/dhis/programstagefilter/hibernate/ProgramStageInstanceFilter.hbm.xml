@@ -31,17 +31,25 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
       column="organisationunitid" foreign-key="fk_programstageinstancefilter_organisationunitid" lazy="false" />
     
-    <property name="eventStatus" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
+    <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
     
-    <property name="eventCreatedPeriod" type="jbFilterPeriod" />
-    
-    <property name="eventDataValueFilters" type="jlbEventDataValueFilter" />
+    <!-- Access properties -->
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageinstancefilter_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="programstageinstancefilterusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageinstancefilterid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="programstageinstancefilteruseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageinstancefilterid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
     
   </class>
 

@@ -29,32 +29,32 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.QueryOperator;
 
-import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * @author Ameen Mohamed <ameen@dhis2.com>
  *
  */
-public class EventDataValueFilter implements Serializable
+public class DatePeriod implements Serializable
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7320308653620948474L;
 
-    private static final long serialVersionUID = 1L;
+    private Date from;
 
-    private String dataElement;
-    
-    private QueryOperator operator;
-    
-    private String value;
+    private Date to;
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public EventDataValueFilter()
+    public DatePeriod()
     {
 
     }
@@ -65,40 +65,26 @@ public class EventDataValueFilter implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDataElement()
+    public Date getFrom()
     {
-        return dataElement;
+        return from;
     }
 
-    public void setDataElement( String dataElement )
+    public void setPeriodFrom( Date from )
     {
-        this.dataElement = dataElement;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public QueryOperator getOperator()
-    {
-        return operator;
-    }
-
-    public void setOperator( QueryOperator operator )
-    {
-        this.operator = operator;
+        this.from = from;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getValue()
+    public Date getTo()
     {
-        return value;
+        return to;
     }
 
-    public void setValue( String value )
+    public void setPeriodTo( Date to )
     {
-        this.value = value;
+        this.to = to;
     }
-    
-    
 
 }
