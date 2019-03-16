@@ -27,6 +27,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -414,6 +415,17 @@ public class DimensionalObjectUtils
     }
 
     /**
+     * Returns a list with erasure DimensionalObject based on the given collection.
+     *
+     * @param collection the collection.
+     * @return a list of DimensionalObjects.
+     */
+    public static List<DimensionalObject> asDimensionalObjectList( Collection<? extends DimensionalObject> collection )
+    {
+        return new ArrayList<>( collection );
+    }
+
+    /**
      * Returns a list typed with the desired erasure based on the given collection.
      * This operation implies an unchecked cast and it is the responsibility of
      * the caller to make sure the cast is valid. A copy of the given list will
@@ -626,12 +638,13 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Sorts the keys in the given map by splitting on the '-' character and
-     * sorting the components alphabetically.
+     * Returns a map with sorted keys. Keys are sorted by splitting on the '-' character
+     * and sorting the components alphabetically.
      *
      * @param valueMap the mapping of keys and values.
+     * @param a map with sorted keys.
      */
-    public static void sortKeys( Map<String, Object> valueMap )
+    public static Map<String, Object> getSortedKeysMap( Map<String, Object> valueMap )
     {
         Map<String, Object> map = new HashMap<>();
 
@@ -645,8 +658,7 @@ public class DimensionalObjectUtils
             }
         }
 
-        valueMap.clear();
-        valueMap.putAll( map );
+        return map;
     }
 
     /**

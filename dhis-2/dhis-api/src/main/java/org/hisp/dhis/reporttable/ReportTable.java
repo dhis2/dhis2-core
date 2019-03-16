@@ -535,9 +535,7 @@ public class ReportTable
      */
     public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
-        valueMap = new HashMap<>( valueMap );
-
-        DimensionalObjectUtils.sortKeys( valueMap );
+        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         // ---------------------------------------------------------------------
         // Title

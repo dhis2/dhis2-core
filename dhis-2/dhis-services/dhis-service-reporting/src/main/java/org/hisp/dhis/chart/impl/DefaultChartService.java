@@ -793,7 +793,7 @@ public class DefaultChartService
 
         SimpleRegression regression = new SimpleRegression();
 
-        DimensionalObjectUtils.sortKeys( valueMap );
+        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
         List<NameableObject> categories = new ArrayList<>( chart.category() );

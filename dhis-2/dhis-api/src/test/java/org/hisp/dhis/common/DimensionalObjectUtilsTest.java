@@ -251,45 +251,40 @@ public class DimensionalObjectUtilsTest
         valueMap.put( "c3-b3-a3", 3d );
         valueMap.put( "a4-b4-c4", 4d );
 
-        DimensionalObjectUtils.sortKeys( valueMap );
+        Map<String, Object> sortedMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
-        assertEquals( 4, valueMap.size() );
-        assertTrue( valueMap.containsKey( "a1-b1-c1" ) );
-        assertTrue( valueMap.containsKey( "a2-b2-c2" ) );
-        assertTrue( valueMap.containsKey( "a3-b3-c3" ) );
-        assertTrue( valueMap.containsKey( "a4-b4-c4" ) );
+        assertEquals( 4, sortedMap.size() );
+        assertTrue( sortedMap.containsKey( "a1-b1-c1" ) );
+        assertTrue( sortedMap.containsKey( "a2-b2-c2" ) );
+        assertTrue( sortedMap.containsKey( "a3-b3-c3" ) );
+        assertTrue( sortedMap.containsKey( "a4-b4-c4" ) );
 
-        Object d1 = 1d;
-        Object d2 = 2d;
-        Object d3 = 3d;
-        Object d4 = 4d;
-
-        assertEquals( d1, valueMap.get( "a1-b1-c1" ) );
-        assertEquals( d2, valueMap.get( "a2-b2-c2" ) );
-        assertEquals( d3, valueMap.get( "a3-b3-c3" ) );
-        assertEquals( d4, valueMap.get( "a4-b4-c4" ) );
+        assertEquals( 1d, sortedMap.get( "a1-b1-c1" ) );
+        assertEquals( 2d, sortedMap.get( "a2-b2-c2" ) );
+        assertEquals( 3d, sortedMap.get( "a3-b3-c3" ) );
+        assertEquals( 4d, sortedMap.get( "a4-b4-c4" ) );
 
         valueMap = new HashMap<>();
 
         valueMap.put( "b1", 1d );
         valueMap.put( "b2", 2d );
 
-        DimensionalObjectUtils.sortKeys( valueMap );
+        sortedMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
-        assertEquals( 2, valueMap.size() );
-        assertTrue( valueMap.containsKey( "b1" ) );
-        assertTrue( valueMap.containsKey( "b2" ) );
+        assertEquals( 2, sortedMap.size() );
+        assertTrue( sortedMap.containsKey( "b1" ) );
+        assertTrue( sortedMap.containsKey( "b2" ) );
 
-        assertEquals( d1, valueMap.get( "b1" ) );
-        assertEquals( d2, valueMap.get( "b2" ) );
+        assertEquals( 1d, sortedMap.get( "b1" ) );
+        assertEquals( 2d, sortedMap.get( "b2" ) );
 
         valueMap = new HashMap<>();
 
         valueMap.put( null, 1d );
 
-        DimensionalObjectUtils.sortKeys( valueMap );
+        sortedMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
-        assertEquals( 0, valueMap.size() );
+        assertEquals( 0, sortedMap.size() );
     }
 
     @Test

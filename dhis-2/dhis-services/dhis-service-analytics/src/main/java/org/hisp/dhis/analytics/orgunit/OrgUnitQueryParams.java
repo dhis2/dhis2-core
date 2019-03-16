@@ -31,6 +31,10 @@ package org.hisp.dhis.analytics.orgunit;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
@@ -41,10 +45,24 @@ import com.google.common.collect.Lists;
  */
 public class OrgUnitQueryParams
 {
+    /**
+     * Organisation units to query.
+     */
     private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
+    /**
+     * Organisation unit group sets to query.
+     */
     private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
 
+    /**
+     * Organisation unit group sets to use as columns in a table layout.
+     */
+    private List<DimensionalObject> columns = new ArrayList<>();
+
+    /**
+     * Organisation unit level to query, set internally.
+     */
     private transient int orgUnitLevel;
 
     private OrgUnitQueryParams()
@@ -61,9 +79,39 @@ public class OrgUnitQueryParams
         return orgUnitGroupSets;
     }
 
+    public List<DimensionalObject> getColumns()
+    {
+        return columns;
+    }
+
+    public List<DimensionalObject> getRows()
+    {
+        List<DimensionalObject> rows = new ArrayList<>();
+        rows.add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits ) );
+        rows.addAll( orgUnitGroupSets );
+        rows.removeAll( columns );
+        return rows;
+    }
+
     public int getOrgUnitLevel()
     {
         return orgUnitLevel;
+    }
+
+    public boolean isTableLayout()
+    {
+        return !columns.isEmpty();
+    }
+
+    @Override
+    public String toString()
+    {
+        return new ToStringBuilder( this )
+            .append( "orgUnits", orgUnits )
+            .append( "orgUnitGroupSets", orgUnitGroupSets )
+            .append( "columns", columns )
+            .append( "isTableLayout", isTableLayout() )
+            .build();
     }
 
     public OrgUnitQueryParams getInstance()
@@ -97,6 +145,12 @@ public class OrgUnitQueryParams
         public Builder withOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
         {
             this.params.orgUnitGroupSets = orgUnitGroupSets;
+            return this;
+        }
+
+        public Builder withColumns( List<DimensionalObject> columns )
+        {
+            this.params.columns = columns;
             return this;
         }
 
