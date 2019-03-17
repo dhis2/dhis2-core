@@ -28,12 +28,12 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -44,20 +44,49 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class EventQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
-
+    
     /**
-     * Property indicating the fields that needs to be part of the response. The
-     * projections of the query.
+     * Property indicating the programstatus for the event filter.
      */
-    private Set<String> fields;
-
+    private ProgramStatus programStatus;
+    
     /**
-     * Property indicating the sort order of fields.
+     * Property indicating the followUp status of the enrollment.
      */
-    private Set<String> sortOrders;
+    private Boolean followUp;
+    
+    /**
+     * Property indicating the OU selection mode for the event filter
+     */
+    private OrganisationUnitSelectionMode orgUnitSelectionMode;
+    
+    /**
+     * Property indicating a specific tei to be used in the event filter.
+     */
+    private String trackedEntityInstance;
+    
+    /**
+     * Property which contains the required field ordering along with its direction (asc/desc)
+     */
+    private String order;
+    
+    /**
+     * Property which contains the required filters to be used when filtering events.
+     */
+    private Set<String> filters;
+    
+    /**
+     * Property which contains the dataElements to be added to the output grid (only for query api)
+     */
+    private Set<String> dataElements;
+    
+    /**
+     * Property indicating the fields that needs to be part of the response. (only for event list api)
+     */
+    private String fields;
 
     /**
-     * Property indicating explicit event uids.
+     * Property indicating explicit event uids to be used when listing events.
      */
     private Set<String> events;
 
@@ -81,10 +110,6 @@ public class EventQueryCriteria implements Serializable
      */
     private DatePeriod lastUpdatedDate;
 
-    /**
-     * Property to filter events based on data values
-     */
-    private List<EventDataValueFilter> eventDataValueFilters = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -136,42 +161,6 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventDataValueFilter> getEventDataValueFilters()
-    {
-        return eventDataValueFilters;
-    }
-
-    public void setEventDataValueFilters( List<EventDataValueFilter> eventDataValueFilters )
-    {
-        this.eventDataValueFilters = eventDataValueFilters;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getFields()
-    {
-        return fields;
-    }
-
-    public void setFields( Set<String> fields )
-    {
-        this.fields = fields;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getSortOrders()
-    {
-        return sortOrders;
-    }
-
-    public void setSortOrders( Set<String> sortOrders )
-    {
-        this.sortOrders = sortOrders;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<String> getEvents()
     {
         return events;
@@ -180,6 +169,102 @@ public class EventQueryCriteria implements Serializable
     public void setEvents( Set<String> events )
     {
         this.events = events;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public void setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getFollowUp()
+    {
+        return followUp;
+    }
+
+    public void setFollowUp( Boolean followUp )
+    {
+        this.followUp = followUp;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitSelectionMode getOrgUnitSelectionMode()
+    {
+        return orgUnitSelectionMode;
+    }
+
+    public void setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
+    {
+        this.orgUnitSelectionMode = orgUnitSelectionMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTrackedEntityInstance()
+    {
+        return trackedEntityInstance;
+    }
+
+    public void setTrackedEntityInstance( String trackedEntityInstance )
+    {
+        this.trackedEntityInstance = trackedEntityInstance;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrder()
+    {
+        return order;
+    }
+
+    public void setOrder( String order )
+    {
+        this.order = order;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getFilters()
+    {
+        return filters;
+    }
+
+    public void setFilters( Set<String> filters )
+    {
+        this.filters = filters;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getDataElements()
+    {
+        return dataElements;
+    }
+
+    public void setDataElements( Set<String> dataElements )
+    {
+        this.dataElements = dataElements;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFields()
+    {
+        return fields;
+    }
+
+    public void setFields( String fields )
+    {
+        this.fields = fields;
     }
 
 }
