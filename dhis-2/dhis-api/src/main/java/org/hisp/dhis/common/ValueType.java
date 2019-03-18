@@ -71,26 +71,26 @@ public enum ValueType
     FILE_RESOURCE( String.class, false ),
     IMAGE( String.class, false);
 
-    public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
-        INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ).build();
+    public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
+        INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
 
-    public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.<ValueType>builder().add(
-        NUMBER, UNIT_INTERVAL, PERCENTAGE ).build();
+    public static final Set<ValueType> DECIMAL_TYPES =ImmutableSet.of(
+        NUMBER, UNIT_INTERVAL, PERCENTAGE );
 
-    public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.<ValueType>builder().add(
-        BOOLEAN, TRUE_ONLY ).build();
+    public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.of(
+        BOOLEAN, TRUE_ONLY );
 
-    public static final Set<ValueType> TEXT_TYPES = ImmutableSet.<ValueType>builder().add(
-        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL ).build();
+    public static final Set<ValueType> TEXT_TYPES = ImmutableSet.of(
+        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
-    public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
-        DATE, DATETIME, AGE ).build();
+    public static final Set<ValueType> DATE_TYPES = ImmutableSet.of(
+        DATE, DATETIME, AGE );
 
-    public static final Set<ValueType> FILE_TYPES = ImmutableSet.<ValueType>builder().add(
-        FILE_RESOURCE, IMAGE ).build();
+    public static final Set<ValueType> FILE_TYPES = ImmutableSet.of(
+        FILE_RESOURCE, IMAGE );
 
-    public static final Set<ValueType> GEO_TYPES = ImmutableSet.<ValueType>builder().add(
-        COORDINATE ).build();
+    public static final Set<ValueType> GEO_TYPES = ImmutableSet.of(
+        COORDINATE );
 
     public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType>builder().addAll(
         INTEGER_TYPES ).addAll( DECIMAL_TYPES ).build();
@@ -167,5 +167,49 @@ public enum ValueType
     public boolean isAggregateable()
     {
         return aggregateable;
+    }
+
+    /**
+     * Returns a simplified value type. As an example, if the value type is
+     * any numeric type such as integer, percentage, then {@link ValueType#NUMBER}
+     * is returned. Can return any of:
+     *
+     * <ul>
+     * <li>{@link ValueType#NUMBER} for any numeric types.</li>
+     * <li>{@link ValueType#BOOLEAN} for any boolean types.</li>
+     * <li>{@link ValueType#DATE} for any date / time types.</li>
+     * <li>{@link ValueType#FILE_RESOURCE} for any file types.</li>
+     * <li>{@link ValueType#COORDINATE} for any geometry types.</li>
+     * <li>{@link ValueType#TEXT} for any textual types.</li>
+     * </ul>
+     *
+     * @return a simplified value type.
+     */
+    public ValueType asSimplifiedValueType()
+    {
+        if ( isNumeric() )
+        {
+            return ValueType.NUMBER;
+        }
+        else if ( isBoolean() )
+        {
+            return ValueType.BOOLEAN;
+        }
+        else if ( isDate() )
+        {
+            return ValueType.DATE;
+        }
+        else if ( isFile() )
+        {
+            return ValueType.FILE_RESOURCE;
+        }
+        else if ( isGeo() )
+        {
+            return ValueType.COORDINATE;
+        }
+        else
+        {
+            return ValueType.TEXT;
+        }
     }
 }
