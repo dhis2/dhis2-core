@@ -28,9 +28,11 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.jsmpp.session.SMPPSession;
 
 import java.util.List;
 import java.util.Set;
@@ -40,10 +42,15 @@ import java.util.Set;
  */
 public class SMPPGateway extends SmsGateway
 {
+    private static final Log log = LogFactory.getLog( SMPPGateway.class );
+
+    private static final String SESSION_ERROR = "SMPP Session cannot be null";
+    private static final String SENDING_FAILED = "SMS sending failed";
+
     @Override
-    protected List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        SMPPSession smppSession = getSMPPSession( gatewayConfig );
+        SMPPClient smppClient = getSMPPClient( gatewayConfig );
         return null;
     }
 
@@ -54,19 +61,50 @@ public class SMPPGateway extends SmsGateway
     }
 
     @Override
-    protected OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
     {
-        SMPPSession smppSession = getSMPPSession( gatewayConfig );
+        SMPPClient smppClient = getSMPPClient( gatewayConfig );
 
-        return null;
+        OutboundMessageResponse response = new OutboundMessageResponse();
+
+        String messageId = null;
+
+        if ( smppClient != null )
+        {
+            smppClient.startSMPPSession();
+
+            messageId = smppClient.send( text, StringUtils.join( recipients, "," ) );
+
+            if ( messageId != null )
+            {
+                response.setOk( true );
+                response.setDescription( messageId );
+            }
+            else
+            {
+                response.setOk( false );
+                response.setDescription( SENDING_FAILED );
+            }
+
+            return response;
+        }
+
+        response.setOk( false );
+        response.setDescription( SESSION_ERROR );
+
+        return response;
     }
 
-    private SMPPSession getSMPPSession( SmsGatewayConfig gatewayConfig )
+    private SMPPClient getSMPPClient( SmsGatewayConfig gatewayConfig )
     {
+        if ( gatewayConfig == null )
+        {
+            log.error( "Gateway cannot be null" );
+            return null;
+        }
+
         SMPPGatewayConfig smppGatewayConfig = (SMPPGatewayConfig) gatewayConfig;
 
-        SMPPInitializer smppInitializer = new SMPPInitializer( smppGatewayConfig );
-
-        return smppInitializer.startSMPPSession();
+        return new SMPPClient( smppGatewayConfig );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.sms;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,56 +28,22 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jsmpp.bean.BindType;
-import org.jsmpp.bean.NumberingPlanIndicator;
-import org.jsmpp.bean.TypeOfNumber;
-import org.jsmpp.session.BindParameter;
-import org.jsmpp.session.SMPPSession;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.junit.Ignore;
 
-import java.io.IOException;
+
+/**
+ * To run this test, ensure that the SMSC is running on:
+ * host:     localhost
+ * port:     2775
+ * user:     smppclient1
+ * password: password
+ */
 
 /**
  * @Author Zubair Asghar.
  */
-
-public class SMPPInitializer
+@Ignore( "Must be manually tested" )
+public class SMPPGatewayTest extends DhisConvenienceTest
 {
-    private static final Log LOGGER = LogFactory.getLog( SMPPInitializer.class );
-
-    private SMPPGatewayConfig config;
-
-    private SMPPSession smppSession;
-
-    public SMPPInitializer( SMPPGatewayConfig smsGatewayConfig )
-    {
-        this.config = smsGatewayConfig;
-    }
-
-    public SMPPSession startSMPPSession()
-    {
-        if ( smppSession != null )
-        {
-            return smppSession;
-        }
-
-        smppSession = new SMPPSession();
-
-        String systemId = null;
-        try
-        {
-            systemId = smppSession.connectAndBind( config.getHost(), config.getPort(), new BindParameter(BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
-                TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null ) );
-
-            LOGGER.info(String.format( "Connected with SMPP with system id %s", systemId ) );
-        }
-        catch (IOException e)
-        {
-            LOGGER.error("I/O error occured", e);
-            smppSession = null;
-        }
-
-        return smppSession;
-    }
 }
