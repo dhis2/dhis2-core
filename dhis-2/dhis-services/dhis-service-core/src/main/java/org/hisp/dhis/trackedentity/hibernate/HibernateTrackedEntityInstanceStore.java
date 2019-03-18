@@ -263,11 +263,11 @@ public class HibernateTrackedEntityInstanceStore
         {
             QueryFilter queryFilter = params.getQuery();
 
-            String filter = queryFilter.getSqlFilter( queryFilter.getFilter() );
+            String encodedFilter = queryFilter.getSqlFilter( statementBuilder.encode( queryFilter.getFilter(), false ) );
 
             hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
 
-            hql += " and teav.plainValue " + queryFilter.getSqlOperator() + filter + ")";
+            hql += " and teav.plainValue " + queryFilter.getSqlOperator() + encodedFilter + ")";
         }
 
         if ( params.hasFilters() )
@@ -276,7 +276,7 @@ public class HibernateTrackedEntityInstanceStore
             {
                 for ( QueryFilter queryFilter : queryItem.getFilters() )
                 {
-                    String filter = queryFilter.getSqlFilter( StringUtils.lowerCase( queryFilter.getFilter() ) );
+                    String encodedFilter = queryFilter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( queryFilter.getFilter() ), false ) );
 
                     hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
 
@@ -284,11 +284,11 @@ public class HibernateTrackedEntityInstanceStore
 
                     if ( queryItem.isNumeric() )
                     {
-                        hql += " and teav.plainValue " + queryFilter.getSqlOperator() + filter + ")";
+                        hql += " and teav.plainValue " + queryFilter.getSqlOperator() + encodedFilter + ")";
                     }
                     else
                     {
-                        hql += " and lower(teav.plainValue) " + queryFilter.getSqlOperator() + filter + ")";
+                        hql += " and lower(teav.plainValue) " + queryFilter.getSqlOperator() + encodedFilter + ")";
                     }
                 }
             }
