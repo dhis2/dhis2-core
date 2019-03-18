@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.config;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.jsmpp.session.SMPPSession;
 
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,7 @@ public class SMPPGateway extends SmsGateway
     @Override
     protected List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
+        SMPPSession smppSession = getSMPPSession( gatewayConfig );
         return null;
     }
 
@@ -54,6 +56,17 @@ public class SMPPGateway extends SmsGateway
     @Override
     protected OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
     {
+        SMPPSession smppSession = getSMPPSession( gatewayConfig );
+
         return null;
+    }
+
+    private SMPPSession getSMPPSession( SmsGatewayConfig gatewayConfig )
+    {
+        SMPPGatewayConfig smppGatewayConfig = (SMPPGatewayConfig) gatewayConfig;
+
+        SMPPInitializer smppInitializer = new SMPPInitializer( smppGatewayConfig );
+
+        return smppInitializer.startSMPPSession();
     }
 }

@@ -145,9 +145,9 @@
       <artifactId>aws-s3</artifactId>
     </dependency>
 
-    <!-- SMS -->
+    <!-- SMPP -->
     <dependency>
-      <groupId>com.googlecode.jsmpp</groupId>
+      <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
     </dependency>
     <dependency>

@@ -105,6 +105,12 @@
       <artifactId>gt-opengis</artifactId>
     </dependency>
 
+    <!-- SMPP -->
+    <dependency>
+      <groupId>org.jsmpp</groupId>
+      <artifactId>jsmpp</artifactId>
+    </dependency>
+
     <!-- Test -->
 
     <dependency>

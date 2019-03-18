@@ -28,24 +28,23 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @Author Zubair Asghar.
  */
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
-    private String systemId;
+    private String systemType;
     private int port;
 
+    @JsonProperty( value = "systemId" )
     public String getSystemId()
     {
-        return systemId;
+        return getUsername();
     }
 
-    public void setSystemId( String systemId )
-    {
-        this.systemId = systemId;
-    }
-
+    @JsonProperty
     public int getPort()
     {
         return port;
@@ -54,5 +53,22 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
     public void setPort( int port )
     {
         this.port = port;
+    }
+
+    @JsonProperty
+    public String getSystemType()
+    {
+        return systemType;
+    }
+
+    public void setSystemType( String systemType )
+    {
+        this.systemType = systemType;
+    }
+
+    @JsonProperty( value = "host" )
+    public String getHost()
+    {
+        return getUrlTemplate();
     }
 }
